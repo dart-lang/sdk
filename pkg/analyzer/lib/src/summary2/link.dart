@@ -2,140 +2,193 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/ast_binary_writer.dart';
-import 'package:analyzer/src/summary2/builder/library_builder.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 LinkResult link(
-  Reference rootReference,
+  AnalysisOptions analysisOptions,
+  SourceFactory sourceFactory,
+  List<LinkedNodeBundle> inputs,
   Map<Source, Map<Source, CompilationUnit>> unitMap,
 ) {
-  var linker = Linker(rootReference);
-  linker.link(unitMap);
-  return LinkResult(linker.references, linker.libraryResults);
-}
-
-class LibraryLinkResult {
-  final Source source;
-  final Map<Source, UnitLinkResult> units;
-
-  LibraryLinkResult(this.source, this.units);
+  var linker = Linker(analysisOptions, sourceFactory);
+  linker.link(inputs, unitMap);
+  return LinkResult(linker.linkingBundle);
 }
 
 class Linker {
-  final Reference rootReference;
+  final Reference rootReference = Reference.root();
+  LinkedElementFactory elementFactory;
 
-  /// References used in all libraries being linked.
-  /// Element references in [LinkedNode]s are indexes in this list.
-  final List<Reference> references = [null];
+  LinkingBundleContext linkingBundleContext;
+  List<LinkedNodeLibraryBuilder> linkingLibraries = [];
+  LinkedNodeBundleBuilder linkingBundle;
+  LinkedBundleContext bundleContext;
 
-  /// The output results.
-  var libraryResults = <Source, LibraryLinkResult>{};
+  /// Libraries that are being linked.
+  final Map<Uri, SourceLibraryBuilder> builders = {};
 
-  /// Libraries that are being linked, or are already linked.
-  final Map<Uri, LibraryBuilder> builders = {};
+  _AnalysisContextForLinking analysisContext;
+  TypeProvider typeProvider;
+  Dart2TypeSystem typeSystem;
+  InheritanceManager2 inheritance;
 
-  Linker(this.rootReference);
+  Linker(AnalysisOptions analysisOptions, SourceFactory sourceFactory) {
+    var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
+    dynamicRef.element = DynamicElementImpl.instance;
 
-  void addBuilder(LibraryBuilder builder) {
-    builders[builder.uri] = builder;
+    linkingBundleContext = LinkingBundleContext(dynamicRef);
+
+    analysisContext = _AnalysisContextForLinking(
+      analysisOptions,
+      sourceFactory,
+    );
+
+    elementFactory = LinkedElementFactory(
+      analysisContext,
+      _AnalysisSessionForLinking(),
+      rootReference,
+    );
+
+    linkingBundle = LinkedNodeBundleBuilder(
+      references: linkingBundleContext.referencesBuilder,
+      libraries: linkingLibraries,
+    );
+
+    bundleContext = LinkedBundleContext(
+      elementFactory,
+      linkingBundle.references,
+    );
   }
 
-  void addSyntheticConstructors() {
+  void link(List<LinkedNodeBundle> inputs,
+      Map<Source, Map<Source, CompilationUnit>> unitMap) {
+    for (var input in inputs) {
+      elementFactory.addBundle(input);
+    }
+
+    for (var librarySource in unitMap.keys) {
+      SourceLibraryBuilder.build(this, librarySource, unitMap[librarySource]);
+    }
+
+    // Add libraries being linked, so we can ask for their elements as well.
+    elementFactory.addBundle(linkingBundle, context: bundleContext);
+
+    _buildOutlines();
+  }
+
+  void _addSyntheticConstructors() {
     for (var library in builders.values) {
-      if (library is SourceLibraryBuilder) {
-        library.addSyntheticConstructors();
-      }
+      library.addSyntheticConstructors();
     }
   }
 
-  void buildOutlines() {
-    computeLibraryScopes();
-    resolveTypes();
-    addSyntheticConstructors();
+  void _buildOutlines() {
+    _computeLibraryScopes();
+    _addSyntheticConstructors();
+    _createTypeSystem();
+    _resolveTypes();
+    _performTopLevelInference();
+    _resolveMetadata();
   }
 
-  void computeLibraryScopes() {
-    for (var uri in builders.keys) {
-      var library = builders[uri];
+  void _computeLibraryScopes() {
+    for (var library in builders.values) {
+      library.addLocalDeclarations();
+    }
+
+    for (var library in builders.values) {
       library.buildInitialExportScope();
+    }
+
+    for (var library in builders.values) {
+      library.addImportsToScope();
+    }
+
+    for (var library in builders.values) {
+      library.storeExportScope();
     }
 
     // TODO(scheglov) process imports and exports
   }
 
-  void link(Map<Source, Map<Source, CompilationUnit>> unitMap) {
-    var linkedBundleContext = LinkedBundleContext(references);
-    for (var librarySource in unitMap.keys) {
-      var libraryUriStr = librarySource.uri.toString();
-      var libraryReference = rootReference.getChild(libraryUriStr);
+  void _createTypeSystem() {
+    var coreRef = rootReference.getChild('dart:core');
+    var coreLib = elementFactory.elementOfReference(coreRef);
+    typeProvider = SummaryTypeProvider()..initializeCore(coreLib);
+    analysisContext.typeProvider = typeProvider;
 
-      var unitResults = <Source, UnitLinkResult>{};
-      libraryResults[librarySource] = LibraryLinkResult(
-        librarySource,
-        unitResults,
-      );
+    typeSystem = Dart2TypeSystem(typeProvider);
+    analysisContext.typeSystem = typeSystem;
 
-      var libraryBuilder = SourceLibraryBuilder(
-        this,
-        linkedBundleContext,
-        librarySource.uri,
-        libraryReference,
-      );
-      addBuilder(libraryBuilder);
-
-      var libraryUnits = unitMap[librarySource];
-      for (var unitSource in libraryUnits.keys) {
-        var unit = libraryUnits[unitSource];
-
-        var writer = AstBinaryWriter();
-        var unitData = writer.writeNode(unit);
-
-        var unitLinkResult = UnitLinkResult(writer.tokens, unitData);
-        unitResults[unitSource] = unitLinkResult;
-
-        var linkedUnitContext = LinkedUnitContext(
-          linkedBundleContext,
-          writer.tokens,
-        );
-        libraryBuilder.addUnit(linkedUnitContext, unitData);
-      }
-
-      libraryBuilder.addLocalDeclarations();
-    }
-
-    buildOutlines();
+    inheritance = InheritanceManager2(typeSystem);
   }
 
-  void resolveTypes() {
-    for (var uri in builders.keys) {
-      var library = builders[uri];
-      if (library is SourceLibraryBuilder) {
-        library.resolveTypes();
-      }
+  void _performTopLevelInference() {
+    for (var library in builders.values) {
+      library.performTopLevelInference();
+    }
+  }
+
+  void _resolveMetadata() {
+    for (var library in builders.values) {
+      library.resolveMetadata();
+    }
+  }
+
+  void _resolveTypes() {
+    for (var library in builders.values) {
+      library.resolveTypes();
     }
   }
 }
 
 class LinkResult {
-  /// Element references in [LinkedNode]s are indexes in this list.
-  final List<Reference> references;
+  final LinkedNodeBundleBuilder bundle;
 
-  final Map<Source, LibraryLinkResult> libraries;
-
-  LinkResult(this.references, this.libraries);
+  LinkResult(this.bundle);
 }
 
-class UnitLinkResult {
-  final UnlinkedTokensBuilder tokens;
-  final LinkedNodeBuilder node;
+class _AnalysisContextForLinking implements InternalAnalysisContext {
+  @override
+  final AnalysisOptions analysisOptions;
 
-  UnitLinkResult(this.tokens, this.node);
+  @override
+  final SourceFactory sourceFactory;
+
+  @override
+  TypeProvider typeProvider;
+
+  @override
+  TypeSystem typeSystem;
+
+  _AnalysisContextForLinking(this.analysisOptions, this.sourceFactory);
+
+  @override
+  Namespace getPublicNamespace(LibraryElement library) {
+    // TODO(scheglov) Not sure if this method of AnalysisContext is useful.
+    var builder = new NamespaceBuilder();
+    return builder.createPublicNamespaceForLibrary(library);
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _AnalysisSessionForLinking implements AnalysisSession {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

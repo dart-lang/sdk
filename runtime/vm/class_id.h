@@ -66,6 +66,7 @@ namespace dart {
   V(Float64x2)                                                                 \
   V(TypedData)                                                                 \
   V(ExternalTypedData)                                                         \
+  V(TypedDataView)                                                             \
   V(Pointer)                                                                   \
   V(DynamicLibrary)                                                            \
   V(Capability)                                                                \

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F.y' is 'A', which does not match the return type of the overridden method, 'B'.
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F.y' is 'A', which does not match the return type, 'B', of the overridden method, 'D.y'.
 //  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
 // Change to a subtype of 'B'.
@@ -12,7 +12,7 @@ library;
 //   get y => null; // Inferred type: B
 //       ^
 //
-// pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F.x' has type 'B', which does not match the corresponding type in the overridden method, 'A'.
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F.x' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'D.x'.
 //  - 'B' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/override_check_accessor_after_inference.dart'.
 // Change to a supertype of 'A', or, for a covariant parameter, a subtype.

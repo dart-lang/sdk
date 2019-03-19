@@ -1256,7 +1256,7 @@ class Class : public Object {
   // Allocate the raw TypedData classes.
   static RawClass* NewTypedDataClass(intptr_t class_id);
 
-  // Allocate the raw TypedDataView classes.
+  // Allocate the raw TypedDataView/ByteDataView classes.
   static RawClass* NewTypedDataViewClass(intptr_t class_id);
 
   // Allocate the raw ExternalTypedData classes.
@@ -1978,6 +1978,14 @@ class Function : public Object {
   // Update the signature type (with a canonical version).
   void SetSignatureType(const Type& value) const;
 
+  // Set the "C signature" function for an FFI trampoline.
+  // Can only be used on FFI trampolines.
+  void SetFfiCSignature(const Function& sig) const;
+
+  // Retrieves the "C signature" function for an FFI trampoline.
+  // Can only be used on FFI trampolines.
+  RawFunction* FfiCSignature() const;
+
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -2185,7 +2193,7 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
-  bool IsDynamicInvocationForwader() const {
+  bool IsDynamicInvocationForwarder() const {
     return kind() == RawFunction::kDynamicInvocationForwarder;
   }
 
@@ -2244,6 +2252,13 @@ class Function : public Object {
   bool IsFactory() const {
     return (kind() == RawFunction::kConstructor) && is_static();
   }
+
+  // Whether this function can receive an invocation where the number and names
+  // of arguments have not been checked.
+  bool CanReceiveDynamicInvocation() const {
+    return IsClosureFunction() || IsFfiTrampoline();
+  }
+
   bool IsDynamicFunction(bool allow_abstract = false) const {
     if (is_static() || (!allow_abstract && is_abstract())) {
       return false;
@@ -2419,6 +2434,13 @@ class Function : public Object {
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
+
+  // Whether this function must be optimized immediately and cannot be compiled
+  // with the unoptimizing compiler. Such a function must be sure to not
+  // deoptimize, since we won't generate deoptimization info or register
+  // dependencies. It will be compiled into optimized code immediately when it's
+  // run.
+  bool ForceOptimize() const { return IsFfiTrampoline(); }
 
   bool CanBeInlined() const;
 
@@ -2655,7 +2677,7 @@ class Function : public Object {
   RawFunction* CreateMethodExtractor(const String& getter_name) const;
   RawFunction* GetMethodExtractor(const String& getter_name) const;
 
-  static bool IsDynamicInvocationForwaderName(const String& name);
+  static bool IsDynamicInvocationForwarderName(const String& name);
 
   static RawString* DemangleDynamicInvocationForwarderName(const String& name);
 
@@ -2989,6 +3011,9 @@ class FfiTrampolineData : public Object {
   RawType* signature_type() const { return raw_ptr()->signature_type_; }
   void set_signature_type(const Type& value) const;
 
+  RawFunction* c_signature() const { return raw_ptr()->c_signature_; }
+  void set_c_signature(const Function& value) const;
+
   static RawFfiTrampolineData* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData, Object);
@@ -3055,6 +3080,21 @@ class Field : public Object {
     set_kind_bits(HasPragmaBit::update(value, raw_ptr()->kind_bits_));
   }
 
+  bool is_covariant() const {
+    return CovariantBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_covariant(bool value) const {
+    set_kind_bits(CovariantBit::update(value, raw_ptr()->kind_bits_));
+  }
+
+  bool is_generic_covariant_impl() const {
+    return GenericCovariantImplBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_generic_covariant_impl(bool value) const {
+    set_kind_bits(
+        GenericCovariantImplBit::update(value, raw_ptr()->kind_bits_));
+  }
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
@@ -3072,11 +3112,6 @@ class Field : public Object {
   RawExternalTypedData* KernelData() const;
 
   intptr_t KernelDataProgramOffset() const;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void GetCovarianceAttributes(bool* is_covariant,
-                               bool* is_generic_covariant) const;
-#endif
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -3301,6 +3336,7 @@ class Field : public Object {
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
+  friend class Interpreter;              // Access to bit field.
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -3313,6 +3349,8 @@ class Field : public Object {
     kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
     kHasPragmaBit,
+    kCovariantBit,
+    kGenericCovariantImplBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -3330,6 +3368,9 @@ class Field : public Object {
                         kInitializerChangedAfterInitializatonBit,
                         1> {};
   class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
+  class CovariantBit : public BitField<uint16_t, bool, kCovariantBit, 1> {};
+  class GenericCovariantImplBit
+      : public BitField<uint16_t, bool, kGenericCovariantImplBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -4651,6 +4692,7 @@ class ExceptionHandlers : public Object {
 
 class Code : public Object {
  public:
+  // When dual mapping, this returns the executable view.
   RawInstructions* active_instructions() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -4660,6 +4702,7 @@ class Code : public Object {
 #endif
   }
 
+  // When dual mapping, these return the executable view.
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
   static RawInstructions* InstructionsOf(const RawCode* code) {
     return code->ptr()->instructions_;
@@ -5140,6 +5183,7 @@ class Code : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
+  friend class CodeTestHelper;
   friend class SnapshotWriter;
   friend class StubCode;     // for set_object_pool
   friend class Precompiler;  // for set_object_pool
@@ -8177,13 +8221,9 @@ class TypedData : public Instance {
 
   static intptr_t length_offset() { return OFFSET_OF(RawTypedData, length_); }
 
-  static intptr_t data_offset() {
-    return OFFSET_OF_RETURNED_VALUE(RawTypedData, data);
-  }
+  static intptr_t data_offset() { return OFFSET_OF(RawTypedData, data_); }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTypedData) ==
-           OFFSET_OF_RETURNED_VALUE(RawTypedData, data));
     return 0;
   }
 
@@ -8274,6 +8314,13 @@ class TypedData : public Instance {
   void SetLength(intptr_t value) const {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
+
+  void SetData(uint8_t* data) const {
+    ASSERT(Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
+    StoreNonPointer(&raw_ptr()->data_, data);
+  }
+
+  void ResetData() { raw()->ResetData(); }
 
  private:
   // Provides const access to non-pointer, non-aligned data within the object.
@@ -8419,49 +8466,55 @@ class ExternalTypedData : public Instance {
   friend class Class;
 };
 
-class TypedDataView : public AllStatic {
+class TypedDataView : public Instance {
  public:
-  static intptr_t ElementSizeInBytes(const Instance& view_obj) {
+  static RawTypedDataView* New(intptr_t class_id,
+                               Heap::Space space = Heap::kNew);
+  static RawTypedDataView* New(intptr_t class_id,
+                               const Instance& typed_data,
+                               intptr_t offset_in_bytes,
+                               intptr_t length,
+                               Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawTypedDataView));
+  }
+
+  static intptr_t ElementSizeInBytes(const TypedDataView& view_obj) {
     ASSERT(!view_obj.IsNull());
     intptr_t cid = view_obj.raw()->GetClassId();
     return ElementSizeInBytes(cid);
   }
 
-  static RawInstance* Data(const Instance& view_obj) {
-    ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawInstance* const*>(view_obj.raw_ptr() +
-                                                  kDataOffset);
+  static RawInstance* Data(const TypedDataView& view) {
+    return view.typed_data();
   }
 
-  static RawSmi* OffsetInBytes(const Instance& view_obj) {
-    ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawSmi* const*>(view_obj.raw_ptr() +
-                                             kOffsetInBytesOffset);
+  static RawSmi* OffsetInBytes(const TypedDataView& view) {
+    return view.offset_in_bytes();
   }
 
-  static RawSmi* Length(const Instance& view_obj) {
-    ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawSmi* const*>(view_obj.raw_ptr() +
-                                             kLengthOffset);
-  }
+  static RawSmi* Length(const TypedDataView& view) { return view.length(); }
 
-  static bool IsExternalTypedDataView(const Instance& view_obj) {
-    const Instance& data = Instance::Handle(Data(view_obj));
+  static bool IsExternalTypedDataView(const TypedDataView& view_obj) {
+    const auto& data = Instance::Handle(Data(view_obj));
     intptr_t cid = data.raw()->GetClassId();
     ASSERT(RawObject::IsTypedDataClassId(cid) ||
            RawObject::IsExternalTypedDataClassId(cid));
     return RawObject::IsExternalTypedDataClassId(cid);
   }
 
-  static intptr_t NumberOfFields() { return kLengthOffset; }
-
-  static intptr_t data_offset() { return kWordSize * kDataOffset; }
-
-  static intptr_t offset_in_bytes_offset() {
-    return kWordSize * kOffsetInBytesOffset;
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawTypedDataView, typed_data_);
   }
 
-  static intptr_t length_offset() { return kWordSize * kLengthOffset; }
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawTypedDataView, length_);
+  }
+
+  static intptr_t offset_in_bytes_offset() {
+    return OFFSET_OF(RawTypedDataView, offset_in_bytes_);
+  }
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
@@ -8470,12 +8523,34 @@ class TypedDataView : public AllStatic {
                : TypedData::element_size(class_id - kTypedDataInt8ArrayViewCid);
   }
 
+  RawInstance* typed_data() const { return raw_ptr()->typed_data_; }
+
+  void set_typed_data(const Instance& typed_data) {
+    const classid_t cid = typed_data.GetClassId();
+    ASSERT(RawObject::IsTypedDataClassId(cid) ||
+           RawObject::IsExternalTypedDataClassId(cid));
+    StorePointer(&raw_ptr()->typed_data_, typed_data.raw());
+  }
+
+  void set_length(intptr_t value) {
+    StorePointer(&raw_ptr()->length_, Smi::New(value));
+  }
+
+  void set_offset_in_bytes(intptr_t value) {
+    StorePointer(&raw_ptr()->offset_in_bytes_, Smi::New(value));
+  }
+
+  RawSmi* offset_in_bytes() const { return raw_ptr()->offset_in_bytes_; }
+
+  RawSmi* length() const { return raw_ptr()->length_; }
+
  private:
-  enum {
-    kDataOffset = 1,
-    kOffsetInBytesOffset = 2,
-    kLengthOffset = 3,
-  };
+  void clear_typed_data() {
+    StorePointer(&raw_ptr()->typed_data_, Instance::RawCast(Object::null()));
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, Instance);
+  friend class Class;
 };
 
 class ByteBuffer : public AllStatic {
@@ -9140,8 +9215,12 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
     Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-    ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
-           vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
+    uword addr = RawObject::ToAddr(raw_);
+    if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
+      ASSERT(FLAG_write_protect_code);
+      addr = RawObject::ToAddr(HeapPage::ToWritable(raw_));
+      ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
+    }
   }
 #endif
 }

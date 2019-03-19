@@ -138,6 +138,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   /// Serializes this [KernelToLocalsMapImpl] to [sink].
+  @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeMember(currentMember);
@@ -187,6 +188,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     }
   }
 
+  @override
   MemberEntity get currentMember => _currentMember;
 
   Local getLocalByIndex(int index) {
@@ -451,11 +453,16 @@ class JJumpTarget extends JumpTarget {
   static const String tag = 'jump-target';
 
   final MemberEntity memberContext;
+  @override
   final int nestingLevel;
   List<LabelDefinition> _labels;
+  @override
   final bool isSwitch;
+  @override
   final bool isSwitchCase;
+  @override
   bool isBreakTarget;
+  @override
   bool isContinueTarget;
 
   JJumpTarget(this.memberContext, this.nestingLevel,
@@ -527,6 +534,7 @@ class JJumpTarget extends JumpTarget {
     return _labels ?? const <LabelDefinition>[];
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('JJumpTarget(');
@@ -548,9 +556,13 @@ class JJumpTarget extends JumpTarget {
 }
 
 class JLabelDefinition extends LabelDefinition {
+  @override
   final JumpTarget target;
+  @override
   final String labelName;
+  @override
   bool isBreakTarget;
+  @override
   bool isContinueTarget;
 
   JLabelDefinition(this.target, this.labelName,
@@ -558,6 +570,7 @@ class JLabelDefinition extends LabelDefinition {
 
   @override
   String get name => labelName;
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('JLabelDefinition(');
@@ -573,6 +586,7 @@ class JLabelDefinition extends LabelDefinition {
 }
 
 class JLocal extends IndexedLocal {
+  @override
   final String name;
   final MemberEntity memberContext;
 
@@ -585,6 +599,7 @@ class JLocal extends IndexedLocal {
 
   String get _kind => 'local';
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('$_kind(');

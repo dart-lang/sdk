@@ -179,7 +179,7 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort recompileCalled = new ReceivePort();
 
-      when(compiler.recompileDelta(filename: null))
+      when(compiler.recompileDelta(entryPoint: null))
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
@@ -195,7 +195,7 @@ Future<int> main() async {
       verifyInOrder(<void>[
         compiler.invalidate(Uri.base.resolve('file1.dart')),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
-        await compiler.recompileDelta(filename: null),
+        await compiler.recompileDelta(entryPoint: null),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
@@ -207,7 +207,7 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort recompileCalled = new ReceivePort();
 
-      when(compiler.recompileDelta(filename: 'file2.dart'))
+      when(compiler.recompileDelta(entryPoint: 'file2.dart'))
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
@@ -223,7 +223,7 @@ Future<int> main() async {
       verifyInOrder(<void>[
         compiler.invalidate(Uri.base.resolve('file1.dart')),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
-        await compiler.recompileDelta(filename: 'file2.dart'),
+        await compiler.recompileDelta(entryPoint: 'file2.dart'),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
@@ -274,7 +274,7 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort recompileCalled = new ReceivePort();
 
-      when(compiler.recompileDelta(filename: null))
+      when(compiler.recompileDelta(entryPoint: null))
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
@@ -295,7 +295,7 @@ Future<int> main() async {
         compiler.acceptLastDelta(),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
         compiler.invalidate(Uri.base.resolve('file3.dart')),
-        await compiler.recompileDelta(filename: null),
+        await compiler.recompileDelta(entryPoint: null),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
@@ -426,41 +426,25 @@ Future<int> main() async {
       final StreamController<List<int>> stdoutStreamController =
           new StreamController<List<int>>();
       final IOSink ioSink = new IOSink(stdoutStreamController.sink);
-      StreamController<String> receivedResults = new StreamController<String>();
-
-      String boundaryKey;
+      StreamController<Result> receivedResults = new StreamController<Result>();
+      final outputParser = new OutputParser(receivedResults);
       stdoutStreamController.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((String s) {
-        const String RESULT_OUTPUT_SPACE = 'result ';
-        if (boundaryKey == null) {
-          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
-          }
-        } else {
-          if (s.startsWith(boundaryKey)) {
-            receivedResults.add(s.length > boundaryKey.length
-                ? s.substring(boundaryKey.length + 1)
-                : null);
-            boundaryKey = null;
-          }
-        }
-      });
+          .listen(outputParser.listener);
 
       Future<int> result =
           starter(args, input: streamController.stream, output: ioSink);
       streamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
-      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
-          CompilationResult result =
-              new CompilationResult.parse(outputFilenameAndErrorCount);
-
+          expect(result.errorsCount, equals(0));
           expect(dillFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
-          expect(result.errorsCount, equals(0));
           streamController.add('accept\n'.codeUnits);
 
           // 'compile-expression <boundarykey>
@@ -474,26 +458,25 @@ Future<int> main() async {
           // <libraryUri: String>
           // <klass: String>
           // <isStatic: true|false>
+          outputParser.expectSources = false;
           streamController.add(
               'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\n\n'
                   .codeUnits);
           count += 1;
         } else if (count == 1) {
+          expect(result.errorsCount, isNull);
           // Previous request should have failed because isStatic was blank
-          expect(outputFilenameAndErrorCount, isNull);
+          expect(compiledResult.status, isNull);
 
+          outputParser.expectSources = false;
           streamController.add(
               'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
                   .codeUnits);
           count += 1;
         } else if (count == 2) {
+          expect(result.errorsCount, equals(0));
           // Second request is to 'compile-expression', which results in
           // kernel file with a function that wraps compiled expression.
-          expect(outputFilenameAndErrorCount, isNotNull);
-          CompilationResult result =
-              new CompilationResult.parse(outputFilenameAndErrorCount);
-
-          expect(result.errorsCount, equals(0));
           File outputFile = new File(result.filename);
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
@@ -503,9 +486,6 @@ Future<int> main() async {
         } else {
           expect(count, 3);
           // Third request is to 'compile' non-existent file, that should fail.
-          expect(outputFilenameAndErrorCount, isNotNull);
-          CompilationResult result =
-              new CompilationResult.parse(outputFilenameAndErrorCount);
           expect(result.errorsCount, greaterThan(0));
 
           streamController.add('quit\n'.codeUnits);
@@ -514,6 +494,126 @@ Future<int> main() async {
 
       expect(await result, 0);
     });
+
+    test('compiler reports correct sources added', () async {
+      var libFile = new File('${tempDir.path}/lib.dart')
+        ..createSync(recursive: true)
+        ..writeAsStringSync("var foo = 42;");
+      var mainFile = new File('${tempDir.path}/main.dart')
+        ..createSync(recursive: true)
+        ..writeAsStringSync("main() => print('foo');\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = new StreamController<Result>();
+
+      final outputParser = new OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      final Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${mainFile.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        compiledResult.expectNoErrors();
+        if (count == 0) {
+          expect(compiledResult.sources.length, equals(1));
+          expect(compiledResult.sources, contains('+${mainFile.uri}'));
+
+          inputStreamController.add('accept\n'.codeUnits);
+          mainFile
+              .writeAsStringSync("import 'lib.dart';  main() => print(foo);\n");
+          inputStreamController.add('recompile ${mainFile.path} abc\n'
+              '${mainFile.uri}\n'
+              'abc\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 1) {
+          expect(compiledResult.sources.length, equals(1));
+          expect(compiledResult.sources, contains('+${libFile.uri}'));
+          inputStreamController.add('accept\n'.codeUnits);
+          inputStreamController.add('quit\n'.codeUnits);
+        }
+      });
+
+      expect(await result, 0);
+      inputStreamController.close();
+    }, timeout: Timeout.factor(100));
+
+    test('compiler reports correct sources removed', () async {
+      var libFile = new File('${tempDir.path}/lib.dart')
+        ..createSync(recursive: true)
+        ..writeAsStringSync("var foo = 42;");
+      var mainFile = new File('${tempDir.path}/main.dart')
+        ..createSync(recursive: true)
+        ..writeAsStringSync("import 'lib.dart'; main() => print(foo);\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = new StreamController<Result>();
+
+      final outputParser = new OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      final Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${mainFile.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        compiledResult.expectNoErrors();
+        if (count == 0) {
+          expect(compiledResult.sources.length, equals(2));
+          expect(compiledResult.sources,
+              allOf(contains('+${mainFile.uri}'), contains('+${libFile.uri}')));
+
+          inputStreamController.add('accept\n'.codeUnits);
+          mainFile.writeAsStringSync("main() => print('foo');\n");
+          inputStreamController.add('recompile ${mainFile.path} abc\n'
+              '${mainFile.uri}\n'
+              'abc\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 1) {
+          expect(compiledResult.sources.length, equals(1));
+          expect(compiledResult.sources, contains('-${libFile.uri}'));
+          inputStreamController.add('accept\n'.codeUnits);
+          inputStreamController.add('quit\n'.codeUnits);
+        }
+      });
+
+      expect(await result, 0);
+      inputStreamController.close();
+    },
+        timeout: Timeout.factor(100),
+        skip: true /* TODO(dartbug/36197): Unskip when compiler is fixed. */);
 
     test('compile expression when delta is rejected', () async {
       var fileLib = new File('${tempDir.path}/lib.dart')..createSync();
@@ -534,42 +634,26 @@ Future<int> main() async {
       final StreamController<List<int>> stdoutStreamController =
           new StreamController<List<int>>();
       final IOSink ioSink = new IOSink(stdoutStreamController.sink);
-      StreamController<String> receivedResults = new StreamController<String>();
+      StreamController<Result> receivedResults = new StreamController<Result>();
 
-      String boundaryKey;
+      final outputParser = new OutputParser(receivedResults);
       stdoutStreamController.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((String s) {
-        print(s);
-        const String RESULT_OUTPUT_SPACE = 'result ';
-        if (boundaryKey == null) {
-          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
-          }
-        } else {
-          if (s.startsWith(boundaryKey)) {
-            receivedResults.add(s.length > boundaryKey.length
-                ? s.substring(boundaryKey.length + 1)
-                : null);
-            boundaryKey = null;
-          }
-        }
-      });
+          .listen(outputParser.listener);
 
       final Future<int> result =
           starter(args, input: inputStreamController.stream, output: ioSink);
       inputStreamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
-      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
         if (count == 0) {
           // First request was to 'compile', which resulted in full kernel file.
-          CompilationResult result =
-              new CompilationResult.parse(outputFilenameAndErrorCount);
-
+          expect(result.errorsCount, 0);
           expect(dillFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
-          expect(result.errorsCount, equals(0));
           inputStreamController.add('accept\n'.codeUnits);
 
           // 'compile-expression <boundarykey>
@@ -583,6 +667,7 @@ Future<int> main() async {
           // <libraryUri: String>
           // <klass: String>
           // <isStatic: true|false>
+          outputParser.expectSources = false;
           inputStreamController.add('''
 compile-expression abc
 main1
@@ -597,12 +682,7 @@ true
         } else if (count == 1) {
           // Second request was to 'compile-expression', which resulted in
           // kernel file with a function that wraps compiled expression.
-          expect(outputFilenameAndErrorCount, isNotNull);
-          CompilationResult result =
-              new CompilationResult.parse(outputFilenameAndErrorCount);
-          print(outputFilenameAndErrorCount);
-
-          expect(result.errorsCount, equals(0));
+          expect(result.errorsCount, 0);
           File outputFile = new File(result.filename);
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
@@ -616,15 +696,13 @@ true
           count += 1;
         } else if (count == 2) {
           // Third request was to recompile the script after renaming a function.
-          expect(outputFilenameAndErrorCount, isNotNull);
-          CompilationResult result =
-              new CompilationResult.parse(outputFilenameAndErrorCount);
-          expect(result.errorsCount, equals(0));
-
+          expect(result.errorsCount, 0);
+          outputParser.expectSources = false;
           inputStreamController.add('reject\n'.codeUnits);
           count += 1;
         } else if (count == 3) {
           // Fourth request was to reject the compilation results.
+          outputParser.expectSources = false;
           inputStreamController.add(
               'compile-expression abc\nmain1\nabc\nabc\n${file.uri}\n\ntrue\n'
                   .codeUnits);
@@ -633,10 +711,7 @@ true
           expect(count, 4);
           // Fifth request was to 'compile-expression' that references original
           // function, which should still be successful.
-          expect(outputFilenameAndErrorCount, isNotNull);
-          CompilationResult result =
-              new CompilationResult.parse(outputFilenameAndErrorCount);
-          expect(result.errorsCount, equals(0));
+          expect(result.errorsCount, 0);
           inputStreamController.add('quit\n'.codeUnits);
         }
       });
@@ -662,37 +737,23 @@ true
       final StreamController<List<int>> stdoutStreamController =
           new StreamController<List<int>>();
       final IOSink ioSink = new IOSink(stdoutStreamController.sink);
-      StreamController<String> receivedResults = new StreamController<String>();
+      StreamController<Result> receivedResults = new StreamController<Result>();
 
-      String boundaryKey;
+      final outputParser = new OutputParser(receivedResults);
       stdoutStreamController.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((String s) {
-        const String RESULT_OUTPUT_SPACE = 'result ';
-        if (boundaryKey == null) {
-          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
-          }
-        } else {
-          if (s.startsWith(boundaryKey)) {
-            receivedResults.add(s.substring(boundaryKey.length + 1));
-            boundaryKey = null;
-          }
-        }
-      });
+          .listen(outputParser.listener);
+
       Future<int> result =
           starter(args, input: inputStreamController.stream, output: ioSink);
       inputStreamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
-      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
-        CompilationResult result =
-            new CompilationResult.parse(outputFilenameAndErrorCount);
+      receivedResults.stream.listen((Result compiledResult) {
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
           expect(dillFile.existsSync(), equals(true));
-          expect(result.filename, dillFile.path);
-          expect(result.errorsCount, 0);
+          compiledResult.expectNoErrors(filename: dillFile.path);
           count += 1;
           inputStreamController.add('accept\n'.codeUnits);
           var file2 = new File('${tempDir.path}/bar.dart')..createSync();
@@ -706,8 +767,7 @@ true
           // Second request is to 'recompile', which results in incremental
           // kernel file.
           var dillIncFile = new File('${dillFile.path}.incremental.dill');
-          expect(result.filename, dillIncFile.path);
-          expect(result.errorsCount, 0);
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
           expect(dillIncFile.existsSync(), equals(true));
           inputStreamController.add('quit\n'.codeUnits);
         }
@@ -771,32 +831,20 @@ true
       final StreamController<List<int>> stdoutStreamController =
           new StreamController<List<int>>();
       final IOSink ioSink = new IOSink(stdoutStreamController.sink);
-      StreamController<String> receivedResults = new StreamController<String>();
-
-      String boundaryKey;
+      StreamController<Result> receivedResults = new StreamController<Result>();
+      final outputParser = new OutputParser(receivedResults);
       stdoutStreamController.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((String s) {
-        const String RESULT_OUTPUT_SPACE = 'result ';
-        if (boundaryKey == null) {
-          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
-          }
-        } else {
-          if (s.startsWith(boundaryKey)) {
-            receivedResults.add(s.substring(boundaryKey.length + 1));
-            boundaryKey = null;
-          }
-        }
-      });
+          .listen(outputParser.listener);
+
       Future<int> result =
           starter(args, input: inputStreamController.stream, output: ioSink);
       inputStreamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
-      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+      receivedResults.stream.listen((Result compiledResult) {
         CompilationResult result =
-            new CompilationResult.parse(outputFilenameAndErrorCount);
+            new CompilationResult.parse(compiledResult.status);
         switch (count) {
           case 0:
             expect(dillFile.existsSync(), equals(true));
@@ -854,32 +902,21 @@ true
       final StreamController<List<int>> stdoutStreamController =
           new StreamController<List<int>>();
       final IOSink ioSink = new IOSink(stdoutStreamController.sink);
-      StreamController<String> receivedResults = new StreamController<String>();
+      StreamController<Result> receivedResults = new StreamController<Result>();
 
-      String boundaryKey;
+      final outputParser = new OutputParser(receivedResults);
       stdoutStreamController.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((String s) {
-        const String RESULT_OUTPUT_SPACE = 'result ';
-        if (boundaryKey == null) {
-          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
-          }
-        } else {
-          if (s.startsWith(boundaryKey)) {
-            receivedResults.add(s.substring(boundaryKey.length + 1));
-            boundaryKey = null;
-          }
-        }
-      });
+          .listen(outputParser.listener);
+
       Future<int> result =
           starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      inputStreamController.add('compile ${file.uri}\n'.codeUnits);
       int count = 0;
-      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+      receivedResults.stream.listen((Result compiledResult) {
         CompilationResult result =
-            new CompilationResult.parse(outputFilenameAndErrorCount);
+            new CompilationResult.parse(compiledResult.status);
         switch (count) {
           case 0:
             expect(dillFile.existsSync(), equals(true));
@@ -889,8 +926,8 @@ true
             inputStreamController.add('accept\n'.codeUnits);
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { baz(); }\n");
-            inputStreamController.add('recompile ${file2.path} abc\n'
-                '${file2.path}\n'
+            inputStreamController.add('recompile ${file2.uri} abc\n'
+                '${file2.uri}\n'
                 'abc\n'
                 .codeUnits);
             break;
@@ -902,8 +939,8 @@ true
             inputStreamController.add('accept\n'.codeUnits);
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { }\n");
-            inputStreamController.add('recompile ${file2.path} abc\n'
-                '${file2.path}\n'
+            inputStreamController.add('recompile ${file2.uri} abc\n'
+                '${file2.uri}\n'
                 'abc\n'
                 .codeUnits);
             break;
@@ -1035,36 +1072,23 @@ true
         final StreamController<List<int>> stdoutStreamController =
             new StreamController<List<int>>();
         final IOSink ioSink = new IOSink(stdoutStreamController.sink);
-        StreamController<String> receivedResults =
-            new StreamController<String>();
+        StreamController<Result> receivedResults =
+            new StreamController<Result>();
 
-        String boundaryKey;
+        final outputParser = new OutputParser(receivedResults);
         stdoutStreamController.stream
             .transform(utf8.decoder)
             .transform(const LineSplitter())
-            .listen((String s) {
-          const String RESULT_OUTPUT_SPACE = 'result ';
-          if (boundaryKey == null) {
-            if (s.startsWith(RESULT_OUTPUT_SPACE)) {
-              boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
-            }
-          } else {
-            if (s.startsWith(boundaryKey)) {
-              receivedResults.add(s.substring(boundaryKey.length + 1));
-              boundaryKey = null;
-            }
-          }
-        });
+            .listen(outputParser.listener);
 
         Future<int> result =
             starter(args, input: inputStreamController.stream, output: ioSink);
         inputStreamController.add('compile ${dart2js.path}\n'.codeUnits);
         int count = 0;
-        receivedResults.stream.listen((String outputFilenameAndErrorCount) {
-          int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
-          expect(delim > 0, equals(true));
-          String outputFilename =
-              outputFilenameAndErrorCount.substring(0, delim);
+        receivedResults.stream.listen((Result compiledResult) {
+          CompilationResult result =
+              CompilationResult.parse(compiledResult.status);
+          String outputFilename = result.filename;
           print("$outputFilename -- count $count");
 
           // Ensure that kernel file produced when compiler was initialized
@@ -1205,9 +1229,75 @@ class CompilationResult {
   int errorsCount;
 
   CompilationResult.parse(String filenameAndErrorCount) {
+    if (filenameAndErrorCount == null) {
+      return;
+    }
     int delim = filenameAndErrorCount.lastIndexOf(' ');
     expect(delim > 0, equals(true));
     filename = filenameAndErrorCount.substring(0, delim);
     errorsCount = int.parse(filenameAndErrorCount.substring(delim + 1).trim());
+  }
+}
+
+class Result {
+  String status;
+  List<String> sources;
+
+  Result(this.status, this.sources);
+
+  void expectNoErrors({String filename}) {
+    var result = CompilationResult.parse(status);
+    expect(result.errorsCount, equals(0));
+    if (filename != null) {
+      expect(result.filename, equals(filename));
+    }
+  }
+}
+
+class OutputParser {
+  OutputParser(this._receivedResults);
+  bool expectSources = true;
+
+  StreamController<Result> _receivedResults;
+  List<String> _receivedSources;
+
+  String _boundaryKey;
+  bool _readingSources;
+
+  void listener(String s) {
+    if (_boundaryKey == null) {
+      const String RESULT_OUTPUT_SPACE = 'result ';
+      if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+        _boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+      }
+      _readingSources = false;
+      _receivedSources?.clear();
+      return;
+    }
+
+    if (s.startsWith(_boundaryKey)) {
+      // First boundaryKey separates compiler output from list of sources
+      // (if we expect list of sources, which is indicated by receivedSources
+      // being not null)
+      if (expectSources && !_readingSources) {
+        _readingSources = true;
+        return;
+      }
+      // Second boundaryKey indicates end of frontend server response
+      expectSources = true;
+      _receivedResults.add(Result(
+          s.length > _boundaryKey.length
+              ? s.substring(_boundaryKey.length + 1)
+              : null,
+          _receivedSources));
+      _boundaryKey = null;
+    } else {
+      if (_readingSources) {
+        if (_receivedSources == null) {
+          _receivedSources = <String>[];
+        }
+        _receivedSources.add(s);
+      }
+    }
   }
 }

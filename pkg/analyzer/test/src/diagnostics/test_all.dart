@@ -4,14 +4,26 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
+import 'const_constructor_with_mixin_with_field_test.dart'
+    as const_constructor_with_mixin_with_field;
+import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
+import 'const_map_key_expression_type_implements_equals_test.dart'
+    as const_map_key_expression_type_implements_equals;
+import 'const_set_element_type_implements_equals_test.dart'
+    as const_set_element_type_implements_equals;
+import 'const_spread_expected_list_or_set_test.dart'
+    as const_spread_expected_list_or_set;
+import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
 import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
+import 'expression_in_map_test.dart' as expression_in_map;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
@@ -22,15 +34,33 @@ import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'invalid_visibility_annotation_test.dart'
+    as invalid_visibility_annotation;
+import 'list_element_type_not_assignable_test.dart'
+    as list_element_type_not_assignable;
+import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
+import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
+import 'map_value_type_not_assignable_test.dart'
+    as map_value_type_not_assignable;
+import 'missing_return_test.dart' as missing_return;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
-import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
+import 'non_bool_condition_test.dart' as non_bool_condition;
+import 'non_constant_list_element_test.dart' as non_constant_list_element;
 import 'non_constant_map_element_test.dart' as non_constant_map_element;
+import 'non_constant_set_element_test.dart' as non_constant_set_element;
+import 'not_iterable_spread_test.dart' as not_iterable_spread;
+import 'not_map_spread_test.dart' as not_map_spread;
+import 'set_element_type_not_assignable_test.dart'
+    as set_element_type_not_assignable;
+import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
 import 'type_check_is_null_test.dart' as type_check_is_null;
+import 'unchecked_use_of_nullable_value_test.dart'
+    as unchecked_use_of_nullable_value;
 import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
 import 'undefined_operator_test.dart' as undefined_operator;
@@ -55,13 +85,21 @@ import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 
 main() {
   defineReflectiveSuite(() {
+    ambiguous_set_or_map_literal.main();
     argument_type_not_assignable.main();
     can_be_null_after_null_aware.main();
     const_constructor_param_type_mismatch.main();
+    const_constructor_with_mixin_with_field.main();
+    const_eval_throws_exception.main();
+    const_map_key_expression_type_implements_equals.main();
+    const_set_element_type_implements_equals.main();
+    const_spread_expected_list_or_set.main();
+    const_spread_expected_map.main();
     dead_code.main();
     deprecated_member_use.main();
     division_optimization.main();
     equal_keys_in_map.main();
+    expression_in_map.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_immutable_annotation.main();
@@ -70,15 +108,28 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
+    invalid_visibility_annotation.main();
+    list_element_type_not_assignable.main();
+    map_entry_not_in_map.main();
+    map_key_type_not_assignable.main();
+    map_value_type_not_assignable.main();
+    missing_return.main();
     mixin_on_sealed_class.main();
     must_be_immutable.main();
     must_call_super.main();
-    subtype_of_sealed_class.main();
+    non_bool_condition.main();
+    non_constant_list_element.main();
     non_constant_map_element.main();
+    non_constant_set_element.main();
+    not_iterable_spread.main();
+    not_map_spread.main();
+    set_element_type_not_assignable.main();
+    subtype_of_sealed_class.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
     type_check_is_not_null.main();
     type_check_is_null.main();
+    unchecked_use_of_nullable_value.main();
     undefined_getter.main();
     undefined_hidden_name.main();
     undefined_operator.main();

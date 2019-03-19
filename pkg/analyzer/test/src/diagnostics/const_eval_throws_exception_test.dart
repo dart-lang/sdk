@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -10,6 +13,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
+    defineReflectiveTests(ConstEvalThrowsExceptionWithUIAsCodeTest);
   });
 }
 
@@ -79,5 +83,95 @@ class Bar {
     expect(otherFileResult.errors, isEmpty);
     await resolveTestFile();
     assertNoTestErrors();
+  }
+
+  test_default_constructor_arg_empty_map_importAnalyzedAfter() async {
+    addTestFile('''
+import 'other.dart';
+
+main() {
+  var c = const C();
+}
+''');
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  final Map<String, int> m;
+  const C({this.m = const <String, int>{}})
+    : assert(m != null);
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    var otherFileResult =
+        await resolveFile(convertPath('/test/lib/other.dart'));
+    expect(otherFileResult.errors, isEmpty);
+  }
+
+  test_default_constructor_arg_empty_map_importAnalyzedBefore() async {
+    addTestFile('''
+import 'other.dart';
+
+main() {
+  var c = const C();
+}
+''');
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  final Map<String, int> m;
+  const C({this.m = const <String, int>{}})
+    : assert(m != null);
+}
+''');
+    var otherFileResult =
+        await resolveFile(convertPath('/test/lib/other.dart'));
+    expect(otherFileResult.errors, isEmpty);
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+}
+
+@reflectiveTest
+class ConstEvalThrowsExceptionWithUIAsCodeTest
+    extends ConstEvalThrowsExceptionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+    ];
+
+  test_ifElement_false_thenNotEvaluated() async {
+    assertNoErrorsInCode('''
+const dynamic nil = null;
+const c = [if (1 < 0) nil + 1];
+''');
+  }
+
+  test_ifElement_nonBoolCondition_list() async {
+    assertErrorsInCode('''
+const dynamic nonBool = 3;
+const c = const [if (nonBool) 'a'];
+''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
+  test_ifElement_nonBoolCondition_map() async {
+    assertErrorsInCode('''
+const dynamic nonBool = null;
+const c = const {if (nonBool) 'a' : 1};
+''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
+  test_ifElement_nonBoolCondition_set() async {
+    assertErrorsInCode('''
+const dynamic nonBool = 'a';
+const c = const {if (nonBool) 3};
+''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
+  test_ifElement_true_elseNotEvaluated() async {
+    assertNoErrorsInCode('''
+const dynamic nil = null;
+const c = [if (0 < 1) 3 else nil + 1];
+''');
   }
 }

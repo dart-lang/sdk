@@ -105,16 +105,13 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
     Exceptions::PropagateError(error);
   }
   const Code& code = Code::Handle(zone, function.unoptimized_code());
-// Check that deopt_id exists.
-// TODO(vegorov): verify after deoptimization targets as well.
-#ifdef DEBUG
-  ASSERT(DeoptId::IsDeoptAfter(deopt_id_) ||
-         (code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt) != 0));
-#endif
 
   uword continue_at_pc =
       code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt);
-  ASSERT(continue_at_pc != 0);
+  if (continue_at_pc == 0) {
+    FATAL2("Can't locate continuation PC for deoptid %" Pd " within %s\n",
+           deopt_id_, function.ToFullyQualifiedCString());
+  }
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   *dest_addr = continue_at_pc;
 
@@ -306,7 +303,11 @@ void DeferredObject::Fill() {
                        value.ToCString());
         }
       } else {
-        ASSERT(offset.Value() == cls.type_arguments_field_offset());
+        // In addition to the type arguments vector we can also have lazy
+        // materialization of e.g. _ByteDataView objects which don't have
+        // explicit fields in Dart (all accesses to the fields are done via
+        // recognized native methods).
+        ASSERT(offset.Value() < cls.instance_size());
         obj.SetFieldAtOffset(offset.Value(), value);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",

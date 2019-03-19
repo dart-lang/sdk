@@ -57,13 +57,12 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Thread* thread() const { return flow_graph_builder_->thread_; }
 
   FlowGraph* BuildGraphOfFieldInitializer();
-  FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
+  void EvaluateConstFieldValue(const Field& field);
   void SetupDefaultParameterValues();
   void ReadDefaultFunctionTypeArguments(const Function& function);
   Fragment BuildFieldInitializer(NameIndex canonical_name);
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
-  FlowGraph* BuildGraphOfDynamicInvocationForwarder();
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
@@ -112,6 +111,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void catch_depth_dec();
   void try_depth_inc();
   void try_depth_dec();
+  intptr_t block_expression_depth();
+  void block_expression_depth_inc();
+  void block_expression_depth_dec();
   intptr_t CurrentTryIndex();
   intptr_t AllocateTryIndex();
   LocalVariable* CurrentException();
@@ -192,13 +194,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr);
-
-  struct PushedArguments {
-    intptr_t type_args_len;
-    intptr_t argument_count;
-    Array& argument_names;
-  };
-  Fragment PushAllArguments(PushedArguments* pushed);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
@@ -314,6 +309,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildMapLiteral(bool is_const, TokenPosition* position);
   Fragment BuildFunctionExpression();
   Fragment BuildLet(TokenPosition* position);
+  Fragment BuildBlockExpression();
   Fragment BuildBigIntLiteral(TokenPosition* position);
   Fragment BuildStringLiteral(TokenPosition* position);
   Fragment BuildIntLiteral(uint8_t payload, TokenPosition* position);

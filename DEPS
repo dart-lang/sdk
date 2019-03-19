@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "b54821029f62b5b5873925cfef6c01f1100d1982",
+  "co19_2_rev": "2d157d6b9135f891ffd1d35b7a2d5dfa57611f63",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -54,7 +54,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
-  "bazel_worker_tag": "0.1.14",
+  "bazel_worker_tag": "bazel_worker-v0.1.20",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
   "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
@@ -108,10 +108,9 @@ vars = {
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
-  "plugin_tag": "f5b4b0e32d1406d62daccea030ba6457d14b1c47",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "protobuf_tag": "0.9.0",
+  "protobuf_rev": "0c77167b16d00b561a6055bfe26690af7f26ae88",
   "pub_rev": "3c060aae47985e9a248b850f1d0450304a5c97e3",
   "pub_semver_tag": "1.4.2",
   "quiver_tag": "2.0.0+1",
@@ -157,7 +156,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.2.1-dev.0.0",
+          "version": "version:2.2.1-dev.1.1",
       }],
       "dep_type": "cipd",
   },
@@ -303,12 +302,10 @@ deps = {
       + "@" + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_tag"),
-  Var("dart_root") + "/third_party/pkg/plugin":
-      Var("dart_git") + "plugin.git" + "@" + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
-      Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_tag"),
+      Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":

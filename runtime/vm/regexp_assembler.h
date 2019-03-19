@@ -120,10 +120,13 @@ class RegExpMacroAssembler : public ZoneAllocated {
   virtual void CheckCharacterGT(uint16_t limit, BlockLabel* on_greater) = 0;
   virtual void CheckCharacterLT(uint16_t limit, BlockLabel* on_less) = 0;
   virtual void CheckGreedyLoop(BlockLabel* on_tos_equals_current_position) = 0;
-  virtual void CheckNotAtStart(BlockLabel* on_not_at_start) = 0;
+  virtual void CheckNotAtStart(intptr_t cp_offset,
+                               BlockLabel* on_not_at_start) = 0;
   virtual void CheckNotBackReference(intptr_t start_reg,
+                                     bool read_backward,
                                      BlockLabel* on_no_match) = 0;
   virtual void CheckNotBackReferenceIgnoreCase(intptr_t start_reg,
+                                               bool read_backward,
                                                BlockLabel* on_no_match) = 0;
   // Check the current character for a match with a literal character.  If we
   // fail to match then goto the on_failure label.  End of input always

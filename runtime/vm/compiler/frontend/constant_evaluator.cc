@@ -94,6 +94,14 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kStringConcatenation:
         EvaluateStringConcatenation();
         break;
+      case kListConcatenation:
+      case kSetConcatenation:
+      case kMapConcatenation:
+        // These only occur inside unevaluated constants, so if we decide to
+        // remove support for late evaluation of environment constants from
+        // dill files in the VM, an implementation here will not be necessary.
+        UNIMPLEMENTED();
+        break;
       case kSymbolLiteral:
         EvaluateSymbolLiteral();
         break;
@@ -466,11 +474,11 @@ void ConstantEvaluator::EvaluateSuperMethodInvocation() {
   ASSERT(IsBuildingFlowGraph());
   TokenPosition position = helper_->ReadPosition();  // read position.
 
-  const LocalVariable* this_variable =
-      flow_graph_builder_->scopes_->this_variable;
-  ASSERT(this_variable->IsConst());
+  const LocalVariable* receiver_variable =
+      flow_graph_builder_->parsed_function_->receiver_var();
+  ASSERT(receiver_variable->IsConst());
   const Instance& receiver =
-      Instance::Handle(Z, this_variable->ConstValue()->raw());
+      Instance::Handle(Z, receiver_variable->ConstValue()->raw());
   ASSERT(!receiver.IsNull());
 
   Class& klass = Class::Handle(Z, active_class_->klass->SuperClass());

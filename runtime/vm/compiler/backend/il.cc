@@ -15,6 +15,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
@@ -1293,14 +1294,12 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
       flow_graph->zone(), this, call->ArgumentCount(),
       flow_graph->constant_dead(),
       result != NULL ? result : flow_graph->constant_dead());
-  env()->set_deopt_id(deopt_id_);
 }
 
 void Instruction::InheritDeoptTarget(Zone* zone, Instruction* other) {
   ASSERT(other->env() != NULL);
   CopyDeoptIdFrom(*other);
   other->env()->DeepCopyTo(zone, this);
-  env()->set_deopt_id(deopt_id_);
 }
 
 void BranchInstr::InheritDeoptTarget(Zone* zone, Instruction* other) {
@@ -2555,6 +2554,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kTypedData_length:
+    case Slot::Kind::kTypedDataView_length:
     case Slot::Kind::kString_length:
       return true;
     case Slot::Kind::kGrowableObjectArray_length:
@@ -2570,6 +2570,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kTypedDataView_offset_in_bytes:
+    case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kGrowableObjectArray_data:
     case Slot::Kind::kContext_parent:
     case Slot::Kind::kClosure_context:
@@ -2580,6 +2582,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
+    case Slot::Kind::kPointer_c_memory_address:
       return false;
   }
   UNREACHABLE();
@@ -3474,6 +3477,7 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
       return new BoxInt64Instr(value);
 
     case kUnboxedDouble:
+    case kUnboxedFloat:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -3491,8 +3495,12 @@ UnboxInstr* UnboxInstr::Create(Representation to,
                                SpeculativeMode speculative_mode) {
   switch (to) {
     case kUnboxedInt32:
-      return new UnboxInt32Instr(UnboxInt32Instr::kNoTruncation, value,
-                                 deopt_id, speculative_mode);
+      // We must truncate if we can't deoptimize.
+      return new UnboxInt32Instr(
+          speculative_mode == SpeculativeMode::kNotSpeculative
+              ? UnboxInt32Instr::kTruncate
+              : UnboxInt32Instr::kNoTruncation,
+          value, deopt_id, speculative_mode);
 
     case kUnboxedUint32:
       return new UnboxUint32Instr(value, deopt_id, speculative_mode);
@@ -3501,6 +3509,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
       return new UnboxInt64Instr(value, deopt_id, speculative_mode);
 
     case kUnboxedDouble:
+    case kUnboxedFloat:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -3729,10 +3738,10 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   __ Bind(compiler->GetJumpLabel(this));
 
-  // In the AOT compiler we want to reduce code size, so generate no
-  // fall-through code in [FlowGraphCompiler::CompileGraph()].
-  // (As opposed to here where we don't check for the return value of
-  // [Intrinsify]).
+// In the AOT compiler we want to reduce code size, so generate no
+// fall-through code in [FlowGraphCompiler::CompileGraph()].
+// (As opposed to here where we don't check for the return value of
+// [Intrinsify]).
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
   if (FLAG_precompiled_mode) {
     const Function& function = compiler->parsed_function().function();
@@ -4633,6 +4642,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (speculative_mode() == kNotSpeculative) {
     switch (representation()) {
       case kUnboxedDouble:
+      case kUnboxedFloat:
         EmitLoadFromBox(compiler);
         break;
 
@@ -4673,9 +4683,8 @@ Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
                                const ParsedFunction& parsed_function) {
-  Environment* env =
-      new (zone) Environment(definitions.length(), fixed_parameter_count,
-                             DeoptId::kNone, parsed_function, NULL);
+  Environment* env = new (zone) Environment(
+      definitions.length(), fixed_parameter_count, parsed_function, NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -4688,9 +4697,10 @@ void Environment::PushValue(Value* value) {
 
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy = new (zone)
-      Environment(length, fixed_parameter_count_, deopt_id_, parsed_function_,
-                  (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  Environment* copy =
+      new (zone) Environment(length, fixed_parameter_count_, parsed_function_,
+                             (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  copy->deopt_id_ = this->deopt_id_;
   if (locations_ != NULL) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);
@@ -4742,12 +4752,15 @@ void Environment::DeepCopyAfterTo(Zone* zone,
 
 // Copies the environment as outer on an inlined instruction and updates the
 // environment use lists.
-void Environment::DeepCopyToOuter(Zone* zone, Instruction* instr) const {
+void Environment::DeepCopyToOuter(Zone* zone,
+                                  Instruction* instr,
+                                  intptr_t outer_deopt_id) const {
   // Create a deep copy removing caller arguments from the environment.
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
   Environment* copy = DeepCopy(zone, values_.length() - argument_count);
+  copy->deopt_id_ = outer_deopt_id;
   instr->env()->outer_ = copy;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
@@ -5178,6 +5191,74 @@ void NativeCallInstr::SetupNative() {
   set_is_auto_scope(auto_setup_scope);
   set_native_c_function(native_function);
 }
+
+#if defined(TARGET_ARCH_X64)
+
+#define Z zone_
+
+Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
+  if (idx == TargetAddressIndex()) {
+    return kUnboxedIntPtr;
+  } else {
+    return arg_representations_[idx];
+  }
+}
+
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  // The temporary register needs to be callee-saved and not an argument
+  // register.
+  ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
+          CallingConventions::kArgumentRegisters) == 0);
+
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/1, LocationSummary::kCall);
+
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(
+                      CallingConventions::kFirstNonArgumentRegister));
+  summary->set_temp(0, Location::RegisterLocation(
+                           CallingConventions::kSecondNonArgumentRegister));
+  summary->set_out(0, compiler::ffi::ResultLocation(
+                          compiler::ffi::ResultRepresentation(signature_)));
+
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    Location target = arg_locations_[i];
+    if (target.IsMachineRegister()) {
+      summary->set_in(i, target);
+    } else {
+      // Since we have to push this input on the stack, there's no point in
+      // pinning it to any specific register.
+      summary->set_in(i, Location::Any());
+    }
+  }
+
+  return summary;
+}
+
+Representation FfiCallInstr::representation() const {
+  return compiler::ffi::ResultRepresentation(signature_);
+}
+
+#undef Z
+
+#else
+
+Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
+  UNREACHABLE();
+}
+
+LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
+                                                   bool is_optimizing) const {
+  UNREACHABLE();
+}
+
+Representation FfiCallInstr::representation() const {
+  UNREACHABLE();
+}
+
+#endif
 
 // SIMD
 

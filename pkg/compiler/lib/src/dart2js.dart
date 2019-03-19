@@ -664,6 +664,7 @@ String _formatDurationAsSeconds(Duration duration, [int width = 4]) {
 class AbortLeg {
   final message;
   AbortLeg(this.message);
+  @override
   toString() => 'Aborted due to --throw-on-error: $message';
 }
 

@@ -40,7 +40,8 @@ class HeapPage {
   HeapPage* next() const { return next_; }
   void set_next(HeapPage* next) { next_ = next; }
 
-  bool Contains(uword addr) { return memory_->Contains(addr); }
+  bool Contains(uword addr) const { return memory_->Contains(addr); }
+  intptr_t AliasOffset() const { return memory_->AliasOffset(); }
 
   uword object_start() const { return memory_->start() + ObjectStartOffset(); }
   uword object_end() const { return object_end_; }
@@ -70,7 +71,8 @@ class HeapPage {
   }
 
   // Warning: This does not work for objects on image pages because image pages
-  // are not aligned.
+  // are not aligned. However, it works for objects on large pages, because
+  // only one object is allocated per large page.
   static HeapPage* Of(RawObject* obj) {
     ASSERT(obj->IsHeapObject());
     ASSERT(obj->IsOldObject());
@@ -78,8 +80,43 @@ class HeapPage {
                                        kPageMask);
   }
 
-  static HeapPage* Of(uintptr_t addr) {
+  // Warning: This does not work for addresses on image pages or on large pages.
+  static HeapPage* Of(uword addr) {
     return reinterpret_cast<HeapPage*>(addr & kPageMask);
+  }
+
+  // Warning: This does not work for objects on image pages.
+  static RawObject* ToExecutable(RawObject* obj) {
+    HeapPage* page = Of(obj);
+    VirtualMemory* memory = page->memory_;
+    const intptr_t alias_offset = memory->AliasOffset();
+    if (alias_offset == 0) {
+      return obj;  // Not aliased.
+    }
+    uword addr = RawObject::ToAddr(obj);
+    if (memory->Contains(addr)) {
+      return RawObject::FromAddr(addr + alias_offset);
+    }
+    // obj is executable.
+    ASSERT(memory->ContainsAlias(addr));
+    return obj;
+  }
+
+  // Warning: This does not work for objects on image pages.
+  static RawObject* ToWritable(RawObject* obj) {
+    HeapPage* page = Of(obj);
+    VirtualMemory* memory = page->memory_;
+    const intptr_t alias_offset = memory->AliasOffset();
+    if (alias_offset == 0) {
+      return obj;  // Not aliased.
+    }
+    uword addr = RawObject::ToAddr(obj);
+    if (memory->ContainsAlias(addr)) {
+      return RawObject::FromAddr(addr - alias_offset);
+    }
+    // obj is writable.
+    ASSERT(memory->Contains(addr));
+    return obj;
   }
 
   // 1 card = 128 slots.

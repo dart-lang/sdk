@@ -14,6 +14,7 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualValuesInConstSetTest);
+    defineReflectiveTests(StaticWarningCodeTest);
   });
 }
 
@@ -56,33 +57,10 @@ const s = {A<int>(), A<num>()};
   }
 }
 
-abstract class StaticWarningCodeTest extends ResolverTestCase {
-  fail_argumentTypeNotAssignable_tearOff_required() async {
-    Source source = addSource(r'''
-class C {
-  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
-}
-g(C c) {
-  var h = c.f/*<int>*/;
-  print(h('s'));
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  fail_undefinedIdentifier_commentReference() async {
-    Source source = addSource(r'''
-/** [m] xxx [new B.c] */
-class A {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.UNDEFINED_IDENTIFIER,
-      StaticWarningCode.UNDEFINED_IDENTIFIER
-    ]);
-  }
+@reflectiveTest
+class StaticWarningCodeTest extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
 
   test_ambiguousImport_as() async {
     Source source = addSource(r'''
@@ -636,6 +614,22 @@ class A {
 main() {
   new A(42);
 }''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_argumentTypeNotAssignable_tearOff_required() async {
+    Source source = addSource(r'''
+class C {
+  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
+}
+g(C c) {
+  var h = c.f/*<int>*/;
+  print(h('s'));
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
@@ -2320,27 +2314,6 @@ class B implements I<int>, J<String> {
     verify([source]);
   }
 
-  test_listElementTypeNotAssignable() async {
-    Source source = addSource("var v = <String> [42];");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_mapKeyTypeNotAssignable() async {
-    Source source = addSource("var v = <String, int > {1 : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_mapValueTypeNotAssignable() async {
-    Source source = addSource("var v = <String, String> {'a' : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
   test_mismatchedAccessorTypes_topLevel() async {
     Source source = addSource(r'''
 int get g { return 0; }
@@ -3573,6 +3546,19 @@ f(var p) {
     Source source = addSource("f() { boolean v; }");
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS_BOOLEAN]);
+  }
+
+  @failingTest
+  test_undefinedIdentifier_commentReference() async {
+    Source source = addSource(r'''
+/** [m] xxx [new B.c] */
+class A {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      StaticWarningCode.UNDEFINED_IDENTIFIER,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
   }
 
   test_undefinedIdentifier_for() async {

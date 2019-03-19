@@ -29,7 +29,10 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      StrongModeCode.INVALID_CAST_NEW_EXPR,
+    ]);
   }
 
   test_listLiteral_nonConst() async {
@@ -53,7 +56,10 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      StrongModeCode.INVALID_CAST_NEW_EXPR,
+    ]);
   }
 
   test_setLiteral_nonConst() async {

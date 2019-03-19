@@ -28,6 +28,7 @@ class ClosureTracerVisitor extends TracerVisitor {
         "${tracedElements.where((f) => f.isAbstract)}");
   }
 
+  @override
   ApplyableTypeInformation get tracedType => super.tracedType;
 
   void run() {

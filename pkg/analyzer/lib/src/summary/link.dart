@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/session.dart';
-
 /// This library is capable of producing linked summaries from unlinked
 /// ones (or prelinked ones).  It functions by building a miniature
 /// element model to represent the contents of the summaries, and then
@@ -57,12 +55,13 @@ import 'package:analyzer/dart/analysis/session.dart';
 ///
 /// - Where possible, we favor method dispatch instead of "is" and "as"
 ///   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
+import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -116,11 +115,12 @@ Map<String, LinkedLibraryBuilder> link(
     Set<String> libraryUris,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetDeclaredVariable getDeclaredVariable,
+    DeclaredVariables declaredVariables,
+    AnalysisOptions analysisOptions,
     [GetAstCallback getAst]) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
-      setupForLink(libraryUris, getUnit, getDeclaredVariable);
-  _relink(linkedLibraries, getDependency, getUnit, getAst);
+      setupForLink(libraryUris, getUnit, declaredVariables);
+  _relink(linkedLibraries, getDependency, getUnit, getAst, analysisOptions);
   return linkedLibraries;
 }
 
@@ -132,7 +132,7 @@ Map<String, LinkedLibraryBuilder> link(
 /// of the libraries in this build unit, and whose values are the corresponding
 /// [LinkedLibraryBuilder]s.
 Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
-    GetUnitCallback getUnit, GetDeclaredVariable getDeclaredVariable) {
+    GetUnitCallback getUnit, DeclaredVariables declaredVariables) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       <String, LinkedLibraryBuilder>{};
   for (String absoluteUri in libraryUris) {
@@ -141,7 +141,7 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
         getUnit(absoluteUri),
         getUnit,
         (String absoluteUri) => getUnit(absoluteUri)?.publicNamespace,
-        getDeclaredVariable);
+        declaredVariables);
   }
   return linkedLibraries;
 }
@@ -301,8 +301,9 @@ void _relink(
     Map<String, LinkedLibraryBuilder> libraries,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetAstCallback getAst) {
-  new Linker(libraries, getDependency, getUnit, getAst).link();
+    GetAstCallback getAst,
+    AnalysisOptions analysisOptions) {
+  new Linker(libraries, getDependency, getUnit, getAst, analysisOptions).link();
 }
 
 /// Create an [UnlinkedParam] representing the given [parameter], which should
@@ -412,37 +413,7 @@ typedef LinkedLibrary GetDependencyCallback(String absoluteUri);
 /// [UnlinkedUnit] objects.
 typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
 
-/// Stub implementation of [AnalysisOptions] used during linking.
-class AnalysisOptionsForLink implements AnalysisOptionsImpl {
-  final Linker _linker;
-
-  AnalysisOptionsForLink(this._linker);
-
-  @override
-  bool get hint => false;
-
-  @override
-  bool get implicitCasts => true;
-
-  @override
-  bool get strictInference => false;
-
-  @override
-  bool get strictRawTypes => false;
-
-  @deprecated
-  @override
-  bool get previewDart2 => true;
-
-  @override
-  bool get strongMode => true;
-
-  @override
-  bool get strongModeHints => false;
-
-  @override
-  ExperimentStatus get experimentStatus => new ExperimentStatus();
-
+class AnalysisSessionForLink implements AnalysisSession {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -496,6 +467,9 @@ abstract class ClassElementForLink
 
   @override
   Source get librarySource => library.source;
+
+  @override
+  get linkedNode => null;
 
   @override
   List<MethodElementForLink> get methods;
@@ -1931,6 +1905,7 @@ abstract class ConstNode extends Node<ConstNode> {
         case UnlinkedExprOperation.makeUntypedList:
         case UnlinkedExprOperation.makeUntypedMap:
         case UnlinkedExprOperation.makeUntypedSet:
+        case UnlinkedExprOperation.makeUntypedSetOrMap:
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
@@ -1958,6 +1933,7 @@ abstract class ConstNode extends Node<ConstNode> {
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedMap:
+        case UnlinkedExprOperation.makeTypedMap2:
           refPtr += 2;
           intPtr++;
           break;
@@ -2105,7 +2081,7 @@ class ContextForLink implements AnalysisContext {
   ContextForLink(this._linker);
 
   @override
-  AnalysisOptionsForLink get analysisOptions => _linker.analysisOptions;
+  AnalysisOptions get analysisOptions => _linker.analysisOptions;
 
   @override
   TypeProvider get typeProvider => _linker.typeProvider;
@@ -2344,6 +2320,9 @@ abstract class ExecutableElementForLink
   LibraryElement get library => enclosingElement.library;
 
   @override
+  get linkedNode => null;
+
+  @override
   String get name {
     if (_name == null) {
       _name = serializedExecutable.name;
@@ -2512,7 +2491,9 @@ class ExprTypeComputer {
       List<UnlinkedExecutable> localFunctions)
       : _builder = new ExprBuilder(
             unitResynthesizer, _functionElement, unlinkedConst,
-            requireValidConst: false, localFunctions: localFunctions);
+            requireValidConst: false,
+            localFunctions: localFunctions,
+            becomeSetOrMap: false);
 
   TopLevelInferenceErrorKind get errorKind {
     // TODO(paulberry): should we return TopLevelInferenceErrorKind.assignment
@@ -2854,6 +2835,9 @@ class FunctionElementForLink_Initializer
   bool get isAsynchronous => serializedExecutable.isAsynchronous;
 
   @override
+  get linkedNode => null;
+
+  @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
     if (_variable.hasImplicitType) {
@@ -3169,6 +3153,9 @@ class FunctionTypeAliasElementForLink
   LibraryElementForLink get library => enclosingElement.library;
 
   @override
+  get linkedNode => null;
+
+  @override
   String get name => _unlinkedTypedef.name;
 
   @override
@@ -3287,6 +3274,9 @@ class GenericFunctionTypeElementForLink
   LibraryElementForLink get library => enclosingElement.library;
 
   @override
+  get linkedNode => null;
+
+  @override
   String get name => '-';
 
   @override
@@ -3368,6 +3358,9 @@ class GenericTypeAliasElementForLink
 
   @override
   LibraryElementForLink get library => enclosingElement.library;
+
+  @override
+  get linkedNode => null;
 
   @override
   String get name => _unlinkedTypedef.name;
@@ -3649,6 +3642,9 @@ abstract class LibraryElementForLink<
 
   @override
   LibraryResynthesizerContext get resynthesizerContext => this;
+
+  @override
+  AnalysisSession get session => _linker.session;
 
   @override
   Source get source => definingCompilationUnit.source;
@@ -3948,10 +3944,13 @@ class Linker {
   SpecialTypeElementForLink _bottomElement;
   InheritanceManager2 _inheritanceManager;
   ContextForLink _context;
-  AnalysisOptionsForLink _analysisOptions;
+  AnalysisSessionForLink _session;
+
+  /// Gets an instance of [AnalysisOptions] for use during linking.
+  final AnalysisOptions analysisOptions;
 
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit, this.getAst) {
+      this.getUnit, this.getAst, this.analysisOptions) {
     // Create elements for the libraries to be linked.  The rest of
     // the element model will be created on demand.
     linkedLibraries
@@ -3961,10 +3960,6 @@ class Linker {
           new LibraryElementInBuildUnit(this, uri, linkedLibrary));
     });
   }
-
-  /// Get an instance of [AnalysisOptions] for use during linking.
-  AnalysisOptionsForLink get analysisOptions =>
-      _analysisOptions ??= new AnalysisOptionsForLink(this);
 
   /// Get the library element for `dart:async`.
   LibraryElementForLink get asyncLibrary =>
@@ -3989,6 +3984,10 @@ class Linker {
   /// Get an instance of [InheritanceManager2] for use during linking.
   InheritanceManager2 get inheritanceManager =>
       _inheritanceManager ??= new InheritanceManager2(typeSystem);
+
+  /// Get a stub implementation of [AnalysisContext] which can be used during
+  /// linking.
+  get session => _session ??= new AnalysisSessionForLink();
 
   /// Indicates whether type inference should use strong mode rules.
   @deprecated

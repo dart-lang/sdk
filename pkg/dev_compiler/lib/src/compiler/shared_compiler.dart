@@ -192,3 +192,34 @@ class _IdentifierFinder extends JS.BaseVisitor<void> {
     if (!found) super.visitNode(node);
   }
 }
+
+class YieldFinder extends JS.BaseVisitor {
+  bool hasYield = false;
+  bool hasThis = false;
+  bool _nestedFunction = false;
+
+  @override
+  visitThis(JS.This node) {
+    hasThis = true;
+  }
+
+  @override
+  visitFunctionExpression(JS.FunctionExpression node) {
+    var savedNested = _nestedFunction;
+    _nestedFunction = true;
+    super.visitFunctionExpression(node);
+    _nestedFunction = savedNested;
+  }
+
+  @override
+  visitYield(JS.Yield node) {
+    if (!_nestedFunction) hasYield = true;
+    super.visitYield(node);
+  }
+
+  @override
+  visitNode(JS.Node node) {
+    if (hasYield && hasThis) return; // found both, nothing more to do.
+    super.visitNode(node);
+  }
+}

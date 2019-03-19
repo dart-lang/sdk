@@ -11,6 +11,7 @@ import 'convert_documentation_into_block_test.dart'
     as convert_documentation_into_block;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
+import 'convert_into_absolute_import_test.dart' as convert_into_absolute_import;
 import 'convert_into_async_body_test.dart' as convert_into_async_body;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
@@ -82,6 +83,7 @@ main() {
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
     convert_documentation_into_line.main();
+    convert_into_absolute_import.main();
     convert_into_async_body.main();
     convert_into_block_body.main();
     convert_into_expression_body.main();

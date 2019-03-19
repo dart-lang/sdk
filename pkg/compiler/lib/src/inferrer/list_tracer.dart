@@ -154,10 +154,12 @@ class ListTracerVisitor extends TracerVisitor {
     }
   }
 
+  @override
   visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
     bailout('Passed to a closure');
   }
 
+  @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     MemberEntity called = info.calledElement;
@@ -167,6 +169,7 @@ class ListTracerVisitor extends TracerVisitor {
     }
   }
 
+  @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
     Selector selector = info.selector;

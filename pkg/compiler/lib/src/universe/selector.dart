@@ -17,6 +17,7 @@ import 'call_structure.dart' show CallStructure;
 
 class SelectorKind {
   final String name;
+  @override
   final int hashCode;
   const SelectorKind(this.name, this.hashCode);
 
@@ -29,6 +30,7 @@ class SelectorKind {
 
   int get index => hashCode;
 
+  @override
   String toString() => name;
 
   static List<SelectorKind> values = const <SelectorKind>[
@@ -50,6 +52,7 @@ class Selector {
   final Name memberName;
   final CallStructure callStructure;
 
+  @override
   final int hashCode;
 
   int get argumentCount => callStructure.argumentCount;
@@ -307,6 +310,7 @@ class Selector {
     return Hashing.mixHashCodeBits(hash, callStructure.hashCode);
   }
 
+  @override
   String toString() {
     return 'Selector($kind, $name, ${callStructure.structureToString()})';
   }

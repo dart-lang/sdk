@@ -1964,6 +1964,45 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
       IsolateMessageTypedDataFinalizer);
 }
 
+void RawTypedDataView::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               Snapshot::Kind kind,
+                               bool as_reference) {
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(GetClassId());
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write members.
+  writer->Write<RawObject*>(ptr()->offset_in_bytes_);
+  writer->Write<RawObject*>(ptr()->length_);
+  writer->WriteObjectImpl(ptr()->typed_data_, as_reference);
+}
+
+RawTypedDataView* TypedDataView::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          intptr_t tags,
+                                          Snapshot::Kind kind,
+                                          bool as_reference) {
+  auto& typed_data = *reader->InstanceHandle();
+  const classid_t cid = RawObject::ClassIdTag::decode(tags);
+
+  auto& view = *reader->TypedDataViewHandle();
+  view = TypedDataView::New(cid);
+  reader->AddBackRef(object_id, &view, kIsDeserialized);
+
+  const intptr_t offset_in_bytes = reader->ReadSmiValue();
+  const intptr_t length = reader->ReadSmiValue();
+  typed_data ^= reader->ReadObjectImpl(as_reference);
+  view.set_offset_in_bytes(offset_in_bytes);
+  view.set_length(length);
+  view.set_typed_data(typed_data);
+
+  return view.raw();
+}
+
 RawPointer* Pointer::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               intptr_t tags,

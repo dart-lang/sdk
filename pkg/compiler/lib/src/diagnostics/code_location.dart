@@ -40,10 +40,12 @@ class SchemeLocation implements CodeLocation {
 
   SchemeLocation(this.uri);
 
+  @override
   bool inSameLocation(Uri uri) {
     return this.uri.scheme == uri.scheme;
   }
 
+  @override
   String relativize(Uri baseUri) {
     return uri_extras.relativize(baseUri, uri, false);
   }
@@ -58,10 +60,12 @@ class PackageLocation implements CodeLocation {
 
   PackageLocation(this.packageName);
 
+  @override
   bool inSameLocation(Uri uri) {
     return uri.scheme == 'package' && uri.path.startsWith('$packageName/');
   }
 
+  @override
   String relativize(Uri baseUri) => 'package:$packageName';
 }
 
@@ -73,8 +77,10 @@ class UriLocation implements CodeLocation {
 
   UriLocation(this.uri);
 
+  @override
   bool inSameLocation(Uri uri) => this.uri == uri;
 
+  @override
   String relativize(Uri baseUri) {
     return uri_extras.relativize(baseUri, uri, false);
   }
@@ -84,7 +90,9 @@ class UriLocation implements CodeLocation {
 class AnyLocation implements CodeLocation {
   const AnyLocation();
 
+  @override
   bool inSameLocation(Uri uri) => true;
 
+  @override
   String relativize(Uri baseUri) => '$baseUri';
 }

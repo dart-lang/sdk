@@ -189,7 +189,9 @@ class _FieldNamingScope {
 /// as a separator between method names and argument counts and does not appear
 /// in generated names themselves.
 class _MixinFieldNamingScope extends _FieldNamingScope {
+  @override
   int get _localFieldNameCounter => registry.globalCount;
+  @override
   void set _localFieldNameCounter(int val) {
     registry.globalCount = val;
   }
@@ -204,6 +206,7 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
       _FieldNamingScope superScope, _FieldNamingRegistry registry)
       : super.inherit(container, superScope, registry);
 
+  @override
   jsAst.Name _nextName() {
     jsAst.Name proposed = super._nextName();
     return new CompoundName([proposed, Namer._literalDollar]);
@@ -221,6 +224,7 @@ class _BoxFieldNamingScope extends _FieldNamingScope {
   @override
   bool containsField(_) => true;
 
+  @override
   jsAst.Name operator [](Entity field) {
     if (!names.containsKey(field)) add(field);
     return names[field];

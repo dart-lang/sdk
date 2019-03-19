@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bin/abi_version.h"
 #include "bin/log.h"
 #include "bin/options.h"
 #include "bin/platform.h"
@@ -321,6 +322,32 @@ bool Options::ProcessObserveOption(const char* arg,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return true;
+}
+
+int Options::target_abi_version_ = AbiVersion::GetCurrent();
+bool Options::ProcessAbiVersionOption(const char* arg,
+                                      CommandLineOptions* vm_options) {
+  const char* value = OptionProcessor::ProcessOption(arg, "--use_abi_version=");
+  if (value == NULL) {
+    return false;
+  }
+  int ver = 0;
+  for (int i = 0; value[i]; ++i) {
+    if (value[i] >= '0' && value[i] <= '9') {
+      ver = (ver * 10) + value[i] - '0';
+    } else {
+      Log::PrintErr("--use_abi_version must be an int\n");
+      return false;
+    }
+  }
+  if (ver < AbiVersion::GetOldestSupported() ||
+      ver > AbiVersion::GetCurrent()) {
+    Log::PrintErr("--use_abi_version must be between %d and %d inclusive\n",
+                  AbiVersion::GetOldestSupported(), AbiVersion::GetCurrent());
+    return false;
+  }
+  target_abi_version_ = ver;
   return true;
 }
 

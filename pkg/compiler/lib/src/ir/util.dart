@@ -91,6 +91,7 @@ class NullAwareExpression {
 
   ir.Let get let => syntheticVariable.parent;
 
+  @override
   String toString() => let.toString();
 }
 

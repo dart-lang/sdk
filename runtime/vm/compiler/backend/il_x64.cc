@@ -7,11 +7,13 @@
 
 #include "vm/compiler/backend/il.h"
 
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
@@ -875,6 +877,99 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(result);
 
   __ Drop(ArgumentCount());  // Drop the arguments.
+}
+
+void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register saved_fp = locs()->temp(0).reg();
+  Register target_address = locs()->in(TargetAddressIndex()).reg();
+
+  // Save frame pointer because we're going to update it when we enter the exit
+  // frame.
+  __ movq(saved_fp, FPREG);
+
+  // Make a space to put the return address.
+  __ pushq(Immediate(0));
+
+  // We need to create a dummy "exit frame". It will share the same pool pointer
+  // but have a null code object.
+  __ LoadObject(CODE_REG, Object::null_object());
+  __ set_constant_pool_allowed(false);
+  __ EnterDartFrame(
+      compiler::ffi::NumStackArguments(arg_locations_) * kWordSize, PP);
+
+  // Save exit frame information to enable stack walking as we are about to
+  // transition to Dart VM C++ code.
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
+
+  // Align frame before entering C++ world.
+  if (OS::ActivationFrameAlignment() > 1) {
+    __ andq(SPREG, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    Location origin = locs()->in(i);
+    Location target = arg_locations_[i];
+
+    if (target.IsStackSlot()) {
+      if (origin.IsRegister()) {
+        __ movq(target.ToStackSlotAddress(), origin.reg());
+      } else if (origin.IsFpuRegister()) {
+        __ movq(TMP, origin.fpu_reg());
+        __ movq(target.ToStackSlotAddress(), TMP);
+      } else if (origin.IsStackSlot() || origin.IsDoubleStackSlot()) {
+        // The base register cannot be SPREG because we've moved it.
+        ASSERT(origin.base_reg() == FPREG);
+        __ movq(TMP, Address(saved_fp, origin.ToStackSlotOffset()));
+        __ movq(target.ToStackSlotAddress(), TMP);
+      }
+    } else {
+      ASSERT(origin.Equals(target));
+    }
+  }
+
+  // Mark that the thread is executing VM code.
+  __ movq(Assembler::VMTagAddress(), target_address);
+
+// We need to copy the return address up into the dummy stack frame so the
+// stack walker will know which safepoint to use.
+#if defined(TARGET_OS_WINDOWS)
+  constexpr intptr_t kCallSequenceLength = 10;
+#else
+  constexpr intptr_t kCallSequenceLength = 6;
+#endif
+
+  // RIP points to the *next* instruction, so 'AddressRIPRelative' loads the
+  // address of the following 'movq'.
+  __ leaq(TMP, Address::AddressRIPRelative(kCallSequenceLength));
+
+  const intptr_t call_sequence_start = __ CodeSize();
+  __ movq(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
+  __ CallCFunction(target_address);
+
+  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
+
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+                                 RawPcDescriptors::Kind::kOther, locs());
+
+  // Mark that the thread is executing Dart code.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+
+  // Reset exit frame information in Isolate structure.
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Although PP is a callee-saved register, it may have been moved by the GC.
+  __ LeaveDartFrame(compiler::kRestoreCallerPP);
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR, Thread::global_object_pool_offset()));
+  }
+
+  __ set_constant_pool_allowed(true);
+
+  // Instead of returning to the "fake" return address, we just pop it.
+  __ popq(TMP);
 }
 
 static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
@@ -3698,6 +3793,11 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kUnboxedDouble:
       __ movsd(FieldAddress(out_reg, ValueOffset()), value);
       break;
+    case kUnboxedFloat: {
+      __ cvtss2sd(FpuTMP, value);
+      __ movsd(FieldAddress(out_reg, ValueOffset()), FpuTMP);
+      break;
+    }
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -3740,6 +3840,13 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
     case kUnboxedDouble: {
       const FpuRegister result = locs()->out(0).fpu_reg();
       __ movsd(result, FieldAddress(box, ValueOffset()));
+      break;
+    }
+
+    case kUnboxedFloat: {
+      const FpuRegister result = locs()->out(0).fpu_reg();
+      __ movsd(result, FieldAddress(box, ValueOffset()));
+      __ cvtsd2ss(result, result);
       break;
     }
 

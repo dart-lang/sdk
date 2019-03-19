@@ -9,8 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -30,7 +30,6 @@ import 'test_strategies.dart';
  */
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   DeclaredVariables declaredVariables = new DeclaredVariables();
-  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
   SourceFactory sourceFactory;
   MockSdk sdk;
 
@@ -101,6 +100,104 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
     for (String requestedUri in resynthesizer.unlinkedSummariesRequested) {
       expect(expectedUnitUriStrSet, contains(requestedUri));
     }
+  }
+}
+
+/// Mixin containing test cases exercising summary resynthesis.  Intended to be
+/// applied to a class implementing [ResynthesizeTestStrategy], along with the
+/// mixin [ResynthesizeTestHelpers].
+mixin GetElementTestCases implements ResynthesizeTestHelpers {
+  test_getElement_class() async {
+    var resynthesized = _validateGetElement(
+      'class C { m() {} }',
+      ['C'],
+    );
+    expect(resynthesized, isClassElement);
+  }
+
+  test_getElement_constructor_named() async {
+    var resynthesized = _validateGetElement(
+      'class C { C.named(); }',
+      ['C', 'named'],
+    );
+    expect(resynthesized, isConstructorElement);
+  }
+
+  test_getElement_constructor_unnamed() async {
+    var resynthesized = _validateGetElement(
+      'class C { C(); }',
+      ['C', ''],
+    );
+    expect(resynthesized, isConstructorElement);
+  }
+
+  test_getElement_field() async {
+    var resynthesized = _validateGetElement(
+      'class C { var f; }',
+      ['C', 'f'],
+    );
+    expect(resynthesized, isFieldElement);
+  }
+
+  test_getElement_getter() async {
+    var resynthesized = _validateGetElement(
+      'class C { get f => null; }',
+      ['C', 'f?'],
+    );
+    expect(resynthesized, isPropertyAccessorElement);
+  }
+
+  test_getElement_method() async {
+    var resynthesized = _validateGetElement(
+      'class C { m() {} }',
+      ['C', 'm'],
+    );
+    expect(resynthesized, isMethodElement);
+  }
+
+  test_getElement_operator() async {
+    var resynthesized = _validateGetElement(
+      'class C { operator+(x) => null; }',
+      ['C', '+'],
+    );
+    expect(resynthesized, isMethodElement);
+  }
+
+  test_getElement_setter() async {
+    var resynthesized = _validateGetElement(
+      'class C { void set f(value) {} }',
+      ['C', 'f='],
+    );
+    expect(resynthesized, isPropertyAccessorElement);
+  }
+
+  test_getElement_unit() async {
+    var resynthesized = _validateGetElement('class C {}', []);
+    expect(resynthesized, isCompilationUnitElement);
+  }
+
+  /**
+   * Encode the library [text] into a summary and then use
+   * [TestSummaryResynthesizer.getElement] to retrieve just the element with
+   * the specified [names] from the resynthesized summary.
+   */
+  Element _validateGetElement(String text, List<String> names) {
+    Source source = addTestSource(text);
+    SummaryResynthesizer resynthesizer = encodeLibrary(source);
+
+    var locationComponents = [
+      source.uri.toString(),
+      source.uri.toString(),
+    ]..addAll(names);
+    var location = ElementLocationImpl.con3(locationComponents);
+
+    Element result = resynthesizer.getElement(location);
+    checkMinimalResynthesisWork(resynthesizer, source.uri, [source.uri]);
+    // Check that no other summaries needed to be resynthesized to resynthesize
+    // the library element.
+    expect(resynthesizer.resynthesisCount, 3);
+    expect(result.location, location);
+    return result;
   }
 }
 
@@ -2459,6 +2556,34 @@ const () → int v =
 ''');
   }
 
+  test_const_list_if() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[if (true) 1];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>[if (true) 1];
+''',
+        withTypes: true);
+  }
+
+  test_const_list_if_else() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[if (true) 1 else 2];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>[if (true) 1 else 2];
+''',
+        withTypes: true);
+  }
+
   test_const_list_inferredType() async {
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
@@ -2466,10 +2591,95 @@ const () → int v =
     var library = await checkLibrary('''
 const Object x = const [1];
 ''');
-    checkElementText(library, '''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const /*typeArgs=int*/[1];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
 const Object x = const <
         int/*location: dart:core;int*/>[1];
 ''');
+    }
+  }
+
+  test_const_list_spread() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[...<int>[1]];
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...<
+        int/*location: dart:core;int*/>[1]];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...const <
+        int/*location: dart:core;int*/>[1]];
+''');
+    }
+  }
+
+  test_const_list_spread_null_aware() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>[...?<int>[1]];
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...?<
+        int/*location: dart:core;int*/>[1]];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>[...?const <
+        int/*location: dart:core;int*/>[1]];
+''');
+    }
+  }
+
+  test_const_map_if() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{if (true) 1: 2};
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{if (true) 1: 2}/*isMap*/;
+''',
+        withTypes: true);
+  }
+
+  test_const_map_if_else() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{if (true) 1: 2 else 3: 4];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{if (true) 1: 2 else 3: 4}/*isMap*/;
+''',
+        withTypes: true);
   }
 
   test_const_map_inferredType() async {
@@ -2479,11 +2689,74 @@ const Object x = const <
     var library = await checkLibrary('''
 const Object x = const {1: 1.0};
 ''');
-    checkElementText(library, '''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const /*typeArgs=int,double*/{1: 1.0}/*isMap*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
 const Object x = const <
         int/*location: dart:core;int*/,
-        double/*location: dart:core;double*/>{1: 1.0};
+        double/*location: dart:core;double*/>{1: 1.0}/*isMap*/;
 ''');
+    }
+  }
+
+  test_const_map_spread() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{...<int, int>{1: 2}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...<
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
+''');
+    }
+  }
+
+  test_const_map_spread_null_aware() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int, int>{...?<int, int>{1: 2}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...?<
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{...?const <
+        int/*location: dart:core;int*/,
+        int/*location: dart:core;int*/>{1: 2}/*isMap*/}/*isMap*/;
+''');
+    }
   }
 
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
@@ -2926,6 +3199,102 @@ const dynamic V =
 ''');
   }
 
+  test_const_set_if() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{if (true) 1};
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>{if (true) 1}/*isSet*/;
+''',
+        withTypes: true);
+  }
+
+  test_const_set_if_else() async {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{if (true) 1 else 2];
+''');
+    checkElementText(
+        library,
+        '''
+const Object x = const <
+        int/*location: dart:core;int*/>{if (true) 1 else 2}/*isSet*/;
+''',
+        withTypes: true);
+  }
+
+  test_const_set_inferredType() async {
+    // The summary needs to contain enough information so that when the constant
+    // is resynthesized, the constant value can get the type that was computed
+    // by type inference.
+    var library = await checkLibrary('''
+const Object x = const {1};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const /*typeArgs=int*/{1}/*isSet*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>{1}/*isSet*/;
+''');
+    }
+  }
+
+  test_const_set_spread() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{...<int>{1}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...<
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...const <
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
+''');
+    }
+  }
+
+  test_const_set_spread_null_aware() async {
+    experimentStatus = ExperimentStatus(spread_collections: true);
+    var library = await checkLibrary('''
+const Object x = const <int>{...?<int>{1}};
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...?<
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>{...?const <
+        int/*location: dart:core;int*/>{1}/*isSet*/}/*isSet*/;
+''');
+    }
+  }
+
   test_const_topLevel_binary() async {
     var library = await checkLibrary(r'''
 const vEqual = 1 == 2;
@@ -2973,18 +3342,30 @@ const bool vLessEqual = 1 <= 2;
     var library = await checkLibrary(r'''
 const vConditional = (1 == 2) ? 11 : 22;
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+const int vConditional = (1 == 2) ? 11 : 22;
+''');
+    } else {
+      checkElementText(library, r'''
 const int vConditional = 1 == 2 ? 11 : 22;
 ''');
+    }
   }
 
   test_const_topLevel_identical() async {
     var library = await checkLibrary(r'''
 const vIdentical = (1 == 2) ? 11 : 22;
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+const int vIdentical = (1 == 2) ? 11 : 22;
+''');
+    } else {
+      checkElementText(library, r'''
 const int vIdentical = 1 == 2 ? 11 : 22;
 ''');
+    }
   }
 
   test_const_topLevel_ifNull() async {
@@ -3076,10 +3457,16 @@ const dynamic vThis = this;
     var library = await checkLibrary(r'''
 const c = throw 42;
 ''');
-    // This is a bug.
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+const dynamic c = throw 42;
+''');
+    } else {
+      // This is a bug.
+      checkElementText(library, r'''
 const dynamic c;
 ''');
+    }
   }
 
   test_const_topLevel_typedList() async {
@@ -3159,17 +3546,34 @@ const vInterfaceWithTypeArguments = const <int, List<String>>{};
     checkElementText(library, r'''
 const Map<dynamic, int> vDynamic1 = const <
         dynamic/*location: dynamic*/,
-        int/*location: dart:core;int*/>{};
+        int/*location: dart:core;int*/>{}/*isMap*/;
 const Map<int, dynamic> vDynamic2 = const <
         int/*location: dart:core;int*/,
-        dynamic/*location: dynamic*/>{};
+        dynamic/*location: dynamic*/>{}/*isMap*/;
 const Map<int, String> vInterface = const <
         int/*location: dart:core;int*/,
-        String/*location: dart:core;String*/>{};
+        String/*location: dart:core;String*/>{}/*isMap*/;
 const Map<int, List<String>> vInterfaceWithTypeArguments = const <
         int/*location: dart:core;int*/,
         List/*location: dart:core;List*/<
-        String/*location: dart:core;String*/>>{};
+        String/*location: dart:core;String*/>>{}/*isMap*/;
+''');
+  }
+
+  test_const_topLevel_typedSet() async {
+    var library = await checkLibrary(r'''
+const vDynamic1 = const <dynamic>{};
+const vInterface = const <int>{};
+const vInterfaceWithTypeArguments = const <List<String>>{};
+''');
+    checkElementText(library, r'''
+const Set<dynamic> vDynamic1 = const <
+        dynamic/*location: dynamic*/>{}/*isSet*/;
+const Set<int> vInterface = const <
+        int/*location: dart:core;int*/>{}/*isSet*/;
+const Set<List<String>> vInterfaceWithTypeArguments = const <
+        List/*location: dart:core;List*/<
+        String/*location: dart:core;String*/>>{}/*isSet*/;
 ''');
   }
 
@@ -3187,7 +3591,16 @@ const List<int> v = const [1, 2, 3];
 const v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
 ''');
     checkElementText(library, r'''
-const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'};
+const Map<int, String> v = const {0: 'aaa', 1: 'bbb', 2: 'ccc'}/*isMap*/;
+''');
+  }
+
+  test_const_topLevel_untypedSet() async {
+    var library = await checkLibrary(r'''
+const v = const {0, 1, 2};
+''');
+    checkElementText(library, r'''
+const Set<int> v = const {0, 1, 2}/*isSet*/;
 ''');
   }
 
@@ -4909,75 +5322,6 @@ int Function(int a, String b) v;
     checkElementText(library, r'''
 (int, String) → int v;
 ''');
-  }
-
-  test_getElement_class() async {
-    var resynthesized = _validateGetElement(
-      'class C { m() {} }',
-      ['C'],
-    );
-    expect(resynthesized, isClassElement);
-  }
-
-  test_getElement_constructor_named() async {
-    var resynthesized = _validateGetElement(
-      'class C { C.named(); }',
-      ['C', 'named'],
-    );
-    expect(resynthesized, isConstructorElement);
-  }
-
-  test_getElement_constructor_unnamed() async {
-    var resynthesized = _validateGetElement(
-      'class C { C(); }',
-      ['C', ''],
-    );
-    expect(resynthesized, isConstructorElement);
-  }
-
-  test_getElement_field() async {
-    var resynthesized = _validateGetElement(
-      'class C { var f; }',
-      ['C', 'f'],
-    );
-    expect(resynthesized, isFieldElement);
-  }
-
-  test_getElement_getter() async {
-    var resynthesized = _validateGetElement(
-      'class C { get f => null; }',
-      ['C', 'f?'],
-    );
-    expect(resynthesized, isPropertyAccessorElement);
-  }
-
-  test_getElement_method() async {
-    var resynthesized = _validateGetElement(
-      'class C { m() {} }',
-      ['C', 'm'],
-    );
-    expect(resynthesized, isMethodElement);
-  }
-
-  test_getElement_operator() async {
-    var resynthesized = _validateGetElement(
-      'class C { operator+(x) => null; }',
-      ['C', '+'],
-    );
-    expect(resynthesized, isMethodElement);
-  }
-
-  test_getElement_setter() async {
-    var resynthesized = _validateGetElement(
-      'class C { void set f(value) {} }',
-      ['C', 'f='],
-    );
-    expect(resynthesized, isPropertyAccessorElement);
-  }
-
-  test_getElement_unit() async {
-    var resynthesized = _validateGetElement('class C {}', []);
-    expect(resynthesized, isCompilationUnitElement);
   }
 
   test_getter_documented() async {
@@ -6778,6 +7122,23 @@ dynamic f(@
 ''');
   }
 
+  test_metadata_simpleFormalParameter_method() async {
+    var library = await checkLibrary('''
+const a = null;
+
+class C {
+  m(@a x) {}
+}
+''');
+    checkElementText(library, r'''
+class C {
+  dynamic m(@
+        a/*location: test.dart;a?*/ dynamic x) {}
+}
+const dynamic a = null;
+''');
+  }
+
   test_metadata_simpleFormalParameter_withDefault() async {
     var library = await checkLibrary('const a = null; f([@a x = null]) {}');
     checkElementText(library, r'''
@@ -7667,6 +8028,21 @@ var y = x;
     checkElementText(library, '''
 import 'a.dart';
 int y;
+''');
+  }
+
+  test_type_inference_multiplyDefinedElement() async {
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource('/b.dart', 'class C {}');
+    var library = await checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+var v = C;
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+import 'b.dart';
+dynamic v;
 ''');
   }
 
@@ -8683,30 +9059,6 @@ int get x {}
 int i;
 int j;
 ''');
-  }
-
-  /**
-   * Encode the library [text] into a summary and then use
-   * [TestSummaryResynthesizer.getElement] to retrieve just the element with
-   * the specified [names] from the resynthesized summary.
-   */
-  Element _validateGetElement(String text, List<String> names) {
-    Source source = addTestSource(text);
-    SummaryResynthesizer resynthesizer = encodeLibrary(source);
-
-    var locationComponents = [
-      source.uri.toString(),
-      source.uri.toString(),
-    ]..addAll(names);
-    var location = ElementLocationImpl.con3(locationComponents);
-
-    Element result = resynthesizer.getElement(location);
-    checkMinimalResynthesisWork(resynthesizer, source.uri, [source.uri]);
-    // Check that no other summaries needed to be resynthesized to resynthesize
-    // the library element.
-    expect(resynthesizer.resynthesisCount, 3);
-    expect(result.location, location);
-    return result;
   }
 }
 

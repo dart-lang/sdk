@@ -1272,6 +1272,33 @@ class Printer extends Visitor<Null> {
     state = WORD;
   }
 
+  visitListConcatenation(ListConcatenation node) {
+    bool first = true;
+    for (Expression part in node.lists) {
+      if (!first) writeSpaced('+');
+      writeExpression(part);
+      first = false;
+    }
+  }
+
+  visitSetConcatenation(SetConcatenation node) {
+    bool first = true;
+    for (Expression part in node.sets) {
+      if (!first) writeSpaced('+');
+      writeExpression(part);
+      first = false;
+    }
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    bool first = true;
+    for (Expression part in node.maps) {
+      if (!first) writeSpaced('+');
+      writeExpression(part);
+      first = false;
+    }
+  }
+
   visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
     writeSpaced('is');
@@ -1993,11 +2020,16 @@ class Printer extends Visitor<Null> {
     endLine(sb.toString());
   }
 
+  visitStringConstant(StringConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    endLine('  $name = "${escapeString(node.value)}"');
+  }
+
   visitUnevaluatedConstant(UnevaluatedConstant node) {
     final String name = syntheticNames.nameConstant(node);
-    write('  $name = ');
+    write('  $name = (');
     writeExpression(node.expression);
-    endLine();
+    endLine(')');
   }
 
   defaultNode(Node node) {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,control-flow-collections,spread-collections
+// SharedOptions=--enable-experiment=control-flow-collections,spread-collections
 
 import 'package:expect/expect.dart';
 
@@ -118,7 +118,7 @@ void testMap() {
 
   // Else inside for.
   Expect.mapEquals(map,
-      <int, int>{for (var i in <int>[1, -2, 3, -4]) if (i < 0) -i else i: i});
+      <int, int>{for (var i in <int>[1, -2, 3, -4]) if (i < 0) -i: -i else i: i});
 
   // For inside for.
   Expect.mapEquals(map, <int, int>{
@@ -230,9 +230,9 @@ void testKeyOrder() {
 void testRuntimeErrors() {
   // Non-bool condition expression.
   dynamic nonBool = 3;
-  Expect.throwsCastError(() => <int>[for (; nonBool;) 1]);
-  Expect.throwsCastError(() => <int, int>{for (; nonBool;) 1: 1});
-  Expect.throwsCastError(() => <int>{for (; nonBool;) 1});
+  Expect.throwsTypeError(() => <int>[for (; nonBool;) 1]);
+  Expect.throwsTypeError(() => <int, int>{for (; nonBool;) 1: 1});
+  Expect.throwsTypeError(() => <int>{for (; nonBool;) 1});
 
   // Null condition expression.
   bool nullBool = null;
@@ -242,15 +242,15 @@ void testRuntimeErrors() {
 
   // Cast for variable.
   dynamic nonInt = "string";
-  Expect.throwsCastError(() => <int>[for (int i = nonInt; false;) 1]);
-  Expect.throwsCastError(() => <int, int>{for (int i = nonInt; false;) 1: 1});
-  Expect.throwsCastError(() => <int>{for (int i = nonInt; false;) 1});
+  Expect.throwsTypeError(() => <int>[for (int i = nonInt; false;) 1]);
+  Expect.throwsTypeError(() => <int, int>{for (int i = nonInt; false;) 1: 1});
+  Expect.throwsTypeError(() => <int>{for (int i = nonInt; false;) 1});
 
   // Cast for-in variable.
   dynamic nonIterable = 3;
-  Expect.throwsCastError(() => <int>[for (int i in nonIterable) 1]);
-  Expect.throwsCastError(() => <int, int>{for (int i in nonIterable) 1: 1});
-  Expect.throwsCastError(() => <int>{for (int i in nonIterable) 1});
+  Expect.throwsTypeError(() => <int>[for (int i in nonIterable) 1]);
+  Expect.throwsTypeError(() => <int, int>{for (int i in nonIterable) 1: 1});
+  Expect.throwsTypeError(() => <int>{for (int i in nonIterable) 1});
 
   // Null iterable.
   Iterable<int> nullIterable = null;
@@ -260,10 +260,10 @@ void testRuntimeErrors() {
   Expect.throwsNoSuchMethodError(() => <int>{for (var i in nullIterable) 1});
 
   // Wrong element type.
-  Expect.throwsCastError(() => <int>[for (var i = 0; i < 1; i++) nonInt]);
-  Expect.throwsCastError(
+  Expect.throwsTypeError(() => <int>[for (var i = 0; i < 1; i++) nonInt]);
+  Expect.throwsTypeError(
       () => <int, int>{for (var i = 0; i < 1; i++) nonInt: 1});
-  Expect.throwsCastError(
+  Expect.throwsTypeError(
       () => <int, int>{for (var i = 0; i < 1; i++) 1: nonInt});
-  Expect.throwsCastError(() => <int>{for (var i = 0; i < 1; i++) nonInt});
+  Expect.throwsTypeError(() => <int>{for (var i = 0; i < 1; i++) nonInt});
 }

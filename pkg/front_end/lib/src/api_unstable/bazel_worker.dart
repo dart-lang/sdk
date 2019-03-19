@@ -37,6 +37,7 @@ export 'compiler_state.dart' show InitializedCompilerState;
 Future<InitializedCompilerState> initializeCompiler(
     InitializedCompilerState oldState,
     Uri sdkSummary,
+    Uri librariesSpecificationUri,
     Uri packagesFile,
     List<Uri> summaryInputs,
     List<Uri> linkedInputs,
@@ -50,6 +51,7 @@ Future<InitializedCompilerState> initializeCompiler(
   CompilerOptions options = new CompilerOptions()
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
+    ..librariesSpecificationUri = librariesSpecificationUri
     ..inputSummaries = summaryInputs
     ..linkedDependencies = linkedInputs
     ..target = target

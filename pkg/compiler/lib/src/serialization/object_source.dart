@@ -21,6 +21,7 @@ class ObjectSource extends AbstractDataSource {
     return value;
   }
 
+  @override
   void _begin(String tag) {
     Tag expectedTag = new Tag('begin:$tag');
     Tag actualTag = _read();
@@ -30,6 +31,7 @@ class ObjectSource extends AbstractDataSource {
         "Expected $expectedTag, found $actualTag.$_errorContext");
   }
 
+  @override
   void _end(String tag) {
     Tag expectedTag = new Tag('end:$tag');
     Tag actualTag = _read();

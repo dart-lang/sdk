@@ -23,6 +23,13 @@ function stop {
 
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 
+EXTRA_VM_ARGS=()
+
+while [[ "$1" == -* ]]; do
+  EXTRA_VM_ARGS+=("$1")
+  shift
+done
+
 case "${1//_/-}" in
   abcompile) SCRIPT="${TOOL_DIR}/abcompile.dart";;
   compile) SCRIPT="${TOOL_DIR}/compile.dart";;
@@ -55,4 +62,4 @@ esac
 
 shift
 
-exec "${DART_VM}" -c "${SCRIPT}" "$@"
+exec "${DART_VM}" "${EXTRA_VM_ARGS[@]}" -c "${SCRIPT}" "$@"

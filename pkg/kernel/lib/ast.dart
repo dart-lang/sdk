@@ -3204,6 +3204,116 @@ class StringConcatenation extends Expression {
   }
 }
 
+/// Concatenate lists into a single list.
+///
+/// If [lists] is empty then an empty list is returned.
+///
+/// These arise from spread and control-flow elements in const list literals
+/// containing unevaluated subexpressions. They only ever occur within
+/// unevaluated constants in constant expressions.
+class ListConcatenation extends Expression {
+  DartType typeArgument;
+  final List<Expression> lists;
+
+  ListConcatenation(this.lists, {this.typeArgument: const DynamicType()}) {
+    setParents(lists, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalListType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitListConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitListConcatenation(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(lists, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(lists, v, this);
+  }
+}
+
+/// Concatenate sets into a single set.
+///
+/// If [sets] is empty then an empty set is returned.
+///
+/// These arise from spread and control-flow elements in const set literals
+/// containing unevaluated subexpressions. They only ever occur within
+/// unevaluated constants in constant expressions.
+///
+/// Duplicated values in or across the sets will result in a compile-time error
+/// during constant evaluation.
+class SetConcatenation extends Expression {
+  DartType typeArgument;
+  final List<Expression> sets;
+
+  SetConcatenation(this.sets, {this.typeArgument: const DynamicType()}) {
+    setParents(sets, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalSetType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitSetConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSetConcatenation(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(sets, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(sets, v, this);
+  }
+}
+
+/// Concatenate maps into a single map.
+///
+/// If [maps] is empty then an empty map is returned.
+///
+/// These arise from spread and control-flow elements in const map literals
+/// containing unevaluated subexpressions. They only ever occur within
+/// unevaluated constants in constant expressions.
+///
+/// Duplicated keys in or across the maps will result in a compile-time error
+/// during constant evaluation.
+class MapConcatenation extends Expression {
+  DartType keyType;
+  DartType valueType;
+  final List<Expression> maps;
+
+  MapConcatenation(this.maps,
+      {this.keyType: const DynamicType(),
+      this.valueType: const DynamicType()}) {
+    setParents(maps, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalMapType(keyType, valueType);
+  }
+
+  accept(ExpressionVisitor v) => v.visitMapConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitMapConcatenation(this, arg);
+
+  visitChildren(Visitor v) {
+    keyType?.accept(v);
+    valueType?.accept(v);
+    visitList(maps, v);
+  }
+
+  transformChildren(Transformer v) {
+    keyType = v.visitDartType(keyType);
+    valueType = v.visitDartType(valueType);
+    transformList(maps, v, this);
+  }
+}
+
 /// Expression of form `x is T`.
 class IsExpression extends Expression {
   Expression operand;
@@ -5585,6 +5695,10 @@ class Component extends TreeNode {
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <Uri, Source>{} {
+    adoptChildren();
+  }
+
+  void adoptChildren() {
     if (libraries != null) {
       for (int i = 0; i < libraries.length; ++i) {
         // The libraries are owned by this component, and so are their canonical

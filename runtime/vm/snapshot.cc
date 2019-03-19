@@ -37,15 +37,15 @@ static bool IsSingletonClassId(intptr_t class_id) {
           (class_id >= kNullCid && class_id <= kVoidCid));
 }
 
-static bool IsObjectStoreClassId(intptr_t class_id) {
-  // Check if this is a class which is stored in the object store.
+static bool IsBootstrapedClassId(intptr_t class_id) {
+  // Check if this is a class which is created during bootstrapping.
   return (class_id == kObjectCid ||
           (class_id >= kInstanceCid && class_id <= kUserTagCid) ||
           class_id == kArrayCid || class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
           RawObject::IsTypedDataClassId(class_id) ||
           RawObject::IsExternalTypedDataClassId(class_id) ||
-          class_id == kNullCid);
+          RawObject::IsTypedDataViewClassId(class_id) || class_id == kNullCid);
 }
 
 static bool IsObjectStoreTypeId(intptr_t index) {
@@ -70,7 +70,6 @@ static intptr_t ClassIdFromObjectId(intptr_t object_id) {
 
 static intptr_t ObjectIdFromClassId(intptr_t class_id) {
   ASSERT((class_id > kIllegalCid) && (class_id < kNumPredefinedCids));
-  ASSERT(!(RawObject::IsImplicitFieldClassId(class_id)));
   return (class_id + kClassIdsOffset);
 }
 
@@ -209,6 +208,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       old_space_(thread_->isolate()->heap()->old_space()),
       cls_(Class::Handle(zone_)),
       code_(Code::Handle(zone_)),
+      instance_(Instance::Handle(zone_)),
       instructions_(Instructions::Handle(zone_)),
       obj_(Object::Handle(zone_)),
       pobj_(PassiveObject::Handle(zone_)),
@@ -221,6 +221,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       tokens_(GrowableObjectArray::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
+      typed_data_view_(TypedDataView::Handle(zone_)),
       function_(Function::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       set_class_(Class::ZoneHandle(
@@ -315,7 +316,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   ASSERT(!IsVMIsolateObject(class_header) ||
          !IsSingletonClassId(GetVMIsolateObjectId(class_header)));
   ASSERT((SerializedHeaderTag::decode(class_header) != kObjectId) ||
-         !IsObjectStoreClassId(SerializedHeaderData::decode(class_header)));
+         !IsBootstrapedClassId(SerializedHeaderData::decode(class_header)));
   Class& cls = Class::ZoneHandle(zone(), Class::null());
   AddBackRef(object_id, &cls, kIsDeserialized);
   // Read the library/class information and lookup the class.
@@ -478,6 +479,15 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
       pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_, true);
       break;
     }
+#undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz) case kTypedData##clazz##ViewCid:
+
+    case kByteDataViewCid:
+      CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+        tags = RawObject::ClassIdTag::update(class_id, tags);
+        pobj_ = TypedDataView::ReadFrom(this, object_id, tags, kind_, true);
+        break;
+      }
 #undef SNAPSHOT_READ
 #define SNAPSHOT_READ(clazz) case kFfi##clazz##Cid:
 
@@ -688,7 +698,7 @@ intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
   }
   ASSERT(SerializedHeaderTag::decode(class_header) == kObjectId);
   intptr_t class_id = SerializedHeaderData::decode(class_header);
-  ASSERT(IsObjectStoreClassId(class_id) || IsSingletonClassId(class_id));
+  ASSERT(IsBootstrapedClassId(class_id) || IsSingletonClassId(class_id));
   return class_id;
 }
 
@@ -758,7 +768,7 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
 
 RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
   intptr_t class_id = ClassIdFromObjectId(object_id);
-  if (IsObjectStoreClassId(class_id)) {
+  if (IsBootstrapedClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
   }
   if (IsObjectStoreTypeId(object_id)) {
@@ -1025,7 +1035,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   if (cid == kClassCid) {
     RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
     intptr_t class_id = raw_class->ptr()->id_;
-    if (IsObjectStoreClassId(class_id)) {
+    if (IsBootstrapedClassId(class_id)) {
       intptr_t object_id = ObjectIdFromClassId(class_id);
       WriteIndexedObject(object_id);
       return true;
@@ -1110,6 +1120,16 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
       return;
     }
 #undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz) case kTypedData##clazz##ViewCid:
+
+    case kByteDataViewCid:
+      CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
+        auto* raw_obj = reinterpret_cast<RawTypedDataView*>(raw);
+        raw_obj->WriteTo(this, object_id, kind_, as_reference);
+        return;
+      }
+#undef SNAPSHOT_WRITE
+
 #define SNAPSHOT_WRITE(clazz) case kFfi##clazz##Cid:
 
     CLASS_LIST_FFI(SNAPSHOT_WRITE) { UNREACHABLE(); }
@@ -1171,7 +1191,7 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
 void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(!Snapshot::IsFull(kind_));
   int class_id = cls->ptr()->id_;
-  ASSERT(!IsSingletonClassId(class_id) && !IsObjectStoreClassId(class_id));
+  ASSERT(!IsSingletonClassId(class_id) && !IsBootstrapedClassId(class_id));
 
   // Write out the library url and class name.
   RawLibrary* library = cls->ptr()->library_;

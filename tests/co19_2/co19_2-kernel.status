@@ -3,19 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk ]
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A02_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t02: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t02: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t02: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A02_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: DartkCrash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t02: DartkCrash, CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t01: DartkCrash
+LanguageFeatures/Control-flow-collections/*: Skip
 LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A01_t01: CompileTimeError
@@ -65,6 +53,7 @@ LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t02: RuntimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t04: RuntimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t05/none: RuntimeError
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t06/none: RuntimeError
+LanguageFeatures/Control-flow-collections/*: Skip
 LanguageFeatures/Set-literals/semantics_A05_t02: RuntimeError
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A01_t01: DartkCrash
@@ -137,9 +126,88 @@ LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Crash
-LanguageFeatures/Spread-collections/Ambiguity_A01_t05/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t05/02: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A03_t02/12: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A02_t03: CompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A02_t04: CompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/04: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/05: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/06: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/07: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/08: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/09: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/10: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/11: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/12: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A03_t02/14: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A04_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A05_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A06_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A07_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/const_collections_A07_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/scoping_A01_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/scoping_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A01_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A01_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A01_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A02_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A02_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A02_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A03_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A03_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A03_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_errors_A04_t01/04: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/05: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/06: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/09: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/10: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/11: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/12: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/17: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/18: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/19: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/20: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/21: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/22: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/23: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/24: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A01_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A01_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A01_t03: CompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A02_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A03_t01/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/type_inference_A01_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/type_inference_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/type_inference_A05_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/type_inference_A06_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/type_inference_A08_t01: CompileTimeError
+LanguageFeatures/Spread-collections/Ambiguity_A02_t02/01: MissingCompileTimeError
+LanguageFeatures/Spread-collections/Ambiguity_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/03: MissingCompileTimeError
@@ -148,18 +216,17 @@ LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/05: MissingCompileTimeE
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t03: CompileTimeError
+LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t01: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t02: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/NullAware_A01_t04: CompileTimeError
+LanguageFeatures/Spread-collections/NullAware_A01_t05: CompileTimeError
+LanguageFeatures/Spread-collections/NullAware_A01_t06: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A04_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/02: MissingCompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A04_t02/04: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/05: MissingCompileTimeError
+LanguageFeatures/Spread-collections/StaticSemantic_A08_t01/02: MissingCompileTimeError
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
@@ -243,12 +310,17 @@ Language/Expressions/Relational_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Shift/syntax_t01: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
-Language/Generics/class_A01_t02/none: CompileTimeError
-Language/Generics/syntax_t21: CompileTimeError
+Language/Generics/syntax_t20: CompileTimeError
+Language/Generics/syntax_t22: CompileTimeError
 Language/Generics/syntax_t23: CompileTimeError
 Language/Generics/syntax_t24: CompileTimeError
 Language/Generics/syntax_t25: CompileTimeError
-Language/Generics/syntax_t26: CompileTimeError
+Language/Generics/syntax_t27/none: CompileTimeError
+Language/Generics/typedef_A01_t01: CompileTimeError
+Language/Generics/typedef_A01_t06/none: CompileTimeError
+Language/Generics/typedef_A01_t07: CompileTimeError
+Language/Generics/typedef_A01_t08: CompileTimeError
+Language/Generics/typedef_A01_t10: CompileTimeError
 Language/Libraries_and_Scripts/Imports/library_name_t01: MissingCompileTimeError # Expects an error, but this is a warning in Dart 2
 Language/Mixins/Mixin_Application/abstract_t09: Crash
 Language/Mixins/Mixin_Application/abstract_t10: Crash
@@ -265,7 +337,14 @@ Language/Mixins/Mixin_Application/interfaces_t06: Crash
 Language/Mixins/Mixin_Application/interfaces_t07: Crash
 Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # Mixin super equirement
 Language/Mixins/Mixin_Application/superclass_t03: Crash
-Language/Mixins/Mixin_Application/superinterfaces_t07: MissingCompileTimeError
+Language/Mixins/Mixin_Application/superclass_t04: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t10: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t11: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t12: CompileTimeError
+Language/Mixins/Mixin_Application/superinterfaces_t13: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t14: Crash
+Language/Mixins/Mixin_Application/syntax_t26: Crash
+Language/Mixins/Mixin_Application/warning_t04: Crash
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError
@@ -292,6 +371,41 @@ Language/Types/Type_Aliases/syntax_t01: CompileTimeError
 Language/Types/Type_Aliases/syntax_t02: CompileTimeError
 Language/Types/Type_Aliases/syntax_t03: CompileTimeError
 Language/Types/Type_Aliases/syntax_t04: CompileTimeError
+Language/Types/Type_Aliases/syntax_t20: CompileTimeError
+Language/Types/Type_Aliases/syntax_t21: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A02_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/CastOperator_A04_t02/none: CompileTimeError
+LanguageFeatures/Constant-update-2018/EqualityOperator_A01_t09: MissingCompileTimeError
+LanguageFeatures/Constant-update-2018/EqualityOperator_A01_t10: MissingCompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t05: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t06: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t09: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A02_t10: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A01_t07: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A02_t08: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t01: Crash
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t02: Crash
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t05: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t06: CompileTimeError
+
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t03: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t05: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t06: CompileTimeError
+LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A04_t07: CompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A01_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A01_t02: CompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A02_t01: CompileTimeError
+LanguageFeatures/Constant-update-2018/TypeTestOperator_A02_t02: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A01_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A02_t01: CompileTimeError
 LanguageFeatures/Constant_update2018/CastOperator_A02_t02: CompileTimeError
@@ -343,54 +457,6 @@ LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t03/none: CompileTimeE
 LanguageFeatures/Constant_update2018/TypeTestOperator_A03_t04/none: CompileTimeError
 LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t01/none: CompileTimeError
 LanguageFeatures/Constant_update2018/TypeTestOperator_A04_t02/none: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A01_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A02_t03: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A02_t04: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A04_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A05_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A06_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A07_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A07_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A07_t03: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A01_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A01_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A01_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/scoping_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/scoping_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A03_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A04_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A05_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A06_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A07_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A08_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A09_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A10_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_errors_A11_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_semantics_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_semantics_A01_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_semantics_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/static_semantics_A02_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/syntax_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/syntax_A01_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/syntax_A01_t03: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/syntax_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/syntax_A02_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/syntax_A03_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A02_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A03_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A04_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A05_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A06_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A07_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_inference_A08_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_promotion_A01_t01: CompileTimeError, Crash, Pass # This feature is not implemented yet
-LanguageFeatures/Control-flow-collections/type_promotion_A01_t02: CompileTimeError, Crash, Pass # This feature is not implemented yet
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t01: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
@@ -659,58 +725,14 @@ LanguageFeatures/Simple-bounds/static/typedef_l2_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/01: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/02: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t10: CompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t03: CompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t05: MissingCompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t06: MissingCompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A01_t07: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t01/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A03_t02/12: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/03: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/05: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A06_t02: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A06_t03: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t03: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t05: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t07: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Set_A02_t08: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A01_t03: CompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A01_t05: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A01_t06: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/none: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/none: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A06_t01/05: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A07_t01/none: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A08_t01/none: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t03: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t04: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t06: CompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t08: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t09: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t10: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/TypeInference_A03_t01: CompileTimeError
 LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t07: MissingCompileTimeError # Issue 35111
@@ -727,18 +749,6 @@ LanguageFeatures/Constant_update2018/NewOperators_A02_t01: Pass
 LanguageFeatures/Constant_update2018/NewOperators_A02_t02: Pass
 LanguageFeatures/Constant_update2018/NewOperators_A02_t04: Pass
 LanguageFeatures/Constant_update2018/NewOperators_A02_t05: Pass
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A02_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A02_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t01: CompileTimeError
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Issue http://dartbug.com/35242
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Issue http://dartbug.com/35242
 LibTest/core/List/List_class_A01_t02: Crash # Issue http://dartbug.com/35242
@@ -819,34 +829,6 @@ LibTest/io/stderr/stderr_A01_t01: RuntimeError, Pass
 LibTest/isolate/Isolate/ping_A03_t02: RuntimeError, Pass
 LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash, Pass
 
-[ $arch != simdbc64 && $compiler == dartk ]
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/01: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/02: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/03: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/04: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/05: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/06: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/07: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/08: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/09: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/10: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/11: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/12: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/13: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/14: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/15: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/16: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/21: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/22: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/23: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/24: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/25: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/26: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/27: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/28: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/29: DartkCrash
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/30: DartkCrash
-
 [ $compiler != dart2js && $runtime != vm && $fasta ]
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError # Issue 34192
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError # Issue 31936
@@ -887,49 +869,6 @@ LibTest/io/WebSocket/pingInterval_A01_t01: RuntimeError, Pass
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t01: Crash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t02: Crash
 LanguageFeatures/Constant_update2018/ShortCircuitOperators_A03_t03: Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/01: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/02: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/03: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/04: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/05: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/06: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/07: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/08: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/09: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/10: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/11: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/12: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/13: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/14: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/15: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/16: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/17: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/18: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/19: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/20: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/21: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/22: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/23: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/24: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/25: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/26: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/27: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/28: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/29: Crash, Pass
-LanguageFeatures/Control-flow-collections/const_collections_A08_t01/30: Crash, Pass
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A02_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A03_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_list_A04_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A02_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A02_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A04_t01: CompileTimeError
 
 [ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Link/stat_A01_t01: RuntimeError

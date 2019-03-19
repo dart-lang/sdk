@@ -7,7 +7,6 @@ import 'dart:isolate';
 
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer_cli/src/driver.dart';
-import 'package:plugin/plugin.dart';
 
 /**
  * An object that can be used to start a command-line analysis. This class
@@ -28,11 +27,6 @@ abstract class CommandLineStarter {
    * default package resolution scheme should be used instead.
    */
   void set packageResolverProvider(ResolverProvider provider);
-
-  /**
-   * Set the [plugins] that are defined outside the analyzer_cli package.
-   */
-  void set userDefinedPlugins(List<Plugin> plugins);
 
   /**
    * Use the given command-line [arguments] to start this analyzer.

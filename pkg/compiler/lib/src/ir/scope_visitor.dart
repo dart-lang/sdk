@@ -13,7 +13,7 @@ import 'scope.dart';
 /// variable is being used at any point in the code.
 class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     with VariableCollectorMixin {
-  ClosureScopeModel _model;
+  final ClosureScopeModel _model = new ClosureScopeModel();
 
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
@@ -61,7 +61,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   /// The current scope we are in.
   KernelScopeInfo _currentScopeInfo;
 
-  final bool _hasThisLocal;
+  bool _hasThisLocal;
 
   /// Keeps track of the number of boxes that we've created so that they each
   /// have unique names.
@@ -74,8 +74,40 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   /// type variable usage, such as type argument in method invocations.
   VariableUse _currentTypeUsage;
 
-  ScopeModelBuilder(this._model, {bool hasThisLocal})
-      : this._hasThisLocal = hasThisLocal;
+  ScopeModel computeModel(ir.Member node) {
+    if (node.isAbstract && !node.isExternal) {
+      return const ScopeModel(
+          initializerComplexity: const InitializerComplexity.lazy());
+    }
+
+    if (node is ir.Constructor) {
+      _hasThisLocal = true;
+    } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
+      _hasThisLocal = false;
+    } else if (node.isInstanceMember) {
+      _hasThisLocal = true;
+    } else {
+      _hasThisLocal = false;
+    }
+
+    InitializerComplexity initializerComplexity =
+        const InitializerComplexity.lazy();
+    if (node is ir.Field) {
+      if (node.initializer != null) {
+        initializerComplexity = node.accept(this);
+      } else {
+        initializerComplexity = const InitializerComplexity.constant();
+        _model.scopeInfo = new KernelScopeInfo(_hasThisLocal);
+      }
+    } else {
+      assert(node is ir.Procedure || node is ir.Constructor);
+      node.accept(this);
+    }
+    return new ScopeModel(
+        closureScopeModel: _model,
+        variableScopeModel: variableScopeModel,
+        initializerComplexity: initializerComplexity);
+  }
 
   @override
   InitializerComplexity defaultNode(ir.Node node) =>
@@ -338,6 +370,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitWhileStatement(ir.WhileStatement node) {
     enterNewScope(node, () {
       visitInVariableScope(node, () {
@@ -348,6 +381,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitDoStatement(ir.DoStatement node) {
     enterNewScope(node, () {
       visitInVariableScope(node, () {
@@ -412,6 +446,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitSuperMethodInvocation(
       ir.SuperMethodInvocation node) {
     if (_hasThisLocal) {
@@ -426,6 +461,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitSuperPropertySet(ir.SuperPropertySet node) {
     if (_hasThisLocal) {
       _registerNeedsThis(VariableUse.explicit);
@@ -434,6 +470,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     return const InitializerComplexity.lazy();
   }
 
+  @override
   InitializerComplexity visitSuperPropertyGet(ir.SuperPropertyGet node) {
     if (_hasThisLocal) {
       _registerNeedsThis(VariableUse.explicit);
@@ -683,30 +720,40 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
 
   @override
   InitializerComplexity visitListLiteral(ir.ListLiteral node) {
-    visitInContext(node.typeArgument, VariableUse.listLiteral);
-    visitNodes(node.expressions);
-    return node.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    InitializerComplexity complexity =
+        visitInContext(node.typeArgument, VariableUse.listLiteral);
+    complexity = complexity.combine(visitNodes(node.expressions));
+    if (node.isConst) {
+      return const InitializerComplexity.constant();
+    } else {
+      return complexity.makeEager();
+    }
   }
 
   @override
   InitializerComplexity visitSetLiteral(ir.SetLiteral node) {
-    visitInContext(node.typeArgument, VariableUse.setLiteral);
-    visitNodes(node.expressions);
-    return node.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    InitializerComplexity complexity =
+        visitInContext(node.typeArgument, VariableUse.setLiteral);
+    complexity = complexity.combine(visitNodes(node.expressions));
+    if (node.isConst) {
+      return const InitializerComplexity.constant();
+    } else {
+      return complexity.makeEager();
+    }
   }
 
   @override
   InitializerComplexity visitMapLiteral(ir.MapLiteral node) {
-    visitInContext(node.keyType, VariableUse.mapLiteral);
-    visitInContext(node.valueType, VariableUse.mapLiteral);
-    visitNodes(node.entries);
-    return node.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    InitializerComplexity complexity =
+        visitInContext(node.keyType, VariableUse.mapLiteral);
+    complexity = complexity
+        .combine(visitInContext(node.valueType, VariableUse.mapLiteral));
+    complexity = complexity.combine(visitNodes(node.entries));
+    if (node.isConst) {
+      return const InitializerComplexity.constant();
+    } else {
+      return complexity.makeEager();
+    }
   }
 
   @override
@@ -747,9 +794,16 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
 
   @override
   InitializerComplexity visitStaticGet(ir.StaticGet node) {
-    return node.target.isConst
-        ? const InitializerComplexity.constant()
-        : const InitializerComplexity.lazy();
+    ir.Member target = node.target;
+    if (target is ir.Field) {
+      return target.isConst
+          ? const InitializerComplexity.constant()
+          : new InitializerComplexity.eager(fields: <ir.Field>{target});
+    } else if (target is ir.Procedure &&
+        target.kind == ir.ProcedureKind.Method) {
+      return const InitializerComplexity.constant();
+    }
+    return const InitializerComplexity.lazy();
   }
 
   @override
@@ -1065,43 +1119,90 @@ enum ComplexityLevel {
 
 class InitializerComplexity {
   final ComplexityLevel level;
+  final Set<ir.Field> fields;
 
   // TODO(johnniwinther): This should hold the constant literal from CFE when
   // provided.
-  const InitializerComplexity.constant() : level = ComplexityLevel.constant;
+  const InitializerComplexity.constant()
+      : level = ComplexityLevel.constant,
+        fields = null;
 
   // TODO(johnniwinther): Use this to collect data on the size of the
   //  initializer.
-  const InitializerComplexity.eager()
+  InitializerComplexity.eager({this.fields})
       : level = ComplexityLevel.potentiallyEager;
 
-  const InitializerComplexity.lazy() : level = ComplexityLevel.definitelyLazy;
+  const InitializerComplexity.lazy()
+      : level = ComplexityLevel.definitelyLazy,
+        fields = null;
 
   InitializerComplexity combine(InitializerComplexity other) {
-    if (level == other.level) {
-      // TODO(johnniwinther): Special case 'eager' when it contains data.
+    if (identical(this, other)) {
       return this;
-    } else if (level == ComplexityLevel.definitelyLazy ||
-        other.level == ComplexityLevel.definitelyLazy) {
+    } else if (isLazy || other.isLazy) {
       return const InitializerComplexity.lazy();
-    } else if (level == ComplexityLevel.potentiallyEager) {
+    } else if (isEager || other.isEager) {
+      if (fields != null && other.fields != null) {
+        fields.addAll(other.fields);
+        return this;
+      } else if (fields != null) {
+        return this;
+      } else {
+        return other;
+      }
+    } else if (isConstant && other.isConstant) {
+      // TODO(johnniwinther): This is case doesn't work if InitializerComplexity
+      // objects of constant complexity hold the constant literal.
+      return this;
+    } else if (isEager) {
+      assert(other.isConstant);
       return this;
     } else {
-      assert(other.level == ComplexityLevel.potentiallyEager);
+      assert(isConstant);
+      assert(other.isEager);
       return other;
     }
   }
 
+  InitializerComplexity makeEager() {
+    if (isLazy || isEager) {
+      return this;
+    } else {
+      return new InitializerComplexity.eager();
+    }
+  }
+
+  bool get isConstant => level == ComplexityLevel.constant;
+
+  bool get isEager => level == ComplexityLevel.potentiallyEager;
+
+  bool get isLazy => level == ComplexityLevel.definitelyLazy;
+
   /// Returns a short textual representation used for testing.
   String get shortText {
+    StringBuffer sb = new StringBuffer();
     switch (level) {
       case ComplexityLevel.constant:
-        return 'constant';
+        sb.write('constant');
+        break;
       case ComplexityLevel.potentiallyEager:
-        return 'eager';
+        sb.write('eager');
+        if (fields != null) {
+          sb.write('&fields=[');
+          List<String> names = fields.map((f) => f.name.name).toList()..sort();
+          sb.write(names.join(','));
+          sb.write(']');
+        }
+        break;
       case ComplexityLevel.definitelyLazy:
-        return 'lazy';
+        sb.write('lazy');
+        break;
+      default:
+        throw new UnsupportedError("Unexpected complexity level $level");
     }
-    throw new UnsupportedError("Unexpected complexity level $level");
+    return sb.toString();
   }
+
+  @override
+  String toString() => 'InitializerComplexity($shortText)';
 }

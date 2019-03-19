@@ -238,11 +238,6 @@ class Isolate : public BaseIsolate {
 
   Thread* mutator_thread() const;
 
-  // Mutator thread is not scheduled if NULL or no heap is attached
-  // to it. The latter only occurs when the mutator thread object
-  // is unscheduled by the isolate (or never scheduled).
-  bool IsMutatorThreadScheduled() { return scheduled_mutator_thread_ != NULL; }
-
   const char* name() const { return name_; }
   void set_name(const char* name);
 
@@ -520,6 +515,10 @@ class Isolate : public BaseIsolate {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true);
+
+  // Creates an object with the total heap memory usage statistics for this
+  // isolate.
+  void PrintMemoryUsageJSON(JSONStream* stream);
 #endif
 
 #if !defined(PRODUCT)

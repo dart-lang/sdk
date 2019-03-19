@@ -28,6 +28,7 @@ class Code;
 class ExternalTypedData;
 class GrowableObjectArray;
 class Heap;
+class Instance;
 class Instructions;
 class LanguageError;
 class Library;
@@ -37,6 +38,7 @@ class PassiveObject;
 class ObjectStore;
 class MegamorphicCache;
 class PageSpace;
+class TypedDataView;
 class RawApiError;
 class RawArray;
 class RawCapability;
@@ -86,6 +88,7 @@ class RawTwoByteString;
 class RawType;
 class RawTypeArguments;
 class RawTypedData;
+class RawTypedDataView;
 class RawTypeParameter;
 class RawTypeRef;
 class RawUnhandledException;
@@ -98,8 +101,8 @@ class UnhandledException;
 // Serialized object header encoding is as follows:
 // - Smi: the Smi value is written as is (last bit is not tagged).
 // - VM object (from VM isolate): (object id in vm isolate | 0x3)
-//   This valus is serialized as a negative number.
-//   (note VM objects are never serialized they are expected to be found
+//   This value is serialized as a negative number.
+//   (note VM objects are never serialized, they are expected to be found
 //    using ths unique ID assigned to them).
 // - Reference to object that has already been written: (object id | 0x3)
 //   This valus is serialized as a positive number.
@@ -300,6 +303,7 @@ class SnapshotReader : public BaseReader {
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
   Code* CodeHandle() { return &code_; }
+  Instance* InstanceHandle() { return &instance_; }
   Instructions* InstructionsHandle() { return &instructions_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
@@ -307,6 +311,7 @@ class SnapshotReader : public BaseReader {
   GrowableObjectArray* TokensHandle() { return &tokens_; }
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
+  TypedDataView* TypedDataViewHandle() { return &typed_data_view_; }
   Function* FunctionHandle() { return &function_; }
   Snapshot::Kind kind() const { return kind_; }
 
@@ -386,6 +391,7 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space_;           // Old space of the current isolate.
   Class& cls_;                     // Temporary Class handle.
   Code& code_;                     // Temporary Code handle.
+  Instance& instance_;             // Temporary Instance handle
   Instructions& instructions_;     // Temporary Instructions handle
   Object& obj_;                    // Temporary Object handle.
   PassiveObject& pobj_;            // Temporary PassiveObject handle.
@@ -398,6 +404,7 @@ class SnapshotReader : public BaseReader {
   GrowableObjectArray& tokens_;    // Temporary tokens handle.
   ExternalTypedData& data_;        // Temporary stream data handle.
   TypedData& typed_data_;          // Temporary typed data handle.
+  TypedDataView& typed_data_view_;  // Temporary typed data view handle.
   Function& function_;             // Temporary function handle.
   UnhandledException& error_;      // Error handle.
   const Class& set_class_;         // The LinkedHashSet class.
@@ -433,6 +440,7 @@ class SnapshotReader : public BaseReader {
   friend class SignatureData;
   friend class SubtypeTestCache;
   friend class Type;
+  friend class TypedDataView;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;
@@ -705,6 +713,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawStackTrace;
   friend class RawSubtypeTestCache;
   friend class RawType;
+  friend class RawTypedDataView;
   friend class RawTypeRef;
   friend class RawTypeArguments;
   friend class RawTypeParameter;

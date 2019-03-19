@@ -344,14 +344,6 @@ abstract class AbstractConstExprSerializer {
           typeName.typeArguments != null);
     } else if (expr is ListLiteral) {
       _serializeListLiteral(expr);
-      // ignore: deprecated_member_use_from_same_package
-    } else if (expr is MapLiteral) {
-      // ignore: deprecated_member_use_from_same_package
-      _serializeMapLiteral(expr);
-      // ignore: deprecated_member_use_from_same_package
-    } else if (expr is SetLiteral) {
-      // ignore: deprecated_member_use_from_same_package
-      _serializeSetLiteral(expr);
     } else if (expr is SetOrMapLiteral) {
       _serializeSetOrMapLiteral(expr);
     } else if (expr is MethodInvocation) {
@@ -549,6 +541,23 @@ abstract class AbstractConstExprSerializer {
       _serialize(element.key);
       _serialize(element.value);
       operations.add(UnlinkedExprOperation.makeMapLiteralEntry);
+    } else if (element is SpreadElement) {
+      _serialize(element.expression);
+      bool isNullAware = element.spreadOperator.type ==
+          TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
+      operations.add(isNullAware
+          ? UnlinkedExprOperation.nullAwareSpreadElement
+          : UnlinkedExprOperation.spreadElement);
+    } else if (element is IfElement) {
+      _serialize(element.condition);
+      _serializeCollectionElement(element.thenElement);
+      var elseElement = element.elseElement;
+      if (elseElement == null) {
+        operations.add(UnlinkedExprOperation.ifElement);
+      } else {
+        _serializeCollectionElement(elseElement);
+        operations.add(UnlinkedExprOperation.ifElseElement);
+      }
     } else {
       // TODO(paulberry): Implement serialization for spread and control flow
       //  elements.
@@ -570,27 +579,6 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedExprOperation.makeTypedList);
     } else {
       operations.add(UnlinkedExprOperation.makeUntypedList);
-    }
-  }
-
-  @deprecated
-  void _serializeMapLiteral(MapLiteral expr) {
-    if (forConst || expr.typeArguments == null) {
-      for (MapLiteralEntry entry in expr.entries) {
-        _serialize(entry.key);
-        _serialize(entry.value);
-      }
-      ints.add(expr.entries.length);
-    } else {
-      ints.add(0);
-    }
-    if (expr.typeArguments != null &&
-        expr.typeArguments.arguments.length == 2) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
-      references.add(serializeType(expr.typeArguments.arguments[1]));
-      operations.add(UnlinkedExprOperation.makeTypedMap);
-    } else {
-      operations.add(UnlinkedExprOperation.makeUntypedMap);
     }
   }
 
@@ -670,24 +658,6 @@ abstract class AbstractConstExprSerializer {
       }
       strings.add(expr.propertyName.name);
       operations.add(UnlinkedExprOperation.extractProperty);
-    }
-  }
-
-  @deprecated
-  void _serializeSetLiteral(SetLiteral expr) {
-    if (forConst || expr.typeArguments == null) {
-      List<Expression> elements = expr.elements;
-      elements.forEach(_serialize);
-      ints.add(elements.length);
-    } else {
-      ints.add(0);
-    }
-    if (expr.typeArguments != null &&
-        expr.typeArguments.arguments.length == 1) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
-      operations.add(UnlinkedExprOperation.makeTypedSet);
-    } else {
-      operations.add(UnlinkedExprOperation.makeUntypedSet);
     }
   }
 

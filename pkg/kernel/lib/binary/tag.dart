@@ -50,6 +50,9 @@ class Tag {
   static const int LogicalExpression = 34;
   static const int ConditionalExpression = 35;
   static const int StringConcatenation = 36;
+  static const int ListConcatenation = 111;
+  static const int SetConcatenation = 112;
+  static const int MapConcatenation = 113;
   static const int IsExpression = 37;
   static const int AsExpression = 38;
   static const int StringLiteral = 39;
@@ -123,6 +126,9 @@ class Tag {
   /// 108 is occupied by [RedirectingFactoryConstructor] (member).
   /// 109 is occupied by [SetLiteral] (expression).
   /// 110 is occupied by [ConstSetLiteral] (expression).
+  /// 111 is occupied by [ListConcatenation] (expression).
+  /// 112 is occupied by [SetConcatenation] (expression).
+  /// 113 is occupied by [MapConcatenation] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -139,7 +145,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 20;
+  static const int BinaryFormatVersion = 21;
 }
 
 abstract class ConstantTag {

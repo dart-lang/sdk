@@ -218,8 +218,7 @@ class Scavenger {
 
   void MakeNewSpaceIterable() const;
   int64_t FreeSpaceInWords(Isolate* isolate) const;
-  void MakeAllTLABsIterable(Isolate* isolate) const;
-  void AbandonAllTLABs(Isolate* isolate);
+  void AbandonTLABs(Isolate* isolate);
 
  private:
   // Ids for time and data records in Heap::GCStats.

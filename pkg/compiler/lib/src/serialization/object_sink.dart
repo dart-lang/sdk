@@ -14,10 +14,12 @@ class ObjectSink extends AbstractDataSink {
   ObjectSink(this._data, {bool useDataKinds})
       : super(useDataKinds: useDataKinds);
 
+  @override
   void _begin(String tag) {
     _data.add(new Tag('begin:$tag'));
   }
 
+  @override
   void _end(String tag) {
     _data.add(new Tag('end:$tag'));
   }

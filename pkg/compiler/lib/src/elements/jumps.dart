@@ -20,6 +20,7 @@ abstract class LabelDefinition extends Entity {
 /// A jump target is the reference point of a statement or switch-case,
 /// either by label or as the default target of a break or continue.
 abstract class JumpTarget extends Local {
+  @override
   String get name => 'target';
 
   bool get isTarget => isBreakTarget || isContinueTarget;

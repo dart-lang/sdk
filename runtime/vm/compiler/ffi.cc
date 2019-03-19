@@ -6,6 +6,8 @@
 
 namespace dart {
 
+namespace compiler {
+
 namespace ffi {
 
 #if defined(TARGET_ARCH_X64)
@@ -15,25 +17,21 @@ static const size_t kSizeUnknown = 0;
 static const intptr_t kNumElementSizes = kFfiVoidCid - kFfiPointerCid + 1;
 
 static const size_t element_size_table[kNumElementSizes] = {
-    sizeof(intptr_t),  // kFfiPointerCid
-    kSizeUnknown,      // kFfiNativeFunctionCid
-    1,                 // kFfiInt8Cid
-    2,                 // kFfiInt16Cid
-    4,                 // kFfiInt32Cid
-    8,                 // kFfiInt64Cid
-    1,                 // kFfiUint8Cid
-    2,                 // kFfiUint16Cid
-    4,                 // kFfiUint32Cid
-    8,                 // kFfiUint64Cid
-    sizeof(intptr_t),  // kFfiIntPtrCid
-    4,                 // kFfiFloatCid
-    8,                 // kFfiDoubleCid
-    kSizeUnknown,      // kFfiVoidCid
+    target::kWordSize,  // kFfiPointerCid
+    kSizeUnknown,       // kFfiNativeFunctionCid
+    1,                  // kFfiInt8Cid
+    2,                  // kFfiInt16Cid
+    4,                  // kFfiInt32Cid
+    8,                  // kFfiInt64Cid
+    1,                  // kFfiUint8Cid
+    2,                  // kFfiUint16Cid
+    4,                  // kFfiUint32Cid
+    8,                  // kFfiUint64Cid
+    target::kWordSize,  // kFfiIntPtrCid
+    4,                  // kFfiFloatCid
+    8,                  // kFfiDoubleCid
+    kSizeUnknown,       // kFfiVoidCid
 };
-
-Representation WordRep() {
-  return compiler::target::kWordSize > 4 ? kUnboxedInt64 : kUnboxedInt32;
-}
 
 size_t ElementSizeInBytes(intptr_t class_id) {
   ASSERT(class_id != kFfiNativeFunctionCid);
@@ -46,45 +44,52 @@ size_t ElementSizeInBytes(intptr_t class_id) {
   return element_size_table[index];
 }
 
-bool ElementIsSigned(intptr_t class_id) {
-  switch (class_id) {
-    case kFfiFloatCid:
-    case kFfiDoubleCid:
-    case kFfiInt8Cid:
-    case kFfiInt16Cid:
-    case kFfiInt32Cid:
-    case kFfiInt64Cid:
-    case kFfiIntPtrCid:
-      return true;
-    case kFfiUint8Cid:
-    case kFfiUint16Cid:
-    case kFfiUint32Cid:
-    case kFfiUint64Cid:
-    case kFfiPointerCid:
-    default:  // Subtypes of Pointer.
-      return false;
-  }
-}
-
 Representation TypeRepresentation(const AbstractType& result_type) {
   switch (result_type.type_class_id()) {
     case kFfiFloatCid:
+      return kUnboxedFloat;
     case kFfiDoubleCid:
       return kUnboxedDouble;
     case kFfiInt8Cid:
     case kFfiInt16Cid:
     case kFfiInt32Cid:
+      return kUnboxedInt32;
     case kFfiUint8Cid:
     case kFfiUint16Cid:
     case kFfiUint32Cid:
-      return kUnboxedInt32;
+      return kUnboxedUint32;
     case kFfiInt64Cid:
     case kFfiUint64Cid:
       return kUnboxedInt64;
     case kFfiIntPtrCid:
     case kFfiPointerCid:
     default:  // Subtypes of Pointer.
-      return WordRep();
+      return kUnboxedIntPtr;
+  }
+}
+
+bool NativeTypeIsVoid(const AbstractType& result_type) {
+  return result_type.type_class_id() == kFfiVoidCid;
+}
+
+bool NativeTypeIsPointer(const AbstractType& result_type) {
+  switch (result_type.type_class_id()) {
+    case kFfiVoidCid:
+    case kFfiFloatCid:
+    case kFfiDoubleCid:
+    case kFfiInt8Cid:
+    case kFfiInt16Cid:
+    case kFfiInt32Cid:
+    case kFfiUint8Cid:
+    case kFfiUint16Cid:
+    case kFfiUint32Cid:
+    case kFfiInt64Cid:
+    case kFfiUint64Cid:
+    case kFfiIntPtrCid:
+      return false;
+    case kFfiPointerCid:
+    default:
+      return true;
   }
 }
 
@@ -120,6 +125,7 @@ ZoneGrowableArray<Location>* ArgumentLocations(
     on_stack = true;
     switch (arg_reps.At(i)) {
       case kUnboxedInt32:
+      case kUnboxedUint32:
       case kUnboxedInt64:
         if (regs_used < CallingConventions::kNumArgRegs) {
           data[i] = Location::RegisterLocation(
@@ -131,6 +137,7 @@ ZoneGrowableArray<Location>* ArgumentLocations(
           on_stack = false;
         }
         break;
+      case kUnboxedFloat:
       case kUnboxedDouble:
         if (xmm_regs_used < CallingConventions::kNumXmmArgRegs) {
           data[i] = Location::FpuRegisterLocation(
@@ -146,12 +153,41 @@ ZoneGrowableArray<Location>* ArgumentLocations(
         UNREACHABLE();
     }
     if (on_stack) {
-      // SAMIR_TODO: Is this correct?
       data[i] = Location::StackSlot(nth_stack_argument, RSP);
       nth_stack_argument++;
     }
   }
   return result;
+}
+
+Representation ResultRepresentation(const Function& signature) {
+  AbstractType& arg_type = AbstractType::Handle(signature.result_type());
+  return TypeRepresentation(arg_type);
+}
+
+Location ResultLocation(Representation result_rep) {
+  switch (result_rep) {
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+    case kUnboxedInt64:
+      return Location::RegisterLocation(CallingConventions::kReturnReg);
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      return Location::FpuRegisterLocation(CallingConventions::kReturnFpuReg);
+    default:
+      UNREACHABLE();
+  }
+}
+
+intptr_t NumStackArguments(const ZoneGrowableArray<Location>& locations) {
+  intptr_t num_arguments = locations.length();
+  intptr_t num_stack_arguments = 0;
+  for (intptr_t i = 0; i < num_arguments; i++) {
+    if (locations.At(i).IsStackSlot()) {
+      num_stack_arguments++;
+    }
+  }
+  return num_stack_arguments;
 }
 
 #else
@@ -163,5 +199,7 @@ size_t ElementSizeInBytes(intptr_t class_id) {
 #endif
 
 }  // namespace ffi
+
+}  // namespace compiler
 
 }  // namespace dart

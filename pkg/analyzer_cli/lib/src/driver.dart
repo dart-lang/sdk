@@ -52,8 +52,6 @@ import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:yaml/yaml.dart';
@@ -99,9 +97,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   static final ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
 
   ContextCache contextCache;
-
-  /// The plugins that are defined outside the `analyzer_cli` package.
-  List<Plugin> _userDefinedPlugins = <Plugin>[];
 
   /// The driver that was most recently created by a call to [_analyzeAll], or
   /// `null` if [_analyzeAll] hasn't been called yet.
@@ -149,11 +144,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   CrashReportSender get crashReportSender => (_crashReportSender ??=
       new CrashReportSender('Dart_analyzer_cli', analytics));
 
-  @override
-  void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins ?? <Plugin>[];
-  }
-
   /**
    * Converts the given [filePath] into absolute and normalized.
    */
@@ -173,7 +163,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     StringUtilities.INTERNER = new MappedInterner();
 
-    _processPlugins();
+    linter.registerLintRules();
 
     // Parse commandline options.
     CommandLineOptions options = CommandLineOptions.parse(args);
@@ -734,17 +724,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// Returns `true` if this relative path is a hidden directory.
   bool _isInHiddenDir(String relative) =>
       path.split(relative).any((part) => part.startsWith("."));
-
-  void _processPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.addAll(_userDefinedPlugins);
-
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
-
-    linter.registerLintRules();
-  }
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(

@@ -360,13 +360,17 @@ typedef enum {
 /**
  * Add a timeline event to the embedder stream.
  *
- * \param label The name of the evnet.
+ * \param label The name of the event. Its lifetime must extend at least until
+ *     Dart_Cleanup.
  * \param timestamp0 The first timestamp of the event.
  * \param timestamp1_or_async_id The second timestamp of the event or
  *     the async id.
  * \param argument_count The number of argument names and values.
- * \param argument_names An array of names of the arguments.
- * \param argument_values An array of values of the arguments.
+ * \param argument_names An array of names of the arguments. The lifetime of the
+ *     names must extend at least until Dart_Cleanup. The array may be reclaimed
+ *     when this call returns.
+ * \param argument_values An array of values of the arguments. The values and
+ *     the array may be reclaimed when this call returns.
  */
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,

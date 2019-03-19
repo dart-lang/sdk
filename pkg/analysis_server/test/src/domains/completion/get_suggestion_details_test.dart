@@ -134,6 +134,35 @@ main() {} // ref
 ''');
   }
 
+  test_newImport_part() async {
+    var partCode = r'''
+part of 'test.dart';
+
+main() {} // ref
+''';
+    var partPath = newFile('/home/test/lib/a.dart', content: partCode).path;
+    addTestFile(r'''
+part 'a.dart';
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var result = await _getSuggestionDetails(
+      _buildRequest(
+        file: partPath,
+        id: mathSet.id,
+        label: 'sin',
+        offset: partCode.indexOf('} // ref'),
+      ),
+    );
+
+    expect(result.completion, 'sin');
+    _assertTestFileChange(result.change, r'''
+import 'dart:math';
+
+part 'a.dart';
+''');
+  }
+
   void _assertEmptyChange(SourceChange change) {
     expect(change.edits, isEmpty);
   }

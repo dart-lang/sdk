@@ -1065,5 +1065,9 @@ main() {
     var b = BigInt.parse("10000000000000000001"); /// 27: ok
     Expect.equals(false, a.hashCode == b.hashCode); /// 27: ok
     Expect.equals(true, a.hashCode == (b - BigInt.one).hashCode); /// 27: ok
+
+    // Regression test for http://dartbug.com/36105
+    var overbig = -BigInt.from(10).pow(309);
+    Expect.equals(overbig.toDouble(), double.negativeInfinity);
   }
 }

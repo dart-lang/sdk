@@ -174,14 +174,13 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
       (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid));
-  return field.is_unboxing_candidate() && !field.is_final() &&
-         !field.is_nullable() && valid_class;
+  return field.is_unboxing_candidate() && !field.is_nullable() && valid_class;
 }
 
 bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
   return field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
-          (!field.is_final() && (field.guarded_cid() == kIllegalCid)));
+          (field.guarded_cid() == kIllegalCid));
 }
 
 void FlowGraphCompiler::InitCompiler() {
@@ -1822,6 +1821,7 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
 
 const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   switch (rep) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return double_class();
     case kUnboxedFloat32x4:

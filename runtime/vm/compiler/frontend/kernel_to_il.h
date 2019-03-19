@@ -91,12 +91,22 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
 
+  // Return names of optional named parameters of [function].
+  RawArray* GetOptionalParameterNames(const Function& function);
+
+  // Generate fragment which pushes all explicit parameters of [function].
+  Fragment PushExplicitParameters(const Function& function);
+
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
+  FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
 
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
+
+  Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
+                                                classid_t cid);
 
   Fragment EnterScope(intptr_t kernel_offset,
                       const LocalScope** scope = nullptr);
@@ -142,9 +152,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                        intptr_t argument_count,
                        const Array& argument_names,
                        bool use_unchecked_entry = false);
+  Fragment FfiCall(const Function& signature,
+                   const ZoneGrowableArray<Representation>& arg_reps,
+                   const ZoneGrowableArray<Location>& arg_locs);
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
-  Fragment LoadClassId();
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
@@ -197,6 +209,25 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
+
+  // Truncates (instead of deoptimizing) if the origin does not fit into the
+  // target representation.
+  Fragment UnboxTruncate(Representation to);
+
+  // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
+  Fragment Box(Representation from);
+
+  // Pops an 'ffi.Pointer' off the stack.
+  // If it's null, pushes 0.
+  // Otherwise pushes the address (in boxed representation).
+  Fragment LoadAddressFromFfiPointer();
+
+  // Reverse of 'LoadPointerFromFfiPointer':
+  // Pops an integer off the the stack.
+  // If it's zero, pushes null.
+  // If it's nonzero, creates an 'ffi.Pointer' holding the address and pushes
+  // the pointer.
+  Fragment FfiPointerFromAddress(const Type& result_type);
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
@@ -258,6 +289,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Builds flow graph for implicit closure function (tear-off).
   //
   // ParsedFunction should have the following information:
+  //  - DefaultFunctionTypeArguments()
+  //  - function_type_arguments()
   //  - default_parameter_values()
   //  - is_forwarding_stub()
   //  - forwarding_stub_super_target()
@@ -267,6 +300,32 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //  - is_explicit_covariant_parameter()
   //
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
+
+  // Builds flow graph of implicit field getter, setter, or a
+  // dynamic invocation forwarder to a field setter.
+  //
+  // If field is const, its value should be evaluated and stored in
+  //  - StaticValue()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //
+  FlowGraph* BuildGraphOfFieldAccessor(const Function& function);
+
+  // Builds flow graph of dynamic invocation forwarder.
+  //
+  // ParsedFunction should have the following information:
+  //  - DefaultFunctionTypeArguments()
+  //  - function_type_arguments()
+  //  - default_parameter_values()
+  //  - is_forwarding_stub()
+  //  - forwarding_stub_super_target()
+  //
+  // Scope should be populated with parameter variables including
+  //  - needs_type_check()
+  //  - is_explicit_covariant_parameter()
+  //
+  FlowGraph* BuildGraphOfDynamicInvocationForwarder(const Function& function);
 
   TranslationHelper translation_helper_;
   Thread* thread_;
@@ -283,6 +342,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   intptr_t try_depth_;
   intptr_t catch_depth_;
   intptr_t for_in_depth_;
+  intptr_t block_expression_depth_;
 
   GraphEntryInstr* graph_entry_;
 
@@ -355,13 +415,15 @@ class ProgramState {
                intptr_t loop_depth,
                intptr_t for_in_depth,
                intptr_t try_depth,
-               intptr_t catch_depth)
+               intptr_t catch_depth,
+               intptr_t block_expression_depth)
       : breakable_block_(breakable_block),
         switch_block_(switch_block),
         loop_depth_(loop_depth),
         for_in_depth_(for_in_depth),
         try_depth_(try_depth),
-        catch_depth_(catch_depth) {}
+        catch_depth_(catch_depth),
+        block_expression_depth_(block_expression_depth) {}
 
   void assignTo(FlowGraphBuilder* builder) const {
     builder->breakable_block_ = breakable_block_;
@@ -370,6 +432,7 @@ class ProgramState {
     builder->for_in_depth_ = for_in_depth_;
     builder->try_depth_ = try_depth_;
     builder->catch_depth_ = catch_depth_;
+    builder->block_expression_depth_ = block_expression_depth_;
   }
 
  private:
@@ -379,6 +442,7 @@ class ProgramState {
   const intptr_t for_in_depth_;
   const intptr_t try_depth_;
   const intptr_t catch_depth_;
+  const intptr_t block_expression_depth_;
 };
 
 class SwitchBlock {
@@ -505,7 +569,8 @@ class TryFinallyBlock {
                builder_->loop_depth_,
                builder_->for_in_depth_,
                builder_->try_depth_ - 1,
-               builder_->catch_depth_) {
+               builder_->catch_depth_,
+               builder_->block_expression_depth_) {
     builder_->try_finally_block_ = this;
   }
   ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }

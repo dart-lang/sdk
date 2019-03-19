@@ -373,6 +373,7 @@ vm_sources_tests = [
   "bitfield_test.cc",
   "bitmap_test.cc",
   "boolfield_test.cc",
+  "catch_entry_moves_test.cc",
   "class_finalizer_test.cc",
   "code_descriptors_test.cc",
   "code_patcher_arm64_test.cc",

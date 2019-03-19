@@ -60,6 +60,31 @@ static inline void ForwardTo(uword original, uword target) {
   *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
+static inline void objcpy(void* dst, const void* src, size_t size) {
+  // A memcopy specialized for objects. We can assume:
+  //  - dst and src do not overlap
+  ASSERT(
+      (reinterpret_cast<uword>(dst) + size <= reinterpret_cast<uword>(src)) ||
+      (reinterpret_cast<uword>(src) + size <= reinterpret_cast<uword>(dst)));
+  //  - dst and src are word aligned
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(dst), sizeof(uword)));
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(src), sizeof(uword)));
+  //  - size is strictly positive
+  ASSERT(size > 0);
+  //  - size is a multiple of double words
+  ASSERT(Utils::IsAligned(size, 2 * sizeof(uword)));
+
+  uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
+  const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
+  do {
+    uword a = *src_cursor++;
+    uword b = *src_cursor++;
+    *dst_cursor++ = a;
+    *dst_cursor++ = b;
+    size -= (2 * sizeof(uword));
+  } while (size > 0);
+}
+
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
   explicit ScavengerVisitor(Isolate* isolate,
@@ -163,8 +188,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // current objects to the to space.
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
-      memmove(reinterpret_cast<void*>(new_addr),
-              reinterpret_cast<void*>(raw_addr), size);
+      objcpy(reinterpret_cast<void*>(new_addr),
+             reinterpret_cast<void*>(raw_addr), size);
 
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
@@ -181,6 +206,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         tags =
             RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
+      }
+
+      if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
+        reinterpret_cast<RawTypedData*>(new_obj)->ResetData();
       }
 
       // Remember forwarding address.
@@ -422,6 +451,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
 
   isolate->ReleaseStoreBuffers();
+  AbandonTLABs(isolate);
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -833,11 +863,12 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
-void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
-  MonitorLocker ml(isolate->threads_lock(), false);
+void Scavenger::MakeNewSpaceIterable() const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
+  Isolate* isolate = heap_->isolate();
+  MonitorLocker ml(isolate->threads_lock(), false);
   Thread* current = heap_->isolate()->thread_registry()->active_list();
   while (current != NULL) {
     if (current->HasActiveTLAB()) {
@@ -846,22 +877,12 @@ void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
     current = current->next();
   }
   Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+  if (mutator_thread != NULL) {
     heap_->MakeTLABIterable(mutator_thread);
   }
 }
 
-void Scavenger::MakeNewSpaceIterable() const {
-  ASSERT(heap_ != NULL);
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-         (Thread::Current()->task_kind() == Thread::kCompactorTask));
-  if (!scavenging_) {
-    MakeAllTLABsIterable(heap_->isolate());
-  }
-}
-
-void Scavenger::AbandonAllTLABs(Isolate* isolate) {
+void Scavenger::AbandonTLABs(Isolate* isolate) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   MonitorLocker ml(isolate->threads_lock(), false);
   Thread* current = isolate->thread_registry()->active_list();
@@ -870,7 +891,7 @@ void Scavenger::AbandonAllTLABs(Isolate* isolate) {
     current = current->next();
   }
   Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+  if (mutator_thread != NULL) {
     heap_->AbandonRemainingTLAB(mutator_thread);
   }
 }
@@ -975,13 +996,6 @@ void Scavenger::Scavenge() {
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
 
-  AbandonAllTLABs(isolate);
-
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (mutator_thread->HasActiveTLAB())) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
-  }
-
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying before Scavenge...");
@@ -990,7 +1004,6 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
-  MakeNewSpaceIterable();
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;

@@ -243,39 +243,6 @@ ApiMessageReader::BackRefNode* ApiMessageReader::AllocateBackRefNode(
   return value;
 }
 
-static Dart_TypedData_Type GetTypedDataTypeFromView(
-    Dart_CObject_Internal* object,
-    char* class_name) {
-  struct {
-    const char* name;
-    Dart_TypedData_Type type;
-  } view_class_names[] = {
-      {"_Int8ArrayView", Dart_TypedData_kInt8},
-      {"_Uint8ArrayView", Dart_TypedData_kUint8},
-      {"_Uint8ClampedArrayView", Dart_TypedData_kUint8Clamped},
-      {"_Int16ArrayView", Dart_TypedData_kInt16},
-      {"_Uint16ArrayView", Dart_TypedData_kUint16},
-      {"_Int32ArrayView", Dart_TypedData_kInt32},
-      {"_Uint32ArrayView", Dart_TypedData_kUint32},
-      {"_Int64ArrayView", Dart_TypedData_kInt64},
-      {"_Uint64ArrayView", Dart_TypedData_kUint64},
-      {"_ByteDataView", Dart_TypedData_kUint8},
-      {"_Float32ArrayView", Dart_TypedData_kFloat32},
-      {"_Float64ArrayView", Dart_TypedData_kFloat64},
-      {NULL, Dart_TypedData_kInvalid},
-  };
-
-  int i = 0;
-  while (view_class_names[i].name != NULL) {
-    if (strncmp(view_class_names[i].name, class_name,
-                strlen(view_class_names[i].name)) == 0) {
-      return view_class_names[i].type;
-    }
-    i++;
-  }
-  return Dart_TypedData_kInvalid;
-}
-
 Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = Read<int32_t>();
@@ -299,46 +266,6 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
     }
     ASSERT(object->type == static_cast<Dart_CObject_Type>(
                                Dart_CObject_Internal::kUninitialized));
-
-    char* library_uri =
-        object->cls->internal.as_class.library_url->value.as_string;
-    char* class_name =
-        object->cls->internal.as_class.class_name->value.as_string;
-
-    // Handle typed data views.
-    if (strcmp("dart:typed_data", library_uri) == 0) {
-      Dart_TypedData_Type type = GetTypedDataTypeFromView(object, class_name);
-      if (type != Dart_TypedData_kInvalid) {
-        object->type =
-            static_cast<Dart_CObject_Type>(Dart_CObject_Internal::kView);
-        Dart_CObject_Internal* cls =
-            reinterpret_cast<Dart_CObject_Internal*>(ReadObjectImpl());
-        ASSERT(cls == object->cls);
-        object->internal.as_view.buffer = ReadObjectImpl();
-        object->internal.as_view.offset_in_bytes = ReadSmiValue();
-        object->internal.as_view.length = ReadSmiValue();
-
-        // The buffer is fully read now as typed data objects are
-        // serialized in-line.
-        Dart_CObject* buffer = object->internal.as_view.buffer;
-        ASSERT(buffer->type == Dart_CObject_kTypedData);
-
-        // Now turn the view into a byte array.
-        object->type = Dart_CObject_kTypedData;
-        object->value.as_typed_data.type = type;
-        object->value.as_typed_data.length =
-            object->internal.as_view.length * GetTypedDataSizeInBytes(type);
-        object->value.as_typed_data.values =
-            buffer->value.as_typed_data.values +
-            object->internal.as_view.offset_in_bytes;
-      } else {
-        // TODO(sgjesse): Handle other instances. Currently this will
-        // skew the reading as the fields of the instance is not read.
-      }
-    } else {
-      // TODO(sgjesse): Handle other instances. Currently this will
-      // skew the reading as the fields of the instance is not read.
-    }
     return object;
   }
 
@@ -531,7 +458,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       return value;
     }
     case kTypeParameterCid: {
-      // TODO(sgjesse): Fix this workaround ignoring the type parameter.
       Dart_CObject* value = &dynamic_type_marker;
       AddBackRef(object_id, value, kIsDeserialized);
       intptr_t index = Read<int32_t>();
@@ -657,60 +583,59 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     return object;                                                             \
   }
 
-    case kTypedDataInt8ArrayCid:
-      READ_TYPED_DATA(Int8, int8_t);
-    case kExternalTypedDataInt8ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Int8, int8_t);
+#define READ_TYPED_DATA_VIEW(tname, ctype)                                     \
+  {                                                                            \
+    Dart_CObject_Internal* object =                                            \
+        AllocateDartCObjectInternal(Dart_CObject_Internal::kUninitialized);    \
+    AddBackRef(object_id, object, kIsDeserialized);                            \
+    object->type =                                                             \
+        static_cast<Dart_CObject_Type>(Dart_CObject_Internal::kView);          \
+    object->internal.as_view.offset_in_bytes = ReadSmiValue();                 \
+    object->internal.as_view.length = ReadSmiValue();                          \
+    object->internal.as_view.buffer = ReadObjectImpl();                        \
+    Dart_CObject* buffer = object->internal.as_view.buffer;                    \
+    RELEASE_ASSERT(buffer->type == Dart_CObject_kTypedData);                   \
+                                                                               \
+    /* Now turn the view into a byte array.*/                                  \
+    const Dart_TypedData_Type type = Dart_TypedData_k##tname;                  \
+    object->type = Dart_CObject_kTypedData;                                    \
+    object->value.as_typed_data.type = type;                                   \
+    object->value.as_typed_data.length =                                       \
+        object->internal.as_view.length * GetTypedDataSizeInBytes(type);       \
+    object->value.as_typed_data.values =                                       \
+        buffer->value.as_typed_data.values +                                   \
+        object->internal.as_view.offset_in_bytes;                              \
+    return object;                                                             \
+  }
 
-    case kTypedDataUint8ArrayCid:
-      READ_TYPED_DATA(Uint8, uint8_t);
-    case kExternalTypedDataUint8ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Uint8, uint8_t);
+#define TYPED_DATA_LIST(V)                                                     \
+  V(Int8, int8_t)                                                              \
+  V(Uint8, uint8_t)                                                            \
+  V(Uint8Clamped, uint8_t)                                                     \
+  V(Int16, int16_t)                                                            \
+  V(Uint16, uint16_t)                                                          \
+  V(Int32, int32_t)                                                            \
+  V(Uint32, uint32_t)                                                          \
+  V(Int64, int64_t)                                                            \
+  V(Uint64, uint64_t)                                                          \
+  V(Float32, float)                                                            \
+  V(Float64, double)
 
-    case kTypedDataUint8ClampedArrayCid:
-      READ_TYPED_DATA(Uint8Clamped, uint8_t);
-    case kExternalTypedDataUint8ClampedArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Uint8Clamped, uint8_t);
+#define EMIT_TYPED_DATA_CASES(type, c_type)                                    \
+  case kTypedData##type##ArrayCid:                                             \
+    READ_TYPED_DATA(type, c_type);                                             \
+  case kExternalTypedData##type##ArrayCid:                                     \
+    READ_EXTERNAL_TYPED_DATA(type, c_type);                                    \
+  case kTypedData##type##ArrayViewCid:                                         \
+    READ_TYPED_DATA_VIEW(type, c_type);
 
-    case kTypedDataInt16ArrayCid:
-      READ_TYPED_DATA(Int16, int16_t);
-    case kExternalTypedDataInt16ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Int16, int16_t);
-
-    case kTypedDataUint16ArrayCid:
-      READ_TYPED_DATA(Uint16, uint16_t);
-    case kExternalTypedDataUint16ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Uint16, uint16_t);
-
-    case kTypedDataInt32ArrayCid:
-      READ_TYPED_DATA(Int32, int32_t);
-    case kExternalTypedDataInt32ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Int32, int32_t);
-
-    case kTypedDataUint32ArrayCid:
-      READ_TYPED_DATA(Uint32, uint32_t);
-    case kExternalTypedDataUint32ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Uint32, uint32_t);
-
-    case kTypedDataInt64ArrayCid:
-      READ_TYPED_DATA(Int64, int64_t);
-    case kExternalTypedDataInt64ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Int64, int64_t);
-
-    case kTypedDataUint64ArrayCid:
-      READ_TYPED_DATA(Uint64, uint64_t);
-    case kExternalTypedDataUint64ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Uint64, uint64_t);
-
-    case kTypedDataFloat32ArrayCid:
-      READ_TYPED_DATA(Float32, float);
-    case kExternalTypedDataFloat32ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Float32, float);
-
-    case kTypedDataFloat64ArrayCid:
-      READ_TYPED_DATA(Float64, double);
-    case kExternalTypedDataFloat64ArrayCid:
-      READ_EXTERNAL_TYPED_DATA(Float64, double);
+      TYPED_DATA_LIST(EMIT_TYPED_DATA_CASES)
+#undef EMIT_TYPED_DATA_CASES
+#undef TYPED_DATA_LIST
+#undef READ_TYPED_DATA
+#undef READ_EXTERNAL_TYPED_DATA
+#undef READ_TYPED_DATA_VIEW
+#undef READ_TYPED_DATA_HEADER
 
     case kGrowableObjectArrayCid: {
       // A GrowableObjectArray is serialized as its type arguments and

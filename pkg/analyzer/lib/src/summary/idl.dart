@@ -987,6 +987,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.classDeclaration)
   LinkedNode get classDeclaration_extendsClause;
 
+  @VariantId(27, variant: LinkedNodeKind.classDeclaration)
+  bool get classDeclaration_isDartObject;
+
   @VariantId(7, variant: LinkedNodeKind.classDeclaration)
   LinkedNode get classDeclaration_withClause;
 
@@ -1338,6 +1341,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_type;
 
+  @VariantId(24, variant: LinkedNodeKind.fieldFormalParameter)
+  LinkedNodeType get fieldFormalParameter_type2;
+
   @VariantId(7, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_typeParameters;
 
@@ -1459,6 +1465,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionDeclaration)
   LinkedNode get functionDeclaration_returnType;
 
+  @VariantId(24, variant: LinkedNodeKind.functionDeclaration)
+  LinkedNodeType get functionDeclaration_returnType2;
+
   @VariantId(6, variant: LinkedNodeKind.functionDeclarationStatement)
   LinkedNode get functionDeclarationStatement_functionDeclaration;
 
@@ -1479,6 +1488,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_returnType;
+
+  @VariantId(24, variant: LinkedNodeKind.functionTypeAlias)
+  LinkedNodeType get functionTypeAlias_returnType2;
 
   @VariantId(8, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_typeParameters;
@@ -1503,6 +1515,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_returnType;
+
+  @VariantId(24, variant: LinkedNodeKind.genericFunctionType)
+  LinkedNodeType get genericFunctionType_returnType2;
 
   @VariantId(6, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_typeParameters;
@@ -1696,6 +1711,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.mapLiteralEntry)
   LinkedNode get mapLiteralEntry_value;
 
+  @VariantId(19, variant: LinkedNodeKind.methodDeclaration)
+  int get methodDeclaration_actualProperty;
+
   @VariantId(6, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_body;
 
@@ -1719,6 +1737,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(8, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_returnType;
+
+  @VariantId(24, variant: LinkedNodeKind.methodDeclaration)
+  LinkedNodeType get methodDeclaration_returnType2;
 
   @VariantId(9, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_typeParameters;
@@ -1803,6 +1824,13 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.simpleFormalParameter,
   ])
   LinkedNode get normalFormalParameter_identifier;
+
+  @VariantId(27, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  bool get normalFormalParameter_isCovariant;
 
   @VariantId(4, variantList: [
     LinkedNodeKind.fieldFormalParameter,
@@ -1930,6 +1958,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(6, variant: LinkedNodeKind.simpleFormalParameter)
   LinkedNode get simpleFormalParameter_type;
+
+  @VariantId(24, variant: LinkedNodeKind.simpleFormalParameter)
+  LinkedNodeType get simpleFormalParameter_type2;
 
   @VariantId(15, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_element;
@@ -2140,6 +2171,9 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   int get uriBasedDirective_uriElement;
 
+  @VariantId(32, variant: LinkedNodeKind.variableDeclaration)
+  LinkedNodeVariablesDeclaration get variableDeclaration_declaration;
+
   @VariantId(15, variant: LinkedNodeKind.variableDeclaration)
   int get variableDeclaration_equals;
 
@@ -2148,6 +2182,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.variableDeclaration)
   LinkedNode get variableDeclaration_name;
+
+  @VariantId(24, variant: LinkedNodeKind.variableDeclaration)
+  LinkedNodeType get variableDeclaration_type2;
 
   @VariantId(15, variant: LinkedNodeKind.variableDeclarationList)
   int get variableDeclarationList_keyword;
@@ -2198,20 +2235,19 @@ abstract class LinkedNode extends base.SummaryClass {
   int get yieldStatement_yieldKeyword;
 }
 
-/// TODO(scheglov) extend to support multiple libraries or remove
+/// Information about a group of libraries linked together, for example because
+/// they form a single cycle, or because they represent a single build artifact.
 @TopLevel('LNBn')
 abstract class LinkedNodeBundle extends base.SummaryClass {
   factory LinkedNodeBundle.fromBuffer(List<int> buffer) =>
       generated.readLinkedNodeBundle(buffer);
 
-  @Id(2)
-  LinkedNode get node;
-
   @Id(1)
-  LinkedNodeReference get references;
+  List<LinkedNodeLibrary> get libraries;
 
+  /// The shared list of references used in the [libraries].
   @Id(0)
-  UnlinkedTokens get tokens;
+  LinkedNodeReferences get references;
 }
 
 /// Types of comments.
@@ -2344,8 +2380,29 @@ enum LinkedNodeKind {
   yieldStatement,
 }
 
+/// Information about a single library in a [LinkedNodeBundle].
+abstract class LinkedNodeLibrary extends base.SummaryClass {
+  @Id(2)
+  List<int> get exports;
+
+  @Id(3)
+  String get name;
+
+  @Id(5)
+  int get nameLength;
+
+  @Id(4)
+  int get nameOffset;
+
+  @Id(1)
+  List<LinkedNodeUnit> get units;
+
+  @Id(0)
+  String get uriStr;
+}
+
 /// Flattened tree of declarations referenced from [LinkedNode]s.
-abstract class LinkedNodeReference extends base.SummaryClass {
+abstract class LinkedNodeReferences extends base.SummaryClass {
   @Id(1)
   List<String> get name;
 
@@ -2355,18 +2412,18 @@ abstract class LinkedNodeReference extends base.SummaryClass {
 
 /// Information about a Dart type.
 abstract class LinkedNodeType extends base.SummaryClass {
-  /// References to [LinkedNodeReference].
+  /// References to [LinkedNodeReferences].
   @Id(0)
   List<int> get functionFormalParameters;
 
   @Id(1)
   LinkedNodeType get functionReturnType;
 
-  /// References to [LinkedNodeReference].
+  /// References to [LinkedNodeReferences].
   @Id(2)
   List<int> get functionTypeParameters;
 
-  /// Reference to a [LinkedNodeReference].
+  /// Reference to a [LinkedNodeReferences].
   @Id(3)
   int get interfaceClass;
 
@@ -2376,7 +2433,7 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(5)
   LinkedNodeTypeKind get kind;
 
-  /// Reference to a [LinkedNodeReference].
+  /// Reference to a [LinkedNodeReferences].
   @Id(6)
   int get typeParameterParameter;
 }
@@ -2386,9 +2443,38 @@ enum LinkedNodeTypeKind {
   bottom,
   dynamic_,
   function,
+  genericTypeAlias,
   interface,
   typeParameter,
   void_
+}
+
+/// Information about a single library in a [LinkedNodeLibrary].
+abstract class LinkedNodeUnit extends base.SummaryClass {
+  @Id(2)
+  LinkedNode get node;
+
+  @Id(1)
+  UnlinkedTokens get tokens;
+
+  @Id(0)
+  String get uriStr;
+}
+
+/// Information about a top-level declaration, or a field declaration that
+/// contributes information to [LinkedNodeKind.variableDeclaration].
+abstract class LinkedNodeVariablesDeclaration extends base.SummaryClass {
+  @Id(3)
+  LinkedNode get comment;
+
+  @Id(0)
+  bool get isConst;
+
+  @Id(1)
+  bool get isFinal;
+
+  @Id(2)
+  bool get isStatic;
 }
 
 /// Information about the resolution of an [UnlinkedReference].
@@ -3782,6 +3868,25 @@ enum UnlinkedExprOperation {
   /// Pop the top 2 values from the stack, place them in a [MapLiteralEntry],
   /// and push the result back onto the stack.
   makeMapLiteralEntry,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...`, and push the result back onto the stack.
+  spreadElement,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...?`, and push the result back onto the stack.
+  nullAwareSpreadElement,
+
+  /// Pop the top two values from the stack.  The first is a condition
+  /// and the second is a collection element.  Push an "if" element having the
+  /// given condition, with the collection element as its "then" clause.
+  ifElement,
+
+  /// Pop the top three values from the stack.  The first is a condition and the
+  /// other two are collection elements.  Push an "if" element having the given
+  /// condition, with the two collection elements as its "then" and "else"
+  /// clauses, respectively.
+  ifElseElement,
 }
 
 /// Unlinked summary information about an import declaration.

@@ -10,10 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -55,11 +52,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType _dynamicType;
 
   /**
-   * The status of the active experiments of the current context.
-   */
-  ExperimentStatus _experimentStatus;
-
-  /**
    * True if inference failures should be reported, otherwise false.
    */
   bool _strictInference;
@@ -87,7 +79,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _promoteManager = _resolver.promoteManager;
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
-    _experimentStatus = analysisOptions.experimentStatus;
     _strictInference = analysisOptions.strictInference;
   }
 
@@ -189,101 +180,30 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return inferred;
   }
 
-  @deprecated
-  ParameterizedType inferMapType(MapLiteral node, {bool downwards: false}) {
-    DartType contextType = InferenceContext.getContext(node);
-    if (contextType != null && _experimentStatus.set_literals) {
-      DartType unwrap(DartType type) {
-        if (type is InterfaceType &&
-            type.isDartAsyncFutureOr &&
-            type.typeArguments.length == 1) {
-          return unwrap(type.typeArguments[0]);
-        }
-        return type;
-      }
-
-      DartType unwrappedContextType = unwrap(contextType);
-      if (node.typeArguments == null &&
-          node.entries.isEmpty &&
-          _typeSystem.isAssignableTo(
-              _typeProvider.iterableObjectType, unwrappedContextType) &&
-          !_typeSystem.isAssignableTo(
-              _typeProvider.mapObjectObjectType, unwrappedContextType)) {
-        // The node is really an empty set literal with no type arguments.
-        // Rewrite the AST and infer the type of the set as appropriate.
-        SetLiteral setLiteral = new AstFactoryImpl().setLiteral(
-            node.constKeyword, null, node.leftBracket, null, node.rightBracket);
-        InferenceContext.setType(setLiteral, contextType);
-        NodeReplacer.replace(node, setLiteral);
-        DartType type = inferSetType(setLiteral, downwards: downwards);
-        setLiteral.staticType = type;
-        return type;
-      }
-    }
-    List<DartType> elementTypes;
-    List<ParameterElement> parameters;
-    if (downwards) {
-      if (contextType == null) {
-        return null;
-      }
-      elementTypes = [];
-      parameters = [];
-    } else {
-      var keyTypes =
-          node.entries.map((e) => e.key.staticType).where((t) => t != null);
-      var valueTypes =
-          node.entries.map((e) => e.value.staticType).where((t) => t != null);
-      var keyTypeParam = _typeProvider.mapType.typeParameters[0].type;
-      var valueTypeParam = _typeProvider.mapType.typeParameters[1].type;
-      var syntheticKeyParameter = new ParameterElementImpl.synthetic(
-          'key', keyTypeParam, ParameterKind.POSITIONAL);
-      var syntheticValueParameter = new ParameterElementImpl.synthetic(
-          'value', valueTypeParam, ParameterKind.POSITIONAL);
-      parameters = new List.filled(keyTypes.length, syntheticKeyParameter,
-          growable: true)
-        ..addAll(new List.filled(valueTypes.length, syntheticValueParameter));
-      elementTypes = new List<DartType>.from(keyTypes)..addAll(valueTypes);
+  ParameterizedType inferMapTypeDownwards(
+      SetOrMapLiteral node, DartType contextType) {
+    if (contextType == null) {
+      return null;
     }
 
-    // Use both downwards and upwards information to infer the type.
     var ts = _typeSystem as Dart2TypeSystem;
     ParameterizedType inferred = ts.inferGenericFunctionOrType(
-        _typeProvider.mapType, parameters, elementTypes, contextType,
-        downwards: downwards,
+        _typeProvider.mapType, [], [], contextType,
+        downwards: true,
         errorReporter: _resolver.errorReporter,
         errorNode: node);
     return inferred;
   }
 
-  @deprecated
-  DartType inferSetType(SetLiteral node, {bool downwards: false}) {
-    DartType contextType = InferenceContext.getContext(node);
+  DartType inferSetTypeDownwards(SetOrMapLiteral node, DartType contextType) {
+    if (contextType == null) {
+      return null;
+    }
 
     var ts = _typeSystem as Dart2TypeSystem;
-    List<DartType> elementTypes;
-    List<ParameterElement> parameters;
-
-    if (downwards) {
-      if (contextType == null) {
-        return null;
-      }
-
-      elementTypes = [];
-      parameters = [];
-    } else {
-      // Also use upwards information to infer the type.
-      elementTypes = node.elements
-          .map((e) => e.staticType)
-          .where((t) => t != null)
-          .toList();
-      var setTypeParam = _typeProvider.setType.typeParameters[0].type;
-      var syntheticParamElement = new ParameterElementImpl.synthetic(
-          'element', setTypeParam, ParameterKind.POSITIONAL);
-      parameters = new List.filled(elementTypes.length, syntheticParamElement);
-    }
     DartType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
-        _typeProvider.setType, parameters, elementTypes, contextType,
-        downwards: downwards,
+        _typeProvider.setType, [], [], contextType,
+        downwards: true,
         errorReporter: _resolver.errorReporter,
         errorNode: node);
     return inferred;
@@ -704,65 +624,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * The Dart Language Specification, 12.7: <blockquote>The static type of a map literal of the form
-   * <i><b>const</b> &lt;K, V&gt; {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
-   * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>&lt;K, V&gt; {k<sub>1</sub>:e<sub>1</sub>,
-   * &hellip;, k<sub>n</sub>:e<sub>n</sub>}</i> is `Map&lt;K, V&gt;`. The static type a map
-   * literal of the form <i><b>const</b> {k<sub>1</sub>:e<sub>1</sub>, &hellip;,
-   * k<sub>n</sub>:e<sub>n</sub>}</i> or the form <i>{k<sub>1</sub>:e<sub>1</sub>, &hellip;,
-   * k<sub>n</sub>:e<sub>n</sub>}</i> is `Map&lt;dynamic, dynamic&gt;`.
-   *
-   * It is a compile-time error if the first type argument to a map literal is not
-   * <i>String</i>.</blockquote>
-   */
-  @override
-  @deprecated
-  void visitMapLiteral(MapLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-
-    // If we have type arguments, use them
-    if (typeArguments != null) {
-      DartType staticKeyType = _dynamicType;
-      DartType staticValueType = _dynamicType;
-      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-      if (arguments != null && arguments.length == 2) {
-        DartType entryKeyType = _getType(arguments[0]);
-        if (entryKeyType != null) {
-          staticKeyType = entryKeyType;
-        }
-        DartType entryValueType = _getType(arguments[1]);
-        if (entryValueType != null) {
-          staticValueType = entryValueType;
-        }
-      }
-      _recordStaticType(
-          node,
-          _typeProvider.mapType
-              .instantiate(<DartType>[staticKeyType, staticValueType]));
-      return;
-    }
-
-    DartType mapDynamicType = _typeProvider.mapType
-        .instantiate(<DartType>[_dynamicType, _dynamicType]);
-
-    // If we have no explicit type arguments, try to infer type arguments.
-    ParameterizedType inferred = inferMapType(node);
-
-    if (inferred != mapDynamicType) {
-      // TODO(jmesserly): this results in an "inferred" message even when we
-      // in fact had an error above, because it will still attempt to return
-      // a type. Perhaps we should record inference from TypeSystem if
-      // everything was successful?
-      _resolver.inferenceContext.recordInference(node, inferred);
-      _recordStaticType(node, inferred);
-      return;
-    }
-
-    // If no type arguments and no inference, use dynamic
-    _recordStaticType(node, mapDynamicType);
-  }
-
-  /**
    * The Dart Language Specification, 12.15.1: <blockquote>An ordinary method invocation <i>i</i>
    * has the form <i>o.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
    * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>.
@@ -1010,66 +871,42 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   @override
-  @deprecated
-  void visitSetLiteral(SetLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-
-    // If we have type arguments, use them
-    if (typeArguments != null) {
-      DartType elementType = _dynamicType;
-      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-      if (arguments != null && arguments.length == 1) {
-        DartType type = _getType(arguments[0]);
-        if (type != null) {
-          elementType = type;
-        }
-      }
-      _recordStaticType(
-          node, _typeProvider.setType.instantiate(<DartType>[elementType]));
-      return;
-    }
-
-    DartType setDynamicType =
-        _typeProvider.setType.instantiate(<DartType>[_dynamicType]);
-
-    // If we have no explicit type arguments, try to infer type arguments.
-    ParameterizedType inferred = inferSetType(node);
-
-    if (inferred != setDynamicType) {
-      // TODO(jmesserly): this results in an "inferred" message even when we
-      // in fact had an error above, because it will still attempt to return
-      // a type. Perhaps we should record inference from TypeSystem if
-      // everything was successful?
-      _resolver.inferenceContext.recordInference(node, inferred);
-      _recordStaticType(node, inferred);
-      return;
-    }
-
-    // If no type arguments and no inference, use dynamic
-    _recordStaticType(node, setDynamicType);
-  }
-
-  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    DartType staticType = node.staticType;
-    if (staticType == null) {
-      DartType literalType = _inferSetOrMapLiteralType(node);
-      if (literalType.element == _typeProvider.mapType.element) {
-        (node as SetOrMapLiteralImpl).becomeMap();
-      } else {
-        assert(literalType.element == _typeProvider.setType.element);
-        (node as SetOrMapLiteralImpl).becomeSet();
-      }
-      _resolver.inferenceContext.recordInference(node, literalType);
-      _recordStaticType(node, literalType);
-    } else if (staticType is InterfaceType) {
-      List<DartType> typeArguments = staticType.typeArguments;
+    var typeArguments = node.typeArguments?.arguments;
+
+    // If we have type arguments, use them.
+    // TODO(paulberry): this logic seems redundant with
+    //  ResolverVisitor._fromTypeArguments
+    if (typeArguments != null) {
       if (typeArguments.length == 1) {
         (node as SetOrMapLiteralImpl).becomeSet();
+        var elementType = _getType(typeArguments[0]) ?? _dynamicType;
+        _recordStaticType(
+            node, _typeProvider.setType.instantiate(<DartType>[elementType]));
+        return;
       } else if (typeArguments.length == 2) {
         (node as SetOrMapLiteralImpl).becomeMap();
+        var keyType = _getType(typeArguments[0]) ?? _dynamicType;
+        var valueType = _getType(typeArguments[1]) ?? _dynamicType;
+        _recordStaticType(node,
+            _typeProvider.mapType.instantiate(<DartType>[keyType, valueType]));
+        return;
       }
+      // If we get here, then a nonsense number of type arguments were provided,
+      // so treat it as though no type arguments were provided.
     }
+    DartType literalType = _inferSetOrMapLiteralType(node);
+    if (literalType.isDynamic) {
+      // The literal is ambiguous, and further analysis won't resolve the
+      // ambiguity.  Leave it as neither a set nor a map.
+    } else if (literalType.element == _typeProvider.mapType.element) {
+      (node as SetOrMapLiteralImpl).becomeMap();
+    } else {
+      assert(literalType.element == _typeProvider.setType.element);
+      (node as SetOrMapLiteralImpl).becomeSet();
+    }
+    _resolver.inferenceContext.recordInference(node, literalType);
+    _recordStaticType(node, literalType);
   }
 
   /**
@@ -1283,16 +1120,30 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _typeSystem.leastUpperBound(thenType, elseType);
     } else if (element is Expression) {
       return element.staticType;
+    } else if (element is MapLiteralEntry) {
+      // This error will be reported elsewhere.
+      return _typeProvider.dynamicType;
     } else if (element is SpreadElement) {
-      DartType collectionType = element.expression.staticType;
-      if (collectionType is ParameterizedType) {
-        List<DartType> typeArguments = collectionType.typeArguments;
-        if (typeArguments.length == 1) {
-          return typeArguments[0];
+      DartType expressionType = element.expression.staticType;
+      bool isNull = expressionType.isDartCoreNull;
+      if (!isNull && expressionType is InterfaceType) {
+        if (_typeSystem.isSubtypeOf(
+            expressionType, _typeProvider.iterableObjectType)) {
+          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
+              .asInstanceOf(_typeProvider.iterableType.element);
+          return iterableType.typeArguments[0];
         }
+      } else if (expressionType.isDynamic) {
+        return expressionType;
+      } else if (isNull &&
+          element.spreadOperator.type ==
+              TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+        return expressionType;
       }
+      // TODO(brianwilkerson) Report this as an error.
+      return _typeProvider.dynamicType;
     }
-    return null;
+    throw StateError('Unhandled element type ${element.runtimeType}');
   }
 
   /**
@@ -1551,7 +1402,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       _InferredCollectionElementTypeInformation elseType =
           _inferCollectionElementType(element.elseElement);
-      return _InferredCollectionElementTypeInformation.leastUpperBound(
+      return _InferredCollectionElementTypeInformation.forIfElement(
           _typeSystem, thenType, elseType);
     } else if (element is Expression) {
       return _InferredCollectionElementTypeInformation(
@@ -1569,41 +1420,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             expressionType, _typeProvider.iterableObjectType)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.iterableType.element);
-          if (iterableType != null) {
-            // The `iterableType` will be `null` when `expressionType` is
-            // `Null`. Fall through in that case to perform the default type
-            // check.
-            List<DartType> typeArguments = iterableType.typeArguments;
-            if (typeArguments.length == 1) {
-              return _InferredCollectionElementTypeInformation(
-                  elementType: typeArguments[0],
-                  keyType: null,
-                  valueType: null);
-            }
-          }
           return _InferredCollectionElementTypeInformation(
-              elementType: _typeProvider.dynamicType,
+              elementType: iterableType.typeArguments[0],
               keyType: null,
               valueType: null);
         } else if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.mapObjectObjectType)) {
           InterfaceType mapType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.mapType.element);
-          if (mapType != null) {
-            // The `iterableType` will be `null` when `expressionType` is
-            // `Null`. Fall through in that case to perform the default type
-            // check.
-            List<DartType> typeArguments = mapType.typeArguments;
-            if (typeArguments.length == 2) {
-              return _InferredCollectionElementTypeInformation(
-                  elementType: null,
-                  keyType: typeArguments[0],
-                  valueType: typeArguments[1]);
-            }
-          }
-          DartType dynamicType = _typeProvider.dynamicType;
+          List<DartType> typeArguments = mapType.typeArguments;
           return _InferredCollectionElementTypeInformation(
-              elementType: null, keyType: dynamicType, valueType: dynamicType);
+              elementType: null,
+              keyType: typeArguments[0],
+              valueType: typeArguments[1]);
         }
       } else if (expressionType.isDynamic) {
         return _InferredCollectionElementTypeInformation(
@@ -1636,11 +1465,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       AstNode parent = loopVariable.parent;
       Token awaitKeyword;
       Expression iterable;
-      // ignore: deprecated_member_use_from_same_package
-      if (parent is ForEachStatement) {
-        awaitKeyword = parent.awaitKeyword;
-        iterable = parent.iterable;
-      } else if (parent is ForEachPartsWithDeclaration) {
+      if (parent is ForEachPartsWithDeclaration) {
         AstNode parentParent = parent.parent;
         if (parentParent is ForStatement2Impl) {
           awaitKeyword = parentParent.awaitKeyword;
@@ -1952,11 +1777,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   DartType _inferSetOrMapLiteralType(SetOrMapLiteral literal) {
-    DartType contextType = InferenceContext.getContext(literal);
+    var literalImpl = literal as SetOrMapLiteralImpl;
+    DartType contextType = literalImpl.contextType;
+    literalImpl.contextType = null; // Not needed anymore.
     NodeList<CollectionElement> elements = literal.elements2;
-    if (elements.length < 2 && contextType != null) {
-      return contextType;
-    }
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;
@@ -1976,11 +1800,36 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (canBeAMap && mustBeAMap) {
       return _toMapType(literal, contextType, inferredTypes);
     }
-    if (contextType == null) {
-      DartType dynamicType = _typeProvider.dynamicType;
-      return _typeProvider.mapType.instantiate([dynamicType, dynamicType]);
+    // Note: according to the spec, the following computations should be based
+    // on the greatest closure of the context type (unless the context type is
+    // `?`).  In practice, we can just use the context type directly, because
+    // the only way the greatest closure of the context type could possibly have
+    // a different subtype relationship to `Iterable<Object>` and
+    // `Map<Object, Object>` is if the context type is `?`.
+    bool contextProvidesAmbiguityResolutionClues =
+        contextType != null && contextType is! UnknownInferredType;
+    bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
+        _typeSystem.isSubtypeOf(contextType, _typeProvider.iterableObjectType);
+    bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
+        _typeSystem.isSubtypeOf(contextType, _typeProvider.mapObjectObjectType);
+    if (contextIsIterable && !contextIsMap) {
+      return _toSetType(literal, contextType, inferredTypes);
+    } else if ((contextIsMap && !contextIsIterable) || elements.isEmpty) {
+      return _toMapType(literal, contextType, inferredTypes);
+    } else {
+      // Ambiguous.  We're not going to get any more information to resolve the
+      // ambiguity.  We don't want to make an arbitrary decision at this point
+      // because it will interfere with future type inference (see
+      // dartbug.com/36210), so we return a type of `dynamic`.
+      if (mustBeAMap && mustBeASet) {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, literal);
+      } else {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, literal);
+      }
+      return _typeProvider.dynamicType;
     }
-    return contextType;
   }
 
   /**
@@ -2106,21 +1955,43 @@ class _InferredCollectionElementTypeInformation {
   _InferredCollectionElementTypeInformation(
       {this.elementType, this.keyType, this.valueType});
 
-  factory _InferredCollectionElementTypeInformation.leastUpperBound(
-          TypeSystem typeSystem,
-          _InferredCollectionElementTypeInformation first,
-          _InferredCollectionElementTypeInformation second) =>
-      _InferredCollectionElementTypeInformation(
-          elementType: _leastUpperBoundOfTypes(
-              typeSystem, first.elementType, second.elementType),
-          keyType: _leastUpperBoundOfTypes(
-              typeSystem, first.keyType, second.keyType),
-          valueType: _leastUpperBoundOfTypes(
-              typeSystem, first.valueType, second.valueType));
+  factory _InferredCollectionElementTypeInformation.forIfElement(
+      TypeSystem typeSystem,
+      _InferredCollectionElementTypeInformation thenInfo,
+      _InferredCollectionElementTypeInformation elseInfo) {
+    if (thenInfo.isDynamic) {
+      DartType dynamic = thenInfo.elementType;
+      return _InferredCollectionElementTypeInformation(
+          elementType: _dynamicOrNull(elseInfo.elementType, dynamic),
+          keyType: _dynamicOrNull(elseInfo.keyType, dynamic),
+          valueType: _dynamicOrNull(elseInfo.valueType, dynamic));
+    } else if (elseInfo.isDynamic) {
+      DartType dynamic = elseInfo.elementType;
+      return _InferredCollectionElementTypeInformation(
+          elementType: _dynamicOrNull(thenInfo.elementType, dynamic),
+          keyType: _dynamicOrNull(thenInfo.keyType, dynamic),
+          valueType: _dynamicOrNull(thenInfo.valueType, dynamic));
+    }
+    return _InferredCollectionElementTypeInformation(
+        elementType: _leastUpperBoundOfTypes(
+            typeSystem, thenInfo.elementType, elseInfo.elementType),
+        keyType: _leastUpperBoundOfTypes(
+            typeSystem, thenInfo.keyType, elseInfo.keyType),
+        valueType: _leastUpperBoundOfTypes(
+            typeSystem, thenInfo.valueType, elseInfo.valueType));
+  }
 
   bool get canBeAMap => keyType != null || valueType != null;
 
   bool get canBeASet => elementType != null;
+
+  bool get isDynamic =>
+      elementType != null &&
+      elementType.isDynamic &&
+      keyType != null &&
+      keyType.isDynamic &&
+      valueType != null &&
+      valueType.isDynamic;
 
   bool get mustBeAMap => canBeAMap && elementType == null;
 
@@ -2129,6 +2000,13 @@ class _InferredCollectionElementTypeInformation {
   @override
   String toString() {
     return '($elementType, $keyType, $valueType)';
+  }
+
+  static DartType _dynamicOrNull(DartType type, DartType dynamic) {
+    if (type == null) {
+      return null;
+    }
+    return dynamic;
   }
 
   static DartType _leastUpperBoundOfTypes(

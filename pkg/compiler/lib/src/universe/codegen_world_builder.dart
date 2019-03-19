@@ -90,6 +90,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   Iterable<FieldEntity> get allReferencedStaticFields;
 
   /// Set of methods in instantiated classes that are potentially closurized.
+  @override
   Iterable<FunctionEntity> get closurizedMembers;
 
   /// Register [constant] as needed for emission.
@@ -136,13 +137,16 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// The set of all referenced static fields.
   ///
   /// Invariant: Elements are declaration elements.
+  @override
   final Set<FieldEntity> allReferencedStaticFields = new Set<FieldEntity>();
 
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: Elements are declaration elements.
+  @override
   final Set<FunctionEntity> staticFunctionsNeedingGetter =
       new Set<FunctionEntity>();
+  @override
   final Set<FunctionEntity> methodsNeedingSuperGetter =
       new Set<FunctionEntity>();
   final Map<String, Map<Selector, SelectorConstraints>> _invokedNames =
@@ -181,6 +185,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
       <String, Set<MemberUsage>>{};
 
+  @override
   final Set<DartType> isChecks = new Set<DartType>();
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
@@ -201,6 +206,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   GlobalLocalsMap get _globalLocalsMap => _world.globalLocalsMap;
 
+  @override
   Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
@@ -208,6 +214,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// constructor that has been called directly and not only through a
   /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
+  @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
     return _directlyInstantiatedClasses;
   }
@@ -217,6 +224,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   ///
   /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
+  @override
   Iterable<InterfaceType> get instantiatedTypes => _instantiatedTypes;
 
   /// Register [type] as (directly) instantiated.
@@ -270,11 +278,13 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     return _hasMatchingSelector(_invokedNames[member.name], member, _world);
   }
 
+  @override
   bool hasInvokedGetter(MemberEntity member) {
     return _hasMatchingSelector(_invokedGetters[member.name], member, _world) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
+  @override
   bool hasInvokedSetter(MemberEntity member) {
     return _hasMatchingSelector(_invokedSetters[member.name], member, _world);
   }
@@ -347,28 +357,34 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     return new UnmodifiableMapView(map);
   }
 
+  @override
   Map<Selector, SelectorConstraints> invocationsByName(String name) {
     return _asUnmodifiable(_invokedNames[name]);
   }
 
+  @override
   Map<Selector, SelectorConstraints> getterInvocationsByName(String name) {
     return _asUnmodifiable(_invokedGetters[name]);
   }
 
+  @override
   Map<Selector, SelectorConstraints> setterInvocationsByName(String name) {
     return _asUnmodifiable(_invokedSetters[name]);
   }
 
+  @override
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedNames.forEach(f);
   }
 
+  @override
   void forEachInvokedGetter(
       f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedGetters.forEach(f);
   }
 
+  @override
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors)) {
     _invokedSetters.forEach(f);
@@ -723,11 +739,13 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     _constTypeLiterals.add(type);
   }
 
+  @override
   Iterable<DartType> get constTypeLiterals => _constTypeLiterals;
 
   void registerTypeArgument(DartType type) {
     _liveTypeArguments.add(type);
   }
 
+  @override
   Iterable<DartType> get liveTypeArguments => _liveTypeArguments;
 }

@@ -1225,6 +1225,12 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   sentinel.SetStaticValue(enum_value, true);
   sentinel.RecordStore(enum_value);
 
+  const GrowableObjectArray& pending_unevaluated_const_fields =
+      GrowableObjectArray::Handle(zone,
+                                  thread->isolate()
+                                      ->object_store()
+                                      ->pending_unevaluated_const_fields());
+
   if (enum_cls.kernel_offset() > 0) {
     Error& error = Error::Handle(zone);
     for (intptr_t i = 0; i < fields.Length(); i++) {
@@ -1234,12 +1240,19 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
         continue;
       }
       // The eager evaluation of the enum values is required for hot-reload (see
-      // commit e3ecc87).
+      // commit e3ecc87). However, while busy loading the constant table, we
+      // need to postpone this evaluation until table is done.
       if (!FLAG_precompiled_mode) {
         if (field.IsUninitialized()) {
-          error = field.EvaluateInitializer();
-          if (!error.IsNull()) {
-            ReportError(error);
+          if (pending_unevaluated_const_fields.IsNull()) {
+            // Evaluate right away.
+            error = field.EvaluateInitializer();
+            if (!error.IsNull()) {
+              ReportError(error);
+            }
+          } else {
+            // Postpone evaluation until we have a constant table.
+            pending_unevaluated_const_fields.Add(field);
           }
         }
       }
@@ -1386,52 +1399,6 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   String& expected_name = String::Handle(zone);
   Error& error = Error::Handle(zone);
   TypeParameter& type_param = TypeParameter::Handle(zone);
-
-  // First verify field offsets of all the TypedDataView classes.
-  for (intptr_t cid = kTypedDataInt8ArrayViewCid;
-       cid <= kTypedDataFloat32x4ArrayViewCid; cid++) {
-    cls = class_table.At(cid);  // Get the TypedDataView class.
-    error = cls.EnsureIsFinalized(thread);
-    ASSERT(error.IsNull());
-    cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
-    cls = cls.SuperClass();
-    fields_array ^= cls.fields();
-    ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
-    field ^= fields_array.At(0);
-    ASSERT(field.Offset() == TypedDataView::data_offset());
-    name ^= field.name();
-    expected_name ^= String::New("_typedData");
-    ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-    field ^= fields_array.At(1);
-    ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
-    name ^= field.name();
-    ASSERT(name.Equals("offsetInBytes"));
-    field ^= fields_array.At(2);
-    ASSERT(field.Offset() == TypedDataView::length_offset());
-    name ^= field.name();
-    ASSERT(name.Equals("length"));
-  }
-
-  // Now verify field offsets of '_ByteDataView' class.
-  cls = class_table.At(kByteDataViewCid);
-  error = cls.EnsureIsFinalized(thread);
-  ASSERT(error.IsNull());
-  fields_array ^= cls.fields();
-  ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
-  field ^= fields_array.At(0);
-  ASSERT(field.Offset() == TypedDataView::data_offset());
-  name ^= field.name();
-  expected_name ^= String::New("_typedData");
-  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-  field ^= fields_array.At(1);
-  ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
-  name ^= field.name();
-  expected_name ^= String::New("_offset");
-  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-  field ^= fields_array.At(2);
-  ASSERT(field.Offset() == TypedDataView::length_offset());
-  name ^= field.name();
-  ASSERT(name.Equals("length"));
 
   // Now verify field offsets of '_ByteBuffer' class.
   cls = class_table.At(kByteBufferCid);

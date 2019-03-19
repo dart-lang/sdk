@@ -205,11 +205,6 @@ bool resolveNamedConfiguration(
         "named configuration $requestedNamedConfiguration");
     return false;
   }
-  if (requestedNamedConfiguration != null && outputNamedConfiguration.isEmpty) {
-    stderr.writeln("error: The named configuration "
-        "$requestedNamedConfiguration doesn't exist");
-    return false;
-  }
   if (requestedNamedConfiguration != null && outputBuilders.isEmpty) {
     stderr.writeln("error: The named configuration "
         "$requestedNamedConfiguration isn't tested on any builders");
@@ -236,9 +231,26 @@ Future<String> findMergeBase(
   return LineSplitter.split(result.stdout).first;
 }
 
+/// Exception thrown when looking up the build for a commit failed.
+class CommitNotBuiltException implements Exception {
+  final String reason;
+
+  CommitNotBuiltException(this.reason);
+
+  String toString() => reason;
+}
+
+/// The result after searching for a build of a commit.
+class BuildSearchResult {
+  final int build;
+  final String commit;
+
+  BuildSearchResult(this.build, this.commit);
+}
+
 /// Locates the build number of the [commit] on the [builder], or throws an
 /// exception if the builder hasn't built the commit.
-Future<int> buildNumberOfCommit(String builder, String commit) async {
+Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   final requestUrl = Uri.parse(
       "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
       "?bucket=luci.dart.ci.sandbox"
@@ -255,7 +267,8 @@ Future<int> buildNumberOfCommit(String builder, String commit) async {
   client.close();
   final builds = object["builds"];
   if (builds == null || builds.isEmpty) {
-    throw new Exception("Builder $builder hasn't built commit $commit");
+    throw new CommitNotBuiltException(
+        "Builder $builder hasn't built commit $commit");
   }
   final build = builds.last;
   final tags = (build["tags"] as List).cast<String>();
@@ -263,9 +276,44 @@ Future<int> buildNumberOfCommit(String builder, String commit) async {
       tags.firstWhere((tag) => tag.startsWith("build_address:"));
   final buildAddress = buildAddressTag.substring("build_address:".length);
   if (build["status"] != "COMPLETED") {
-    throw new Exception("Build $buildAddress isn't completed yet");
+    throw new CommitNotBuiltException(
+        "Build $buildAddress isn't completed yet");
   }
-  return int.parse(buildAddress.split("/").last);
+  return new BuildSearchResult(int.parse(buildAddress.split("/").last), commit);
+}
+
+Future<BuildSearchResult> searchForApproximateBuild(
+    String builder, String commit) async {
+  try {
+    return await searchForBuild(builder, commit);
+  } on CommitNotBuiltException catch (e) {
+    print("Warning: $e, searching for an inexact previous build...");
+    final int limit = 25;
+    final arguments = [
+      "rev-list",
+      "$commit~$limit..$commit~1",
+      "--first-parent",
+      "--topo-order"
+    ];
+    final processResult = await Process.run("git", arguments, runInShell: true);
+    if (processResult.exitCode != 0) {
+      throw new Exception("Failed to list potential commits: git $arguments\n"
+          "exitCode: ${processResult.exitCode}\n"
+          "stdout: ${processResult.stdout}\n"
+          "stdout: ${processResult.stderr}\n");
+    }
+    for (final fallbackCommit in LineSplitter.split(processResult.stdout)) {
+      try {
+        return await searchForBuild(builder, fallbackCommit);
+      } catch (e) {
+        print(
+            "Warning: Searching for inexact baseline build: $e, continuing...");
+      }
+    }
+    throw new CommitNotBuiltException(
+        "Failed to locate approximate baseline results for "
+        "$commit in past $limit commits");
+  }
 }
 
 void main(List<String> args) async {
@@ -277,10 +325,18 @@ void main(List<String> args) async {
       help: "Select the builders building this branch",
       defaultsTo: "master");
   parser.addOption("commit", abbr: "C", help: "Compare with this commit");
+  parser.addFlag("list-configurations",
+      help: "Output list of configurations.", negatable: false);
   parser.addOption("named-configuration",
       abbr: "n",
       help: "The named test configuration that supplies the\nvalues for all "
           "test options, specifying how tests\nshould be run.");
+  parser.addOption("local-configuration",
+      abbr: "N",
+      help: "Use a different named configuration for local\ntesting than the "
+          "named configuration the baseline\nresults were downloaded for. The "
+          "results may be\ninexact if the baseline configuration is "
+          "different.");
   parser.addOption("remote",
       abbr: "R",
       help: "Compare with this remote and git branch",
@@ -289,7 +345,9 @@ void main(List<String> args) async {
 
   final options = parser.parse(args);
   if (options["help"] ||
-      (options["builder"] == null && options["named-configuration"] == null)) {
+      (options["builder"] == null &&
+          options["named-configuration"] == null &&
+          !options["list-configurations"])) {
     print("""
 Usage: test.dart -b [BUILDER] -n [CONFIGURATION] [OPTION]... [--]
                  [TEST.PY OPTION]... [SELECTOR]...
@@ -306,6 +364,14 @@ Otherwise the available named configurations are listed.
 See the documentation at https://goto.google.com/dart-status-file-free-workflow
 
 ${parser.usage}""");
+    return;
+  }
+
+  if (options["list-configurations"]) {
+    final process = await Process.start(
+        "python", ["tools/test.py", "--list-configurations"],
+        mode: ProcessStartMode.inheritStdio, runInShell: Platform.isWindows);
+    exitCode = await process.exitCode;
     return;
   }
 
@@ -351,9 +417,16 @@ ${parser.usage}""");
     return;
   }
   final namedConfiguration = namedConfigurations.single;
+  final localConfiguration =
+      options["local-configuration"] ?? namedConfiguration;
   for (final builder in builders) {
-    print("Testing the named configuration $namedConfiguration "
-        "compared with builder $builder");
+    if (localConfiguration != namedConfiguration) {
+      print("Testing the named configuration $localConfiguration "
+          "compared with builder $builder's configuration $namedConfiguration");
+    } else {
+      print("Testing the named configuration $localConfiguration "
+          "compared with builder $builder");
+    }
   }
 
   // Find out where the current HEAD branched.
@@ -368,10 +441,18 @@ ${parser.usage}""");
     final mergedFlaky = <String, Map<String, dynamic>>{};
 
     // Use the buildbucket API to search for builds of the right commit.
+    final inexactBuilds = new SplayTreeMap<String, String>();
     for (final builder in builders) {
       // Download the previous results and flakiness info from cloud storage.
       print("Finding build on builder $builder to compare with...");
-      final buildNumber = await buildNumberOfCommit(builder, commit);
+      final buildSearchResult =
+          await searchForApproximateBuild(builder, commit);
+      if (buildSearchResult.commit != commit) {
+        print("Warning: Using commit ${buildSearchResult.commit} "
+            "as baseline instead of $commit for $builder");
+        inexactBuilds[builder] = buildSearchResult.commit;
+      }
+      final buildNumber = buildSearchResult.build;
       print("Downloading results from builder $builder build $buildNumber...");
       await cpGsutil(
           buildFileCloudPath(builder, buildNumber.toString(), "results.json"),
@@ -391,16 +472,31 @@ ${parser.usage}""");
 
     // Write out the merged results for the builders.
     if (2 <= builders.length) {
-      print("Merging downloaded results from the builders...");
       await new File("${outDirectory.path}/previous.json").writeAsString(
           mergedResults.values.map((data) => jsonEncode(data) + "\n").join(""));
       await new File("${outDirectory.path}/flaky.json").writeAsString(
           mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
     }
 
+    // Override the named configuration in the baseline data if needed.
+    if (namedConfiguration != localConfiguration) {
+      for (final path in [
+        "${outDirectory.path}/previous.json",
+        "${outDirectory.path}/flaky.json"
+      ]) {
+        final results = await loadResultsMap(path);
+        final records = results.values
+            .where((r) => r["configuration"] == namedConfiguration)
+            .toList()
+              ..forEach((r) => r["configuration"] = localConfiguration);
+        await new File(path).writeAsString(
+            records.map((data) => jsonEncode(data) + "\n").join(""));
+      }
+    }
+
     // Run the tests.
     final arguments = [
-      "--named-configuration=$namedConfiguration",
+      "--named-configuration=$localConfiguration",
       "--output-directory=${outDirectory.path}",
       "--clean-exit",
       "--silent-failures",
@@ -438,7 +534,7 @@ ${parser.usage}""");
       final deflakeDirectory = new Directory("${outDirectory.path}/$i");
       await deflakeDirectory.create();
       final deflakeArguments = <String>[
-        "--named-configuration=$namedConfiguration",
+        "--named-configuration=$localConfiguration",
         "--output-directory=${deflakeDirectory.path}",
         "--clean-exit",
         "--silent-failures",
@@ -482,6 +578,12 @@ ${parser.usage}""");
       print("There were no test failures.");
     } else {
       stdout.write(compareOutput.stdout);
+    }
+    if (inexactBuilds.isNotEmpty) {
+      print("");
+      inexactBuilds.forEach((String builder, String inexactCommit) => print(
+          "Warning: Results may be inexact because commit ${inexactCommit} "
+          "was used as the baseline for $builder instead of $commit"));
     }
   } finally {
     await outDirectory.delete(recursive: true);

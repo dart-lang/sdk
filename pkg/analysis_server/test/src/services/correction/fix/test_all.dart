@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_async_test.dart' as add_async;
+import 'add_await_test.dart' as add_await;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_missing_parameter_named_test.dart' as add_missing_parameter_named;
@@ -57,6 +58,7 @@ import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
@@ -81,7 +83,9 @@ import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_import_test.dart' as remove_unused_import;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
+import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
@@ -97,10 +101,12 @@ import 'use_effective_integer_division_test.dart'
 import 'use_eq_eq_null_test.dart' as use_eq_eq_null;
 import 'use_is_not_empty_test.dart' as use_is_not_empty;
 import 'use_not_eq_null_test.dart' as use_not_eq_null;
+import 'use_rethrow_test.dart' as use_rethrow;
 
 main() {
   defineReflectiveSuite(() {
     add_async.main();
+    add_await.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
     add_missing_parameter_named.main();
@@ -147,6 +153,7 @@ main() {
     remove_annotation.main();
     remove_await.main();
     remove_dead_code.main();
+    remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();
     remove_empty_else.main();
@@ -168,7 +175,9 @@ main() {
     remove_unused_import.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
+    replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_null_with_closure.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();
     replace_with_brackets.main();
@@ -182,5 +191,6 @@ main() {
     use_eq_eq_null.main();
     use_is_not_empty.main();
     use_not_eq_null.main();
+    use_rethrow.main();
   }, name: 'fix');
 }

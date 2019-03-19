@@ -190,6 +190,21 @@ class CloneVisitor implements TreeVisitor {
     return new StringConcatenation(node.expressions.map(clone).toList());
   }
 
+  visitListConcatenation(ListConcatenation node) {
+    return new ListConcatenation(node.lists.map(clone).toList(),
+        typeArgument: visitType(node.typeArgument));
+  }
+
+  visitSetConcatenation(SetConcatenation node) {
+    return new SetConcatenation(node.sets.map(clone).toList(),
+        typeArgument: visitType(node.typeArgument));
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    return new MapConcatenation(node.maps.map(clone).toList(),
+        keyType: visitType(node.keyType), valueType: visitType(node.valueType));
+  }
+
   visitIsExpression(IsExpression node) {
     return new IsExpression(clone(node.operand), visitType(node.type));
   }

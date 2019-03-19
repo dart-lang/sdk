@@ -43,6 +43,7 @@ class WorldImpact {
     constantUses.forEach(visitor.visitConstantUse);
   }
 
+  @override
   String toString() => dump(this);
 
   static String dump(WorldImpact worldImpact) {
@@ -97,42 +98,50 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
     impact.constantUses.forEach(registerConstantUse);
   }
 
+  @override
   void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);
     _dynamicUses ??= new Setlet<DynamicUse>();
     _dynamicUses.add(dynamicUse);
   }
 
+  @override
   Iterable<DynamicUse> get dynamicUses {
     return _dynamicUses != null ? _dynamicUses : const <DynamicUse>[];
   }
 
+  @override
   void registerTypeUse(TypeUse typeUse) {
     assert(typeUse != null);
     _typeUses ??= new Setlet<TypeUse>();
     _typeUses.add(typeUse);
   }
 
+  @override
   Iterable<TypeUse> get typeUses {
     return _typeUses != null ? _typeUses : const <TypeUse>[];
   }
 
+  @override
   void registerStaticUse(StaticUse staticUse) {
     assert(staticUse != null);
     _staticUses ??= new Setlet<StaticUse>();
     _staticUses.add(staticUse);
   }
 
+  @override
   Iterable<StaticUse> get staticUses {
     return _staticUses != null ? _staticUses : const <StaticUse>[];
   }
 
+  @override
   void registerConstantUse(ConstantUse constantUse) {
     assert(constantUse != null);
     _constantUses ??= new Setlet<ConstantUse>();
     _constantUses.add(constantUse);
   }
 
+  @override
   Iterable<ConstantUse> get constantUses {
     return _constantUses != null ? _constantUses : const <ConstantUse>[];
   }
@@ -221,6 +230,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     return _dynamicUses != null ? _dynamicUses : worldImpact.dynamicUses;
   }
 
+  @override
   void registerDynamicUse(DynamicUse dynamicUse) {
     if (_dynamicUses == null) {
       _dynamicUses = new Setlet<DynamicUse>();
@@ -229,6 +239,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     _dynamicUses.add(dynamicUse);
   }
 
+  @override
   void registerTypeUse(TypeUse typeUse) {
     if (_typeUses == null) {
       _typeUses = new Setlet<TypeUse>();
@@ -242,6 +253,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     return _typeUses != null ? _typeUses : worldImpact.typeUses;
   }
 
+  @override
   void registerStaticUse(StaticUse staticUse) {
     if (_staticUses == null) {
       _staticUses = new Setlet<StaticUse>();
@@ -260,6 +272,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     return _constantUses != null ? _constantUses : worldImpact.constantUses;
   }
 
+  @override
   void registerConstantUse(ConstantUse constantUse) {
     if (_constantUses == null) {
       _constantUses = new Setlet<ConstantUse>();
@@ -268,6 +281,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     _constantUses.add(constantUse);
   }
 
+  @override
   void apply(WorldImpactVisitor visitor) {
     staticUses.forEach(visitor.visitStaticUse);
     dynamicUses.forEach(visitor.visitDynamicUse);
@@ -275,6 +289,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
     constantUses.forEach(visitor.visitConstantUse);
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TransformedWorldImpact($worldImpact)');
@@ -289,6 +304,7 @@ class ImpactUseCase {
 
   const ImpactUseCase(this.name);
 
+  @override
   String toString() => 'ImpactUseCase($name)';
 }
 

@@ -201,6 +201,11 @@ EmptyOptionalParameterList:
       foo();
     }
 
+ExpectedElseOrComma:
+  index: 94
+  template: "Expected 'else' or comma."
+  analyzerCode: ParserErrorCode.EXPECTED_ELSE_OR_COMMA
+
 ExpectedBlock:
   template: "Expected a block."
   tip: "Try adding {}."
@@ -1533,7 +1538,10 @@ FastaUsageLong:
 
       -Dname
       -Dname=value
-        Ignored for now.
+        Define an environment variable in the compile-time environment.
+
+      --no-defines
+        Ignore all -D options and leave environment constants unevaluated.
 
       --
         Stop option parsing, the rest of the command line is assumed to be
@@ -2028,12 +2036,12 @@ OverrideMoreRequiredArguments:
   analyzerCode: INVALID_OVERRIDE_REQUIRED
 
 OverrideTypeMismatchParameter:
-  template: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type in the overridden method, '#type2'."
+  template: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'."
   tip: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 OverrideTypeMismatchReturnType:
-  template: "The return type of the method '#name' is '#type', which does not match the return type of the overridden method, '#type2'."
+  template: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
   tip: "Change to a subtype of '#type2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
@@ -2928,8 +2936,8 @@ DillOutlineSummary:
     #num3%12.3 ms/libraries.
 
 CantInferTypeDueToInconsistentOverrides:
-  template: "Can't infer the type of '#string': overridden members must all have the same type."
-  tip: "Specify the type explicitly."
+  template: "Can't infer a type for '#name' as some of the inherited members have different types."
+  tip: "Try adding an explicit type."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 CantInferTypeDueToCircularity:
@@ -3492,4 +3500,66 @@ SpreadElementTypeMismatch:
     main() {
       List<String> a = <String>["foo"];
       List<int> b = <int>[...a];
+    }
+
+SpreadMapEntryTypeMismatch:
+  template: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
+  script:
+    - |
+      main() {
+        int a = 42;
+        var b = <dynamic, dynamic>{...a};
+      }
+    - |
+      main() {
+        int Function() a = null;
+        var b = <dynamic, dynamic>{...a};
+      }
+
+SpreadMapEntryElementKeyTypeMismatch:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  script: >
+    main() {
+      Map<String, int> a = <String, int>{"foo": 42};
+      Map<int, int> b = <int, int>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatch:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  script: >
+    main() {
+      Map<String, int> a = <String, int>{"foo": 42};
+      Map<String, String> b = <String, String>{...a};
+    }
+
+CantDisambiguateNotEnoughInformation:
+  template: "Not enough type information to disambiguate between literal set and literal map."
+  tip: "Try providing type arguments for the literal explicitly to disambiguate it."
+  script: >
+    foo(dynamic spread) {
+      var a = {...spread};
+    }
+
+CantDisambiguateAmbiguousInformation:
+  template: "Both Iterable and Map spread elements encountered in ambiguous literal."
+  script: >
+    foo(Iterable<int> iterableSpread, Map<int, int> mapSpread) {
+      var c = {...iterableSpread, ...mapSpread};
+    }
+
+SpreadElement:
+  template: "Iterable spread."
+  severity: CONTEXT
+
+SpreadMapElement:
+  template: "Map spread."
+  severity: CONTEXT
+
+NonNullAwareSpreadIsNull:
+  template: "Can't spread a value with static type Null."
+  script: >
+    main() {
+      <int>[...null];
     }

@@ -1075,8 +1075,8 @@ class ConstantEvaluator extends RecursiveVisitor {
     if (left is UnevaluatedConstant) {
       return unevaluated(
           node,
-          new LogicalExpression(
-              unique(left.expression), node.operator, node.right));
+          new LogicalExpression(unique(left.expression), node.operator,
+              cloner.clone(node.right)));
     }
     switch (node.operator) {
       case '||':
@@ -1138,8 +1138,11 @@ class ConstantEvaluator extends RecursiveVisitor {
     } else if (condition is UnevaluatedConstant) {
       return unevaluated(
           node,
-          new ConditionalExpression(unique(condition.expression), node.then,
-              node.otherwise, node.staticType));
+          new ConditionalExpression(
+              unique(condition.expression),
+              cloner.clone(node.then),
+              cloner.clone(node.otherwise),
+              node.staticType));
     } else {
       throw new _AbortCurrentEvaluation(errorReporter.invalidDartType(
           contextChain, node, condition, typeEnvironment.boolType));
@@ -1211,7 +1214,7 @@ class ConstantEvaluator extends RecursiveVisitor {
         if (target.isConst) {
           if (target.isInExternalLibrary && target.initializer == null) {
             // The variable is unavailable due to separate compilation.
-            return unevaluated(node, node);
+            return unevaluated(node, new StaticGet(target));
           }
           return runInsideContext(target, () {
             return _evaluateSubexpression(target.initializer);

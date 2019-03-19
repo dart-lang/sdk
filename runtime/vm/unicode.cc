@@ -344,6 +344,7 @@ bool Utf8::DecodeToUTF16(const uint8_t* utf8_array,
       return false;  // Invalid input.
     }
     if (is_supplementary) {
+      if (j == (len - 1)) return false;  // Output overflow.
       Utf16::Encode(ch, &dst[j]);
       j = j + 1;
     } else {

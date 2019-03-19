@@ -304,6 +304,7 @@ class Position {
     return line < other.line || line == other.line && column <= other.column;
   }
 
+  @override
   String toString() => '[${line + 1},${column + 1}]';
 }
 
@@ -317,5 +318,6 @@ class Interval {
     return begin <= other && other <= end;
   }
 
+  @override
   String toString() => '$begin-$end';
 }

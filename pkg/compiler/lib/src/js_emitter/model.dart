@@ -83,6 +83,7 @@ class Holder {
   Holder(this.name, this.index,
       {this.isStaticStateHolder: false, this.isConstantsHolder: false});
 
+  @override
   String toString() {
     return 'Holder(name=${name})';
   }
@@ -136,8 +137,10 @@ class MainFragment extends Fragment {
       : super(outputUnit, outputFileName, libraries, staticNonFinalFields,
             staticLazilyInitializedFields, constants);
 
+  @override
   bool get isMainFragment => true;
 
+  @override
   String toString() {
     return 'MainFragment()';
   }
@@ -158,8 +161,10 @@ class DeferredFragment extends Fragment {
       : super(outputUnit, outputFileName, libraries, staticNonFinalFields,
             staticLazilyInitializedFields, constants);
 
+  @override
   bool get isMainFragment => false;
 
+  @override
   String toString() {
     return 'DeferredFragment(name=${name})';
   }
@@ -172,6 +177,7 @@ class Constant {
 
   Constant(this.name, this.holder, this.value);
 
+  @override
   String toString() {
     return 'Constant(name=${name.key},value=${value.toStructuredText()})';
   }
@@ -190,11 +196,13 @@ class Library implements FieldContainer {
   final List<StaticMethod> statics;
   final List<Class> classes;
 
+  @override
   final List<Field> staticFieldsForReflection;
 
   Library(this.element, this.uri, this.statics, this.classes,
       this.staticFieldsForReflection);
 
+  @override
   String toString() {
     return 'Library(uri=${uri},element=${element})';
   }
@@ -213,10 +221,12 @@ class StaticField {
   final js.Expression code;
   final bool isFinal;
   final bool isLazy;
+  final bool isInitializedByConstant;
 
   StaticField(this.element, this.name, this.getterName, this.holder, this.code,
-      this.isFinal, this.isLazy);
+      {this.isFinal, this.isLazy, this.isInitializedByConstant: false});
 
+  @override
   String toString() {
     return 'StaticField(name=${name.key},element=${element})';
   }
@@ -241,6 +251,7 @@ class Class implements FieldContainer {
 
   /// noSuchMethod stubs in the special case that the class is Object.
   final List<StubMethod> noSuchMethodStubs;
+  @override
   final List<Field> staticFieldsForReflection;
   final bool hasRtiField; // Per-instance runtime type information pseudo-field.
   final bool onlyForRti;
@@ -315,6 +326,7 @@ class Class implements FieldContainer {
   int get superclassHolderIndex =>
       (superclass == null) ? 0 : superclass.holder.index;
 
+  @override
   String toString() => 'Class(name=${name.key},element=$element)';
 }
 
@@ -351,8 +363,10 @@ class MixinApplication extends Class {
             isClosureBaseClass: false,
             isSuperMixinApplication: false);
 
+  @override
   bool get isSimpleMixinApplication => true;
 
+  @override
   String toString() => 'Mixin(name=${name.key},element=$element)';
 }
 
@@ -412,6 +426,7 @@ class Field {
   bool get needsInterceptedGetterOnThis => getterFlags == 3;
   bool get needsInterceptedSetterOnThis => setterFlags == 3;
 
+  @override
   String toString() {
     return 'Field(name=${name.key},element=${element})';
   }
@@ -519,8 +534,10 @@ class InstanceMethod extends DartMethod {
     assert(isClosureCallMethod != null);
   }
 
+  @override
   bool get isStatic => false;
 
+  @override
   String toString() {
     return 'InstanceMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
@@ -534,6 +551,7 @@ class StubMethod extends Method {
   StubMethod(js.Name name, js.Expression code, {MemberEntity element})
       : super(element, name, code);
 
+  @override
   String toString() {
     return 'StubMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
@@ -561,6 +579,7 @@ class ParameterStubMethod extends StubMethod {
       {MemberEntity element})
       : super(name, code, element: element);
 
+  @override
   String toString() {
     return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'
         ', element=${element}'
@@ -573,6 +592,7 @@ abstract class StaticMethod implements Method {
 }
 
 class StaticDartMethod extends DartMethod implements StaticMethod {
+  @override
   final Holder holder;
 
   StaticDartMethod(
@@ -598,8 +618,10 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
             functionType: functionType,
             applyIndex: applyIndex);
 
+  @override
   bool get isStatic => true;
 
+  @override
   String toString() {
     return 'StaticDartMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
@@ -607,10 +629,12 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {
+  @override
   Holder holder;
   StaticStubMethod(js.Name name, this.holder, js.Expression code)
       : super(name, code);
 
+  @override
   String toString() {
     return 'StaticStubMethod(name=${name.key},element=${element}}'
         ',code=${js.nodeToString(code)})';

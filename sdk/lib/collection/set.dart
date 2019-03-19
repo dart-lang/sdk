@@ -2,28 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Base implementations of [Set].
- */
+/// Base implementations of [Set].
 part of dart.collection;
 
-/**
- * Mixin implementation of [Set].
- *
- * This class provides a base implementation of a `Set` that depends only
- * on the abstract members: [add], [contains], [lookup], [remove],
- * [iterator], [length] and [toSet].
- *
- * Some of the methods assume that `toSet` creates a modifiable set.
- * If using this mixin for an unmodifiable set,
- * where `toSet` should return an unmodifiable set,
- * it's necessary to reimplement
- * [retainAll], [union], [intersection] and [difference].
- *
- * Implementations of `Set` using this mixin should consider also implementing
- * `clear` in constant time. The default implementation works by removing every
- * element.
- */
+/// Mixin implementation of [Set].
+///
+/// This class provides a base implementation of a `Set` that depends only
+/// on the abstract members: [add], [contains], [lookup], [remove],
+/// [iterator], [length] and [toSet].
+///
+/// Some of the methods assume that `toSet` creates a modifiable set.
+/// If using this mixin for an unmodifiable set,
+/// where `toSet` should return an unmodifiable set,
+/// it's necessary to reimplement
+/// [retainAll], [union], [intersection] and [difference].
+///
+/// Implementations of `Set` using this mixin should consider also implementing
+/// `clear` in constant time. The default implementation works by removing every
+/// element.
 abstract class SetMixin<E> implements Set<E> {
   // This class reimplements all of [IterableMixin].
   // If/when Dart mixins get more powerful, we should just create a single
@@ -49,9 +45,9 @@ abstract class SetMixin<E> implements Set<E> {
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
   Iterable<E> followedBy(Iterable<E> other) =>
-      new FollowedByIterable<E>.firstEfficient(this, other);
+      FollowedByIterable<E>.firstEfficient(this, other);
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   void clear() {
     removeAll(toList());
@@ -118,15 +114,15 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  List<E> toList({bool growable: true}) {
-    List<E> result = growable ? (<E>[]..length = length) : new List<E>(length);
+  List<E> toList({bool growable = true}) {
+    List<E> result = growable ? (<E>[]..length = length) : List<E>(length);
     int i = 0;
     for (E element in this) result[i++] = element;
     return result;
   }
 
   Iterable<T> map<T>(T f(E element)) =>
-      new EfficientLengthMappedIterable<E, T>(this, f);
+      EfficientLengthMappedIterable<E, T>(this, f);
 
   E get single {
     if (length > 1) throw IterableElementError.tooMany();
@@ -141,10 +137,10 @@ abstract class SetMixin<E> implements Set<E> {
   // Copied from IterableMixin.
   // Should be inherited if we had multi-level mixins.
 
-  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
+  Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      new ExpandIterable<E, T>(this, f);
+      ExpandIterable<E, T>(this, f);
 
   void forEach(void f(E element)) {
     for (E element in this) f(element);
@@ -178,7 +174,7 @@ abstract class SetMixin<E> implements Set<E> {
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (separator == null || separator == "") {
       do {
         buffer.write(iterator.current);
@@ -201,19 +197,19 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   Iterable<E> take(int n) {
-    return new TakeIterable<E>(this, n);
+    return TakeIterable<E>(this, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return new TakeWhileIterable<E>(this, test);
+    return TakeWhileIterable<E>(this, test);
   }
 
   Iterable<E> skip(int n) {
-    return new SkipIterable<E>(this, n);
+    return SkipIterable<E>(this, n);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return new SkipWhileIterable<E>(this, test);
+    return SkipWhileIterable<E>(this, test);
   }
 
   E get first {
@@ -283,39 +279,35 @@ abstract class SetMixin<E> implements Set<E> {
       if (index == elementIndex) return element;
       elementIndex++;
     }
-    throw new RangeError.index(index, this, "index", null, elementIndex);
+    throw RangeError.index(index, this, "index", null, elementIndex);
   }
 }
 
-/**
- * Base implementation of [Set].
- *
- * This class provides a base implementation of a `Set` that depends only
- * on the abstract members: [add], [contains], [lookup], [remove],
- * [iterator], [length] and [toSet].
- *
- * Some of the methods assume that `toSet` creates a modifiable set.
- * If using this base class for an unmodifiable set,
- * where `toSet` should return an unmodifiable set,
- * it's necessary to reimplement
- * [retainAll], [union], [intersection] and [difference].
- *
- * Implementations of `Set` using this base should consider also implementing
- * `clear` in constant time. The default implementation works by removing every
- * element.
- */
+/// Base implementation of [Set].
+///
+/// This class provides a base implementation of a `Set` that depends only
+/// on the abstract members: [add], [contains], [lookup], [remove],
+/// [iterator], [length] and [toSet].
+///
+/// Some of the methods assume that `toSet` creates a modifiable set.
+/// If using this base class for an unmodifiable set,
+/// where `toSet` should return an unmodifiable set,
+/// it's necessary to reimplement
+/// [retainAll], [union], [intersection] and [difference].
+///
+/// Implementations of `Set` using this base should consider also implementing
+/// `clear` in constant time. The default implementation works by removing every
+/// element.
 abstract class SetBase<E> extends Object with SetMixin<E> {
-  /**
-   * Convert a `Set` to a string as `{each, element, as, string}`.
-   *
-   * Handles circular references where converting one of the elements
-   * to a string ends up converting [set] to a string again.
-   */
+  /// Convert a `Set` to a string as `{each, element, as, string}`.
+  ///
+  /// Handles circular references where converting one of the elements
+  /// to a string ends up converting [set] to a string again.
   static String setToString(Set set) =>
       IterableBase.iterableToFullString(set, '{', '}');
 }
 
-/** Common internal implementation of some [Set] methods. */
+/// Common internal implementation of some [Set] methods.
 // TODO(35548): Make this mix-in SetMixin, by adding `with SetMixin<E>`
 // and removing the copied members below,
 // when analyzer supports const constructors for mixin applications.
@@ -358,9 +350,9 @@ abstract class _SetBase<E> implements Set<E> {
   bool get isNotEmpty => length != 0;
 
   Iterable<E> followedBy(Iterable<E> other) =>
-      new FollowedByIterable<E>.firstEfficient(this, other);
+      FollowedByIterable<E>.firstEfficient(this, other);
 
-  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   void clear() {
     removeAll(toList());
@@ -411,15 +403,15 @@ abstract class _SetBase<E> implements Set<E> {
     return toSet()..addAll(other);
   }
 
-  List<E> toList({bool growable: true}) {
-    List<E> result = growable ? (<E>[]..length = length) : new List<E>(length);
+  List<E> toList({bool growable = true}) {
+    List<E> result = growable ? (<E>[]..length = length) : List<E>(length);
     int i = 0;
     for (E element in this) result[i++] = element;
     return result;
   }
 
   Iterable<T> map<T>(T f(E element)) =>
-      new EfficientLengthMappedIterable<E, T>(this, f);
+      EfficientLengthMappedIterable<E, T>(this, f);
 
   E get single {
     if (length > 1) throw IterableElementError.tooMany();
@@ -431,10 +423,10 @@ abstract class _SetBase<E> implements Set<E> {
 
   String toString() => IterableBase.iterableToFullString(this, '{', '}');
 
-  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
+  Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
 
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
-      new ExpandIterable<E, T>(this, f);
+      ExpandIterable<E, T>(this, f);
 
   void forEach(void f(E element)) {
     for (E element in this) f(element);
@@ -468,7 +460,7 @@ abstract class _SetBase<E> implements Set<E> {
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (separator == null || separator == "") {
       do {
         buffer.write(iterator.current);
@@ -491,19 +483,19 @@ abstract class _SetBase<E> implements Set<E> {
   }
 
   Iterable<E> take(int n) {
-    return new TakeIterable<E>(this, n);
+    return TakeIterable<E>(this, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return new TakeWhileIterable<E>(this, test);
+    return TakeWhileIterable<E>(this, test);
   }
 
   Iterable<E> skip(int n) {
-    return new SkipIterable<E>(this, n);
+    return SkipIterable<E>(this, n);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return new SkipWhileIterable<E>(this, test);
+    return SkipWhileIterable<E>(this, test);
   }
 
   E get first {
@@ -573,11 +565,11 @@ abstract class _SetBase<E> implements Set<E> {
       if (index == elementIndex) return element;
       elementIndex++;
     }
-    throw new RangeError.index(index, this, "index", null, elementIndex);
+    throw RangeError.index(index, this, "index", null, elementIndex);
   }
 }
 
-/** Class used to implement const sets. */
+/// Class used to implement const sets.
 class _UnmodifiableSet<E> extends _SetBase<E> {
   final Map<E, Null> _map;
 

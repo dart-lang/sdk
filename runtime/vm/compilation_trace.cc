@@ -302,6 +302,11 @@ RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
   if (function.is_abstract()) {
     return Object::null();
   }
+  // Prevent premature code collection due to major GC during startup.
+  const intptr_t kFakeInitialUsage = 32;
+  if (function.usage_counter() < kFakeInitialUsage) {
+    function.set_usage_counter(kFakeInitialUsage);
+  }
   return Compiler::CompileFunction(thread_, function);
 }
 
@@ -467,6 +472,7 @@ TypeFeedbackLoader::TypeFeedbackLoader(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
       stream_(nullptr),
+      cid_map_(nullptr),
       uri_(String::Handle(zone_)),
       lib_(Library::Handle(zone_)),
       cls_name_(String::Handle(zone_)),
@@ -484,6 +490,10 @@ TypeFeedbackLoader::TypeFeedbackLoader(Thread* thread)
       functions_to_compile_(
           GrowableObjectArray::Handle(zone_, GrowableObjectArray::New())),
       error_(Error::Handle(zone_)) {}
+
+TypeFeedbackLoader::~TypeFeedbackLoader() {
+  delete[] cid_map_;
+}
 
 RawObject* TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
   stream_ = stream;

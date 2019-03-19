@@ -35,6 +35,12 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
+        messageCantDisambiguateAmbiguousInformation,
+        messageCantDisambiguateNotEnoughInformation,
+        messageNonNullAwareSpreadIsNull,
+        messageSpreadElement,
+        messageSpreadMapElement,
         messageSwitchExpressionNotAssignableCause,
         messageVoidExpression,
         noLength,
@@ -43,6 +49,9 @@ import '../fasta_codes.dart'
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
         templateSpreadElementTypeMismatch,
+        templateSpreadMapEntryElementKeyTypeMismatch,
+        templateSpreadMapEntryElementValueTypeMismatch,
+        templateSpreadMapEntryTypeMismatch,
         templateSpreadTypeMismatch,
         templateSwitchExpressionNotAssignable,
         templateWebLiteralCannotBeRepresentedExactly;
@@ -73,7 +82,8 @@ import '../type_inference/type_schema_environment.dart'
 
 import 'body_builder.dart' show combineStatements;
 
-import 'collections.dart' show SpreadElement, SpreadMapEntry;
+import 'collections.dart'
+    show IfElement, SpreadElement, IfMapEntry, SpreadMapEntry;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
@@ -994,15 +1004,6 @@ abstract class ShadowMember implements Member {
 
   void setInferredType(
       TypeInferenceEngine engine, Uri uri, DartType inferredType);
-
-  static void resolveInferenceNode(Member member) {
-    if (member is ShadowMember) {
-      if (member.inferenceNode != null) {
-        member.inferenceNode.resolve();
-        member.inferenceNode = null;
-      }
-    }
-  }
 }
 
 /// Shadow object for [MethodInvocation].

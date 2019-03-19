@@ -2,41 +2,106 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/spread_collection_inference.dart:48:76: Error: Not enough type information to disambiguate between literal set and literal map.
+// Try providing type arguments for the literal explicitly to disambiguate it.
+//   dynamic map21ambiguous = /*@error=CantDisambiguateNotEnoughInformation*/ {...
+//                                                                            ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:72:76: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+//   dynamic map24ambiguous = /*@error=CantDisambiguateAmbiguousInformation*/ {...
+//                                                                            ^
+// pkg/front_end/testcases/spread_collection_inference.dart:73:5: Context: Iterable spread.
+//     spread, ...mapSpread};
+//     ^
+// pkg/front_end/testcases/spread_collection_inference.dart:73:16: Context: Map spread.
+//     spread, ...mapSpread};
+//                ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:75:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
 //  - 'List' is from 'dart:core'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
 //                                                              ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/spread_collection_inference.dart:77:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
 //  - 'Set' is from 'dart:core'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
 //                                                              ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:45:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+// pkg/front_end/testcases/spread_collection_inference.dart:80:5: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+//  - 'Set' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//     {...spread};
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:83:5: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
+//  - 'Map' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//     {...mapSpread, "baz": 42};
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:86:5: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
+//  - 'Map' is from 'dart:core'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//     {...mapSpread};
+//     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:89:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
 //     notSpreadInt];
 //     ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:48:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+// pkg/front_end/testcases/spread_collection_inference.dart:92:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
 //     notSpreadInt};
 //     ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:51:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+// pkg/front_end/testcases/spread_collection_inference.dart:95:43: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+//     /*@error=SpreadMapEntryTypeMismatch*/ notSpreadInt};
+//                                           ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:98:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
 //     notSpreadFunction];
 //     ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:54:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+// pkg/front_end/testcases/spread_collection_inference.dart:101:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
 //     notSpreadFunction};
 //     ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:57:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+// pkg/front_end/testcases/spread_collection_inference.dart:104:43: Error: Unexpected type 'int Function()' of a map spread entry.  Expected 'dynamic' or a Map.
+//     /*@error=SpreadMapEntryTypeMismatch*/ notSpreadFunction};
+//                                           ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:107:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
 //     spread];
 //     ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:59:73: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+// pkg/front_end/testcases/spread_collection_inference.dart:109:73: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
 //   Set<String> set60 = <String>{... /*@error=SpreadElementTypeMismatch*/ spread};
 //                                                                         ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:112:53: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
+//     /*@error=SpreadMapEntryElementKeyTypeMismatch*/ mapSpread};
+//                                                     ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:115:55: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
+//     /*@error=SpreadMapEntryElementValueTypeMismatch*/ mapSpread};
+//                                                       ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:117:67: Error: Can't spread a value with static type Null.
+//   List<int> lhs70 = <int>[... /*@error=NonNullAwareSpreadIsNull*/ null];
+//                                                                   ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:119:66: Error: Can't spread a value with static type Null.
+//   Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
+//                                                                  ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:122:46: Error: Can't spread a value with static type Null.
+//     {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
+//                                              ^
+//
+// pkg/front_end/testcases/spread_collection_inference.dart:126:5: Error: Can't spread a value with static type Null.
+//     null};
+//     ^
 //
 import self as self;
 import "dart:core" as core;
@@ -44,6 +109,7 @@ import "dart:collection" as col;
 
 static method foo() → dynamic {
   core::List<core::int> spread = <core::int>[1, 2, 3];
+  core::Map<core::String, core::int> mapSpread = <core::String, core::int>{"foo": 4, "bar": 2};
   core::int notSpreadInt = 42;
   () → core::int notSpreadFunction = null;
   core::List<dynamic> lhs10 = block {
@@ -56,86 +122,232 @@ static method foo() → dynamic {
     for (final dynamic #t4 in <dynamic>[])
       #t3.{core::Set::add}(#t4);
   } =>#t3;
-  core::List<core::int> lhs20 = block {
-    final core::List<core::int> #t5 = <core::int>[];
-    for (final core::int #t6 in spread)
-      #t5.{core::List::add}(#t6);
+  core::Map<dynamic, dynamic> map10 = block {
+    final core::Map<dynamic, dynamic> #t5 = <dynamic, dynamic>{};
+    for (final core::MapEntry<dynamic, dynamic> #t6 in <dynamic, dynamic>{}.{core::Map::entries})
+      #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
   } =>#t5;
-  core::Set<core::int> set20 = block {
-    final core::Set<core::int> #t7 = col::LinkedHashSet::•<core::int>();
-    for (final core::int #t8 in spread)
-      #t7.{core::Set::add}(#t8);
-    #t7.{core::Set::add}(42);
+  core::Map<dynamic, dynamic> map10ambiguous = block {
+    final core::Map<dynamic, dynamic> #t7 = <dynamic, dynamic>{};
+    for (final core::MapEntry<dynamic, dynamic> #t8 in <dynamic, dynamic>{}.{core::Map::entries})
+      #t7.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
   } =>#t7;
-  core::List<dynamic> lhs21 = block {
-    final core::List<dynamic> #t9 = <dynamic>[];
-    for (final dynamic #t10 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>)
+  core::List<core::int> lhs20 = block {
+    final core::List<core::int> #t9 = <core::int>[];
+    for (final core::int #t10 in spread)
       #t9.{core::List::add}(#t10);
   } =>#t9;
-  core::Set<dynamic> set21 = block {
-    final core::Set<dynamic> #t11 = col::LinkedHashSet::•<dynamic>();
-    for (final dynamic #t12 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>)
+  core::Set<core::int> set20 = block {
+    final core::Set<core::int> #t11 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t12 in spread)
       #t11.{core::Set::add}(#t12);
     #t11.{core::Set::add}(42);
   } =>#t11;
-  core::List<core::int> lhs22 = block {
-    final core::List<core::int> #t13 = <core::int>[];
-    for (final core::int #t14 in <core::int>[])
-      #t13.{core::List::add}(#t14);
+  core::Set<core::int> set20ambiguous = block {
+    final core::Set<core::int> #t13 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t14 in spread)
+      #t13.{core::Set::add}(#t14);
   } =>#t13;
-  core::Set<core::int> set22 = block {
-    final core::Set<core::int> #t15 = col::LinkedHashSet::•<core::int>();
-    for (final core::int #t16 in <core::int>[])
-      #t15.{core::Set::add}(#t16);
-    #t15.{core::Set::add}(42);
+  core::Map<core::String, core::int> map20 = block {
+    final core::Map<core::String, core::int> #t15 = <core::String, core::int>{};
+    for (final core::MapEntry<core::String, core::int> #t16 in mapSpread.{core::Map::entries})
+      #t15.{core::Map::[]=}(#t16.{core::MapEntry::key}, #t16.{core::MapEntry::value});
+    #t15.{core::Map::[]=}("baz", 42);
   } =>#t15;
-  core::List<core::List<core::int>> lhs23 = block {
-    final core::List<core::List<core::int>> #t17 = <core::List<core::int>>[];
-    for (final core::List<core::int> #t18 in <core::List<core::int>>[<core::int>[]])
-      #t17.{core::List::add}(#t18);
+  core::Map<core::String, core::int> map20ambiguous = block {
+    final core::Map<core::String, core::int> #t17 = <core::String, core::int>{};
+    for (final core::MapEntry<core::String, core::int> #t18 in mapSpread.{core::Map::entries})
+      #t17.{core::Map::[]=}(#t18.{core::MapEntry::key}, #t18.{core::MapEntry::value});
   } =>#t17;
-  core::Set<core::List<core::int>> set23 = block {
-    final core::Set<core::List<core::int>> #t19 = col::LinkedHashSet::•<core::List<core::int>>();
-    for (final core::List<core::int> #t20 in <core::List<core::int>>[<core::int>[]])
-      #t19.{core::Set::add}(#t20);
-    #t19.{core::Set::add}(<core::int>[42]);
+  core::List<dynamic> lhs21 = block {
+    final core::List<dynamic> #t19 = <dynamic>[];
+    for (final dynamic #t20 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>)
+      #t19.{core::List::add}(#t20);
   } =>#t19;
-  core::int lhs30 = let final<BottomType> #t21 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:40:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+  core::Set<dynamic> set21 = block {
+    final core::Set<dynamic> #t21 = col::LinkedHashSet::•<dynamic>();
+    for (final dynamic #t22 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>)
+      #t21.{core::Set::add}(#t22);
+    #t21.{core::Set::add}(42);
+  } =>#t21;
+  core::Map<dynamic, dynamic> map21 = block {
+    final core::Map<dynamic, dynamic> #t23 = <dynamic, dynamic>{};
+    for (final core::MapEntry<dynamic, dynamic> #t24 in ((mapSpread as dynamic) as{TypeError} core::Map<dynamic, dynamic>).{core::Map::entries})
+      #t23.{core::Map::[]=}(#t24.{core::MapEntry::key}, #t24.{core::MapEntry::value});
+    #t23.{core::Map::[]=}("baz", 42);
+  } =>#t23;
+  dynamic map21ambiguous = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:48:76: Error: Not enough type information to disambiguate between literal set and literal map.
+Try providing type arguments for the literal explicitly to disambiguate it.
+  dynamic map21ambiguous = /*@error=CantDisambiguateNotEnoughInformation*/ {...
+                                                                           ^";
+  core::List<core::int> lhs22 = block {
+    final core::List<core::int> #t25 = <core::int>[];
+    for (final core::int #t26 in <core::int>[])
+      #t25.{core::List::add}(#t26);
+  } =>#t25;
+  core::Set<core::int> set22 = block {
+    final core::Set<core::int> #t27 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t28 in <core::int>[])
+      #t27.{core::Set::add}(#t28);
+    #t27.{core::Set::add}(42);
+  } =>#t27;
+  core::Set<core::int> set22ambiguous = block {
+    final core::Set<core::int> #t29 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t30 in <core::int>[])
+      #t29.{core::Set::add}(#t30);
+  } =>#t29;
+  core::Map<core::String, core::int> map22 = block {
+    final core::Map<core::String, core::int> #t31 = <core::String, core::int>{};
+    for (final core::MapEntry<core::String, core::int> #t32 in <core::String, core::int>{}.{core::Map::entries})
+      #t31.{core::Map::[]=}(#t32.{core::MapEntry::key}, #t32.{core::MapEntry::value});
+  } =>#t31;
+  core::List<core::List<core::int>> lhs23 = block {
+    final core::List<core::List<core::int>> #t33 = <core::List<core::int>>[];
+    for (final core::List<core::int> #t34 in <core::List<core::int>>[<core::int>[]])
+      #t33.{core::List::add}(#t34);
+  } =>#t33;
+  core::Set<core::List<core::int>> set23 = block {
+    final core::Set<core::List<core::int>> #t35 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (final core::List<core::int> #t36 in <core::List<core::int>>[<core::int>[]])
+      #t35.{core::Set::add}(#t36);
+    #t35.{core::Set::add}(<core::int>[42]);
+  } =>#t35;
+  core::Set<core::List<core::int>> set23ambiguous = block {
+    final core::Set<core::List<core::int>> #t37 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (final core::List<core::int> #t38 in <core::List<core::int>>[<core::int>[]])
+      #t37.{core::Set::add}(#t38);
+  } =>#t37;
+  core::Map<core::String, core::List<core::int>> map23 = block {
+    final core::Map<core::String, core::List<core::int>> #t39 = <core::String, core::List<core::int>>{};
+    for (final core::MapEntry<core::String, core::List<core::int>> #t40 in <core::String, core::List<core::int>>{"baz": <core::int>[]}.{core::Map::entries})
+      #t39.{core::Map::[]=}(#t40.{core::MapEntry::key}, #t40.{core::MapEntry::value});
+  } =>#t39;
+  dynamic map24ambiguous = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:72:76: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+  dynamic map24ambiguous = /*@error=CantDisambiguateAmbiguousInformation*/ {...
+                                                                           ^";
+  core::int lhs30 = let final<BottomType> #t41 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:75:62: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
  - 'List' is from 'dart:core'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   int lhs30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ [...spread];
                                                              ^" in ( block {
-    final core::List<core::int> #t22 = <core::int>[];
-    for (final core::int #t23 in spread)
-      #t22.{core::List::add}(#t23);
-  } =>#t22) as{TypeError} core::int;
-  core::int set30 = let final<BottomType> #t24 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:42:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+    final core::List<core::int> #t42 = <core::int>[];
+    for (final core::int #t43 in spread)
+      #t42.{core::List::add}(#t43);
+  } =>#t42) as{TypeError} core::int;
+  core::int set30 = let final<BottomType> #t44 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:77:62: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
  - 'Set' is from 'dart:core'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   int set30 = /*@error=InvalidAssignment*/ /*@typeArgs=int*/ {...spread, 42};
                                                              ^" in ( block {
-    final core::Set<core::int> #t25 = col::LinkedHashSet::•<core::int>();
-    for (final core::int #t26 in spread)
-      #t25.{core::Set::add}(#t26);
-    #t25.{core::Set::add}(42);
-  } =>#t25) as{TypeError} core::int;
-  core::List<dynamic> lhs40 = <dynamic>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:45:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+    final core::Set<core::int> #t45 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t46 in spread)
+      #t45.{core::Set::add}(#t46);
+    #t45.{core::Set::add}(42);
+  } =>#t45) as{TypeError} core::int;
+  core::int set30ambiguous = let final<BottomType> #t47 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:80:5: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+ - 'Set' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+    {...spread};
+    ^" in ( block {
+    final core::Set<core::int> #t48 = col::LinkedHashSet::•<core::int>();
+    for (final core::int #t49 in spread)
+      #t48.{core::Set::add}(#t49);
+  } =>#t48) as{TypeError} core::int;
+  core::int map30 = let final<BottomType> #t50 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:83:5: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
+ - 'Map' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+    {...mapSpread, \"baz\": 42};
+    ^" in ( block {
+    final core::Map<core::String, core::int> #t51 = <core::String, core::int>{};
+    for (final core::MapEntry<core::String, core::int> #t52 in mapSpread.{core::Map::entries})
+      #t51.{core::Map::[]=}(#t52.{core::MapEntry::key}, #t52.{core::MapEntry::value});
+    #t51.{core::Map::[]=}("baz", 42);
+  } =>#t51) as{TypeError} core::int;
+  core::int map30ambiguous = let final<BottomType> #t53 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:86:5: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
+ - 'Map' is from 'dart:core'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+    {...mapSpread};
+    ^" in ( block {
+    final core::Map<core::String, core::int> #t54 = <core::String, core::int>{};
+    for (final core::MapEntry<core::String, core::int> #t55 in mapSpread.{core::Map::entries})
+      #t54.{core::Map::[]=}(#t55.{core::MapEntry::key}, #t55.{core::MapEntry::value});
+  } =>#t54) as{TypeError} core::int;
+  core::List<dynamic> lhs40 = <dynamic>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:89:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
     notSpreadInt];
     ^"];
-  core::Set<dynamic> set40 = let final core::Set<dynamic> #t27 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t28 = #t27.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:48:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+  core::Set<dynamic> set40 = let final core::Set<dynamic> #t56 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t57 = #t56.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:92:5: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
     notSpreadInt};
-    ^") in #t27;
-  core::List<dynamic> lhs50 = <dynamic>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:51:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+    ^") in #t56;
+  core::Map<dynamic, dynamic> map40 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:95:43: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+    /*@error=SpreadMapEntryTypeMismatch*/ notSpreadInt};
+                                          ^": null};
+  core::List<dynamic> lhs50 = <dynamic>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:98:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
     notSpreadFunction];
     ^"];
-  core::Set<dynamic> set50 = let final core::Set<dynamic> #t29 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t30 = #t29.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:54:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+  core::Set<dynamic> set50 = let final core::Set<dynamic> #t58 = col::LinkedHashSet::•<dynamic>() in let final dynamic #t59 = #t58.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:101:5: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
     notSpreadFunction};
-    ^") in #t29;
-  core::List<core::String> lhs60 = <core::String>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:57:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+    ^") in #t58;
+  core::Map<dynamic, dynamic> map50 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:104:43: Error: Unexpected type 'int Function()' of a map spread entry.  Expected 'dynamic' or a Map.
+    /*@error=SpreadMapEntryTypeMismatch*/ notSpreadFunction};
+                                          ^": null};
+  core::List<core::String> lhs60 = <core::String>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:107:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
     spread];
     ^"];
-  core::Set<core::String> set60 = let final core::Set<core::String> #t31 = col::LinkedHashSet::•<core::String>() in let final dynamic #t32 = #t31.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:59:73: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+  core::Set<core::String> set60 = let final core::Set<core::String> #t60 = col::LinkedHashSet::•<core::String>() in let final dynamic #t61 = #t60.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:109:73: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   Set<String> set60 = <String>{... /*@error=SpreadElementTypeMismatch*/ spread};
-                                                                        ^") in #t31;
+                                                                        ^") in #t60;
+  core::Map<core::int, core::int> map60 = <core::int, core::int>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:112:53: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
+    /*@error=SpreadMapEntryElementKeyTypeMismatch*/ mapSpread};
+                                                    ^": null};
+  core::Map<core::String, core::String> map61 = <core::String, core::String>{null: invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:115:55: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
+    /*@error=SpreadMapEntryElementValueTypeMismatch*/ mapSpread};
+                                                      ^"};
+  core::List<core::int> lhs70 = <core::int>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:117:67: Error: Can't spread a value with static type Null.
+  List<int> lhs70 = <int>[... /*@error=NonNullAwareSpreadIsNull*/ null];
+                                                                  ^"];
+  core::Set<core::int> set70 = let final core::Set<core::int> #t62 = col::LinkedHashSet::•<core::int>() in let final dynamic #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:119:66: Error: Can't spread a value with static type Null.
+  Set<int> set70 = <int>{... /*@error=NonNullAwareSpreadIsNull*/ null};
+                                                                 ^") in #t62;
+  core::Set<dynamic> set71ambiguous = block {
+    final core::Set<dynamic> #t64 = col::LinkedHashSet::•<dynamic>();
+    #t64.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:122:46: Error: Can't spread a value with static type Null.
+    {... /*@error=NonNullAwareSpreadIsNull*/ null, ... /*@typeArgs=dynamic*/
+                                             ^");
+    for (final dynamic #t65 in <dynamic>[])
+      #t64.{core::Set::add}(#t65);
+  } =>#t64;
+  core::Map<core::String, core::int> map70 = <core::String, core::int>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:126:5: Error: Can't spread a value with static type Null.
+    null};
+    ^": null};
+  core::List<core::int> lhs80 = block {
+    final core::List<core::int> #t66 = <core::int>[];
+    final dynamic #t67 = null;
+    if(!#t67.{core::Object::==}(null))
+      for (final core::int #t68 in #t67)
+        #t66.{core::List::add}(#t68);
+  } =>#t66;
+  core::Set<core::int> set80 = block {
+    final core::Set<core::int> #t69 = col::LinkedHashSet::•<core::int>();
+    final dynamic #t70 = null;
+    if(!#t70.{core::Object::==}(null))
+      for (final core::int #t71 in #t70)
+        #t69.{core::Set::add}(#t71);
+  } =>#t69;
+  core::Set<dynamic> set81ambiguous = block {
+    final core::Set<dynamic> #t72 = col::LinkedHashSet::•<dynamic>();
+    final dynamic #t73 = null;
+    if(!#t73.{core::Object::==}(null))
+      for (final dynamic #t74 in #t73)
+        #t72.{core::Set::add}(#t74);
+    for (final dynamic #t75 in <dynamic>[])
+      #t72.{core::Set::add}(#t75);
+  } =>#t72;
+  core::Map<core::String, core::int> map80 = block {
+    final core::Map<core::String, core::int> #t76 = <core::String, core::int>{};
+    final core::Map<dynamic, dynamic> #t77 = null;
+    if(!#t77.{core::Object::==}(null))
+      for (final core::MapEntry<core::String, core::int> #t78 in #t77.{core::Map::entries})
+        #t76.{core::Map::[]=}(#t78.{core::MapEntry::key}, #t78.{core::MapEntry::value});
+  } =>#t76;
 }
 static method main() → dynamic {}

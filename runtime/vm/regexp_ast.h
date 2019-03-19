@@ -21,7 +21,7 @@ class RegExpCharacterClass;
 class RegExpCompiler;
 class RegExpDisjunction;
 class RegExpEmpty;
-class RegExpLookahead;
+class RegExpLookaround;
 class RegExpQuantifier;
 class RegExpText;
 
@@ -277,8 +277,7 @@ class RegExpQuantifier : public RegExpTree {
 
 class RegExpCapture : public RegExpTree {
  public:
-  explicit RegExpCapture(RegExpTree* body, intptr_t index)
-      : body_(body), index_(index) {}
+  explicit RegExpCapture(intptr_t index) : body_(nullptr), index_(index) {}
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
   static RegExpNode* ToNode(RegExpTree* body,
@@ -293,6 +292,11 @@ class RegExpCapture : public RegExpTree {
   virtual intptr_t min_match() const { return body_->min_match(); }
   virtual intptr_t max_match() const { return body_->max_match(); }
   RegExpTree* body() const { return body_; }
+  // When a backreference is parsed before the corresponding capture group,
+  // which can happen because of lookbehind, we create the capture object when
+  // we create the backreference, and fill in the body later when the actual
+  // capture group is parsed.
+  void set_body(RegExpTree* body) { body_ = body; }
   intptr_t index() const { return index_; }
   static intptr_t StartRegister(intptr_t index) { return index * 2; }
   static intptr_t EndRegister(intptr_t index) { return index * 2 + 1; }
@@ -302,22 +306,25 @@ class RegExpCapture : public RegExpTree {
   intptr_t index_;
 };
 
-class RegExpLookahead : public RegExpTree {
+class RegExpLookaround : public RegExpTree {
  public:
-  RegExpLookahead(RegExpTree* body,
-                  bool is_positive,
-                  intptr_t capture_count,
-                  intptr_t capture_from)
+  enum Type { LOOKAHEAD, LOOKBEHIND };
+  RegExpLookaround(RegExpTree* body,
+                   bool is_positive,
+                   intptr_t capture_count,
+                   intptr_t capture_from,
+                   Type type)
       : body_(body),
         is_positive_(is_positive),
         capture_count_(capture_count),
-        capture_from_(capture_from) {}
+        capture_from_(capture_from),
+        type_(type) {}
 
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
-  virtual RegExpLookahead* AsLookahead();
+  virtual RegExpLookaround* AsLookaround();
   virtual Interval CaptureRegisters() const;
-  virtual bool IsLookahead() const;
+  virtual bool IsLookaround() const;
   virtual bool IsAnchoredAtStart() const;
   virtual intptr_t min_match() const { return 0; }
   virtual intptr_t max_match() const { return 0; }
@@ -325,12 +332,36 @@ class RegExpLookahead : public RegExpTree {
   bool is_positive() const { return is_positive_; }
   intptr_t capture_count() const { return capture_count_; }
   intptr_t capture_from() const { return capture_from_; }
+  Type type() const { return type_; }
+
+  // The RegExpLookaround::Builder class abstracts out the process of building
+  // the compiling a RegExpLookaround object by splitting it into two phases,
+  // represented by the provided methods.
+  class Builder : public ValueObject {
+   public:
+    Builder(bool is_positive,
+            RegExpNode* on_success,
+            intptr_t stack_pointer_register,
+            intptr_t position_register,
+            intptr_t capture_register_count = 0,
+            intptr_t capture_register_start = 0);
+    RegExpNode* on_match_success() { return on_match_success_; }
+    RegExpNode* ForMatch(RegExpNode* match);
+
+   private:
+    bool is_positive_;
+    RegExpNode* on_match_success_;
+    RegExpNode* on_success_;
+    intptr_t stack_pointer_register_;
+    intptr_t position_register_;
+  };
 
  private:
   RegExpTree* body_;
   bool is_positive_;
   intptr_t capture_count_;
   intptr_t capture_from_;
+  Type type_;
 };
 
 class RegExpBackReference : public RegExpTree {
@@ -341,7 +372,10 @@ class RegExpBackReference : public RegExpTree {
   virtual RegExpBackReference* AsBackReference();
   virtual bool IsBackReference() const;
   virtual intptr_t min_match() const { return 0; }
-  virtual intptr_t max_match() const { return capture_->max_match(); }
+  // The back reference may be recursive, e.g. /(\2)(\1)/. To avoid infinite
+  // recursion, we give up and just assume arbitrary length, which matches v8's
+  // behavior.
+  virtual intptr_t max_match() const { return kInfinity; }
   intptr_t index() const { return capture_->index(); }
   RegExpCapture* capture() const { return capture_; }
 

@@ -263,22 +263,36 @@ class Collector {
   void computeNeededStaticNonFinalFields() {
     addToOutputUnit(FieldEntity element) {
       List<FieldEntity> list = outputStaticNonFinalFieldLists.putIfAbsent(
-          // ignore: UNNECESSARY_CAST
-          _outputUnitData.outputUnitForMember(element as MemberEntity),
+          _outputUnitData.outputUnitForMember(element),
           () => new List<FieldEntity>());
       list.add(element);
     }
 
-    Iterable<FieldEntity> fields =
+    List<FieldEntity> fields =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
-      FieldAnalysisData fieldData =
-          _closedWorld.fieldAnalysis.getFieldData(field);
-      return !fieldData.isEffectivelyFinal && fieldData.initialValue != null;
-    });
+      return _closedWorld.fieldAnalysis.getFieldData(field).isEager;
+    }).toList();
 
-    _sorter.sortMembers(fields).forEach((MemberEntity e) => addToOutputUnit(e));
+    fields.sort((FieldEntity a, FieldEntity b) {
+      FieldAnalysisData aFieldData = _closedWorld.fieldAnalysis.getFieldData(a);
+      FieldAnalysisData bFieldData = _closedWorld.fieldAnalysis.getFieldData(b);
+      int aIndex = aFieldData.eagerCreationIndex;
+      int bIndex = bFieldData.eagerCreationIndex;
+      if (aIndex != null && bIndex != null) {
+        return aIndex.compareTo(bIndex);
+      } else if (aIndex != null) {
+        // Sort [b] before [a].
+        return 1;
+      } else if (bIndex != null) {
+        // Sort [a] before [b].
+        return -1;
+      } else {
+        return _sorter.compareMembersByLocation(a, b);
+      }
+    });
+    fields.forEach(addToOutputUnit);
   }
 
   void computeNeededLibraries() {

@@ -4775,6 +4775,24 @@ class ProgramCompiler extends Object
   }
 
   @override
+  visitListConcatenation(ListConcatenation node) {
+    // Only occurs inside unevaluated constants.
+    throw new UnsupportedError("List concatenation");
+  }
+
+  @override
+  visitSetConcatenation(SetConcatenation node) {
+    // Only occurs inside unevaluated constants.
+    throw new UnsupportedError("Set concatenation");
+  }
+
+  @override
+  visitMapConcatenation(MapConcatenation node) {
+    // Only occurs inside unevaluated constants.
+    throw new UnsupportedError("Map concatenation");
+  }
+
+  @override
   visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }
@@ -5038,7 +5056,25 @@ class ProgramCompiler extends Object
 
   @override
   visitBlockExpression(BlockExpression node) {
-    throw UnimplementedError('ProgramCompiler.visitBlockExpression');
+    var jsExpr = _visitExpression(node.value);
+    List<JS.Statement> jsStmts = node.body.statements
+        .map(_visitStatement)
+        .toList()
+          ..add(JS.Return(jsExpr));
+    var jsBlock = JS.Block(jsStmts);
+    // BlockExpressions with async operations must be constructed
+    // with a generator instead of a lambda.
+    var finder = YieldFinder();
+    jsBlock.accept(finder);
+    if (finder.hasYield) {
+      var genFn = JS.Fun([], jsBlock, isGenerator: true);
+      var asyncLibrary = emitLibraryName(coreTypes.asyncLibrary);
+      var returnType = _emitType(node.getStaticType(types));
+      var asyncCall =
+          js.call('#.async(#, #)', [asyncLibrary, returnType, genFn]);
+      return JS.Yield(asyncCall);
+    }
+    return JS.Call(JS.ArrowFun([], jsBlock), []);
   }
 
   @override
@@ -5144,9 +5180,12 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitListConstant(node) {
-    return _cacheConst(() => _emitConstList(
-        node.typeArgument, node.entries.map(visitConstant).toList()));
+  visitListConstant(node) => visitConstantList(node.typeArgument, node.entries);
+
+  /// Visits [Constant] with [_visitConstant].
+  visitConstantList(DartType typeArgument, List<Constant> entries) {
+    return _cacheConst(() =>
+        _emitConstList(typeArgument, entries.map(visitConstant).toList()));
   }
 
   @override
@@ -5154,7 +5193,10 @@ class ProgramCompiler extends Object
     // Set literals are currently desugared in the frontend.
     // Implement this method before flipping the supportsSetLiterals flag
     // in DevCompilerTarget to true.
-    throw "Set literal constants not supported.";
+    return _cacheConst(() => runtimeCall('constSet(#, #)', [
+          _emitType(node.typeArgument),
+          visitConstantList(node.typeArgument, node.entries)
+        ]));
   }
 
   @override

@@ -76,9 +76,11 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
     String containingMethodName;
     List<InterfaceType> mixins;
+    List<InterfaceType> superclassConstraints;
     if (expression is SuperExpression && type is InterfaceType) {
       // Suggest members from superclass if target is "super"
       mixins = (type as InterfaceType).mixins;
+      superclassConstraints = (type as InterfaceType).superclassConstraints;
       type = (type as InterfaceType).superclass;
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
@@ -99,7 +101,8 @@ class TypeMemberContributor extends DartCompletionContributor {
     // Build the suggestions
     if (type is InterfaceType) {
       _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
-      builder.buildSuggestions(type, containingMethodName, mixins: mixins);
+      builder.buildSuggestions(type, containingMethodName,
+          mixins: mixins, superclassConstraints: superclassConstraints);
       return builder.suggestions.toList();
     }
     return const <CompletionSuggestion>[];
@@ -290,7 +293,7 @@ class _SuggestionBuilder {
    * is the name of the method in which the completion is requested.
    */
   void buildSuggestions(InterfaceType type, String containingMethodName,
-      {List<InterfaceType> mixins}) {
+      {List<InterfaceType> mixins, List<InterfaceType> superclassConstraints}) {
     // Visit all of the types in the class hierarchy, collecting possible
     // completions.  If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
@@ -298,6 +301,9 @@ class _SuggestionBuilder {
     List<InterfaceType> types = _getTypeOrdering(type);
     if (mixins != null) {
       types.addAll(mixins);
+    }
+    if (superclassConstraints != null) {
+      types.addAll(superclassConstraints);
     }
     for (InterfaceType targetType in types) {
       for (MethodElement method in targetType.methods) {

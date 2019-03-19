@@ -73,15 +73,36 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticTypeWarningCode.UNDEFINED_SETTER ||
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
-        (errorCode.name == LintNames.annotate_overrides ||
+        (errorCode.name == LintNames.always_require_non_null_named_parameters ||
+            errorCode.name == LintNames.annotate_overrides ||
+            errorCode.name == LintNames.avoid_annotating_with_dynamic ||
+            errorCode.name == LintNames.avoid_empty_else ||
             errorCode.name == LintNames.avoid_init_to_null ||
+            errorCode.name == LintNames.avoid_return_types_on_setters ||
+            errorCode.name == LintNames.avoid_types_on_closure_parameters ||
+            errorCode.name == LintNames.await_only_futures ||
+            errorCode.name == LintNames.empty_catches ||
+            errorCode.name == LintNames.empty_constructor_bodies ||
+            errorCode.name == LintNames.empty_statements ||
+            errorCode.name == LintNames.no_duplicate_case_values ||
+            errorCode.name == LintNames.non_constant_identifier_names ||
+            errorCode.name == LintNames.null_closures ||
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.prefer_const_declarations ||
+            errorCode.name == LintNames.prefer_equal_for_default_values ||
+            errorCode.name == LintNames.prefer_final_fields ||
+            errorCode.name == LintNames.prefer_final_locals ||
+            errorCode.name == LintNames.prefer_is_not_empty ||
+            errorCode.name == LintNames.type_init_formals ||
+            errorCode.name == LintNames.unawaited_futures ||
             errorCode.name == LintNames.unnecessary_brace_in_string_interps ||
             errorCode.name == LintNames.unnecessary_const ||
             errorCode.name == LintNames.unnecessary_lambdas ||
-            errorCode.name == LintNames.unnecessary_this));
+            errorCode.name == LintNames.unnecessary_new ||
+            errorCode.name == LintNames.unnecessary_overrides ||
+            errorCode.name == LintNames.unnecessary_this ||
+            errorCode.name == LintNames.use_rethrow_when_possible));
 
 /**
  * The implementation of [DartFixContext].
@@ -105,6 +126,8 @@ class DartFixContextImpl implements DartFixContext {
 class DartFixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
+  static const ADD_AWAIT =
+      const FixKind('ADD_AWAIT', 50, "Add 'await' keyword");
   static const ADD_EXPLICIT_CAST = const FixKind(
       'ADD_EXPLICIT_CAST', 50, "Add cast",
       appliedTogetherMessage: "Add all casts in file");
@@ -262,8 +285,12 @@ class DartFixKind {
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
       'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'",
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
+  static const REPLACE_COLON_WITH_EQUALS =
+      const FixKind('REPLACE_COLON_WITH_EQUALS', 50, "Replace ':' with '='");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(
       'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
+  static const REPLACE_NULL_WITH_CLOSURE = const FixKind(
+      'REPLACE_NULL_WITH_CLOSURE', 50, "Replace 'null' with a closure");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
       'REPLACE_RETURN_TYPE_FUTURE',
       50,

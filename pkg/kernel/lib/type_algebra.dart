@@ -275,6 +275,9 @@ class _NullSubstitution extends Substitution {
 
   @override
   Supertype substituteSupertype(Supertype node) => node;
+
+  @override
+  String toString() => "Substitution.empty";
 }
 
 class _MapSubstitution extends Substitution {
@@ -286,6 +289,9 @@ class _MapSubstitution extends Substitution {
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
     return upperBound ? upper[parameter] : lower[parameter];
   }
+
+  @override
+  String toString() => "_MapSubstitution($upper, $lower)";
 }
 
 class _TopSubstitutor extends _TypeSubstitutor {

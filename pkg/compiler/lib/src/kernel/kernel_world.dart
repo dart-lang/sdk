@@ -24,33 +24,49 @@ import 'element_map_impl.dart';
 
 class KClosedWorldImpl implements KClosedWorld {
   final KernelToElementMapImpl elementMap;
+  @override
   final KElementEnvironment elementEnvironment;
+  @override
   final DartTypes dartTypes;
+  @override
   final KCommonElements commonElements;
+  @override
   final NativeData nativeData;
+  @override
   final InterceptorData interceptorData;
+  @override
   final BackendUsage backendUsage;
+  @override
   final NoSuchMethodData noSuchMethodData;
 
+  @override
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
 
+  @override
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
 
+  @override
   final Iterable<MemberEntity> liveInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
+  @override
   final Iterable<MemberEntity> assignedInstanceMembers;
+  @override
   final KFieldAnalysis fieldAnalysis;
 
+  @override
   final Iterable<ClassEntity> liveNativeClasses;
 
+  @override
   final Map<MemberEntity, MemberUsage> liveMemberUsage;
 
+  @override
   final ClassHierarchy classHierarchy;
 
+  @override
   final AnnotationsData annotationsData;
 
   RuntimeTypesNeed _rtiNeed;
@@ -81,9 +97,11 @@ class KClosedWorldImpl implements KClosedWorld {
         resolutionWorldBuilder, this, options);
   }
 
+  @override
   RuntimeTypesNeed get rtiNeed => _rtiNeed;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
+  @override
   bool isImplemented(ClassEntity cls) {
     return _implementedClasses.contains(cls);
   }

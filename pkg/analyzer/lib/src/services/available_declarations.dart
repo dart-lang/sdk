@@ -624,6 +624,7 @@ class DeclarationsTracker {
 
     var isLibrary = file.isLibrary;
     var library = isLibrary ? file : file.library;
+    if (library == null) return;
 
     if (isLibrary) {
       file.refresh(containingContext);

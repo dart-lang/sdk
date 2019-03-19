@@ -326,6 +326,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
+  List<String> get enabledExperiments =>
+      result.session.analysisContext.analysisOptions.enabledExperiments;
+
+  @override
   bool get includeIdentifiers {
     return opType.includeIdentifiers;
   }

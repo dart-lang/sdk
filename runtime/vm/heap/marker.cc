@@ -368,6 +368,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   static bool TryAcquireMarkBit(RawObject* raw_obj) {
+    if (FLAG_write_protect_code && raw_obj->IsInstructions()) {
+      // A non-writable alias mapping may exist for instruction pages.
+      raw_obj = HeapPage::ToWritable(raw_obj);
+    }
     if (!sync) {
       raw_obj->SetMarkBitUnsynchronized();
       return true;
@@ -487,8 +491,9 @@ void GCMarker::Prologue() {
   isolate_->ReleaseStoreBuffers();
 
 #ifndef DART_PRECOMPILED_RUNTIME
-  if (isolate_->IsMutatorThreadScheduled()) {
-    Interpreter* interpreter = isolate_->mutator_thread()->interpreter();
+  Thread* mutator_thread = isolate_->mutator_thread();
+  if (mutator_thread != NULL) {
+    Interpreter* interpreter = mutator_thread->interpreter();
     if (interpreter != NULL) {
       interpreter->MajorGC();
     }

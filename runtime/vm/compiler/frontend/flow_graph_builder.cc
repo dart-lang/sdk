@@ -51,6 +51,8 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
 
   // Attach the outer environment on each instruction in the callee graph.
   ASSERT(call_->env() != NULL);
+  ASSERT(call_->deopt_id() != DeoptId::kNone);
+  const intptr_t outer_deopt_id = call_->deopt_id();
   // Scale the edge weights by the call count for the inlined function.
   double scale_factor =
       static_cast<double>(call_->CallCount()) /
@@ -63,7 +65,8 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
     }
     Instruction* instr = block;
     if (block->env() != NULL) {
-      call_->env()->DeepCopyToOuter(callee_graph->zone(), block);
+      call_->env()->DeepCopyToOuter(callee_graph->zone(), block,
+                                    outer_deopt_id);
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       instr = it.Current();
@@ -71,7 +74,8 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       // optimizations need deoptimization info for non-deoptable instructions,
       // eg, LICM on GOTOs.
       if (instr->env() != NULL) {
-        call_->env()->DeepCopyToOuter(callee_graph->zone(), instr);
+        call_->env()->DeepCopyToOuter(callee_graph->zone(), instr,
+                                      outer_deopt_id);
       }
     }
     if (instr->IsGoto()) {

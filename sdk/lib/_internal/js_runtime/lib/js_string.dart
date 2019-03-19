@@ -59,8 +59,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String replaceAll(Pattern from, String to) {
-    checkString(to);
-    return stringReplaceAllUnchecked(this, from, to);
+    return stringReplaceAllUnchecked(this, from, checkString(to));
   }
 
   String replaceAllMapped(Pattern from, String convert(Match match)) {

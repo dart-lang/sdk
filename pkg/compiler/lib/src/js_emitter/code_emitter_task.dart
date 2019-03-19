@@ -67,6 +67,7 @@ class CodeEmitterTask extends CompilerTask {
     return _emitter;
   }
 
+  @override
   String get name => 'Code emitter';
 
   /// Returns true, if the emitter supports reflection.
@@ -268,6 +269,7 @@ abstract class Emitter {
 }
 
 abstract class EmitterBase implements Emitter {
+  @override
   Program programForTesting;
   Namer get namer;
 

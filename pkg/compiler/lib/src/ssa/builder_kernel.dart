@@ -83,11 +83,14 @@ class StackFrame {
 
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
+  @override
   final MemberEntity targetElement;
   final MemberEntity initialTargetElement;
 
+  @override
   final JClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
+  @override
   final CodegenRegistry registry;
   final ClosureData closureDataLookup;
 
@@ -105,6 +108,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   HInstruction rethrowableException;
 
+  @override
   final Compiler compiler;
 
   @override
@@ -112,8 +116,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   final SourceInformationStrategy _sourceInformationStrategy;
   final JsToElementMap _elementMap;
+  @override
   final GlobalTypeInferenceResults globalInferenceResults;
   LoopHandler loopHandler;
+  @override
   TypeBuilder typeBuilder;
 
   final NativeEmitter nativeEmitter;
@@ -233,7 +239,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
               // the constant value.
               return null;
             } else if (targetElement.isStatic || targetElement.isTopLevel) {
-              backend.constants.registerLazyStatic(targetElement);
+              if (_fieldAnalysis.getFieldData(targetElement).isLazy) {
+                // TODO(johnniwinther): Lazy fields should be collected like
+                // eager and non-final fields.
+                backend.constants.registerLazyStatic(targetElement);
+              }
+            } else {
+              assert(targetElement.isInstanceMember);
+              if (_fieldAnalysis
+                      .getFieldData(targetElement)
+                      .isEffectivelyFinal ||
+                  !options.parameterCheckPolicy.isEmitted) {
+                // No need for a checked setter.
+                return null;
+              }
             }
             buildField(target);
           } else if (target is ir.FunctionExpression) {
@@ -258,8 +277,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           buildConstructorBody(constructor);
           break;
         case MemberKind.closureField:
-          failedAt(targetElement, "Unexpected closure field: $targetElement");
-          break;
+          // Closure fields have no setter and therefore never require any code.
+          return null;
         case MemberKind.signature:
           ir.Node target = definition.node;
           ir.FunctionNode originalClosureNode;
@@ -1417,29 +1436,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void defaultExpression(ir.Expression expression) {
-    // TODO(johnniwinther): We should make this an internal error.
-    _trap('Unhandled ir.${expression.runtimeType}  $expression');
-  }
-
-  @override
-  void defaultStatement(ir.Statement statement) {
-    // TODO(johnniwinther): We should make this an internal error.
-    _trap('Unhandled ir.${statement.runtimeType}  $statement');
-    pop();
-  }
-
-  void _trap(String message) {
-    HInstruction nullValue = graph.addConstantNull(closedWorld);
-    HInstruction errorMessage = graph.addConstantString(message, closedWorld);
-    HInstruction trap = new HForeignCode(
-        js.js.parseForeignJS("#.#"),
-        abstractValueDomain.dynamicType,
-        <HInstruction>[nullValue, errorMessage]);
-    trap.sideEffects
-      ..setAllSideEffects()
-      ..setDependsOnSomething();
-    push(trap);
+  void defaultNode(ir.Node node) {
+    throw new UnsupportedError("Unhandled node $node (${node.runtimeType})");
   }
 
   /// Returns the current source element. This is used by the type builder.
@@ -1524,6 +1522,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       expression.accept(this);
       pop();
     }
+  }
+
+  @override
+  void visitConstantExpression(ir.ConstantExpression node) {
+    stack.add(
+        graph.addConstant(_elementMap.getConstantValue(node), closedWorld));
   }
 
   /// Returns true if the [type] is a valid return type for an asynchronous
@@ -1944,6 +1948,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..cleanUp();
   }
 
+  @override
   HInstruction callSetRuntimeTypeInfo(HInstruction typeInfo,
       HInstruction newObject, SourceInformation sourceInformation) {
     // Set the runtime type information on the object.
@@ -3078,26 +3083,26 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else if (staticTarget is ir.Field) {
       FieldEntity field = _elementMap.getField(staticTarget);
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(field);
-      if (fieldData.initialValue != null) {
-        if (fieldData.isEffectivelyFinal) {
-          var unit = closedWorld.outputUnitData.outputUnitForMember(field);
-          // TODO(sigmund): this is not equivalent to what the old FE does: if
-          // there is no prefix the old FE wouldn't treat this in any special
-          // way. Also, if the prefix points to a constant in the main output
-          // unit, the old FE would still generate a deferred wrapper here.
-          if (!closedWorld.outputUnitData
-              .hasOnlyNonDeferredImportPaths(targetElement, field)) {
-            stack.add(graph.addDeferredConstant(fieldData.initialValue, unit,
-                sourceInformation, compiler, closedWorld));
-          } else {
-            stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
-                sourceInformation: sourceInformation));
-          }
+      if (fieldData.isEager) {
+        push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
+            sourceInformation));
+      } else if (fieldData.isEffectivelyConstant) {
+        var unit = closedWorld.outputUnitData.outputUnitForMember(field);
+        // TODO(sigmund): this is not equivalent to what the old FE does: if
+        // there is no prefix the old FE wouldn't treat this in any special
+        // way. Also, if the prefix points to a constant in the main output
+        // unit, the old FE would still generate a deferred wrapper here.
+        if (!closedWorld.outputUnitData
+            .hasOnlyNonDeferredImportPaths(targetElement, field)) {
+          stack.add(graph.addDeferredConstant(fieldData.initialValue, unit,
+              sourceInformation, compiler, closedWorld));
         } else {
-          push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
-              sourceInformation));
+          stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
+              sourceInformation: sourceInformation));
         }
       } else {
+        assert(
+            fieldData.isLazy, "Unexpected field data for $field: $fieldData");
         push(new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field),
             sourceInformation));
       }
@@ -5043,6 +5048,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
+  @override
   void visitYieldStatement(ir.YieldStatement node) {
     node.expression.accept(this);
     add(new HYield(abstractValueDomain, pop(), node.isYieldStar,
@@ -6598,8 +6604,10 @@ class KernelTypeBuilder extends TypeBuilder {
   KernelTypeBuilder(KernelSsaGraphBuilder builder, this._elementMap)
       : super(builder);
 
+  @override
   KernelSsaGraphBuilder get builder => super.builder;
 
+  @override
   ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member) {
     return _elementMap.getClassTypeVariableAccessForMember(member);
   }
@@ -6612,17 +6620,22 @@ class _ErroneousInitializerVisitor extends ir.Visitor<bool> {
   static bool check(ir.Initializer initializer) =>
       initializer.accept(new _ErroneousInitializerVisitor());
 
+  @override
   bool defaultInitializer(ir.Node node) => false;
 
+  @override
   bool visitInvalidInitializer(ir.InvalidInitializer node) => true;
 
+  @override
   bool visitLocalInitializer(ir.LocalInitializer node) {
     return node.variable.initializer?.accept(this) ?? false;
   }
 
   // Expressions: Does the expression always throw?
+  @override
   bool defaultExpression(ir.Expression node) => false;
 
+  @override
   bool visitThrow(ir.Throw node) => true;
 
   // TODO(sra): We might need to match other expressions that always throw but

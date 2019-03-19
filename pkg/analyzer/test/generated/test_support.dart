@@ -14,8 +14,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 
 import 'analysis_context_factory.dart';
@@ -98,11 +96,7 @@ class EngineTestCase {
     fail("Could not find method named $methodName in ${type.displayName}");
   }
 
-  void setUp() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    new ExtensionManager().processPlugins(plugins);
-  }
+  void setUp() {}
 
   void tearDown() {}
 

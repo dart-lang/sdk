@@ -870,6 +870,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   @override
+  TypeExpr visitBlockExpression(BlockExpression node) {
+    _visit(node.body);
+    return _visit(node.value);
+  }
+
+  @override
   TypeExpr visitListLiteral(ListLiteral node) {
     node.expressions.forEach(_visit);
     Class concreteClass =

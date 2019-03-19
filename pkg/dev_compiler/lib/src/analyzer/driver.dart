@@ -77,8 +77,6 @@ class CompilerAnalysisDriver {
       {SummaryDataStore summaryData,
       List<String> summaryPaths = const [],
       Map<String, bool> experiments = const {}}) {
-    AnalysisEngine.instance.processRequiredPlugins();
-
     var resourceProvider = options.resourceProvider;
     var contextBuilder = options.createContextBuilder();
 
@@ -235,7 +233,8 @@ class CompilerAnalysisDriver {
         libraryUris.toSet(),
         (uri) => summaryData.linkedMap[uri],
         (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
-        declaredVariables.get);
+        declaredVariables,
+        analysisOptions);
     linkResult.forEach(assembler.addLinkedLibrary);
 
     var summaryBytes = assembler.assemble().toBuffer();

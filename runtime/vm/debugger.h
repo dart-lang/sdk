@@ -522,6 +522,11 @@ class Debugger {
 
   bool IsPaused() const { return pause_event_ != NULL; }
 
+  bool ignore_breakpoints() const { return ignore_breakpoints_; }
+  void set_ignore_breakpoints(bool ignore_breakpoints) {
+    ignore_breakpoints_ = ignore_breakpoints;
+  }
+
   // Put the isolate into single stepping mode when Dart code next runs.
   //
   // This is used by the vm service to allow the user to step while
@@ -778,6 +783,26 @@ class Debugger {
   friend class Isolate;
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Debugger);
+};
+
+class DisableBreakpointsScope : public ValueObject {
+ public:
+  DisableBreakpointsScope(Debugger* debugger, bool disable)
+      : debugger_(debugger) {
+    ASSERT(debugger_ != NULL);
+    initial_state_ = debugger_->ignore_breakpoints();
+    debugger_->set_ignore_breakpoints(disable);
+  }
+
+  ~DisableBreakpointsScope() {
+    debugger_->set_ignore_breakpoints(initial_state_);
+  }
+
+ private:
+  Debugger* debugger_;
+  bool initial_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisableBreakpointsScope);
 };
 
 }  // namespace dart

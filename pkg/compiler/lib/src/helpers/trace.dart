@@ -232,6 +232,7 @@ class StackTraceLines {
     return sb.toString();
   }
 
+  @override
   String toString() {
     return prettify();
   }
@@ -269,6 +270,7 @@ class StackTraceLine {
     sb.write('$fileText $lineNoText$columnNoText $method\n');
   }
 
+  @override
   int get hashCode {
     return 13 * index +
         17 * file.hashCode +
@@ -277,6 +279,7 @@ class StackTraceLine {
         29 * method.hashCode;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StackTraceLine) return false;
@@ -287,6 +290,7 @@ class StackTraceLine {
         method == other.method;
   }
 
+  @override
   String toString() => "$method @ $file [$lineNo:$columnNo]";
 }
 

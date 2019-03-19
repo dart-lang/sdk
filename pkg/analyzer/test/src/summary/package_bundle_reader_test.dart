@@ -2,20 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/task/api/dart.dart';
-import 'package:analyzer/src/task/api/general.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ResynthesizerResultProviderTest);
     defineReflectiveTests(SummaryDataStoreTest);
   });
 }
@@ -28,125 +21,6 @@ UnlinkedPublicNamespace _namespaceWithParts(List<String> parts) {
   _UnlinkedPublicNamespaceMock namespace = new _UnlinkedPublicNamespaceMock();
   namespace.parts = parts;
   return namespace;
-}
-
-@reflectiveTest
-class ResynthesizerResultProviderTest {
-  _SourceFactoryMock sourceFactory = new _SourceFactoryMock();
-  _InternalAnalysisContextMock context = new _InternalAnalysisContextMock();
-  UniversalCachePartition cachePartition;
-
-  Source source1 = new _SourceMock('package:p1/u1.dart', '/p1/lib/u1.dart');
-  Source source2 = new _SourceMock('package:p1/u2.dart', '/p1/lib/u2.dart');
-  Source source3 = new _SourceMock('package:p2/u1.dart', '/p2/lib/u1.dart');
-  CacheEntry entry1;
-  CacheEntry entry2;
-  CacheEntry entry3;
-
-  _PackageBundleMock bundle = new _PackageBundleMock();
-  _UnlinkedUnitMock unlinkedUnit1 = new _UnlinkedUnitMock();
-  _UnlinkedUnitMock unlinkedUnit2 = new _UnlinkedUnitMock();
-  _LinkedLibraryMock linkedLibrary = new _LinkedLibraryMock();
-
-  SummaryDataStore dataStore = new SummaryDataStore(<String>[]);
-  _TestResynthesizerResultProvider provider;
-
-  void setUp() {
-    cachePartition = new UniversalCachePartition(context);
-    entry1 = new CacheEntry(source1);
-    entry2 = new CacheEntry(source2);
-    entry3 = new CacheEntry(source3);
-    cachePartition.put(entry1);
-    cachePartition.put(entry2);
-    cachePartition.put(entry3);
-
-    sourceFactory.resolvedUriMap['package:p1/u1.dart'] = source1;
-    sourceFactory.resolvedUriMap['package:p1/u2.dart'] = source2;
-    context.sourceFactory = sourceFactory;
-
-    bundle.unlinkedUnitUris = <String>[
-      'package:p1/u1.dart',
-      'package:p1/u2.dart'
-    ];
-    bundle.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit1, unlinkedUnit2];
-    bundle.linkedLibraryUris = <String>['package:p1/u1.dart'];
-    bundle.linkedLibraries = <LinkedLibrary>[linkedLibrary];
-    dataStore.addBundle('/p1.ds', bundle);
-
-    unlinkedUnit1.isPartOf = false;
-    unlinkedUnit2.isPartOf = true;
-
-    var namespace1 = _namespaceWithParts(['package:p1/u2.dart']);
-    var namespace2 = _namespaceWithParts([]);
-    unlinkedUnit1.publicNamespace = namespace1;
-    unlinkedUnit2.publicNamespace = namespace2;
-
-    provider = new _TestResynthesizerResultProvider(context, dataStore);
-    provider.sourcesWithResults.add(source1);
-    provider.sourcesWithResults.add(source2);
-  }
-
-  test_compute_CONTAINING_LIBRARIES_librarySource() {
-    bool success = provider.compute(entry1, CONTAINING_LIBRARIES);
-    expect(success, isTrue);
-    expect(entry1.getValue(CONTAINING_LIBRARIES), unorderedEquals([source1]));
-  }
-
-  test_compute_CONTAINING_LIBRARIES_partSource() {
-    bool success = provider.compute(entry2, CONTAINING_LIBRARIES);
-    expect(success, isTrue);
-    expect(entry2.getValue(CONTAINING_LIBRARIES), unorderedEquals([source1]));
-  }
-
-  test_compute_LINE_INFO_emptyLineStarts() {
-    unlinkedUnit1.lineStarts = <int>[];
-    bool success = provider.compute(entry1, LINE_INFO);
-    expect(success, isFalse);
-  }
-
-  test_compute_LINE_INFO_hasLineStarts() {
-    unlinkedUnit1.lineStarts = <int>[10, 20, 30];
-    bool success = provider.compute(entry1, LINE_INFO);
-    expect(success, isTrue);
-    expect(entry1.getValue(LINE_INFO).lineStarts, <int>[10, 20, 30]);
-  }
-
-  test_compute_MODIFICATION_TIME_hasResult() {
-    bool success = provider.compute(entry1, MODIFICATION_TIME);
-    expect(success, isTrue);
-    expect(entry1.getValue(MODIFICATION_TIME), 0);
-  }
-
-  test_compute_MODIFICATION_TIME_noResult() {
-    bool success = provider.compute(entry3, MODIFICATION_TIME);
-    expect(success, isFalse);
-    expect(entry3.getState(MODIFICATION_TIME), CacheState.INVALID);
-  }
-
-  test_compute_SOURCE_KIND_librarySource() {
-    bool success = provider.compute(entry1, SOURCE_KIND);
-    expect(success, isTrue);
-    expect(entry1.getValue(SOURCE_KIND), SourceKind.LIBRARY);
-  }
-
-  test_compute_SOURCE_KIND_librarySource_isPartOf() {
-    unlinkedUnit1.isPartOf = true;
-    bool success = provider.compute(entry1, SOURCE_KIND);
-    expect(success, isTrue);
-    expect(entry1.getValue(SOURCE_KIND), SourceKind.PART);
-  }
-
-  test_compute_SOURCE_KIND_noResults() {
-    bool success = provider.compute(entry3, SOURCE_KIND);
-    expect(success, isFalse);
-    expect(entry3.getState(SOURCE_KIND), CacheState.INVALID);
-  }
-
-  test_compute_SOURCE_KIND_partSource() {
-    bool success = provider.compute(entry2, SOURCE_KIND);
-    expect(success, isTrue);
-    expect(entry2.getValue(SOURCE_KIND), SourceKind.PART);
-  }
 }
 
 @reflectiveTest
@@ -289,16 +163,6 @@ class SummaryDataStoreTest {
   }
 }
 
-class _InternalAnalysisContextMock implements InternalAnalysisContext {
-  @override
-  SourceFactory sourceFactory;
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
-  }
-}
-
 class _LinkedLibraryMock implements LinkedLibrary {
   @override
   noSuchMethod(Invocation invocation) {
@@ -325,54 +189,6 @@ class _PackageBundleMock implements PackageBundle {
   @override
   noSuchMethod(Invocation invocation) {
     throw new StateError('Unexpected invocation of ${invocation.memberName}');
-  }
-}
-
-class _SourceFactoryMock implements SourceFactory {
-  Map<String, Source> resolvedUriMap = <String, Source>{};
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
-  }
-
-  @override
-  Source resolveUri(Source containingSource, String containedUri) {
-    return resolvedUriMap[containedUri];
-  }
-}
-
-class _SourceMock implements Source {
-  @override
-  final Uri uri;
-
-  @override
-  final String fullName;
-
-  _SourceMock(String uriStr, this.fullName) : uri = Uri.parse(uriStr);
-
-  @override
-  Source get librarySource => null;
-
-  @override
-  Source get source => this;
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() => '$uri ($fullName)';
-}
-
-class _TestResynthesizerResultProvider extends ResynthesizerResultProvider {
-  final Set<Source> sourcesWithResults = new Set<Source>();
-
-  _TestResynthesizerResultProvider(
-      InternalAnalysisContext context, SummaryDataStore dataStore)
-      : super(context, null, dataStore);
-
-  @override
-  bool hasResultsForSource(Source source) {
-    return sourcesWithResults.contains(source);
   }
 }
 

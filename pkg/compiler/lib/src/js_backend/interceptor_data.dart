@@ -72,6 +72,7 @@ class InterceptorDataImpl implements InterceptorData {
   final Map<String, Set<MemberEntity>> interceptedMembers;
 
   /// Set of classes whose methods are intercepted.
+  @override
   final Set<ClassEntity> interceptedClasses;
 
   /// Set of classes used as mixins on intercepted (native and primitive)
@@ -125,6 +126,7 @@ class InterceptorDataImpl implements InterceptorData {
         classesMixedIntoInterceptedClasses);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeInt(interceptedMembers.length);
@@ -137,6 +139,7 @@ class InterceptorDataImpl implements InterceptorData {
     sink.end(tag);
   }
 
+  @override
   bool isInterceptedMethod(MemberEntity element) {
     if (!element.isInstanceMember) return false;
     // TODO(johnniwinther): Avoid this hack.
@@ -146,18 +149,22 @@ class InterceptorDataImpl implements InterceptorData {
     return interceptedMembers[element.name] != null;
   }
 
+  @override
   bool fieldHasInterceptedGetter(FieldEntity element) {
     return interceptedMembers[element.name] != null;
   }
 
+  @override
   bool fieldHasInterceptedSetter(FieldEntity element) {
     return interceptedMembers[element.name] != null;
   }
 
+  @override
   bool isInterceptedName(String name) {
     return interceptedMembers[name] != null;
   }
 
+  @override
   bool isInterceptedSelector(Selector selector) {
     return interceptedMembers[selector.name] != null;
   }
@@ -165,6 +172,7 @@ class InterceptorDataImpl implements InterceptorData {
   /// Returns `true` iff [selector] matches an element defined in a class mixed
   /// into an intercepted class.  These selectors are not eligible for the
   /// 'dummy explicit receiver' optimization.
+  @override
   bool isInterceptedMixinSelector(
       Selector selector, AbstractValue mask, JClosedWorld closedWorld) {
     Set<MemberEntity> elements =
@@ -203,6 +211,7 @@ class InterceptorDataImpl implements InterceptorData {
   /// Returns a set of interceptor classes that contain a member named [name]
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
+  @override
   Set<ClassEntity> getInterceptedClassesOn(
       String name, JClosedWorld closedWorld) {
     Set<MemberEntity> intercepted = interceptedMembers[name];
@@ -244,6 +253,7 @@ class InterceptorDataImpl implements InterceptorData {
     return result;
   }
 
+  @override
   bool isInterceptedClass(ClassEntity element) {
     if (element == null) return false;
     if (_nativeData.isNativeOrExtendsNative(element)) return true;
@@ -252,9 +262,11 @@ class InterceptorDataImpl implements InterceptorData {
     return false;
   }
 
+  @override
   bool isMixedIntoInterceptedClass(ClassEntity element) =>
       classesMixedIntoInterceptedClasses.contains(element);
 
+  @override
   bool mayGenerateInstanceofCheck(DartType type, JClosedWorld closedWorld) {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.
@@ -291,6 +303,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   InterceptorDataBuilderImpl(
       this._nativeData, this._elementEnvironment, this._commonElements);
 
+  @override
   InterceptorData close() {
     return new InterceptorDataImpl(
         _nativeData,
@@ -300,6 +313,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
         _classesMixedIntoInterceptedClasses);
   }
 
+  @override
   void addInterceptorsForNativeClassMembers(ClassEntity cls) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
@@ -317,6 +331,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
     });
   }
 
+  @override
   void addInterceptors(ClassEntity cls) {
     if (_interceptedClasses.add(cls)) {
       _elementEnvironment.forEachClassMember(cls,

@@ -54,9 +54,28 @@ class A<E extends Set<int>> {
     assertType(setLiteral('{}'), 'Set<dynamic>');
   }
 
-  test_context_typeArgs_expression_conflict() async {
+  test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
+    addTestFile('''
+class A<E extends Set<dynamic>> {
+  E a = {};
+}
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{}'), 'Set<dynamic>');
+  }
+
+  test_context_typeArgs_expression_conflictingExpression() async {
     addTestFile('''
 Set<String> a = <String>{0};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<String>');
+  }
+
+  @failingTest
+  test_context_typeArgs_expression_conflictingTypeArgs() async {
+    addTestFile('''
+Set<String> a = <int>{'a'};
 ''');
     await resolveTestFile();
     assertType(setLiteral('{'), 'Set<String>');
@@ -86,20 +105,28 @@ Set<String> a = <String>{};
     assertType(setLiteral('{'), 'Set<String>');
   }
 
-  test_noContext_noTypeArgs_expressions_conflict() async {
-    addTestFile('''
-var a = {1, '2', 3};
-''');
-    await resolveTestFile();
-    assertType(setLiteral('{'), 'Set<Object>');
-  }
-
-  test_noContext_noTypeArgs_expressions_noConflict() async {
+  test_noContext_noTypeArgs_expressions_lubOfInt() async {
     addTestFile('''
 var a = {1, 2, 3};
 ''');
     await resolveTestFile();
     assertType(setLiteral('{'), 'Set<int>');
+  }
+
+  test_noContext_noTypeArgs_expressions_lubOfNum() async {
+    addTestFile('''
+var a = {1, 2.3, 4};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<num>');
+  }
+
+  test_noContext_noTypeArgs_expressions_lubOfObject() async {
+    addTestFile('''
+var a = {1, '2', 3};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<Object>');
   }
 
   test_noContext_typeArgs_expression_conflict() async {
@@ -113,6 +140,15 @@ var a = <String>{1};
   test_noContext_typeArgs_expression_noConflict() async {
     addTestFile('''
 var a = <int>{1};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<int>');
+  }
+
+  @failingTest
+  test_noContext_typeArgs_expressions_conflict() async {
+    addTestFile('''
+var a = <int, String>{1, 2};
 ''');
     await resolveTestFile();
     assertType(setLiteral('{'), 'Set<int>');
@@ -139,16 +175,9 @@ class SetLiteralWithFlowControlAndSpreadCollectionsTest extends SetLiteralTest {
   @override
   AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
 
-  @failingTest
-  @override
-  test_context_noTypeArgs_noElements_typeParameter() async {
-    // Failing because Map<dynamic, dynamic> is being inferred.
-    await super.test_context_noTypeArgs_noElements_typeParameter();
-  }
-
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     addTestFile('''
-var c = [1, 2, 3];
+List<int> c;
 var a = {for (int e in c) e * 2};
 ''');
     await resolveTestFile();
@@ -157,7 +186,7 @@ var a = {for (int e in c) e * 2};
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
     addTestFile('''
-var c = [1, 2, 3];
+List<int> c;
 int b;
 var a = {for (b in c) b * 2};
 ''');
@@ -184,57 +213,98 @@ var a = {for (i = 0; i < 2; i++) i * 2};
 
   test_noContext_noTypeArgs_if() async {
     addTestFile('''
-var c = true;
+bool c = true;
 var a = {if (c) 1};
 ''');
     await resolveTestFile();
     assertType(setLiteral('{'), 'Set<int>');
   }
 
-  test_noContext_noTypeArgs_ifElse_conflict() async {
+  test_noContext_noTypeArgs_ifElse_lubOfInt() async {
     addTestFile('''
-var c = true;
-var a = {if (c) 1 else '2'};
-''');
-    await resolveTestFile();
-    assertType(setLiteral('{'), 'Set<Object>');
-  }
-
-  test_noContext_noTypeArgs_ifElse_noConflict() async {
-    addTestFile('''
-var c = true;
+bool c = true;
 var a = {if (c) 1 else 2};
 ''');
     await resolveTestFile();
     assertType(setLiteral('{'), 'Set<int>');
   }
 
+  test_noContext_noTypeArgs_ifElse_lubOfNum() async {
+    addTestFile('''
+bool c = true;
+var a = {if (c) 1 else 2.3};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<num>');
+  }
+
+  test_noContext_noTypeArgs_ifElse_lubOfObject() async {
+    addTestFile('''
+bool c = true;
+var a = {if (c) 1 else '2'};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<Object>');
+  }
+
   test_noContext_noTypeArgs_spread() async {
     addTestFile('''
-var c = [1, 2, 3];
+List<int> c;
 var a = {...c};
 ''');
     await resolveTestFile();
     assertType(setLiteral('{...'), 'Set<int>');
   }
 
-  test_noContext_noTypeArgs_spread_conflict() async {
+  test_noContext_noTypeArgs_spread_lubOfInt() async {
     addTestFile('''
-var c = [1];
-var b = ['a'];
+List<int> c;
+List<int> b;
+var a = {...b, ...c};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{...'), 'Set<int>');
+  }
+
+  test_noContext_noTypeArgs_spread_lubOfNum() async {
+    addTestFile('''
+List<int> c;
+List<double> b;
+var a = {...b, ...c};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{...'), 'Set<num>');
+  }
+
+  test_noContext_noTypeArgs_spread_lubOfObject() async {
+    addTestFile('''
+List<int> c;
+List<String> b;
 var a = {...b, ...c};
 ''');
     await resolveTestFile();
     assertType(setLiteral('{...'), 'Set<Object>');
   }
 
-  test_noContext_noTypeArgs_spread_noConflict() async {
+  test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
     addTestFile('''
-var c = [1];
-var b = [2];
-var a = {...b, ...c};
+List<int> c;
+dynamic d;
+var a = {if (0 < 1) ...c else ...d};
 ''');
     await resolveTestFile();
-    assertType(setLiteral('{...'), 'Set<int>');
+    assertType(setLiteral('{'), 'Set<dynamic>');
+  }
+
+  @failingTest
+  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
+    addTestFile('''
+f() {
+  var futureNull = Future.value(null);
+  var a = {1, ...?await futureNull, 2};
+}
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{1'), 'Set<int>');
   }
 }

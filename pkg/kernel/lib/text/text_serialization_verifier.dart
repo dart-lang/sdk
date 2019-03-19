@@ -888,6 +888,24 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
+  void visitListConcatenation(ListConcatenation node) {
+    storeLastSeenUriAndOffset(node);
+    makeExpressionRoundTrip(node);
+  }
+
+  @override
+  void visitSetConcatenation(SetConcatenation node) {
+    storeLastSeenUriAndOffset(node);
+    makeExpressionRoundTrip(node);
+  }
+
+  @override
+  void visitMapConcatenation(MapConcatenation node) {
+    storeLastSeenUriAndOffset(node);
+    makeExpressionRoundTrip(node);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     storeLastSeenUriAndOffset(node);
     makeExpressionRoundTrip(node);

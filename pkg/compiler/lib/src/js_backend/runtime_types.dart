@@ -124,6 +124,7 @@ abstract class RuntimeTypesNeed {
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   const TrivialRuntimeTypesNeed();
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeBool(true); // Is trivial.
   }
@@ -244,6 +245,7 @@ abstract class RuntimeTypesChecksBuilder {
 class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
   final JClosedWorld _closedWorld;
   final TrivialRuntimeTypesSubstitutions _substitutions;
+  @override
   bool rtiChecksBuilderClosed = false;
 
   TrivialRuntimeTypesChecksBuilder(this._closedWorld, this._substitutions);
@@ -299,6 +301,7 @@ class ClassCollector extends ArgumentCollector {
 
   ClassCollector(this._elementEnvironment);
 
+  @override
   void addClass(ClassEntity cls) {
     if (classes.add(cls)) {
       _elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
@@ -633,7 +636,9 @@ abstract class RuntimeTypesSubstitutionsMixin
 }
 
 class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
+  @override
   final JClosedWorld _closedWorld;
+  @override
   TypeChecks _requiredChecks;
 
   TrivialRuntimeTypesSubstitutions(this._closedWorld);
@@ -786,6 +791,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
         instantiationsNeedingTypeArguments);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
@@ -802,16 +808,19 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
 
   bool checkClass(covariant ClassEntity cls) => true;
 
+  @override
   bool classNeedsTypeArguments(ClassEntity cls) {
     assert(checkClass(cls));
     if (!_elementEnvironment.isGenericClass(cls)) return false;
     return classesNeedingTypeArguments.contains(cls);
   }
 
+  @override
   bool methodNeedsSignature(FunctionEntity function) {
     return methodsNeedingSignature.contains(function);
   }
 
+  @override
   bool methodNeedsTypeArguments(FunctionEntity function) {
     return methodsNeedingTypeArguments.contains(function);
   }
@@ -1398,6 +1407,7 @@ abstract class RtiNode {
 
   String get kind;
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write(kind);
@@ -1412,8 +1422,10 @@ class ClassNode extends RtiNode {
 
   ClassNode(this.cls);
 
+  @override
   Entity get entity => cls;
 
+  @override
   String get kind => 'class';
 }
 
@@ -1427,6 +1439,7 @@ class MethodNode extends RtiNode {
   MethodNode(this.function, this.parameterStructure,
       {this.isCallTarget, this.instanceName, this.isNoSuchMethod: false});
 
+  @override
   Entity get entity => function;
 
   bool selectorApplies(Selector selector) {
@@ -1436,8 +1449,10 @@ class MethodNode extends RtiNode {
         selector.callStructure.signatureApplies(parameterStructure);
   }
 
+  @override
   String get kind => 'method';
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('MethodNode(');
@@ -1892,6 +1907,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
 class _RuntimeTypesChecks implements RuntimeTypesChecks {
   final RuntimeTypesSubstitutions _substitutions;
+  @override
   final TypeChecks requiredChecks;
   final Iterable<ClassEntity> _typeLiterals;
   final Iterable<ClassEntity> _typeArguments;
@@ -1920,6 +1936,7 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
 class RuntimeTypesImpl extends _RuntimeTypesBase
     with RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesChecksBuilder {
+  @override
   final JClosedWorld _closedWorld;
 
   // The set of type arguments tested against type variable bounds.
@@ -1929,13 +1946,16 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   TypeChecks cachedRequiredChecks;
 
+  @override
   bool rtiChecksBuilderClosed = false;
 
   RuntimeTypesImpl(this._closedWorld) : super(_closedWorld.dartTypes);
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
+  @override
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
+  @override
   RuntimeTypesNeed get _rtiNeed => _closedWorld.rtiNeed;
 
   @override
@@ -1958,6 +1978,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     _genericInstantiations.add(instantiation);
   }
 
+  @override
   RuntimeTypesChecks computeRequiredChecks(
       CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
@@ -1979,12 +2000,30 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     Set<ClassEntity> typeLiterals = new Set<ClassEntity>();
     Set<ClassEntity> typeArguments = new Set<ClassEntity>();
 
+    // The [liveTypeVisitor] is used to register class use in the type of
+    // instantiated objects like `new T` and the function types of
+    // tear offs and closures.
+    //
+    // A type found in a covariant position of such types is considered live
+    // whereas a type found in a contravariant position of such types is
+    // considered tested.
+    //
+    // For instance
+    //
+    //    new A<B Function(C)>();
+    //
+    // makes A and B live but C tested.
     TypeVisitor liveTypeVisitor =
         new TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
       ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
       switch (state) {
-        case TypeVisitorState.typeArgument:
+        case TypeVisitorState.covariantTypeArgument:
           classUse.typeArgument = true;
+          typeArguments.add(cls);
+          break;
+        case TypeVisitorState.contravariantTypeArgument:
+          classUse.typeArgument = true;
+          classUse.checkedTypeArgument = true;
           typeArguments.add(cls);
           break;
         case TypeVisitorState.typeLiteral:
@@ -1996,13 +2035,29 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
+    // The [testedTypeVisitor] is used to register class use in type tests like
+    // `o is T` and `o as T` (both implicit and explicit).
+    //
+    // A type found in a covariant position of such types is considered tested
+    // whereas a type found in a contravariant position of such types is
+    // considered live.
+    //
+    // For instance
+    //
+    //    o is A<B Function(C)>;
+    //
+    // makes A and B tested but C live.
     TypeVisitor testedTypeVisitor =
         new TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
       ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
       switch (state) {
-        case TypeVisitorState.typeArgument:
+        case TypeVisitorState.covariantTypeArgument:
           classUse.typeArgument = true;
           classUse.checkedTypeArgument = true;
+          typeArguments.add(cls);
+          break;
+        case TypeVisitorState.contravariantTypeArgument:
+          classUse.typeArgument = true;
           typeArguments.add(cls);
           break;
         case TypeVisitorState.typeLiteral:
@@ -2025,31 +2080,32 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       classUse.directInstance = true;
       FunctionType callType = _types.getCallType(type);
       if (callType != null) {
-        testedTypeVisitor.visitType(callType, TypeVisitorState.direct);
+        liveTypeVisitor.visitType(callType, TypeVisitorState.direct);
       }
     });
 
     for (FunctionEntity element
         in codegenWorldBuilder.staticFunctionsNeedingGetter) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
-      testedTypeVisitor.visitType(functionType, TypeVisitorState.direct);
+      liveTypeVisitor.visitType(functionType, TypeVisitorState.direct);
     }
 
     for (FunctionEntity element in codegenWorldBuilder.closurizedMembers) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
-      testedTypeVisitor.visitType(functionType, TypeVisitorState.direct);
+      liveTypeVisitor.visitType(functionType, TypeVisitorState.direct);
     }
 
     void processMethodTypeArguments(_, Set<DartType> typeArguments) {
       for (DartType typeArgument in typeArguments) {
-        liveTypeVisitor.visit(typeArgument, TypeVisitorState.typeArgument);
+        liveTypeVisitor.visit(
+            typeArgument, TypeVisitorState.covariantTypeArgument);
       }
     }
 
     codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
     codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
     codegenWorldBuilder.liveTypeArguments.forEach((DartType type) {
-      liveTypeVisitor.visitType(type, TypeVisitorState.typeArgument);
+      liveTypeVisitor.visitType(type, TypeVisitorState.covariantTypeArgument);
     });
     codegenWorldBuilder.constTypeLiterals.forEach((DartType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.typeLiteral);
@@ -2102,7 +2158,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
             DartType bound =
                 _elementEnvironment.getTypeVariableBound(typeVariable.element);
             processCheckedType(bound);
-            liveTypeVisitor.visit(bound, TypeVisitorState.typeArgument);
+            liveTypeVisitor.visit(
+                bound, TypeVisitorState.covariantTypeArgument);
           }
         }
       }
@@ -2412,6 +2469,7 @@ class TypeRepresentationGenerator
   jsAst.Expression visit(DartType type, Emitter emitter) =>
       type.accept(this, emitter);
 
+  @override
   jsAst.Expression visitTypeVariableType(
       TypeVariableType type, Emitter emitter) {
     if (typedefBindings != null) {
@@ -2421,6 +2479,7 @@ class TypeRepresentationGenerator
     return onVariable(type);
   }
 
+  @override
   jsAst.Expression visitFunctionTypeVariable(
       FunctionTypeVariable type, Emitter emitter) {
     int position = functionTypeVariables.indexOf(type);
@@ -2428,6 +2487,7 @@ class TypeRepresentationGenerator
     return js.number(functionTypeVariables.length - position - 1);
   }
 
+  @override
   jsAst.Expression visitDynamicType(DynamicType type, Emitter emitter) {
     return getDynamicValue();
   }
@@ -2444,6 +2504,7 @@ class TypeRepresentationGenerator
     return new jsAst.ArrayInitializer(elements);
   }
 
+  @override
   jsAst.Expression visitInterfaceType(InterfaceType type, Emitter emitter) {
     jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
     jsAst.Expression result;
@@ -2508,6 +2569,7 @@ class TypeRepresentationGenerator
     return jsAst.js.expressionTemplateFor("# === -2");
   }
 
+  @override
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
@@ -2566,10 +2628,12 @@ class TypeRepresentationGenerator
     return new jsAst.ObjectInitializer(properties);
   }
 
+  @override
   jsAst.Expression visitVoidType(VoidType type, Emitter emitter) {
     return getVoidValue();
   }
 
+  @override
   jsAst.Expression visitTypedefType(TypedefType type, Emitter emitter) {
     bool shouldEncode = shouldEncodeTypedef(type);
     DartType unaliasedType = type.unaliased;
@@ -2646,6 +2710,7 @@ class TypeRepresentationGenerator
 class TypeCheckMapping implements TypeChecks {
   final Map<ClassEntity, ClassChecks> map = new Map<ClassEntity, ClassChecks>();
 
+  @override
   ClassChecks operator [](ClassEntity element) {
     ClassChecks result = map[element];
     return result != null ? result : const ClassChecks.empty();
@@ -2655,8 +2720,10 @@ class TypeCheckMapping implements TypeChecks {
     map[element] = checks;
   }
 
+  @override
   Iterable<ClassEntity> get classes => map.keys;
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     for (ClassEntity holder in classes) {
@@ -2687,15 +2754,18 @@ class ArgumentCollector extends DartTypeVisitor<dynamic, bool> {
     }
   }
 
+  @override
   visitTypedefType(TypedefType type, bool isTypeArgument) {
     collect(type.unaliased, isTypeArgument: isTypeArgument);
   }
 
+  @override
   visitInterfaceType(InterfaceType type, bool isTypeArgument) {
     if (isTypeArgument) addClass(type.element);
     collectAll(type.typeArguments, isTypeArgument: true);
   }
 
+  @override
   visitFunctionType(FunctionType type, _) {
     collect(type.returnType, isTypeArgument: true);
     collectAll(type.parameterTypes, isTypeArgument: true);
@@ -2719,10 +2789,12 @@ class FunctionArgumentCollector extends DartTypeVisitor<dynamic, bool> {
     }
   }
 
+  @override
   visitTypedefType(TypedefType type, bool inFunctionType) {
     collect(type.unaliased, inFunctionType: inFunctionType);
   }
 
+  @override
   visitInterfaceType(InterfaceType type, bool inFunctionType) {
     if (inFunctionType) {
       classes.add(type.element);
@@ -2730,6 +2802,7 @@ class FunctionArgumentCollector extends DartTypeVisitor<dynamic, bool> {
     collectAll(type.typeArguments, inFunctionType: inFunctionType);
   }
 
+  @override
   visitFunctionType(FunctionType type, _) {
     collect(type.returnType, inFunctionType: true);
     collectAll(type.parameterTypes, inFunctionType: true);
@@ -2780,6 +2853,7 @@ class Substitution {
 
   bool get isJsInterop => length != null;
 
+  @override
   String toString() => 'Substitution(isTrivial=$isTrivial,'
       'isFunction=$isFunction,isJsInterop=$isJsInterop,arguments=$arguments,'
       'parameters=$parameters,length=$length)';
@@ -2791,16 +2865,23 @@ class TypeCheck {
   final ClassEntity cls;
   final bool needsIs;
   final Substitution substitution;
+  @override
   final int hashCode = _nextHash = (_nextHash + 100003).toUnsigned(30);
   static int _nextHash = 0;
 
   TypeCheck(this.cls, this.substitution, {this.needsIs: true});
 
+  @override
   String toString() =>
       'TypeCheck(cls=$cls,needsIs=$needsIs,substitution=$substitution)';
 }
 
-enum TypeVisitorState { direct, typeArgument, typeLiteral }
+enum TypeVisitorState {
+  direct,
+  covariantTypeArgument,
+  contravariantTypeArgument,
+  typeLiteral,
+}
 
 class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
   Set<FunctionTypeVariable> _visitedFunctionTypeVariables =
@@ -2815,6 +2896,34 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
   TypeVisitor({this.onClass, this.onTypeVariable, this.onFunctionType});
 
   visitType(DartType type, TypeVisitorState state) => type.accept(this, state);
+
+  TypeVisitorState covariantArgument(TypeVisitorState state) {
+    switch (state) {
+      case TypeVisitorState.direct:
+        return TypeVisitorState.covariantTypeArgument;
+      case TypeVisitorState.covariantTypeArgument:
+        return TypeVisitorState.covariantTypeArgument;
+      case TypeVisitorState.contravariantTypeArgument:
+        return TypeVisitorState.contravariantTypeArgument;
+      case TypeVisitorState.typeLiteral:
+        return TypeVisitorState.typeLiteral;
+    }
+    throw new UnsupportedError("Unexpected TypeVisitorState $state");
+  }
+
+  TypeVisitorState contravariantArgument(TypeVisitorState state) {
+    switch (state) {
+      case TypeVisitorState.direct:
+        return TypeVisitorState.contravariantTypeArgument;
+      case TypeVisitorState.covariantTypeArgument:
+        return TypeVisitorState.contravariantTypeArgument;
+      case TypeVisitorState.contravariantTypeArgument:
+        return TypeVisitorState.covariantTypeArgument;
+      case TypeVisitorState.typeLiteral:
+        return TypeVisitorState.typeLiteral;
+    }
+    throw new UnsupportedError("Unexpected TypeVisitorState $state");
+  }
 
   visitTypes(List<DartType> types, TypeVisitorState state) {
     for (DartType type in types) {
@@ -2834,11 +2943,7 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
     if (onClass != null) {
       onClass(type.element, state: state);
     }
-    visitTypes(
-        type.typeArguments,
-        state == TypeVisitorState.typeLiteral
-            ? state
-            : TypeVisitorState.typeArgument);
+    visitTypes(type.typeArguments, covariantArgument(state));
   }
 
   @override
@@ -2848,13 +2953,10 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
     }
     // Visit all nested types as type arguments; these types are not runtime
     // instances but runtime type representations.
-    state = state == TypeVisitorState.typeLiteral
-        ? state
-        : TypeVisitorState.typeArgument;
-    visitType(type.returnType, state);
-    visitTypes(type.parameterTypes, state);
-    visitTypes(type.optionalParameterTypes, state);
-    visitTypes(type.namedParameterTypes, state);
+    visitType(type.returnType, covariantArgument(state));
+    visitTypes(type.parameterTypes, contravariantArgument(state));
+    visitTypes(type.optionalParameterTypes, contravariantArgument(state));
+    visitTypes(type.namedParameterTypes, contravariantArgument(state));
     _visitedFunctionTypeVariables.removeAll(type.typeVariables);
   }
 
@@ -2891,6 +2993,7 @@ class ClassChecks {
 
   Iterable<TypeCheck> get checks => _map.values;
 
+  @override
   String toString() {
     return 'ClassChecks($checks)';
   }
@@ -2985,6 +3088,7 @@ class ClassUse {
   /// type arguments.
   bool get isLive => directInstance || typeArgument;
 
+  @override
   String toString() {
     List<String> properties = <String>[];
     if (instance) {

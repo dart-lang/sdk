@@ -277,6 +277,7 @@ class FindVisitor extends js.BaseVisitor {
 
   FindVisitor(this.soughtNode);
 
+  @override
   visitNode(js.Node node) {
     if (node == soughtNode) {
       found = true;
@@ -437,6 +438,7 @@ class SourceMapInfo {
             element != null ? computeElementNameForSourceMaps(element) : '',
         this.element = element;
 
+  @override
   String toString() {
     return '$name:$element';
   }
@@ -473,8 +475,10 @@ class _LocationRecorder implements SourceMapper, LocationMap {
   @override
   void registerPop(int codeOffset, {bool isEmpty: false}) {}
 
+  @override
   Iterable<js.Node> get nodes => _nodeMap.keys;
 
+  @override
   Map<int, List<SourceLocation>> operator [](js.Node node) {
     return _nodeMap[node];
   }
@@ -486,8 +490,10 @@ class _FilteredLocationMap implements LocationMap {
 
   _FilteredLocationMap(this._nodes, this.map);
 
+  @override
   Iterable<js.Node> get nodes => map.nodes.where((n) => _nodes.contains(n));
 
+  @override
   Map<int, List<SourceLocation>> operator [](js.Node node) {
     return map[node];
   }
@@ -522,6 +528,7 @@ class CodePointComputer extends TraceListener {
 
   /// Called when [node] defines a step of the given [kind] at the given
   /// [offset] when the generated JavaScript code.
+  @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
     if (kind == StepKind.ACCESS) return;
     register(kind, node);
@@ -588,6 +595,7 @@ class CodePoint {
       this.dartCode,
       {this.isMissing: false});
 
+  @override
   String toString() {
     return 'CodePoint[kind=$kind,js=$jsCode,dart=$dartCode,'
         'location=$sourceLocation]';
@@ -601,6 +609,7 @@ class IOSourceFileManager implements SourceFileManager {
 
   IOSourceFileManager(this.base);
 
+  @override
   SourceFile getSourceFile(var uri) {
     Uri absoluteUri;
     if (uri is Uri) {

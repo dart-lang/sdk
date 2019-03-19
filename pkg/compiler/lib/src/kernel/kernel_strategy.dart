@@ -4,6 +4,8 @@
 
 library dart2js.kernel.frontend_strategy;
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
@@ -19,6 +21,8 @@ import '../environment.dart' as env;
 import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
+import '../ir/impact.dart';
+import '../ir/modular.dart';
 import '../ir/scope.dart' show ScopeModel;
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
@@ -34,6 +38,7 @@ import '../universe/class_hierarchy.dart';
 import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
+import '../util/enumset.dart';
 import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
@@ -51,19 +56,30 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   final Map<MemberEntity, ClosureScopeModel> closureModels = {};
 
+  ModularStrategy _modularStrategy;
+  IrAnnotationData _irAnnotationData;
+
   KernelFrontEndStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
     _elementMap =
         new KernelToElementMapImpl(reporter, environment, this, _options);
+    _modularStrategy = new KernelModularStrategy(_compilerTask, _elementMap);
   }
 
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    _annotationProcessor = new KernelAnnotationProcessor(elementMap,
-        nativeBasicDataBuilder, processAnnotations(kernelResult.component));
+    if (useIrAnnotationsDataForTesting) {
+      _irAnnotationData = processAnnotations(kernelResult.component);
+    }
+    _annotationProcessor = new KernelAnnotationProcessor(
+        elementMap, nativeBasicDataBuilder, _irAnnotationData);
   }
+
+  IrAnnotationData get irAnnotationDataForTesting => _irAnnotationData;
+
+  ModularStrategy get modularStrategyForTesting => _modularStrategy;
 
   @override
   ElementEnvironment get elementEnvironment => _elementMap.elementEnvironment;
@@ -71,6 +87,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   CommonElements get commonElements => _elementMap.commonElements;
 
+  @override
   DartTypes get dartTypes => _elementMap.types;
 
   KernelToElementMap get elementMap => _elementMap;
@@ -92,16 +109,19 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         _elementMap.elementEnvironment, nativeBasicData);
   }
 
+  @override
   NoSuchMethodResolver createNoSuchMethodResolver() {
     return new KernelNoSuchMethodResolver(elementMap);
   }
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
+  @override
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
 
+  @override
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
     return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
         ? const TrivialRuntimeTypesNeedBuilder()
@@ -109,9 +129,11 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
             elementEnvironment, _elementMap.types);
   }
 
+  @override
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
       _runtimeTypesNeedBuilder;
 
+  @override
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
@@ -162,9 +184,12 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         impactTransformer,
         closureModels,
         impactCache,
-        fieldAnalysis);
+        fieldAnalysis,
+        _modularStrategy,
+        _irAnnotationData);
   }
 
+  @override
   ClassQueries createClassQueries() {
     return new KernelClassQueries(elementMap);
   }
@@ -184,6 +209,8 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;
   final KFieldAnalysis _fieldAnalysis;
+  final ModularStrategy _modularStrategy;
+  final IrAnnotationData _irAnnotationData;
 
   KernelWorkItemBuilder(
       this._compilerTask,
@@ -194,7 +221,9 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
       this._impactTransformer,
       this._closureModels,
       this._impactCache,
-      this._fieldAnalysis)
+      this._fieldAnalysis,
+      this._modularStrategy,
+      this._irAnnotationData)
       : _nativeMemberResolver = new KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
@@ -209,7 +238,9 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
         entity,
         _closureModels,
         _impactCache,
-        _fieldAnalysis);
+        _fieldAnalysis,
+        _modularStrategy,
+        _irAnnotationData);
   }
 }
 
@@ -219,10 +250,13 @@ class KernelWorkItem implements WorkItem {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
+  @override
   final MemberEntity element;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
   final Map<Entity, WorldImpact> _impactCache;
   final KFieldAnalysis _fieldAnalysis;
+  final ModularStrategy _modularStrategy;
+  final IrAnnotationData _irAnnotationData;
 
   KernelWorkItem(
       this._compilerTask,
@@ -233,33 +267,44 @@ class KernelWorkItem implements WorkItem {
       this.element,
       this._closureModels,
       this._impactCache,
-      this._fieldAnalysis);
+      this._fieldAnalysis,
+      this._modularStrategy,
+      this._irAnnotationData);
 
   @override
   WorldImpact run() {
     return _compilerTask.measure(() {
-      _nativeMemberResolver.resolveNativeMember(element);
-      Set<PragmaAnnotation> annotations = processMemberAnnotations(
+      _nativeMemberResolver.resolveNativeMember(element, _irAnnotationData);
+      ir.Member node = _elementMap.getMemberNode(element);
+
+      List<PragmaAnnotationData> pragmaAnnotationData =
+          _modularStrategy.getPragmaAnnotationData(node);
+
+      EnumSet<PragmaAnnotation> annotations = processMemberAnnotations(
           _elementMap.options,
           _elementMap.reporter,
-          _elementMap.commonElements,
-          _elementMap.elementEnvironment,
-          _annotationsDataBuilder,
-          element);
-      ScopeModel scopeModel = _compilerTask.measureSubtask('closures', () {
-        ScopeModel scopeModel = _elementMap.computeScopeModel(element);
-        if (scopeModel?.closureScopeModel != null) {
-          _closureModels[element] = scopeModel.closureScopeModel;
-        }
-        if (element.isField && !element.isInstanceMember) {
-          _fieldAnalysis.registerStaticField(
-              element, scopeModel?.initializerComplexity);
-        }
-        return scopeModel;
-      });
+          _elementMap.getMemberNode(element),
+          pragmaAnnotationData);
+      _annotationsDataBuilder.registerPragmaAnnotations(element, annotations);
+
+      ModularMemberData modularMemberData =
+          _modularStrategy.getModularMemberData(node, annotations);
+      ScopeModel scopeModel = modularMemberData.scopeModel;
+      if (scopeModel.closureScopeModel != null) {
+        _closureModels[element] = scopeModel.closureScopeModel;
+      }
+      if (element.isField && !element.isInstanceMember) {
+        _fieldAnalysis.registerStaticField(
+            element, scopeModel.initializerComplexity);
+      }
+      ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
         ResolutionImpact impact = _elementMap.computeWorldImpact(
-            element, scopeModel?.variableScopeModel, annotations);
+            element,
+            scopeModel.variableScopeModel,
+            new Set<PragmaAnnotation>.from(
+                annotations.iterable(PragmaAnnotation.values)),
+            impactBuilderData: impactBuilderData);
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (_impactCache != null) {
@@ -268,5 +313,54 @@ class KernelWorkItem implements WorkItem {
         return worldImpact;
       });
     });
+  }
+}
+
+/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
+/// and converted to the K model afterwards. This is a pre-step to modularizing
+/// the world impact computation.
+bool useImpactDataForTesting = false;
+
+/// If `true` pragma annotations are computed directly on kernel. This is a
+/// pre-step to modularizing the world impact computation.
+bool useIrAnnotationsDataForTesting = false;
+
+class KernelModularStrategy extends ModularStrategy {
+  final CompilerTask _compilerTask;
+  final KernelToElementMapImpl _elementMap;
+
+  KernelModularStrategy(this._compilerTask, this._elementMap);
+
+  @override
+  List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
+    if (useIrAnnotationsDataForTesting) {
+      return computePragmaAnnotationDataFromIr(node);
+    } else {
+      return computePragmaAnnotationData(_elementMap.commonElements,
+          _elementMap.elementEnvironment, _elementMap.getMember(node));
+    }
+  }
+
+  @override
+  ModularMemberData getModularMemberData(
+      ir.Member node, EnumSet<PragmaAnnotation> annotations) {
+    ScopeModel scopeModel = _compilerTask.measureSubtask(
+        'closures', () => new ScopeModel.from(node));
+    ImpactBuilderData impactBuilderData;
+    if (useImpactDataForTesting) {
+      // TODO(johnniwinther): Always create and use the [ImpactBuilderData].
+      // Currently it is a bit half-baked since we cannot compute data that
+      // depend on metadata, so these parts of the impact data need to be
+      // computed during conversion to [ResolutionImpact].
+      impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
+        ImpactBuilder builder = new ImpactBuilder(_elementMap.typeEnvironment,
+            _elementMap.classHierarchy, scopeModel.variableScopeModel,
+            useAsserts: _elementMap.options.enableUserAssertions,
+            inferEffectivelyFinalVariableTypes:
+                !annotations.contains(PragmaAnnotation.disableFinal));
+        return builder.computeImpact(node);
+      });
+    }
+    return new ModularMemberData(scopeModel, impactBuilderData);
   }
 }

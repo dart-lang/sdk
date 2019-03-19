@@ -26,7 +26,6 @@ import '../js_backend/inferred_data.dart';
 import '../js_backend/native_data.dart';
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
-import '../options.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
@@ -138,21 +137,9 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   KernelCodegenWorkItemBuilder(
       this._backend, this._closedWorld, this._globalInferenceResults);
 
-  CompilerOptions get _options => _backend.compiler.options;
-
   @override
   CodegenWorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
-
-    // Codegen inlines field initializers. It only needs to generate
-    // code for checked setters.
-    if (entity.isField && entity.isInstanceMember) {
-      if (!_options.parameterCheckPolicy.isEmitted ||
-          entity.enclosingClass.isClosure) {
-        return null;
-      }
-    }
-
     return new KernelCodegenWorkItem(
         _backend, _closedWorld, _globalInferenceResults, entity);
   }
@@ -161,7 +148,9 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
 class KernelCodegenWorkItem extends CodegenWorkItem {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
+  @override
   final MemberEntity element;
+  @override
   final CodegenRegistry registry;
   final GlobalTypeInferenceResults _globalInferenceResults;
 
@@ -220,73 +209,88 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
       _globalInferenceResults
           .resultOfMember(e is ConstructorBodyEntity ? e.constructor : e);
 
+  @override
   AbstractValue getReturnTypeOf(FunctionEntity function) {
     return AbstractValueFactory.inferredReturnTypeForElement(
         function, _globalInferenceResults);
   }
 
+  @override
   AbstractValue receiverTypeOfInvocation(
       ir.MethodInvocation node, AbstractValueDomain abstractValueDomain) {
     return _targetResults.typeOfSend(node);
   }
 
+  @override
   AbstractValue receiverTypeOfGet(ir.PropertyGet node) {
     return _targetResults.typeOfSend(node);
   }
 
+  @override
   AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet node) {
     return _targetResults.typeOfSend(node);
   }
 
+  @override
   AbstractValue receiverTypeOfSet(
       ir.PropertySet node, AbstractValueDomain abstractValueDomain) {
     return _targetResults.typeOfSend(node);
   }
 
+  @override
   AbstractValue typeOfListLiteral(
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain) {
     return _globalInferenceResults.typeOfListLiteral(listLiteral) ??
         abstractValueDomain.dynamicType;
   }
 
+  @override
   AbstractValue typeOfIterator(ir.ForInStatement node) {
     return _targetResults.typeOfIterator(node);
   }
 
+  @override
   AbstractValue typeOfIteratorCurrent(ir.ForInStatement node) {
     return _targetResults.typeOfIteratorCurrent(node);
   }
 
+  @override
   AbstractValue typeOfIteratorMoveNext(ir.ForInStatement node) {
     return _targetResults.typeOfIteratorMoveNext(node);
   }
 
+  @override
   bool isJsIndexableIterator(
       ir.ForInStatement node, AbstractValueDomain abstractValueDomain) {
     AbstractValue mask = typeOfIterator(node);
     return abstractValueDomain.isJsIndexableAndIterable(mask).isDefinitelyTrue;
   }
 
+  @override
   AbstractValue inferredIndexType(ir.ForInStatement node) {
     return AbstractValueFactory.inferredTypeForSelector(
         new Selector.index(), typeOfIterator(node), _globalInferenceResults);
   }
 
+  @override
   AbstractValue getInferredTypeOf(MemberEntity member) {
     return AbstractValueFactory.inferredTypeForMember(
         member, _globalInferenceResults);
   }
 
+  @override
   AbstractValue getInferredTypeOfParameter(Local parameter) {
     return AbstractValueFactory.inferredTypeForParameter(
         parameter, _globalInferenceResults);
   }
 
+  @override
   AbstractValue selectorTypeOf(Selector selector, AbstractValue mask) {
     return AbstractValueFactory.inferredTypeForSelector(
         selector, mask, _globalInferenceResults);
   }
 
+  @override
   AbstractValue typeFromNativeBehavior(
       NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);

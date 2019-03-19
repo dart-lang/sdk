@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,control-flow-collections,spread-collections
+// SharedOptions=--enable-experiment=control-flow-collections,spread-collections
 
 import 'package:expect/expect.dart';
 
@@ -70,12 +70,6 @@ void testList() {
 
   // Nested if in else.
   Expect.identical(const [1], const <int>[if (false) 9 else if (true) 1]);
-
-  // Nested for in then.
-  Expect.identical(list, const <int>[if (true) for (var i in list) i]);
-
-  // Nested for in else.
-  Expect.identical(list, const <int>[if (false) 9 else for (var i in list) i]);
 }
 
 void testMap() {
@@ -122,13 +116,6 @@ void testMap() {
   // Nested if in else.
   Expect.identical(const {1: 1},
       const <int, int>{if (false) 9: 9 else if (true) 1: 1});
-
-  // Nested for in then.
-  Expect.identical(map, const <int, int>{if (true) for (var i in list) i: i});
-
-  // Nested for in else.
-  Expect.identical(map,
-      const <int, int>{if (false) 9: 9 else for (var i in list) i: i});
 }
 
 void testSet() {
@@ -142,7 +129,7 @@ void testSet() {
   Expect.identical(set, const <int>{1, if (false) 9 else 2, 3});
 
   // Only if.
-  Expect.identical({1}, const <int>{if (true) 1});
+  Expect.identical(const <int>{1}, const <int>{if (true) 1});
 
   // If at beginning.
   Expect.identical(set, const <int>{if (true) 1, 2, 3});
@@ -177,12 +164,6 @@ void testSet() {
 
   // Nested if in else.
   Expect.identical(const <int>{1}, const <int>{if (false) 9 else if (true) 1});
-
-  // Nested for in then.
-  Expect.identical(set, const <int>{if (true) for (var i in list) i});
-
-  // Nested for in else.
-  Expect.identical(set, const <int>{if (false) 9 else for (var i in list) i});
 }
 
 void testShortCircuit() {
@@ -220,7 +201,7 @@ void testShortCircuit() {
   Expect.identical(const <int>[1, 2],
       const <int>[if (true) 1 else nonInt, if (false) nonInt else 2]);
 
-  Expect.identical(const <int>{1: 1}, const <int, int>{
+  Expect.identical(const <int, int>{1: 1}, const <int, int>{
     if (true) 1: 1,
     if (false) nonInt: 9,
     if (false) 9: nonInt

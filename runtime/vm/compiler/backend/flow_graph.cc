@@ -123,7 +123,8 @@ void FlowGraph::AddToDeferredPrefixes(
 
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
                                     bool is_optimized) {
-  return is_optimized && FLAG_reorder_basic_blocks && !function.is_intrinsic();
+  return is_optimized && FLAG_reorder_basic_blocks &&
+         !function.is_intrinsic() && !function.IsFfiTrampoline();
 }
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
@@ -1235,9 +1236,6 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
   for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
     Value* use = it.CurrentValue();
     use->definition()->AddEnvUse(use);
-  }
-  if (instr->ComputeCanDeoptimize()) {
-    instr->env()->set_deopt_id(instr->deopt_id());
   }
 }
 

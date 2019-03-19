@@ -20,6 +20,7 @@ class HValidator extends HInstructionVisitor {
 
   // Note that during construction of the Ssa graph the basic blocks are
   // not required to be valid yet.
+  @override
   void visitBasicBlock(HBasicBlock block) {
     currentBlock = block;
     if (!isValid) return; // Don't need to continue if we are already invalid.
@@ -164,6 +165,7 @@ class HValidator extends HInstructionVisitor {
     return true;
   }
 
+  @override
   void visitInstruction(HInstruction instruction) {
     // Verifies that we are in the use list of our inputs.
     bool hasCorrectInputs() {

@@ -19,8 +19,8 @@ ffi.DynamicLibrary ffiTestFunctions =
 typedef NativeBinaryOp = ffi.Int32 Function(ffi.Int32, ffi.Int32);
 typedef BinaryOp = int Function(int, int);
 
-typedef NativeUnaryOp = ffi.Int64 Function(ffi.Int64);
-typedef UnaryOp = int Function(int);
+typedef NativeUnaryOp = ffi.Int64 Function(ffi.Pointer<ffi.Int64>);
+typedef UnaryOp = int Function(ffi.Pointer<ffi.Int64>);
 
 void testWrongArity() {
   {
@@ -44,18 +44,18 @@ void testWrongTypes() {
   {
     dynamic sumPlus42 =
         ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
-    Expect.throwsNoSuchMethodError(() => sumPlus42("abc", "def"));
+    Expect.throwsTypeError(() => sumPlus42("abc", "def"));
   }
 
   {
     Function sumPlus42 =
         ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
-    Expect.throwsNoSuchMethodError(() => sumPlus42("abc", "def"));
+    Expect.throwsTypeError(() => sumPlus42("abc", "def"));
   }
 
   {
     dynamic pointerOp = ffiTestFunctions
         .lookupFunction<NativeUnaryOp, UnaryOp>("Assign1337Index1");
-    Expect.throwsNoSuchMethodError(() => pointerOp(0));
+    Expect.throwsTypeError(() => pointerOp(0));
   }
 }

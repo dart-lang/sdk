@@ -476,6 +476,7 @@ class MemberAnnotations<DataType> {
     return _computedDataForEachFile[file];
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('MemberAnnotations(');

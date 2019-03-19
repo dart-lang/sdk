@@ -69,6 +69,7 @@ run(Uri entryPoint, String allowedListPath,
 }
 
 class StaticTypeVisitorBase extends StaticTypeVisitor {
+  @override
   VariableScopeModel variableScopeModel;
 
   StaticTypeVisitorBase(
@@ -95,7 +96,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel = new ScopeModel.from(node).variableScopeModel;
     super.visitProcedure(node);
     variableScopeModel = null;
   }
@@ -106,7 +107,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel = new ScopeModel.from(node).variableScopeModel;
     super.visitField(node);
     variableScopeModel = null;
   }
@@ -117,7 +118,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel = new ScopeModel.from(node).variableScopeModel;
     super.visitConstructor(node);
     variableScopeModel = null;
   }
@@ -291,6 +292,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     }
   }
 
+  @override
   ir.DartType visitNode(ir.Node node) {
     ir.DartType staticType = node?.accept(this);
     assert(

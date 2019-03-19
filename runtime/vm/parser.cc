@@ -78,7 +78,8 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
 
   const bool load_optional_arguments = function.HasOptionalParameters();
 
-  const bool check_arguments = function_.IsClosureFunction();
+  const bool check_arguments =
+      function_.IsClosureFunction() || function.IsFfiTrampoline();
 
   const bool need_argument_descriptor =
       load_optional_arguments || check_arguments || reify_generic_argument;
@@ -216,7 +217,7 @@ void ParsedFunction::AllocateVariables() {
 
   raw_parameters_ = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_params);
   for (intptr_t param = 0; param < num_params; ++param) {
-    LocalVariable* variable = scope->VariableAt(param);
+    LocalVariable* variable = ParameterVariable(param);
     LocalVariable* raw_parameter = variable;
     if (variable->is_captured()) {
       String& tmp = String::ZoneHandle(Z);

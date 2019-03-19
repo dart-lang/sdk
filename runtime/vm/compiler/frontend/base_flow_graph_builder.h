@@ -265,6 +265,7 @@ class BaseFlowGraphBuilder {
   Fragment CreateArray();
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
+  Fragment LoadClassId();
 
   // Returns true if we are building a graph for inlining of a call site that
   // enters the function through the unchecked entry.

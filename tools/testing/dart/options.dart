@@ -174,13 +174,6 @@ test options, specifying how tests should be run.''',
         'Pass the --use-fasta-parser flag to analyzer',
         hide: true),
 
-    // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
-    new _Option.bool(
-        'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.',
-        hide: true),
-    new _Option.bool(
-        'dart2js_old_frontend', 'Pass the --use-old-frontend flag to dart2js.',
-        hide: true),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
     new _Option.bool(
         'hot_reload_rollback', 'Run hot reload rollback stress tests.',
@@ -219,6 +212,7 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
         hide: true),
     new _Option.bool('list', 'List tests only, do not run them.'),
+    new _Option.bool('list-configurations', 'Output list of configurations.'),
     new _Option.bool('list_status_files',
         'List status files for test-suites. Do not run any test suites.',
         hide: true),
@@ -381,6 +375,17 @@ compiler.''',
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
+      return null;
+    }
+    if (arguments.contains("--list-configurations")) {
+      final testMatrixFile = "tools/bots/test_matrix.json";
+      TestMatrix testMatrix = TestMatrix.fromPath(testMatrixFile);
+      for (final configuration in testMatrix.configurations
+          .map((configuration) => configuration.name)
+          .toList()
+            ..sort()) {
+        print(configuration);
+      }
       return null;
     }
     // Dart1 mode has been deprecated.
@@ -683,8 +688,6 @@ compiler.''',
                         data["analyzer_use_fasta_parser"] as bool,
                     useBlobs: data["use_blobs"] as bool,
                     useSdk: data["use_sdk"] as bool,
-                    useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
-                    useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
                     useHotReload: data["hot_reload"] as bool,
                     useHotReloadRollback: data["hot_reload_rollback"] as bool,
                     isChecked: data["checked"] as bool,
@@ -692,6 +695,7 @@ compiler.''',
                     isCsp: data["csp"] as bool,
                     isMinified: data["minified"] as bool,
                     vmOptions: vmOptions,
+                    dart2jsOptions: dart2jsOptions,
                     builderTag: data["builder_tag"] as String,
                     previewDart2: true);
             var configuration = new TestConfiguration(
@@ -734,7 +738,6 @@ compiler.''',
                     data['test_server_cross_origin_port'] as int,
                 testDriverErrorPort: data["test_driver_error_port"] as int,
                 localIP: data["local_ip"] as String,
-                dart2jsOptions: dart2jsOptions,
                 sharedOptions: sharedOptions,
                 packages: data["packages"] as String,
                 packageRoot: data["package_root"] as String,

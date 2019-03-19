@@ -505,21 +505,19 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
 
   Instruction* check_clone = NULL;
   if (check->IsCheckSmi()) {
-    check_clone =
-        new CheckSmiInstr(assert->value()->Copy(zone()),
-                          assert->env()->deopt_id(), check->token_pos());
+    check_clone = new CheckSmiInstr(assert->value()->Copy(zone()),
+                                    assert->deopt_id(), check->token_pos());
     check_clone->AsCheckSmi()->set_licm_hoisted(
         check->AsCheckSmi()->licm_hoisted());
   } else {
     ASSERT(check->IsCheckClass());
-    check_clone = new CheckClassInstr(
-        assert->value()->Copy(zone()), assert->env()->deopt_id(),
-        check->AsCheckClass()->cids(), check->token_pos());
+    check_clone =
+        new CheckClassInstr(assert->value()->Copy(zone()), assert->deopt_id(),
+                            check->AsCheckClass()->cids(), check->token_pos());
     check_clone->AsCheckClass()->set_licm_hoisted(
         check->AsCheckClass()->licm_hoisted());
   }
   ASSERT(check_clone != NULL);
-  ASSERT(assert->deopt_id() == assert->env()->deopt_id());
   check_clone->InsertBefore(assert);
   assert->env()->DeepCopyTo(zone(), check_clone);
 
@@ -987,8 +985,8 @@ CompileType ParameterInstr::ComputeType() const {
   // Parameter is the receiver.
   if ((index() == 0) &&
       (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
-    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
-    const AbstractType& type = scope->VariableAt(index())->type();
+    const AbstractType& type =
+        graph_entry->parsed_function().ParameterVariable(index())->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
       return CompileType::FromAbstractType(type, CompileType::kNullable);
@@ -1508,6 +1506,7 @@ CompileType CaseInsensitiveCompareUC16Instr::ComputeType() const {
 
 CompileType UnboxInstr::ComputeType() const {
   switch (representation()) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return CompileType::FromCid(kDoubleCid);
 
@@ -1531,6 +1530,7 @@ CompileType UnboxInstr::ComputeType() const {
 
 CompileType BoxInstr::ComputeType() const {
   switch (from_representation()) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return CompileType::FromCid(kDoubleCid);
 

@@ -1,4 +1,4 @@
-##
+## 0.35.4
 * Deprecated AST structures that will no longer be used after the
   control_flow_collections and spread_collections experiments are enabled.  The
   following AST node types are deprecated:
@@ -13,6 +13,13 @@
   * `visitForStatement` (override `visitForStatement2` instead)
   * `visitMapLiteral` (override `visitSetOrMapLiteral` instead)
   * `visitSetLiteral` (override `visitSetOrMapLiteral` instead)
+* Deprecated ASTFactory methods that will no longer be available after the
+  control_flow_collections and spread_collections experiments are enabled.  The
+  following factory methods are deprecated:
+  * `mapLiteral` and `mapLiteral2` (use `setOrMapLiteral` instead)
+  * `setLiteral` and `setLiteral2` (use `setOrMapLiteral` instead)
+* Bug fixes: #33119, #33241, #35747, #35900, #36048, #36129
+* The analyzer no longer uses `package:html` (see #35802)
 
 ## 0.35.3
 * Further updates to the AST structure for the control_flow_collections and

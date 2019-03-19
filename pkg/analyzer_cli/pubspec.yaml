@@ -8,7 +8,6 @@ dependencies:
   collection: ^1.14.1
   linter: ^0.1.16
   package_config: '>=0.1.5 <2.0.0'
-  plugin: '>=0.1.0 <0.3.0'
   protobuf: ^0.9.0
   telemetry: ^0.0.1
   yaml: ^2.1.2

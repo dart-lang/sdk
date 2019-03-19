@@ -136,15 +136,19 @@ class CompilerOptions implements DiagnosticOptions {
   bool disableProgramSplit = false;
 
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
+  @override
   bool fatalWarnings = false;
 
   /// Diagnostic option: Emit terse diagnostics without howToFix.
+  @override
   bool terseDiagnostics = false;
 
   /// Diagnostic option: If `true`, warnings are not reported.
+  @override
   bool suppressWarnings = false;
 
   /// Diagnostic option: If `true`, hints are not reported.
+  @override
   bool suppressHints = false;
 
   /// Diagnostic option: List of packages for which warnings and hints are
@@ -449,14 +453,17 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.
+  @override
   bool get showAllPackageWarnings {
     return shownPackageWarnings != null && shownPackageWarnings.isEmpty;
   }
 
   /// Returns `true` if warnings and hints are hidden for all packages.
+  @override
   bool get hidePackageWarnings => shownPackageWarnings == null;
 
   /// Returns `true` if warnings should be should for [uri].
+  @override
   bool showPackageWarningsFor(Uri uri) {
     if (showAllPackageWarnings) {
       return true;
@@ -485,6 +492,7 @@ class CheckPolicy {
   static const trusted = const CheckPolicy(isTrusted: true);
   static const checked = const CheckPolicy(isEmitted: true);
 
+  @override
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
       'isEmitted=$isEmitted)';
 }

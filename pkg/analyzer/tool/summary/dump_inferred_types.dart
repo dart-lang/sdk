@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -40,7 +41,8 @@ class InferredTypeCollector {
 
   InferredTypeCollector(
       GetDependencyCallback getDependency, GetUnitCallback getUnit)
-      : _linker = new Linker({}, getDependency, getUnit, null);
+      : _linker =
+            new Linker({}, getDependency, getUnit, null, AnalysisOptionsImpl());
 
   /**
    * If an inferred type exists matching the given [slot], record that it is the

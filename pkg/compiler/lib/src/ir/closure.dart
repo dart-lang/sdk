@@ -17,6 +17,7 @@ class ClosureScopeModel {
   Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
       <ir.TreeNode, KernelScopeInfo>{};
 
+  @override
   String toString() {
     return '$scopeInfo\n$capturedScopesMap\n$closuresToGenerate';
   }
@@ -76,6 +77,7 @@ class KernelScopeInfo {
       this.thisUsedAsFreeVariableIfNeedsRti,
       this.hasThisLocal);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('KernelScopeInfo(this=$hasThisLocal,');
@@ -319,6 +321,7 @@ class VariableUse {
   static const VariableUse fieldType =
       const VariableUse._simple(VariableUseKind.fieldType);
 
+  @override
   int get hashCode =>
       kind.hashCode * 11 +
       member.hashCode * 13 +
@@ -326,6 +329,7 @@ class VariableUse {
       invocation.hashCode * 19 +
       instantiation.hashCode * 23;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! VariableUse) return false;
@@ -336,6 +340,7 @@ class VariableUse {
         instantiation == other.instantiation;
   }
 
+  @override
   String toString() => 'VariableUse(kind=$kind,member=$member,'
       'localFunction=$localFunction,invocation=$invocation,'
       'instantiation=$instantiation)';
@@ -398,21 +403,26 @@ class TypeVariableTypeWithContext implements ir.Node {
   TypeVariableTypeWithContext.internal(
       this.type, this.context, this.kind, this.typeDeclaration);
 
+  @override
   accept(ir.Visitor v) {
     throw new UnsupportedError('TypeVariableTypeWithContext.accept');
   }
 
+  @override
   visitChildren(ir.Visitor v) {
     throw new UnsupportedError('TypeVariableTypeWithContext.visitChildren');
   }
 
+  @override
   int get hashCode => type.hashCode;
 
+  @override
   bool operator ==(other) {
     if (other is! TypeVariableTypeWithContext) return false;
     return type == other.type && context == other.context;
   }
 
+  @override
   String toString() =>
       'TypeVariableTypeWithContext(type=$type,context=$context,'
       'kind=$kind,typeDeclaration=$typeDeclaration)';

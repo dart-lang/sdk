@@ -4,13 +4,17 @@
 
 // This file contains test functions for the dart:ffi test cases.
 
-// The tests which use this don't run on Windows yet.
-#if !defined(_WIN32)
-
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
+
+#include "platform/globals.h"
+#if defined(HOST_OS_WINDOWS)
+#include <psapi.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <iostream>
 #include <limits>
 
@@ -27,6 +31,11 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   int32_t retval = 42 + a + b;
   std::cout << "returning " << retval << "\n";
   return retval;
+}
+
+// Test 32-bit (int32_t) -> 64-bit (Dart int) sign extension and truncation.
+DART_EXPORT int32_t TestExtension() {
+  return 1UL << 31;
 }
 
 // Performs some computation on various sized signed ints.
@@ -403,9 +412,15 @@ DART_EXPORT double SmallDouble() {
 }
 
 DART_EXPORT void* SmallPointer() {
-  return reinterpret_cast<void*>(-0x80000000L);
+  intptr_t value = 0x80000000;
+  return reinterpret_cast<void*>(-value);
 }
 
+DART_EXPORT void* LargePointer() {
+  return reinterpret_cast<void*>(-0x8000000000000000L);
+}
+
+#if !defined(_WIN32)
 DART_EXPORT int RedirectStderr() {
   char filename[256];
   snprintf(filename, sizeof(filename), "/tmp/captured_stderr_%d", getpid());
@@ -413,7 +428,6 @@ DART_EXPORT int RedirectStderr() {
   printf("Got file %s\n", filename);
   return getpid();
 }
+#endif
 
 }  // namespace dart
-
-#endif

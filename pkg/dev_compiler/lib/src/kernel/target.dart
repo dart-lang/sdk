@@ -69,6 +69,9 @@ class DevCompilerTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
+  bool get supportsSetLiterals => true;
+
+  @override
   bool get enableNoSuchMethodForwarders => true;
 
   @override

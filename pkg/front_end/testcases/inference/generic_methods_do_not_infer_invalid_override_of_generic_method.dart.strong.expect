@@ -9,7 +9,7 @@ library test;
 //   T m<T>(T x) => x;
 //     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type of the overridden method, 'T'.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:14:64: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type, 'T', of the overridden method, 'C.m'.
 // Change to a subtype of 'T'.
 // /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
 //                                                                ^

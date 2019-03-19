@@ -12,6 +12,10 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapElementWithUiAsCodeTest);
+    defineReflectiveTests(NonConstantMapKeyTest);
+    defineReflectiveTests(NonConstantMapKeyWithUiAsCodeTest);
+    defineReflectiveTests(NonConstantMapValueTest);
+    defineReflectiveTests(NonConstantMapValueWithUiAsCodeTest);
   });
 }
 
@@ -74,7 +78,6 @@ void main() {
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
-  @failingTest
   test_ifElementWithElse_mayBeConst() async {
     await assertNoErrorsInCode('''
 void main() {
@@ -99,5 +102,171 @@ void main() {
   const {1: null, ...notConst};
 }
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+  }
+}
+
+@reflectiveTest
+class NonConstantMapKeyTest extends DriverResolutionTest {
+  test_const_topVar() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{a: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+  }
+
+  test_nonConst_topVar() async {
+    await assertNoErrorsInCode('''
+final dynamic a = 0;
+var v = <int, int>{a: 0};
+''');
+  }
+}
+
+@reflectiveTest
+class NonConstantMapKeyWithUiAsCodeTest extends NonConstantMapKeyTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+    ];
+
+  test_const_ifElement_thenElseFalse_finalElse() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+  }
+
+  test_const_ifElement_thenElseFalse_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+  }
+
+  test_const_ifElement_thenElseTrue_finalElse() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+  }
+
+  test_const_ifElement_thenElseTrue_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 > 0) a: 0 else 0: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+  }
+
+  test_const_ifElement_thenFalse_constThen() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = const <int, int>{if (1 < 0) a: 0};
+''');
+  }
+
+  test_const_ifElement_thenFalse_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 < 0) a: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+  }
+
+  test_const_ifElement_thenTrue_constThen() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = const <int, int>{if (1 > 0) a: 0};
+''');
+  }
+
+  test_const_ifElement_thenTrue_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 > 0) a: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+  }
+}
+
+@reflectiveTest
+class NonConstantMapValueTest extends DriverResolutionTest {
+  test_const_topVar() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{0: a};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+  }
+
+  test_nonConst_topVar() async {
+    await assertNoErrorsInCode('''
+final dynamic a = 0;
+var v = <int, int>{0: a};
+''');
+  }
+}
+
+@reflectiveTest
+class NonConstantMapValueWithUiAsCodeTest extends NonConstantMapValueTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+    ];
+
+  test_const_ifElement_thenElseFalse_finalElse() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+  }
+
+  test_const_ifElement_thenElseFalse_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+  }
+
+  test_const_ifElement_thenElseTrue_finalElse() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+  }
+
+  test_const_ifElement_thenElseTrue_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 > 0) 0: a else 0: 0};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+  }
+
+  test_const_ifElement_thenFalse_constThen() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = const <int, int>{if (1 < 0) 0: a};
+''');
+  }
+
+  test_const_ifElement_thenFalse_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 < 0) 0: a};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+  }
+
+  test_const_ifElement_thenTrue_constThen() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = const <int, int>{if (1 > 0) 0: a};
+''');
+  }
+
+  test_const_ifElement_thenTrue_finalThen() async {
+    await assertErrorsInCode('''
+final dynamic a = 0;
+var v = const <int, int>{if (1 > 0) 0: a};
+''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
   }
 }

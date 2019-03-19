@@ -1025,18 +1025,24 @@ abstract class KernelClassBuilder
       // Report an error.
       String declaredMemberName =
           '${declaredMember.enclosingClass.name}.${declaredMember.name.name}';
+      String interfaceMemberName =
+          '${interfaceMember.enclosingClass.name}.${interfaceMember.name.name}';
       Message message;
       int fileOffset;
       if (declaredParameter == null) {
         message = templateOverrideTypeMismatchReturnType.withArguments(
-            declaredMemberName, declaredType, interfaceType);
+            declaredMemberName,
+            declaredType,
+            interfaceType,
+            interfaceMemberName);
         fileOffset = declaredMember.fileOffset;
       } else {
         message = templateOverrideTypeMismatchParameter.withArguments(
             declaredParameter.name,
             declaredMemberName,
             declaredType,
-            interfaceType);
+            interfaceType,
+            interfaceMemberName);
         fileOffset = declaredParameter.fileOffset;
       }
       library.addProblem(message, fileOffset, noLength, declaredMember.fileUri,

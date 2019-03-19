@@ -712,6 +712,7 @@ class RawObject {
   friend class RawInstance;
   friend class RawString;
   friend class RawTypedData;
+  friend class RawTypedDataView;
   friend class Scavenger;
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
@@ -1036,7 +1037,8 @@ class RawFfiTrampolineData : public RawObject {
 
   VISIT_FROM(RawObject*, signature_type_);
   RawType* signature_type_;
-  VISIT_TO(RawObject*, signature_type_);
+  RawFunction* c_signature_;
+  VISIT_TO(RawObject*, c_signature_);
 };
 
 class RawField : public RawObject {
@@ -2080,6 +2082,25 @@ class RawTwoByteString : public RawString {
   friend class String;
 };
 
+// All _*ArrayView/_ByteDataView classes share the same layout.
+class RawTypedDataView : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataView);
+
+ protected:
+  VISIT_FROM(RawObject*, typed_data_)
+  RawInstance* typed_data_;
+  RawSmi* offset_in_bytes_;
+  RawSmi* length_;
+  VISIT_TO(RawObject*, length_)
+
+  friend class Api;
+  friend class Object;
+  friend class ObjectPoolDeserializationCluster;
+  friend class ObjectPoolSerializationCluster;
+  friend class RawObjectPool;
+  friend class SnapshotReader;
+};
+
 class RawExternalOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
 
@@ -2227,13 +2248,31 @@ COMPILE_ASSERT(sizeof(RawFloat64x2) == 24);
 class RawTypedData : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedData);
 
+ public:
+  // Reset data_ pointer to internal data.
+  void ResetData() { ptr()->data_ = ptr()->internal_data(); }
+
  protected:
   VISIT_FROM(RawCompressed, length_)
   RawSmi* length_;
   VISIT_TO_LENGTH(RawCompressed, &ptr()->length_)
+
+  uint8_t* data_;
   // Variable length data follows here.
-  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
-  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  uint8_t* internal_data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* internal_data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  uint8_t* data() {
+    // TODO(alexmarkov): revise after merging with ExternalTypedData
+    ASSERT(data_ == internal_data());
+    return data_;
+  }
+  const uint8_t* data() const {
+    // TODO(alexmarkov): revise after merging with ExternalTypedData
+    ASSERT(data_ == internal_data());
+    return data_;
+  }
 
   friend class Api;
   friend class Instance;
@@ -2620,7 +2659,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
 // is defined by the VM but are used in the VM code by computing the
 // implicit field offsets of the various fields in the dart object.
 inline bool RawObject::IsImplicitFieldClassId(intptr_t index) {
-  return (IsTypedDataViewClassId(index) || index == kByteBufferCid);
+  return index == kByteBufferCid;
 }
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {

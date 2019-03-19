@@ -173,13 +173,16 @@ RawObject* Service::RequestAssets() {
   Object& object = Object::Handle();
   {
     Api::Scope api_scope(T);
-    TransitionVMToNative transition(T);
-    if (get_service_assets_callback_ == NULL) {
-      return Object::null();
-    }
-    Dart_Handle handle = get_service_assets_callback_();
-    if (Dart_IsError(handle)) {
-      Dart_PropagateError(handle);
+    Dart_Handle handle;
+    {
+      TransitionVMToNative transition(T);
+      if (get_service_assets_callback_ == NULL) {
+        return Object::null();
+      }
+      handle = get_service_assets_callback_();
+      if (Dart_IsError(handle)) {
+        Dart_PropagateError(handle);
+      }
     }
     object = Api::UnwrapHandle(handle);
   }
@@ -1374,6 +1377,16 @@ static bool GetIsolate(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_memory_usage_params[] = {
+    ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetMemoryUsage(Thread* thread, JSONStream* js) {
+  thread->isolate()->PrintMemoryUsageJSON(js);
+  return true;
+}
+
 static const MethodParameter* get_scripts_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -2362,6 +2375,11 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
 
+  bool disable_breakpoints =
+      BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
+  DisableBreakpointsScope db(thread->isolate()->debugger(),
+                             disable_breakpoints);
+
   Zone* zone = thread->zone();
   ObjectIdRing::LookupResult lookup_result;
   Object& receiver = Object::Handle(
@@ -2842,6 +2860,11 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   }
 
   Isolate* isolate = thread->isolate();
+
+  bool disable_breakpoints =
+      BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
+  DisableBreakpointsScope db(isolate->debugger(), disable_breakpoints);
+
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (frame_pos >= stack->Length()) {
@@ -4863,6 +4886,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
+  { "getMemoryUsage", GetMemoryUsage,
+    get_memory_usage_params },
   { "_getIsolateMetric", GetIsolateMetric,
     get_isolate_metric_params },
   { "_getIsolateMetricList", GetIsolateMetricList,

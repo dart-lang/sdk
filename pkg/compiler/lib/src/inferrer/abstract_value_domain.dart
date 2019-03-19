@@ -45,6 +45,7 @@ class AbstractBool {
 
   static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
 
+  @override
   String toString() =>
       'AbstractBool.${_value == null ? 'Maybe' : (_value ? 'True' : 'False')}';
 }

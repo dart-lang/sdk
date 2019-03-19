@@ -14,7 +14,9 @@ class BinarySourceImpl extends AbstractDataSource {
   BinarySourceImpl(this._bytes, {bool useDataKinds: false})
       : super(useDataKinds: useDataKinds);
 
+  @override
   void _begin(String tag) {}
+  @override
   void _end(String tag) {}
 
   int _readByte() => _bytes[_byteOffset++];

@@ -8,7 +8,7 @@
 namespace dart {
 
 // clang-format off
-// (class-name, function-name, recognized enum, result type, fingerprint).
+// (class-name, function-name, recognized enum, fingerprint).
 // When adding a new function add a 0 as fingerprint, build and run to get the
 // correct fingerprint from the mismatch error (or use Library::GetFunction()
 // and print func.SourceFingerprint()).
@@ -42,6 +42,27 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x38a80b0d)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x40052c4e)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x07b89f54)              \
+  V(_ByteDataView, get:length, ByteDataViewLength, 0x0)                        \
+  V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x0)          \
+  V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0x0)                 \
+  V(_TypedListView, get:length, TypedDataViewLength, 0x0)                      \
+  V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \
+  V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0x0)               \
+  V(_ByteDataView, ., TypedData_ByteDataView_factory, 0x0)                     \
+  V(_Int8ArrayView, ., TypedData_Int8ArrayView_factory, 0x0)                   \
+  V(_Uint8ArrayView, ., TypedData_Uint8ArrayView_factory, 0x0)                 \
+  V(_Uint8ClampedArrayView, ., TypedData_Uint8ClampedArrayView_factory, 0x0)   \
+  V(_Int16ArrayView, ., TypedData_Int16ArrayView_factory, 0x0)                 \
+  V(_Uint16ArrayView, ., TypedData_Uint16ArrayView_factory, 0x0)               \
+  V(_Int32ArrayView, ., TypedData_Int32ArrayView_factory, 0x0)                 \
+  V(_Uint32ArrayView, ., TypedData_Uint32ArrayView_factory, 0x0)               \
+  V(_Int64ArrayView, ., TypedData_Int64ArrayView_factory, 0x0)                 \
+  V(_Uint64ArrayView, ., TypedData_Uint64ArrayView_factory, 0x0)               \
+  V(_Float32ArrayView, ., TypedData_Float32ArrayView_factory, 0x0)             \
+  V(_Float64ArrayView, ., TypedData_Float64ArrayView_factory, 0x0)             \
+  V(_Float32x4ArrayView, ., TypedData_Float32x4ArrayView_factory, 0x0)         \
+  V(_Int32x4ArrayView, ., TypedData_Int32x4ArrayView_factory, 0x0)             \
+  V(_Float64x2ArrayView, ., TypedData_Float64x2ArrayView_factory, 0x0)         \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x564b0435)                 \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x01ecb15a)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x05da96ed)             \
@@ -352,6 +373,9 @@ namespace dart {
   V(_List, get:length, ObjectArrayLength, 0x25952390)                          \
   V(_ImmutableList, get:length, ImmutableArrayLength, 0x25952390)              \
   V(_TypedList, get:length, TypedDataLength, 0x2091c4d8)                       \
+  V(_TypedListView, get:length, TypedDataViewLength, 0x0)                      \
+  V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \
+  V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0x0)               \
   V(_GrowableList, get:length, GrowableArrayLength, 0x18dd86b4)                \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 0x2e04be60)           \
   V(_GrowableList, add, GrowableListAdd, 0x40b490b8)                           \
@@ -390,6 +414,9 @@ namespace dart {
   V(_Float32ArrayView, []=, Float32ArrayViewSetIndexed, 0xc9b691bd)            \
   V(_Float64ArrayView, [], Float64ArrayViewGetIndexed, 0x9d83f585)             \
   V(_Float64ArrayView, []=, Float64ArrayViewSetIndexed, 0x3c1adabd)            \
+  V(_ByteDataView, get:length, ByteDataViewLength, 0x0)                        \
+  V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x0)          \
+  V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0x0)                 \
   V(_ByteDataView, setInt8, ByteDataViewSetInt8, 0x6395293e)                   \
   V(_ByteDataView, setUint8, ByteDataViewSetUint8, 0x79979d1f)                 \
   V(_ByteDataView, setInt16, ByteDataViewSetInt16, 0x525ec534)                 \

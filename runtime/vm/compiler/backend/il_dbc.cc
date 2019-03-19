@@ -958,6 +958,10 @@ EMIT_NATIVE_CODE(StringInterpolate,
   }
 }
 
+void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
 EMIT_NATIVE_CODE(NativeCall,
                  0,
                  Location::NoLocation(),

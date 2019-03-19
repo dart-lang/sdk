@@ -200,6 +200,11 @@ class CodeGenerator extends Object
 
   final DeclaredVariables declaredVariables;
 
+  /// Tracks the temporary variable used to build collections containing
+  /// control flow [IfElement] and [ForElement] nodes. Should be saved when
+  /// visiting a new control flow tree and restored after.
+  JS.Expression _currentCollectionVariable;
+
   CodeGenerator(LinkedAnalysisDriver driver, this.types, this.summaryData,
       this.options, this._extensionTypes, this.errors)
       : rules = Dart2TypeSystem(types),
@@ -5432,8 +5437,11 @@ class CodeGenerator extends Object
     return JS.Do(_visitScope(node.body), _visitTest(node.condition));
   }
 
-  JS.Statement _emitAwaitFor(SimpleIdentifier identifier,
-      DeclaredIdentifier loopVariable, Expression iterable, Statement body) {
+  JS.Statement _emitAwaitFor(
+      SimpleIdentifier identifier,
+      DeclaredIdentifier loopVariable,
+      Expression iterable,
+      JS.Statement jsBody) {
     // Emits `await for (var value in stream) ...`, which desugars as:
     //
     // let iter = new StreamIterator(stream);
@@ -5478,7 +5486,7 @@ class CodeGenerator extends Object
           JS.Yield(js.call('#.moveNext()', iter))
             ..sourceInformation = _nodeStart(variable),
           init,
-          _visitStatement(body),
+          jsBody,
           JS.Yield(js.call('#.cancel()', iter))
             ..sourceInformation = _nodeStart(variable)
         ]);
@@ -5716,29 +5724,29 @@ class CodeGenerator extends Object
   @override
   JS.Expression visitListLiteral(ListLiteral node) {
     var elementType = (node.staticType as InterfaceType).typeArguments[0];
+    var elements = _visitCollectionElementList(node.elements2, elementType);
     if (!node.isConst) {
-      return _emitList(elementType, _visitExpressionList(node.elements2));
+      return _emitList(elementType, elements);
     }
-    return _cacheConst(() =>
-        _emitConstList(elementType, _visitExpressionList(node.elements2)));
+
+    return _cacheConst(() => _emitConstList(elementType, elements));
   }
 
   // TODO(nshahan) Cleanup after control flow collections experiments are removed.
   JS.Expression _emitSetLiteral(
       Iterable<CollectionElement> elements, SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
+    var elementType = type.typeArguments[0];
+    var jsElements = _visitCollectionElementList(elements, elementType);
     if (!node.isConst) {
       var setType = _emitType(type);
       if (elements.isEmpty) {
         return js.call('#.new()', [setType]);
       }
-      return js.call(
-          '#.from([#])', [setType, _visitCollectionElementList(elements)]);
+      return js.call('#.from([#])', [setType, jsElements]);
     }
-    return _cacheConst(() => runtimeCall('constSet(#, [#])', [
-          _emitType((node.staticType as InterfaceType).typeArguments[0]),
-          _visitCollectionElementList(elements)
-        ]));
+    return _cacheConst(() =>
+        runtimeCall('constSet(#, [#])', [_emitType(elementType), jsElements]));
   }
 
   JS.Expression _emitConstList(
@@ -5764,16 +5772,16 @@ class CodeGenerator extends Object
   JS.Expression _emitMapLiteral(
       Iterable<CollectionElement> elements, SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
+    var elementType = type.typeArguments[0];
+    var jsElements = _visitCollectionElementList(elements, elementType);
     if (!node.isConst) {
       var mapType = _emitMapImplType(type);
       if (elements.isEmpty) {
         return js.call('new #.new()', [mapType]);
       }
-      return js.call(
-          'new #.from([#])', [mapType, _visitCollectionElementList(elements)]);
+      return js.call('new #.from([#])', [mapType, jsElements]);
     }
-    return _cacheConst(
-        () => _emitConstMap(type, _visitCollectionElementList(elements)));
+    return _cacheConst(() => _emitConstMap(type, jsElements));
   }
 
   JS.Expression _emitConstMap(InterfaceType type, List<JS.Expression> entries) {
@@ -5864,13 +5872,50 @@ class CodeGenerator extends Object
     return nodes?.map(_visitStatement)?.toList();
   }
 
-  /// Visits [nodes] with [_visitColelctionElement].
+  /// Returns a [JS.Expression] for each [CollectionElement] in [nodes].
+  ///
+  /// Visits all [nodes] in order and nested [CollectionElement]s depth first
+  /// to produce [JS.Expresison]s intended to be used when outputing a
+  /// collection literal.
+  ///
+  /// [IfElement]s and [ForElement]s will be transformed into a spread of a
+  /// self invoking function that reutrns a list.
+  ///
+  /// Example Dart:
+  ///     [1, if(true) for (var i=2; i<10; i++) i, 10]
+  ///
+  /// JS:
+  ///     [1, ...(() => {
+  ///       let temp = JSArrayOfint().of([]);
+  ///       if (true) for (let i = 2; i < 10; i++) temp.push(i);
+  ///       return temp;
+  ///     })(), 10]
   List<JS.Expression> _visitCollectionElementList(
-      Iterable<CollectionElement> nodes) {
+      Iterable<CollectionElement> nodes, DartType elementType) {
     var expressions = <JS.Expression>[];
     for (var node in nodes) {
-      //TODO(nshahan) Handle [IfElement] and [ForElement].
-      if (node is MapLiteralEntry) {
+      if (_isUiAsCodeElement(node)) {
+        // Create a temporary variable to build a new collection from.
+        var previousCollectionVariable = _currentCollectionVariable;
+        var temporaryIdentifier =
+            _createTemporary('items', _jsArray.type.instantiate([elementType]));
+        _currentCollectionVariable = _emitSimpleIdentifier(temporaryIdentifier);
+        var items = js.statement('let # = #',
+            [_currentCollectionVariable, _emitList(elementType, [])]);
+
+        // Build up a list for the control-flow-collections element and wrap in
+        // a function call that returns the list.
+        var functionBody = JS.Block([
+          items,
+          node.accept<JS.Node>(this),
+          JS.Return(_currentCollectionVariable)
+        ]);
+        var functionCall = JS.Call(JS.ArrowFun([], functionBody), []);
+
+        // Finally, spread the temporary control-flow-collections list.
+        expressions.add(JS.Spread(functionCall));
+        _currentCollectionVariable = previousCollectionVariable;
+      } else if (node is MapLiteralEntry) {
         expressions.add(_visitExpression(node.key));
         expressions.add(_visitExpression(node.value));
       } else {
@@ -5879,6 +5924,26 @@ class CodeGenerator extends Object
     }
     return expressions;
   }
+
+  /// Visits [node] with [_visitExpression] and wraps the result in a call to
+  /// append it to the list tracked by [_currentCollectionVariable].
+  JS.Statement _visitNestedCollectionElement(CollectionElement node) {
+    JS.Statement pushToCurrentCollection(Expression value) => js.statement(
+        '#.push(#)', [_currentCollectionVariable, _visitExpression(value)]);
+
+    if (node is MapLiteralEntry) {
+      return JS.Block([
+        pushToCurrentCollection(node.key),
+        pushToCurrentCollection(node.value)
+      ]);
+    }
+
+    return pushToCurrentCollection(node);
+  }
+
+  /// Returns `true` if [node] is a UI-as-Code [CollectionElement].
+  bool _isUiAsCodeElement(node) =>
+      node is IfElement || node is ForElement || node is SpreadElement;
 
   /// Gets the start position of [node] for use in source mapping.
   ///
@@ -6430,7 +6495,7 @@ class CodeGenerator extends Object
   // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
   // Should just accept a ForParts as an arg with fewer casts.
   JS.For _emitFor(Expression initialization, VariableDeclarationList variables,
-      Expression condition, Iterable<Expression> updaters, Statement body) {
+      Expression condition, Iterable<Expression> updaters, JS.Statement body) {
     var init = _visitExpression(initialization) ??
         visitVariableDeclarationList(variables);
     JS.Expression update;
@@ -6440,17 +6505,18 @@ class CodeGenerator extends Object
               .toVoidExpression();
     }
 
-    return JS.For(init, _visitTest(condition), update, _visitScope(body));
+    return JS.For(init, _visitTest(condition), update, body);
   }
 
   // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
   // Should just accept a ForEachParts as an arg with fewer casts.
-  JS.Statement _emitForEach(SimpleIdentifier identifier,
-      DeclaredIdentifier loopVariable, Expression iterable, Statement body) {
+  JS.Statement _emitForEach(
+      SimpleIdentifier identifier,
+      DeclaredIdentifier loopVariable,
+      Expression iterable,
+      JS.Statement jsBody) {
     var jsLeftExpression = _visitExpression(identifier);
     var jsIterable = _visitExpression(iterable);
-
-    var jsBody = _visitScope(body);
     if (jsLeftExpression == null) {
       var id = _emitVariableDef(loopVariable.identifier);
       jsLeftExpression = js.call('let #', id);
@@ -6470,10 +6536,33 @@ class CodeGenerator extends Object
   }
 
   @override
-  visitForElement(ForElement node) => _unreachable(node);
+  JS.Statement visitForElement(ForElement node) {
+    // TODO(nshahan) Need to support await for in collections.
+    if (node.awaitKeyword != null) return _unreachable(node);
+    var jsBody = _isUiAsCodeElement(node.body)
+        ? node.body.accept(this)
+        : _visitNestedCollectionElement(node.body);
+
+    return _forAdaptor(node.forLoopParts, node.awaitKeyword, jsBody);
+  }
 
   @override
-  visitIfElement(IfElement node) => _unreachable(node);
+  JS.Statement visitIfElement(IfElement node) {
+    var thenElement = _isUiAsCodeElement(node.thenElement)
+        ? node.thenElement.accept(this)
+        : _visitNestedCollectionElement(node.thenElement);
+
+    JS.Statement elseElement;
+    if (node.elseElement != null) {
+      if (_isUiAsCodeElement(node.elseElement)) {
+        elseElement = node.elseElement.accept<JS.Node>(this);
+      } else {
+        elseElement = _visitNestedCollectionElement(node.elseElement);
+      }
+    }
+
+    return JS.If(_visitTest(node.condition), thenElement, elseElement);
+  }
 
   @override
   visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
@@ -6484,31 +6573,34 @@ class CodeGenerator extends Object
       _unreachable(node);
 
   @override
-  JS.Statement visitForStatement2(ForStatement2 node) {
-    // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
-    var forParts = node.forLoopParts;
+  JS.Statement visitForStatement2(ForStatement2 node) =>
+      _forAdaptor(node.forLoopParts, node.awaitKeyword, _visitScope(node.body));
+
+  // TODO(nshahan) Simplify when control-flow-collections experiment is removed.
+  JS.Statement _forAdaptor(
+      ForLoopParts forParts, Token awaitKeyword, JS.Statement jsBody) {
     if (forParts is ForPartsWithExpression) {
       return _emitFor(forParts.initialization, null, forParts.condition,
-          forParts.updaters, node.body);
+          forParts.updaters, jsBody);
     } else if (forParts is ForPartsWithDeclarations) {
       return _emitFor(null, forParts.variables, forParts.condition,
-          forParts.updaters, node.body);
-    } else if (node.awaitKeyword == null) {
+          forParts.updaters, jsBody);
+    } else if (awaitKeyword == null) {
       if (forParts is ForEachPartsWithIdentifier) {
         return _emitForEach(
-            forParts.identifier, null, forParts.iterable, node.body);
+            forParts.identifier, null, forParts.iterable, jsBody);
       } else if (forParts is ForEachPartsWithDeclaration) {
         return _emitForEach(
-            null, forParts.loopVariable, forParts.iterable, node.body);
+            null, forParts.loopVariable, forParts.iterable, jsBody);
       }
     } else if (forParts is ForEachPartsWithIdentifier) {
       return _emitAwaitFor(
-          forParts.identifier, null, forParts.iterable, node.body);
+          forParts.identifier, null, forParts.iterable, jsBody);
     } else if (forParts is ForEachPartsWithDeclaration) {
       return _emitAwaitFor(
-          null, forParts.loopVariable, forParts.iterable, node.body);
+          null, forParts.loopVariable, forParts.iterable, jsBody);
     }
-    return _unreachable(node);
+    return _unreachable(forParts);
   }
 
   @deprecated

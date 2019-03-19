@@ -26,7 +26,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
     show Dart2TypeSystem, TypeSystem;
-import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/api/model.dart';
 
 /**
  * Helper class encapsulating the methods for evaluating constants and
@@ -930,6 +930,23 @@ class ConstantEvaluationEngine {
 }
 
 /**
+ * Interface for [AnalysisTarget]s for which constant evaluation can be
+ * performed.
+ */
+abstract class ConstantEvaluationTarget extends AnalysisTarget {
+  /**
+   * Return the [AnalysisContext] which should be used to evaluate this
+   * constant.
+   */
+  AnalysisContext get context;
+
+  /**
+   * Return whether this constant is evaluated.
+   */
+  bool get isConstantEvaluated;
+}
+
+/**
  * Interface used by unit tests to verify correct dependency analysis during
  * constant evaluation.
  */
@@ -993,58 +1010,7 @@ class ConstantEvaluationValidator_ForProduction
 
 /**
  * A visitor used to evaluate constant expressions to produce their compile-time
- * value. According to the Dart Language Specification: <blockquote> A constant
- * expression is one of the following:
- *
- * * A literal number.
- * * A literal boolean.
- * * A literal string where any interpolated expression is a compile-time
- *   constant that evaluates to a numeric, string or boolean value or to
- *   <b>null</b>.
- * * A literal symbol.
- * * <b>null</b>.
- * * A qualified reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, class or type
- *   alias.
- * * A constant constructor invocation.
- * * A constant list literal.
- * * A constant map literal.
- * * A simple or qualified identifier denoting a top-level function or a static
- *   method.
- * * A parenthesized expression <i>(e)</i> where <i>e</i> is a constant
- *   expression.
- * * An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
- *   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions and <i>identical()</i> is statically bound to the predefined
- *   dart function <i>identical()</i> discussed above.
- * * An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
- *   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric,
- *   string or boolean value.
- * * An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>,
- *   <i>e1</sub></i> and <i>e2</sub></i> are constant expressions that evaluate
- *   to a boolean value.
- * * An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
- *   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions that evaluate to an integer value or to <b>null</b>.
- * * An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> - e<sub>2</sub></i>, <i>e<sub>1</sub> *
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> / e<sub>2</sub></i>, <i>e<sub>1</sub>
- *   ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> % e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i>
- *   and <i>e<sub>2</sub></i> are constant expressions that evaluate to a
- *   numeric value or to <b>null</b>.
- * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
- *   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
- *   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
- *   evaluates to a boolean value.
- * </blockquote>
+ * value.
  */
 class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /**
@@ -1467,7 +1433,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isMap) {
+    // Note: due to dartbug.com/33441, it's possible that a set/map literal
+    // resynthesized from a summary will have neither its `isSet` or `isMap`
+    // boolean set to `true`.  We work around the problem by assuming such
+    // literals are maps.
+    // TODO(paulberry): when dartbug.com/33441 is fixed, add an assertion here
+    // to verify that `node.isSet == !node.isMap`.
+    bool isMap = !node.isSet;
+    if (isMap) {
       if (!node.isConst) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
@@ -1494,7 +1467,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       InterfaceType mapType =
           _typeProvider.mapType.instantiate([keyType, valueType]);
       return new DartObjectImpl(mapType, new MapState(map));
-    } else if (node.isSet) {
+    } else {
       if (!node.isConst) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
@@ -1516,7 +1489,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
       return new DartObjectImpl(setType, new SetState(set));
     }
-    return null;
   }
 
   @override
@@ -1580,8 +1552,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   bool _addElementsToList(List<DartObject> list, CollectionElement element) {
     if (element is IfElement) {
-      DartObjectImpl conditionResult = element.condition.accept(this);
-      bool conditionValue = conditionResult?.toBoolValue();
+      bool conditionValue = _evaluateCondition(element.condition);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1618,8 +1589,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   bool _addElementsToMap(
       Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
     if (element is IfElement) {
-      DartObjectImpl conditionResult = element.condition.accept(this);
-      bool conditionValue = conditionResult?.toBoolValue();
+      bool conditionValue = _evaluateCondition(element.condition);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1656,8 +1626,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   bool _addElementsToSet(Set<DartObject> set, CollectionElement element) {
     if (element is IfElement) {
-      DartObjectImpl conditionResult = element.condition.accept(this);
-      bool conditionValue = conditionResult?.toBoolValue();
+      bool conditionValue = _evaluateCondition(element.condition);
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
@@ -1704,6 +1673,27 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     _errorReporter.reportErrorForNode(
         code ?? CompileTimeErrorCode.INVALID_CONSTANT, node);
+  }
+
+  /**
+   * Evaluate the given [condition] with the assumption that it must be a
+   * `bool`.
+   */
+  bool _evaluateCondition(Expression condition) {
+    DartObjectImpl conditionResult = condition.accept(this);
+    bool conditionValue = conditionResult?.toBoolValue();
+    if (conditionValue == null) {
+      // TODO(brianwilkerson) Figure out why the static type is sometimes null.
+      DartType staticType = condition.staticType;
+      if (staticType == null ||
+          typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
+        // If the static type is not assignable, then we will have already
+        // reported this error.
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, condition);
+      }
+    }
+    return conditionValue;
   }
 
   /**

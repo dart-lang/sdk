@@ -37,6 +37,22 @@ f() => [a, b c];
 f() => [a, b, c];
 ''');
   }
+
+  void test_missingComma_afterIf() {
+    testRecovery('''
+f() => [a, if (x) b c];
+''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+f() => [a, if (x) b, c];
+''', enableControlFlowCollections: true);
+  }
+
+  void test_missingComma_afterIfElse() {
+    testRecovery('''
+f() => [a, if (x) b else y c];
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => [a, if (x) b else y, c];
+''', enableControlFlowCollections: true);
+  }
 }
 
 /**
@@ -70,6 +86,22 @@ f() => {a: b, c: d e: f};
 ''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() => {a: b, c: d, e: f};
 ''');
+  }
+
+  void test_missingComma_afterIf() {
+    testRecovery('''
+f() => {a: b, if (x) c: d e: f};
+''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+f() => {a: b, if (x) c: d, e: f};
+''', enableControlFlowCollections: true);
+  }
+
+  void test_missingComma_afterIfElse() {
+    testRecovery('''
+f() => {a: b, if (x) c: d else y: z e: f};
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => {a: b, if (x) c: d else y: z, e: f};
+''', enableControlFlowCollections: true);
   }
 
   void test_missingKey() {
@@ -259,8 +291,7 @@ f(x) => x;
     testUserDefinableOperatorWithSuper('^');
   }
 
-  @failingTest
-  void test_initializerList_missingComma() {
+  void test_initializerList_missingComma_assert() {
     // https://github.com/dart-lang/sdk/issues/33241
     testRecovery('''
 class Test {
@@ -273,6 +304,40 @@ class Test {
   Test()
     : assert(true),
       assert(true);
+}
+''');
+  }
+
+  void test_initializerList_missingComma_field() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      x = 2;
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      x = 2;
+}
+''');
+  }
+
+  void test_initializerList_missingComma_thisField() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      this.x = 2;
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      this.x = 2;
 }
 ''');
   }

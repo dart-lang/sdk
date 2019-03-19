@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,spread-collections
+// SharedOptions=--enable-experiment=spread-collections
 
 // Test how spread interacts with inference.
 import 'package:expect/expect.dart';
@@ -113,5 +113,5 @@ void testTopDownInference() {
   Expect.setEquals(<int>{}, <int>{...expectIntSet()});
 
   // Bottom up-inference from elements is not pushed back down into spread.
-  Expect.setEquals(<int>{}, {1, ...expectDynamicSet()});
+  Expect.setEquals(<int>{1}, {1, ...expectDynamicSet()});
 }

@@ -1041,7 +1041,7 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
 
   // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
   // (or a call-through getter for methodName).
-  if (Function::IsDynamicInvocationForwaderName(target_name)) {
+  if (Function::IsDynamicInvocationForwarderName(target_name)) {
     const String& demangled = String::Handle(
         Function::DemangleDynamicInvocationForwarderName(target_name));
     return InlineCacheMissHelper(receiver, args_descriptor, demangled);
@@ -1682,7 +1682,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
   }
 
-  if (Function::IsDynamicInvocationForwaderName(target_name)) {
+  if (Function::IsDynamicInvocationForwarderName(target_name)) {
     target_name = Function::DemangleDynamicInvocationForwarderName(target_name);
   }
 
@@ -1805,6 +1805,11 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 //  - hot reload
 static void HandleStackOverflowTestCases(Thread* thread) {
   Isolate* isolate = thread->isolate();
+
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->heap()->CollectAllGarbage();
+  }
+
   bool do_deopt = false;
   bool do_stacktrace = false;
   bool do_reload = false;
@@ -2023,15 +2028,11 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // persist.
   uword stack_overflow_flags = thread->GetAndClearStackOverflowFlags();
 
-  if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
-  }
-
   bool interpreter_stack_overflow = false;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter) {
     // Do not allocate an interpreter, if none is allocated yet.
-    Interpreter* interpreter = Thread::Current()->interpreter();
+    Interpreter* interpreter = thread->interpreter();
     if (interpreter != NULL) {
       interpreter_stack_overflow =
           interpreter->get_sp() >= interpreter->overflow_stack_limit();

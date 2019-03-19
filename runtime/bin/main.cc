@@ -883,11 +883,20 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       LoadBytecode();
     }
 
+    if (Options::load_compilation_trace_filename() != NULL) {
+      uint8_t* buffer = NULL;
+      intptr_t size = 0;
+      ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
+      result = Dart_LoadCompilationTrace(buffer, size);
+      free(buffer);
+      CHECK_RESULT(result);
+    }
     if (Options::load_type_feedback_filename() != NULL) {
       uint8_t* buffer = NULL;
       intptr_t size = 0;
       ReadFile(Options::load_type_feedback_filename(), &buffer, &size);
       result = Dart_LoadTypeFeedback(buffer, size);
+      free(buffer);
       CHECK_RESULT(result);
     }
 
@@ -926,6 +935,13 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
     CHECK_RESULT(result);
 
+    if (Options::save_compilation_trace_filename() != NULL) {
+      uint8_t* buffer = NULL;
+      intptr_t size = 0;
+      result = Dart_SaveCompilationTrace(&buffer, &size);
+      CHECK_RESULT(result);
+      WriteFile(Options::save_compilation_trace_filename(), buffer, size);
+    }
     if (Options::save_type_feedback_filename() != NULL) {
       uint8_t* buffer = NULL;
       intptr_t size = 0;

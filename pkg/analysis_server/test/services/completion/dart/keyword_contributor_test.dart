@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
+    defineReflectiveTests(KeywordContributorWithUiAsCodeTest);
   });
 }
 
@@ -1880,5 +1882,155 @@ class A {
     if (iter1.any((c) => !iter2.contains(c))) return false;
     if (iter2.any((c) => !iter1.contains(c))) return false;
     return true;
+  }
+}
+
+@reflectiveTest
+class KeywordContributorWithUiAsCodeTest extends KeywordContributorTest {
+  static const List<Keyword> COLLECTION_ELEMENT_START = const [
+    Keyword.CONST,
+    Keyword.FALSE,
+    Keyword.FOR,
+    Keyword.IF,
+    Keyword.NEW,
+    Keyword.NULL,
+    Keyword.TRUE,
+  ];
+
+  @override
+  void setupResourceProvider() {
+    super.setupResourceProvider();
+    createAnalysisOptionsFile(experiments: [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections
+    ]);
+  }
+
+  test_ifOrForElement_forElement() async {
+    addTestSource('''
+f() => [for (var e in c) ^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_ifElement_else() async {
+    addTestSource('''
+f() => [if (true) 1 else ^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_ifElement_then() async {
+    addTestSource('''
+f() => [if (true) ^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_list_empty() async {
+    addTestSource('''
+f() => [^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_list_first() async {
+    addTestSource('''
+f() => [^1, 2];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_list_last() async {
+    addTestSource('''
+f() => [1, 2, ^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_list_middle() async {
+    addTestSource('''
+f() => [1, ^, 2];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_map_empty() async {
+    addTestSource('''
+f() => <String, int>{^};
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_map_first() async {
+    addTestSource('''
+f() => <String, int>{^'a' : 1};
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_map_last() async {
+    addTestSource('''
+f() => <String, int>{'a' : 1, 'b' : 2, ^};
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_map_middle() async {
+    addTestSource('''
+f() => <String, int>{'a' : 1, ^, 'b' : 2];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_set_empty() async {
+    addTestSource('''
+f() => <int>{^};
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_set_first() async {
+    addTestSource('''
+f() => <int>{^1, 2};
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_set_last() async {
+    addTestSource('''
+f() => <int>{1, 2, ^};
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_ifOrForElement_set_middle() async {
+    addTestSource('''
+f() => <int>{1, ^, 2};
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(COLLECTION_ELEMENT_START);
+  }
+
+  test_spreadElement() async {
+    addTestSource('''
+f() => [...^];
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(KeywordContributorTest.EXPRESSION_START_NO_INSTANCE);
   }
 }

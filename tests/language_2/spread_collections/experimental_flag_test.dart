@@ -4,9 +4,6 @@
 
 // Check that spread collections are not enabled without the experimental flag.
 
-// Do enable sets, just not spread inside them.
-// SharedOptions=--enable-experiment=set-literals
-
 // TODO(rnystrom): Remove this test when the feature is enabled without a flag.
 
 void main() {

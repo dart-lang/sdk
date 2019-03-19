@@ -12,15 +12,18 @@ class BufferedOutputSink implements OutputSink {
   StringBuffer sb = new StringBuffer();
   String text;
 
+  @override
   void add(String event) {
     sb.write(event);
   }
 
+  @override
   void close() {
     text = sb.toString();
     sb = null;
   }
 
+  @override
   String toString() {
     return text ?? sb.toString();
   }
@@ -33,12 +36,15 @@ class BufferedBinaryOutputSink implements BinaryOutputSink {
 
   BufferedBinaryOutputSink(this.uri);
 
+  @override
   void write(List<int> buffer, [int start = 0, int end]) {
     list.addAll(buffer.sublist(start, end));
   }
 
+  @override
   void close() {}
 
+  @override
   String toString() {
     return 'BufferedBinaryOutputSink($uri)';
   }
@@ -79,6 +85,7 @@ class OutputCollector implements CompilerOutput {
     }
   }
 
+  @override
   BinaryOutputSink createBinarySink(Uri uri) {
     return binaryOutputMap.putIfAbsent(
         uri, () => new BufferedBinaryOutputSink(uri));

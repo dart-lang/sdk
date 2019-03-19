@@ -61,15 +61,11 @@ import 'kernel_impact.dart';
 part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
 
-/// If `true` kernel impacts are computed as [ImpactData] directly on kernel
-/// and converted to the K model afterwards. This is a pre-step to modularizing
-/// the world impact computation.
-bool useImpactDataForTesting = false;
-
 /// Implementation of [KernelToElementMap] that only supports world
 /// impact computation.
 class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   final CompilerOptions options;
+  @override
   final DiagnosticReporter reporter;
   CommonElementsImpl _commonElements;
   KernelElementEnvironment _elementEnvironment;
@@ -128,8 +124,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     _types = new KernelDartTypes(this);
   }
 
+  @override
   DartTypes get types => _types;
 
+  @override
   KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
@@ -251,6 +249,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   ClassEntity getClass(ir.Class node) => getClassInternal(node);
 
+  @override
   InterfaceType getSuperType(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -281,6 +280,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     }
   }
 
+  @override
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       getTypeVariableInternal(node);
 
@@ -381,6 +381,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     throw new UnsupportedError("Unexpected member: $node");
   }
 
+  @override
   MemberEntity getSuperMember(MemberEntity context, ir.Name name,
       {bool setter: false}) {
     // We can no longer trust the interface target of the super access since it
@@ -410,6 +411,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
+  @override
   ConstructorEntity getSuperConstructor(
       ir.Constructor sourceNode, ir.Member targetNode) {
     ConstructorEntity source = getConstructor(sourceNode);
@@ -440,6 +442,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   DartType getDartType(ir.DartType type) => _typeConverter.convert(type);
 
+  @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
       getDartType(type);
 
@@ -451,6 +454,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return list;
   }
 
+  @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
       _typeConverter.convert(type);
 
@@ -528,6 +532,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         constantRequired: requireConstant, checkCasts: checkCasts);
   }
 
+  @override
   DartType substByContext(DartType type, InterfaceType context) {
     return type.subst(
         context.typeArguments, getThisType(context.element).typeArguments);
@@ -538,6 +543,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   /// If [type] doesn't have a `call` member `null` is returned. If [type] has
   /// an invalid `call` member (non-method or a synthesized method with both
   /// optional and named parameters) a [DynamicType] is returned.
+  @override
   DartType getCallType(InterfaceType type) {
     IndexedClass cls = type.element;
     assert(checkFamily(cls));
@@ -548,6 +554,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return null;
   }
 
+  @override
   InterfaceType getThisType(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -580,6 +587,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.getFunctionTypeVariables(this);
   }
 
+  @override
   DartType getTypeVariableBound(IndexedTypeVariable typeVariable) {
     assert(checkFamily(typeVariable));
     KTypeVariableData data = typeVariables.getData(typeVariable);
@@ -672,6 +680,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.getFieldConstantExpression(this);
   }
 
+  @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
     OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
@@ -683,6 +692,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return supertype;
   }
 
+  @override
   OrderedTypeSet getOrderedTypeSet(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -690,6 +700,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.orderedTypeSet;
   }
 
+  @override
   int getHierarchyDepth(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -697,6 +708,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.orderedTypeSet.maxDepth;
   }
 
+  @override
   Iterable<InterfaceType> getInterfaces(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -704,11 +716,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.interfaces;
   }
 
+  @override
   ir.Member getMemberNode(covariant IndexedMember member) {
     assert(checkFamily(member));
     return members.getData(member).node;
   }
 
+  @override
   ir.Class getClassNode(covariant IndexedClass cls) {
     assert(checkFamily(cls));
     return classes.getData(cls).node;
@@ -718,6 +732,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return typedefs.getData(typedef).node;
   }
 
+  @override
   ImportEntity getImport(ir.LibraryDependency node) {
     if (node == null) return null;
     ir.Library library = node.parent;
@@ -725,6 +740,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.imports[node];
   }
 
+  @override
   ir.TypeEnvironment get typeEnvironment {
     if (_typeEnvironment == null) {
       _typeEnvironment ??= new ir.TypeEnvironment(
@@ -733,6 +749,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _typeEnvironment;
   }
 
+  @override
   ir.ClassHierarchy get classHierarchy {
     if (_classHierarchy == null) {
       _classHierarchy ??= new ir.ClassHierarchy(env.mainComponent);
@@ -740,11 +757,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _classHierarchy;
   }
 
+  @override
   Name getName(ir.Name name) {
     return new Name(
         name.name, name.isPrivate ? getLibrary(name.library) : null);
   }
 
+  @override
   CallStructure getCallStructure(ir.Arguments arguments) {
     int argumentCount = arguments.positional.length + arguments.named.length;
     List<String> namedArguments = arguments.named.map((e) => e.name).toList();
@@ -766,6 +785,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         namedParameters, includeTypeParameters ? typeParameters : 0);
   }
 
+  @override
   Selector getInvocationSelector(ir.Name irName, int positionalArguments,
       List<String> namedArguments, int typeArguments) {
     Name name = getName(irName);
@@ -876,6 +896,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the [NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
@@ -909,6 +930,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
@@ -937,6 +959,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
@@ -969,6 +992,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         commonElements);
   }
 
+  @override
   js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
     int index = extractEnumIndexFromConstantValue(
         constant, commonElements.jsGetNameEnum);
@@ -991,6 +1015,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return null;
   }
 
+  @override
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true,
       bool implicitNull: false,
@@ -1038,6 +1063,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return metadata;
   }
 
+  @override
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
@@ -1308,12 +1334,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   /// NativeBasicData is need for computation of the default super class.
+  @override
   NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
   /// Adds libraries in [component] to the set of libraries.
   ///
   /// The main method of the first component is used as the main method for the
   /// compilation.
+  @override
   void addComponent(ir.Component component) {
     env.addComponent(component);
   }
@@ -1322,26 +1350,19 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
           commonElements, nativeBasicData, reporter, options);
 
-  ResolutionImpact computeWorldImpact(
-      KMember member,
-      VariableScopeModel variableScopeModel,
-      Set<PragmaAnnotation> annotations) {
+  ResolutionImpact computeWorldImpact(KMember member,
+      VariableScopeModel variableScopeModel, Set<PragmaAnnotation> annotations,
+      {ImpactBuilderData impactBuilderData}) {
     KMemberData memberData = members.getData(member);
     ir.Member node = memberData.node;
 
-    if (useImpactDataForTesting) {
-      ImpactBuilder builder = new ImpactBuilder(
-          typeEnvironment, classHierarchy, variableScopeModel,
-          useAsserts: options.enableUserAssertions,
-          inferEffectivelyFinalVariableTypes:
-              !annotations.contains(PragmaAnnotation.disableFinal));
-      if (retainDataForTesting) {
+    if (impactBuilderData != null) {
+      if (impactBuilderData.typeMapsForTesting != null) {
         typeMapsForTesting ??= {};
-        typeMapsForTesting[member] = builder.typeMapsForTesting = {};
+        typeMapsForTesting[member] = impactBuilderData.typeMapsForTesting;
       }
-      node.accept(builder);
-      ImpactData impactData = builder.impactData;
-      memberData.staticTypes = builder.cachedStaticTypes;
+      ImpactData impactData = impactBuilderData.impactData;
+      memberData.staticTypes = impactBuilderData.cachedStaticTypes;
       KernelImpactConverter converter =
           new KernelImpactConverter(this, member, reporter, options);
       return converter.convert(impactData);
@@ -1356,11 +1377,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       memberData.staticTypes = builder.cachedStaticTypes;
       return builder.impactBuilder;
     }
-  }
-
-  ScopeModel computeScopeModel(KMember member) {
-    ir.Member node = members.getData(member).node;
-    return ScopeModel.computeScopeModel(node);
   }
 
   Map<ir.Expression, ir.DartType> getCachedStaticTypes(KMember member) {
@@ -1458,6 +1474,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Returns `true` is [node] has a `@Native(...)` annotation.
   // TODO(johnniwinther): Cache this for later use.
+  @override
   bool isNativeClass(ir.Class node) {
     for (ir.Expression annotation in node.annotations) {
       if (annotation is ir.ConstructorInvocation) {
@@ -1471,6 +1488,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   /// Compute the kind of foreign helper function called by [node], if any.
+  @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.name) {
@@ -1489,6 +1507,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  @override
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length != 1 ||
         node.arguments.named.isNotEmpty) {
@@ -1504,17 +1523,19 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the native behavior for reading the native [field].
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
     DartType type = getDartType(field.type);
-    List<ConstantValue> metadata = getMetadata(field.annotations);
-    return nativeBehaviorBuilder.buildFieldLoadBehavior(
-        type, metadata, typeLookup(resolveAsRaw: false),
+    return nativeBehaviorBuilder.buildFieldLoadBehavior(type,
+        createsAnnotations, returnsAnnotations, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
   }
 
   /// Computes the native behavior for writing to the native [field].
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
     DartType type = getDartType(field.type);
     return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
@@ -1522,7 +1543,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Computes the native behavior for calling [member].
   // TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop}) {
     DartType type;
     if (member is ir.Procedure) {
@@ -1532,9 +1555,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     } else {
       failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected method node $member.");
     }
-    List<ConstantValue> metadata = getMetadata(member.annotations);
-    return nativeBehaviorBuilder.buildMethodBehavior(
-        type, metadata, typeLookup(resolveAsRaw: false),
+    return nativeBehaviorBuilder.buildMethodBehavior(type, createsAnnotations,
+        returnsAnnotations, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
   }
 
@@ -1852,9 +1874,13 @@ class KernelElementEnvironment extends ElementEnvironment
 
 /// [BehaviorBuilder] for kernel based elements.
 class KernelBehaviorBuilder extends BehaviorBuilder {
+  @override
   final ElementEnvironment elementEnvironment;
+  @override
   final CommonElements commonElements;
+  @override
   final DiagnosticReporter reporter;
+  @override
   final NativeBasicData nativeBasicData;
   final CompilerOptions _options;
 
@@ -1893,6 +1919,7 @@ class KernelConstantEnvironment implements ConstantEnvironment {
 class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   final KernelToElementMapImpl _elementMap;
   final Environment _environment;
+  @override
   final bool checkCasts;
 
   KernelEvaluationEnvironment(
@@ -1941,7 +1968,7 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 class KernelNativeMemberResolver implements NativeMemberResolver {
   static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
 
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapImpl _elementMap;
   final NativeBasicData _nativeBasicData;
   final NativeDataBuilder _nativeDataBuilder;
 
@@ -1953,25 +1980,28 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   CommonElements get _commonElements => _elementMap.commonElements;
 
   @override
-  void resolveNativeMember(MemberEntity element) {
+  void resolveNativeMember(
+      MemberEntity element, IrAnnotationData annotationData) {
     bool isJsInterop = _isJsInteropMember(element);
     if (element.isFunction ||
         element.isConstructor ||
         element.isGetter ||
         element.isSetter) {
       FunctionEntity method = element;
-      bool isNative = _processMethodAnnotations(method);
+      bool isNative = _processMethodAnnotations(method, annotationData);
       if (isNative || isJsInterop) {
-        NativeBehavior behavior =
-            _computeNativeMethodBehavior(method, isJsInterop: isJsInterop);
+        NativeBehavior behavior = _computeNativeMethodBehavior(
+            method, annotationData,
+            isJsInterop: isJsInterop);
         _nativeDataBuilder.setNativeMethodBehavior(method, behavior);
       }
     } else if (element.isField) {
       FieldEntity field = element;
-      bool isNative = _processFieldAnnotations(field);
+      bool isNative = _processFieldAnnotations(field, annotationData);
       if (isNative || isJsInterop) {
-        NativeBehavior fieldLoadBehavior =
-            _computeNativeFieldLoadBehavior(field, isJsInterop: isJsInterop);
+        NativeBehavior fieldLoadBehavior = _computeNativeFieldLoadBehavior(
+            field, annotationData,
+            isJsInterop: isJsInterop);
         NativeBehavior fieldStoreBehavior =
             _computeNativeFieldStoreBehavior(field);
         _nativeDataBuilder.setNativeFieldLoadBehavior(field, fieldLoadBehavior);
@@ -1983,17 +2013,18 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
 
   /// Process the potentially native [field]. Adds information from metadata
   /// attributes. Returns `true` of [method] is native.
-  bool _processFieldAnnotations(covariant FieldEntity element) {
+  bool _processFieldAnnotations(
+      FieldEntity element, IrAnnotationData annotationData) {
     if (element.isInstanceMember &&
         _nativeBasicData.isNativeClass(element.enclosingClass)) {
       // Exclude non-instance (static) fields - they are not really native and
       // are compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
       // using a JS-call.
-      _setNativeName(element);
+      _setNativeName(element, annotationData);
       return true;
     } else {
-      String name = _findJsNameFromAnnotation(element);
+      String name = _findJsNameFromAnnotation(element, annotationData);
       if (name != null) {
         failedAt(
             element,
@@ -2006,12 +2037,13 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
 
   /// Process the potentially native [method]. Adds information from metadata
   /// attributes. Returns `true` of [method] is native.
-  bool _processMethodAnnotations(covariant FunctionEntity method) {
-    if (_isNativeMethod(method)) {
+  bool _processMethodAnnotations(
+      FunctionEntity method, IrAnnotationData annotationData) {
+    if (_isNativeMethod(method, annotationData)) {
       if (method.isStatic) {
-        _setNativeNameForStaticMethod(method);
+        _setNativeNameForStaticMethod(method, annotationData);
       } else {
-        _setNativeName(method);
+        _setNativeName(method, annotationData);
       }
       return true;
     }
@@ -2020,9 +2052,9 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
 
   /// Sets the native name of [element], either from an annotation, or
   /// defaulting to the Dart name.
-  void _setNativeName(MemberEntity element) {
-    String name = _findJsNameFromAnnotation(element);
-    if (name == null) name = element.name;
+  void _setNativeName(MemberEntity element, IrAnnotationData annotationData) {
+    String name = _findJsNameFromAnnotation(element, annotationData);
+    name ??= element.name;
     _nativeDataBuilder.setNativeMemberName(element, name);
   }
 
@@ -2034,9 +2066,10 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   ///    use the declared @JSName as the expression
   /// 3. If [element] does not have a @JSName annotation, qualify the name of
   ///    the method with the @Native name of the enclosing class.
-  void _setNativeNameForStaticMethod(FunctionEntity element) {
-    String name = _findJsNameFromAnnotation(element);
-    if (name == null) name = element.name;
+  void _setNativeNameForStaticMethod(
+      FunctionEntity element, IrAnnotationData annotationData) {
+    String name = _findJsNameFromAnnotation(element, annotationData);
+    name ??= element.name;
     if (_isIdentifier(name)) {
       List<String> nativeNames =
           _nativeBasicData.getNativeTagsOfClass(element.enclosingClass);
@@ -2057,16 +2090,23 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
 
   /// Returns the JSName annotation string or `null` if no JSName annotation is
   /// present.
-  String _findJsNameFromAnnotation(MemberEntity element) {
-    String jsName = null;
-    for (ConstantValue value
-        in _elementEnvironment.getMemberMetadata(element)) {
-      String name = readAnnotationName(
-          element, value, _commonElements.annotationJSNameClass);
-      if (jsName == null) {
-        jsName = name;
-      } else if (name != null) {
-        failedAt(element, 'Too many JSName annotations: ${value.toDartText()}');
+  String _findJsNameFromAnnotation(
+      MemberEntity element, IrAnnotationData annotationData) {
+    String jsName;
+    if (annotationData != null) {
+      jsName = annotationData
+          .getNativeMemberName(_elementMap.getMemberNode(element));
+    } else {
+      for (ConstantValue value
+          in _elementEnvironment.getMemberMetadata(element)) {
+        String name = readAnnotationName(
+            element, value, _commonElements.annotationJSNameClass);
+        if (jsName == null) {
+          jsName = name;
+        } else if (name != null) {
+          failedAt(
+              element, 'Too many JSName annotations: ${value.toDartText()}');
+        }
       }
     }
     return jsName;
@@ -2077,28 +2117,63 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
     return _elementMap.getNativeBehaviorForFieldStore(node);
   }
 
-  NativeBehavior _computeNativeFieldLoadBehavior(covariant KField field,
+  NativeBehavior _computeNativeFieldLoadBehavior(
+      KField field, IrAnnotationData annotationData,
       {bool isJsInterop}) {
     ir.Field node = _elementMap.getMemberNode(field);
-    return _elementMap.getNativeBehaviorForFieldLoad(node,
+    Iterable<String> createsAnnotations;
+    Iterable<String> returnsAnnotations;
+    if (annotationData != null) {
+      createsAnnotations = annotationData.getCreatesAnnotations(node);
+      returnsAnnotations = annotationData.getReturnsAnnotations(node);
+    } else {
+      List<ConstantValue> metadata =
+          _elementEnvironment.getMemberMetadata(field);
+      createsAnnotations = getCreatesAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+      returnsAnnotations = getReturnsAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+    }
+    return _elementMap.getNativeBehaviorForFieldLoad(
+        node, createsAnnotations, returnsAnnotations,
         isJsInterop: isJsInterop);
   }
 
-  NativeBehavior _computeNativeMethodBehavior(covariant KFunction function,
+  NativeBehavior _computeNativeMethodBehavior(
+      KFunction function, IrAnnotationData annotationData,
       {bool isJsInterop}) {
     ir.Member node = _elementMap.getMemberNode(function);
-    return _elementMap.getNativeBehaviorForMethod(node,
+    Iterable<String> createsAnnotations;
+    Iterable<String> returnsAnnotations;
+    if (annotationData != null) {
+      createsAnnotations = annotationData.getCreatesAnnotations(node);
+      returnsAnnotations = annotationData.getReturnsAnnotations(node);
+    } else {
+      List<ConstantValue> metadata =
+          _elementEnvironment.getMemberMetadata(function);
+      createsAnnotations = getCreatesAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+      returnsAnnotations = getReturnsAnnotations(
+          _elementMap.reporter, _elementMap.commonElements, metadata);
+    }
+    return _elementMap.getNativeBehaviorForMethod(
+        node, createsAnnotations, returnsAnnotations,
         isJsInterop: isJsInterop);
   }
 
-  bool _isNativeMethod(covariant KFunction function) {
+  bool _isNativeMethod(
+      covariant KFunction function, IrAnnotationData annotationData) {
     if (!maybeEnableNative(function.library.canonicalUri)) return false;
     ir.Member node = _elementMap.getMemberNode(function);
-    return node.annotations.any((ir.Expression expression) {
-      return expression is ir.ConstructorInvocation &&
-          _elementMap.getInterfaceType(expression.constructedType) ==
-              _commonElements.externalNameType;
-    });
+    if (annotationData != null) {
+      return annotationData.hasNativeBody(node);
+    } else {
+      return node.annotations.any((ir.Expression expression) {
+        return expression is ir.ConstructorInvocation &&
+            _elementMap.getInterfaceType(expression.constructedType) ==
+                _commonElements.externalNameType;
+      });
+    }
   }
 
   bool _isJsInteropMember(MemberEntity element) {

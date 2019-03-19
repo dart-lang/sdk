@@ -31,124 +31,6 @@ main() {
 class ExprBuilderTest extends ResynthesizeTestStrategyTwoPhase
     with ExprBuilderTestCases, ExprBuilderTestHelpers {}
 
-@reflectiveTest
-class TokensToStringTest {
-  void test_empty_list_no_space() {
-    // This is an interesting test case because "[]" is scanned as a single
-    // token, but the parser splits it into two.
-    _check('[]');
-  }
-
-  void test_empty_list_with_space() {
-    _check('[ ]');
-  }
-
-  void test_gt_gt_gt_in_type() {
-    // This is an interesting test case because ">>>" is scanned as a single
-    // token, but the parser splits it into three.
-    _check('A<B<C>>>[]');
-  }
-
-  void test_gt_gt_gt_in_type_split_both() {
-    _check('A<B<C> > >[]');
-  }
-
-  void test_gt_gt_gt_in_type_split_left() {
-    _check('A<B<C> >>[]');
-  }
-
-  void test_gt_gt_gt_in_type_split_right() {
-    _check('A<B<C>> >[]');
-  }
-
-  void test_gt_gt_in_type() {
-    // This is an interesting test case because ">>" is scanned as a single
-    // token, but the parser splits it into two.
-    _check('<A<B>>[]');
-  }
-
-  void test_gt_gt_in_type_split() {
-    _check('A<B> >[]');
-  }
-
-  void test_identifier() {
-    _check('foo');
-  }
-
-  void test_interpolation_expr_at_end_of_string() {
-    _check(r'"foo${bar}"');
-  }
-
-  void test_interpolation_expr_at_start_of_string() {
-    _check(r'"${foo}bar"');
-  }
-
-  void test_interpolation_expr_inside_string() {
-    _check(r'"foo${bar}baz"');
-  }
-
-  void test_interpolation_var_at_end_of_string() {
-    _check(r'"foo$bar"');
-  }
-
-  void test_interpolation_var_at_start_of_string() {
-    _check(r'"$foo bar"');
-  }
-
-  void test_interpolation_var_inside_string() {
-    _check(r'"foo$bar baz"');
-  }
-
-  void test_simple_string() {
-    _check('"foo"');
-  }
-
-  void _check(String originalString) {
-    var expression = _parseExpression(originalString);
-    var originalTokens =
-        _extractTokenList(expression.beginToken, expression.endToken);
-    var newString = tokensToString(expression.beginToken, expression.endToken);
-    var errorListener = AnalysisErrorListener.NULL_LISTENER;
-    var reader = new CharSequenceReader(newString);
-    var stringSource = new StringSource(newString, null);
-    var scanner = new Scanner(stringSource, reader, errorListener);
-    var startToken = scanner.tokenize();
-    var newTokens = _extractTokenList(startToken);
-    expect(newTokens, originalTokens);
-  }
-
-  List<String> _extractTokenList(Token startToken, [Token endToken]) {
-    var result = <String>[];
-    while (!startToken.isEof) {
-      if (!startToken.isSynthetic) result.add(startToken.lexeme);
-      if (identical(startToken, endToken)) break;
-      startToken = startToken.next;
-    }
-    return result;
-  }
-
-  Expression _parseExpression(String expressionString) {
-    // Note: to normalize the token string it's not sufficient to tokenize it
-    // and then pass the tokens to `tokensToString`; we also need to parse it
-    // because parsing modifies the token stream (splitting up `[]`, `>>`, and
-    // `>>>` tokens when circumstances warrant).
-    //
-    // We wrap the expression in "f() async => ...;" to ensure that the await
-    // keyword is properly parsed.
-    var sourceText = 'f() async => $expressionString;';
-    var errorListener = AnalysisErrorListener.NULL_LISTENER;
-    var reader = new CharSequenceReader(sourceText);
-    var stringSource = new StringSource(sourceText, null);
-    var scanner = new Scanner(stringSource, reader, errorListener);
-    var startToken = scanner.tokenize();
-    var parser = new Parser(stringSource, errorListener);
-    var compilationUnit = parser.parseCompilationUnit(startToken);
-    var f = compilationUnit.declarations[0] as FunctionDeclaration;
-    var body = f.functionExpression.body as ExpressionFunctionBody;
-    return body.expression;
-  }
-}
-
 /// Mixin containing test cases exercising the [ExprBuilder].  Intended to be
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ExprBuilderTestHelpers].
@@ -691,5 +573,123 @@ mixin ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
   TestSummaryResynthesizer encodeSource(String text) {
     var source = addTestSource(text);
     return encodeLibrary(source);
+  }
+}
+
+@reflectiveTest
+class TokensToStringTest {
+  void test_empty_list_no_space() {
+    // This is an interesting test case because "[]" is scanned as a single
+    // token, but the parser splits it into two.
+    _check('[]');
+  }
+
+  void test_empty_list_with_space() {
+    _check('[ ]');
+  }
+
+  void test_gt_gt_gt_in_type() {
+    // This is an interesting test case because ">>>" is scanned as a single
+    // token, but the parser splits it into three.
+    _check('A<B<C>>>[]');
+  }
+
+  void test_gt_gt_gt_in_type_split_both() {
+    _check('A<B<C> > >[]');
+  }
+
+  void test_gt_gt_gt_in_type_split_left() {
+    _check('A<B<C> >>[]');
+  }
+
+  void test_gt_gt_gt_in_type_split_right() {
+    _check('A<B<C>> >[]');
+  }
+
+  void test_gt_gt_in_type() {
+    // This is an interesting test case because ">>" is scanned as a single
+    // token, but the parser splits it into two.
+    _check('<A<B>>[]');
+  }
+
+  void test_gt_gt_in_type_split() {
+    _check('A<B> >[]');
+  }
+
+  void test_identifier() {
+    _check('foo');
+  }
+
+  void test_interpolation_expr_at_end_of_string() {
+    _check(r'"foo${bar}"');
+  }
+
+  void test_interpolation_expr_at_start_of_string() {
+    _check(r'"${foo}bar"');
+  }
+
+  void test_interpolation_expr_inside_string() {
+    _check(r'"foo${bar}baz"');
+  }
+
+  void test_interpolation_var_at_end_of_string() {
+    _check(r'"foo$bar"');
+  }
+
+  void test_interpolation_var_at_start_of_string() {
+    _check(r'"$foo bar"');
+  }
+
+  void test_interpolation_var_inside_string() {
+    _check(r'"foo$bar baz"');
+  }
+
+  void test_simple_string() {
+    _check('"foo"');
+  }
+
+  void _check(String originalString) {
+    var expression = _parseExpression(originalString);
+    var originalTokens =
+        _extractTokenList(expression.beginToken, expression.endToken);
+    var newString = tokensToString(expression.beginToken, expression.endToken);
+    var errorListener = AnalysisErrorListener.NULL_LISTENER;
+    var reader = new CharSequenceReader(newString);
+    var stringSource = new StringSource(newString, null);
+    var scanner = new Scanner(stringSource, reader, errorListener);
+    var startToken = scanner.tokenize();
+    var newTokens = _extractTokenList(startToken);
+    expect(newTokens, originalTokens);
+  }
+
+  List<String> _extractTokenList(Token startToken, [Token endToken]) {
+    var result = <String>[];
+    while (!startToken.isEof) {
+      if (!startToken.isSynthetic) result.add(startToken.lexeme);
+      if (identical(startToken, endToken)) break;
+      startToken = startToken.next;
+    }
+    return result;
+  }
+
+  Expression _parseExpression(String expressionString) {
+    // Note: to normalize the token string it's not sufficient to tokenize it
+    // and then pass the tokens to `tokensToString`; we also need to parse it
+    // because parsing modifies the token stream (splitting up `[]`, `>>`, and
+    // `>>>` tokens when circumstances warrant).
+    //
+    // We wrap the expression in "f() async => ...;" to ensure that the await
+    // keyword is properly parsed.
+    var sourceText = 'f() async => $expressionString;';
+    var errorListener = AnalysisErrorListener.NULL_LISTENER;
+    var reader = new CharSequenceReader(sourceText);
+    var stringSource = new StringSource(sourceText, null);
+    var scanner = new Scanner(stringSource, reader, errorListener);
+    var startToken = scanner.tokenize();
+    var parser = new Parser(stringSource, errorListener);
+    var compilationUnit = parser.parseCompilationUnit(startToken);
+    var f = compilationUnit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as ExpressionFunctionBody;
+    return body.expression;
   }
 }

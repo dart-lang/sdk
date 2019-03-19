@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:18:27: Error: Can't infer a type for 'field1' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   get /*@topType=dynamic*/field1 => null;
+//                           ^
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:19:27: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   get /*@topType=dynamic*/field2 => null;
+//                           ^
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:19:27: Error: The return type of the method 'B.field2' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.field2'.
+// Change to a subtype of 'int'.
+//   get /*@topType=dynamic*/field2 => null;
+//                           ^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:9:7: Context: This is the overridden method ('field2').
+//   int field2;
+//       ^
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:18:27: Error: The return type of the method 'B.field1' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'I.field1'.
+// Change to a subtype of 'int'.
+//   get /*@topType=dynamic*/field1 => null;
+//                           ^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:13:7: Context: This is the overridden method ('field1').
+//   int field1;
+//       ^
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:8:11: Error: The return type of the method 'A.field1' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'I.field1'.
+// Change to a subtype of 'int'.
+//   dynamic field1;
+//           ^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:13:7: Context: This is the overridden method ('field1').
+//   int field1;
+//       ^
+// pkg/front_end/testcases/inference/conflicting_fields.dart:17:7: Context: Both members are inherited by the non-abstract class 'B'.
+// class B extends A implements I {
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic field1 = null;
+  field core::int field2 = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class I extends core::Object {
+  field core::int field1 = null;
+  field dynamic field2 = null;
+  synthetic constructor •() → self::I
+    : super core::Object::•()
+    ;
+}
+class B extends self::A implements self::I {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  get field1() → dynamic
+    return null;
+  get field2() → dynamic
+    return null;
+  abstract forwarding-stub set field2(dynamic _) → void;
+}
+static method main() → dynamic {}

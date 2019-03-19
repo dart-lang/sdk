@@ -251,6 +251,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--legacy": "--legacy-mode",
   "--legacy-mode": false,
   "--libraries-json": Uri,
+  "--no-defines": false,
   "--output": Uri,
   "--packages": Uri,
   "--platform": Uri,
@@ -309,6 +310,8 @@ ProcessedOptions analyzeCommandLine(
         "Target '${targetName}' not recognized. "
         "Valid targets are:\n  ${targets.keys.join("\n  ")}");
   }
+
+  final bool noDefines = options["--no-defines"];
 
   final bool enableAsserts = options["--enable-asserts"];
 
@@ -385,7 +388,7 @@ ProcessedOptions analyzeCommandLine(
           ..verify = verify
           ..bytecode = bytecode
           ..experimentalFlags = experimentalFlags
-          ..environmentDefines = parsedArguments.defines,
+          ..environmentDefines = noDefines ? null : parsedArguments.defines,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
@@ -421,7 +424,7 @@ ProcessedOptions analyzeCommandLine(
     ..verbose = verbose
     ..verify = verify
     ..experimentalFlags = experimentalFlags
-    ..environmentDefines = parsedArguments.defines;
+    ..environmentDefines = noDefines ? null : parsedArguments.defines;
 
   // TODO(ahe): What about chase dependencies?
 

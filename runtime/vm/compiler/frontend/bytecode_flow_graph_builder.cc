@@ -809,8 +809,193 @@ void BytecodeFlowGraphBuilder::BuildNativeCall() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  // Default flow graph builder is used to compile native methods.
-  UNREACHABLE();
+  ASSERT(function().is_native());
+
+  // TODO(alexmarkov): find a way to avoid code duplication with
+  // FlowGraphBuilder::NativeFunctionBody.
+  const MethodRecognizer::Kind kind =
+      MethodRecognizer::RecognizeKind(function());
+  switch (kind) {
+    case MethodRecognizer::kObjectEquals:
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
+      code_ += B->StrictCompare(Token::kEQ_STRICT);
+      break;
+    case MethodRecognizer::kStringBaseLength:
+    case MethodRecognizer::kStringBaseIsEmpty:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::String_length());
+      if (kind == MethodRecognizer::kStringBaseIsEmpty) {
+        code_ += B->IntConstant(0);
+        code_ += B->StrictCompare(Token::kEQ_STRICT);
+      }
+      break;
+    case MethodRecognizer::kGrowableArrayLength:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::GrowableObjectArray_length());
+      break;
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::Array_length());
+      break;
+    case MethodRecognizer::kTypedDataLength:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::TypedData_length());
+      break;
+    case MethodRecognizer::kClassIDgetID:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadClassId();
+      break;
+    case MethodRecognizer::kGrowableArrayCapacity:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::GrowableObjectArray_data());
+      code_ += B->LoadNativeField(Slot::Array_length());
+      break;
+    case MethodRecognizer::kListFactory: {
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric() &&
+             function().HasOptionalParameters());
+      ASSERT(scratch_var_ != nullptr);
+      // Generate code that performs:
+      //
+      // factory List<E>([int length]) {
+      //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
+      //                                            : new _GrowableList<E>(0);
+      // }
+      const auto& core_lib = Library::Handle(Z, Library::CoreLibrary());
+
+      TargetEntryInstr *allocate_non_growable, *allocate_growable;
+
+      code_ += B->Drop();  // Drop 'length'.
+      code_ += B->Drop();  // Drop 'type arguments'.
+      code_ += B->LoadArgDescriptor();
+      code_ += B->LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
+      code_ += B->IntConstant(2);
+      code_ +=
+          B->BranchIfStrictEqual(&allocate_non_growable, &allocate_growable);
+
+      JoinEntryInstr* join = B->BuildJoinEntry();
+
+      {
+        const auto& cls = Class::Handle(
+            Z, core_lib.LookupClass(
+                   Library::PrivateCoreLibName(Symbols::_List())));
+        ASSERT(!cls.IsNull());
+        const auto& func = Function::ZoneHandle(
+            Z, cls.LookupFactoryAllowPrivate(Symbols::_ListFactory()));
+        ASSERT(!func.IsNull());
+
+        code_ = Fragment(allocate_non_growable);
+        code_ += B->LoadLocal(LocalVariableAt(0));
+        code_ += B->LoadLocal(LocalVariableAt(1));
+        auto* call = new (Z) StaticCallInstr(
+            TokenPosition::kNoSource, func, 0, Array::null_array(),
+            GetArguments(2), *ic_data_array_, B->GetNextDeoptId(),
+            ICData::kStatic);
+        code_ <<= call;
+        B->Push(call);
+        code_ += B->StoreLocal(TokenPosition::kNoSource, scratch_var_);
+        code_ += B->Drop();
+        code_ += B->Goto(join);
+      }
+
+      {
+        const auto& cls = Class::Handle(
+            Z, core_lib.LookupClass(
+                   Library::PrivateCoreLibName(Symbols::_GrowableList())));
+        ASSERT(!cls.IsNull());
+        const auto& func = Function::ZoneHandle(
+            Z, cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory()));
+        ASSERT(!func.IsNull());
+
+        code_ = Fragment(allocate_growable);
+        code_ += B->LoadLocal(LocalVariableAt(0));
+        code_ += B->IntConstant(0);
+        auto* call = new (Z) StaticCallInstr(
+            TokenPosition::kNoSource, func, 0, Array::null_array(),
+            GetArguments(2), *ic_data_array_, B->GetNextDeoptId(),
+            ICData::kStatic);
+        code_ <<= call;
+        B->Push(call);
+        code_ += B->StoreLocal(TokenPosition::kNoSource, scratch_var_);
+        code_ += B->Drop();
+        code_ += B->Goto(join);
+      }
+
+      code_ = Fragment(join);
+      code_ += B->LoadLocal(scratch_var_);
+      break;
+    }
+    case MethodRecognizer::kObjectArrayAllocate:
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
+      code_ += B->CreateArray();
+      break;
+    case MethodRecognizer::kLinkedHashMap_getIndex:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::LinkedHashMap_index());
+      break;
+    case MethodRecognizer::kLinkedHashMap_setIndex:
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
+      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
+                                     Slot::LinkedHashMap_index());
+      code_ += B->NullConstant();
+      break;
+    case MethodRecognizer::kLinkedHashMap_getData:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::LinkedHashMap_data());
+      break;
+    case MethodRecognizer::kLinkedHashMap_setData:
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
+      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
+                                     Slot::LinkedHashMap_data());
+      code_ += B->NullConstant();
+      break;
+    case MethodRecognizer::kLinkedHashMap_getHashMask:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::LinkedHashMap_hash_mask());
+      break;
+    case MethodRecognizer::kLinkedHashMap_setHashMask:
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
+      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
+                                     Slot::LinkedHashMap_hash_mask(),
+                                     kNoStoreBarrier);
+      code_ += B->NullConstant();
+      break;
+    case MethodRecognizer::kLinkedHashMap_getUsedData:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::LinkedHashMap_used_data());
+      break;
+    case MethodRecognizer::kLinkedHashMap_setUsedData:
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
+      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
+                                     Slot::LinkedHashMap_used_data(),
+                                     kNoStoreBarrier);
+      code_ += B->NullConstant();
+      break;
+    case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
+      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
+      code_ += B->LoadNativeField(Slot::LinkedHashMap_deleted_keys());
+      break;
+    case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
+      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
+      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
+                                     Slot::LinkedHashMap_deleted_keys(),
+                                     kNoStoreBarrier);
+      code_ += B->NullConstant();
+      break;
+    default: {
+      B->InlineBailout("BytecodeFlowGraphBuilder::BuildNativeCall");
+      const auto& name = String::ZoneHandle(Z, function().native_name());
+      const intptr_t num_args =
+          function().NumParameters() + (function().IsGeneric() ? 1 : 0);
+      ArgumentArray arguments = GetArguments(num_args);
+      auto* call =
+          new (Z) NativeCallInstr(&name, &function(), FLAG_link_natives_lazily,
+                                  function().end_token_pos(), arguments);
+      code_ <<= call;
+      B->Push(call);
+      break;
+    }
+  }
 }
 
 void BytecodeFlowGraphBuilder::BuildAllocate() {
@@ -1471,6 +1656,9 @@ bool BytecodeFlowGraphBuilder::RequiresScratchVar(KBCInstr instr) {
       return KernelBytecode::DecodeC(instr) > 0;
     case KernelBytecode::kEqualsNull:
       return true;
+    case KernelBytecode::kNativeCall:
+      return MethodRecognizer::RecognizeKind(function()) ==
+             MethodRecognizer::kListFactory;
     default:
       return false;
   }
@@ -1547,9 +1735,6 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
 }
 
 FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
-  // Use default flow graph builder for native methods.
-  ASSERT(!function().is_native());
-
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
 
   object_pool_ = bytecode.object_pool();

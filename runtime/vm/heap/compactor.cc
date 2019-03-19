@@ -483,6 +483,10 @@ uword CompactorTask::SlideBlock(uword first_object,
         // Slide the object down.
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
+
+        if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
+          reinterpret_cast<RawTypedData*>(new_obj)->ResetData();
+        }
       }
       new_obj->ClearMarkBit();
       new_obj->VisitPointers(compactor_);

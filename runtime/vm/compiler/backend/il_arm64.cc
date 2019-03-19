@@ -872,6 +872,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -1060,8 +1064,9 @@ static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
   const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
   const intptr_t scale = Instance::ElementSizeFor(cid);
   const int64_t offset =
-      index * scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      index * scale + (is_external || RawObject::IsTypedDataClassId(cid)
+                           ? 0
+                           : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   if (!Utils::IsInt(32, offset)) {
     return false;
   }
@@ -2778,9 +2783,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   __ ldr(TMP, Address(THR, Thread::stack_limit_offset()));
-  // Compare to CSP not SP because CSP is closer to the stack limit. See
-  // Assembler::EnterFrame.
-  __ CompareRegisters(CSP, TMP);
+  __ CompareRegisters(SP, TMP);
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
     const Register temp = locs()->temp(0).reg();
@@ -3507,6 +3510,10 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kUnboxedDouble:
       __ StoreDFieldToOffset(value, out_reg, ValueOffset());
       break;
+    case kUnboxedFloat:
+      __ fcvtds(FpuTMP, value);
+      __ StoreDFieldToOffset(FpuTMP, out_reg, ValueOffset());
+      break;
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -3543,6 +3550,13 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
     case kUnboxedDouble: {
       const VRegister result = locs()->out(0).fpu_reg();
       __ LoadDFieldFromOffset(result, box, ValueOffset());
+      break;
+    }
+
+    case kUnboxedFloat: {
+      const VRegister result = locs()->out(0).fpu_reg();
+      __ LoadDFieldFromOffset(result, box, ValueOffset());
+      __ fcvtsd(result, result);
       break;
     }
 

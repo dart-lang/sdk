@@ -268,7 +268,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
       break;
       BYTECODE(LOAD_CURRENT_CHAR) {
         int pos = current + (insn >> BYTECODE_SHIFT);
-        if (pos >= subject_length) {
+        if (pos < 0 || pos >= subject_length) {
           pc = code_base + Load32Aligned(pc + 4);
         } else {
           current_char = subject.CharAt(pos);
@@ -534,6 +534,55 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
         }
         break;
       }
+      BYTECODE(CHECK_NOT_BACK_REF_BACKWARD) {
+        const int from = registers[insn >> BYTECODE_SHIFT];
+        const int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
+        if (from < 0 || len <= 0) {
+          pc += BC_CHECK_NOT_BACK_REF_BACKWARD_LENGTH;
+          break;
+        }
+        if ((current - len) < 0) {
+          pc = code_base + Load32Aligned(pc + 4);
+          break;
+        } else {
+          // When looking behind, the string to match (if it is there) lies
+          // before the current position, so we will check the [len] characters
+          // before the current position, excluding the current position itself.
+          const int start = current - len;
+          int i;
+          for (i = 0; i < len; i++) {
+            if (subject.CharAt(from + i) != subject.CharAt(start + i)) {
+              pc = code_base + Load32Aligned(pc + 4);
+              break;
+            }
+          }
+          if (i < len) break;
+          current -= len;
+        }
+        pc += BC_CHECK_NOT_BACK_REF_BACKWARD_LENGTH;
+        break;
+      }
+      BYTECODE(CHECK_NOT_BACK_REF_NO_CASE_BACKWARD) {
+        int from = registers[insn >> BYTECODE_SHIFT];
+        int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
+        if (from < 0 || len <= 0) {
+          pc += BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD_LENGTH;
+          break;
+        }
+        if (current < len) {
+          pc = code_base + Load32Aligned(pc + 4);
+          break;
+        } else {
+          if (BackRefMatchesNoCase<Char>(&canonicalize, from, current - len,
+                                         len, subject)) {
+            current -= len;
+            pc += BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD_LENGTH;
+          } else {
+            pc = code_base + Load32Aligned(pc + 4);
+          }
+        }
+        break;
+      }
       BYTECODE(CHECK_AT_START)
       if (current == 0) {
         pc = code_base + Load32Aligned(pc + 4);
@@ -541,13 +590,15 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
         pc += BC_CHECK_AT_START_LENGTH;
       }
       break;
-      BYTECODE(CHECK_NOT_AT_START)
-      if (current == 0) {
-        pc += BC_CHECK_NOT_AT_START_LENGTH;
-      } else {
-        pc = code_base + Load32Aligned(pc + 4);
+      BYTECODE(CHECK_NOT_AT_START) {
+        const int32_t cp_offset = insn >> BYTECODE_SHIFT;
+        if (current + cp_offset == 0) {
+          pc += BC_CHECK_NOT_AT_START_LENGTH;
+        } else {
+          pc = code_base + Load32Aligned(pc + 4);
+        }
+        break;
       }
-      break;
       BYTECODE(SET_CURRENT_POSITION_FROM_END) {
         int by = static_cast<uint32_t>(insn) >> BYTECODE_SHIFT;
         if (subject_length - current > by) {

@@ -727,6 +727,18 @@ int64_t Heap::ExternalInWords(Space space) const {
                        : old_space_.ExternalInWords();
 }
 
+int64_t Heap::TotalUsedInWords() const {
+  return UsedInWords(kNew) + UsedInWords(kOld);
+}
+
+int64_t Heap::TotalCapacityInWords() const {
+  return CapacityInWords(kNew) + CapacityInWords(kOld);
+}
+
+int64_t Heap::TotalExternalInWords() const {
+  return ExternalInWords(kNew) + ExternalInWords(kOld);
+}
+
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {
     return new_space_.gc_time_micros();
@@ -850,6 +862,14 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   } else {
     old_space_.PrintToJSONObject(object);
   }
+}
+
+void Heap::PrintMemoryUsageJSON(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "MemoryUsage");
+  jsobj.AddProperty64("heapUsage", TotalUsedInWords() * kWordSize);
+  jsobj.AddProperty64("heapCapacity", TotalCapacityInWords() * kWordSize);
+  jsobj.AddProperty64("externalUsage", TotalExternalInWords() * kWordSize);
 }
 #endif  // PRODUCT
 

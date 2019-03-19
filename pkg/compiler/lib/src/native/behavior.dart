@@ -24,8 +24,10 @@ class SpecialType {
   /// The type Object, but no subtypes:
   static const JsObject = const SpecialType._('=Object');
 
+  @override
   int get hashCode => name.hashCode;
 
+  @override
   String toString() => name;
 
   static SpecialType fromName(String name) {
@@ -68,6 +70,7 @@ class NativeThrowBehavior {
     return this;
   }
 
+  @override
   String toString() {
     if (this == NEVER) return 'never';
     if (this == MAY) return 'may';
@@ -258,6 +261,7 @@ class NativeBehavior {
     sink.end(tag);
   }
 
+  @override
   String toString() {
     return 'NativeBehavior('
         'returns: ${typesReturned}'
@@ -736,14 +740,12 @@ abstract class BehaviorBuilder {
 
   NativeBehavior _behavior;
 
-  void _overrideWithAnnotations(
-      Iterable<ConstantValue> metadata, TypeLookup lookupType) {
-    if (metadata.isEmpty) return;
+  void _overrideWithAnnotations(Iterable<String> createsAnnotations,
+      Iterable<String> returnsAnnotations, TypeLookup lookupType) {
+    if (createsAnnotations.isEmpty && returnsAnnotations.isEmpty) return;
 
-    List creates =
-        _collect(metadata, commonElements.annotationCreatesClass, lookupType);
-    List returns =
-        _collect(metadata, commonElements.annotationReturnsClass, lookupType);
+    List creates = _collect(createsAnnotations, lookupType);
+    List returns = _collect(returnsAnnotations, lookupType);
 
     if (creates != null) {
       _behavior.typesInstantiated
@@ -760,22 +762,9 @@ abstract class BehaviorBuilder {
   /// Returns a list of type constraints from the annotations of
   /// [annotationClass].
   /// Returns `null` if no constraints.
-  List _collect(Iterable<ConstantValue> metadata, ClassEntity annotationClass,
-      TypeLookup lookupType) {
+  List _collect(Iterable<String> annotations, TypeLookup lookupType) {
     var types = null;
-    for (ConstantValue value in metadata) {
-      if (!value.isConstructedObject) continue;
-      ConstructedConstantValue constructedObject = value;
-      if (constructedObject.type.element != annotationClass) continue;
-
-      Iterable<ConstantValue> fields = constructedObject.fields.values;
-      // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || !fields.single.isString) {
-        reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-            'Annotations needs one string: ${value.toStructuredText()}');
-      }
-      StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.stringValue;
+    for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(typeString, lookupType);
         if (types == null) types = [];
@@ -847,7 +836,10 @@ abstract class BehaviorBuilder {
   }
 
   NativeBehavior buildFieldLoadBehavior(
-      DartType type, Iterable<ConstantValue> metadata, TypeLookup lookupType,
+      DartType type,
+      Iterable<String> createsAnnotations,
+      Iterable<String> returnsAnnotations,
+      TypeLookup lookupType,
       {bool isJsInterop}) {
     _behavior = new NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
@@ -857,7 +849,8 @@ abstract class BehaviorBuilder {
     // Declared types are nullable.
     _behavior.typesReturned.add(commonElements.nullType);
     _capture(type, isJsInterop);
-    _overrideWithAnnotations(metadata, lookupType);
+    _overrideWithAnnotations(
+        createsAnnotations, returnsAnnotations, lookupType);
     return _behavior;
   }
 
@@ -869,8 +862,11 @@ abstract class BehaviorBuilder {
     return _behavior;
   }
 
-  NativeBehavior buildMethodBehavior(FunctionType type,
-      Iterable<ConstantValue> metadata, TypeLookup lookupType,
+  NativeBehavior buildMethodBehavior(
+      FunctionType type,
+      Iterable<String> createAnnotations,
+      Iterable<String> returnsAnnotations,
+      TypeLookup lookupType,
       {bool isJsInterop}) {
     _behavior = new NativeBehavior();
     DartType returnType = type.returnType;
@@ -899,7 +895,40 @@ abstract class BehaviorBuilder {
       _escape(type, isJsInterop);
     }
 
-    _overrideWithAnnotations(metadata, lookupType);
+    _overrideWithAnnotations(createAnnotations, returnsAnnotations, lookupType);
     return _behavior;
   }
+}
+
+List<String> _getAnnotations(DiagnosticReporter reporter,
+    Iterable<ConstantValue> metadata, ClassEntity cls) {
+  List<String> annotations = [];
+  for (ConstantValue value in metadata) {
+    if (!value.isConstructedObject) continue;
+    ConstructedConstantValue constructedObject = value;
+    if (constructedObject.type.element != cls) continue;
+
+    Iterable<ConstantValue> fields = constructedObject.fields.values;
+    // TODO(sra): Better validation of the constant.
+    if (fields.length != 1 || !fields.single.isString) {
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+          'Annotations needs one string: ${value.toStructuredText()}');
+    }
+    StringConstantValue specStringConstant = fields.single;
+    String specString = specStringConstant.stringValue;
+    annotations.add(specString);
+  }
+  return annotations;
+}
+
+List<String> getCreatesAnnotations(DiagnosticReporter reporter,
+    CommonElements commonElements, Iterable<ConstantValue> metadata) {
+  return _getAnnotations(
+      reporter, metadata, commonElements.annotationCreatesClass);
+}
+
+List<String> getReturnsAnnotations(DiagnosticReporter reporter,
+    CommonElements commonElements, Iterable<ConstantValue> metadata) {
+  return _getAnnotations(
+      reporter, metadata, commonElements.annotationReturnsClass);
 }

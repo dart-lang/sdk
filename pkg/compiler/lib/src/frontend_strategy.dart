@@ -117,6 +117,7 @@ abstract class FrontendStrategyBase implements FrontendStrategy {
       new NativeBasicDataBuilderImpl();
   NativeBasicData _nativeBasicData;
 
+  @override
   NativeBasicData get nativeBasicData {
     if (_nativeBasicData == null) {
       _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);

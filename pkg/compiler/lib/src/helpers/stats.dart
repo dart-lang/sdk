@@ -212,6 +212,7 @@ class StatsOutput {
 class DebugOutput implements StatsOutput {
   const DebugOutput();
 
+  @override
   void println(String text) => debugPrint(text);
 }
 
@@ -222,6 +223,7 @@ class SinkOutput implements StatsOutput {
 
   SinkOutput(this.sink);
 
+  @override
   void println(String text) {
     sink.add(text);
     sink.add('\n');
@@ -272,6 +274,7 @@ abstract class StatsPrinter {
 
 /// Abstract base class for [ConsolePrinter] and [XMLPrinter].
 abstract class BasePrinter extends StatsPrinter with Indentation {
+  @override
   final int examples;
   final StatsOutput output;
 
@@ -287,6 +290,7 @@ class ConsolePrinter extends BasePrinter {
   ConsolePrinter({StatsOutput output: const DebugOutput(), int examples: 10})
       : super(output: output, examples: examples);
 
+  @override
   void open(String id,
       [Map<String, dynamic> data = const <String, dynamic>{}]) {
     if (extraLevel > 0) return;
@@ -316,17 +320,20 @@ class ConsolePrinter extends BasePrinter {
     indentMore();
   }
 
+  @override
   void close(String id) {
     if (extraLevel > 0) return;
 
     indentLess();
   }
 
+  @override
   void beginExtra() {
     if (extraLevel == 0) output.println('$indentation...');
     extraLevel++;
   }
 
+  @override
   void endExtra() {
     extraLevel--;
   }
@@ -340,6 +347,7 @@ class XMLPrinter extends BasePrinter {
   XMLPrinter({output: const DebugOutput(), int examples: 10})
       : super(output: output, examples: examples);
 
+  @override
   void start(String id) {
     if (!opened) {
       output.println('<?xml version="1.0" encoding="UTF-8"?>');
@@ -348,10 +356,12 @@ class XMLPrinter extends BasePrinter {
     open(id);
   }
 
+  @override
   void end(String id) {
     close(id);
   }
 
+  @override
   void open(String id,
       [Map<String, dynamic> data = const <String, dynamic>{}]) {
     StringBuffer sb = new StringBuffer();
@@ -367,15 +377,18 @@ class XMLPrinter extends BasePrinter {
     indentMore();
   }
 
+  @override
   void close(String id) {
     indentLess();
     output.println('${indentation}</$id>');
   }
 
+  @override
   void beginExtra() {
     open('extra');
   }
 
+  @override
   void endExtra() {
     close('extra');
   }
@@ -450,6 +463,7 @@ class _StackTraceNode implements Comparable<_StackTraceNode> {
     }
   }
 
+  @override
   int compareTo(_StackTraceNode other) {
     // Sorts in decreasing count order.
     return other.count - count;
@@ -479,6 +493,7 @@ class _StackTraceNode implements Comparable<_StackTraceNode> {
     }
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     printOn(sb, '');
@@ -493,6 +508,7 @@ class _StackTraceTree extends _StackTraceNode {
 
   _StackTraceTree(this.id, this.sampleFrequency) : super.root();
 
+  @override
   void dumpTraces(StatsPrinter printer) {
     printer.open('trace', {
       'id': id,
@@ -519,10 +535,12 @@ class ActiveStats implements Stats {
   Map<dynamic, Map<dynamic, List>> countersMap =
       <dynamic, Map<dynamic, List>>{};
   Map<dynamic, _StackTraceTree> traceMap = {};
+  @override
   int stackTraceSampleFrequency = 1;
 
   ActiveStats(StatsPrinter this.printer);
 
+  @override
   void recordMap(id, key, value, {fromExisting(value)}) {
     Map map = maps.putIfAbsent(id, () => {});
     if (fromExisting != null && map.containsKey(key)) {
@@ -532,16 +550,19 @@ class ActiveStats implements Stats {
     }
   }
 
+  @override
   Map getMap(key) {
     return maps[key];
   }
 
+  @override
   void recordFrequency(id, value, [example]) {
     Map<dynamic, List> map = frequencyMaps.putIfAbsent(id, () => {});
     map.putIfAbsent(value, () => []);
     map[value].add(example);
   }
 
+  @override
   void recordFrequencies(id, Map<dynamic, Iterable> frequencyMap) {
     Map<dynamic, List> map = frequencyMaps.putIfAbsent(id, () => {});
     frequencyMap.forEach((value, examples) {
@@ -550,6 +571,7 @@ class ActiveStats implements Stats {
     });
   }
 
+  @override
   Iterable recordedFrequencies(id, value) {
     Map<dynamic, List> map = frequencyMaps[id];
     if (map == null) return const [];
@@ -558,15 +580,18 @@ class ActiveStats implements Stats {
     return list;
   }
 
+  @override
   void recordCounter(id, [reason, example]) {
     Map<dynamic, List> map = countersMap.putIfAbsent(id, () => {});
     map.putIfAbsent(reason, () => []).add(example);
   }
 
+  @override
   void recordElement(key, element, {data}) {
     setsMap.putIfAbsent(key, () => new Map())[element] = data;
   }
 
+  @override
   void recordTrace(key, {int sampleFrequency}) {
     if (sampleFrequency == null) {
       sampleFrequency = stackTraceSampleFrequency;
@@ -576,12 +601,14 @@ class ActiveStats implements Stats {
         .sample();
   }
 
+  @override
   Iterable getList(String key) {
     Map map = setsMap[key];
     if (map == null) return const [];
     return map.keys;
   }
 
+  @override
   void dumpStats({void beforeClose()}) {
     printer.start('stats');
     dumpFrequencies();
@@ -688,6 +715,7 @@ class ActiveStats implements Stats {
     tree.dumpTraces(printer);
   }
 
+  @override
   void dumpCorrelation(keyA, Iterable a, keyB, Iterable b,
       {Map dataA, Map dataB}) {
     printer.child('correlations', {'title': '$keyA vs $keyB'}, () {

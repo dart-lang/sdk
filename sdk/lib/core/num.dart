@@ -100,6 +100,7 @@ abstract class num implements Comparable<num> {
    * print(double.infinity < double.nan);  // => false
    * print(double.nan < double.infinity);  // => false
    * print(double.nan == double.infinity);  // => false
+   * ```
    */
   int compareTo(num other);
 

@@ -162,9 +162,7 @@ String stringReplaceAllUnchecked(@notNull String receiver,
         return result.toString();
       }
     } else {
-      var quoted = quoteStringForRegExp(pattern);
-      var replacer = JS('', "new RegExp(#, 'g')", quoted);
-      return stringReplaceJS(receiver, replacer, replacement);
+      return JS('String', '#.split(#).join(#)', receiver, pattern, replacement);
     }
   } else if (pattern is JSSyntaxRegExp) {
     var re = regExpGetGlobalNative(pattern);

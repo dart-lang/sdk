@@ -27,6 +27,7 @@ class ReadStream;
 class WriteStream;
 class String;
 class Thread;
+class TypedData;
 
 class Exceptions : AllStatic {
  public:
@@ -190,7 +191,7 @@ class CatchEntryMove {
            (dest_slot() == src_slot());
   }
 
-  bool operator==(const CatchEntryMove& rhs) {
+  bool operator==(const CatchEntryMove& rhs) const {
     return src_ == rhs.src_ && dest_and_kind_ == rhs.dest_and_kind_;
   }
 
@@ -251,6 +252,30 @@ class CatchEntryMoves {
 
   intptr_t count_;
   // Followed by CatchEntryMove[count_]
+};
+
+// Used for reading the [CatchEntryMoves] from the compressed form.
+class CatchEntryMovesMapReader : public ValueObject {
+ public:
+  explicit CatchEntryMovesMapReader(const TypedData& bytes) : bytes_(bytes) {}
+
+  // The returned [CatchEntryMoves] must be freed by the caller via [free].
+  CatchEntryMoves* ReadMovesForPcOffset(intptr_t pc_offset);
+
+ private:
+  // Given the [pc_offset] this function will find the [position] at which to
+  // read the catch entries and the [length] of the catch entry moves array.
+  void FindEntryForPc(ReadStream* stream,
+                      intptr_t pc_offset,
+                      intptr_t* position,
+                      intptr_t* length);
+
+  // Reads the [length] catch entry moves from [offset] in the [stream].
+  CatchEntryMoves* ReadCompressedCatchEntryMovesSuffix(ReadStream* stream,
+                                                       intptr_t offset,
+                                                       intptr_t length);
+
+  const TypedData& bytes_;
 };
 
 // A simple reference counting wrapper for CatchEntryMoves.

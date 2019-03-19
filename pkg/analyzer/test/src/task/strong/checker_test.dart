@@ -8,11 +8,15 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CheckerTest_Driver);
+    defineReflectiveTests(CheckerTest);
   });
 }
 
-abstract class CheckerTest extends AbstractStrongTest {
+@reflectiveTest
+class CheckerTest extends AbstractStrongTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
   test_awaitForInCastsStreamElementToVariable() async {
     await checkFile('''
 import 'dart:async';
@@ -2305,11 +2309,11 @@ var l7 = /*info:INFERRED_TYPE_LITERAL*/[42];
 
   test_implicitDynamic_mapLiteral() async {
     addFile(r'''
-var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map<dynamic, dynamic> m2 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+var m0 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map m1 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map<dynamic, dynamic> m2 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
 dynamic d = 42;
-var m3 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
+var m3 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
 var m4 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
 var m5 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
 
@@ -2535,7 +2539,6 @@ class C extends Object with M1, M2 implements I1, I2 {}
     ''');
   }
 
-  @failingTest // Does not work with old task model
   test_interfacesFromMixinsUsedTwiceAreChecked() {
     // Regression test for https://github.com/dart-lang/sdk/issues/29782
     return checkFile(r'''
@@ -3744,7 +3747,6 @@ main() {
     var upwardsInferNonDynamicIsOK = {4: 2};
     var explicitDynamicIsOK = <dynamic, dynamic>{4: 2};
 
-    var rawMap = /*info:STRICT_RAW_TYPE*/{};
     var rawMapOfMaps = </*info:STRICT_RAW_TYPE*/Map>{};
     /*info:STRICT_RAW_TYPE*/Map rawMapFromType = {};
 
@@ -3815,6 +3817,15 @@ main() {
 }
     ''');
 
+    await check(strictRawTypes: true);
+  }
+
+  test_strictRawTypes_emptyMap() async {
+    addFile('''
+main() {
+  var rawMap = /*info:STRICT_RAW_TYPE*/{};
+}
+''');
     await check(strictRawTypes: true);
   }
 
@@ -4153,13 +4164,13 @@ test() {
  // TODO(leafp): We can't currently test for key errors since the
  // error marker binds to the entire entry.
   {
-     Map m = {s: i};
-     m = {s: s};
-     m = {s: n};
-     m = {s: i,
+     Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: i,
           s: n,
           s: s};
-     m = {i: s,
+     m = /*info:INFERRED_TYPE_LITERAL*/{i: s,
           n: s,
           s: s};
   }
@@ -4499,14 +4510,4 @@ class _Virtual { const _Virtual(); }
 const Object virtual = const _Virtual();
     ''', name: '/meta.dart');
   }
-}
-
-@reflectiveTest
-class CheckerTest_Driver extends CheckerTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override // Passes with driver
-  test_interfacesFromMixinsUsedTwiceAreChecked() =>
-      super.test_interfacesFromMixinsUsedTwiceAreChecked();
 }

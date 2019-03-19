@@ -109,6 +109,8 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       location = node.location;
       offset = node.fileOffset;
     }
+    assert(
+        location != null, "No location found for $node (${node.runtimeType})");
     return new KernelSourceLocation(location, offset, name);
   }
 
@@ -483,8 +485,11 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
 }
 
 class KernelSourceLocation extends AbstractSourceLocation {
+  @override
   final int offset;
+  @override
   final String sourceName;
+  @override
   final Uri sourceUri;
 
   KernelSourceLocation(ir.Location location, this.offset, this.sourceName)

@@ -188,6 +188,7 @@ abstract class ImpactRegistry {
 
 abstract class ImpactBuilderBase extends StaticTypeVisitor
     implements ImpactRegistry {
+  @override
   final VariableScopeModel variableScopeModel;
 
   ImpactBuilderBase(ir.TypeEnvironment typeEnvironment,
@@ -406,6 +407,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     registerLoadLibrary();
   }
 
+  @override
   void handleRedirectingInitializer(
       ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
     registerRedirectingInitializer(
@@ -643,6 +645,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     return super.visitSwitchStatement(node);
   }
 
+  @override
   void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     registerRuntimeTypeUse(node, kind, receiverType, argumentType);
@@ -656,16 +659,36 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
+  @override
   final bool useAsserts;
 
+  @override
   final inferEffectivelyFinalVariableTypes;
 
   ImpactBuilder(ir.TypeEnvironment typeEnvironment,
       ir.ClassHierarchy classHierarchy, VariableScopeModel variableScopeModel,
       {this.useAsserts: false, this.inferEffectivelyFinalVariableTypes: true})
       : super(typeEnvironment, classHierarchy, variableScopeModel);
+
+  ImpactBuilderData computeImpact(ir.Member node) {
+    if (retainDataForTesting) {
+      typeMapsForTesting = {};
+    }
+    node.accept(this);
+    return new ImpactBuilderData(
+        impactData, typeMapsForTesting, cachedStaticTypes);
+  }
 }
 
 /// Return the named arguments names as a list of strings.
 List<String> _getNamedArguments(ir.Arguments arguments) =>
     arguments.named.map((n) => n.name).toList();
+
+class ImpactBuilderData {
+  final ImpactData impactData;
+  final Map<ir.Expression, TypeMap> typeMapsForTesting;
+  final Map<ir.Expression, ir.DartType> cachedStaticTypes;
+
+  ImpactBuilderData(
+      this.impactData, this.typeMapsForTesting, this.cachedStaticTypes);
+}

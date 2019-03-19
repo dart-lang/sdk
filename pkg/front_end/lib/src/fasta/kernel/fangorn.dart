@@ -53,7 +53,7 @@ import '../scanner.dart' show Token;
 
 import 'body_builder.dart' show LabelTarget;
 
-import 'collections.dart' show SpreadElement;
+import 'collections.dart' show IfElement, IfMapEntry, SpreadElement;
 
 import 'kernel_expression_generator.dart'
     show
@@ -279,6 +279,20 @@ class Fangorn extends Forest {
   @override
   Expression spreadElement(Expression expression, Token token) {
     return new SpreadElement(expression, token.lexeme == '...?')
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression ifElement(Expression condition, Expression then,
+      Expression otherwise, Token token) {
+    return new IfElement(condition, then, otherwise)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  MapEntry ifMapEntry(
+      Expression condition, MapEntry then, MapEntry otherwise, Token token) {
+    return new IfMapEntry(condition, then, otherwise)
       ..fileOffset = offsetForToken(token);
   }
 

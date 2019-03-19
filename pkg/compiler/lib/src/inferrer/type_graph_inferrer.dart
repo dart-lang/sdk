@@ -62,6 +62,7 @@ class TypeGraphInferrer implements TypesInferrer {
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
+  @override
   GlobalTypeInferenceResults analyzeMain(FunctionEntity main) {
     inferrer = createInferrerEngineFor(main);
     inferrer.runOverAllElements();

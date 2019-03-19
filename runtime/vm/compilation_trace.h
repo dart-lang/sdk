@@ -85,6 +85,7 @@ class TypeFeedbackSaver : public FunctionVisitor {
 class TypeFeedbackLoader : public ValueObject {
  public:
   explicit TypeFeedbackLoader(Thread* thread);
+  ~TypeFeedbackLoader();
 
   RawObject* LoadFeedback(ReadStream* stream);
 

@@ -982,6 +982,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
+void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -1180,7 +1184,9 @@ static bool CanBeImmediateIndex(Value* value,
   const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
   const intptr_t scale = Instance::ElementSizeFor(cid);
   const intptr_t base_offset =
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      (is_external || RawObject::IsTypedDataClassId(cid)
+           ? 0
+           : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   const int64_t offset = index * scale + base_offset;
   if (!Utils::IsAbsoluteUint(12, offset)) {
     return false;
@@ -4048,6 +4054,11 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kUnboxedDouble:
       __ StoreDToOffset(value, out_reg, ValueOffset() - kHeapObjectTag);
       break;
+    case kUnboxedFloat:
+      __ vcvtds(DTMP, EvenSRegisterOf(value));
+      __ StoreDToOffset(EvenDRegisterOf(FpuTMP), out_reg,
+                        ValueOffset() - kHeapObjectTag);
+      break;
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
@@ -4095,6 +4106,13 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
     case kUnboxedDouble: {
       const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
       __ LoadDFromOffset(result, box, ValueOffset() - kHeapObjectTag);
+      break;
+    }
+
+    case kUnboxedFloat: {
+      const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
+      __ LoadDFromOffset(result, box, ValueOffset() - kHeapObjectTag);
+      __ vcvtsd(EvenSRegisterOf(result), result);
       break;
     }
 

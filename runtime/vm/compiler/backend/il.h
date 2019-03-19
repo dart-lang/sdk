@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -355,6 +356,7 @@ struct InstrAttrs {
   M(AssertBoolean, _)                                                          \
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
+  M(FfiCall, _)                                                                \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(StaticCall, _)                                                             \
@@ -4087,6 +4089,63 @@ class NativeCallInstr : public TemplateDartCall<0> {
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };
 
+// Performs a call to native C code. In contrast to NativeCall, the arguments
+// are unboxed and passed through the native calling convention. However, not
+// all dart objects can be passed as arguments. Please see the FFI documentation
+// for more details.
+// TODO(35775): Add link to the documentation when it's written.
+class FfiCallInstr : public Definition {
+ public:
+  FfiCallInstr(Zone* zone,
+               intptr_t deopt_id,
+               const Function& signature,
+               const ZoneGrowableArray<Representation>& arg_reps,
+               const ZoneGrowableArray<Location>& arg_locs)
+      : Definition(deopt_id),
+        zone_(zone),
+        signature_(signature),
+        inputs_(arg_reps.length() + 1),
+        arg_representations_(arg_reps),
+        arg_locations_(arg_locs) {
+    inputs_.FillWith(nullptr, 0, arg_reps.length() + 1);
+    ASSERT(signature.IsZoneHandle());
+  }
+
+  DECLARE_INSTRUCTION(FfiCall)
+
+  // Number of arguments to the native function.
+  intptr_t NativeArgCount() const { return InputCount() - 1; }
+
+  // Input index of the function pointer to invoke.
+  intptr_t TargetAddressIndex() const { return NativeArgCount(); }
+
+  virtual intptr_t InputCount() const { return inputs_.length(); }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual bool MayThrow() const { return false; }
+
+  // FfiCallInstr calls C code, which can call back into Dart.
+  virtual bool ComputeCanDeoptimize() const { return true; }
+
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+
+  Zone* const zone_;
+  const Function& signature_;
+
+  GrowableArray<Value*> inputs_;
+  const ZoneGrowableArray<Representation>& arg_representations_;
+  const ZoneGrowableArray<Location>& arg_locations_;
+
+  DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
+};
+
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
   DebugStepCheckInstr(TokenPosition token_pos,
@@ -5362,6 +5421,7 @@ class Boxing : public AllStatic {
 
   static intptr_t ValueOffset(Representation rep) {
     switch (rep) {
+      case kUnboxedFloat:
       case kUnboxedDouble:
         return Double::value_offset();
 
@@ -5388,6 +5448,7 @@ class Boxing : public AllStatic {
       case kUnboxedInt64:
         return kMintCid;
       case kUnboxedDouble:
+      case kUnboxedFloat:
         return kDoubleCid;
       case kUnboxedFloat32x4:
         return kFloat32x4Cid;
@@ -6926,6 +6987,7 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
 };
 
+// TODO(sjindel): Replace with FFICallInstr.
 class InvokeMathCFunctionInstr : public PureDefinition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
@@ -7786,8 +7848,13 @@ class Environment : public ZoneAllocated {
     locations_ = locations;
   }
 
-  void set_deopt_id(intptr_t deopt_id) { deopt_id_ = deopt_id; }
-  intptr_t deopt_id() const { return deopt_id_; }
+  // Get deopt_id associated with this environment.
+  // Note that only outer environments have deopt id associated with
+  // them (set by DeepCopyToOuter).
+  intptr_t deopt_id() const {
+    ASSERT(deopt_id_ != DeoptId::kNone);
+    return deopt_id_;
+  }
 
   Environment* outer() const { return outer_; }
 
@@ -7837,7 +7904,9 @@ class Environment : public ZoneAllocated {
   Environment* DeepCopy(Zone* zone) const { return DeepCopy(zone, Length()); }
 
   void DeepCopyTo(Zone* zone, Instruction* instr) const;
-  void DeepCopyToOuter(Zone* zone, Instruction* instr) const;
+  void DeepCopyToOuter(Zone* zone,
+                       Instruction* instr,
+                       intptr_t outer_deopt_id) const;
 
   void DeepCopyAfterTo(Zone* zone,
                        Instruction* instr,
@@ -7870,20 +7939,19 @@ class Environment : public ZoneAllocated {
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
-              intptr_t deopt_id,
               const ParsedFunction& parsed_function,
               Environment* outer)
       : values_(length),
-        locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count),
-        deopt_id_(deopt_id),
         parsed_function_(parsed_function),
         outer_(outer) {}
 
   GrowableArray<Value*> values_;
-  Location* locations_;
+  Location* locations_ = nullptr;
   const intptr_t fixed_parameter_count_;
-  intptr_t deopt_id_;
+  // Deoptimization id associated with this environment. Only set for
+  // outer environments.
+  intptr_t deopt_id_ = DeoptId::kNone;
   const ParsedFunction& parsed_function_;
   Environment* outer_;
 

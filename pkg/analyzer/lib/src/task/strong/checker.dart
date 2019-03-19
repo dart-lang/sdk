@@ -198,10 +198,6 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is MapLiteralEntry) {
       checkAssignment(element.key, expectedKeyType);
       checkAssignment(element.value, expectedValueType);
-    } else if (element is SpreadElement) {
-      DartType mapType = typeProvider.mapType
-          .instantiate([expectedKeyType, expectedValueType]);
-      checkAssignment(element.expression, mapType);
     }
   }
 

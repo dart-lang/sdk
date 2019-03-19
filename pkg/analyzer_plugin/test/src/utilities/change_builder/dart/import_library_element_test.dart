@@ -468,11 +468,9 @@ class C {}
     );
   }
 
-  @failingTest
   test_shadowed_class_inPart() async {
     newFile('/home/test/lib/a.dart', content: 'class C {}');
     newFile('/home/test/lib/p.dart', content: 'class C {}');
-    // TODO(scheglov) "import" must be before "part"
     await _assertImportLibraryElement(
       initialCode: r'''
 part 'p.dart';

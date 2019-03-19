@@ -409,21 +409,28 @@ class ProgramBuilder {
   StaticField _buildStaticField(FieldEntity element) {
     FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(element);
     ConstantValue initialValue = fieldData.initialValue;
-    // TODO(zarah): The holder should not be registered during building of
-    // a static field.
-    _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
-        isConstantsHolder: true);
-    js.Expression code = _task.emitter.constantReference(initialValue);
+    js.Expression code;
+    if (initialValue != null) {
+      // TODO(zarah): The holder should not be registered during building of
+      // a static field.
+      _registry.registerHolder(_namer.globalObjectForConstant(initialValue),
+          isConstantsHolder: true);
+      code = _task.emitter.constantReference(initialValue);
+    } else {
+      assert(fieldData.isEager);
+      code = _generatedCode[element];
+    }
     js.Name name = _namer.globalPropertyNameForMember(element);
-    bool isFinal = false;
-    bool isLazy = false;
 
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(element, name, null, _registerStaticStateHolder(),
-        code, isFinal, isLazy);
+    return new StaticField(
+        element, name, null, _registerStaticStateHolder(), code,
+        isFinal: false,
+        isLazy: false,
+        isInitializedByConstant: initialValue != null);
   }
 
   List<StaticField> _buildStaticLazilyInitializedFields(
@@ -449,14 +456,13 @@ class ProgramBuilder {
 
     js.Name name = _namer.globalPropertyNameForMember(element);
     js.Name getterName = _namer.lazyInitializerName(element);
-    bool isFinal = !element.isAssignable;
-    bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(element, name, getterName,
-        _registerStaticStateHolder(), code, isFinal, isLazy);
+    return new StaticField(
+        element, name, getterName, _registerStaticStateHolder(), code,
+        isFinal: !element.isAssignable, isLazy: true);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {

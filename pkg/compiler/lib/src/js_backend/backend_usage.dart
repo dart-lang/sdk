@@ -114,12 +114,14 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   bool requiresPreamble = false;
 
   /// `true` if `Function.apply` is used.
+  @override
   bool isFunctionApplyUsed = false;
 
   /// `true` if 'dart:mirrors' features are used.
   bool isMirrorsUsed = false;
 
   /// `true` if `noSuchMethod` is used.
+  @override
   bool isNoSuchMethodUsed = false;
 
   BackendUsageBuilderImpl(this._frontendStrategy);
@@ -190,6 +192,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
+  @override
   void processBackendImpact(BackendImpact backendImpact) {
     for (FunctionEntity staticUse in backendImpact.staticUses) {
       assert(staticUse != null);
@@ -223,6 +226,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
+  @override
   void registerUsedMember(MemberEntity member) {
     if (member == _commonElements.getIsolateAffinityTagMarker) {
       _needToInitializeIsolateAffinityTag = true;
@@ -235,6 +239,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     }
   }
 
+  @override
   void registerGlobalFunctionDependency(FunctionEntity element) {
     assert(element != null);
     if (_globalFunctionDependencies == null) {
@@ -243,6 +248,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     _globalFunctionDependencies.add(element);
   }
 
+  @override
   void registerGlobalClassDependency(ClassEntity element) {
     assert(element != null);
     if (_globalClassDependencies == null) {
@@ -256,6 +262,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     _runtimeTypeUses.add(runtimeTypeUse);
   }
 
+  @override
   BackendUsage close() {
     return new BackendUsageImpl(
         globalFunctionDependencies: _globalFunctionDependencies,
@@ -289,19 +296,25 @@ class BackendUsageImpl implements BackendUsage {
 
   final Set<RuntimeTypeUse> _runtimeTypeUses;
 
+  @override
   bool needToInitializeIsolateAffinityTag;
+  @override
   bool needToInitializeDispatchProperty;
 
   /// `true` if a core-library function requires the preamble file to function.
+  @override
   final bool requiresPreamble;
 
   /// `true` if `Function.apply` is used.
+  @override
   final bool isFunctionApplyUsed;
 
   /// `true` if 'dart:mirrors' features are used.
+  @override
   final bool isMirrorsUsed;
 
   /// `true` if `noSuchMethod` is used.
+  @override
   final bool isNoSuchMethodUsed;
 
   BackendUsageImpl(
@@ -357,6 +370,7 @@ class BackendUsageImpl implements BackendUsage {
         isNoSuchMethodUsed: isNoSuchMethodUsed);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeMembers(_globalFunctionDependencies);

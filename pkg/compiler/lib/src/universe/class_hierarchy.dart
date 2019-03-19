@@ -184,6 +184,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
         commonElements, classHierarchyNodes, classSets);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeInt(_classSets.length);
@@ -231,6 +232,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
+  @override
   bool isSubtypeOf(ClassEntity x, ClassEntity y) {
     ClassSet classSet = _classSets[y];
     assert(
@@ -246,12 +248,14 @@ class ClassHierarchyImpl implements ClassHierarchy {
   }
 
   /// Return `true` if [x] is a (non-strict) subclass of [y].
+  @override
   bool isSubclassOf(ClassEntity x, ClassEntity y) {
     return _classHierarchyNodes[y].hasSubclass(_classHierarchyNodes[x]);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] possibly including [cls] itself, if it is live.
+  @override
   Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
     if (hierarchy == null) return const <ClassEntity>[];
@@ -261,6 +265,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] _not_ including [cls] itself.
+  @override
   Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return const <ClassEntity>[];
@@ -271,6 +276,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns the number of live classes that extend [cls] _not_
   /// including [cls] itself.
+  @override
   int strictSubclassCount(ClassEntity cls) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return 0;
@@ -279,6 +285,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Applies [f] to each live class that extend [cls] _not_ including [cls]
   /// itself.
+  @override
   void forEachStrictSubclassOf(
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
@@ -289,6 +296,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
+  @override
   bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
@@ -299,6 +307,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
+  @override
   Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
@@ -311,6 +320,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// _not_ including [cls].
+  @override
   Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
@@ -323,6 +333,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns the number of live classes that implement [cls] _not_
   /// including [cls] itself.
+  @override
   int strictSubtypeCount(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) return 0;
@@ -331,6 +342,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
+  @override
   void forEachStrictSubtypeOf(
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
     ClassSet classSet = _classSets[cls];
@@ -341,6 +353,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
+  @override
   bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) return false;
@@ -350,6 +363,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   }
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
+  @override
   bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b) {
     ClassSet classSetA = _classSets[a];
     ClassSet classSetB = _classSets[b];
@@ -366,6 +380,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns `true` if any directly instantiated class other than [cls] extends
   /// [cls].
+  @override
   bool hasAnyStrictSubclass(ClassEntity cls) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
@@ -374,12 +389,14 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   /// Returns `true` if any directly instantiated class other than [cls]
   /// implements [cls].
+  @override
   bool hasAnyStrictSubtype(ClassEntity cls) {
     return strictSubtypeCount(cls) > 0;
   }
 
   /// Returns `true` if all directly instantiated classes that implement [cls]
   /// extend it.
+  @override
   bool hasOnlySubclasses(ClassEntity cls) {
     // TODO(johnniwinther): move this to ClassSet?
     if (cls == _commonElements.objectClass) return true;
@@ -391,6 +408,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
     return classSet.hasOnlyInstantiatedSubclasses;
   }
 
+  @override
   SubclassResult commonSubclasses(ClassEntity cls1, ClassQuery query1,
       ClassEntity cls2, ClassQuery query2) {
     if (query1 == ClassQuery.EXACT && query2 == ClassQuery.EXACT) {
@@ -541,6 +559,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   ///
   /// This method is only provided for testing. For queries on classes, use the
   /// methods defined in [JClosedWorld].
+  @override
   ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
     return _classHierarchyNodes[cls];
   }
@@ -550,6 +569,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   ///
   /// This method is only provided for testing. For queries on classes, use the
   /// methods defined in [JClosedWorld].
+  @override
   ClassSet getClassSet(ClassEntity cls) {
     return _classSets[cls];
   }
@@ -1004,5 +1024,6 @@ class SubclassResult {
   static const SubclassResult SUBTYPE2 =
       const SubclassResult.internal(SubclassResultKind.SUBTYPE2);
 
+  @override
   String toString() => 'SubclassResult($kind,classes=$classes)';
 }

@@ -18,13 +18,13 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
 import '../../resource_utils.dart';
-import '../context/abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -40,10 +40,10 @@ final isGenerateOptionsErrorsTask =
     new TypeMatcher<GenerateOptionsErrorsTask>();
 
 @reflectiveTest
-class ContextConfigurationTest extends AbstractContextTest {
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+class ContextConfigurationTest {
+  final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
 
-  AnalysisOptions get analysisOptions => context.analysisOptions;
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   void configureContext(String optionsSource) =>
       applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
@@ -262,7 +262,7 @@ class ErrorProcessorMatcher extends Matcher {
 }
 
 @reflectiveTest
-class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
+class GenerateOldOptionsErrorsTaskTest with ResourceProviderMixin {
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
   String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
@@ -288,7 +288,7 @@ analyzer:
   }
 
   void validate(String content, List<ErrorCode> expected) {
-    final Source source = newSource(optionsFilePath, content);
+    final source = newFile(optionsFilePath, content: content).createSource();
     var options = optionsProvider.getOptionsFromSource(source);
     final OptionsFileValidator validator = new OptionsFileValidator(source);
     var errors = validator.validate(options);
@@ -376,14 +376,6 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
-  test_analyzer_strong_mode_unsupported_value() {
-    validate('''
-analyzer:
-  strong-mode:
-    implicit-dynamic: foo
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
-  }
-
   test_analyzer_lint_codes_recognized() {
     Registry.ruleRegistry.register(new TestRule());
     validate('''
@@ -429,6 +421,14 @@ analyzer:
   strong-mode:
     unsupported: true
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+  }
+
+  test_analyzer_strong_mode_unsupported_value() {
+    validate('''
+analyzer:
+  strong-mode:
+    implicit-dynamic: foo
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_supported_exclude() {

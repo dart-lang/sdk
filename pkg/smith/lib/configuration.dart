@@ -249,6 +249,7 @@ class Configuration {
         name, architecture, compiler, mode, runtime, system,
         builderTag: stringOption("builder-tag"),
         vmOptions: stringListOption("vm-options"),
+        dart2jsOptions: stringListOption("dart2js-options"),
         timeout: intOption("timeout"),
         enableAsserts: boolOption("enable-asserts"),
         isChecked: boolOption("checked"),
@@ -259,8 +260,6 @@ class Configuration {
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
-        useDart2JSWithKernel: boolOption("dart2js-with-kernel"),
-        useDart2JSOldFrontEnd: boolOption("dart2js-old-frontend"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
         useSdk: boolOption("use-sdk"));
@@ -289,6 +288,8 @@ class Configuration {
 
   final List<String> vmOptions;
 
+  final List<String> dart2jsOptions;
+
   int timeout;
 
   final bool enableAsserts;
@@ -313,10 +314,6 @@ class Configuration {
   // TODO(rnystrom): What is this?
   final bool useBlobs;
 
-  // TODO(rnystrom): Remove these when Dart 1.0 is no longer supported.
-  final bool useDart2JSWithKernel;
-  final bool useDart2JSOldFrontEnd;
-
   final bool useHotReload;
   final bool useHotReloadRollback;
 
@@ -326,6 +323,7 @@ class Configuration {
       this.runtime, this.system,
       {String builderTag,
       List<String> vmOptions,
+      List<String> dart2jsOptions,
       int timeout,
       bool enableAsserts,
       bool isChecked,
@@ -336,13 +334,12 @@ class Configuration {
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
       bool useBlobs,
-      bool useDart2JSWithKernel,
-      bool useDart2JSOldFrontEnd,
       bool useHotReload,
       bool useHotReloadRollback,
       bool useSdk})
       : builderTag = builderTag ?? "",
         vmOptions = vmOptions ?? <String>[],
+        dart2jsOptions = dart2jsOptions ?? <String>[],
         timeout = timeout,
         enableAsserts = enableAsserts ?? false,
         isChecked = isChecked ?? false,
@@ -353,8 +350,6 @@ class Configuration {
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
-        useDart2JSWithKernel = useDart2JSWithKernel ?? false,
-        useDart2JSOldFrontEnd = useDart2JSOldFrontEnd ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
         useSdk = useSdk ?? false;
@@ -369,6 +364,7 @@ class Configuration {
       system == other.system &&
       builderTag == other.builderTag &&
       vmOptions.join(" & ") == other.vmOptions.join(" & ") &&
+      dart2jsOptions.join(" & ") == other.dart2jsOptions.join(" & ") &&
       timeout == other.timeout &&
       enableAsserts == other.enableAsserts &&
       isChecked == other.isChecked &&
@@ -379,8 +375,6 @@ class Configuration {
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
-      useDart2JSWithKernel == other.useDart2JSWithKernel &&
-      useDart2JSOldFrontEnd == other.useDart2JSOldFrontEnd &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
       useSdk == other.useSdk;
@@ -400,6 +394,7 @@ class Configuration {
       system.hashCode ^
       builderTag.hashCode ^
       vmOptions.join(" & ").hashCode ^
+      dart2jsOptions.join(" & ").hashCode ^
       timeout.hashCode ^
       _toBinary([
         enableAsserts,
@@ -411,8 +406,6 @@ class Configuration {
         useAnalyzerCfe,
         useAnalyzerFastaParser,
         useBlobs,
-        useDart2JSWithKernel,
-        useDart2JSOldFrontEnd,
         useHotReload,
         useHotReloadRollback,
         useSdk
@@ -432,6 +425,8 @@ class Configuration {
 
     if (builderTag != "") fields.add("builder-tag: $builderTag");
     if (vmOptions != "") fields.add("vm-options: [${vmOptions.join(", ")}]");
+    if (dart2jsOptions != "")
+      fields.add("dart2js-options: [${dart2jsOptions.join(", ")}]");
     if (timeout != 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");
@@ -442,8 +437,6 @@ class Configuration {
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
     if (useBlobs) fields.add("use-blobs");
-    if (useDart2JSWithKernel) fields.add("dart2js-with-kernel");
-    if (useDart2JSOldFrontEnd) fields.add("dart2js-old-frontend");
     if (useHotReload) fields.add("hot-reload");
     if (useHotReloadRollback) fields.add("hot-reload-rollback");
     if (useSdk) fields.add("use-sdk");
@@ -475,6 +468,11 @@ class Configuration {
       var otherTag = "[${other.vmOptions.join(", ")}]";
       fields.add("vm-options: $tag $otherTag");
     }
+    if (dart2jsOptions != "" || other.dart2jsOptions != "") {
+      var tag = "[${dart2jsOptions.join(", ")}]";
+      var otherTag = "[${other.dart2jsOptions.join(", ")}]";
+      fields.add("dart2js-options: $tag $otherTag");
+    }
     fields.add("timeout: $timeout ${other.timeout}");
     if (enableAsserts || other.enableAsserts) {
       fields.add("enable-asserts $enableAsserts ${other.enableAsserts}");
@@ -503,14 +501,6 @@ class Configuration {
     }
     if (useBlobs || other.useBlobs) {
       fields.add("useBlobs $useBlobs ${other.useBlobs}");
-    }
-    if (useDart2JSWithKernel || other.useDart2JSWithKernel) {
-      fields.add("useDart2JSWithKernel "
-          "$useDart2JSWithKernel ${other.useDart2JSWithKernel}");
-    }
-    if (useDart2JSOldFrontEnd || other.useDart2JSOldFrontEnd) {
-      fields.add("useDart2JSOldFrontEnd "
-          "$useDart2JSOldFrontEnd ${other.useDart2JSOldFrontEnd}");
     }
     if (useHotReload || other.useHotReload) {
       fields.add("useHotReload $useHotReload ${other.useHotReload}");

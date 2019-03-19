@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -663,20 +664,33 @@ class CompletionTargetTest extends _Base {
     assertTarget('new C();', '{var f; {var x;} new C();}');
   }
 
-  test_MapLiteralEntry() async {
-    // MapLiteralEntry  MapLiteral  VariableDeclaration
+  test_MapLiteral_expression() async {
+    super.setUp();
+    final experimentStatus =
+        (this.driver.analysisOptions as analyzer.AnalysisOptionsImpl)
+            .experimentStatus;
+    if (experimentStatus.control_flow_collections ||
+        experimentStatus.spread_collections) {
+      // SimpleIdentifier  MapLiteral  VariableDeclaration
+      await createTarget('foo = {1: 2, T^');
+      assertTarget('T', '{1 : 2, T}');
+    } else {
+      // TODO(b/35569): remove this branch of test behavior
+
+      // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
+      await createTarget('foo = {1: 2, T^');
+      assertTarget('T : ', '{1 : 2, T : }');
+    }
+  }
+
+  test_MapLiteral_empty() async {
+    // MapLiteral  VariableDeclaration
     await createTarget('foo = {^');
     // fasta scanner inserts synthetic closing '}'
     assertTarget('}', '{}');
   }
 
-  test_MapLiteralEntry1() async {
-    // MapLiteralEntry  MapLiteral  VariableDeclaration
-    await createTarget('foo = {1: 2, T^');
-    assertTarget('T : ', '{1 : 2, T : }');
-  }
-
-  test_MapLiteralEntry2() async {
+  test_MapLiteralEntry() async {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
     await createTarget('foo = {7:T^};');
     assertTarget('T', '7 : T');

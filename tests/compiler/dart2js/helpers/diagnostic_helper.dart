@@ -25,6 +25,7 @@ class CollectedMessage {
 
   MessageKind get messageKind => message?.kind;
 
+  @override
   String toString() {
     return '${message != null ? message.kind : ''}'
         ':$uri:$begin:$end:$text:$kind';

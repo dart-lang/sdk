@@ -1511,6 +1511,25 @@ class BinaryBuilder {
         int offset = readOffset();
         return new StringConcatenation(readExpressionList())
           ..fileOffset = offset;
+      case Tag.ListConcatenation:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new ListConcatenation(readExpressionList(),
+            typeArgument: typeArgument)
+          ..fileOffset = offset;
+      case Tag.SetConcatenation:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetConcatenation(readExpressionList(),
+            typeArgument: typeArgument)
+          ..fileOffset = offset;
+      case Tag.MapConcatenation:
+        int offset = readOffset();
+        var keyType = readDartType();
+        var valueType = readDartType();
+        return new MapConcatenation(readExpressionList(),
+            keyType: keyType, valueType: valueType)
+          ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
         return new IsExpression(readExpression(), readDartType())

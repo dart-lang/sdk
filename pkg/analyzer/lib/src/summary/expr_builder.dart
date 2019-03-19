@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 
-bool _isSetOrMapEnabled(ExperimentStatus experimentStatus) =>
+bool _isSpreadOrControlFlowEnabled(ExperimentStatus experimentStatus) =>
     experimentStatus.spread_collections ||
     experimentStatus.control_flow_collections;
 
@@ -31,7 +31,8 @@ class ExprBuilder {
   final ElementImpl context;
   final UnlinkedExpr _uc;
   final bool requireValidConst;
-  final bool useSetOrMap;
+  final bool isSpreadOrControlFlowEnabled;
+  final bool becomeSetOrMap;
 
   int intPtr = 0;
   int doublePtr = 0;
@@ -47,15 +48,20 @@ class ExprBuilder {
 
   final Map<String, ParameterElement> parametersInScope;
 
-  ExprBuilder(this.resynthesizer, this.context, this._uc,
-      {this.requireValidConst: true,
-      this.localFunctions,
-      Map<String, ParameterElement> parametersInScope})
-      : this.parametersInScope =
+  ExprBuilder(
+    this.resynthesizer,
+    this.context,
+    this._uc, {
+    this.requireValidConst: true,
+    this.localFunctions,
+    Map<String, ParameterElement> parametersInScope,
+    this.becomeSetOrMap: true,
+  })  : this.parametersInScope =
             parametersInScope ?? _parametersInScope(context),
-        this.useSetOrMap = _isSetOrMapEnabled((resynthesizer
-                .library.context.analysisOptions as AnalysisOptionsImpl)
-            .experimentStatus);
+        this.isSpreadOrControlFlowEnabled = _isSpreadOrControlFlowEnabled(
+            (resynthesizer.library.context.analysisOptions
+                    as AnalysisOptionsImpl)
+                .experimentStatus);
 
   bool get hasNonEmptyExpr => _uc != null && _uc.operations.isNotEmpty;
 
@@ -234,7 +240,7 @@ class ExprBuilder {
           break;
         case UnlinkedExprOperation.makeTypedSet:
           TypeAnnotation itemType = _newTypeName();
-          if (useSetOrMap) {
+          if (isSpreadOrControlFlowEnabled) {
             _pushSetOrMap(
                 AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
           } else {
@@ -310,6 +316,18 @@ class ExprBuilder {
           break;
         case UnlinkedExprOperation.pushThis:
           _push(AstTestFactory.thisExpression());
+          break;
+        case UnlinkedExprOperation.spreadElement:
+          _pushSpread(TokenType.PERIOD_PERIOD_PERIOD);
+          break;
+        case UnlinkedExprOperation.nullAwareSpreadElement:
+          _pushSpread(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
+          break;
+        case UnlinkedExprOperation.ifElement:
+          _pushIfElement(false);
+          break;
+        case UnlinkedExprOperation.ifElseElement:
+          _pushIfElement(true);
           break;
         case UnlinkedExprOperation.cascadeSectionBegin:
         case UnlinkedExprOperation.cascadeSectionEnd:
@@ -613,7 +631,7 @@ class ExprBuilder {
 
   CollectionElement _popCollectionElement() => stack.removeLast();
 
-  void _push(Expression expr) {
+  void _push(CollectionElement expr) {
     stack.add(expr);
   }
 
@@ -636,6 +654,13 @@ class ExprBuilder {
       propertyNode.staticElement = _getStringLengthElement();
     }
     _push(AstTestFactory.propertyAccess(target, propertyNode));
+  }
+
+  void _pushIfElement(bool hasElse) {
+    CollectionElement elseElement = hasElse ? _popCollectionElement() : null;
+    CollectionElement thenElement = _popCollectionElement();
+    Expression condition = _pop();
+    _push(AstTestFactory.ifElement(condition, thenElement, elseElement));
   }
 
   void _pushInstanceCreation() {
@@ -750,9 +775,10 @@ class ExprBuilder {
 
   void _pushList(TypeArgumentList typeArguments) {
     int count = _uc.ints[intPtr++];
-    List<Expression> elements = <Expression>[];
+    List<CollectionElement> elements =
+        isSpreadOrControlFlowEnabled ? <CollectionElement>[] : <Expression>[];
     for (int i = 0; i < count; i++) {
-      elements.insert(0, _pop());
+      elements.insert(0, _popCollectionElement());
     }
     var typeArg = typeArguments == null
         ? resynthesizer.typeProvider.dynamicType
@@ -825,7 +851,7 @@ class ExprBuilder {
         : typeArguments.arguments[1].type;
     var staticType =
         resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
-    if (useSetOrMap) {
+    if (isSpreadOrControlFlowEnabled) {
       _push(
           AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries)
             ..staticType = staticType);
@@ -865,27 +891,54 @@ class ExprBuilder {
     int count = _uc.ints[intPtr++];
     List<CollectionElement> elements = <CollectionElement>[];
     for (int i = 0; i < count; i++) {
-      elements.add(_popCollectionElement());
+      elements.insert(0, _popCollectionElement());
     }
+
+    bool isMap = true; // assume Map unless can prove otherwise
     DartType staticType;
-    if (typeArguments != null && typeArguments.arguments.length == 2) {
-      var keyType = typeArguments.arguments[0].type;
-      var valueType = typeArguments.arguments[1].type;
-      staticType =
-          resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
-    } else if (typeArguments != null && typeArguments.arguments.length == 1) {
-      var valueType = typeArguments == null
-          ? resynthesizer.typeProvider.dynamicType
-          : typeArguments.arguments[0].type;
-      staticType = resynthesizer.typeProvider.setType.instantiate([valueType]);
+    if (typeArguments != null) {
+      if (typeArguments.arguments.length == 2) {
+        var keyType = typeArguments.arguments[0].type;
+        var valueType = typeArguments.arguments[1].type;
+        staticType = resynthesizer.typeProvider.mapType
+            .instantiate([keyType, valueType]);
+      } else if (typeArguments.arguments.length == 1) {
+        isMap = false;
+        var valueType = typeArguments == null
+            ? resynthesizer.typeProvider.dynamicType
+            : typeArguments.arguments[0].type;
+        staticType =
+            resynthesizer.typeProvider.setType.instantiate([valueType]);
+      }
+    } else {
+      for (var i = 0; i < elements.length; ++i) {
+        var element = elements[i];
+        if (element is Expression) {
+          isMap = false;
+        }
+      }
     }
-    _push(astFactory.setOrMapLiteral(
-        constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
-        typeArguments: typeArguments,
-        leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-        elements: elements,
-        rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET))
-      ..staticType = staticType);
+
+    SetOrMapLiteral setOrMapLiteral = astFactory.setOrMapLiteral(
+      constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
+      typeArguments: typeArguments,
+      leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+      elements: elements,
+      rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
+    );
+    if (becomeSetOrMap) {
+      if (isMap) {
+        (setOrMapLiteral as SetOrMapLiteralImpl).becomeMap();
+      } else {
+        (setOrMapLiteral as SetOrMapLiteralImpl).becomeSet();
+      }
+    }
+    _push(setOrMapLiteral..staticType = staticType);
+  }
+
+  void _pushSpread(TokenType operator) {
+    Expression operand = _pop();
+    _push(AstTestFactory.spreadElement(operator, operand));
   }
 
   List<Expression> _removeTopExpressions(int count) {

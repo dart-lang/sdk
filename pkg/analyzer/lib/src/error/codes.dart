@@ -213,6 +213,26 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the export of one of the libraries, or "
               "explicitly hiding the name in one of the export directives.");
 
+  static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH =
+      const CompileTimeErrorCode(
+          'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
+          "This literal must be both a map and a set, because some elements "
+          "spread a 'Map' and others spread an 'Iterable', but that isn't "
+          "allowed.",
+          correction:
+              "Try removing or changing some of the elements so that all of "
+              "the elements are consistent.");
+
+  static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER =
+      const CompileTimeErrorCode(
+          'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
+          "This literal must be either a map or a set, but none of the "
+          "elements have enough type information to know which, and that isn't "
+          "allowed.",
+          correction:
+              "Try adding type arguments to the literal (one for sets, two "
+              "for maps).");
+
   /**
    * 15 Metadata: The constant expression given in an annotation is type checked
    * and evaluated in the scope surrounding the declaration being annotated.
@@ -634,6 +654,14 @@ class CompileTimeErrorCode extends ErrorCode {
           correction:
               "Try declaring the field as final, or adding the keyword 'static'.");
 
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
+      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
+          "A list or a set is expected in this spread.");
+
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
+      const CompileTimeErrorCode(
+          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
+
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant
    * map literal is an instance of a class that implements the operator
@@ -972,6 +1000,12 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('EXPORT_OF_NON_LIBRARY',
           "The exported library '{0}' can't have a part-of directive.",
           correction: "Try exporting the library that the part is a part of.");
+
+  static const CompileTimeErrorCode EXPRESSION_IN_MAP =
+      const CompileTimeErrorCode(
+          'EXPRESSION_IN_MAP', "Expressions cannot be used in a map literal.",
+          correction:
+              "Try removing the expression or converting it to be a map entry.");
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
@@ -1691,6 +1725,12 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
 
+  static const CompileTimeErrorCode MAP_ENTRY_NOT_IN_MAP =
+      const CompileTimeErrorCode('MAP_ENTRY_NOT_IN_MAP',
+          "Map entries can only be used in a map literal.",
+          correction:
+              "Try converting the collection to a map or removing the map entry.");
+
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
    * with the same name as <i>C</i>.
@@ -2238,6 +2278,14 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('NOT_ENOUGH_REQUIRED_ARGUMENTS',
           "{0} required argument(s) expected, but {1} found.",
           correction: "Try adding the missing arguments.");
+
+  static const CompileTimeErrorCode NOT_ITERABLE_SPREAD =
+      const CompileTimeErrorCode('NOT_ITERABLE_SPREAD',
+          "Spread elements in list or set literals must implement 'Iterable'.");
+
+  static const CompileTimeErrorCode NOT_MAP_SPREAD = const CompileTimeErrorCode(
+      'NOT_MAP_SPREAD',
+      "Spread elements in map literals must implement 'Map'.");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the

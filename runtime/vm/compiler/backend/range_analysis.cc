@@ -699,7 +699,6 @@ class Scheduler {
         last, instr, last->env(),
         instr->IsDefinition() ? FlowGraph::kValue : FlowGraph::kEffect);
     instr->CopyDeoptIdFrom(*last);
-    instr->env()->set_deopt_id(instr->deopt_id_);
 
     map_.Insert(instr);
     emitted_.Add(instr);
@@ -2606,6 +2605,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kTypedData_length:
+    case Slot::Kind::kTypedDataView_length:
+    case Slot::Kind::kTypedDataView_offset_in_bytes:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
 
@@ -2630,6 +2631,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kPointer_c_memory_address:
+    case Slot::Kind::kTypedDataView_data:
       // Not an integer valued field.
       UNREACHABLE();
       break;

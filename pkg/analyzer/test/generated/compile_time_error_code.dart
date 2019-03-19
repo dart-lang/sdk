@@ -1234,79 +1234,6 @@ class C {
     verify([source]);
   }
 
-  test_constMapKeyTypeImplementsEquals_direct() async {
-    Source source = addSource(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-main() {
-  const {const A() : 0};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
-  test_constMapKeyTypeImplementsEquals_dynamic() async {
-    // Note: static type of B.a is "dynamic", but actual type of the const
-    // object is A.  We need to make sure we examine the actual type when
-    // deciding whether there is a problem with operator==.
-    Source source = addSource(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-class B {
-  static const a = const A();
-}
-main() {
-  const {B.a : 0};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
-  test_constMapKeyTypeImplementsEquals_factory() async {
-    Source source = addSource(r'''
-class A { const factory A() = B; }
-
-class B implements A {
-  const B();
-
-  operator ==(o) => true;
-}
-
-main() {
-  var m = const { const A(): 42 };
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
-  test_constMapKeyTypeImplementsEquals_super() async {
-    Source source = addSource(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-class B extends A {
-  const B();
-}
-main() {
-  const {const B() : 0};
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
-    verify([source]);
-  }
-
   test_constWithInvalidTypeParameters() async {
     Source source = addSource(r'''
 class A {
@@ -1491,7 +1418,6 @@ typedef F = int Function({Map<String, String> m: const {}});
     await computeAnalysisResult(source);
     assertErrors(source, [
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
-      StrongModeCode.INVALID_CAST_LITERAL_MAP
     ]);
     verify([source]);
   }
@@ -1503,7 +1429,6 @@ typedef F = int Function([Map<String, String> m = const {}]);
     await computeAnalysisResult(source);
     assertErrors(source, [
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
-      StrongModeCode.INVALID_CAST_LITERAL_MAP
     ]);
     verify([source]);
   }

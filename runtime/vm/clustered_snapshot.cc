@@ -3372,7 +3372,8 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(
           data, cid_, TypedData::InstanceSize(length_in_bytes), is_canonical);
       data->ptr()->length_ = Smi::New(length);
-      uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data());
+      data->ResetData();
+      uint8_t* cdata = data->ptr()->data();
       d->ReadBytes(cdata, length_in_bytes);
     }
   }
@@ -4251,7 +4252,10 @@ void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
   ASSERT(code != Code::null());
 
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
-  ASSERT(offset != 0);
+  if (offset == 0) {
+    // Code should have been removed by DropCodeWithoutReusableInstructions.
+    UnexpectedObject(code, "Expected instructions to reuse");
+  }
   Write<int32_t>(offset);
 
   // If offset < 0, it's pointing to a shared instruction. We don't profile
