@@ -425,6 +425,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Set<TreeNode> unevaluatedNodes;
   Set<Expression> replacementNodes;
 
+  int lazyDepth; // Current nesting depth of lazy regions.
+
   bool get targetingJavaScript => numberSemantics == NumberSemantics.js;
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
@@ -456,6 +458,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// an error occurred during constant evaluation.
   Constant evaluate(Expression node) {
     evaluationRoot = node;
+    lazyDepth = 0;
     try {
       return _evaluateSubexpression(node);
     } on _AbortDueToError catch (e) {
@@ -520,8 +523,21 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return expression;
   }
 
+  /// Enter a region of lazy evaluation. All leaf nodes are evaluated normally
+  /// (to ensure inlining of referenced local variables), but composite nodes
+  /// always treat their children as unevaluated, resulting in a partially
+  /// evaluated clone of the original expression tree.
+  /// Lazy evaluation is used for the subtrees of lazy operations with
+  /// unevaluated conditions to ensure no errors are reported for problems
+  /// in the subtree as long as the subtree is potentially constant.
+  void enterLazy() => lazyDepth++;
+
+  /// Leave a (possibly nested) region of lazy evaluation.
+  void leaveLazy() => lazyDepth--;
+
   /// Should this node become unevaluated because of an unevaluated child?
   bool hasUnevaluatedChild(TreeNode node) {
+    if (lazyDepth != 0) return true;
     return unevaluatedNodes != null && unevaluatedNodes.contains(node);
   }
 
@@ -661,19 +677,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('Map'));
     }
-    final Set<Constant> usedKeys = new Set<Constant>();
     final List<ConstantMapEntry> entries =
         new List<ConstantMapEntry>(node.entries.length);
     for (int i = 0; i < node.entries.length; ++i) {
       final key = _evaluateSubexpression(node.entries[i].key);
       final value = _evaluateSubexpression(node.entries[i].value);
-      if (!usedKeys.add(key)) {
-        // TODO(kustermann): We should change the context handling from just
-        // capturing the `TreeNode`s to a `(TreeNode, String message)` tuple and
-        // report where the first key with the same value was.
-        return report(
-            node.entries[i], templateConstEvalDuplicateKey.withArguments(key));
-      }
       entries[i] = new ConstantMapEntry(key, value);
     }
     if (hasUnevaluatedChild(node)) {
@@ -686,6 +694,16 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           node,
           new MapLiteral(mapEntries,
               keyType: node.keyType, valueType: node.valueType, isConst: true));
+    }
+    final Set<Constant> usedKeys = new Set<Constant>();
+    for (int i = 0; i < node.entries.length; ++i) {
+      if (!usedKeys.add(entries[i].key)) {
+        // TODO(kustermann): We should change the context handling from just
+        // capturing the `TreeNode`s to a `(TreeNode, String message)` tuple and
+        // report where the first key with the same value was.
+        return report(node.entries[i],
+            templateConstEvalDuplicateKey.withArguments(entries[i].key));
+      }
     }
     final DartType keyType = evaluateDartType(node, node.keyType);
     final DartType valueType = evaluateDartType(node, node.valueType);
@@ -1144,11 +1162,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   visitLogicalExpression(LogicalExpression node) {
     final Constant left = _evaluateSubexpression(node.left);
-    if (left is UnevaluatedConstant) {
+    if (hasUnevaluatedChild(node)) {
+      enterLazy();
+      Constant right = _evaluateSubexpression(node.right);
+      leaveLazy();
       return unevaluated(
           node,
-          new LogicalExpression(unique(left.expression), node.operator,
-              cloner.clone(node.right)));
+          new LogicalExpression(unique(left.asExpression()), node.operator,
+              unique(right.asExpression())));
     }
     switch (node.operator) {
       case '||':
@@ -1211,13 +1232,17 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return _evaluateSubexpression(node.then);
     } else if (condition == falseConstant) {
       return _evaluateSubexpression(node.otherwise);
-    } else if (condition is UnevaluatedConstant) {
+    } else if (hasUnevaluatedChild(node)) {
+      enterLazy();
+      Constant then = _evaluateSubexpression(node.then);
+      Constant otherwise = _evaluateSubexpression(node.otherwise);
+      leaveLazy();
       return unevaluated(
           node,
           new ConditionalExpression(
-              unique(condition.expression),
-              cloner.clone(node.then),
-              cloner.clone(node.otherwise),
+              unique(condition.asExpression()),
+              unique(then.asExpression()),
+              unique(otherwise.asExpression()),
               node.staticType));
     } else {
       return report(
@@ -1247,11 +1272,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           return receiver.fieldValues[fieldRef];
         }
       }
-    } else if (receiver is UnevaluatedConstant) {
+    } else if (hasUnevaluatedChild(node)) {
       return unevaluated(
           node,
-          new PropertyGet(
-              unique(receiver.expression), node.name, node.interfaceTarget));
+          new PropertyGet(unique(receiver.asExpression()), node.name,
+              node.interfaceTarget));
     } else if (receiver is NullConstant) {
       return report(node, messageConstEvalNullValue);
     }
@@ -1330,7 +1355,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         } else {
           concatenated.add(new StringBuffer(value));
         }
-      } else if (constant is UnevaluatedConstant) {
+      } else if (hasUnevaluatedChild(node)) {
         concatenated.add(constant);
       } else {
         return report(
@@ -1446,9 +1471,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
-    if (constant is UnevaluatedConstant) {
+    if (hasUnevaluatedChild(node)) {
       return unevaluated(
-          node, new AsExpression(unique(constant.expression), node.type));
+          node, new AsExpression(unique(constant.asExpression()), node.type));
     }
     ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
     return constant;
@@ -1459,8 +1484,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (constant is BoolConstant) {
       return constant == trueConstant ? falseConstant : trueConstant;
     }
-    if (constant is UnevaluatedConstant) {
-      return unevaluated(node, new Not(unique(constant.expression)));
+    if (hasUnevaluatedChild(node)) {
+      return unevaluated(node, new Not(unique(constant.asExpression())));
     }
     return report(
         node,
@@ -1476,6 +1501,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   visitInstantiation(Instantiation node) {
     final Constant constant = _evaluateSubexpression(node.expression);
+    if (hasUnevaluatedChild(node)) {
+      return unevaluated(
+          node,
+          new Instantiation(
+              unique(constant.asExpression()), node.typeArguments));
+    }
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==
           constant.procedure.function.typeParameters.length) {
@@ -1486,10 +1517,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       throw new Exception(
           'The number of type arguments supplied in the partial instantiation '
           'does not match the number of type arguments of the $constant.');
-    }
-    if (constant is UnevaluatedConstant) {
-      return unevaluated(node,
-          new Instantiation(unique(constant.expression), node.typeArguments));
     }
     // The inner expression in an instantiation can never be null, since
     // instantiations are only inferred on direct references to declarations.
