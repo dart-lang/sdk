@@ -510,11 +510,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return new UnevaluatedConstant(replacement);
   }
 
-  /// Called whenever an expression is extracted from an unevaluated constant
-  /// to become part of the expression tree of another unevaluated constant.
+  /// Extract an expression from a (possibly unevaluated) constant to become
+  /// part of the expression tree of another unevaluated constant.
   /// Makes sure a particular expression occurs only once in the tree by
   /// cloning further instances.
-  Expression unique(Expression expression) {
+  Expression extract(Constant constant) {
+    Expression expression = constant.asExpression();
     replacementNodes ??= new Set<Expression>.identity();
     if (!replacementNodes.add(expression)) {
       expression = cloner.clone(expression);
@@ -636,7 +637,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (hasUnevaluatedChild(node)) {
       final expressions = new List<Expression>(node.expressions.length);
       for (int i = 0; i < node.expressions.length; ++i) {
-        expressions[i] = unique(entries[i].asExpression());
+        expressions[i] = extract(entries[i]);
       }
       return unevaluated(
           node,
@@ -660,7 +661,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (hasUnevaluatedChild(node)) {
       final expressions = new List<Expression>(node.expressions.length);
       for (int i = 0; i < node.expressions.length; ++i) {
-        expressions[i] = unique(entries[i].asExpression());
+        expressions[i] = extract(entries[i]);
       }
       return unevaluated(
           node,
@@ -687,8 +688,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (hasUnevaluatedChild(node)) {
       final mapEntries = new List<MapEntry>(node.entries.length);
       for (int i = 0; i < node.entries.length; ++i) {
-        mapEntries[i] = new MapEntry(unique(entries[i].key.asExpression()),
-            unique(entries[i].value.asExpression()));
+        mapEntries[i] =
+            new MapEntry(extract(entries[i].key), extract(entries[i].value));
       }
       return unevaluated(
           node,
@@ -1029,7 +1030,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (hasUnevaluatedChild(node)) {
       return unevaluated(
           node,
-          new MethodInvocation(unique(receiver.asExpression()), node.name,
+          new MethodInvocation(extract(receiver), node.name,
               unevaluatedArguments(arguments, {}, node.arguments.types)));
     }
 
@@ -1166,10 +1167,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       enterLazy();
       Constant right = _evaluateSubexpression(node.right);
       leaveLazy();
-      return unevaluated(
-          node,
-          new LogicalExpression(unique(left.asExpression()), node.operator,
-              unique(right.asExpression())));
+      return unevaluated(node,
+          new LogicalExpression(extract(left), node.operator, extract(right)));
     }
     switch (node.operator) {
       case '||':
@@ -1239,11 +1238,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       leaveLazy();
       return unevaluated(
           node,
-          new ConditionalExpression(
-              unique(condition.asExpression()),
-              unique(then.asExpression()),
-              unique(otherwise.asExpression()),
-              node.staticType));
+          new ConditionalExpression(extract(condition), extract(then),
+              extract(otherwise), node.staticType));
     } else {
       return report(
           node,
@@ -1273,10 +1269,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         }
       }
     } else if (hasUnevaluatedChild(node)) {
-      return unevaluated(
-          node,
-          new PropertyGet(unique(receiver.asExpression()), node.name,
-              node.interfaceTarget));
+      return unevaluated(node,
+          new PropertyGet(extract(receiver), node.name, node.interfaceTarget));
     } else if (receiver is NullConstant) {
       return report(node, messageConstEvalNullValue);
     }
@@ -1369,7 +1363,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       for (int i = 0; i < concatenated.length; i++) {
         Object value = concatenated[i];
         if (value is UnevaluatedConstant) {
-          expressions[i] = unique(value.expression);
+          expressions[i] = extract(value);
         } else {
           expressions[i] = new ConstantExpression(
               canonicalize(new StringConstant(value.toString())));
@@ -1472,8 +1466,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (hasUnevaluatedChild(node)) {
-      return unevaluated(
-          node, new AsExpression(unique(constant.asExpression()), node.type));
+      return unevaluated(node, new AsExpression(extract(constant), node.type));
     }
     ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
     return constant;
@@ -1485,7 +1478,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return constant == trueConstant ? falseConstant : trueConstant;
     }
     if (hasUnevaluatedChild(node)) {
-      return unevaluated(node, new Not(unique(constant.asExpression())));
+      return unevaluated(node, new Not(extract(constant)));
     }
     return report(
         node,
@@ -1503,9 +1496,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final Constant constant = _evaluateSubexpression(node.expression);
     if (hasUnevaluatedChild(node)) {
       return unevaluated(
-          node,
-          new Instantiation(
-              unique(constant.asExpression()), node.typeArguments));
+          node, new Instantiation(extract(constant), node.typeArguments));
     }
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==
@@ -1602,11 +1593,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final positional = new List<Expression>(positionalArgs.length);
     final named = new List<NamedExpression>(namedArgs.length);
     for (int i = 0; i < positionalArgs.length; ++i) {
-      positional[i] = unique(positionalArgs[i].asExpression());
+      positional[i] = extract(positionalArgs[i]);
     }
     int i = 0;
     namedArgs.forEach((String name, Constant value) {
-      named[i++] = new NamedExpression(name, unique(value.asExpression()));
+      named[i++] = new NamedExpression(name, extract(value));
     });
     return new Arguments(positional, named: named, types: types);
   }
