@@ -419,6 +419,12 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   }
 #endif  // !defined(PRODUCT)
 
+  if (function.is_intrinsic() &&
+      (function.usage_counter() < Function::kGraceUsageCounter)) {
+    // Intrinsic functions may execute without incrementing their usage counter.
+    // Give them a non-zero initial usage to prevent premature code collection.
+    function.set_usage_counter(Function::kGraceUsageCounter);
+  }
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.

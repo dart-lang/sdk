@@ -303,9 +303,8 @@ RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
     return Object::null();
   }
   // Prevent premature code collection due to major GC during startup.
-  const intptr_t kFakeInitialUsage = 32;
-  if (function.usage_counter() < kFakeInitialUsage) {
-    function.set_usage_counter(kFakeInitialUsage);
+  if (function.usage_counter() < Function::kGraceUsageCounter) {
+    function.set_usage_counter(Function::kGraceUsageCounter);
   }
   return Compiler::CompileFunction(thread_, function);
 }

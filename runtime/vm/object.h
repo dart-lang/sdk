@@ -1954,6 +1954,9 @@ enum {
 
 class Function : public Object {
  public:
+  // A value to prevent premature code collection. lg(32) = 5 major GCs.
+  static constexpr intptr_t kGraceUsageCounter = 32;
+
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;  // Same as scrubbed name.
   RawString* QualifiedScrubbedName() const {

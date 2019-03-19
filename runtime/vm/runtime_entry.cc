@@ -1838,7 +1838,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
   }
   if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL) ||
-      FLAG_reload_every_optimized) {
+      FLAG_reload_every) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();

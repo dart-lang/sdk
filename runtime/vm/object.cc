@@ -9749,7 +9749,7 @@ static RawString* MakeFieldMetaName(Thread* thread,
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(field.name()));
+  pieces.Add(String::Handle(zone, field.name()));
   return Symbols::FromConcatAll(thread, pieces);
 }
 
@@ -9762,7 +9762,7 @@ static RawString* MakeFunctionMetaName(Thread* thread,
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(func.QualifiedScrubbedName()));
+  pieces.Add(String::Handle(zone, func.name()));
   return Symbols::FromConcatAll(thread, pieces);
 }
 
@@ -9776,7 +9776,7 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(param.name()));
+  pieces.Add(String::Handle(zone, param.name()));
   return Symbols::FromConcatAll(thread, pieces);
 }
 

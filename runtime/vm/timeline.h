@@ -457,8 +457,7 @@ class TimelineEvent {
   TimelineDurationScope tds(thread, Timeline::GetCompilerStream(), name);      \
   if (tds.enabled()) {                                                         \
     tds.SetNumArguments(1);                                                    \
-    tds.CopyArgument(0, "function",                                            \
-                     function.ToLibNamePrefixedQualifiedCString());            \
+    tds.CopyArgument(0, "function", function.ToQualifiedCString());            \
   }
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
