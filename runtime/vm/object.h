@@ -9435,7 +9435,6 @@ class ArrayOfTuplesView {
    public:
     TupleView(const Array& array, intptr_t index)
         : array_(array), index_(index) {
-      ASSERT(!array.IsNull());
     }
 
     template <EnumType kElement>
@@ -9483,6 +9482,7 @@ class ArrayOfTuplesView {
   };
 
   explicit ArrayOfTuplesView(const Array& array) : array_(array), index_(-1) {
+    ASSERT(!array.IsNull());
     ASSERT(array.Length() >= kStartOffset);
     ASSERT((array.Length() - kStartOffset) % EntrySize == kStartOffset);
   }
