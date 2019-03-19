@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'strong_test_helper.dart';
@@ -9,6 +10,7 @@ import 'strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckerTest);
+    defineReflectiveTests(CheckerTest_WithSpreadCollections);
   });
 }
 
@@ -4509,5 +4511,103 @@ const Object checked = const _Checked();
 class _Virtual { const _Virtual(); }
 const Object virtual = const _Virtual();
     ''', name: '/meta.dart');
+  }
+}
+
+@reflectiveTest
+class CheckerTest_WithSpreadCollections extends AbstractStrongTest {
+  @override
+  List<String> get enabledExperiments => [EnableString.spread_collections];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  test_spread_dynamicInList_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    addFile(
+        'dynamic dyn; void main() { [.../*error:INVALID_ASSIGNMENT*/dyn]; }');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInList_implicitCasts() async {
+    addFile('dynamic dyn; void main() { [.../*info:DYNAMIC_CAST*/dyn]; }');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInMap_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    addFile(
+        'dynamic dyn; void main() { <dynamic, dynamic>{.../*error:INVALID_ASSIGNMENT*/dyn}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInMap_implicitCasts() async {
+    addFile(
+        'dynamic dyn; void main() { <dynamic, dynamic>{.../*info:DYNAMIC_CAST*/dyn}; }');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInSet_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    addFile(
+        'dynamic dyn; void main() { <dynamic>{.../*error:INVALID_ASSIGNMENT*/dyn}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInSet_implicitCasts() async {
+    addFile(
+        'dynamic dyn; void main() { <dynamic>{.../*info:DYNAMIC_CAST*/dyn}; }');
+    await check();
+  }
+
+  test_spread_listElement_disableImplicitCasts() async {
+    addFile(
+        'Iterable<num> i; void main() { <int>[.../*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/i]; }');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_listElement_implicitCasts() async {
+    addFile(
+        'Iterable<num> i; void main() { <int>[.../*info:DOWN_CAST_IMPLICIT*/i]; }');
+    await check();
+  }
+
+  test_spread_mapKey_disableImplicitCasts() async {
+    addFile(
+        'Map<num, dynamic> map; void main() { <int, dynamic>{1: 2, .../*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/map}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_mapKey_implicitCasts() async {
+    addFile(
+        'Map<num, dynamic> map; void main() { <int, dynamic>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map}; }');
+    await check();
+  }
+
+  test_spread_mapValue_disableImplicitCasts() async {
+    addFile(
+        'Map<dynamic, num> map; void main() { <dynamic, int>{1: 2, .../*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/map}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_mapValue_implicitCasts() async {
+    addFile(
+        'Map<dynamic, num> map; void main() { <dynamic, int>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map}; }');
+    await check();
+  }
+
+  test_spread_setElement_disableImplicitCasts() async {
+    addFile(
+        'Iterable<num> i; void main() { <int>{.../*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/i}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_setElement_implicitCasts() async {
+    addFile(
+        'Iterable<num> i; void main() { <int>{.../*info:DOWN_CAST_IMPLICIT*/i}; }');
+    await check();
   }
 }

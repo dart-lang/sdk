@@ -180,12 +180,17 @@ class CodeChecker extends RecursiveAstVisitor {
           typeProvider.iterableType.instantiate([DynamicTypeImpl.instance]);
       checkAssignment(element.expression, expressionCastType);
 
-      // Items in the spread will then potentially be downcast to the expected
-      // type.
-      DartType elementsCastType =
-          typeProvider.iterableType.instantiate([expectedType]);
-      _checkImplicitCast(element.expression, elementsCastType,
-          from: element.expression.staticType, forSpread: true);
+      var exprType = element.expression.staticType;
+      var asIterableType = exprType is InterfaceTypeImpl
+          ? exprType.asInstanceOf(typeProvider.iterableType.element)
+          : null;
+      if (asIterableType != null) {
+        var elementType = asIterableType.typeArguments[0];
+        // Items in the spread will then potentially be downcast to the expected
+        // type.
+        _checkImplicitCast(element.expression, expectedType,
+            from: elementType, forSpread: true);
+      }
     }
   }
 
@@ -209,21 +214,26 @@ class CodeChecker extends RecursiveAstVisitor {
       checkAssignment(element.value, expectedValueType);
     } else if (element is SpreadElement) {
       // Spread expression may be dynamic in which case it's implicitly downcast
-      // to Iterable<dynamic>
+      // to Map<dynamic, dynamic>
       DartType expressionCastType = typeProvider.mapType
           .instantiate([DynamicTypeImpl.instance, DynamicTypeImpl.instance]);
       checkAssignment(element.expression, expressionCastType);
 
-      // The keys and values in the spread will then potentially be downcast to
-      // the expected types.
-      DartType keyCastType = typeProvider.mapType
-          .instantiate([expectedKeyType, DynamicTypeImpl.instance]);
-      _checkImplicitCast(element.expression, keyCastType,
-          from: element.expression.staticType, forSpreadKey: true);
-      DartType valueCastType = typeProvider.mapType
-          .instantiate([DynamicTypeImpl.instance, expectedValueType]);
-      _checkImplicitCast(element.expression, valueCastType,
-          from: element.expression.staticType, forSpreadValue: true);
+      var exprType = element.expression.staticType;
+      var asMapType = exprType is InterfaceTypeImpl
+          ? exprType.asInstanceOf(typeProvider.mapType.element)
+          : null;
+
+      if (asMapType != null) {
+        var elementKeyType = asMapType.typeArguments[0];
+        var elementValueType = asMapType.typeArguments[1];
+        // Keys and values in the spread will then potentially be downcast to
+        // the expected types.
+        _checkImplicitCast(element.expression, expectedKeyType,
+            from: elementKeyType, forSpreadKey: true);
+        _checkImplicitCast(element.expression, expectedValueType,
+            from: elementValueType, forSpreadValue: true);
+      }
     }
   }
 
@@ -1230,7 +1240,11 @@ class CodeChecker extends RecursiveAstVisitor {
           : StrongModeCode.DOWN_CAST_IMPLICIT;
     }
     _recordMessage(expr, errorCode, [from, to]);
-    _markImplicitCast(expr, to, opAssign: opAssign);
+    _markImplicitCast(expr, to,
+        opAssign: opAssign,
+        forSpread: forSpread,
+        forSpreadKey: forSpreadKey,
+        forSpreadValue: forSpreadValue);
   }
 
   void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {
