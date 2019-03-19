@@ -804,7 +804,11 @@ class StandardTestSuite extends TestSuite {
       var isCrashExpected = expectations.contains(Expectation.crash);
       var commands = makeCommands(info, vmOptionsVariant, allVmOptions,
           commonArguments, isCrashExpected);
-      enqueueNewTestCase(testName, commands, expectations, info);
+      var variantTestName = testName;
+      if (vmOptionsList.length > 1) {
+        variantTestName = "$testName/$vmOptionsVariant";
+      }
+      enqueueNewTestCase(variantTestName, commands, expectations, info);
     }
   }
 
