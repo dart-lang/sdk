@@ -18,6 +18,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
@@ -102,6 +103,9 @@ FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
     return null;
   }
 
+  // TODO(jmesserly): I'm not sure this method will still return the correct
+  // type. This code may need to use InheritanceManager2.getMember instead,
+  // similar to the fix in _checkImplicitCovarianceCast.
   var name = member.name;
   var baseMember = member is PropertyAccessorElement
       ? (member.isGetter ? type.getGetter(name) : type.getSetter(name))
@@ -114,6 +118,7 @@ FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
 class CodeChecker extends RecursiveAstVisitor {
   final Dart2TypeSystem rules;
   final TypeProvider typeProvider;
+  final InheritanceManager2 inheritance;
   final AnalysisErrorListener reporter;
   final AnalysisOptionsImpl _options;
   _OverrideChecker _overrideChecker;
@@ -123,7 +128,7 @@ class CodeChecker extends RecursiveAstVisitor {
   HashSet<ExecutableElement> _covariantPrivateMembers;
 
   CodeChecker(TypeProvider typeProvider, Dart2TypeSystem rules,
-      AnalysisErrorListener reporter, this._options)
+      this.inheritance, AnalysisErrorListener reporter, this._options)
       : typeProvider = typeProvider,
         rules = rules,
         reporter = reporter {
@@ -683,7 +688,6 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     TypeAnnotation type = node.type;
-
     if (type != null) {
       for (VariableDeclaration variable in node.variables) {
         var initializer = variable.initializer;
@@ -865,7 +869,10 @@ class CodeChecker extends RecursiveAstVisitor {
         _isInstanceMember(element) &&
         targetType is InterfaceType &&
         targetType.typeArguments.isNotEmpty &&
-        !_targetHasKnownGenericTypeArguments(target)) {
+        !_targetHasKnownGenericTypeArguments(target) &&
+        // Make sure we don't overwrite an existing implicit cast based on
+        // the context type. It will be more precise and will ensure soundness.
+        getImplicitCast(node) == null) {
       // Track private setters/method calls. We can sometimes eliminate the
       // parameter check in code generation, if it was never needed.
       // This member will need a check, however, because we are calling through
@@ -875,14 +882,18 @@ class CodeChecker extends RecursiveAstVisitor {
             .add(element is ExecutableMember ? element.baseElement : element);
       }
 
-      // Get the lower bound of the declared return type (e.g. `F<Null>`) and
+      // Get the lower bound of the declared return type (e.g. `F<bottom>`) and
       // see if it can be assigned to the expected type (e.g. `F<Object>`).
       //
       // That way we can tell if any lower `T` will work or not.
+
+      // The member may be from a superclass, so we need to ensure the type
+      // parameters are properly substituted.
       var classType = targetType.element.type;
       var classLowerBound = classType.instantiate(new List.filled(
-          classType.typeParameters.length, typeProvider.nullType));
-      var memberLowerBound = _lookUpMember(classLowerBound, element).type;
+          classType.typeParameters.length, typeProvider.bottomType));
+      var memberLowerBound = inheritance.getMember(
+          classLowerBound, Name(element.librarySource.uri, element.name));
       var expectedType = invokeType.returnType;
 
       if (!rules.isSubtypeOf(memberLowerBound.returnType, expectedType)) {
@@ -1047,16 +1058,6 @@ class CodeChecker extends RecursiveAstVisitor {
       !e.isStatic &&
       (e is MethodElement ||
           e is PropertyAccessorElement && e.variable is FieldElement);
-
-  ExecutableElement _lookUpMember(InterfaceType type, ExecutableElement e) {
-    var name = e.name;
-    var library = e.library;
-    return e is PropertyAccessorElement
-        ? (e.isGetter
-            ? type.lookUpInheritedGetter(name, library: library)
-            : type.lookUpInheritedSetter(name, library: library))
-        : type.lookUpInheritedMethod(name, library: library);
-  }
 
   void _markImplicitCast(Expression expr, DartType to,
       {bool opAssign: false,
