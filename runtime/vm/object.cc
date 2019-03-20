@@ -10267,6 +10267,7 @@ RawArray* Library::LoadedScripts() const {
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
     Script& owner_script = Script::Handle();
+    EnsureTopLevelClassIsFinalized();
     DictionaryIterator it(*this);
     while (it.HasNext()) {
       entry = it.GetNext();
