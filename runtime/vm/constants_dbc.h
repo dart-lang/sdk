@@ -866,14 +866,17 @@ namespace dart {
   V(AllocateTOpt,                        A_D, reg, lit, ___) \
   V(StoreIndexedTOS,                       0, ___, ___, ___) \
   V(StoreIndexed,                      A_B_C, reg, reg, reg) \
-  V(StoreIndexedUint8,                 A_B_C, reg, reg, reg) \
-  V(StoreIndexedExternalUint8,         A_B_C, reg, reg, reg) \
   V(StoreIndexedOneByteString,         A_B_C, reg, reg, reg) \
+  V(StoreIndexedUint8,                 A_B_C, reg, reg, reg) \
   V(StoreIndexedUint32,                A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat32,               A_B_C, reg, reg, reg) \
   V(StoreIndexed4Float32,              A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat64,               A_B_C, reg, reg, reg) \
   V(StoreIndexed8Float64,              A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedUint8,         A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedUint32,        A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedFloat32,       A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedFloat64,       A_B_C, reg, reg, reg) \
   V(NoSuchMethod,                          0, ___, ___, ___) \
   V(TailCall,                              0, ___, ___, ___) \
   V(TailCallOpt,                         A_D, reg, reg, ___) \
@@ -885,18 +888,22 @@ namespace dart {
   V(StoreFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
   V(LoadIndexedTOS,                        0, ___, ___, ___) \
   V(LoadIndexed,                       A_B_C, reg, reg, reg) \
+  V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedTwoByteString,          A_B_C, reg, reg, reg) \
   V(LoadIndexedUint8,                  A_B_C, reg, reg, reg) \
   V(LoadIndexedInt8,                   A_B_C, reg, reg, reg) \
   V(LoadIndexedInt32,                  A_B_C, reg, reg, reg) \
   V(LoadIndexedUint32,                 A_B_C, reg, reg, reg) \
-  V(LoadIndexedExternalUint8,          A_B_C, reg, reg, reg) \
-  V(LoadIndexedExternalInt8,           A_B_C, reg, reg, reg) \
   V(LoadIndexedFloat32,                A_B_C, reg, reg, reg) \
   V(LoadIndexed4Float32,               A_B_C, reg, reg, reg) \
   V(LoadIndexedFloat64,                A_B_C, reg, reg, reg) \
   V(LoadIndexed8Float64,               A_B_C, reg, reg, reg) \
-  V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg) \
-  V(LoadIndexedTwoByteString,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedInt8,           A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedUint8,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedInt32,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedUint32,         A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedFloat32,        A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedFloat64,        A_B_C, reg, reg, reg) \
   V(StoreField,                        A_B_C, reg, num, reg) \
   V(StoreFieldExt,                       A_D, reg, reg, ___) \
   V(StoreFieldTOS,                         D, num, ___, ___) \

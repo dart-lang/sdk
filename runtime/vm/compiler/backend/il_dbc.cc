@@ -748,7 +748,7 @@ EMIT_NATIVE_CODE(StoreIndexed,
     case kExternalTypedDataUint8ArrayCid:
       ASSERT(index_scale() == 1);
       if (IsExternal()) {
-        __ StoreIndexedExternalUint8(array, index, value);
+        __ StoreIndexedUntaggedUint8(array, index, value);
       } else {
         __ StoreIndexedUint8(array, index, value);
       }
@@ -760,43 +760,58 @@ EMIT_NATIVE_CODE(StoreIndexed,
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ StoreIndexedUint32(array, index, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUntaggedUint32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUntaggedUint32(array, temp, value);
+        }
       } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ StoreIndexedUint32(array, temp, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUint32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUint32(array, temp, value);
+        }
       }
       break;
     }
     case kTypedDataFloat32ArrayCid:
       if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ StoreIndexedFloat32(array, index, value);
-      } else if (index_scale() == 4) {
-        __ StoreIndexed4Float32(array, index, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUntaggedFloat32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUntaggedFloat32(array, temp, value);
+        }
       } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ StoreIndexedFloat32(array, temp, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedFloat32(array, index, value);
+        } else if (index_scale() == 4) {
+          __ StoreIndexed4Float32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedFloat32(array, temp, value);
+        }
       }
       break;
     case kTypedDataFloat64ArrayCid:
       if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ StoreIndexedFloat64(array, index, value);
-      } else if (index_scale() == 8) {
-        __ StoreIndexed8Float64(array, index, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUntaggedFloat64(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUntaggedFloat64(array, temp, value);
+        }
       } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ StoreIndexedFloat64(array, temp, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedFloat64(array, index, value);
+        } else if (index_scale() == 8) {
+          __ StoreIndexed8Float64(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedFloat64(array, temp, value);
+        }
       }
       break;
     default:
@@ -829,7 +844,7 @@ EMIT_NATIVE_CODE(LoadIndexed,
       case kExternalTypedDataUint8ClampedArrayCid:
         ASSERT(index_scale() == 1);
         if (IsExternal()) {
-          __ LoadIndexedExternalUint8(result, array, index);
+          __ LoadIndexedUntaggedUint8(result, array, index);
         } else {
           __ LoadIndexedUint8(result, array, index);
         }
@@ -837,7 +852,7 @@ EMIT_NATIVE_CODE(LoadIndexed,
       case kTypedDataInt8ArrayCid:
         ASSERT(index_scale() == 1);
         if (IsExternal()) {
-          __ LoadIndexedExternalInt8(result, array, index);
+          __ LoadIndexedUntaggedInt8(result, array, index);
         } else {
           __ LoadIndexedInt8(result, array, index);
         }
@@ -861,55 +876,75 @@ EMIT_NATIVE_CODE(LoadIndexed,
       case kTypedDataInt32ArrayCid:
         ASSERT(representation() == kUnboxedInt32);
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedInt32(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedInt32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedInt32(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedInt32(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedInt32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedInt32(result, array, temp);
+          }
         }
         break;
       case kTypedDataUint32ArrayCid:
         ASSERT(representation() == kUnboxedUint32);
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedUint32(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedUint32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedUint32(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedUint32(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedUint32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUint32(result, array, temp);
+          }
         }
         break;
       case kTypedDataFloat32ArrayCid:
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedFloat32(result, array, index);
-        } else if (index_scale() == 4) {
-          __ LoadIndexed4Float32(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedFloat32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedFloat32(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedFloat32(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedFloat32(result, array, index);
+          } else if (index_scale() == 4) {
+            __ LoadIndexed4Float32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedFloat32(result, array, temp);
+          }
         }
         break;
       case kTypedDataFloat64ArrayCid:
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedFloat64(result, array, index);
-        } else if (index_scale() == 8) {
-          __ LoadIndexed8Float64(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedFloat64(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedFloat64(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedFloat64(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedFloat64(result, array, index);
+          } else if (index_scale() == 8) {
+            __ LoadIndexed8Float64(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedFloat64(result, array, temp);
+          }
         }
         break;
       default:
