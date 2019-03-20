@@ -2617,6 +2617,26 @@ RawTypedData* KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   return line_starts_data.raw();
 }
 
+String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index,
+                                                    uint32_t binaryVersion) {
+  if (binaryVersion < 22) {
+    return SourceTableUriFor(index);
+  }
+
+  AlternativeReadingScope alt(&reader_);
+  SetOffset(GetOffsetForSourceInfo(index));
+  SkipBytes(ReadUInt());                         // skip uri.
+  SkipBytes(ReadUInt());                         // skip source.
+  const intptr_t line_start_count = ReadUInt();  // read number of line start
+                                                 // entries.
+  for (intptr_t i = 0; i < line_start_count; ++i) {
+    ReadUInt();
+  }
+
+  intptr_t size = ReadUInt();  // read import uri List<byte> size.
+  return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
+}
+
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
   ASSERT(member != NULL);
   if (member->IsFactory()) {

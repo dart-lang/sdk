@@ -1061,6 +1061,7 @@ class KernelReaderHelper {
   String& SourceTableUriFor(intptr_t index);
   const String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
+  String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;

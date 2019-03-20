@@ -77,6 +77,7 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   }
 
   Program* program = new Program();
+  program->binary_version_ = formatVersion;
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
 

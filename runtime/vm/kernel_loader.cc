@@ -1950,6 +1950,8 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
 
 RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   const String& uri_string = helper_.SourceTableUriFor(index);
+  const String& import_uri_string =
+      helper_.SourceTableImportUriFor(index, program_->binary_version());
   const String& script_source = helper_.GetSourceFor(index);
   String& sources = String::Handle(Z);
   TypedData& line_starts =
@@ -1975,10 +1977,9 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
     sources = script_source.raw();
   }
 
-  const Script& script = Script::Handle(
-      Z, Script::New(uri_string, sources, RawScript::kKernelTag));
-  String& script_url = String::Handle();
-  script_url = script.url();
+  const Script& script =
+      Script::Handle(Z, Script::New(import_uri_string, uri_string, sources,
+                                    RawScript::kKernelTag));
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
   script.set_line_starts(line_starts);
