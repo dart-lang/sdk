@@ -376,8 +376,9 @@ typedef simd128_value_t fpu_register_t;
 
 // Determine whether dual mapping of code pages is supported.
 // We test dual mapping on linux x64 and deploy it on fuchsia.
-#if defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                    \
-    defined(TARGET_OS_FUCHSIA)
+#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
+    (defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                   \
+     defined(TARGET_OS_FUCHSIA))
 #define DUAL_MAPPING_SUPPORTED 1
 #endif
 
