@@ -4942,7 +4942,13 @@ class ResolverVisitor extends ScopedVisitor {
         InterfaceType wrapperType = _enclosingFunction.isSynchronous
             ? typeProvider.iterableType
             : typeProvider.streamType;
-        type = typeSystem.mostSpecificTypeArgument(type, wrapperType);
+        if (type is InterfaceType) {
+          var asInstanceType =
+              (type as InterfaceTypeImpl).asInstanceOf(wrapperType.element);
+          if (asInstanceType != null) {
+            type = asInstanceType.typeArguments[0];
+          }
+        }
       }
       if (type != null) {
         inferenceContext.addReturnOrYieldType(type);
