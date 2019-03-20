@@ -63,6 +63,10 @@ import 'non_constant_set_element_from_deferred_library_test.dart'
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
+import 'sdk_version_async_exported_from_core_test.dart'
+    as sdk_version_async_exported_from_core;
+import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
+import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
@@ -73,8 +77,8 @@ import 'type_check_is_null_test.dart' as type_check_is_null;
 import 'unchecked_use_of_nullable_value_test.dart'
     as unchecked_use_of_nullable_value;
 import 'undefined_getter_test.dart' as undefined_getter;
-import 'undefined_identifier_test.dart' as undefined_identifier;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
+import 'undefined_identifier_test.dart' as undefined_identifier;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
 import 'undefined_setter_test.dart' as undefined_setter;
@@ -132,16 +136,19 @@ main() {
     must_call_super.main();
     non_bool_condition.main();
     non_constant_list_element.main();
+    non_constant_list_element_from_deferred_library.main();
+    non_constant_map_key.main();
+    non_constant_map_key_from_deferred_library.main();
     non_constant_map_element.main();
+    non_constant_map_value.main();
+    non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
+    non_constant_set_element_from_deferred_library.main();
     not_iterable_spread.main();
     not_map_spread.main();
-    non_constant_list_element_from_deferred_library.main();
-    non_constant_map_key_from_deferred_library.main();
-    non_constant_map_key.main();
-    non_constant_map_value_from_deferred_library.main();
-    non_constant_map_value.main();
-    non_constant_set_element_from_deferred_library.main();
+    sdk_version_async_exported_from_core.main();
+    sdk_version_set_literal.main();
+    sdk_version_ui_as_code.main();
     set_element_type_not_assignable.main();
     subtype_of_sealed_class.main();
     top_level_instance_getter.main();

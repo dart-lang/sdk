@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'sdk_constraint_verifier.dart';
+import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -32,7 +32,7 @@ Future<int> zero() async => 0;
   }
 
   test_equals_explicitImportOfExportingLibrary() async {
-    addNamedSource('/exporter.dart', '''
+    newFile('/test/lib/exporter.dart', content: '''
 export 'dart:async';
 ''');
     await verifyVersion('2.1.0', '''
@@ -76,7 +76,7 @@ Future<int> zero() async => 0;
   }
 
   test_lessThan_explicitImportOfExportingLibrary() async {
-    addNamedSource('/exporter.dart', '''
+    newFile('/test/lib/exporter.dart', content: '''
 export 'dart:async';
 ''');
     await verifyVersion('2.0.0', '''

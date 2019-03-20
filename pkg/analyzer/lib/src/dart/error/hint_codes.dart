@@ -550,6 +550,26 @@ class HintCode extends ErrorCode {
           "Try either importing 'dart:async' or updating the SDK constraints.");
 
   /**
+   * A set literal is being used in code that is expected to run on versions of
+   * the SDK that did not support them.
+   */
+  static const HintCode SDK_VERSION_SET_LITERAL = const HintCode(
+      'SDK_VERSION_SET_LITERAL',
+      "Set literals were not supported until version 2.2, "
+      "but this code is required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
+
+  /**
+   * The for, if or spread element is being used in code that is expected to run
+   * on versions of the SDK that did not support them.
+   */
+  static const HintCode SDK_VERSION_UI_AS_CODE = const HintCode(
+      'SDK_VERSION_UI_AS_CODE',
+      "The for, if and spread elements were not supported until version 2.2.2, "
+      "but this code is required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
+
+  /**
    * This hint is generated anywhere where a `@sealed` class or mixin is used as
    * a super-type of a class.
    */
