@@ -119,7 +119,8 @@ class SharedCompilerOptions {
             summaryModules: _parseCustomSummaryModules(
                 args['summary'] as List<String>, moduleRoot, summaryExtension),
             moduleFormats: parseModuleFormatOption(args),
-            moduleName: _getModuleName(args, moduleRoot));
+            moduleName: _getModuleName(args, moduleRoot),
+            replCompile: args['repl-compile'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addModuleFormatOptions(parser, hide: hide);
@@ -152,6 +153,12 @@ class SharedCompilerOptions {
       ..addOption('library-root',
           help: '(deprecated) used to name libraries inside the module, '
               'ignored with -k.',
+          hide: hide)
+      ..addFlag('repl-compile',
+          help: 'compile in a more permissive REPL mode, allowing access'
+              ' to private members across library boundaries. This should'
+              ' only be used by debugging tools.',
+          defaultsTo: false,
           hide: hide);
   }
 
