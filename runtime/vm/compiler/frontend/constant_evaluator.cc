@@ -1205,7 +1205,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_array_.SetTypeArguments(temp_type_arguments_);
         for (intptr_t j = 0; j < length; ++j) {
           const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < offset);  // We have a DAG!
+          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
           temp_object_ = constants.GetOrDie(entry_offset);
           temp_array_.SetAt(j, temp_object_);
         }
@@ -1249,7 +1249,7 @@ const Array& ConstantHelper::ReadConstantTable() {
           temp_field_ =
               H.LookupFieldByKernelField(helper_.ReadCanonicalNameReference());
           const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < offset);  // We have a DAG!
+          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
           temp_object_ = constants.GetOrDie(entry_offset);
           temp_instance_.SetField(temp_field_, temp_object_);
         }
@@ -1259,6 +1259,7 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kPartialInstantiationConstant: {
         const intptr_t entry_offset = helper_.ReadUInt();
+        ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
         temp_object_ = constants.GetOrDie(entry_offset);
 
         // Happens if the tearoff was in the vmservice library and we have
