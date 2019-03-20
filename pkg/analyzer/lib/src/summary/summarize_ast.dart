@@ -33,17 +33,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   /// siblings.
   final Map<int, int> localClosureIndexMap;
 
-  /// If the expression being serialized appears inside a function body, the
-  /// names of parameters that are in scope.  Otherwise `null`.
-  final Set<String> parameterNames;
+  /// The names of local variables and parameters that are in scope.
+  /// This is a list so that we can handle nesting by pushing and popping values
+  /// at the end of it.
+  final List<String> variableNames;
 
   _ConstExprSerializer(bool forConst, this.visitor, this.localClosureIndexMap,
-      this.parameterNames)
-      : super(forConst);
+      List<String> variableNames)
+      : variableNames = variableNames ?? [],
+        super(forConst);
 
   @override
   bool isParameterName(String name) {
-    return parameterNames?.contains(name) ?? false;
+    return variableNames?.contains(name) ?? false;
   }
 
   @override
@@ -298,9 +300,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// needed by type inference.
   bool _serializeClosureBodyExprs = false;
 
-  /// If a closure function body is being serialized, the set of closure
-  /// parameter names which are currently in scope.  Otherwise `null`.
-  Set<String> _parameterNames;
+  /// The set of variable names which are currently in scope.
+  List<String> _variableNames = [];
 
   /// Indicates whether parameters found during visitors might inherit
   /// covariance.
@@ -482,9 +483,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// Serialize the given [expression], creating an [UnlinkedExprBuilder].
   UnlinkedExprBuilder serializeConstExpr(
       bool forConst, Map<int, int> localClosureIndexMap, Expression expression,
-      [Set<String> parameterNames]) {
+      [List<String> variableNames]) {
     _ConstExprSerializer serializer = new _ConstExprSerializer(
-        forConst, this, localClosureIndexMap, parameterNames);
+        forConst, this, localClosureIndexMap, variableNames);
     serializer.serialize(expression);
     return serializer.toBuilder(expression.beginToken, expression.endToken);
   }
@@ -591,11 +592,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.visibleOffset = enclosingBlock?.offset;
     b.visibleLength = enclosingBlock?.length;
-    Set<String> oldParameterNames = _parameterNames;
+    int oldVariableNamesLength = _variableNames.length;
     if (formalParameters != null && formalParameters.parameters.isNotEmpty) {
-      _parameterNames =
-          _parameterNames == null ? new Set<String>() : _parameterNames.toSet();
-      _parameterNames.addAll(formalParameters.parameters
+      _variableNames.addAll(formalParameters.parameters
           .map((FormalParameter p) => p.identifier.name));
     }
     serializeFunctionBody(
@@ -605,7 +604,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       body?.accept(new MixinSuperInvokedNamesCollector(mixinSuperInvokedNames));
     }
 
-    _parameterNames = oldParameterNames;
+    _variableNames.length = oldVariableNamesLength;
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
     return b;
@@ -659,10 +658,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (serializeBodyExpr) {
       if (body is Expression) {
         b.bodyExpr = serializeConstExpr(
-            forConst, _localClosureIndexMap, body, _parameterNames);
+            forConst, _localClosureIndexMap, body, _variableNames);
       } else if (body is ExpressionFunctionBody) {
         b.bodyExpr = serializeConstExpr(
-            forConst, _localClosureIndexMap, body.expression, _parameterNames);
+            forConst, _localClosureIndexMap, body.expression, _variableNames);
       } else {
         // TODO(paulberry): serialize other types of function bodies.
       }
@@ -1093,8 +1092,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     Map<int, int> localClosureIndexMap = serializeFunctionBody(b,
         node.initializers, node.body, node.constKeyword != null, false, false);
     if (node.constKeyword != null) {
-      Set<String> constructorParameterNames =
-          node.parameters.parameters.map((p) => p.identifier.name).toSet();
+      List<String> constructorParameterNames =
+          node.parameters.parameters.map((p) => p.identifier.name).toList();
       b.constantInitializers = node.initializers
           .map((ConstructorInitializer initializer) =>
               serializeConstructorInitializer(initializer, (Expression expr) {
