@@ -880,10 +880,6 @@ action("generate_snapshot_test_dat_file") {
 }
 
 prebuilt_dart_action("gen_kernel_bytecode_dill") {
-  if (target_os == "fuchsia") {
-    testonly = true
-  }
-
   deps = [
     "../vm:vm_platform",
   ]
