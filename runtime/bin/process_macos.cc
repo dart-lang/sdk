@@ -515,6 +515,14 @@ class ProcessStarter {
               (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
             ReportChildError();
           }
+#if !HOST_OS_IOS
+          if (program_environment_ != NULL) {
+            // On MacOS you have to do a bit of magic to get to the
+            // environment strings.
+            char*** environ = _NSGetEnviron();
+            *environ = program_environment_;
+          }
+#endif
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.

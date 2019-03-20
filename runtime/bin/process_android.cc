@@ -547,6 +547,10 @@ class ProcessStarter {
             ReportChildError();
           }
 
+          if (program_environment_ != NULL) {
+            environ = program_environment_;
+          }
+
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
           char realpath[PATH_MAX];
