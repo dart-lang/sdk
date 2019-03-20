@@ -494,31 +494,19 @@ class AstTestFactory {
   static FieldFormalParameter fieldFormalParameter2(String identifier) =>
       fieldFormalParameter(null, null, identifier);
 
-  @Deprecated('Use forStatement2')
-  static ForStatement2 forEachStatement(DeclaredIdentifier loopVariable,
-          Expression iterator, Statement body) =>
-      astFactory.forStatement2(
-          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          forLoopParts: astFactory.forEachPartsWithDeclaration(
-              loopVariable: loopVariable,
-              inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
-              iterable: iterator),
-          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body: body);
+  static ForEachPartsWithDeclaration forEachPartsWithDeclaration(
+          DeclaredIdentifier loopVariable, Expression iterable) =>
+      astFactory.forEachPartsWithDeclaration(
+          loopVariable: loopVariable,
+          inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+          iterable: iterable);
 
-  @Deprecated('Use forStatement2')
-  static ForStatement2 forEachStatement2(
-          SimpleIdentifier identifier, Expression iterator, Statement body) =>
-      astFactory.forStatement2(
-          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          forLoopParts: astFactory.forEachPartsWithIdentifier(
-              identifier: identifier,
-              inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
-              iterable: iterator),
-          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body: body);
+  static ForEachPartsWithIdentifier forEachPartsWithIdentifier(
+          SimpleIdentifier identifier, Expression iterable) =>
+      astFactory.forEachPartsWithIdentifier(
+          identifier: identifier,
+          inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
+          iterable: iterable);
 
   static ForElement forElement(
           ForLoopParts forLoopParts, CollectionElement body) =>
@@ -549,18 +537,12 @@ class AstTestFactory {
           rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
           updaters: updaters);
 
-  @Deprecated('Use forStatement2')
-  static ForStatement2 forStatement(Expression initialization,
-          Expression condition, List<Expression> updaters, Statement body) =>
+  static ForStatement2 forStatement(
+          ForLoopParts forLoopParts, Statement body) =>
       astFactory.forStatement2(
           forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
           leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          forLoopParts: astFactory.forPartsWithExpression(
-              initialization: initialization,
-              leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-              condition: condition,
-              rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-              updaters: updaters),
+          forLoopParts: forLoopParts,
           rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body: body);
 
@@ -859,21 +841,6 @@ class AstTestFactory {
           elements,
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
-  @Deprecated('Use setOrMapLiteral')
-  static SetOrMapLiteral mapLiteral(
-          Keyword keyword, TypeArgumentList typeArguments,
-          [List<MapLiteralEntry> entries]) =>
-      astFactory.mapLiteral(
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          typeArguments,
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          entries,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  @Deprecated('Use setOrMapLiteral')
-  static SetOrMapLiteral mapLiteral2([List<MapLiteralEntry> entries]) =>
-      mapLiteral(null, null, entries);
-
   static MapLiteralEntry mapLiteralEntry(String key, Expression value) =>
       astFactory.mapLiteralEntry(
           string2(key), TokenFactory.tokenFromType(TokenType.COLON), value);
@@ -1112,16 +1079,6 @@ class AstTestFactory {
 
   static ScriptTag scriptTag(String scriptTag) =>
       astFactory.scriptTag(TokenFactory.tokenFromString(scriptTag));
-
-  @Deprecated('Use setOrMapLiteral')
-  static SetOrMapLiteral setLiteral(Keyword keyword,
-          TypeArgumentList typeArguments, List<Expression> elements) =>
-      astFactory.setLiteral(
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          typeArguments,
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          elements,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static SetOrMapLiteral setOrMapLiteral(
           Keyword keyword, TypeArgumentList typeArguments,

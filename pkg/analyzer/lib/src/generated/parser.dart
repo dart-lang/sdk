@@ -3679,9 +3679,11 @@ class Parser {
       Token modifier, TypeArgumentList typeArguments) {
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-      // ignore: deprecated_member_use_from_same_package
-      return astFactory.mapLiteral(
-          modifier, typeArguments, leftBracket, null, getAndAdvance());
+      return astFactory.setOrMapLiteral(
+          constKeyword: modifier,
+          typeArguments: typeArguments,
+          leftBracket: leftBracket,
+          rightBracket: getAndAdvance());
     }
     bool wasInInitializer = _inInitializer;
     _inInitializer = false;
@@ -3689,16 +3691,22 @@ class Parser {
       List<MapLiteralEntry> entries = <MapLiteralEntry>[parseMapLiteralEntry()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-          // ignore: deprecated_member_use_from_same_package
-          return astFactory.mapLiteral(
-              modifier, typeArguments, leftBracket, entries, getAndAdvance());
+          return astFactory.setOrMapLiteral(
+              constKeyword: modifier,
+              typeArguments: typeArguments,
+              leftBracket: leftBracket,
+              elements: entries,
+              rightBracket: getAndAdvance());
         }
         entries.add(parseMapLiteralEntry());
       }
       Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-      // ignore: deprecated_member_use_from_same_package
-      return astFactory.mapLiteral(
-          modifier, typeArguments, leftBracket, entries, rightBracket);
+      return astFactory.setOrMapLiteral(
+          constKeyword: modifier,
+          typeArguments: typeArguments,
+          leftBracket: leftBracket,
+          elements: entries,
+          rightBracket: rightBracket);
     } finally {
       _inInitializer = wasInInitializer;
     }

@@ -786,37 +786,6 @@ abstract class AstFactory {
       Token leftBracket, List<CollectionElement> elements, Token rightBracket);
 
   /**
-   * Returns a newly created list literal.
-   */
-  @Deprecated('Use listLiteral')
-  ListLiteral2 listLiteral2(
-      {Token constKeyword,
-      TypeArgumentList typeArguments,
-      Token leftBracket,
-      List<CollectionElement> elements,
-      Token rightBracket});
-
-  /**
-   * Returns a newly created map literal. The [constKeyword] can be `null` if
-   * the literal is not a constant. The [typeArguments] can be `null` if no type
-   * arguments were declared. The [entries] can be `null` if the map is empty.
-   */
-  @Deprecated('Use setOrMapLiteral')
-  MapLiteral mapLiteral(Token constKeyword, TypeArgumentList typeArguments,
-      Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket);
-
-  /**
-   * Returns a newly created map literal.
-   */
-  @Deprecated('Use setOrMapLiteral')
-  MapLiteral2 mapLiteral2(
-      {Token constKeyword,
-      TypeArgumentList typeArguments,
-      Token leftBracket,
-      List<CollectionElement> entries,
-      Token rightBracket});
-
-  /**
    * Returns a newly created map literal entry.
    */
   MapLiteralEntry mapLiteralEntry(
@@ -983,27 +952,6 @@ abstract class AstFactory {
    * Returns a newly created script tag.
    */
   ScriptTag scriptTag(Token scriptTag);
-
-  /**
-   * Returns a newly created set literal. The [constKeyword] can be `null`
-   * if the literal is not a constant. The [typeArguments] can be `null` if no
-   * type arguments were declared. The list of [elements] can be `null` if the
-   * set is empty.
-   */
-  @Deprecated('Use setOrMapLiteral')
-  SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
-      Token leftBracket, List<Expression> elements, Token rightBracket);
-
-  /**
-   * Returns a newly created set literal.
-   */
-  @Deprecated('Use setOrMapLiteral')
-  SetLiteral2 setLiteral2(
-      {Token constKeyword,
-      TypeArgumentList typeArguments,
-      Token leftBracket,
-      List<CollectionElement> elements,
-      Token rightBracket});
 
   /**
    * Returns a newly created set or map literal. The [constKeyword] can be

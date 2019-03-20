@@ -95,34 +95,12 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
-  @deprecated
-  MapLiteral visitMapLiteral(MapLiteral node) {
-    MapLiteral literal = super.visitMapLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
-  }
-
-  @override
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation invocation =
         super.visitRedirectingConstructorInvocation(node);
     invocation.staticElement = node.staticElement;
     return invocation;
-  }
-
-  @override
-  @deprecated
-  SetLiteral visitSetLiteral(SetLiteral node) {
-    SetLiteral literal = super.visitSetLiteral(node);
-    literal.staticType = node.staticType;
-    if (node.constKeyword == null && node.isConst) {
-      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    }
-    return literal;
   }
 
   @override

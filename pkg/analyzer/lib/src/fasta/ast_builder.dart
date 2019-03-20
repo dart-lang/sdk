@@ -2523,9 +2523,13 @@ class AstBuilder extends StackListener {
             }
           }
         }
-        // ignore: deprecated_member_use_from_same_package
-        push(ast.setLiteral(
-            constKeyword, typeArguments, leftBrace, setEntries, rightBrace));
+        push(ast.setOrMapLiteral(
+          constKeyword: constKeyword,
+          typeArguments: typeArguments,
+          leftBracket: leftBrace,
+          elements: setEntries,
+          rightBracket: rightBrace,
+        ));
       } else {
         final mapEntries = <MapLiteralEntry>[];
         if (elements != null) {
@@ -2546,9 +2550,13 @@ class AstBuilder extends StackListener {
             }
           }
         }
-        // ignore: deprecated_member_use_from_same_package
-        push(ast.mapLiteral(
-            constKeyword, typeArguments, leftBrace, mapEntries, rightBrace));
+        push(ast.setOrMapLiteral(
+          constKeyword: constKeyword,
+          typeArguments: typeArguments,
+          leftBracket: leftBrace,
+          elements: mapEntries,
+          rightBracket: rightBrace,
+        ));
       }
     }
   }

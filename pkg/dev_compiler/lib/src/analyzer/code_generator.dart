@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
-import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -68,7 +67,6 @@ import 'type_utilities.dart';
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
     with
-        UIAsCodeVisitorMixin<JS.Node>,
         NullableTypeInference,
         SharedCompiler<LibraryElement, ClassElement, InterfaceType,
             FunctionBody>
@@ -6570,18 +6568,6 @@ class CodeGenerator extends Object
     }
     return _unreachable(forParts);
   }
-
-  @deprecated
-  @override
-  visitListLiteral2(ListLiteral2 node) => _unreachable(node);
-
-  @deprecated
-  @override
-  visitMapLiteral2(MapLiteral2 node) => _unreachable(node);
-
-  @deprecated
-  @override
-  visitSetLiteral2(SetLiteral2 node) => _unreachable(node);
 
   @override
   visitSetOrMapLiteral(SetOrMapLiteral node) => node.isSet

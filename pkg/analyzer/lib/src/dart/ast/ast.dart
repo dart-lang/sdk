@@ -4171,107 +4171,6 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 }
 
-/// A for-each statement.
-///
-///    forEachStatement ::=
-///        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
-///      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
-@Deprecated('Use ForStatement2Impl')
-class ForEachStatementImpl extends ForStatement2Impl
-    implements ForEachStatement {
-  /// Initialize a newly created for-each statement whose loop control variable
-  /// is declared internally (in the for-loop part). The [awaitKeyword] can be
-  /// `null` if this is not an asynchronous for loop.
-  ForEachStatementImpl.withDeclaration(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      DeclaredIdentifierImpl loopVariable,
-      Token inKeyword,
-      ExpressionImpl iterator,
-      Token rightParenthesis,
-      StatementImpl body)
-      : super(
-            awaitKeyword,
-            forKeyword,
-            leftParenthesis,
-            new ForEachPartsWithDeclarationImpl(
-                loopVariable, inKeyword, iterator),
-            rightParenthesis,
-            body);
-
-  /// Creates a for-each statement using a caller-provided "parts" data
-  /// structure.
-  ForEachStatementImpl.withParts(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForEachPartsImpl forLoopParts,
-      Token rightParenthesis,
-      Statement body)
-      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
-            rightParenthesis, body);
-
-  /// Initialize a newly created for-each statement whose loop control variable
-  /// is declared outside the for loop. The [awaitKeyword] can be `null` if this
-  /// is not an asynchronous for loop.
-  ForEachStatementImpl.withReference(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      SimpleIdentifierImpl identifier,
-      Token inKeyword,
-      ExpressionImpl iterator,
-      Token rightParenthesis,
-      StatementImpl body)
-      : super(
-            awaitKeyword,
-            forKeyword,
-            leftParenthesis,
-            new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterator),
-            rightParenthesis,
-            body);
-
-  @override
-  SimpleIdentifier get identifier => forLoopParts is ForEachPartsWithIdentifier
-      ? (forLoopParts as ForEachPartsWithIdentifier).identifier
-      : null;
-
-  @override
-  void set identifier(SimpleIdentifier identifier) {
-    (forLoopParts as ForEachPartsWithIdentifierImpl).identifier = identifier;
-  }
-
-  @override
-  Token get inKeyword => (forLoopParts as ForEachParts).inKeyword;
-
-  @override
-  set inKeyword(Token keyword) =>
-      (forLoopParts as ForEachPartsImpl).inKeyword = keyword;
-
-  @override
-  Expression get iterable => (forLoopParts as ForEachParts).iterable;
-
-  @override
-  void set iterable(Expression expression) {
-    (forLoopParts as ForEachPartsImpl).iterable = expression;
-  }
-
-  @override
-  DeclaredIdentifier get loopVariable =>
-      forLoopParts is ForEachPartsWithDeclaration
-          ? (forLoopParts as ForEachPartsWithDeclaration).loopVariable
-          : null;
-
-  @override
-  void set loopVariable(DeclaredIdentifier variable) {
-    (forLoopParts as ForEachPartsWithDeclarationImpl).loopVariable = variable;
-  }
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForEachStatement(this);
-}
-
 class ForElementImpl extends CollectionElementImpl
     with ForMixin
     implements ForElement {
@@ -4641,7 +4540,7 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-abstract class ForStatement2Impl extends StatementImpl
+class ForStatement2Impl extends StatementImpl
     with ForMixin
     implements ForStatement2 {
   /// The body of the loop.
@@ -4685,111 +4584,6 @@ abstract class ForStatement2Impl extends StatementImpl
     _forLoopParts?.accept(visitor);
     _body?.accept(visitor);
   }
-}
-
-/// A for statement.
-///
-///    forStatement ::=
-///        'for' '(' forLoopParts ')' [Statement]
-///
-///    forLoopParts ::=
-///        forInitializerStatement ';' [Expression]? ';' [Expression]?
-///
-///    forInitializerStatement ::=
-///        [DefaultFormalParameter]
-///      | [Expression]?
-@Deprecated('Use ForStatement2Impl')
-class ForStatementImpl extends ForStatement2Impl implements ForStatement {
-  /// Initialize a newly created for statement. Either the [variableList] or the
-  /// [initialization] must be `null`. Either the [condition] and the list of
-  /// [updaters] can be `null` if the loop does not have the corresponding
-  /// attribute.
-  ForStatementImpl(
-      Token forKeyword,
-      Token leftParenthesis,
-      VariableDeclarationListImpl variableList,
-      ExpressionImpl initialization,
-      Token leftSeparator,
-      ExpressionImpl condition,
-      Token rightSeparator,
-      List<Expression> updaters,
-      Token rightParenthesis,
-      StatementImpl body)
-      : super(
-            null,
-            forKeyword,
-            leftParenthesis,
-            variableList == null
-                ? new ForPartsWithExpressionImpl(initialization, leftSeparator,
-                    condition, rightSeparator, updaters)
-                : new ForPartsWithDeclarationsImpl(variableList, leftSeparator,
-                    condition, rightSeparator, updaters),
-            rightParenthesis,
-            body);
-
-  /// Creates a for-each statement using a caller-provided "parts" data
-  /// structure.
-  ForStatementImpl.withParts(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForPartsImpl forLoopParts,
-      Token rightParenthesis,
-      Statement body)
-      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
-            rightParenthesis, body);
-
-  @override
-  Expression get condition => (forLoopParts as ForParts).condition;
-
-  @override
-  void set condition(Expression expression) {
-    (forLoopParts as ForPartsImpl).condition = expression;
-  }
-
-  @override
-  Expression get initialization => forLoopParts is ForPartsWithExpression
-      ? (forLoopParts as ForPartsWithExpression).initialization
-      : null;
-
-  @override
-  void set initialization(Expression initialization) {
-    if (forLoopParts is ForPartsWithExpressionImpl) {
-      (forLoopParts as ForPartsWithExpressionImpl).initialization =
-          initialization;
-    }
-  }
-
-  @override
-  Token get leftSeparator => (forLoopParts as ForParts).leftSeparator;
-
-  @override
-  set leftSeparator(Token separator) =>
-      (forLoopParts as ForPartsImpl).leftSeparator = separator;
-
-  @override
-  Token get rightSeparator => (forLoopParts as ForParts).rightSeparator;
-
-  @override
-  set rightSeparator(Token separator) =>
-      (forLoopParts as ForPartsImpl).rightSeparator = separator;
-
-  @override
-  NodeList<Expression> get updaters => (forLoopParts as ForParts).updaters;
-
-  @override
-  VariableDeclarationList get variables =>
-      forLoopParts is ForPartsWithDeclarations
-          ? (forLoopParts as ForPartsWithDeclarations).variables
-          : null;
-
-  @override
-  void set variables(VariableDeclarationList variableList) {
-    (forLoopParts as ForPartsWithDeclarationsImpl).variables = variableList;
-  }
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
 }
 
 /// A node representing the body of a function or method.
@@ -6867,72 +6661,6 @@ class LibraryIdentifierImpl extends IdentifierImpl
   }
 }
 
-/// A list literal.
-///
-///    listLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')?
-///        '[' ([CollectionLiteralElement] ','?)? ']'
-///
-/// This is the class that is used to represent a list literal when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [ListLiteral] will be
-/// used.
-@Deprecated('Replaced by ListLiteralImpl')
-class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
-  @override
-  Token leftBracket;
-
-  /// The elements used to compute the elements of the list.
-  NodeList<CollectionElement> _elements;
-
-  @override
-  Token rightBracket;
-
-  /// Initialize a newly created list literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The list of [elements] can be `null` if the
-  /// list is empty.
-  ListLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<CollectionElement>(this, elements);
-  }
-
-  @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
-  }
-
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(_elements)
-    ..add(rightBracket);
-
-  @override
-  NodeList<CollectionElement> get elements => _elements;
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral2(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _elements.accept(visitor);
-  }
-}
-
 class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /// The left square bracket.
   @override
@@ -6990,9 +6718,6 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..add(rightBracket);
 
   @override
-  NodeList<Expression> get elements => _elements;
-
-  @override
   NodeList<CollectionElement> get elements2 => _elements;
 
   @override
@@ -7041,32 +6766,6 @@ class LocalVariableInfo {
   /// within the scope of their declarations.
   final Set<VariableElement> potentiallyMutatedInScope =
       new Set<VariableElement>();
-}
-
-/// A literal map.
-///
-///    mapLiteral ::=
-///        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
-///        '{' ([MapElement] (',' [MapElement])* ','?)? '}'
-///
-/// This is the class that is used to represent a map literal when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [MapLiteral] will be used.
-@Deprecated('Replaced by SetOrMapLiteralImpl')
-class MapLiteral2Impl extends SetOrMapLiteralImpl implements MapLiteral2 {
-  /// Initialize a newly created map literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [entries] can be `null` if the map is
-  /// empty.
-  MapLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<CollectionElement> entries, Token rightBracket)
-      : super(constKeyword, typeArguments, leftBracket, entries, rightBracket);
-
-  @override
-  NodeList<CollectionElement> get entries => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
 }
 
 /// A single key/value pair in a map literal.
@@ -7126,24 +6825,6 @@ class MapLiteralEntryImpl extends CollectionElementImpl
     _key?.accept(visitor);
     _value?.accept(visitor);
   }
-}
-
-@Deprecated('Use SetOrMapLiteral')
-class MapLiteralImpl extends SetOrMapLiteralImpl implements MapLiteral {
-  /// Initialize a newly created map literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [entries] can be `null` if the map is
-  /// empty.
-  MapLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket)
-      : super._map(
-            constKeyword, typeArguments, leftBracket, entries, rightBracket);
-
-  @override
-  NodeList<MapLiteralEntry> get entries => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral(this);
 }
 
 /// A method declaration.
@@ -8934,51 +8615,6 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   }
 }
 
-/// A literal set.
-///
-///    setLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')?
-///        '{' [CollectionElement] (',' [Expression])* ','? '}'
-///      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
-///
-/// This is the class that is used to represent a set literal when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [SetLiteral] will be used.
-@Deprecated('Replaced by SetOrMapLiteralImpl')
-class SetLiteral2Impl extends SetOrMapLiteralImpl implements SetLiteral2 {
-  /// Initialize a newly created set literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [elements] can be `null` if the set is
-  /// empty.
-  SetLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<CollectionElement> elements, Token rightBracket)
-      : super(constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  NodeList<CollectionElement> get elements => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
-}
-
-@Deprecated('Use SetOrMapLiteralImpl')
-class SetLiteralImpl extends SetOrMapLiteralImpl implements SetLiteral {
-  /// Initialize a newly created set literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [elements] can be `null` if the set is
-  /// empty.
-  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<Expression> elements, Token rightBracket)
-      : super._set(
-            constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  NodeList<Expression> get elements => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
-}
-
 class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   @override
   Token leftBracket;
@@ -9015,30 +8651,6 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
       : super(constKeyword, typeArguments) {
     _elements = new NodeListImpl<CollectionElement>(this, elements);
     _resolvedKind = _SetOrMapKind.unresolved;
-  }
-
-  /// Temporary constructor to support MapLiteral2Impl.
-  SetOrMapLiteralImpl._map(
-      Token constKeyword,
-      TypeArgumentListImpl typeArguments,
-      this.leftBracket,
-      List<MapLiteralEntry> elements,
-      this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<MapLiteralEntry>(this, elements);
-    _resolvedKind = _SetOrMapKind.map;
-  }
-
-  /// Temporary constructor to support SetLiteral2Impl.
-  SetOrMapLiteralImpl._set(
-      Token constKeyword,
-      TypeArgumentListImpl typeArguments,
-      this.leftBracket,
-      List<Expression> elements,
-      this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<Expression>(this, elements);
-    _resolvedKind = _SetOrMapKind.set;
   }
 
   @override
@@ -9344,12 +8956,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         return false;
       }
     }
-    // ignore: deprecated_member_use_from_same_package
-    if (parent is ForEachStatement) {
-      if (identical(parent.identifier, target)) {
-        return false;
-      }
-    }
     if (parent is FieldFormalParameter) {
       if (identical(parent.identifier, target)) {
         return false;
@@ -9392,9 +8998,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, target);
     } else if (parent is ForEachPartsWithIdentifier) {
-      return identical(parent.identifier, target);
-      // ignore: deprecated_member_use_from_same_package
-    } else if (parent is ForEachStatement) {
       return identical(parent.identifier, target);
     }
     return false;

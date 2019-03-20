@@ -1,3 +1,25 @@
+##
+* Removed the following AST node types:
+  * `ForEachStatement` (use `ForStatement2` instead)
+  * `ForStatement` (use `ForStatement2` instead)
+  * `MapLiteral` and `MapLiteral2` (use `SetOrMapLiteral` instead)
+  * `SetLiteral` and `SetLiteral2` (use `SetOrMapLiteral` instead)
+  * `ListLiteral2` (use `ListLiteral` instead)
+* Removed the following visit methods:
+  * `visitForEachStatement` (override `visitForStatement2` instead)
+  * `visitForStatement` (override `visitForStatement2` instead)
+  * `visitMapLiteral` and `visitMapLiteral2` (override `visitSetOrMapLiteral`
+    instead)
+  * `visitSetLiteral` and `visitSetLiteral2` (override `visitSetOrMapLiteral`
+    instead)
+  * `visitListLiteral2` (override `visitListLiteral` instead)
+* Removed the following ASTFactory methods:
+  * `mapLiteral` and `mapLiteral2` (use `setOrMapLiteral` instead)
+  * `setLiteral` and `setLiteral2` (use `setOrMapLiteral` instead)
+  * `listLiteral2` (use `listLiteral` instead)
+* Removed the getter `ListLiteral.elements` (use `ListLiteral.elements2`
+  instead)
+
 ## 0.35.4
 * Deprecated AST structures that will no longer be used after the
   control_flow_collections and spread_collections experiments are enabled.  The

@@ -4633,7 +4633,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     FunctionBody outerFunctionBody = _currentFunctionBody;
@@ -4806,18 +4805,7 @@ class ResolverVisitor extends ScopedVisitor {
             node.typeArguments == null &&
             node.isMap) {
           // The node is really an empty set literal with no type arguments.
-          // Rewrite the AST.
-          // ignore: deprecated_member_use_from_same_package
-          SetOrMapLiteral setLiteral = new AstFactoryImpl().setLiteral(
-              node.constKeyword,
-              null,
-              node.leftBracket,
-              null,
-              node.rightBracket);
-          InferenceContext.setType(
-              setLiteral, InferenceContext.getContext(node));
-          NodeReplacer.replace(node, setLiteral);
-          node = setLiteral;
+          (node as SetOrMapLiteralImpl).becomeMap();
         }
       } else if (typeArguments.length == 2) {
         DartType keyType = typeArguments[0];

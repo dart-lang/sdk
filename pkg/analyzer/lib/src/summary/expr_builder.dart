@@ -884,15 +884,11 @@ class ExprBuilder {
         : typeArguments.arguments[1].type;
     var staticType =
         resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
-    if (isSpreadOrControlFlowEnabled) {
-      _push(
-          AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries)
-            ..staticType = staticType);
-    } else {
-      // ignore: deprecated_member_use_from_same_package
-      _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries)
-        ..staticType = staticType);
-    }
+    SetOrMapLiteralImpl literal =
+        AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries);
+    literal.becomeMap();
+    literal.staticType = staticType;
+    _push(literal);
   }
 
   void _pushMapLiteralEntry() {
@@ -920,8 +916,10 @@ class ExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
     }
-    // ignore: deprecated_member_use_from_same_package
-    _push(AstTestFactory.setLiteral(Keyword.CONST, typeArguments, elements));
+    SetOrMapLiteralImpl literal =
+        AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, elements);
+    literal.becomeSet();
+    _push(literal);
   }
 
   void _pushSetOrMap(TypeArgumentList typeArguments) {

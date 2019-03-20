@@ -2486,11 +2486,11 @@ class ListGetter_NodeReplacerTest_test_listLiteral
 }
 
 class ListGetter_NodeReplacerTest_test_mapLiteral
-    extends NodeReplacerTest_ListGetter<SetOrMapLiteral, MapLiteralEntry> {
+    extends NodeReplacerTest_ListGetter<SetOrMapLiteral, CollectionElement> {
   ListGetter_NodeReplacerTest_test_mapLiteral(int arg0) : super(arg0);
 
   @override
-  NodeList<MapLiteralEntry> getList(SetOrMapLiteral node) => node.elements2;
+  NodeList<CollectionElement> getList(SetOrMapLiteral node) => node.elements2;
 }
 
 class ListGetter_NodeReplacerTest_test_showCombinator
@@ -3065,10 +3065,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withIdentifier() {
-    // ignore: deprecated_member_use_from_same_package
-    ForStatement2 node = AstTestFactory.forEachStatement2(
-        AstTestFactory.identifier3("i"),
-        AstTestFactory.identifier3("l"),
+    ForStatement2 node = AstTestFactory.forStatement(
+        AstTestFactory.forEachPartsWithIdentifier(
+            AstTestFactory.identifier3("i"), AstTestFactory.identifier3("l")),
         AstTestFactory.block());
     _assertReplace(node,
         new Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_2());
@@ -3079,10 +3078,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forEachStatement_withLoopVariable() {
-    // ignore: deprecated_member_use_from_same_package
-    ForStatement2 node = AstTestFactory.forEachStatement(
-        AstTestFactory.declaredIdentifier3("e"),
-        AstTestFactory.identifier3("l"),
+    ForStatement2 node = AstTestFactory.forStatement(
+        AstTestFactory.forEachPartsWithDeclaration(
+            AstTestFactory.declaredIdentifier3("e"),
+            AstTestFactory.identifier3("l")),
         AstTestFactory.block());
     _assertReplace(node,
         new Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_2());
@@ -3100,11 +3099,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forStatement_withInitialization() {
-    // ignore: deprecated_member_use_from_same_package
-    ForStatement node = AstTestFactory.forStatement(
-        AstTestFactory.identifier3("a"),
-        AstTestFactory.booleanLiteral(true),
-        [AstTestFactory.integer(0)],
+    ForStatement2 node = AstTestFactory.forStatement(
+        AstTestFactory.forPartsWithExpression(AstTestFactory.identifier3("a"),
+            AstTestFactory.booleanLiteral(true), [AstTestFactory.integer(0)]),
         AstTestFactory.block());
     _assertReplace(node,
         new Getter_NodeReplacerTest_test_forStatement_withInitialization_3());
@@ -3119,8 +3116,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forStatement_withVariables() {
-    // ignore: deprecated_member_use_from_same_package
-    ForStatement node = AstTestFactory.forStatement2(
+    ForStatement2 node = AstTestFactory.forStatement2(
         AstTestFactory.variableDeclarationList2(
             null, [AstTestFactory.variableDeclaration("i")]),
         AstTestFactory.booleanLiteral(true),
@@ -3326,8 +3322,7 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_mapLiteral() {
-    // ignore: deprecated_member_use_from_same_package
-    SetOrMapLiteral node = AstTestFactory.mapLiteral(
+    SetOrMapLiteral node = AstTestFactory.setOrMapLiteral(
         null,
         AstTestFactory.typeArgumentList([AstTestFactory.typeName4("E")]),
         [AstTestFactory.mapLiteralEntry("k", AstTestFactory.identifier3("v"))]);
