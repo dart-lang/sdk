@@ -41,8 +41,7 @@ main() async {
     // Smi.
     await test(watcher, testBoxInt32, mustTriggerGC: false);
     await test(watcher, testBoxDouble);
-    await test(watcher, testBoxSmallPointer);
-    await test(watcher, testBoxLargePointer);
+    await test(watcher, testBoxPointer);
   } finally {
     watcher.dispose();
   }
@@ -85,19 +84,17 @@ void testBoxDouble() {
   Expect.equals(0x80000000 * -1.0, smallDouble());
 }
 
-final smallPointer = ffiTestFunctions
-    .lookupFunction<NativeNullaryOpPtr, NullaryOpPtr>("SmallPointer");
-
-// Forces boxing into ffi.Pointer. On 32-bit platforms, also forces boxing into
-// Mint inside of ffi.Pointer.
-void testBoxSmallPointer() {
-  Expect.equals(-0x80000000, smallPointer().address);
-}
-
 final largePointer = ffiTestFunctions
     .lookupFunction<NativeNullaryOpPtr, NullaryOpPtr>("LargePointer");
 
-// Forces boxing into ffi.Pointer and ffi.Mint on all platforms.
-void testBoxLargePointer() {
-  Expect.equals(-0x8000000000000000, largePointer().address);
+// Forces boxing into ffi.Pointer and ffi.Mint.
+void testBoxPointer() {
+  ffi.Pointer pointer = largePointer();
+  if (pointer != null) {
+    if (ffi.sizeOf<ffi.Pointer>() == 4) {
+      Expect.equals(0x82000000, pointer.address);
+    } else {
+      Expect.equals(0x8100000082000000, pointer.address);
+    }
+  }
 }

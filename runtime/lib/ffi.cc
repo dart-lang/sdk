@@ -559,18 +559,11 @@ static void* GenerateFfiInverseTrampoline(const Function& signature,
   // https://github.com/dart-lang/sdk/issues/35773 DBC
   UNREACHABLE();
 #else
-  extern void GenerateFfiInverseTrampoline(
-      Assembler * assembler, const Function& signature, void* dart_entry_point);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder);
-  GenerateFfiInverseTrampoline(&assembler, signature, dart_entry_point);
-  const Code& code = Code::Handle(
-      Code::FinalizeCodeAndNotify("inverse trampoline", nullptr, &assembler,
-                                  Code::PoolAttachment::kAttachPool, false));
 
-  uword entryPoint = code.EntryPoint();
-
-  return reinterpret_cast<void*>(entryPoint);
+  // TODO(dacoharkes): Implement this.
+  // https://github.com/dart-lang/sdk/issues/35761
+  // Look at StubCode::GenerateInvokeDartCodeStub.
+  UNREACHABLE();
 #endif
 }
 

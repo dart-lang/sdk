@@ -846,7 +846,119 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  Register saved_fp = locs()->temp(0).reg();
+  Register branch = locs()->in(TargetAddressIndex()).reg();
+  Register tmp = locs()->temp(1).reg();
+
+  // Save frame pointer because we're going to update it when we enter the exit
+  // frame.
+  __ movl(saved_fp, FPREG);
+
+  // Make a space to put the return address.
+  __ pushl(Immediate(0));
+
+  // We need to create a dummy "exit frame". It will have a null code object.
+  __ LoadObject(CODE_REG, Object::null_object());
+  __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize);
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
+
+  // Align frame before entering C++ world.
+  if (OS::ActivationFrameAlignment() > 1) {
+    __ andl(SPREG, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  // Load a 32-bit argument, or a 32-bit component of a 64-bit argument.
+  auto load_single_slot = [&](Location from, Location to) {
+    ASSERT(to.IsStackSlot());
+    if (from.IsRegister()) {
+      __ movl(to.ToStackSlotAddress(), from.reg());
+    } else if (from.IsFpuRegister()) {
+      __ movss(to.ToStackSlotAddress(), from.fpu_reg());
+    } else if (from.IsStackSlot() || from.IsDoubleStackSlot()) {
+      ASSERT(from.base_reg() == FPREG);
+      __ movl(tmp, Address(saved_fp, from.ToStackSlotOffset()));
+      __ movl(to.ToStackSlotAddress(), tmp);
+    } else {
+      UNREACHABLE();
+    }
+  };
+
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    Location origin = locs()->in(i);
+    Location target = arg_locations_[i];
+
+    if (target.IsStackSlot()) {
+      load_single_slot(origin, target);
+    } else if (target.IsDoubleStackSlot()) {
+      if (origin.IsFpuRegister()) {
+        __ movsd(target.ToStackSlotAddress(), origin.fpu_reg());
+      } else {
+        ASSERT(origin.IsDoubleStackSlot() && origin.base_reg() == FPREG);
+        __ movl(tmp, Address(saved_fp, origin.ToStackSlotOffset()));
+        __ movl(target.ToStackSlotAddress(), tmp);
+        __ movl(tmp, Address(saved_fp, origin.ToStackSlotOffset() + 4));
+        __ movl(Address(SPREG, target.ToStackSlotOffset() + 4), tmp);
+      }
+    } else if (target.IsPairLocation()) {
+      ASSERT(origin.IsPairLocation());
+      load_single_slot(origin.AsPairLocation()->At(0),
+                       target.AsPairLocation()->At(0));
+      load_single_slot(origin.AsPairLocation()->At(1),
+                       target.AsPairLocation()->At(1));
+    }
+  }
+
+  // Mark that the thread is executing VM code.
+  __ movl(Assembler::VMTagAddress(), branch);
+
+  // We need to copy the return address up into the dummy stack frame so the
+  // stack walker will know which safepoint to use. Unlike X64, there's no
+  // PC-relative 'leaq' available, so we have do a trick with 'call'.
+  constexpr intptr_t kCallSequenceLength = 6;
+
+  Label get_pc;
+  __ call(&get_pc);
+  __ Bind(&get_pc);
+
+  const intptr_t call_sequence_start = __ CodeSize();
+
+  __ popl(tmp);
+  __ movl(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
+  __ call(branch);
+
+  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
+
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+                                 RawPcDescriptors::Kind::kOther, locs());
+
+  // The x86 calling convention requires floating point values to be returned on
+  // the "floating-point stack" (aka. register ST0). We don't use the
+  // floating-point stack in Dart, so we need to move the return value back into
+  // an XMM register.
+  if (representation() == kUnboxedDouble) {
+    __ subl(SPREG, Immediate(8));
+    __ fstpl(Address(SPREG, 0));
+    __ movsd(XMM0, Address(SPREG, 0));
+  } else if (representation() == kUnboxedFloat) {
+    __ subl(SPREG, Immediate(4));
+    __ fstps(Address(SPREG, 0));
+    __ movss(XMM0, Address(SPREG, 0));
+  }
+
+  // Mark that the thread is executing Dart code.
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+
+  // Reset exit frame information in Isolate structure.
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Leave dummy exit frame.
+  __ LeaveFrame();
+
+  // Instead of returning to the "fake" return address, we just pop it.
+  __ popl(tmp);
 }
 
 static bool CanBeImmediateIndex(Value* value, intptr_t cid) {

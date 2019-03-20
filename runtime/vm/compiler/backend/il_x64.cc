@@ -894,8 +894,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // but have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
   __ set_constant_pool_allowed(false);
-  __ EnterDartFrame(
-      compiler::ffi::NumStackArguments(arg_locations_) * kWordSize, PP);
+  __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize,
+                    PP);
 
   // Save exit frame information to enable stack walking as we are about to
   // transition to Dart VM C++ code.

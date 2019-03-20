@@ -462,13 +462,11 @@ DART_EXPORT double SmallDouble() {
   return 0x80000000 * -1.0;
 }
 
-DART_EXPORT void* SmallPointer() {
-  intptr_t value = 0x80000000;
-  return reinterpret_cast<void*>(-value);
-}
-
+// Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
+// truncated.
 DART_EXPORT void* LargePointer() {
-  return reinterpret_cast<void*>(-0x8000000000000000L);
+  uint64_t origin = 0x8100000082000000;
+  return *reinterpret_cast<void**>(&origin);
 }
 
 #if !defined(_WIN32)

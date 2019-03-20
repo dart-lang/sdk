@@ -3525,6 +3525,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
 bool UnboxInstr::CanConvertSmi() const {
   switch (representation()) {
     case kUnboxedDouble:
+    case kUnboxedFloat:
     case kUnboxedInt64:
       return true;
 
@@ -5192,7 +5193,7 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
 
 #define Z zone_
 
@@ -5211,27 +5212,38 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/1, LocationSummary::kCall);
+#if defined(TARGET_ARCH_IA32)
+  constexpr intptr_t kNumTemps = 2;
+#else
+  constexpr intptr_t kNumTemps = 1;
+#endif
+
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, /*num_inputs=*/InputCount(),
+                      /*num_temps=*/kNumTemps, LocationSummary::kCall);
 
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
   summary->set_temp(0, Location::RegisterLocation(
                            CallingConventions::kSecondNonArgumentRegister));
+#if defined(TARGET_ARCH_IA32)
+  summary->set_temp(1, Location::RegisterLocation(
+                           CallingConventions::kFirstCalleeSavedCpuReg));
+#endif
   summary->set_out(0, compiler::ffi::ResultLocation(
                           compiler::ffi::ResultRepresentation(signature_)));
 
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    Location target = arg_locations_[i];
-    if (target.IsMachineRegister()) {
-      summary->set_in(i, target);
-    } else {
-      // Since we have to push this input on the stack, there's no point in
-      // pinning it to any specific register.
-      summary->set_in(i, Location::Any());
-    }
+    // Floating point values are never split: they are either in a single "FPU"
+    // register or a contiguous 64-bit slot on the stack. Unboxed 64-bit integer
+    // values, in contrast, can be split between any two registers on a 32-bit
+    // system.
+    const bool is_atomic = arg_representations_[i] == kUnboxedFloat ||
+                           arg_representations_[i] == kUnboxedDouble;
+    // Since we have to move this input down to the stack, there's no point in
+    // pinning it to any specific register.
+    summary->set_in(i, UnallocateStackSlots(arg_locations_[i], is_atomic));
   }
 
   return summary;
@@ -5239,6 +5251,22 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
 
 Representation FfiCallInstr::representation() const {
   return compiler::ffi::ResultRepresentation(signature_);
+}
+
+Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
+  if (in.IsPairLocation()) {
+    ASSERT(!is_atomic);
+    return Location::Pair(UnallocateStackSlots(in.AsPairLocation()->At(0)),
+                          UnallocateStackSlots(in.AsPairLocation()->At(1)));
+  } else if (in.IsMachineRegister()) {
+    return in;
+  } else if (in.IsDoubleStackSlot()) {
+    return is_atomic ? Location::Any()
+                     : Location::Pair(Location::Any(), Location::Any());
+  } else {
+    ASSERT(in.IsStackSlot());
+    return Location::Any();
+  }
 }
 
 #undef Z

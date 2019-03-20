@@ -188,6 +188,7 @@ class CallingConventions {
   static const size_t kRegisterTransferLimit = 16;
 
   static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 #else
   static const Register kArg1Reg = RDI;
@@ -231,6 +232,7 @@ class CallingConventions {
   static const XmmRegister xmmFirstNonParameterReg = XMM8;
 
   static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 #endif
 

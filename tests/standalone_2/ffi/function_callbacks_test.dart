@@ -22,7 +22,6 @@ typedef CoordinateTrice = Coordinate Function(
 void main() {
   testFunctionWithFunctionPointer();
   testNativeFunctionWithFunctionPointer();
-  testFromFunction();
 }
 
 ffi.DynamicLibrary ffiTestFunctions =
@@ -75,18 +74,3 @@ typedef NativeApplyTo42And74Type = ffi.IntPtr Function(
 
 typedef ApplyTo42And74Type = int Function(
     ffi.Pointer<ffi.NativeFunction<NativeIntptrBinOp>>);
-
-void testFromFunction() {
-  ffi.Pointer<ffi.NativeFunction<NativeIntptrBinOp>> pointer =
-      ffi.fromFunction(myPlus);
-  Expect.isNotNull(pointer);
-
-  ffi.Pointer<ffi.NativeFunction<NativeApplyTo42And74Type>> p17 =
-      ffiTestFunctions.lookup("ApplyTo42And74");
-  ApplyTo42And74Type applyTo42And74 = p17.asFunction();
-
-  // TODO(dacoharkes): implement this
-
-  // int result = applyTo42And74(pointer);
-  // print(result);
-}

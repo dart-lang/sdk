@@ -119,6 +119,29 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
+class CallingConventions {
+ public:
+  static const Register ArgumentRegisters[];
+  static const intptr_t kArgumentRegisters = 0;
+  static const intptr_t kNumArgRegs = 0;
+
+  static const XmmRegister XmmArgumentRegisters[];
+  static const intptr_t kXmmArgumentRegisters = 0;
+  static const intptr_t kNumXmmArgRegs = 0;
+
+  static const bool kArgumentIntRegXorXmmReg = false;
+
+  static constexpr Register kReturnReg = EAX;
+  static constexpr Register kSecondReturnReg = EDX;
+
+  // Floating point values are returned on the "FPU stack" (in "ST" registers).
+  static constexpr XmmRegister kReturnXmmReg = kNoXmmRegister;
+
+  static constexpr Register kFirstCalleeSavedCpuReg = EBX;
+  static constexpr Register kFirstNonArgumentRegister = EAX;
+  static constexpr Register kSecondNonArgumentRegister = ECX;
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_IA32_H_

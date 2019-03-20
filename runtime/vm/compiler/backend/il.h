@@ -4137,6 +4137,10 @@ class FfiCallInstr : public Definition {
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
+  // Mark stack slots in 'loc' as unallocated. Split a double-word stack slot
+  // into a pair location if 'is_atomic' is false.
+  static Location UnallocateStackSlots(Location loc, bool is_atomic = false);
+
   Zone* const zone_;
   const Function& signature_;
 

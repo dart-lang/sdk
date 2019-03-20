@@ -7,6 +7,9 @@
 fragmentation_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
+[ $arch == ia32 ]
+ffi/function_structs_test: Skip # Struct alignment rules are broken on 32-bit. # Issue 35768
+
 [ $builder_tag == asan ]
 ffi/data_not_asan_test: Skip # this test tries to allocate too much memory on purpose
 io/file_test: Fail # Issue 34724
@@ -241,12 +244,12 @@ io/socket_many_connections_test: Skip # Timeout
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
 
-[ $arch != x64 || $compiler != dartk || $mode == product || $system != linux && $system != macos && $system != windows ]
+[ $compiler != dartk || $mode == product || $arch != ia32 && $arch != x64 || $system != linux && $system != macos && $system != windows ]
 ffi/function_stress_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
 ffi/subtype_test: SkipByDesign # FFI must be supported. Also requires --verbose-gc, which isn't included in product.
 
-[ $arch != x64 || $system != linux && $system != macos && $system != windows ]
-ffi: Skip # ffi not yet supported on other systems than linux/macos/windows x64
+[ $arch != ia32 && $arch != x64 || $system != linux && $system != macos && $system != windows ]
+ffi: Skip # ffi not yet supported on other systems than linux/macos/windows x64/ia32
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
 entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.

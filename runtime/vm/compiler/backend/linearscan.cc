@@ -1465,9 +1465,9 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       if (locs->in(j).IsPairLocation()) {
         PairLocation* pair = locs->in_slot(j)->AsPairLocation();
         ASSERT(!pair->At(0).IsUnallocated() ||
-               locs->in(j).policy() == Location::kAny);
+               pair->At(0).policy() == Location::kAny);
         ASSERT(!pair->At(1).IsUnallocated() ||
-               locs->in(j).policy() == Location::kAny);
+               pair->At(1).policy() == Location::kAny);
       } else {
         ASSERT(!locs->in(j).IsUnallocated() ||
                locs->in(j).policy() == Location::kAny);

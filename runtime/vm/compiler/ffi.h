@@ -49,7 +49,7 @@ ZoneGrowableArray<Location>* ArgumentLocations(
     const ZoneGrowableArray<Representation>& arg_reps);
 
 // Number of stack slots used in 'locations'.
-intptr_t NumStackArguments(const ZoneGrowableArray<Location>& locations);
+intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations);
 
 }  // namespace ffi
 

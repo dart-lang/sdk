@@ -461,7 +461,7 @@ void testSizeOfGeneric() {
   }
 
   int size = generic<ffi.Pointer<ffi.Int64>>();
-  Expect.equals(8, size);
+  Expect.isTrue(size == 8 || size == 4);
 }
 
 void testSizeOfVoid() {

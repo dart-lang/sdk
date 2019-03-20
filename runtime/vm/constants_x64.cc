@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if defined(TARGET_ARCH_X64)
+
 #include "vm/constants_x64.h"
 
 namespace dart {
@@ -25,3 +27,5 @@ const XmmRegister CallingConventions::XmmArgumentRegisters[] = {
 #endif
 
 }  // namespace dart
+
+#endif
