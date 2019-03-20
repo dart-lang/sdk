@@ -137,6 +137,9 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 
+// See "Procedure Call Standard for the ARM 64-bit Architecture", document
+// number "ARM IHI 0055B", May 22 2013.
+
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
                                     (1 << R3) | (1 << R4) | (1 << R5) |
@@ -172,6 +175,32 @@ const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
 constexpr int kStoreBufferWrapperSize = 32;
+
+#define R(REG) (1 << REG)
+
+class CallingConventions {
+ public:
+  static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kNumArgRegs = 8;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters =
+      R(V0) | R(V1) | R(V2) | R(V3) | R(V4) | R(V5) | R(V6) | R(V7);
+  static const intptr_t kNumFpuArgRegs = 8;
+
+  static const bool kArgumentIntRegXorFpuReg = false;
+
+  static constexpr Register kReturnReg = R0;
+  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr FpuRegister kReturnFpuReg = V0;
+
+  static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
+  static constexpr Register kFirstNonArgumentRegister = R8;
+  static constexpr Register kSecondNonArgumentRegister = R9;
+};
+
+#undef R
 
 static inline Register ConcreteRegister(Register r) {
   return ((r == ZR) || (r == CSP)) ? R31 : r;

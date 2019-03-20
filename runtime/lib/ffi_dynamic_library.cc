@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
+#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                  \
+    !defined(TARGET_OS_ANDROID)
 // TODO(dacoharkes): Implement dynamic libraries for other targets & merge the
 // implementation with:
 // - runtime/bin/extensions.h
@@ -20,7 +21,8 @@
 namespace dart {
 
 static void* LoadExtensionLibrary(const char* library_file) {
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                    \
+    defined(TARGET_OS_ANDROID)
   void* handle = dlopen(library_file, RTLD_LAZY);
   if (handle == nullptr) {
     char* error = dlerror();
@@ -68,7 +70,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
 }
 
 static void* ResolveSymbol(void* handle, const char* symbol) {
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                    \
+    defined(TARGET_OS_ANDROID)
   dlerror();  // Clear any errors.
   void* pointer = dlsym(handle, symbol);
   if (pointer == nullptr) {

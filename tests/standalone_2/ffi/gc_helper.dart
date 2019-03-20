@@ -12,8 +12,9 @@ DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 abstract class GCWatcher {
   factory GCWatcher() => _GCWatcherImpl();
   factory GCWatcher.dummy() => _MockGCWatcher();
-  factory GCWatcher.ifAvailable() =>
-      Platform.isWindows ? GCWatcher.dummy() : GCWatcher();
+  factory GCWatcher.ifAvailable() => (Platform.isWindows || Platform.isAndroid)
+      ? GCWatcher.dummy()
+      : GCWatcher();
 
   Future<int> size();
   void dispose();

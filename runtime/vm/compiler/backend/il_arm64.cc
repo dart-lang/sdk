@@ -873,7 +873,102 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  Register saved_fp = locs()->temp(0).reg();
+  Register temp = locs()->temp(1).reg();
+  Register branch = locs()->in(TargetAddressIndex()).reg();
+
+  // Save frame pointer because we're going to update it when we enter the exit
+  // frame.
+  __ mov(saved_fp, FPREG);
+
+  // We need to create a dummy "exit frame". It will share the same pool pointer
+  // but have a null code object.
+  __ LoadObject(CODE_REG, Object::null_object());
+  __ set_constant_pool_allowed(false);
+  __ EnterDartFrame(0, PP);
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ StoreToOffset(FPREG, THR,
+                   compiler::target::Thread::top_exit_frame_info_offset());
+
+  // Make space for arguments and align the frame.
+  __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
+                              kWordSize);
+
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    Location origin = locs()->in(i);
+    Location target = arg_locations_[i];
+
+    if (target.IsStackSlot()) {
+      if (origin.IsRegister()) {
+        __ StoreToOffset(origin.reg(), SPREG, target.ToStackSlotOffset());
+      } else if (origin.IsFpuRegister()) {
+        __ StoreDToOffset(origin.fpu_reg(), SPREG, target.ToStackSlotOffset());
+      } else if (origin.IsStackSlot() || origin.IsDoubleStackSlot()) {
+        // The base register cannot be SPREG because we've moved it.
+        ASSERT(origin.base_reg() == FPREG);
+        __ LoadFromOffset(TMP, saved_fp, origin.ToStackSlotOffset());
+        __ StoreToOffset(TMP, SPREG, target.ToStackSlotOffset());
+      }
+    } else {
+      ASSERT(origin.Equals(target));
+    }
+  }
+
+  // Mark that the thread is executing VM code.
+  __ StoreToOffset(branch, THR, compiler::target::Thread::vm_tag_offset());
+
+  // We need to copy the return address up into the dummy stack frame so the
+  // stack walker will know which safepoint to use.
+  const intptr_t call_sequence_start = __ CodeSize();
+
+  // 5 instructions, 4 bytes each.
+  constexpr intptr_t kCallSequenceLength = 5 * 4;
+
+  __ adr(temp, Immediate(kCallSequenceLength));
+  __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
+
+  // We are entering runtime code, so the C stack pointer must be restored from
+  // the stack limit to the top of the stack. We cache the stack limit address
+  // in a callee-saved register.
+  __ mov(temp, CSP);
+  __ mov(CSP, SP);
+
+  __ blr(branch);
+
+  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
+
+  // Restore the Dart stack pointer and the saved C stack pointer.
+  __ mov(SP, CSP);
+  __ mov(CSP, temp);
+
+  compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
+                                 RawPcDescriptors::Kind::kOther, locs());
+
+  // Mark that the thread is executing Dart code.
+  __ LoadImmediate(temp, VMTag::kDartCompiledTagId);
+  __ StoreToOffset(temp, THR, compiler::target::Thread::vm_tag_offset());
+
+  // Reset exit frame information in Isolate structure.
+  __ StoreToOffset(ZR, THR,
+                   compiler::target::Thread::top_exit_frame_info_offset());
+
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK,
+         Address(THR, compiler::target::Thread::write_barrier_mask_offset()));
+
+  // Although PP is a callee-saved register, it may have been moved by the GC.
+  __ LeaveDartFrame(compiler::kRestoreCallerPP);
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  }
+
+  __ set_constant_pool_allowed(true);
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(

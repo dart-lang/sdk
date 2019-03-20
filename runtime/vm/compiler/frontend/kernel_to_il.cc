@@ -2485,7 +2485,8 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64) &&                \
+    !defined(TARGET_ARCH_IA32)
   UNREACHABLE();
 #else
   graph_entry_ =

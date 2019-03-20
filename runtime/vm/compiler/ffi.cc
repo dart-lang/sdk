@@ -11,7 +11,8 @@ namespace compiler {
 
 namespace ffi {
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_IA32)
 
 static const size_t kSizeUnknown = 0;
 
@@ -127,7 +128,7 @@ class ArgumentFrameState : public ValueObject {
           Location result = Location::RegisterLocation(
               CallingConventions::ArgumentRegisters[cpu_regs_used]);
           cpu_regs_used++;
-          if (CallingConventions::kArgumentIntRegXorXmmReg) {
+          if (CallingConventions::kArgumentIntRegXorFpuReg) {
             fpu_regs_used++;
           }
           return result;
@@ -135,11 +136,11 @@ class ArgumentFrameState : public ValueObject {
         break;
       case kUnboxedFloat:
       case kUnboxedDouble:
-        if (fpu_regs_used < CallingConventions::kNumXmmArgRegs) {
+        if (fpu_regs_used < CallingConventions::kNumFpuArgRegs) {
           Location result = Location::FpuRegisterLocation(
-              CallingConventions::XmmArgumentRegisters[fpu_regs_used]);
+              CallingConventions::FpuArgumentRegisters[fpu_regs_used]);
           fpu_regs_used++;
-          if (CallingConventions::kArgumentIntRegXorXmmReg) {
+          if (CallingConventions::kArgumentIntRegXorFpuReg) {
             cpu_regs_used++;
           }
           return result;
