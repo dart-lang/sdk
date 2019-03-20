@@ -296,7 +296,7 @@ class _Collector {
         }
       }
 
-      for (var element in node.elements2) {
+      for (var element in node.elements) {
         collect(element);
       }
       return;
@@ -322,7 +322,7 @@ class _Collector {
         }
       }
 
-      for (var element in node.elements2) {
+      for (var element in node.elements) {
         collect(element);
       }
     }

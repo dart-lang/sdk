@@ -2962,7 +2962,7 @@ class Parser {
                 inKeyword: inKeyword,
                 iterable: iterator);
           }
-          return astFactory.forStatement2(
+          return astFactory.forStatement(
               forKeyword: forKeyword,
               leftParenthesis: leftParenthesis,
               forLoopParts: forLoopParts,
@@ -3002,7 +3002,7 @@ class Parser {
       }
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
-      return astFactory.forStatement2(
+      return astFactory.forStatement(
           forKeyword: forKeyword,
           leftParenthesis: leftParenthesis,
           forLoopParts: forLoopParts,
@@ -4040,7 +4040,7 @@ class Parser {
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
       Token awaitToken = _currentToken;
       Statement statement = parseForStatement();
-      if (!(statement is ForStatement2 && statement.forLoopParts is ForParts)) {
+      if (!(statement is ForStatement && statement.forLoopParts is ForParts)) {
         _reportErrorForToken(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken);
       }

@@ -537,18 +537,17 @@ class AstTestFactory {
           rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
           updaters: updaters);
 
-  static ForStatement2 forStatement(
-          ForLoopParts forLoopParts, Statement body) =>
-      astFactory.forStatement2(
+  static ForStatement forStatement(ForLoopParts forLoopParts, Statement body) =>
+      astFactory.forStatement(
           forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
           leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           forLoopParts: forLoopParts,
           rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body: body);
 
-  static ForStatement2 forStatement2(VariableDeclarationList variableList,
+  static ForStatement forStatement2(VariableDeclarationList variableList,
           Expression condition, List<Expression> updaters, Statement body) =>
-      astFactory.forStatement2(
+      astFactory.forStatement(
           forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
           leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           forLoopParts: astFactory.forPartsWithDeclarations(

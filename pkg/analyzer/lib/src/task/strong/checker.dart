@@ -506,7 +506,7 @@ class CodeChecker extends RecursiveAstVisitor {
         }
       }
     }
-    NodeList<CollectionElement> elements = node.elements2;
+    NodeList<CollectionElement> elements = node.elements;
     for (int i = 0; i < elements.length; i++) {
       checkCollectionElement(elements[i], type);
     }
@@ -620,7 +620,7 @@ class CodeChecker extends RecursiveAstVisitor {
           }
         }
       }
-      NodeList<CollectionElement> elements = node.elements2;
+      NodeList<CollectionElement> elements = node.elements;
       for (int i = 0; i < elements.length; i++) {
         checkMapElement(elements[i], keyType, valueType);
       }
@@ -640,7 +640,7 @@ class CodeChecker extends RecursiveAstVisitor {
           }
         }
       }
-      NodeList<CollectionElement> elements = node.elements2;
+      NodeList<CollectionElement> elements = node.elements;
       for (int i = 0; i < elements.length; i++) {
         checkCollectionElement(elements[i], type);
       }
@@ -1327,7 +1327,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     Token awaitKeyword;
     AstNode parent = node.parent;
-    if (parent is ForStatement2) {
+    if (parent is ForStatement) {
       awaitKeyword = parent.awaitKeyword;
     } else if (parent is ForElement) {
       awaitKeyword = parent.awaitKeyword;

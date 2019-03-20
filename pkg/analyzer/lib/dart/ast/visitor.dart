@@ -24,6 +24,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 
 /**
  * An AST visitor that will recursively visit all of the nodes in an AST
@@ -147,7 +148,9 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
  *
  * Clients may extend this class.
  */
-class GeneralizingAstVisitor<R> implements AstVisitor<R> {
+class GeneralizingAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
 
@@ -329,7 +332,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitForParts(node);
 
   @override
-  R visitForStatement2(ForStatement2 node) => visitStatement(node);
+  R visitForStatement(ForStatement node) => visitStatement(node);
 
   R visitFunctionBody(FunctionBody node) => visitNode(node);
 
@@ -620,7 +623,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may extend this class.
  */
-class RecursiveAstVisitor<R> implements AstVisitor<R> {
+class RecursiveAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) {
     node.visitChildren(this);
@@ -904,7 +909,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R visitForStatement2(ForStatement2 node) {
+  R visitForStatement(ForStatement node) {
     node.visitChildren(this);
     return null;
   }
@@ -1345,7 +1350,9 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may extend this class.
  */
-class SimpleAstVisitor<R> implements AstVisitor<R> {
+class SimpleAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => null;
 
@@ -1488,7 +1495,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitForPartsWithExpression(ForPartsWithExpression node) => null;
 
   @override
-  R visitForStatement2(ForStatement2 node) => null;
+  R visitForStatement(ForStatement node) => null;
 
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) => null;
@@ -1719,7 +1726,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may extend this class.
  */
-class ThrowingAstVisitor<R> implements AstVisitor<R> {
+class ThrowingAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => _throw(node);
 
@@ -1866,7 +1875,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R visitForPartsWithExpression(ForPartsWithExpression node) => _throw(node);
 
   @override
-  R visitForStatement2(ForStatement2 node) => _throw(node);
+  R visitForStatement(ForStatement node) => _throw(node);
 
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) => _throw(node);
@@ -2100,7 +2109,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class TimedAstVisitor<T> implements AstVisitor<T> {
+class TimedAstVisitor<T> with UIAsCodeVisitorMixin<T> implements AstVisitor<T> {
   /**
    * The base visitor whose visit methods will be timed.
    */
@@ -2495,9 +2504,9 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T visitForStatement2(ForStatement2 node) {
+  T visitForStatement(ForStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForStatement2(node);
+    T result = _baseVisitor.visitForStatement(node);
     stopwatch.stop();
     return result;
   }
@@ -3084,7 +3093,9 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
  *
  * Clients may extend this class.
  */
-class UnifyingAstVisitor<R> implements AstVisitor<R> {
+class UnifyingAstVisitor<R>
+    with UIAsCodeVisitorMixin<R>
+    implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
 
@@ -3232,7 +3243,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitForPartsWithExpression(ForPartsWithExpression node) => visitNode(node);
 
   @override
-  R visitForStatement2(ForStatement2 node) => visitNode(node);
+  R visitForStatement(ForStatement node) => visitNode(node);
 
   @override
   R visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);

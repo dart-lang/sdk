@@ -534,7 +534,19 @@ abstract class AstFactory {
   /**
    * Returns a newly created for statement.
    */
-  ForStatement2 forStatement2(
+  ForStatement forStatement(
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      Statement body});
+
+  /**
+   * Returns a newly created for statement.
+   */
+  @Deprecated('Replaced by forStatement')
+  ForStatement forStatement2(
       {Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,

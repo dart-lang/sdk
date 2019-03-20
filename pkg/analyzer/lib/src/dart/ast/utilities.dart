@@ -30,7 +30,9 @@ typedef void ExceptionInDelegateHandler(
  * will only clone the structure, it will not preserve any resolution results or
  * properties associated with the nodes.
  */
-class AstCloner implements AstVisitor<AstNode> {
+class AstCloner
+    with UIAsCodeVisitorMixin<AstNode>
+    implements AstVisitor<AstNode> {
   /**
    * A flag indicating whether tokens should be cloned while cloning an AST
    * structure.
@@ -524,14 +526,13 @@ class AstCloner implements AstVisitor<AstNode> {
           updaters: cloneNodeList(node.updaters));
 
   @override
-  ForStatement2 visitForStatement2(ForStatement2 node) =>
-      astFactory.forStatement2(
-          awaitKeyword: cloneToken(node.awaitKeyword),
-          forKeyword: cloneToken(node.forKeyword),
-          leftParenthesis: cloneToken(node.leftParenthesis),
-          forLoopParts: cloneNode(node.forLoopParts),
-          rightParenthesis: cloneToken(node.rightParenthesis),
-          body: cloneNode(node.body));
+  ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
+      awaitKeyword: cloneToken(node.awaitKeyword),
+      forKeyword: cloneToken(node.forKeyword),
+      leftParenthesis: cloneToken(node.leftParenthesis),
+      forLoopParts: cloneNode(node.forLoopParts),
+      rightParenthesis: cloneToken(node.rightParenthesis),
+      body: cloneNode(node.body));
 
   @override
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) =>
@@ -727,7 +728,7 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.constKeyword),
       cloneNode(node.typeArguments),
       cloneToken(node.leftBracket),
-      cloneNodeList(node.elements2),
+      cloneNodeList(node.elements),
       cloneToken(node.rightBracket));
 
   @override
@@ -870,7 +871,7 @@ class AstCloner implements AstVisitor<AstNode> {
         constKeyword: cloneToken(node.constKeyword),
         typeArguments: cloneNode(node.typeArguments),
         leftBracket: cloneToken(node.leftBracket),
-        elements: cloneNodeList(node.elements2),
+        elements: cloneNodeList(node.elements),
         rightBracket: cloneToken(node.rightBracket));
     if (node.isMap) {
       (result as SetOrMapLiteralImpl).becomeMap();
@@ -1110,7 +1111,9 @@ class AstCloner implements AstVisitor<AstNode> {
  * An AstVisitor that compares the structure of two AstNodes to see whether they
  * are equal.
  */
-class AstComparator implements AstVisitor<bool> {
+class AstComparator
+    with UIAsCodeVisitorMixin<bool>
+    implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -1652,8 +1655,8 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitForStatement2(ForStatement2 node) {
-    ForStatement2 other = _other as ForStatement2;
+  bool visitForStatement(ForStatement node) {
+    ForStatement other = _other as ForStatement;
     return isEqualTokens(node.forKeyword, other.forKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.forLoopParts, other.forLoopParts) &&
@@ -1881,7 +1884,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.constKeyword, other.constKeyword) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.elements2, other.elements2) &&
+        _isEqualNodeLists(node.elements, other.elements) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
@@ -2068,7 +2071,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.constKeyword, other.constKeyword) &&
         isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.elements2, other.elements2) &&
+        _isEqualNodeLists(node.elements, other.elements) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
@@ -2439,7 +2442,9 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
  * results.
  */
 @deprecated
-class IncrementalAstCloner implements AstVisitor<AstNode> {
+class IncrementalAstCloner
+    with UIAsCodeVisitorMixin<AstNode>
+    implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
    */
@@ -2884,13 +2889,12 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           updaters: _cloneNodeList(node.updaters));
 
   @override
-  ForStatement2 visitForStatement2(ForStatement2 node) =>
-      astFactory.forStatement2(
-          forKeyword: _mapToken(node.forKeyword),
-          leftParenthesis: _mapToken(node.leftParenthesis),
-          forLoopParts: _cloneNode(node.forLoopParts),
-          rightParenthesis: _mapToken(node.rightParenthesis),
-          body: _cloneNode(node.body));
+  ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
+      forKeyword: _mapToken(node.forKeyword),
+      leftParenthesis: _mapToken(node.leftParenthesis),
+      forLoopParts: _cloneNode(node.forLoopParts),
+      rightParenthesis: _mapToken(node.rightParenthesis),
+      body: _cloneNode(node.body));
 
   @override
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) =>
@@ -3123,7 +3127,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
         _mapToken(node.constKeyword),
         _cloneNode(node.typeArguments),
         _mapToken(node.leftBracket),
-        _cloneNodeList(node.elements2),
+        _cloneNodeList(node.elements),
         _mapToken(node.rightBracket));
     copy.staticType = node.staticType;
     return copy;
@@ -3312,7 +3316,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
         constKeyword: _mapToken(node.constKeyword),
         typeArguments: _cloneNode(node.typeArguments),
         leftBracket: _mapToken(node.leftBracket),
-        elements: _cloneNodeList(node.elements2),
+        elements: _cloneNodeList(node.elements),
         rightBracket: _mapToken(node.rightBracket));
     copy.staticType = node.staticType;
     return copy;
@@ -3768,7 +3772,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
 /**
  * An object that will replace one child node in an AST node with another node.
  */
-class NodeReplacer implements AstVisitor<bool> {
+class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
   /**
    * The node being replaced.
    */
@@ -4319,12 +4323,12 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
-  bool visitForStatement2(ForStatement2 node) {
+  bool visitForStatement(ForStatement node) {
     if (identical(node.forLoopParts, _oldNode)) {
-      (node as ForStatement2Impl).forLoopParts = _newNode as ForLoopParts;
+      (node as ForStatementImpl).forLoopParts = _newNode as ForLoopParts;
       return true;
     } else if (identical(node.body, _oldNode)) {
-      (node as ForStatement2Impl).body = _newNode as Statement;
+      (node as ForStatementImpl).body = _newNode as Statement;
       return true;
     }
     return visitNode(node);
@@ -4585,7 +4589,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitListLiteral(ListLiteral node) {
-    if (_replaceInList(node.elements2)) {
+    if (_replaceInList(node.elements)) {
       return true;
     }
     return visitTypedLiteral(node);
@@ -4821,7 +4825,7 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (_replaceInList(node.elements2)) {
+    if (_replaceInList(node.elements)) {
       return true;
     }
     return visitTypedLiteral(node);
@@ -5107,7 +5111,9 @@ class NodeReplacer implements AstVisitor<bool> {
  * another as long as the structures of the corresponding children of a pair of
  * nodes are the same.
  */
-class ResolutionCopier implements AstVisitor<bool> {
+class ResolutionCopier
+    with UIAsCodeVisitorMixin<bool>
+    implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -5660,8 +5666,8 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
-  bool visitForStatement2(ForStatement2 node) {
-    ForStatement2 toNode = this._toNode as ForStatement2;
+  bool visitForStatement(ForStatement node) {
+    ForStatement toNode = this._toNode as ForStatement;
     return _and(
         _isEqualTokens(node.forKeyword, toNode.forKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -5953,7 +5959,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.constKeyword, toNode.constKeyword),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.elements2, toNode.elements2),
+        _isEqualNodeLists(node.elements, toNode.elements),
         _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.staticType = node.staticType;
       return true;
@@ -6206,7 +6212,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.constKeyword, toNode.constKeyword),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.elements2, toNode.elements2),
+        _isEqualNodeLists(node.elements, toNode.elements),
         _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
       toNode.staticType = node.staticType;
       return true;
@@ -6793,7 +6799,9 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
  * This class has been deprecated. Use the class ToSourceVisitor2 instead.
  */
 @deprecated
-class ToSourceVisitor implements AstVisitor<void> {
+class ToSourceVisitor
+    with UIAsCodeVisitorMixin<void>
+    implements AstVisitor<void> {
   /**
    * The writer to which the source is to be written.
    */
@@ -7224,7 +7232,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     if (node.awaitKeyword != null) {
       _writer.print('await ');
     }
@@ -7433,7 +7441,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitTokenWithSuffix(node.constKeyword, ' ');
     _visitNode(node.typeArguments);
     _writer.print('[');
-    _visitNodeListWithSeparator(node.elements2, ', ');
+    _visitNodeListWithSeparator(node.elements, ', ');
     _writer.print(']');
   }
 
@@ -7609,7 +7617,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
     _visitNode(node.typeArguments);
     _writer.print('{');
-    _visitNodeListWithSeparator(node.elements2, ', ');
+    _visitNodeListWithSeparator(node.elements, ', ');
     _writer.print('}');
   }
 
@@ -7921,7 +7929,9 @@ class ToSourceVisitor implements AstVisitor<void> {
  * A visitor used to write a source representation of a visited AST node (and
  * all of it's children) to a sink.
  */
-class ToSourceVisitor2 implements AstVisitor<void> {
+class ToSourceVisitor2
+    with UIAsCodeVisitorMixin<void>
+    implements AstVisitor<void> {
   /**
    * The sink to which the source is to be written.
    */
@@ -8478,7 +8488,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     if (node.awaitKeyword != null) {
       sink.write('await ');
     }
@@ -8687,7 +8697,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNode(node.typeArguments);
     sink.write('[');
-    safelyVisitNodeListWithSeparator(node.elements2, ', ');
+    safelyVisitNodeListWithSeparator(node.elements, ', ');
     sink.write(']');
   }
 
@@ -8860,7 +8870,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     safelyVisitTokenWithSuffix(node.constKeyword, ' ');
     safelyVisitNode(node.typeArguments);
     sink.write('{');
-    safelyVisitNodeListWithSeparator(node.elements2, ', ');
+    safelyVisitNodeListWithSeparator(node.elements, ', ');
     sink.write('}');
   }
 
@@ -9063,5 +9073,15 @@ class ToSourceVisitor2 implements AstVisitor<void> {
         sink.write(')');
       }
     }
+  }
+}
+
+/// Mixin allowing visitor classes to forward the visit method for
+/// `ForStatement2` to `ForStatement`
+mixin UIAsCodeVisitorMixin<R> implements AstVisitor<R> {
+  @override
+  @deprecated
+  R visitForStatement2(ForStatement2 node) {
+    return visitForStatement(node);
   }
 }

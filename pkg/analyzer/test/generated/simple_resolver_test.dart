@@ -216,7 +216,7 @@ void f() {
     expect(break1.target, same(whileStatement));
 
     var break2 = findNode.breakStatement('break loop2;');
-    var forStatement = findNode.forStatement2('for (');
+    var forStatement = findNode.forStatement('for (');
     expect(break2.target, same(forStatement));
   }
 
@@ -245,7 +245,7 @@ void f() {
 ''');
     await resolveTestFile();
 
-    var forStatement = findNode.forStatement2('for (');
+    var forStatement = findNode.forStatement('for (');
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, same(forStatement));
   }
@@ -260,7 +260,7 @@ void f() {
 ''');
     await resolveTestFile();
 
-    var forStatement = findNode.forStatement2('for (');
+    var forStatement = findNode.forStatement('for (');
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, same(forStatement));
   }
@@ -353,7 +353,7 @@ void f() {
     expect(continue1.target, same(whileStatement));
 
     var continue2 = findNode.continueStatement('continue loop2');
-    var forStatement = findNode.forStatement2('for (');
+    var forStatement = findNode.forStatement('for (');
     expect(continue2.target, same(forStatement));
   }
 
@@ -382,7 +382,7 @@ void f() {
 ''');
     await resolveTestFile();
 
-    var forStatement = findNode.forStatement2('for (');
+    var forStatement = findNode.forStatement('for (');
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, same(forStatement));
   }
@@ -397,7 +397,7 @@ void f() {
 ''');
     await resolveTestFile();
 
-    var forStatement = findNode.forStatement2('for (');
+    var forStatement = findNode.forStatement('for (');
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, same(forStatement));
   }

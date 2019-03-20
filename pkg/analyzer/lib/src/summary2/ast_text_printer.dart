@@ -422,7 +422,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     _token(node.awaitKeyword);
     _token(node.forKeyword);
     _token(node.leftParenthesis);
@@ -616,7 +616,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     _typedLiteral(node);
     _token(node.leftBracket);
-    _nodeList(node.elements2, node.rightBracket);
+    _nodeList(node.elements, node.rightBracket);
     _token(node.rightBracket);
   }
 
@@ -774,7 +774,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _typedLiteral(node);
     _token(node.leftBracket);
-    _nodeList(node.elements2, node.rightBracket);
+    _nodeList(node.elements, node.rightBracket);
     _token(node.rightBracket);
   }
 

@@ -1319,7 +1319,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     bool errorOccurred = false;
     List<DartObjectImpl> list = [];
-    for (CollectionElement element in node.elements2) {
+    for (CollectionElement element in node.elements) {
       errorOccurred = errorOccurred | _addElementsToList(list, element);
     }
     if (errorOccurred) {
@@ -1448,7 +1448,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
       bool errorOccurred = false;
       Map<DartObjectImpl, DartObjectImpl> map = {};
-      for (CollectionElement element in node.elements2) {
+      for (CollectionElement element in node.elements) {
         errorOccurred = errorOccurred | _addElementsToMap(map, element);
       }
       if (errorOccurred) {
@@ -1475,7 +1475,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
       bool errorOccurred = false;
       Set<DartObjectImpl> set = new Set<DartObjectImpl>();
-      for (CollectionElement element in node.elements2) {
+      for (CollectionElement element in node.elements) {
         errorOccurred = errorOccurred | _addElementsToSet(set, element);
       }
       if (errorOccurred) {

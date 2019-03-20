@@ -588,7 +588,7 @@ abstract class AbstractConstExprSerializer {
 
   void _serializeListLiteral(ListLiteral expr) {
     if (forConst || expr.typeArguments == null) {
-      List<CollectionElement> elements = expr.elements2;
+      List<CollectionElement> elements = expr.elements;
       elements.forEach(_serializeCollectionElement);
       ints.add(elements.length);
     } else {
@@ -684,10 +684,10 @@ abstract class AbstractConstExprSerializer {
 
   void _serializeSetOrMapLiteral(SetOrMapLiteral expr) {
     if (forConst || expr.typeArguments == null) {
-      for (CollectionElement element in expr.elements2) {
+      for (CollectionElement element in expr.elements) {
         _serializeCollectionElement(element);
       }
-      ints.add(expr.elements2.length);
+      ints.add(expr.elements.length);
     } else {
       ints.add(0);
     }

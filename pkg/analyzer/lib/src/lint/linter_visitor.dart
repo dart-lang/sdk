@@ -289,9 +289,9 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
-    _runSubscriptions(node, registry._forForStatement2);
-    super.visitForStatement2(node);
+  void visitForStatement(ForStatement node) {
+    _runSubscriptions(node, registry._forForStatement);
+    super.visitForStatement(node);
   }
 
   @override
@@ -777,7 +777,7 @@ class NodeLintRegistry {
       _forForPartsWithDeclarations = [];
   final List<_Subscription<ForPartsWithExpression>> _forForPartsWithExpression =
       [];
-  final List<_Subscription<ForStatement2>> _forForStatement2 = [];
+  final List<_Subscription<ForStatement>> _forForStatement = [];
   final List<_Subscription<FunctionDeclaration>> _forFunctionDeclaration = [];
   final List<_Subscription<FunctionDeclarationStatement>>
       _forFunctionDeclarationStatement = [];
@@ -1078,9 +1078,13 @@ class NodeLintRegistry {
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addForStatement(LintRule linter, AstVisitor visitor) {
+    _forForStatement.add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  @Deprecated('Replaced by addForStatement')
   void addForStatement2(LintRule linter, AstVisitor visitor) {
-    _forForStatement2
-        .add(new _Subscription(linter, visitor, _getTimer(linter)));
+    addForStatement(linter, visitor);
   }
 
   void addFunctionDeclaration(LintRule linter, AstVisitor visitor) {

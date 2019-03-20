@@ -394,8 +394,8 @@ class ResolutionCopierTest extends EngineTestCase {
     expect((toNode.updaters[0] as SimpleIdentifier).staticType, same(typeC));
   }
 
-  void test_visitForStatement2() {
-    ForStatement2 createNode() => astFactory.forStatement2(
+  void test_visitForStatement() {
+    ForStatement createNode() => astFactory.forStatement(
         forLoopParts: astFactory.forEachPartsWithIdentifier(
             identifier: AstTestFactory.identifier3('a'),
             iterable: AstTestFactory.identifier3('b')),
@@ -406,14 +406,14 @@ class ResolutionCopierTest extends EngineTestCase {
     DartType typeB = ElementFactory.classElement2("B").type;
     DartType typeC = ElementFactory.classElement2("C").type;
 
-    ForStatement2 fromNode = createNode();
+    ForStatement fromNode = createNode();
     ForEachPartsWithIdentifier fromForLoopParts = fromNode.forLoopParts;
     fromForLoopParts.identifier.staticType = typeA;
     (fromForLoopParts.iterable as SimpleIdentifier).staticType = typeB;
     ((fromNode.body as ExpressionStatement).expression as SimpleIdentifier)
         .staticType = typeC;
 
-    ForStatement2 toNode = createNode();
+    ForStatement toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     ForEachPartsWithIdentifier toForLoopParts = fromNode.forLoopParts;
     expect(toForLoopParts.identifier.staticType, same(typeA));
@@ -576,13 +576,13 @@ class ResolutionCopierTest extends EngineTestCase {
 
     ListLiteral fromNode = createNode();
     (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
-    (fromNode.elements2[0] as SimpleIdentifier).staticType = typeB;
+    (fromNode.elements[0] as SimpleIdentifier).staticType = typeB;
     fromNode.staticType = typeC;
 
     ListLiteral toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect((toNode.typeArguments.arguments[0] as TypeName).type, same(typeA));
-    expect((toNode.elements2[0] as SimpleIdentifier).staticType, same(typeB));
+    expect((toNode.elements[0] as SimpleIdentifier).staticType, same(typeB));
     expect(fromNode.staticType, same(typeC));
   }
 
@@ -745,7 +745,7 @@ class ResolutionCopierTest extends EngineTestCase {
     SetOrMapLiteral fromNode = createNode();
     (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
     (fromNode.typeArguments.arguments[1] as TypeName).type = typeB;
-    MapLiteralEntry fromEntry = fromNode.elements2[0] as MapLiteralEntry;
+    MapLiteralEntry fromEntry = fromNode.elements[0] as MapLiteralEntry;
     (fromEntry.key as SimpleStringLiteral).staticType = typeC;
     (fromEntry.value as SimpleStringLiteral).staticType = typeD;
 
@@ -753,7 +753,7 @@ class ResolutionCopierTest extends EngineTestCase {
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect((toNode.typeArguments.arguments[0] as TypeName).type, same(typeA));
     expect((toNode.typeArguments.arguments[1] as TypeName).type, same(typeB));
-    MapLiteralEntry toEntry = fromNode.elements2[0] as MapLiteralEntry;
+    MapLiteralEntry toEntry = fromNode.elements[0] as MapLiteralEntry;
     expect((toEntry.key as SimpleStringLiteral).staticType, same(typeC));
     expect((toEntry.value as SimpleStringLiteral).staticType, same(typeD));
   }
@@ -769,12 +769,12 @@ class ResolutionCopierTest extends EngineTestCase {
 
     SetOrMapLiteral fromNode = createNode();
     (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
-    (fromNode.elements2[0] as SimpleIdentifier).staticType = typeB;
+    (fromNode.elements[0] as SimpleIdentifier).staticType = typeB;
 
     SetOrMapLiteral toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect((toNode.typeArguments.arguments[0] as TypeName).type, same(typeA));
-    expect((toNode.elements2[0] as SimpleIdentifier).staticType, same(typeB));
+    expect((toNode.elements[0] as SimpleIdentifier).staticType, same(typeB));
   }
 
   void test_visitSimpleIdentifier() {
@@ -813,13 +813,13 @@ class ResolutionCopierTest extends EngineTestCase {
     DartType typeA = ElementFactory.classElement2("A").type;
 
     SpreadElement fromNode = createNode();
-    ((fromNode.expression as ListLiteral).elements2[0] as SimpleIdentifier)
+    ((fromNode.expression as ListLiteral).elements[0] as SimpleIdentifier)
         .staticType = typeA;
 
     SpreadElement toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(
-        ((toNode.expression as ListLiteral).elements2[0] as SimpleIdentifier)
+        ((toNode.expression as ListLiteral).elements[0] as SimpleIdentifier)
             .staticType,
         same(typeA));
   }
@@ -1822,7 +1822,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        astFactory.forStatement2(
+        astFactory.forStatement(
             forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
             leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
             forLoopParts: astFactory.forEachPartsWithIdentifier(
@@ -1836,7 +1836,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        astFactory.forStatement2(
+        astFactory.forStatement(
             awaitKeyword: TokenFactory.tokenFromString("await"),
             forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
             leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -2047,10 +2047,10 @@ class ToSourceVisitor2Test extends EngineTestCase {
             updaters: [AstTestFactory.identifier3('u')]));
   }
 
-  void test_visitForStatement2() {
+  void test_visitForStatement() {
     _assertSource(
         'for (e in l) s;',
-        astFactory.forStatement2(
+        astFactory.forStatement(
             forLoopParts: astFactory.forEachPartsWithIdentifier(
                 identifier: AstTestFactory.identifier3('e'),
                 iterable: AstTestFactory.identifier3('l')),
@@ -4532,7 +4532,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        astFactory.forStatement2(
+        astFactory.forStatement(
             forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
             leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
             forLoopParts: astFactory.forEachPartsWithIdentifier(
@@ -4546,7 +4546,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        astFactory.forStatement2(
+        astFactory.forStatement(
             awaitKeyword: TokenFactory.tokenFromString("await"),
             forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
             leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -4757,10 +4757,10 @@ class ToSourceVisitorTest extends EngineTestCase {
             updaters: [AstTestFactory.identifier3('u')]));
   }
 
-  void test_visitForStatement2() {
+  void test_visitForStatement() {
     _assertSource(
         'for (e in l) s;',
-        astFactory.forStatement2(
+        astFactory.forStatement(
             forLoopParts: astFactory.forEachPartsWithIdentifier(
                 identifier: AstTestFactory.identifier3('e'),
                 iterable: AstTestFactory.identifier3('l')),

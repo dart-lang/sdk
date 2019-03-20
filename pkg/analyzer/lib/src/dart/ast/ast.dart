@@ -4514,20 +4514,12 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-class ForStatement2Impl extends StatementImpl
-    with ForMixin
-    implements ForStatement2 {
-  /// The body of the loop.
-  StatementImpl _body;
-
+@Deprecated('Replaced by ForStatementImpl')
+class ForStatement2Impl extends ForStatementImpl implements ForStatement2 {
   /// Initialize a newly created for statement.
-  ForStatement2Impl(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopPartsImpl forLoopParts,
-      Token rightParenthesis,
-      StatementImpl body) {
+  ForStatement2Impl(Token awaitKeyword, Token forKeyword, Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts, Token rightParenthesis, StatementImpl body)
+      : super._() {
     this.awaitKeyword = awaitKeyword;
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
@@ -4535,6 +4527,28 @@ class ForStatement2Impl extends StatementImpl
     this.rightParenthesis = rightParenthesis;
     _body = _becomeParentOf(body);
   }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+}
+
+abstract class ForStatementImpl extends StatementImpl
+    with ForMixin
+    implements ForStatement {
+  /// The body of the loop.
+  StatementImpl _body;
+
+  /// Initialize a newly created for statement.
+  factory ForStatementImpl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      // ignore: deprecated_member_use_from_same_package
+      StatementImpl body) = ForStatement2Impl;
+
+  ForStatementImpl._();
 
   Statement get body => _body;
 
@@ -4551,7 +4565,7 @@ class ForStatement2Impl extends StatementImpl
   Token get endToken => _body.endToken;
 
   @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6662,6 +6676,10 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..add(rightBracket);
 
   @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  @Deprecated('Replaced by elements')
   NodeList<CollectionElement> get elements2 => _elements;
 
   @override
@@ -8568,10 +8586,14 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(leftBracket)
-    ..addAll(elements2)
+    ..addAll(elements)
     ..add(rightBracket);
 
   @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  @Deprecated('Replaced by elements')
   NodeList<CollectionElement> get elements2 => _elements;
 
   @override

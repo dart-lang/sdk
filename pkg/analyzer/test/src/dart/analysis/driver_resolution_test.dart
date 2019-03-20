@@ -4940,7 +4940,7 @@ class C {
     BlockFunctionBody fooBody = fooDeclaration.body;
     List<Statement> statements = fooBody.block.statements;
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
@@ -4975,7 +4975,7 @@ void main() {
     LocalVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.numType);
 
-    ForStatement2 forEachStatement = statements[1];
+    ForStatement forEachStatement = statements[1];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
@@ -5010,7 +5010,7 @@ num v;
     TopLevelVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.numType);
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
@@ -5039,7 +5039,7 @@ void main() {
 
     List<Statement> statements = _getMainStatements(result);
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithDeclaration;
@@ -5071,7 +5071,7 @@ void main() {
 
     List<Statement> statements = _getMainStatements(result);
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithDeclaration;

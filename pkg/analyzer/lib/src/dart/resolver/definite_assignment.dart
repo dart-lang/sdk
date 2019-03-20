@@ -530,7 +530,7 @@ class DefiniteAssignmentTracker {
     _current = _current.union(continueSet);
   }
 
-  void beginForStatement2(ForStatement2 statement) {
+  void beginForStatement2(ForStatement statement) {
     // Not strongly necessary, because we discard everything anyway.
     // Just for consistency, so that `break` is handled without `null`.
     _statementToStackIndex[statement] = _stack.length;

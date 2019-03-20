@@ -231,7 +231,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitForStatement2(ForStatement2 node) {
+  bool visitForStatement(ForStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     ForLoopParts parts = node.forLoopParts;
@@ -393,7 +393,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitListLiteral(ListLiteral node) {
-    for (CollectionElement element in node.elements2) {
+    for (CollectionElement element in node.elements) {
       if (_nodeExits(element)) {
         return true;
       }
@@ -464,7 +464,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitSetOrMapLiteral(SetOrMapLiteral node) {
-    for (CollectionElement element in node.elements2) {
+    for (CollectionElement element in node.elements) {
       if (_nodeExits(element)) {
         return true;
       }

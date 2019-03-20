@@ -367,7 +367,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForStatement2(ForStatement2 node) {
+  visitForStatement(ForStatement node) {
     // Actual: for (va^)
     // Parsed: for (va^; ;)
     if (node.forLoopParts == entity) {
@@ -823,7 +823,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       node.thisOrAncestorOfType<DoStatement>() != null;
 
   bool _inForLoop(AstNode node) =>
-      node.thisOrAncestorMatching((p) => p is ForStatement2) != null;
+      node.thisOrAncestorMatching((p) => p is ForStatement) != null;
 
   bool _inLoop(AstNode node) =>
       _inDoLoop(node) || _inForLoop(node) || _inWhileLoop(node);

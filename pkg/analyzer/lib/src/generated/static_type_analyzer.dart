@@ -161,7 +161,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       parameters = [];
     } else {
       // Also use upwards information to infer the type.
-      elementTypes = node.elements2
+      elementTypes = node.elements
           .map((element) => _computeElementType(element))
           .where((t) => t != null)
           .toList();
@@ -1467,7 +1467,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       Expression iterable;
       if (parent is ForEachPartsWithDeclaration) {
         AstNode parentParent = parent.parent;
-        if (parentParent is ForStatement2Impl) {
+        if (parentParent is ForStatementImpl) {
           awaitKeyword = parentParent.awaitKeyword;
         } else if (parentParent is ForElement) {
           awaitKeyword = parentParent.awaitKeyword;
@@ -1780,7 +1780,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var literalImpl = literal as SetOrMapLiteralImpl;
     DartType contextType = literalImpl.contextType;
     literalImpl.contextType = null; // Not needed anymore.
-    NodeList<CollectionElement> elements = literal.elements2;
+    NodeList<CollectionElement> elements = literal.elements;
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;

@@ -82,7 +82,7 @@ class CoercionReifier extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachParts) {
       // Visit other children.
@@ -116,7 +116,7 @@ class CoercionReifier extends GeneralizingAstVisitor<void> {
         _replaceNode(node, body, ast.block(blockBody));
       }
     } else {
-      super.visitForStatement2(node);
+      super.visitForStatement(node);
     }
   }
 

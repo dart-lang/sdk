@@ -515,6 +515,9 @@ abstract class AstVisitor<R> {
 
   R visitForPartsWithExpression(ForPartsWithExpression node);
 
+  R visitForStatement(ForStatement node);
+
+  @Deprecated('Replaced by visitForStatement')
   R visitForStatement2(ForStatement2 node);
 
   R visitFunctionDeclaration(FunctionDeclaration node);
@@ -2449,7 +2452,7 @@ abstract class ForPartsWithExpression implements ForParts {
 /// `ForEachStatement` will be used.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ForStatement2 implements Statement {
+abstract class ForStatement implements Statement {
   /// Return the token representing the 'await' keyword, or `null` if there is
   /// no 'await' keyword.
   Token get awaitKeyword;
@@ -2469,6 +2472,26 @@ abstract class ForStatement2 implements Statement {
   /// Return the right parenthesis.
   Token get rightParenthesis;
 }
+
+/// A for or for-each statement.
+///
+///    forStatement ::=
+///        'for' '(' forLoopParts ')' [Statement]
+///
+///    forLoopParts ::=
+///       [VariableDeclaration] ';' [Expression]? ';' expressionList?
+///     | [Expression]? ';' [Expression]? ';' expressionList?
+///     | [DeclaredIdentifier] 'in' [Expression]
+///     | [SimpleIdentifier] 'in' [Expression]
+///
+/// This is the class that is used to represent a for loop when either the
+/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
+/// If neither of those experiments are enabled, then either `ForStatement` or
+/// `ForEachStatement` will be used.
+///
+/// Clients may not extend, implement or mix-in this class.
+@Deprecated('Replaced by ForStatement')
+abstract class ForStatement2 extends ForStatement {}
 
 /// A node representing the body of a function or method.
 ///
@@ -3545,6 +3568,10 @@ abstract class LibraryIdentifier implements Identifier {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ListLiteral implements TypedLiteral {
   /// Return the syntactic elements used to compute the elements of the list.
+  NodeList<CollectionElement> get elements;
+
+  /// Return the syntactic elements used to compute the elements of the list.
+  @Deprecated('Replaced by elements')
   NodeList<CollectionElement> get elements2;
 
   /// Return the left square bracket.
@@ -4417,6 +4444,11 @@ abstract class ScriptTag implements AstNode {
 abstract class SetOrMapLiteral implements TypedLiteral {
   /// Return the syntactic elements used to compute the elements of the set or
   /// map.
+  NodeList<CollectionElement> get elements;
+
+  /// Return the syntactic elements used to compute the elements of the set or
+  /// map.
+  @Deprecated('Replaced by elements')
   NodeList<CollectionElement> get elements2;
 
   /// Return `true` if this literal represents a map literal.

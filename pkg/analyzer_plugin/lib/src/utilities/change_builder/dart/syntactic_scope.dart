@@ -151,12 +151,12 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     if (!_isCoveredBy(node)) return;
 
     _addForLoopParts(node.forLoopParts, node.body);
 
-    super.visitForStatement2(node);
+    super.visitForStatement(node);
   }
 
   @override

@@ -1773,9 +1773,9 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertMapOfIntToListOfInt(mapLiteralC.staticType);
 
     ListLiteral listLiteralB =
-        (mapLiteralB.elements2[0] as MapLiteralEntry).value;
+        (mapLiteralB.elements[0] as MapLiteralEntry).value;
     ListLiteral listLiteralC =
-        (mapLiteralC.elements2[0] as MapLiteralEntry).value;
+        (mapLiteralC.elements[0] as MapLiteralEntry).value;
     assertListOfInt(listLiteralB.staticType);
     assertListOfInt(listLiteralC.staticType);
   }
@@ -2026,9 +2026,9 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertListOfListOfInt(literal(2).staticType);
     assertListOfListOfInt(literal(3).staticType);
 
-    assertListOfInt((literal(1).elements2[0] as Expression).staticType);
-    assertListOfInt((literal(2).elements2[0] as Expression).staticType);
-    assertListOfInt((literal(3).elements2[0] as Expression).staticType);
+    assertListOfInt((literal(1).elements[0] as Expression).staticType);
+    assertListOfInt((literal(2).elements[0] as Expression).staticType);
+    assertListOfInt((literal(3).elements[0] as Expression).staticType);
   }
 
   test_listLiteral_simple() async {
@@ -2168,13 +2168,13 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertMapOfIntToListOfString(literal(4).staticType);
 
     assertListOfString(
-        (literal(1).elements2[0] as MapLiteralEntry).value.staticType);
+        (literal(1).elements[0] as MapLiteralEntry).value.staticType);
     assertListOfString(
-        (literal(2).elements2[0] as MapLiteralEntry).value.staticType);
+        (literal(2).elements[0] as MapLiteralEntry).value.staticType);
     assertListOfString(
-        (literal(3).elements2[0] as MapLiteralEntry).value.staticType);
+        (literal(3).elements[0] as MapLiteralEntry).value.staticType);
     assertListOfString(
-        (literal(4).elements2[0] as MapLiteralEntry).value.staticType);
+        (literal(4).elements[0] as MapLiteralEntry).value.staticType);
   }
 
   test_mapLiteral_simple() async {

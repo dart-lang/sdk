@@ -151,7 +151,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         forList: true,
         listElementType: elementType,
       );
-      for (CollectionElement element in node.elements2) {
+      for (CollectionElement element in node.elements) {
         verifier.verify(element);
       }
     }
@@ -179,7 +179,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           setUniqueValues: Set<DartObject>(),
           setDuplicateExpressions: duplicateElements,
         );
-        for (CollectionElement element in node.elements2) {
+        for (CollectionElement element in node.elements) {
           verifier.verify(element);
         }
         for (var duplicateElement in duplicateElements) {
@@ -205,7 +205,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           mapUniqueKeys: Set<DartObject>(),
           mapDuplicateKeyExpressions: duplicateKeyElements,
         );
-        for (CollectionElement entry in node.elements2) {
+        for (CollectionElement entry in node.elements) {
           verifier.verify(entry);
         }
         if (reportEqualKeys) {

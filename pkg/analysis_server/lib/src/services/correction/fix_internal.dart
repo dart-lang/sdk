@@ -1195,7 +1195,7 @@ class FixProcessor {
 
     // child: [widget1, widget2]
     if (expression is ListLiteral &&
-        expression.elements2.every(flutter.isWidgetExpression)) {
+        expression.elements.every(flutter.isWidgetExpression)) {
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(range.node(named.name), 'children:');
@@ -1216,8 +1216,8 @@ class FixProcessor {
         node.parent?.parent is NamedExpression) {
       NamedExpression named = node.parent?.parent;
       Expression expression = named.expression;
-      if (expression is ListLiteral && expression.elements2.length == 1) {
-        CollectionElement widget = expression.elements2[0];
+      if (expression is ListLiteral && expression.elements.length == 1) {
+        CollectionElement widget = expression.elements[0];
         if (flutter.isWidgetExpression(widget)) {
           String widgetText = utils.getNodeText(widget);
           String indentOld = utils.getLinePrefix(widget.offset);

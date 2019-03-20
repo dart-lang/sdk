@@ -460,7 +460,7 @@ class PostfixCompletionProcessor {
         // Disallow control-flow statements.
         if (astNode is DoStatement ||
             astNode is IfStatement ||
-            astNode is ForStatement2 ||
+            astNode is ForStatement ||
             astNode is SwitchStatement ||
             astNode is TryStatement ||
             astNode is WhileStatement) {

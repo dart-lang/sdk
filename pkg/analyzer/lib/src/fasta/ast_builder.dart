@@ -727,7 +727,7 @@ class AstBuilder extends StackListener {
     Token forToken = pop();
     Token awaitToken = pop(NullValue.AwaitToken);
 
-    push(ast.forStatement2(
+    push(ast.forStatement(
       awaitKeyword: awaitToken,
       forKeyword: forToken,
       leftParenthesis: leftParenthesis,
@@ -880,7 +880,7 @@ class AstBuilder extends StackListener {
     Token leftParen = pop();
     Token forToken = pop();
 
-    push(ast.forStatement2(
+    push(ast.forStatement(
       forKeyword: forToken,
       leftParenthesis: leftParen,
       forLoopParts: forLoopParts,

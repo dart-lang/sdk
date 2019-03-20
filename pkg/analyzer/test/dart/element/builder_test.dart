@@ -798,7 +798,7 @@ class C {
     String variableName = "v";
     VariableDeclaration variableIdentifier =
         AstTestFactory.variableDeclaration('v');
-    ForStatement2 statement = AstTestFactory.forStatement2(
+    ForStatement statement = AstTestFactory.forStatement2(
         AstTestFactory.variableDeclarationList(
             null, AstTestFactory.typeName4('T'), [variableIdentifier]),
         null,

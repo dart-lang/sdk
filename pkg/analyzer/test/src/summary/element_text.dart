@@ -565,7 +565,7 @@ class _ElementWriter {
       } else if (withTypes) {
         writeInterfaceTypeArgsComment(e);
       }
-      writeList('[', ']', e.elements2, ', ', writeNode, includeEmpty: true);
+      writeList('[', ']', e.elements, ', ', writeNode, includeEmpty: true);
     } else if (e is Label) {
       writeNode(e.label);
       buffer.write(': ');
@@ -578,7 +578,7 @@ class _ElementWriter {
       } else if (withTypes) {
         writeInterfaceTypeArgsComment(e);
       }
-      writeList('{', '}', e.elements2, ', ', writeNode, includeEmpty: true);
+      writeList('{', '}', e.elements, ', ', writeNode, includeEmpty: true);
       if (e.isMap) {
         buffer.write('/*isMap*/');
       }

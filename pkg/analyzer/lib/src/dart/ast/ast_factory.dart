@@ -461,15 +461,33 @@ class AstFactoryImpl extends AstFactory {
           initialization, leftSeparator, condition, rightSeparator, updaters);
 
   @override
-  ForStatement2 forStatement2(
+  ForStatement forStatement(
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      Statement body}) {
+    return ForStatementImpl(awaitKeyword, forKeyword, leftParenthesis,
+        forLoopParts, rightParenthesis, body);
+  }
+
+  @override
+  @Deprecated('Replaced by forStatement')
+  ForStatement forStatement2(
           {Token awaitKeyword,
           Token forKeyword,
           Token leftParenthesis,
           ForLoopParts forLoopParts,
           Token rightParenthesis,
           Statement body}) =>
-      ForStatement2Impl(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
-          rightParenthesis, body);
+      forStatement(
+          awaitKeyword: awaitKeyword,
+          forKeyword: forKeyword,
+          leftParenthesis: leftParenthesis,
+          forLoopParts: forLoopParts,
+          rightParenthesis: rightParenthesis,
+          body: body);
 
   @override
   FunctionDeclaration functionDeclaration(

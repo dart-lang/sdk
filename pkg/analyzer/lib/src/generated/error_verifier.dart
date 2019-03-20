@@ -2977,7 +2977,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     AstNode parent = node.parent;
     Token awaitKeyword;
-    if (parent is ForStatement2) {
+    if (parent is ForStatement) {
       awaitKeyword = parent.awaitKeyword;
     } else if (parent is ForElement) {
       awaitKeyword = parent.awaitKeyword;
@@ -3871,7 +3871,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       forList: true,
       elementType: listElementType,
     );
-    for (CollectionElement element in literal.elements2) {
+    for (CollectionElement element in literal.elements) {
       verifier.verify(element);
     }
   }
@@ -3906,7 +3906,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         mapKeyType: keyType,
         mapValueType: valueType,
       );
-      for (CollectionElement element in literal.elements2) {
+      for (CollectionElement element in literal.elements) {
         verifier.verify(element);
       }
     }
@@ -5128,7 +5128,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         forSet: true,
         elementType: setElementType,
       );
-      for (CollectionElement element in literal.elements2) {
+      for (CollectionElement element in literal.elements) {
         verifier.verify(element);
       }
     }

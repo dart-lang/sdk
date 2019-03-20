@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
+import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -67,6 +68,7 @@ import 'type_utilities.dart';
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
     with
+        UIAsCodeVisitorMixin<JS.Node>,
         NullableTypeInference,
         SharedCompiler<LibraryElement, ClassElement, InterfaceType,
             FunctionBody>
@@ -5690,7 +5692,7 @@ class CodeGenerator extends Object
   @override
   JS.Expression visitListLiteral(ListLiteral node) {
     var elementType = (node.staticType as InterfaceType).typeArguments[0];
-    var elements = _visitCollectionElementList(node.elements2, elementType);
+    var elements = _visitCollectionElementList(node.elements, elementType);
     if (!node.isConst) {
       return _emitList(elementType, elements);
     }
@@ -6354,7 +6356,7 @@ class CodeGenerator extends Object
   @override
   visitRedirectingConstructorInvocation(node) => _unreachable(node);
 
-  /// Unused. Handled in [visitForStatement2].
+  /// Unused. Handled in [visitForStatement].
   @override
   visitDeclaredIdentifier(node) => _unreachable(node);
 
@@ -6539,7 +6541,7 @@ class CodeGenerator extends Object
       _unreachable(node);
 
   @override
-  JS.Statement visitForStatement2(ForStatement2 node) =>
+  JS.Statement visitForStatement(ForStatement node) =>
       _forAdaptor(node.forLoopParts, node.awaitKeyword, _visitScope(node.body));
 
   // TODO(nshahan) Simplify when control-flow-collections experiment is removed.
@@ -6571,8 +6573,8 @@ class CodeGenerator extends Object
 
   @override
   visitSetOrMapLiteral(SetOrMapLiteral node) => node.isSet
-      ? _emitSetLiteral(node.elements2, node)
-      : _emitMapLiteral(node.elements2, node);
+      ? _emitSetLiteral(node.elements, node)
+      : _emitMapLiteral(node.elements, node);
 
   @override
   JS.Statement visitSpreadElement(SpreadElement node) {

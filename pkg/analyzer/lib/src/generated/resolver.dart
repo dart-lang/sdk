@@ -4377,7 +4377,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitForStatement2InScope(ForStatement2 node) {
+  void visitForStatementInScope(ForStatement node) {
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
       if (forLoopParts is ForPartsWithDeclarations) {
@@ -4623,7 +4623,7 @@ class ResolverVisitor extends ScopedVisitor {
       DartType elementType = listType.typeArguments[0];
       DartType iterableType =
           typeProvider.iterableType.instantiate([elementType]);
-      _pushCollectionTypesDownToAll(node.elements2,
+      _pushCollectionTypesDownToAll(node.elements,
           elementType: elementType, iterableType: iterableType);
       InferenceContext.setType(node, listType);
     } else {
@@ -4797,11 +4797,11 @@ class ResolverVisitor extends ScopedVisitor {
         DartType elementType = literalType.typeArguments[0];
         DartType iterableType =
             typeProvider.iterableType.instantiate([elementType]);
-        _pushCollectionTypesDownToAll(node.elements2,
+        _pushCollectionTypesDownToAll(node.elements,
             elementType: elementType, iterableType: iterableType);
         if (!_analysisOptions.experimentStatus.spread_collections &&
             !_analysisOptions.experimentStatus.control_flow_collections &&
-            node.elements2.isEmpty &&
+            node.elements.isEmpty &&
             node.typeArguments == null &&
             node.isMap) {
           // The node is really an empty set literal with no type arguments.
@@ -4810,7 +4810,7 @@ class ResolverVisitor extends ScopedVisitor {
       } else if (typeArguments.length == 2) {
         DartType keyType = typeArguments[0];
         DartType valueType = typeArguments[1];
-        _pushCollectionTypesDownToAll(node.elements2,
+        _pushCollectionTypesDownToAll(node.elements,
             iterableType: literalType, keyType: keyType, valueType: valueType);
       }
       (node as SetOrMapLiteralImpl).contextType = literalType;
@@ -5023,7 +5023,7 @@ class ResolverVisitor extends ScopedVisitor {
         _fromTypeArguments(literal.typeArguments);
     DartType contextType = InferenceContext.getContext(literal);
     _LiteralResolution contextResolution = _fromContextType(contextType);
-    _LeafElements elementCounts = new _LeafElements(literal.elements2);
+    _LeafElements elementCounts = new _LeafElements(literal.elements);
     _LiteralResolution elementResolution = elementCounts.resolution;
 
     List<_LiteralResolution> unambiguousResolutions = [];
@@ -5064,7 +5064,7 @@ class ResolverVisitor extends ScopedVisitor {
           : unambiguousResolutions[0];
     } else if (unambiguousResolutions.length == 1) {
       return unambiguousResolutions[0];
-    } else if (literal.elements2.isEmpty) {
+    } else if (literal.elements.isEmpty) {
       return _LiteralResolution(
           _LiteralResolutionKind.map,
           typeProvider.mapType.instantiate(
@@ -5829,13 +5829,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       nameScope = new EnclosedScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      visitForStatement2InScope(node);
+      visitForStatementInScope(node);
     } finally {
       nameScope = outerNameScope;
       _implicitLabelScope = outerImplicitScope;
@@ -5845,7 +5845,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// Visit the given [node] after it's scope has been created. This replaces
   /// the normal call to the inherited visit method so that ResolverVisitor can
   /// intervene when type propagation is enabled.
-  void visitForStatement2InScope(ForStatement2 node) {
+  void visitForStatementInScope(ForStatement node) {
     // TODO(brianwilkerson) Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts?.accept(this);

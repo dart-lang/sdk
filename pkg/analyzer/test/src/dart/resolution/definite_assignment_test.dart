@@ -1321,7 +1321,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     var parts = node.forLoopParts;
 
     tracker.beginForStatement2(node);
@@ -1498,7 +1498,7 @@ class _AstVisitor extends RecursiveAstVisitor<void> {
   AstNode _getLabelTarget(AstNode node, LabelElement element) {
     for (; node != null; node = node.parent) {
       if (node is DoStatement ||
-          node is ForStatement2 ||
+          node is ForStatement ||
           node is SwitchStatement ||
           node is WhileStatement) {
         if (element == null) {

@@ -352,7 +352,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   }
 
   @override
-  visitForStatement2(ForStatement2 node) {
+  visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachParts) {
       if (forLoopParts is ForEachPartsWithIdentifier &&
@@ -372,7 +372,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
         throw new StateError('Unrecognized for loop parts');
       }
     }
-    super.visitForStatement2(node);
+    super.visitForStatement(node);
   }
 
   @override

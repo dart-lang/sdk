@@ -2957,7 +2957,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
       if (forLoopParts is ForPartsWithExpression) {
@@ -3232,7 +3232,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     _checkUnreachableNode(node);
 
     ForLoopParts parts = node.forLoopParts;
@@ -3495,7 +3495,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   AstNode _getLabelTarget(AstNode node, LabelElement element) {
     for (; node != null; node = node.parent) {
       if (node is DoStatement ||
-          node is ForStatement2 ||
+          node is ForStatement ||
           node is SwitchStatement ||
           node is WhileStatement) {
         if (element == null) {

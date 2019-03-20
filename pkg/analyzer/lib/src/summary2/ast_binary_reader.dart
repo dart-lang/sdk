@@ -513,8 +513,8 @@ class AstBinaryReader {
     );
   }
 
-  ForStatement2 _read_forStatement(LinkedNode data) {
-    return astFactory.forStatement2(
+  ForStatement _read_forStatement(LinkedNode data) {
+    return astFactory.forStatement(
       awaitKeyword: _getToken(data.forMixin_awaitKeyword),
       forKeyword: _getToken(data.forMixin_forKeyword),
       leftParenthesis: _getToken(data.forMixin_leftParenthesis),

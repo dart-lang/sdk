@@ -6278,7 +6278,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6290,7 +6290,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6300,7 +6300,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     assertNoErrors();
     var literal = expression as SetOrMapLiteral;
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNotNull);
   }
@@ -6311,7 +6311,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression, isNotNull);
     var literal = expression as SetOrMapLiteral;
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNotNull);
   }
@@ -6322,7 +6322,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     assertNoErrors();
     var literal = expression as SetOrMapLiteral;
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNull);
   }
@@ -6813,7 +6813,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6826,7 +6826,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     Token leftBracket = literal.leftBracket;
     expect(leftBracket, isNotNull);
     expect(leftBracket.precedingComments, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6838,7 +6838,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6849,7 +6849,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(3));
+    expect(literal.elements, hasLength(3));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6860,7 +6860,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(1));
+    expect(literal.elements, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6871,7 +6871,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(1));
+    expect(literal.elements, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6883,7 +6883,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(listLiteral.constKeyword, isNull);
     expect(listLiteral.typeArguments, isNull);
     expect(listLiteral.leftBracket, isNotNull);
-    expect(listLiteral.elements2, hasLength(1));
+    expect(listLiteral.elements, hasLength(1));
     expect(listLiteral.rightBracket, isNotNull);
   }
 
@@ -6895,7 +6895,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(listLiteral.constKeyword, isNull);
     expect(listLiteral.typeArguments, isNotNull);
     expect(listLiteral.leftBracket, isNotNull);
-    expect(listLiteral.elements2, hasLength(1));
+    expect(listLiteral.elements, hasLength(1));
     expect(listLiteral.rightBracket, isNotNull);
   }
 
@@ -6907,7 +6907,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(mapLiteral.constKeyword, isNull);
     expect(mapLiteral.typeArguments, isNull);
     expect(mapLiteral.leftBracket, isNotNull);
-    expect(mapLiteral.elements2, hasLength(1));
+    expect(mapLiteral.elements, hasLength(1));
     expect(mapLiteral.rightBracket, isNotNull);
   }
 
@@ -6920,7 +6920,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(mapLiteral.constKeyword, isNull);
     expect(mapLiteral.typeArguments, isNotNull);
     expect(mapLiteral.leftBracket, isNotNull);
-    expect(mapLiteral.elements2, hasLength(1));
+    expect(mapLiteral.elements, hasLength(1));
     expect(mapLiteral.rightBracket, isNotNull);
   }
 
@@ -6954,7 +6954,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6963,7 +6963,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(2));
+    expect(literal.elements, hasLength(2));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6973,7 +6973,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(2));
+    expect(literal.elements, hasLength(2));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6982,7 +6982,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.leftBracket, isNotNull);
-    expect(literal.elements2, hasLength(1));
+    expect(literal.elements, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -9555,7 +9555,7 @@ class ParserTestCase extends EngineTestCase
     if (usingFastaParser) {
       createParser('[$code]');
       return (parser.parseExpression2() as ListLiteral)
-          .elements2
+          .elements
           .toList()
           .cast<Expression>();
     } else {
@@ -9721,7 +9721,7 @@ class ParserTestCase extends EngineTestCase
   MapLiteralEntry parseMapLiteralEntry(String code) {
     if (usingFastaParser) {
       var mapLiteral = parseMapLiteral(null, null, '{ $code }');
-      return mapLiteral.elements2.single;
+      return mapLiteral.elements.single;
     } else {
       createParser(code);
       return parser.parseMapLiteralEntry();
@@ -10876,7 +10876,7 @@ class C {
   void test_incompleteForEach() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
-    ForStatement2 statement = parseStatement('for (String item i) {}');
+    ForStatement statement = parseStatement('for (String item i) {}');
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)
@@ -14648,7 +14648,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     String code = 'await for (element in list) {}';
-    var forStatement = _parseAsyncStatement(code) as ForStatement2;
+    var forStatement = _parseAsyncStatement(code) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, usingFastaParser ? isNotNull : isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -14666,7 +14666,7 @@ main() {
     // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (void Function<T>(T) element in list) {}')
-            as ForStatement2;
+            as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -14683,7 +14683,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (element in list) {}') as ForStatement2;
+        parseStatement('for (element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -14700,7 +14700,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (@A var element in list) {}') as ForStatement2;
+        parseStatement('for (@A var element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -14718,7 +14718,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (A element in list) {}') as ForStatement2;
+        parseStatement('for (A element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -14735,7 +14735,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (var element in list) {}') as ForStatement2;
+        parseStatement('for (var element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
@@ -14751,7 +14751,7 @@ main() {
   void test_parseForStatement_loop_c() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
-    var forStatement = parseStatement('for (; i < count;) {}') as ForStatement2;
+    var forStatement = parseStatement('for (; i < count;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14769,7 +14769,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (; i < count; i++) {}') as ForStatement2;
+        parseStatement('for (; i < count; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14787,7 +14787,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (i--; i < count; i++) {}') as ForStatement2;
+        parseStatement('for (i--; i < count; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14804,7 +14804,7 @@ main() {
   void test_parseForStatement_loop_i() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
-    var forStatement = parseStatement('for (var i = 0;;) {}') as ForStatement2;
+    var forStatement = parseStatement('for (var i = 0;;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14825,7 +14825,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (@A var i = 0;;) {}') as ForStatement2;
+        parseStatement('for (@A var i = 0;;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14846,7 +14846,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (var i = 0; i < count;) {}') as ForStatement2;
+        parseStatement('for (var i = 0; i < count;) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14866,7 +14866,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (var i = 0; i < count; i++) {}') as ForStatement2;
+        parseStatement('for (var i = 0; i < count; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14887,7 +14887,7 @@ main() {
     // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (int i = 0, j = count; i < j; i++, j--) {}')
-            as ForStatement2;
+            as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14907,7 +14907,7 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (var i = 0;; i++) {}') as ForStatement2;
+        parseStatement('for (var i = 0;; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
@@ -14926,7 +14926,7 @@ main() {
   void test_parseForStatement_loop_u() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
-    var forStatement = parseStatement('for (;; i++) {}') as ForStatement2;
+    var forStatement = parseStatement('for (;; i++) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);

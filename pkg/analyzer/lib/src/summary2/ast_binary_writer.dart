@@ -533,11 +533,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
-  LinkedNodeBuilder visitForStatement2(ForStatement2 node) {
+  LinkedNodeBuilder visitForStatement(ForStatement node) {
     var builder = LinkedNodeBuilder.forStatement(
       forStatement_body: node.body.accept(this),
     );
-    _storeForMixin(builder, node as ForStatement2Impl);
+    _storeForMixin(builder, node as ForStatementImpl);
     return builder;
   }
 
@@ -783,7 +783,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitListLiteral(ListLiteral node) {
     var builder = LinkedNodeBuilder.listLiteral(
-      listLiteral_elements: _writeNodeList(node.elements2),
+      listLiteral_elements: _writeNodeList(node.elements),
       listLiteral_leftBracket: _getToken(node.leftBracket),
       listLiteral_rightBracket: _getToken(node.rightBracket),
     );
@@ -1000,7 +1000,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitSetOrMapLiteral(SetOrMapLiteral node) {
     var builder = LinkedNodeBuilder.setOrMapLiteral(
-      setOrMapLiteral_elements: _writeNodeList(node.elements2),
+      setOrMapLiteral_elements: _writeNodeList(node.elements),
       setOrMapLiteral_isMap: node.isMap,
       setOrMapLiteral_isSet: node.isSet,
       setOrMapLiteral_leftBracket: _getToken(node.leftBracket),
