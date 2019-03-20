@@ -690,7 +690,7 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
     for (ir.DartType type in node.types) {
       typeArguments.add(elementMap.getDartType(type));
     }
-    FunctionConstantValue function = node.accept(this);
+    FunctionConstantValue function = node.tearOffConstant.accept(this);
     return new InstantiationConstantValue(typeArguments, function);
   }
 

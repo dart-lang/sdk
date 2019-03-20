@@ -221,7 +221,8 @@ abstract class Compiler {
         measurer.startWallClock();
 
         return new Future.sync(() => runInternal(uri))
-            .catchError((error) => _reporter.onError(uri, error))
+            .catchError((error, StackTrace stackTrace) =>
+                _reporter.onError(uri, error, stackTrace))
             .whenComplete(() {
           measurer.stopWallClock();
         }).then((_) {
@@ -911,7 +912,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     }
   }
 
-  onError(Uri uri, error) {
+  onError(Uri uri, error, StackTrace stackTrace) {
     try {
       if (!hasCrashed) {
         hasCrashed = true;
@@ -929,7 +930,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } catch (doubleFault) {
       // Ignoring exceptions in exception handling.
     }
-    throw error;
+    return new Future.error(error, stackTrace);
   }
 
   @override

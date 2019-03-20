@@ -3811,7 +3811,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     ir.ListLiteral positionalArgumentsLiteral =
         invocation.arguments.positional[2];
-    ir.MapLiteral namedArgumentsLiteral = invocation.arguments.positional[3];
+    ir.Expression namedArgumentsLiteral = invocation.arguments.positional[3];
+    Map<String, ir.Expression> namedArguments = {};
     ir.IntLiteral kindLiteral = invocation.arguments.positional[4];
 
     Name memberName = new Name(name, _currentFrame.member.library);
@@ -3829,12 +3830,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
         } else if (memberName == Names.INDEX_SET_NAME) {
           selector = new Selector.indexSet();
         } else {
+          if (namedArgumentsLiteral is ir.MapLiteral) {
+            namedArgumentsLiteral.entries.forEach((ir.MapEntry entry) {
+              ir.StringLiteral key = entry.key;
+              namedArguments[key.value] = entry.value;
+            });
+          } else if (namedArgumentsLiteral is ir.ConstantExpression &&
+              namedArgumentsLiteral.constant is ir.MapConstant) {
+            ir.MapConstant constant = namedArgumentsLiteral.constant;
+            for (ir.ConstantMapEntry entry in constant.entries) {
+              ir.StringConstant key = entry.key;
+              namedArguments[key.value] =
+                  new ir.ConstantExpression(entry.value);
+            }
+          } else {
+            reporter.internalError(
+                computeSourceSpanFromTreeNode(invocation),
+                "Unexpected named arguments value in createInvocationMirrror: "
+                "${namedArgumentsLiteral}.");
+          }
           CallStructure callStructure = new CallStructure(
               positionalArgumentsLiteral.expressions.length,
-              namedArgumentsLiteral.entries.map<String>((ir.MapEntry entry) {
-                ir.StringLiteral key = entry.key;
-                return key.value;
-              }).toList(),
+              namedArguments.keys.toList(),
               typeArguments.length);
           if (Selector.isOperatorName(name)) {
             selector =
@@ -3855,14 +3872,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       argument.accept(this);
       arguments.add(pop());
     }
-    if (namedArgumentsLiteral.entries.isNotEmpty) {
+    if (namedArguments.isNotEmpty) {
       Map<String, HInstruction> namedValues = <String, HInstruction>{};
-      for (ir.MapEntry entry in namedArgumentsLiteral.entries) {
-        ir.StringLiteral key = entry.key;
-        String name = key.value;
-        entry.value.accept(this);
+      namedArguments.forEach((String name, ir.Expression value) {
+        value.accept(this);
         namedValues[name] = pop();
-      }
+      });
       for (String name in selector.callStructure.getOrderedNamedArguments()) {
         arguments.add(namedValues[name]);
       }

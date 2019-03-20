@@ -212,4 +212,9 @@ class ConstantCollector extends ir.RecursiveVisitor {
     // constant.
     add(node, required: false);
   }
+
+  @override
+  void visitConstantExpression(ir.ConstantExpression node) {
+    add(node);
+  }
 }

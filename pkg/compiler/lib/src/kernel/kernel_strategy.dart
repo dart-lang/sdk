@@ -312,6 +312,9 @@ class KernelWorkItem implements WorkItem {
       });
     });
   }
+
+  @override
+  String toString() => 'KernelWorkItem($element)';
 }
 
 /// If `true` kernel impacts are computed as [ImpactData] directly on kernel
