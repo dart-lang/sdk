@@ -10,9 +10,7 @@ class C {
 }
 
 class D extends C {
-  /*@topType=dynamic*/ m(
-          /*@topType=dynamic*/ x) =>
-      x;
+  m(x) => x;
 }
 
 main() {

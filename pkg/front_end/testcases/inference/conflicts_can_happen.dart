@@ -22,12 +22,12 @@ class B {
 }
 
 class C1 implements A, B {
-  get /*@topType=dynamic*/ a => null;
+  get a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  get /*@topType=dynamic*/ a => null;
+  get a => null;
 }
 
 main() {}

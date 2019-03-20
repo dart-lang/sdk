@@ -9,13 +9,13 @@ class A {
   int f;
 }
 
-var /*@topType=int*/ v_assign = (new A(). /*@target=A::f*/ f = 1);
-var /*@topType=int*/ v_plus = (new A(). /*@target=A::f*/ f += 1);
-var /*@topType=int*/ v_minus = (new A(). /*@target=A::f*/ f -= 1);
-var /*@topType=int*/ v_multiply = (new A(). /*@target=A::f*/ f *= 1);
-var /*@topType=int*/ v_prefix_pp = (++new A(). /*@target=A::f*/ f);
-var /*@topType=int*/ v_prefix_mm = (--new A(). /*@target=A::f*/ f);
-var /*@topType=int*/ v_postfix_pp = (new A(). /*@target=A::f*/ f++);
-var /*@topType=int*/ v_postfix_mm = (new A(). /*@target=A::f*/ f--);
+var v_assign = (new A(). /*@target=A::f*/ f = 1);
+var v_plus = (new A(). /*@target=A::f*/ f += 1);
+var v_minus = (new A(). /*@target=A::f*/ f -= 1);
+var v_multiply = (new A(). /*@target=A::f*/ f *= 1);
+var v_prefix_pp = (++new A(). /*@target=A::f*/ f);
+var v_prefix_mm = (--new A(). /*@target=A::f*/ f);
+var v_postfix_pp = (new A(). /*@target=A::f*/ f++);
+var v_postfix_mm = (new A(). /*@target=A::f*/ f--);
 
 main() {}

@@ -83,6 +83,4 @@ abstract class Declaration {
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
   int resolveConstructors(covariant Declaration parent) => 0;
-
-  void instrumentTopLevelInference(covariant instrumentation) {}
 }

@@ -993,13 +993,6 @@ class SourceLoader extends Loader<Library> {
     }
 
     typeInferenceEngine.finishTopLevelInitializingFormals();
-    if (instrumentation != null) {
-      builders.forEach((Uri uri, LibraryBuilder library) {
-        if (library.loader == this) {
-          library.instrumentTopLevelInference(instrumentation);
-        }
-      });
-    }
     interfaceResolver = null;
     // Since finalization of covariance may have added forwarding stubs, we need
     // to recompute the class hierarchy so that method compilation will properly

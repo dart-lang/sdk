@@ -2,22 +2,22 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:24: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
-//   /*@topType=dynamic*/ m(
-//                        ^
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+//   m(x) => x;
+//   ^
 // pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
 //   T m<T>(T x) => x;
 //     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:24: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type, 'T', of the overridden method, 'C.m'.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: The return type of the method 'D.m' is 'dynamic', which does not match the return type, 'T', of the overridden method, 'C.m'.
 // Change to a subtype of 'T'.
-//   /*@topType=dynamic*/ m(
-//                        ^
+//   m(x) => x;
+//   ^
 // pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
 //   T m<T>(T x) => x;
 //     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:20:74: Error: Expected 0 type arguments.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:74: Error: Expected 0 type arguments.
 //       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D::m*/ m<int>(
 //                                                                          ^
 //

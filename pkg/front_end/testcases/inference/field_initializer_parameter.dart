@@ -8,7 +8,7 @@ library test;
 T f<T>(T t) => t;
 
 class C {
-  final /*@topType=dynamic*/ x;
+  final x;
   C(int p) : x = /*@typeArgs=int*/ f(p);
 }
 

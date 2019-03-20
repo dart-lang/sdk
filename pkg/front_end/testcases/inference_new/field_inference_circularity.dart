@@ -9,15 +9,13 @@ library test;
 // can be inferred for A.y and B.y.
 
 class A {
-  var /*@topType=invalid-type*/ x = /*@returnType=invalid-type*/ () =>
-      new B(). /*@target=B::x*/ x;
-  var /*@topType=() -> invalid-type*/ y = /*@returnType=invalid-type*/ () =>
-      new B(). /*@target=B::x*/ x;
+  var x = /*@returnType=invalid-type*/ () => new B(). /*@target=B::x*/ x;
+  var y = /*@returnType=invalid-type*/ () => new B(). /*@target=B::x*/ x;
 }
 
 class B extends A {
-  var /*@topType=invalid-type*/ x;
-  var /*@topType=() -> invalid-type*/ y;
+  var x;
+  var y;
 }
 
 main() {}

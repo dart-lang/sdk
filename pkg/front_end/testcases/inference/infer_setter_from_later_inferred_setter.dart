@@ -6,11 +6,11 @@
 library test;
 
 class A implements B {
-  void set x(/*@topType=int*/ value) {}
+  void set x(value) {}
 }
 
 abstract class B implements C {
-  void set x(/*@topType=int*/ value);
+  void set x(value);
 }
 
 abstract class C {

@@ -31,7 +31,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  get /*@topType=dynamic*/ a => null;
+  get a => null;
 }
 
 main() {}

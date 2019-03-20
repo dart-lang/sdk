@@ -2,15 +2,15 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:33: Error: Can't infer the type of 'b': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:7: Error: Can't infer the type of 'b': circularity found during type inference.
 // Specify the type explicitly.
-//   var /*@topType=invalid-type*/ b = /*@returnType=invalid-type*/ () => x;
-//                                 ^
+//   var b = /*@returnType=invalid-type*/ () => x;
+//       ^
 //
-// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:16:31: Error: Can't infer the type of 'x': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:16:5: Error: Can't infer the type of 'x': circularity found during type inference.
 // Specify the type explicitly.
-// var /*@topType=invalid-type*/ x = /*@returnType=invalid-type*/ () =>
-//                               ^
+// var x = /*@returnType=invalid-type*/ () => a. /*@target=A::b*/ b;
+//     ^
 //
 import self as self;
 import "dart:core" as core;

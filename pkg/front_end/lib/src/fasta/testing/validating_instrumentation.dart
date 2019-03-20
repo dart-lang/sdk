@@ -30,7 +30,6 @@ class ValidatingInstrumentation implements Instrumentation {
   /// Map from feature names to the property names they are short for.
   static const _FEATURES = const {
     'inference': const [
-      'topType',
       'typeArg',
       'typeArgs',
       'promotedType',

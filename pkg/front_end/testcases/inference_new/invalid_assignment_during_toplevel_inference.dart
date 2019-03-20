@@ -6,6 +6,6 @@
 
 int i;
 String s;
-var /*@topType=String*/ x = i = s;
+var x = i = s;
 
 main() {}

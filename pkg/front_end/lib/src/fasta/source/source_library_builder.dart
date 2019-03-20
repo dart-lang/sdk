@@ -8,8 +8,6 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../../base/instrumentation.dart' show Instrumentation;
-
 import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
@@ -878,14 +876,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     // relativize when printing a message, but still store the full URI in
     // .dill files.
     return name ?? "<library '$fileUri'>";
-  }
-
-  @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    Iterator<Declaration> iterator = this.iterator;
-    while (iterator.moveNext()) {
-      iterator.current.instrumentTopLevelInference(instrumentation);
-    }
   }
 
   @override

@@ -1,18 +1,18 @@
-pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:13:7: Context: Write to a@341
+pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:13:7: Context: Write to a@320
     a = /*error:INVALID_ASSIGNMENT*/ "hi";
       ^
-pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:14:7: Context: Write to a@341
+pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:14:7: Context: Write to a@320
     a = 3;
       ^
-pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:16:7: Context: Write to b@441
+pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:16:7: Context: Write to b@420
     b = /*error:INVALID_ASSIGNMENT*/ "hi";
       ^
-pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:17:7: Context: Write to b@441
+pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:17:7: Context: Write to b@420
     b = 4;
       ^
-pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:19:7: Context: Write to c@541
+pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:19:7: Context: Write to c@520
     c = /*error:INVALID_ASSIGNMENT*/ "hi";
       ^
-pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:20:7: Context: Write to c@541
+pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:20:7: Context: Write to c@520
     c = 4;
       ^

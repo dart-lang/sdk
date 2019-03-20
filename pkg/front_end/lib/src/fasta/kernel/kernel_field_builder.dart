@@ -7,9 +7,6 @@ library fasta.kernel_field_builder;
 import 'package:kernel/ast.dart'
     show Class, DartType, DynamicType, Expression, Field, Name, NullLiteral;
 
-import '../../base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueForType;
-
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../problems.dart' show internalProblem, unsupported;
@@ -112,14 +109,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       field.type = const DynamicType();
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
           .parseFieldInitializer(type.initializerToken);
-    }
-  }
-
-  @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    if (isEligibleForInference) {
-      instrumentation.record(field.fileUri, field.fileOffset, 'topType',
-          new InstrumentationValueForType(field.type));
     }
   }
 

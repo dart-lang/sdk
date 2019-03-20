@@ -14,7 +14,7 @@ abstract class I {
 }
 
 class D extends C implements I {
-  set /*@topType=void*/ x(/*@topType=int*/ value) {}
+  set x(value) {}
 }
 
 main() {}

@@ -10,7 +10,7 @@ library test;
 // circularity.
 
 class I1 {
-  final /*@topType=int*/ x = y;
+  final x = y;
 }
 
 abstract class I2 {
@@ -21,6 +21,6 @@ class C extends Object implements I1, I2 {
   int get x => 0;
 }
 
-var /*@topType=int*/ y = new C(). /*@target=C::x*/ x;
+var y = new C(). /*@target=C::x*/ x;
 
 main() {}

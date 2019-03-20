@@ -12,9 +12,9 @@ abstract class A<T> {
 }
 
 class B extends A<int> {
-  var /*@topType=List<int>*/ x;
-  var /*@topType=List<int>*/ y;
-  var /*@topType=List<int>*/ z;
+  var x;
+  var y;
+  var z;
 }
 
 main() {}

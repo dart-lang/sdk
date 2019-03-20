@@ -35,9 +35,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
-import '../../base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueForType;
-
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
@@ -365,26 +362,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   Procedure get target => origin.procedure;
-
-  @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    bool isEligibleForTopLevelInference = this.isEligibleForTopLevelInference;
-    if ((isEligibleForTopLevelInference || isSetter) && returnType == null) {
-      instrumentation.record(procedure.fileUri, procedure.fileOffset, 'topType',
-          new InstrumentationValueForType(procedure.function.returnType));
-    }
-    if (isEligibleForTopLevelInference) {
-      if (formals != null) {
-        for (var formal in formals) {
-          if (formal.type == null) {
-            VariableDeclaration formalTarget = formal.target;
-            instrumentation.record(procedure.fileUri, formalTarget.fileOffset,
-                'topType', new InstrumentationValueForType(formalTarget.type));
-          }
-        }
-      }
-    }
-  }
 
   @override
   int finishPatch() {

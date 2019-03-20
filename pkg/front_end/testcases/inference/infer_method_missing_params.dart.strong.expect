@@ -2,24 +2,24 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:25:28: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:23:8: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
-//       /*@topType=dynamic*/ y);
-//                            ^
+//   f(x, y);
+//        ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:27:64: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:25:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   /*@topType=int*/ h(/*@topType=int*/ x, {/*@topType=dynamic*/ y});
-//                                                                ^
+//   h(x, {y});
+//         ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:26:64: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:24:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   /*@topType=int*/ g(/*@topType=int*/ x, [/*@topType=dynamic*/ y]);
-//                                                                ^
+//   g(x, [y]);
+//         ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:23:20: Error: The method 'C.f' has more required arguments than those of overridden method 'B.f'.
-//   /*@topType=int*/ f(
-//                    ^
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:23:3: Error: The method 'C.f' has more required arguments than those of overridden method 'B.f'.
+//   f(x, y);
+//   ^
 // pkg/front_end/testcases/inference/infer_method_missing_params.dart:17:7: Context: This is the overridden method ('f').
 //   int f(int x);
 //       ^

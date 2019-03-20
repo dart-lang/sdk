@@ -4,17 +4,17 @@ library test;
 //
 // pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:72: Error: Can't infer the type of 'b': circularity found during type inference.
 // Specify the type explicitly.
-// var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
+// var  /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
 //                                                                        ^
 //
 // pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:72: Error: Can't infer the type of 'a': circularity found during type inference.
 // Specify the type explicitly.
-// var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
+// var  /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
 //                                                                        ^
 //
 // pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:77: Error: The method 'call' isn't defined for the class 'invalid-type'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
-// var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
+// var  /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
 //                                                                             ^
 //
 import self as self;
@@ -26,7 +26,7 @@ static field core::double doubleValue = 0.0;
 static field invalid-type a = (() → core::num => self::intValue.{core::num::+}(self::b as{TypeError} core::num)) as{TypeError} invalid-type;
 static field invalid-type b = invalid-expression "pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:17:77: Error: The method 'call' isn't defined for the class 'invalid-type'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
-var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
+var  /*@error=CantInferTypeDueToCircularity*/ b = a/*@error=UndefinedMethod*/();
                                                                             ^";
 static field () → core::num c = () → core::num => self::numValue.{core::num::+}(self::d);
 static field core::num d = self::c.call();

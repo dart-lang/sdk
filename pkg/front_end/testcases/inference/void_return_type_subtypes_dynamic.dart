@@ -16,7 +16,7 @@ void printRunning() {
   print("running");
 }
 
-var /*@topType=dynamic*/ x = run<dynamic>(printRunning);
+var x = run<dynamic>(printRunning);
 
 main() {
   void printRunning() {

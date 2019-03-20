@@ -10,22 +10,21 @@ class A {
   int g(dynamic i) => 0;
 }
 
-var /*@topType=A*/ a = new A();
+var a = new A();
 
 // There's a circularity between b and c because a.f is generic, so the type of
 // c is required to infer b, and vice versa.
 
-var /*@topType=invalid-type*/ b = /*@returnType=invalid-type*/ () =>
+var b = /*@returnType=invalid-type*/ () =>
     a. /*@typeArgs=invalid-type*/ /*@target=A::f*/ f(c);
-var /*@topType=invalid-type*/ c = /*@returnType=invalid-type*/ () =>
+var c = /*@returnType=invalid-type*/ () =>
     a. /*@typeArgs=invalid-type*/ /*@target=A::f*/ f(b);
 
 // e's use of a.g breaks the circularity, because a.g is not generic, therefore
 // the type of e does not depend on the type of d.
 
-var /*@topType=() -> () -> int*/ d = /*@returnType=() -> int*/ () =>
+var d = /*@returnType=() -> int*/ () =>
     a. /*@typeArgs=() -> int*/ /*@target=A::f*/ f(e);
-var /*@topType=() -> int*/ e = /*@returnType=int*/ () =>
-    a. /*@target=A::g*/ g(d);
+var e = /*@returnType=int*/ () => a. /*@target=A::g*/ g(d);
 
 main() {}

@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=dynamic*/ v = null;
+var v = null;
 
 main() {
   v;

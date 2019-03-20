@@ -8,7 +8,7 @@ library test;
 bool b = true;
 int x = 0;
 double y = 0.0;
-var /*@topType=num*/ z = b ? x : y;
+var z = b ? x : y;
 
 main() {
   var /*@type=num*/ z = b ? x : y;

@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  static final /*@topType=(bool) -> (int) -> Map<int, bool>*/ f = /*@returnType=(int) -> Map<int, bool>*/ (bool
+  static final f = /*@returnType=(int) -> Map<int, bool>*/ (bool
       b) => /*@returnType=Map<int, bool>*/ (int i) => /*@typeArgs=int, bool*/ {i: b};
 }
 

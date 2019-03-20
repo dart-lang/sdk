@@ -5,10 +5,10 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=int*/ x = 1;
-var /*@topType=String*/ a = 'aaa';
-var /*@topType=String*/ b = 'b ${x} bb';
-var /*@topType=String*/ c = 'c ${x} cc' 'ccc';
+var x = 1;
+var a = 'aaa';
+var b = 'b ${x} bb';
+var c = 'c ${x} cc' 'ccc';
 
 main() {
   var /*@type=int*/ x = 1;

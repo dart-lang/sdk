@@ -5,10 +5,10 @@
 /*@testedFeatures=inference*/
 library test;
 
-const /*@topType=int*/ x1 = 1;
-final /*@topType=int*/ x2 = 1;
-final /*@topType=int*/ y1 = x1;
-final /*@topType=int*/ y2 = x2;
+const x1 = 1;
+final x2 = 1;
+final y1 = x1;
+final y2 = x2;
 
 foo() {
   int i;

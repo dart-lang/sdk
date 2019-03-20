@@ -14,7 +14,7 @@ abstract class I {
 }
 
 class D extends C implements I {
-  operator /*@topType=void*/ []=(dynamic index, dynamic value) {}
+  operator []=(dynamic index, dynamic value) {}
 }
 
 main() {}

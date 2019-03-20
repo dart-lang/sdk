@@ -12,7 +12,7 @@ class A {
 class B extends A {
   // The setter return type should be inferred, but the setter parameter type
   // should not.
-  set /*@topType=void*/ x(Object o) {}
+  set x(Object o) {}
 }
 
 main() {
