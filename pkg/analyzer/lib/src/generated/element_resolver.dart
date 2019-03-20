@@ -959,7 +959,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     } else if (expression.operator.type == TokenType.MINUS_MINUS) {
       return TokenType.MINUS.lexeme;
     } else {
-      return expression.operator.lexeme;
+      throw new UnsupportedError(
+          'Unsupported postfix operator ${expression.operator.lexeme}');
     }
   }
 
