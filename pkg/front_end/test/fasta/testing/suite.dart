@@ -131,6 +131,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Uri vm;
   final bool legacyMode;
   final bool onlyCrashes;
+  final bool enableControlFlowCollections;
   final bool enableSetLiterals;
   final bool enableSpreadCollections;
   final bool skipVm;
@@ -156,6 +157,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.legacyMode,
       this.platformBinaries,
       this.onlyCrashes,
+      this.enableControlFlowCollections,
       this.enableSetLiterals,
       this.enableSpreadCollections,
       bool ignoreExpectations,
@@ -246,6 +248,8 @@ class FastaContext extends ChainContext with MatchContext {
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
     bool legacyMode = environment.containsKey(LEGACY_MODE);
+    bool enableControlFlowCollections =
+        environment["enableControlFlowCollections"] != "false" && !legacyMode;
     bool enableSetLiterals = environment["enableSetLiterals"] != "false";
     bool enableSpreadCollections =
         environment["enableSpreadCollections"] != "false" && !legacyMode;
@@ -257,6 +261,8 @@ class FastaContext extends ChainContext with MatchContext {
           ..sdkRoot = sdk
           ..packagesFileUri = packages
           ..experimentalFlags = <ExperimentalFlag, bool>{
+            ExperimentalFlag.controlFlowCollections:
+                enableControlFlowCollections,
             ExperimentalFlag.setLiterals: enableSetLiterals,
             ExperimentalFlag.spreadCollections: enableSpreadCollections,
           });
@@ -279,6 +285,7 @@ class FastaContext extends ChainContext with MatchContext {
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
+        enableControlFlowCollections,
         enableSetLiterals,
         enableSpreadCollections,
         ignoreExpectations,
@@ -347,6 +354,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             errors.writeAll(message.plainTextFormatted, "\n");
           }
           ..experimentalFlags = <ExperimentalFlag, bool>{
+            ExperimentalFlag.controlFlowCollections:
+                context.enableControlFlowCollections,
             ExperimentalFlag.setLiterals: context.enableSetLiterals,
             ExperimentalFlag.spreadCollections: context.enableSpreadCollections,
           },

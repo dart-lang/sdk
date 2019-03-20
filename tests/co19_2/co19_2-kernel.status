@@ -206,6 +206,7 @@ LanguageFeatures/Control-flow-collections/type_inference_A04_t01: CompileTimeErr
 LanguageFeatures/Control-flow-collections/type_inference_A05_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/type_inference_A06_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/type_inference_A08_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/type_promotion_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t02/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/Ambiguity_A02_t03: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError

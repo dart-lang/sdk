@@ -41,7 +41,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/visitor.dart' show Transformer;
 
-import 'collections.dart' show SpreadElement, SpreadMapEntry;
+import 'collections.dart'
+    show CollectionElement, IfElement, SpreadElement, SpreadMapEntry;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -85,23 +86,23 @@ class CollectionTransformer extends Transformer {
   TreeNode _translateListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
       {bool isSet: false, bool isConst: false}) {
-    // Translate elements in place up to the first spread if any.
+    // Translate elements in place up to the first non-expression, if any.
     int i = 0;
     for (; i < elements.length; ++i) {
-      if (elements[i] is SpreadElement) break;
+      if (elements[i] is CollectionElement) break;
       elements[i] = elements[i].accept(this)..parent = node;
     }
 
-    // If there was no spread, we are done.
+    // If there were only expressions, we are done.
     if (i == elements.length) return node;
 
     if (isConst) {
-      // We don't desugar const lists here.  Remove spread for now so that they
-      // don't leak out.
+      // We don't desugar const lists here.  Remove non-expression elements for
+      // now so that they don't leak out of the transformation.
       for (; i < elements.length; ++i) {
         Expression element = elements[i];
-        if (element is SpreadElement) {
-          elements[i] = InvalidExpression('unimplemented spread element')
+        if (element is CollectionElement) {
+          elements[i] = InvalidExpression('unimplemented collection element')
             ..fileOffset = element.fileOffset
             ..parent = node;
         } else {
@@ -128,60 +129,89 @@ class CollectionTransformer extends Transformer {
           isFinal: true);
     }
     List<Statement> body = [result];
-    // Add the elements up to the first spread.
+    // Add the elements up to the first non-expression.
     for (int j = 0; j < i; ++j) {
-      body.add(new ExpressionStatement(new MethodInvocation(
-          new VariableGet(result),
-          new Name('add'),
-          new Arguments([elements[j]]),
-          isSet ? setAdd : listAdd)));
+      _translateExpressionElement(elements[j], isSet, result, body);
     }
-    // Translate the elements starting with the first spread.
+    // Translate the elements starting with the first non-expression.
     for (; i < elements.length; ++i) {
-      Expression element = elements[i];
-      if (element is SpreadElement) {
-        Expression value = element.expression.accept(this);
-        // Null-aware spreads require testing the subexpression's value.
-        VariableDeclaration temp;
-        if (element.isNullAware) {
-          temp = new VariableDeclaration.forValue(value,
-              type: const DynamicType(), isFinal: true);
-          body.add(temp);
-          value = new VariableGet(temp);
-        }
-
-        VariableDeclaration elt =
-            new VariableDeclaration(null, type: elementType, isFinal: true);
-        Statement statement = new ForInStatement(
-            elt,
-            value,
-            new ExpressionStatement(new MethodInvocation(
-                new VariableGet(result),
-                new Name('add'),
-                new Arguments([new VariableGet(elt)]),
-                isSet ? setAdd : listAdd)));
-
-        if (element.isNullAware) {
-          statement = new IfStatement(
-              new Not(new MethodInvocation(
-                  new VariableGet(temp),
-                  new Name('=='),
-                  new Arguments([new NullLiteral()]),
-                  objectEquals)),
-              statement,
-              null);
-        }
-        body.add(statement);
-      } else {
-        body.add(new ExpressionStatement(new MethodInvocation(
-            new VariableGet(result),
-            new Name('add'),
-            new Arguments([element.accept(this)]),
-            isSet ? setAdd : listAdd)));
-      }
+      _translateElement(elements[i], elementType, isSet, result, body);
     }
 
     return new BlockExpression(new Block(body), new VariableGet(result));
+  }
+
+  void _translateElement(Expression element, DartType elementType, bool isSet,
+      VariableDeclaration result, List<Statement> body) {
+    if (element is SpreadElement) {
+      _translateSpreadElement(element, elementType, isSet, result, body);
+    } else if (element is IfElement) {
+      _translateIfElement(element, elementType, isSet, result, body);
+    } else {
+      _translateExpressionElement(element.accept(this), isSet, result, body);
+    }
+  }
+
+  void _translateExpressionElement(Expression element, bool isSet,
+      VariableDeclaration result, List<Statement> body) {
+    body.add(new ExpressionStatement(new MethodInvocation(
+        new VariableGet(result),
+        new Name('add'),
+        new Arguments([element]),
+        isSet ? setAdd : listAdd)));
+  }
+
+  void _translateIfElement(IfElement element, DartType elementType, bool isSet,
+      VariableDeclaration result, List<Statement> body) {
+    List<Statement> thenBody = [];
+    _translateElement(element.then, elementType, isSet, result, thenBody);
+    List<Statement> elseBody;
+    if (element.otherwise != null) {
+      _translateElement(element.otherwise, elementType, isSet, result,
+          elseBody = <Statement>[]);
+    }
+    Statement thenStatement =
+        thenBody.length == 1 ? thenBody.first : new Block(thenBody);
+    Statement elseStatement;
+    if (elseBody != null && elseBody.isNotEmpty) {
+      elseStatement =
+          elseBody.length == 1 ? elseBody.first : new Block(elseBody);
+    }
+    body.add(new IfStatement(
+        element.condition.accept(this), thenStatement, elseStatement));
+  }
+
+  void _translateSpreadElement(SpreadElement element, DartType elementType,
+      bool isSet, VariableDeclaration result, List<Statement> body) {
+    Expression value = element.expression.accept(this);
+    // Null-aware spreads require testing the subexpression's value.
+    VariableDeclaration temp;
+    if (element.isNullAware) {
+      temp = new VariableDeclaration.forValue(value,
+          type: const DynamicType(), isFinal: true);
+      body.add(temp);
+      value = new VariableGet(temp);
+    }
+
+    VariableDeclaration elt =
+        new VariableDeclaration(null, type: elementType, isFinal: true);
+    Statement statement = new ForInStatement(
+        elt,
+        value,
+        new ExpressionStatement(new MethodInvocation(
+            new VariableGet(result),
+            new Name('add'),
+            new Arguments([new VariableGet(elt)]),
+            isSet ? setAdd : listAdd)));
+
+    if (element.isNullAware) {
+      statement = new IfStatement(
+          new Not(new MethodInvocation(new VariableGet(temp), new Name('=='),
+              new Arguments([new NullLiteral()]), objectEquals)),
+          statement,
+          null);
+    }
+    body.add(statement);
   }
 
   @override

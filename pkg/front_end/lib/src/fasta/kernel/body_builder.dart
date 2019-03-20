@@ -3652,6 +3652,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(ifToken);
   }
 
+  void handleElseControlFlow(Token elseToken) {}
+
   @override
   void endIfControlFlow(Token token) {
     debugEvent("endIfControlFlow");

@@ -11,10 +11,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
   @override
   void defaultExpression(Expression node, DartType typeContext) {
-    if (node is IfElement) {
-      visitIfElement(node, typeContext);
-      return;
-    }
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
   }
@@ -23,11 +19,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   void defaultStatement(Statement node, _) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
-  }
-
-  visitIfElement(IfElement node, DartType typeContext) {
-    node.parent.replaceChild(node,
-        new InvalidExpression('unhandled if element in collection literal'));
   }
 
   @override
@@ -665,6 +656,45 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     return null;
   }
 
+  DartType inferElement(
+      Expression element,
+      int index,
+      DartType inferredTypeArgument,
+      List<DartType> spreadTypes,
+      bool inferenceNeeded,
+      bool typeChecksNeeded) {
+    if (element is SpreadElement) {
+      DartType spreadType = inferrer.inferExpression(
+          element.expression,
+          new InterfaceType(inferrer.coreTypes.iterableClass,
+              <DartType>[inferredTypeArgument]),
+          inferenceNeeded || typeChecksNeeded,
+          isVoidAllowed: true);
+      if (typeChecksNeeded) {
+        spreadTypes[index] = spreadType;
+      }
+      // Use 'dynamic' for error recovery.
+      return getSpreadElementType(spreadType, element.isNullAware) ??
+          const DynamicType();
+    } else if (element is IfElement) {
+      inferrer.inferExpression(element.condition,
+          inferrer.coreTypes.boolClass.rawType, typeChecksNeeded,
+          isVoidAllowed: false);
+      inferElement(element.then, index, inferredTypeArgument, spreadTypes,
+          inferenceNeeded, typeChecksNeeded);
+      if (element.otherwise != null) {
+        inferElement(element.otherwise, index, inferredTypeArgument,
+            spreadTypes, inferenceNeeded, typeChecksNeeded);
+      }
+      // TODO(kmillikin): Implement inference rules for if elements.
+      return const DynamicType();
+    } else {
+      return inferrer.inferExpression(
+          element, inferredTypeArgument, inferenceNeeded || typeChecksNeeded,
+          isVoidAllowed: true);
+    }
+  }
+
   void visitListLiteralJudgment(
       ListLiteralJudgment node, DartType typeContext) {
     var listClass = inferrer.coreTypes.listClass;
@@ -692,32 +722,16 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         typeChecksNeeded ? new List<DartType>(node.expressions.length) : null;
     if (inferenceNeeded || typeChecksNeeded) {
       for (int i = 0; i < node.expressions.length; ++i) {
-        Expression judgment = node.expressions[i];
-        if (judgment is SpreadElement) {
-          DartType spreadType = inferrer.inferExpression(
-              judgment.expression,
-              new InterfaceType(inferrer.coreTypes.iterableClass,
-                  <DartType>[inferredTypeArgument]),
-              inferenceNeeded || typeChecksNeeded,
-              isVoidAllowed: true);
-          if (inferenceNeeded) {
-            formalTypes.add(listType.typeArguments[0]);
-          }
-          if (typeChecksNeeded) {
-            spreadTypes[i] = spreadType;
-          }
-          // Use 'dynamic' for error recovery.
-          actualTypes.add(
-              getSpreadElementType(spreadType, judgment.isNullAware) ??
-                  const DynamicType());
-        } else {
-          inferrer.inferExpression(judgment, inferredTypeArgument,
-              inferenceNeeded || typeChecksNeeded,
-              isVoidAllowed: true);
-          if (inferenceNeeded) {
-            formalTypes.add(listType.typeArguments[0]);
-          }
-          actualTypes.add(getInferredType(judgment, inferrer));
+        DartType type = inferElement(
+            node.expressions[i],
+            i,
+            inferredTypeArgument,
+            spreadTypes,
+            inferenceNeeded,
+            typeChecksNeeded);
+        actualTypes.add(type);
+        if (inferenceNeeded) {
+          formalTypes.add(listType.typeArguments[0]);
         }
       }
     }
@@ -777,6 +791,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
                           1)));
             }
           }
+        } else if (item is IfElement) {
+          // TODO(kmillikin): Insert type checks on if elements.
         } else {
           inferrer.ensureAssignable(
               node.typeArgument, actualTypes[i], item, item.fileOffset,
@@ -1375,32 +1391,16 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         typeChecksNeeded ? new List<DartType>(node.expressions.length) : null;
     if (inferenceNeeded || typeChecksNeeded) {
       for (int i = 0; i < node.expressions.length; ++i) {
-        Expression judgment = node.expressions[i];
-        if (judgment is SpreadElement) {
-          DartType spreadType = inferrer.inferExpression(
-              judgment.expression,
-              new InterfaceType(inferrer.coreTypes.iterableClass,
-                  <DartType>[inferredTypeArgument]),
-              inferenceNeeded || typeChecksNeeded,
-              isVoidAllowed: true);
-          if (inferenceNeeded) {
-            formalTypes.add(setType.typeArguments[0]);
-          }
-          if (typeChecksNeeded) {
-            spreadTypes[i] = spreadType;
-          }
-          // Use 'dynamic' for error recovery.
-          actualTypes.add(
-              getSpreadElementType(spreadType, judgment.isNullAware) ??
-                  const DynamicType());
-        } else {
-          inferrer.inferExpression(judgment, inferredTypeArgument,
-              inferenceNeeded || typeChecksNeeded,
-              isVoidAllowed: true);
-          if (inferenceNeeded) {
-            formalTypes.add(setType.typeArguments[0]);
-          }
-          actualTypes.add(getInferredType(judgment, inferrer));
+        DartType type = inferElement(
+            node.expressions[i],
+            i,
+            inferredTypeArgument,
+            spreadTypes,
+            inferenceNeeded,
+            typeChecksNeeded);
+        actualTypes.add(type);
+        if (inferenceNeeded) {
+          formalTypes.add(setType.typeArguments[0]);
         }
       }
     }
@@ -1460,6 +1460,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
                           1)));
             }
           }
+        } else if (item is IfElement) {
+          // TODO(kmillikin): Insert type checks on if elements.
         } else {
           inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
               node.expressions[i], node.expressions[i].fileOffset,

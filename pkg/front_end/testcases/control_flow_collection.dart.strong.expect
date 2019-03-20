@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  final core::List<core::int> aList = block {
+    final core::List<core::int> #t1 = <core::int>[];
+    #t1.{core::List::add}(1);
+    if(self::oracle())
+      #t1.{core::List::add}(2);
+    if(self::oracle())
+      #t1.{core::List::add}(3);
+    else
+      #t1.{core::List::add}(1.{core::int::unary-}());
+    if(self::oracle())
+      if(self::oracle())
+        #t1.{core::List::add}(4);
+  } =>#t1;
+  final core::Set<core::int> aSet = block {
+    final core::Set<core::int> #t2 = col::LinkedHashSet::•<core::int>();
+    #t2.{core::Set::add}(1);
+    if(self::oracle())
+      #t2.{core::Set::add}(2);
+    if(self::oracle())
+      #t2.{core::Set::add}(3);
+    else
+      #t2.{core::Set::add}(1.{core::int::unary-}());
+    if(self::oracle())
+      if(self::oracle())
+        #t2.{core::Set::add}(4);
+  } =>#t2;
+  core::print(aList);
+  core::print(aSet);
+}
+static method oracle() → dynamic
+  return true;

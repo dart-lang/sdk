@@ -1115,7 +1115,9 @@ class Listener implements UnescapeErrorListener {
 
   /// Called before parsing the `else` portion of an `if` control flow list,
   /// set, or map entry.
-  void handleElseControlFlow(Token elseToken) {}
+  void handleElseControlFlow(Token elseToken) {
+    logEvent("ElseControlFlow");
+  }
 
   /// Called after parsing an `if` control flow list, set, or map entry.
   /// Substructures:

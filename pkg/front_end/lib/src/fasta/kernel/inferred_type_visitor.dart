@@ -28,16 +28,9 @@ class InferredTypeVisitor
 
   @override
   DartType defaultExpression(Expression node, TypeInferrerImpl inferrer) {
-    if (node is IfElement) {
-      return visitIfElement(node, inferrer);
-    }
     unhandled("${node.runtimeType}", "getInferredType", node.fileOffset,
         inferrer.uri);
     return const InvalidType();
-  }
-
-  DartType visitIfElement(IfElement node, TypeInferrerImpl inferrer) {
-    return const BottomType();
   }
 
   @override

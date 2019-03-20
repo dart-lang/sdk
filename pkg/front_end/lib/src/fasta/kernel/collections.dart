@@ -28,10 +28,13 @@ import 'package:kernel/visitor.dart'
 
 import '../problems.dart' show getFileUri, unsupported;
 
+/// Mixin for spread and control-flow elements.
+///
 /// Spread and control-flow elements are not truly expressions and they cannot
 /// appear in arbitrary expression contexts in the Kernel program.  They can
-/// only appear as elements in list or set literals.
-mixin _FakeExpressionMixin on Expression {
+/// only appear as elements in list or set literals.  They are translated into
+/// a lower-level representation and never serialized to .dill files.
+mixin CollectionElement on Expression {
   /// Spread and contol-flow elements are not expressions and do not have a
   /// static type.
   @override
@@ -48,7 +51,7 @@ mixin _FakeExpressionMixin on Expression {
 }
 
 /// A spread element in a list or set literal.
-class SpreadElement extends Expression with _FakeExpressionMixin {
+class SpreadElement extends Expression with CollectionElement {
   Expression expression;
   bool isNullAware;
 
@@ -71,7 +74,7 @@ class SpreadElement extends Expression with _FakeExpressionMixin {
 }
 
 /// An 'if' element in a list or set literal.
-class IfElement extends Expression with _FakeExpressionMixin {
+class IfElement extends Expression with CollectionElement {
   Expression condition;
   Expression then;
   Expression otherwise;
@@ -107,7 +110,7 @@ class IfElement extends Expression with _FakeExpressionMixin {
 }
 
 /// A 'for' element in a list or set literal.
-class ForElement extends Expression with _FakeExpressionMixin {
+class ForElement extends Expression with CollectionElement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -144,7 +147,7 @@ class ForElement extends Expression with _FakeExpressionMixin {
 }
 
 /// A 'for-in' element in a list or set literal.
-class ForInElement extends Expression with _FakeExpressionMixin {
+class ForInElement extends Expression with CollectionElement {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Expression body;
