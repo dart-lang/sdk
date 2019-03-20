@@ -21,6 +21,7 @@ import 'package:analyzer/src/summary2/scope.dart';
 /// it later).
 class ReferenceResolver {
   final LinkingBundleContext linkingBundleContext;
+  final TypesToBuild typesToBuild;
   final UnitBuilder unit;
 
   /// TODO(scheglov) Update scope with local scopes (formal / type parameters).
@@ -30,6 +31,7 @@ class ReferenceResolver {
 
   ReferenceResolver(
     this.linkingBundleContext,
+    this.typesToBuild,
     this.unit,
     this.scope,
     this.reference,
@@ -126,7 +128,7 @@ class ReferenceResolver {
     var typeNode = node.fieldFormalParameter_type;
     if (typeNode != null) {
       _node(typeNode);
-      node.fieldFormalParameter_type2 = _getTypeAnnotationType(typeNode);
+      typesToBuild.declarations.add(node);
     }
 
     var formalParameters = node.fieldFormalParameter_formalParameters;
@@ -152,8 +154,7 @@ class ReferenceResolver {
       var returnType = node.functionDeclaration_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.functionDeclaration_returnType2 =
-            _getTypeAnnotationType(returnType);
+        typesToBuild.declarations.add(node);
       } else {
         node.functionDeclaration_returnType2 = _dynamicType;
       }
@@ -180,7 +181,7 @@ class ReferenceResolver {
       var returnType = node.functionTypeAlias_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.functionTypeAlias_returnType2 = _getTypeAnnotationType(returnType);
+        typesToBuild.declarations.add(node);
       } else {
         node.functionTypeAlias_returnType2 = _dynamicType;
       }
@@ -250,7 +251,7 @@ class ReferenceResolver {
       var returnType = node.methodDeclaration_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.methodDeclaration_returnType2 = _getTypeAnnotationType(returnType);
+        typesToBuild.declarations.add(node);
       }
 
       _node(node.methodDeclaration_formalParameters);
@@ -331,7 +332,7 @@ class ReferenceResolver {
     var typeNode = node.simpleFormalParameter_type;
     if (typeNode != null) {
       _node(typeNode);
-      node.simpleFormalParameter_type2 = _getTypeAnnotationType(typeNode);
+      typesToBuild.declarations.add(node);
     } else {
       // TODO(scheglov) might be inferred
       node.simpleFormalParameter_type2 = _dynamicType;
@@ -379,35 +380,12 @@ class ReferenceResolver {
       var referenceIndex = linkingBundleContext.indexOfReference(reference);
       identifier.simpleIdentifier_element = referenceIndex;
 
-      var typeArguments = const <LinkedNodeTypeBuilder>[];
       var typeArgumentList = node.typeName_typeArguments;
       if (typeArgumentList != null) {
         _node(typeArgumentList);
-        typeArguments = typeArgumentList.typeArgumentList_arguments
-            .map((node) => _getTypeAnnotationType(node))
-            .toList();
       }
 
-      if (reference.isClass) {
-        node.typeName_type = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.interface,
-          interfaceClass: referenceIndex,
-          interfaceTypeArguments: typeArguments,
-        );
-      } else if (reference.isEnum) {
-        node.typeName_type = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.interface,
-          interfaceClass: referenceIndex,
-        );
-      } else if (reference.isTypeParameter) {
-        node.typeName_type = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.typeParameter,
-          typeParameterParameter: referenceIndex,
-        );
-      } else {
-        // TODO(scheglov) set Object? keep unresolved?
-        throw UnimplementedError();
-      }
+      typesToBuild.typeNames.add(node);
     } else {
       // TODO(scheglov) implement
       throw UnimplementedError();
@@ -429,9 +407,7 @@ class ReferenceResolver {
     var typeNode = node.variableDeclarationList_type;
     if (typeNode != null) {
       _node(typeNode);
-      for (var field in node.variableDeclarationList_variables) {
-        field.variableDeclaration_type2 = _getTypeAnnotationType(typeNode);
-      }
+      typesToBuild.declarations.add(node);
     }
   }
 
@@ -460,4 +436,26 @@ class ReferenceResolver {
       scope = scope.parent;
     }
   }
+}
+
+/// Type annotations and declarations to build types for.
+///
+/// Not all types can be build during reference resolution phase.
+/// For example `A` means `A<num>` if `class A<T extends num>`, but we don't
+/// know this until we resolved `A` declaration, and we might have not yet.
+/// So, we remember [LinkedNodeKind.typeName] nodes to resolve them later.
+class TypesToBuild {
+  /// Nodes with [LinkedNodeKind.typeName], both with type arguments, and
+  /// without them.  These nodes will be resolved by [ReferenceResolver], so
+  /// that they have their references set, but their types will not be set yet.
+  ///
+  /// Types arguments must be before the types that use them in this list.
+  final List<LinkedNodeBuilder> typeNames = [];
+
+  /// Nodes with type annotations, where we want not just resolve these types
+  /// annotations, but also set additional types.  For example instance method
+  /// return types might be specified, and then the method has the specified
+  /// return type.  But if the return type is not specified explicitly, the
+  /// method still might have a return type, inferred from a superclass.
+  final List<LinkedNodeBuilder> declarations = [];
 }

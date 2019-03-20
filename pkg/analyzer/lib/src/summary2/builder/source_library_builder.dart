@@ -218,11 +218,12 @@ class SourceLibraryBuilder {
     }
   }
 
-  void resolveTypes() {
+  void resolveTypes(TypesToBuild typesToBuild) {
     for (var unit in units) {
       var unitReference = reference.getChild('@unit').getChild('${unit.uri}');
       ReferenceResolver(
         linker.linkingBundleContext,
+        typesToBuild,
         unit,
         scope,
         unitReference,
