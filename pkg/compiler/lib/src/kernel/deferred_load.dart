@@ -95,22 +95,6 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
     node.function?.accept(visitor);
   }
 
-  /// Adds extra dependencies coming from mirror usage.
-  @override
-  void addDeferredMirrorElements(WorkQueue queue) {
-    throw new UnsupportedError(
-        "KernelDeferredLoadTask.addDeferredMirrorElements");
-  }
-
-  /// Add extra dependencies coming from mirror usage in [root] marking it with
-  /// [newSet].
-  @override
-  void addMirrorElementsForLibrary(
-      WorkQueue queue, LibraryEntity root, ImportSet newSet) {
-    throw new UnsupportedError(
-        "KernelDeferredLoadTask.addMirrorElementsForLibrary");
-  }
-
   Set<ir.NamedNode> additionalExports(ir.Library library) {
     return _additionalExportsSets[library] ??= new Set<ir.NamedNode>.from(
         library.additionalExports.map((ir.Reference ref) => ref.node));

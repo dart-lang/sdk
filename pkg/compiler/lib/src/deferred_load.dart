@@ -607,14 +607,6 @@ abstract class DeferredLoadTask extends CompilerTask {
     });
   }
 
-  /// Adds extra dependencies coming from mirror usage.
-  void addDeferredMirrorElements(WorkQueue queue);
-
-  /// Add extra dependencies coming from mirror usage in [root] marking it with
-  /// [newSet].
-  void addMirrorElementsForLibrary(
-      WorkQueue queue, LibraryEntity root, ImportSet newSet);
-
   /// Computes a unique string for the name field for each outputUnit.
   void _createOutputUnits() {
     int counter = 1;
