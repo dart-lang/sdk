@@ -155,8 +155,9 @@ class KernelTarget extends TargetImplementation {
       new SourceLoader(fileSystem, includeComments, this);
 
   void addSourceInformation(
-      Uri uri, List<int> lineStarts, List<int> sourceCode) {
-    uriToSource[uri] = new Source(lineStarts, sourceCode);
+      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
+    uriToSource[fileUri] =
+        new Source(lineStarts, sourceCode, importUri, fileUri);
   }
 
   /// Return list of same size as input with possibly translated uris.
@@ -328,8 +329,10 @@ class KernelTarget extends TargetImplementation {
 
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     void copySource(Uri uri, Source source) {
-      uriToSource[uri] =
-          excludeSource ? new Source(source.lineStarts, const <int>[]) : source;
+      uriToSource[uri] = excludeSource
+          ? new Source(source.lineStarts, const <int>[], source.importUri,
+              source.fileUri)
+          : source;
     }
 
     this.uriToSource.forEach(copySource);

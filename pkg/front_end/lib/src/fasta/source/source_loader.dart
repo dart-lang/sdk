@@ -203,7 +203,11 @@ class SourceLoader extends Loader<Library> {
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
-      target.addSourceInformation(library.fileUri, result.lineStarts, source);
+      target.addSourceInformation(
+          library.isPatch ? library.fileUri : library.uri,
+          library.fileUri,
+          result.lineStarts,
+          source);
     }
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {

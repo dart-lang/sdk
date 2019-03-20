@@ -740,31 +740,20 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     Uint8List buffer = new Uint8List(1 << 16);
     for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
-      Source source = ((includeSources &&
-                  _sourcesFromRealImplementation.length > i &&
-                  _sourcesFromRealImplementation[i] == true)
-              ? uriToSource[uri]
-              : null) ??
-          new Source(<int>[], const <int>[]);
-
-      String uriAsString = uri == null ? "" : "$uri";
-      if (uriAsString.length * 3 < buffer.length) {
-        int length = NotQuiteString.writeUtf8(buffer, 0, uriAsString);
-        if (length < 0) {
-          // Utf8 encoding failed.
-          writeByteList(utf8.encoder.convert(uriAsString));
-        } else {
-          writeUInt30(length);
-          for (int j = 0; j < length; j++) {
-            writeByte(buffer[j]);
-          }
-        }
-      } else {
-        // Uncommon case with very long url.
-        writeByteList(utf8.encoder.convert(uriAsString));
+      Source source = uriToSource[uri];
+      if (source == null ||
+          !(includeSources &&
+              _sourcesFromRealImplementation.length > i &&
+              _sourcesFromRealImplementation[i] == true)) {
+        source = new Source(
+            <int>[], const <int>[], source?.importUri, source?.fileUri);
       }
 
+      String uriAsString = uri == null ? "" : "$uri";
+      outputStringViaBuffer(uriAsString, buffer);
+
       writeByteList(source.source);
+
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
       int previousLineStart = 0;
@@ -773,12 +762,35 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         writeUInt30(lineStart - previousLineStart);
         previousLineStart = lineStart;
       }
+
+      String importUriAsString =
+          source.importUri == null ? "" : "${source.importUri}";
+      outputStringViaBuffer(importUriAsString, buffer);
+
       i++;
     }
 
     // Write index for random access.
     for (int i = 0; i < index.length; ++i) {
       writeUInt32(index[i]);
+    }
+  }
+
+  void outputStringViaBuffer(String uriAsString, Uint8List buffer) {
+    if (uriAsString.length * 3 < buffer.length) {
+      int length = NotQuiteString.writeUtf8(buffer, 0, uriAsString);
+      if (length < 0) {
+        // Utf8 encoding failed.
+        writeByteList(utf8.encoder.convert(uriAsString));
+      } else {
+        writeUInt30(length);
+        for (int j = 0; j < length; j++) {
+          writeByte(buffer[j]);
+        }
+      }
+    } else {
+      // Uncommon case with very long url.
+      writeByteList(utf8.encoder.convert(uriAsString));
     }
   }
 

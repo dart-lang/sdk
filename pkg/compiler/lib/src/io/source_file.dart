@@ -26,9 +26,14 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   kernel.Source cachedKernelSource;
 
   kernel.Source get kernelSource {
-    return cachedKernelSource ??=
-        new kernel.Source(lineStarts, slowUtf8ZeroTerminatedBytes())
-          ..cachedText = slowText();
+    // TODO(johnniwinther): Instead of creating a new Source object,
+    // we should use the one provided by the front-end.
+    return cachedKernelSource ??= new kernel.Source(
+        lineStarts,
+        slowUtf8ZeroTerminatedBytes(),
+        uri /* TODO(jensj): What is the import URI? */,
+        uri)
+      ..cachedText = slowText();
   }
 
   /// The name of the file.

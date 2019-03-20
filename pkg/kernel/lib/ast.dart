@@ -5951,9 +5951,13 @@ class Source {
 
   final List<int> source;
 
+  final Uri importUri;
+
+  final Uri fileUri;
+
   String cachedText;
 
-  Source(this.lineStarts, this.source);
+  Source(this.lineStarts, this.source, this.importUri, this.fileUri);
 
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.

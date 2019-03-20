@@ -91,7 +91,8 @@ class TypePromotionLookAheadStep extends Step<ScannedFile, TypePromotionResult,
     return context.context
         .runInContext<Result<TypePromotionResult>>((CompilerContext c) async {
       Uri uri = file.file.uri;
-      c.uriToSource[uri] = new Source(file.result.lineStarts, file.file.bytes);
+      c.uriToSource[uri] =
+          new Source(file.result.lineStarts, file.file.bytes, uri, uri);
       StringBuffer buffer = new StringBuffer();
       Parser parser = new Parser(new TestListener(uri, buffer));
       try {

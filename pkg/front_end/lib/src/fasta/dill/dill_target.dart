@@ -39,7 +39,7 @@ class DillTarget extends TargetImplementation {
 
   @override
   void addSourceInformation(
-      Uri uri, List<int> lineStarts, List<int> sourceCode) {
+      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
     unsupported("addSourceInformation", -1, null);
   }
 

@@ -69,8 +69,11 @@ Uri translateSdk(Uri uri) {
           Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
           Source source = uriToSource[uri];
           if (source.source.isEmpty) {
-            uriToSource[uri] = new Source(source.lineStarts,
-                new File.fromUri(candidate).readAsBytesSync());
+            uriToSource[uri] = new Source(
+                source.lineStarts,
+                new File.fromUri(candidate).readAsBytesSync(),
+                source.importUri,
+                source.fileUri);
           }
         }
         return candidate;

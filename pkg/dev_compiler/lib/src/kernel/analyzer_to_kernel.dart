@@ -150,7 +150,11 @@ class AnalyzerToKernel {
     var uriToSource = <Uri, Source>{};
 
     void addCompilationUnit(a.CompilationUnitElement unit) {
-      uriToSource[unit.source.uri] = Source(unit.lineInfo.lineStarts, []);
+      uriToSource[unit.source.uri] = Source(
+          unit.lineInfo.lineStarts,
+          [],
+          unit.uri != null ? Uri.base.resolve(unit.uri) : unit.source.uri,
+          unit.source.uri);
     }
 
     for (var uri in bundle.unlinkedUnitUris) {
