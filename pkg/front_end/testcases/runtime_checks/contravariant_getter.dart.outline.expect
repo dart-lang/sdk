@@ -7,7 +7,7 @@ class C<T extends core::Object = dynamic> extends core::Object {
   field (self::C::T) → void y;
   synthetic constructor •() → self::C<self::C::T>
     ;
-  method f(self::C::T value) → void
+  method f(generic-covariant-impl self::C::T value) → void
     ;
 }
 static method g(self::C<core::num> c) → void

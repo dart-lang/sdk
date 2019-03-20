@@ -15,7 +15,7 @@ class Bar<T extends asy::Stream<core::String> = dynamic> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T>
     : super core::Object::•()
     ;
-  method foo(self::Bar::T t) → dynamic /* originally async */ {
+  method foo(generic-covariant-impl self::Bar::T t) → dynamic /* originally async */ {
     final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
     asy::FutureOr<dynamic> :return_value;
     dynamic :async_stack_trace;
@@ -74,7 +74,7 @@ class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> 
   synthetic constructor •() → self::Baz<self::Baz::T, self::Baz::E, self::Baz::S>
     : super core::Object::•()
     ;
-  method foo(self::Baz::S t) → dynamic /* originally async */ {
+  method foo(generic-covariant-impl self::Baz::S t) → dynamic /* originally async */ {
     final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
     asy::FutureOr<dynamic> :return_value;
     dynamic :async_stack_trace;

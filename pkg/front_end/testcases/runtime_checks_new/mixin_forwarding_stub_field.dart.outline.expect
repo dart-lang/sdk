@@ -18,7 +18,7 @@ abstract class I<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::T>
     ;
   abstract get x() → self::I::T;
-  abstract set x(self::I::T value) → void;
+  abstract set x(generic-covariant-impl self::I::T value) → void;
   abstract get y() → core::Object;
   abstract set y(covariant core::Object value) → void;
 }

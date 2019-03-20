@@ -64,13 +64,13 @@ class Mixin<T extends core::Object = dynamic> extends core::Object {
   field dynamic x = mix::f();
   field dynamic y = null;
   field dynamic z = null;
-  field mix::Mixin::T t = null;
+  generic-covariant-impl field mix::Mixin::T t = null;
   synthetic constructor •() → mix::Mixin<mix::Mixin::T>
     : super core::Object::•()
     ;
   method foo() → dynamic
     return super.foo().+(mix::f());
-  method g(mix::Mixin::T a) → mix::Mixin::T
+  method g(generic-covariant-impl mix::Mixin::T a) → mix::Mixin::T
     return null;
   method h() → dynamic
     return mix::V();

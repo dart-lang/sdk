@@ -5,7 +5,7 @@ import "dart:core" as core;
 class ActionDispatcher<P extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::ActionDispatcher<self::ActionDispatcher::P>
     ;
-  method call([self::ActionDispatcher::P value]) → void
+  method call([generic-covariant-impl self::ActionDispatcher::P value]) → void
     ;
 }
 class Bar extends core::Object {

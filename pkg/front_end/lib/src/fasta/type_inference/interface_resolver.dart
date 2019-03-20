@@ -374,8 +374,7 @@ class ForwardingNode extends Procedure {
     }
     for (int i = 0; i < interfaceTypeParameters.length; i++) {
       var typeParameter = interfaceTypeParameters[i];
-      var isGenericCovariantImpl = typeParameter.isGenericCovariantImpl ||
-          needsCheck(typeParameter.bound);
+      var isGenericCovariantImpl = typeParameter.isGenericCovariantImpl;
       var superTypeParameter = typeParameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);

@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AsyncMarker,
+        Class,
         Constructor,
         ConstructorInvocation,
         DartType,
@@ -55,6 +56,9 @@ import '../messages.dart'
 import '../problems.dart' show unexpected;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inference_engine.dart'
+    show IncludesTypeParametersCovariantly;
 
 import 'kernel_builder.dart'
     show
@@ -145,15 +149,34 @@ abstract class KernelFunctionBuilder
   FunctionNode buildFunction(LibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
+    IncludesTypeParametersCovariantly needsCheckVisitor;
+    if (!isConstructor && !isFactory && parent is ClassBuilder) {
+      Class enclosingClass = parent.target;
+      if (enclosingClass.typeParameters.isNotEmpty) {
+        needsCheckVisitor = new IncludesTypeParametersCovariantly(
+            enclosingClass.typeParameters);
+      }
+    }
     if (typeVariables != null) {
       for (KernelTypeVariableBuilder t in typeVariables) {
-        result.typeParameters.add(t.parameter);
+        TypeParameter parameter = t.parameter;
+        result.typeParameters.add(parameter);
+        if (needsCheckVisitor != null) {
+          if (parameter.bound.accept(needsCheckVisitor)) {
+            parameter.isGenericCovariantImpl = true;
+          }
+        }
       }
       setParents(result.typeParameters, result);
     }
     if (formals != null) {
       for (KernelFormalParameterBuilder formal in formals) {
         VariableDeclaration parameter = formal.build(library, 0);
+        if (needsCheckVisitor != null) {
+          if (parameter.type.accept(needsCheckVisitor)) {
+            parameter.isGenericCovariantImpl = true;
+          }
+        }
         if (formal.isNamed) {
           result.namedParameters.add(parameter);
         } else {

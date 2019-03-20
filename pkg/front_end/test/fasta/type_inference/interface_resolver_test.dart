@@ -595,7 +595,8 @@ class InterfaceResolverTest {
 
   void test_direct_isGenericCovariant() {
     var typeParameter = new TypeParameter('T', objectType);
-    var u = new TypeParameter('U', new TypeParameterType(typeParameter));
+    var u = new TypeParameter('U', new TypeParameterType(typeParameter))
+      ..isGenericCovariantImpl = true;
     var x = new VariableDeclarationJudgment('x', 0,
         type: new TypeParameterType(typeParameter));
     var y = new VariableDeclarationJudgment('y', 0,

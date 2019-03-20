@@ -13,13 +13,13 @@ class Foo extends core::Object {
 class Bar<T extends asy::Stream<core::String> = dynamic> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T>
     ;
-  method foo(self::Bar::T t) → dynamic
+  method foo(generic-covariant-impl self::Bar::T t) → dynamic
     ;
 }
 class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> = dynamic, S extends self::Baz::E = dynamic> extends core::Object {
   synthetic constructor •() → self::Baz<self::Baz::T, self::Baz::E, self::Baz::S>
     ;
-  method foo(self::Baz::S t) → dynamic
+  method foo(generic-covariant-impl self::Baz::S t) → dynamic
     ;
 }
 abstract class MyStream<T extends core::Object = dynamic> extends asy::Stream<self::MyStream::T> {

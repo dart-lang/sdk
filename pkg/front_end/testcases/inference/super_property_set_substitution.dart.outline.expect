@@ -14,7 +14,7 @@ class E<T extends core::Object = dynamic> extends self::D<self::E::T> {
     ;
 }
 class B<T extends core::Object = dynamic> extends core::Object {
-  field self::D<self::B::T> x;
+  generic-covariant-impl field self::D<self::B::T> x;
   synthetic constructor •() → self::B<self::B::T>
     ;
 }
