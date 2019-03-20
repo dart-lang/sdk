@@ -54,12 +54,15 @@ part of dart.core;
 abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Creates a list of the given length.
-   *
-   * The created list is fixed-length if [length] is provided.
+   * The created list is fixed-length if [length] is provided. 
    *
    *     List fixedLengthList = new List(3);
    *     fixedLengthList.length;     // 3
    *     fixedLengthList.length = 1; // Error
+   
+   * Above created fixed-length list is not empty, it has three [null] objects in it.
+   *
+   *     print(fixedLengthList);     // [null, null, null]
    *
    * The list has length 0 and is growable if [length] is omitted.
    *
