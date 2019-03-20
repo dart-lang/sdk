@@ -309,6 +309,10 @@ enum LinkedNodeKind : byte {
 
   namedExpression,
 
+  nativeClause,
+
+  nativeFunctionBody,
+
   nullLiteral,
 
   onClause,
@@ -1803,6 +1807,8 @@ table LinkedNode {
   variantField_3:[LinkedNode] (id: 3);
 
   variantField_10:LinkedNode (id: 10);
+
+  variantField_33:uint (id: 33);
 
   variantField_21:double (id: 21);
 

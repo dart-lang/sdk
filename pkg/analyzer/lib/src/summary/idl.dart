@@ -990,6 +990,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(27, variant: LinkedNodeKind.classDeclaration)
   bool get classDeclaration_isDartObject;
 
+  @VariantId(8, variant: LinkedNodeKind.classDeclaration)
+  LinkedNode get classDeclaration_nativeClause;
+
   @VariantId(7, variant: LinkedNodeKind.classDeclaration)
   LinkedNode get classDeclaration_withClause;
 
@@ -1194,7 +1197,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.defaultFormalParameter)
   int get defaultFormalParameter_separator;
 
-  @VariantId(17, variantList: [
+  @VariantId(18, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
     LinkedNodeKind.libraryDirective,
@@ -1202,6 +1205,15 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.partOfDirective,
   ])
   int get directive_keyword;
+
+  @VariantId(33, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+    LinkedNodeKind.libraryDirective,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
+  ])
+  int get directive_semicolon;
 
   @VariantId(6, variant: LinkedNodeKind.doStatement)
   LinkedNode get doStatement_body;
@@ -1597,10 +1609,13 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_index;
 
-  @VariantId(16, variant: LinkedNodeKind.indexExpression)
+  @VariantId(17, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_leftBracket;
 
-  @VariantId(17, variant: LinkedNodeKind.indexExpression)
+  @VariantId(16, variant: LinkedNodeKind.indexExpression)
+  int get indexExpression_period;
+
+  @VariantId(18, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_rightBracket;
 
   @VariantId(7, variant: LinkedNodeKind.indexExpression)
@@ -1796,13 +1811,20 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   String get namespaceDirective_selectedUriContent;
 
-  @VariantId(18, variantList: [
-    LinkedNodeKind.exportDirective,
-    LinkedNodeKind.importDirective,
-    LinkedNodeKind.libraryDirective,
-    LinkedNodeKind.partDirective,
-  ])
-  int get namespaceDirective_semicolon;
+  @VariantId(6, variant: LinkedNodeKind.nativeClause)
+  LinkedNode get nativeClause_name;
+
+  @VariantId(15, variant: LinkedNodeKind.nativeClause)
+  int get nativeClause_nativeKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.nativeFunctionBody)
+  int get nativeFunctionBody_nativeKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.nativeFunctionBody)
+  int get nativeFunctionBody_semicolon;
+
+  @VariantId(6, variant: LinkedNodeKind.nativeFunctionBody)
+  LinkedNode get nativeFunctionBody_stringLiteral;
 
   @VariantId(14, variantList: [
     LinkedNodeKind.fieldFormalParameter,
@@ -1862,9 +1884,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(16, variant: LinkedNodeKind.partOfDirective)
   int get partOfDirective_ofKeyword;
-
-  @VariantId(15, variant: LinkedNodeKind.partOfDirective)
-  int get partOfDirective_semicolon;
 
   @VariantId(7, variant: LinkedNodeKind.partOfDirective)
   LinkedNode get partOfDirective_uri;
@@ -2338,6 +2357,8 @@ enum LinkedNodeKind {
   methodInvocation,
   mixinDeclaration,
   namedExpression,
+  nativeClause,
+  nativeFunctionBody,
   nullLiteral,
   onClause,
   parenthesizedExpression,

@@ -189,6 +189,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       classDeclaration_abstractKeyword: _getToken(node.abstractKeyword),
       classDeclaration_classKeyword: _getToken(node.classKeyword),
       classDeclaration_extendsClause: node.extendsClause?.accept(this),
+      classDeclaration_nativeClause: node.nativeClause?.accept(this),
       classDeclaration_withClause: node.withClause?.accept(this),
     );
     _storeClassOrMixinDeclaration(builder, node);
@@ -347,7 +348,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       doStatement_doKeyword: _getToken(node.doKeyword),
       doStatement_leftParenthesis: _getToken(node.leftParenthesis),
       doStatement_rightParenthesis: _getToken(node.rightParenthesis),
-      doStatement_semicolon: _getToken(node.whileKeyword),
+      doStatement_semicolon: _getToken(node.semicolon),
       doStatement_whileKeyword: _getToken(node.whileKeyword),
     );
   }
@@ -687,6 +688,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       indexExpression_element: _getReferenceIndex(node.staticElement),
       indexExpression_index: node.index.accept(this),
       indexExpression_leftBracket: _getToken(node.leftBracket),
+      indexExpression_period: _getToken(node.period),
       indexExpression_rightBracket: _getToken(node.rightBracket),
       indexExpression_target: node.target?.accept(this),
       expression_type: _writeType(node.staticType),
@@ -765,6 +767,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitLibraryDirective(LibraryDirective node) {
     var builder = LinkedNodeBuilder.libraryDirective(
       libraryDirective_name: node.name.accept(this),
+      directive_semicolon: _getToken(node.semicolon),
     );
     _storeDirective(builder, node);
     return builder;
@@ -844,6 +847,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitNativeClause(NativeClause node) {
+    return LinkedNodeBuilder.nativeClause(
+      nativeClause_nativeKeyword: _getToken(node.nativeKeyword),
+      nativeClause_name: node.name.accept(this),
+    );
+  }
+
+  @override
+  LinkedNodeBuilder visitNativeFunctionBody(NativeFunctionBody node) {
+    return LinkedNodeBuilder.nativeFunctionBody(
+      nativeFunctionBody_nativeKeyword: _getToken(node.nativeKeyword),
+      nativeFunctionBody_semicolon: _getToken(node.semicolon),
+      nativeFunctionBody_stringLiteral: node.stringLiteral?.accept(this),
+    );
+  }
+
+  @override
   LinkedNodeBuilder visitNullLiteral(NullLiteral node) {
     var builder = LinkedNodeBuilder.nullLiteral(
       nullLiteral_literal: _getToken(node.literal),
@@ -875,7 +895,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitPartDirective(PartDirective node) {
-    var builder = LinkedNodeBuilder.partDirective();
+    var builder = LinkedNodeBuilder.partDirective(
+      directive_semicolon: _getToken(node.semicolon),
+    );
     _storeUriBasedDirective(builder, node);
     return builder;
   }
@@ -885,7 +907,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.partOfDirective(
       partOfDirective_libraryName: node.libraryName?.accept(this),
       partOfDirective_ofKeyword: _getToken(node.ofKeyword),
-      partOfDirective_semicolon: _getToken(node.semicolon),
+      directive_semicolon: _getToken(node.semicolon),
       partOfDirective_uri: node.uri?.accept(this),
     );
     _storeDirective(builder, node);
@@ -1415,7 +1437,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..namespaceDirective_combinators = _writeNodeList(node.combinators)
       ..namespaceDirective_configurations = _writeNodeList(node.configurations)
       ..namespaceDirective_selectedUriContent = node.selectedUriContent
-      ..namespaceDirective_semicolon = _getToken(node.semicolon);
+      ..directive_semicolon = _getToken(node.semicolon);
   }
 
   void _storeNormalFormalParameter(
