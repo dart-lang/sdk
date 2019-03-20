@@ -165,6 +165,11 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   }
 #endif
 
+#if defined(TARGET_ARCH_DBC)
+  // DBC instructions are never executable.
+  FLAG_write_protect_code = false;
+#endif
+
   if (FLAG_enable_interpreter) {
 #if defined(TARGET_ARCH_DBC)
     return strdup("--enable-interpreter is not supported with DBC");

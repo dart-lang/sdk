@@ -57,8 +57,14 @@ DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
                              PageType type,
                              const char* name) {
+#if defined(TARGET_ARCH_DBC)
+  bool executable = false;
+#else
+  bool executable = type == kExecutable;
+#endif
+
   VirtualMemory* memory = VirtualMemory::AllocateAligned(
-      size_in_words << kWordSizeLog2, kPageSize, type == kExecutable, name);
+      size_in_words << kWordSizeLog2, kPageSize, executable, name);
   if (memory == NULL) {
     return NULL;
   }
