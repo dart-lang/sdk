@@ -7,15 +7,12 @@ import 'dart:math' show min;
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/task/api/model.dart';
 
 /**
  * A [ConflictingSummaryException] indicates that two different summaries
@@ -64,26 +61,6 @@ include the same source.
     var last =
         first.substring(0, common).lastIndexOf(io.Platform.pathSeparator);
     return last < 0 ? 0 : last + 1;
-  }
-}
-
-/**
- * The [ResultProvider] that provides results from input package summaries.
- */
-class InputPackagesResultProvider extends ResynthesizerResultProvider {
-  InputPackagesResultProvider(
-      InternalAnalysisContext context, SummaryDataStore dataStore,
-      {AnalysisSession session})
-      : super(context, session, dataStore) {
-    createResynthesizer();
-    context.typeProvider = resynthesizer.typeProvider;
-    resynthesizer.finishCoreAsyncLibraries();
-  }
-
-  @override
-  bool hasResultsForSource(Source source) {
-    String uriString = source.uri.toString();
-    return resynthesizer.hasLibrarySummary(uriString);
   }
 }
 
@@ -160,50 +137,6 @@ class InSummaryUriResolver extends UriResolver {
     }
     return null;
   }
-}
-
-/**
- * The [ResultProvider] that provides results using summary resynthesizer.
- */
-abstract class ResynthesizerResultProvider extends ResultProvider {
-  final InternalAnalysisContext context;
-  final AnalysisSession session;
-  final SummaryDataStore _dataStore;
-
-  StoreBasedSummaryResynthesizer _resynthesizer;
-
-  ResynthesizerResultProvider(this.context, this.session, this._dataStore);
-
-  SummaryResynthesizer get resynthesizer => _resynthesizer;
-
-  /**
-   * Add a new [bundle] to the resynthesizer.
-   */
-  void addBundle(String path, PackageBundle bundle) {
-    _dataStore.addBundle(path, bundle);
-  }
-
-  @override
-  bool compute(CacheEntry entry, ResultDescriptor result) {
-    throw UnimplementedError();
-  }
-
-  /**
-   * Create the [resynthesizer] instance.
-   *
-   * Subclasses must call this method in their constructors.
-   */
-  void createResynthesizer() {
-    _resynthesizer = new StoreBasedSummaryResynthesizer(
-        context, session, context.sourceFactory, true, _dataStore);
-  }
-
-  /**
-   * Return `true` if this result provider can provide a result for the
-   * given [source].  The provider must ensure that [addBundle] is invoked for
-   * every bundle that would be required to provide results for the [source].
-   */
-  bool hasResultsForSource(Source source);
 }
 
 /**

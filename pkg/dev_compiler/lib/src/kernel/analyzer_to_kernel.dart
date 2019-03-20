@@ -79,11 +79,9 @@ class AnalyzerToKernel {
   final _typeParams = HashMap<a.TypeParameterElement, TypeParameter>();
   final _namespaceBuilder = a.NamespaceBuilder();
 
-  AnalyzerToKernel._(a.AnalysisContextImpl context, this._summaryData)
-      : _resynth = (context.resultProvider as a.InputPackagesResultProvider)
-            .resynthesizer,
-        types = context.typeProvider,
-        rules = context.typeSystem as a.Dart2TypeSystem;
+  AnalyzerToKernel._(this._resynth, this._summaryData)
+      : types = _resynth.typeProvider,
+        rules = _resynth.typeSystem as a.Dart2TypeSystem;
 
   /// Create an Analyzer summary to Kernel tree converter, using the provided
   /// [analyzerSdkSummary] and [summaryPaths].
@@ -98,7 +96,7 @@ class AnalyzerToKernel {
         disallowOverlappingSummaries: false);
     var resynthesizer =
         _createSummaryResynthesizer(summaryData, analyzerSdkSummary);
-    return AnalyzerToKernel._(resynthesizer.context, summaryData);
+    return AnalyzerToKernel._(resynthesizer, summaryData);
   }
 
   /// Converts the SDK summary to a Kernel component and returns it.
@@ -871,8 +869,11 @@ AsyncMarker _getAsyncMarker(a.ExecutableElement e) {
 a.StoreBasedSummaryResynthesizer _createSummaryResynthesizer(
     a.SummaryDataStore summaryData, String dartSdkPath) {
   var context = _createContextForSummaries(summaryData, dartSdkPath);
-  return a.StoreBasedSummaryResynthesizer(
+  var resynthesizer = a.StoreBasedSummaryResynthesizer(
       context, null, context.sourceFactory, /*strongMode*/ true, summaryData);
+  resynthesizer.finishCoreAsyncLibraries();
+  context.typeProvider = resynthesizer.typeProvider;
+  return resynthesizer;
 }
 
 /// Creates a dummy Analyzer context so we can use summary resynthesizer.
@@ -894,6 +895,5 @@ a.AnalysisContextImpl _createContextForSummaries(
       [a.DartUriResolver(sdk), a.InSummaryUriResolver(null, summaryData)]);
   context.useSdkCachePartition = false;
   // TODO(jmesserly): do we need to set analysisOptions or declaredVariables?
-  context.resultProvider = a.InputPackagesResultProvider(context, summaryData);
   return context;
 }

@@ -61,11 +61,6 @@ class SummaryBasedDartSdk implements DartSdk {
       SourceFactory factory = new SourceFactory(
           [new DartUriResolver(this)], null, resourceProvider);
       _analysisContext.sourceFactory = factory;
-      SummaryDataStore dataStore =
-          new SummaryDataStore([], resourceProvider: resourceProvider);
-      dataStore.addBundle(null, _bundle);
-      _analysisContext.resultProvider =
-          new InputPackagesResultProvider(_analysisContext, dataStore);
     }
     return _analysisContext;
   }

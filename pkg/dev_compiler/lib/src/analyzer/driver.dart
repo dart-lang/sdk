@@ -243,13 +243,18 @@ class CompilerAnalysisDriver {
     /// Create an analysis context to contain the state for this build unit.
     var context = RestrictedAnalysisContext(
         analysisOptions, declaredVariables, sourceFactory);
-    var resultProvider = InputPackagesResultProvider(
-        context,
-        SummaryDataStore([])
-          ..addStore(summaryData)
-          ..addBundle(null, bundle));
+    var resynthesizer = StoreBasedSummaryResynthesizer(
+      context,
+      null,
+      context.sourceFactory,
+      /*strongMode*/ true,
+      SummaryDataStore([])
+        ..addStore(summaryData)
+        ..addBundle(null, bundle),
+    );
+    resynthesizer.finishCoreAsyncLibraries();
+    context.typeProvider = resynthesizer.typeProvider;
 
-    var resynthesizer = resultProvider.resynthesizer;
     _extensionTypes ??= ExtensionTypeSet(context.typeProvider, resynthesizer);
 
     return LinkedAnalysisDriver(

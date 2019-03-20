@@ -2303,11 +2303,6 @@ class ImplicitAnalysisEvent {
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
   /**
-   * The result provider for [aboutToComputeResult].
-   */
-  ResultProvider resultProvider;
-
-  /**
    * A table mapping the sources known to the context to the information known
    * about the source.
    */

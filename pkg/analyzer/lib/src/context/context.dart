@@ -82,9 +82,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   bool useSdkCachePartition = true;
 
-  @override
-  ResultProvider resultProvider;
-
   /**
    * The most recently incrementally resolved source, or `null` when it was
    * already validated, or the most recent change was not incrementally resolved.
@@ -590,24 +587,6 @@ class PartitionManager {
   SdkCachePartition forSdk(DartSdk sdk) {
     throw UnimplementedError();
   }
-}
-
-/**
- * Provider for analysis results.
- */
-abstract class ResultProvider {
-  /**
-   * This method is invoked by an [InternalAnalysisContext] when the state of
-   * the [result] of the [entry] is [CacheState.INVALID], so it is about to be
-   * computed.
-   *
-   * If the provider knows how to provide the value, it sets the value into
-   * the [entry] with all required dependencies, and returns `true`.
-   *
-   * Otherwise, it returns `false` to indicate that the result should be
-   * computed as usually.
-   */
-  bool compute(CacheEntry entry, ResultDescriptor result);
 }
 
 /**
