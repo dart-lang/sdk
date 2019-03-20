@@ -181,10 +181,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// without causing dart2js to crash. The flag has no effect.
   bool enableAssertMessage = true;
 
-  /// Whether the user specified a flag to allow the use of dart:mirrors. This
-  /// silences a warning produced by the compiler.
-  bool enableExperimentalMirrors = false;
-
   /// Whether to enable minification
   // TODO(sigmund): rename to minify
   bool enableMinification = false;
@@ -340,8 +336,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
-      ..enableExperimentalMirrors =
-          _hasOption(options, Flags.enableExperimentalMirrors)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =

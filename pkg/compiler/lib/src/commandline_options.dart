@@ -22,8 +22,6 @@ class Flags {
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableAsserts = '--enable-asserts';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
-  static const String enableExperimentalMirrors =
-      '--enable-experimental-mirrors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
   static const String experimentalAllocationsPath =
