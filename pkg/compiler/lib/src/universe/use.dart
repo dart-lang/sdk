@@ -780,22 +780,11 @@ class TypeUse {
   String toString() => 'TypeUse($type,$kind)';
 }
 
-enum ConstantUseKind {
-  // A constant that is directly accessible in code.
-  DIRECT,
-  // A constant that is only accessible through other constants.
-  INDIRECT,
-}
-
 /// Use of a [ConstantValue].
 class ConstantUse {
   final ConstantValue value;
-  final ConstantUseKind kind;
-  @override
-  final int hashCode;
 
-  ConstantUse._(this.value, this.kind)
-      : this.hashCode = Hashing.objectHash(value, kind.hashCode);
+  ConstantUse._(this.value);
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -803,25 +792,13 @@ class ConstantUse {
   }
 
   /// Constant used as the initial value of a field.
-  ConstantUse.init(ConstantValue value) : this._(value, ConstantUseKind.DIRECT);
+  ConstantUse.init(ConstantValue value) : this._(value);
 
   /// Type constant used for registration of custom elements.
-  ConstantUse.customElements(TypeConstantValue value)
-      : this._(value, ConstantUseKind.DIRECT);
-
-  /// Constant used through mirrors.
-  // TODO(johnniwinther): Maybe if this is `DIRECT` and we can avoid the
-  // extra calls to `addCompileTimeConstantForEmission`.
-  ConstantUse.mirrors(ConstantValue value)
-      : this._(value, ConstantUseKind.INDIRECT);
-
-  /// Constant used for accessing type variables through mirrors.
-  ConstantUse.typeVariableMirror(ConstantValue value)
-      : this._(value, ConstantUseKind.DIRECT);
+  ConstantUse.customElements(TypeConstantValue value) : this._(value);
 
   /// Constant literal used on code.
-  ConstantUse.literal(ConstantValue value)
-      : this._(value, ConstantUseKind.DIRECT);
+  ConstantUse.literal(ConstantValue value) : this._(value);
 
   @override
   bool operator ==(other) {
@@ -831,5 +808,8 @@ class ConstantUse {
   }
 
   @override
-  String toString() => 'ConstantUse(${value.toStructuredText()},$kind)';
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => 'ConstantUse(${value.toStructuredText()})';
 }

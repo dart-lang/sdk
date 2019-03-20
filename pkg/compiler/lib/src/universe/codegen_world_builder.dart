@@ -18,13 +18,7 @@ import '../world.dart' show JClosedWorld;
 import 'member_usage.dart';
 import 'selector.dart' show Selector;
 import 'use.dart'
-    show
-        ConstantUse,
-        ConstantUseKind,
-        DynamicUse,
-        DynamicUseKind,
-        StaticUse,
-        StaticUseKind;
+    show ConstantUse, DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 import 'world_builder.dart';
 
 /// World builder specific to codegen.
@@ -613,9 +607,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// Register the constant [use] with this world builder. Returns `true` if
   /// the constant use was new to the world.
   bool registerConstantUse(ConstantUse use) {
-    if (use.kind == ConstantUseKind.DIRECT) {
-      addCompileTimeConstantForEmission(use.value);
-    }
+    addCompileTimeConstantForEmission(use.value);
     return _constantValues.add(use.value);
   }
 
