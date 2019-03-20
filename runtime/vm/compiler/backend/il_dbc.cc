@@ -46,7 +46,8 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(SpeculativeShiftUint32Op)                                                  \
   M(TruncDivMod)                                                               \
   M(UnaryUint32Op)                                                             \
-  M(UnboxedIntConverter)
+  M(UnboxedIntConverter)                                                       \
+  M(UnboxedWidthExtender)
 
 // List of instructions that are not used by DBC.
 // Things we aren't planning to implement for DBC:

@@ -991,6 +991,12 @@ void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
+void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%" Pd " -> 4 (%s), ", from_width_bytes_,
+           RepresentationToCString(representation()));
+  Definition::PrintOperandsTo(f);
+}
+
 void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd, index());
 }

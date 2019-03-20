@@ -2419,6 +2419,18 @@ Fragment FlowGraphBuilder::Box(Representation from) {
   return Fragment(box);
 }
 
+Fragment FlowGraphBuilder::FfiUnboxedExtend(Representation representation,
+                                            const AbstractType& ffi_type) {
+  const intptr_t width =
+      compiler::ffi::ElementSizeInBytes(ffi_type.type_class_id());
+  if (width >= compiler::ffi::kMinimumArgumentWidth) return {};
+
+  auto* extend =
+      new (Z) UnboxedWidthExtenderInstr(Pop(), representation, width);
+  Push(extend);
+  return Fragment(extend);
+}
+
 Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   Fragment test;
   TargetEntryInstr* null_entry;
@@ -2515,7 +2527,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
       body += LoadAddressFromFfiPointer();
       body += UnboxTruncate(kUnboxedIntPtr);
     } else {
-      body += UnboxTruncate(arg_reps[pos - 1]);
+      Representation rep = arg_reps[pos - 1];
+      body += UnboxTruncate(rep);
+      body += FfiUnboxedExtend(rep, ffi_type);
     }
   }
 
@@ -2538,7 +2552,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     body += Drop();
     body += NullConstant();
   } else {
-    body += Box(compiler::ffi::ResultRepresentation(signature));
+    Representation rep = compiler::ffi::ResultRepresentation(signature);
+    body += FfiUnboxedExtend(rep, ffi_type);
+    body += Box(rep);
   }
 
   body += Return(TokenPosition::kNoSource);

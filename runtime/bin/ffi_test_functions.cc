@@ -33,9 +33,60 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   return retval;
 }
 
-// Test 32-bit (int32_t) -> 64-bit (Dart int) sign extension and truncation.
-DART_EXPORT int32_t TestExtension() {
-  return 1UL << 31;
+//// Tests for sign and zero extension of arguments and results.
+
+DART_EXPORT uint8_t ReturnMaxUint8() {
+  return 0xff;
+}
+
+DART_EXPORT uint16_t ReturnMaxUint16() {
+  return 0xffff;
+}
+
+DART_EXPORT uint32_t ReturnMaxUint32() {
+  return 0xffffffff;
+}
+
+DART_EXPORT int8_t ReturnMinInt8() {
+  return 0x80;
+}
+
+DART_EXPORT int16_t ReturnMinInt16() {
+  return 0x8000;
+}
+
+DART_EXPORT int32_t ReturnMinInt32() {
+  return 0x80000000;
+}
+
+DART_EXPORT intptr_t TakeMaxUint8(uint8_t x) {
+  return x == 0xff ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMaxUint16(uint16_t x) {
+  return x == 0xffff ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMaxUint32(uint32_t x) {
+  return x == 0xffffffff ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMinInt8(int8_t x) {
+  const int64_t expected = -0x80;
+  const int64_t received = x;
+  return expected == received ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMinInt16(int16_t x) {
+  const int64_t expected = -0x8000;
+  const int64_t received = x;
+  return expected == received ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMinInt32(int32_t x) {
+  const int64_t expected = -(int32_t)0x80000000;
+  const int64_t received = x;
+  return expected == received ? 1 : 0;
 }
 
 // Performs some computation on various sized signed ints.

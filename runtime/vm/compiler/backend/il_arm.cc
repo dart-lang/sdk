@@ -6585,6 +6585,36 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, /*num_inputs=*/InputCount(),
+                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register reg = locs()->in(0).reg();
+  // There are no builtin sign- or zero-extension instructions, so we'll have to
+  // use shifts instead.
+  const intptr_t shift_length = (kWordSize - from_width_bytes_) * kBitsPerByte;
+  __ Lsl(reg, reg, Operand(shift_length));
+  switch (representation_) {
+    case kUnboxedInt32:  // Sign extend operand.
+      __ Asr(reg, reg, Operand(shift_length));
+      break;
+    case kUnboxedUint32:  // Zero extend operand.
+      __ Lsr(reg, reg, Operand(shift_length));
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
 LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
 }

@@ -450,6 +450,7 @@ struct InstrAttrs {
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
   M(UnboxedIntConverter, _)                                                    \
+  M(UnboxedWidthExtender, _)                                                   \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -7500,7 +7501,58 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
 };
 
+// Sign- or zero-extends an integer in unboxed 32-bit representation.
 //
+// The choice between sign- and zero- extension is made based on the whether the
+// chosen representation is signed or unsigned.
+//
+// It is only supported to extend 1- or 2-byte operands; however, since we don't
+// have a representation less than 32-bits, both the input and output
+// representations are 32-bit (and equal).
+class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  UnboxedWidthExtenderInstr(Value* value,
+                            Representation rep,
+                            intptr_t from_width_bytes)
+      : TemplateDefinition(DeoptId::kNone),
+        representation_(rep),
+        from_width_bytes_(from_width_bytes) {
+    ASSERT(from_width_bytes == 1 || from_width_bytes == 2);
+    ASSERT(rep == kUnboxedInt32 || rep == kUnboxedUint32);
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Representation representation() const { return representation_; }
+
+  bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return representation_;
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsUnboxedWidthExtender());
+    const UnboxedWidthExtenderInstr* ext = other->AsUnboxedWidthExtender();
+    return ext->representation() == representation() &&
+           ext->from_width_bytes_ == from_width_bytes_;
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+
+  DECLARE_INSTRUCTION(UnboxedWidthExtender);
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Representation representation_;
+  const intptr_t from_width_bytes_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxedWidthExtenderInstr);
+};
+
 // SimdOpInstr
 //
 // All SIMD intrinsics and recognized methods are represented via instances

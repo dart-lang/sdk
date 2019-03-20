@@ -1320,6 +1320,11 @@ void ConstantPropagator::VisitUnboxedIntConverter(
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitUnboxedWidthExtender(
+    UnboxedWidthExtenderInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
   // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);

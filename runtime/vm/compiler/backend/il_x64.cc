@@ -6207,6 +6207,49 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, /*num_inputs=*/InputCount(),
+                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_out(0, Location::RegisterLocation(RAX));
+  return summary;
+}
+
+void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (representation_) {
+    case kUnboxedInt32:  // Sign extend operand.
+      switch (from_width_bytes_) {
+        case 1:
+          __ movsxb(RAX, RAX);
+          break;
+        case 2:
+          __ movsxw(RAX, RAX);
+          break;
+        default:
+          UNREACHABLE();
+      }
+      break;
+    case kUnboxedUint32:  // Zero extend operand.
+      switch (from_width_bytes_) {
+        case 1:
+          __ movzxb(RAX, RAX);
+          break;
+        case 2:
+          __ movzxw(RAX, RAX);
+          break;
+        default:
+          UNREACHABLE();
+      }
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
 LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
 }

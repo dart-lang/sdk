@@ -55,10 +55,10 @@ void testNativeFunctionFromCast() {
 }
 
 typedef NativeQuadOpSigned = ffi.Int64 Function(
-    ffi.Int64, ffi.Int32, ffi.Int16, ffi.Int8);
+    ffi.Int8, ffi.Int16, ffi.Int32, ffi.Int64);
 typedef QuadOp = int Function(int, int, int, int);
 typedef NativeQuadOpUnsigned = ffi.Uint64 Function(
-    ffi.Uint64, ffi.Uint32, ffi.Uint16, ffi.Uint8);
+    ffi.Uint8, ffi.Uint16, ffi.Uint32, ffi.Uint64);
 
 BinaryOp sumPlus42 =
     ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
@@ -77,23 +77,92 @@ void testNativeFunctionFromLookup() {
       -0x8000000000000000, intComputation(0, 0, 0, -0x8000000000000000));
 }
 
-typedef NativeNullaryOpSigned = ffi.Int32 Function();
-typedef NativeNullaryOpUnsigned = ffi.Uint32 Function();
-
-int Function() unsignedOp = ffiTestFunctions
-    .lookup("TestExtension")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeNullaryOpUnsigned>>>()
+typedef NativeReturnMaxUint8 = ffi.Uint8 Function();
+int Function() returnMaxUint8 = ffiTestFunctions
+    .lookup("ReturnMaxUint8")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMaxUint8>>>()
     .asFunction();
 
-int Function() signedOp = ffiTestFunctions
-    .lookup("TestExtension")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeNullaryOpSigned>>>()
+typedef NativeReturnMaxUint16 = ffi.Uint16 Function();
+int Function() returnMaxUint16 = ffiTestFunctions
+    .lookup("ReturnMaxUint16")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMaxUint16>>>()
     .asFunction();
 
-// Test 32-bit (int32_t) -> 64-bit (Dart int) sign extension and truncation.
+typedef NativeReturnMaxUint32 = ffi.Uint32 Function();
+int Function() returnMaxUint32 = ffiTestFunctions
+    .lookup("ReturnMaxUint32")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMaxUint32>>>()
+    .asFunction();
+
+typedef NativeReturnMinInt8 = ffi.Int8 Function();
+int Function() returnMinInt8 = ffiTestFunctions
+    .lookup("ReturnMinInt8")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMinInt8>>>()
+    .asFunction();
+
+typedef NativeReturnMinInt16 = ffi.Int16 Function();
+int Function() returnMinInt16 = ffiTestFunctions
+    .lookup("ReturnMinInt16")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMinInt16>>>()
+    .asFunction();
+
+typedef NativeReturnMinInt32 = ffi.Int32 Function();
+int Function() returnMinInt32 = ffiTestFunctions
+    .lookup("ReturnMinInt32")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMinInt32>>>()
+    .asFunction();
+
+typedef NativeTakeMaxUint8 = ffi.IntPtr Function(ffi.Uint8);
+int Function(int) takeMaxUint8 = ffiTestFunctions
+    .lookup("TakeMaxUint8")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMaxUint8>>>()
+    .asFunction();
+
+typedef NativeTakeMaxUint16 = ffi.IntPtr Function(ffi.Uint16);
+int Function(int) takeMaxUint16 = ffiTestFunctions
+    .lookup("TakeMaxUint16")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMaxUint16>>>()
+    .asFunction();
+
+typedef NativeTakeMaxUint32 = ffi.IntPtr Function(ffi.Uint32);
+int Function(int) takeMaxUint32 = ffiTestFunctions
+    .lookup("TakeMaxUint32")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMaxUint32>>>()
+    .asFunction();
+
+typedef NativeTakeMinInt8 = ffi.IntPtr Function(ffi.Int8);
+int Function(int) takeMinInt8 = ffiTestFunctions
+    .lookup("TakeMinInt8")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMinInt8>>>()
+    .asFunction();
+
+typedef NativeTakeMinInt16 = ffi.IntPtr Function(ffi.Int16);
+int Function(int) takeMinInt16 = ffiTestFunctions
+    .lookup("TakeMinInt16")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMinInt16>>>()
+    .asFunction();
+
+typedef NativeTakeMinInt32 = ffi.IntPtr Function(ffi.Int32);
+int Function(int) takeMinInt32 = ffiTestFunctions
+    .lookup("TakeMinInt32")
+    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMinInt32>>>()
+    .asFunction();
+
 void testExtension() {
-  Expect.equals(unsignedOp(), 0x80000000);
-  Expect.equals(signedOp(), 0xffffffff80000000);
+  Expect.equals(returnMaxUint8(), 0xff);
+  Expect.equals(returnMaxUint16(), 0xffff);
+  Expect.equals(returnMaxUint32(), 0xffffffff);
+  Expect.equals(returnMinInt8(), -0x80);
+  Expect.equals(returnMinInt16(), -0x8000);
+  Expect.equals(returnMinInt32(), -0x80000000);
+
+  Expect.equals(takeMaxUint8(0xff), 1);
+  Expect.equals(takeMaxUint16(0xffff), 1);
+  Expect.equals(takeMaxUint32(0xffffffff), 1);
+  Expect.equals(takeMinInt8(0x80), 1);
+  Expect.equals(takeMinInt16(0x8000), 1);
+  Expect.equals(takeMinInt32(0x80000000), 1);
 }
 
 QuadOp uintComputation = ffiTestFunctions
@@ -118,8 +187,6 @@ SenaryOp sumSmallNumbers = ffiTestFunctions
     .lookupFunction<NativeSenaryOp, SenaryOp>("SumSmallNumbers");
 
 void testTruncation() {
-  // TODO(dacoharkes): implement truncation and sign extension in trampolines
-  // for values smaller than 32 bits.
   sumSmallNumbers(128, 0, 0, 0, 0, 0);
   sumSmallNumbers(-129, 0, 0, 0, 0, 0);
   sumSmallNumbers(0, 0, 0, 256, 0, 0);
