@@ -2,24 +2,24 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:25:79: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:25:28: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
-//       /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ y);
-//                                                                               ^
+//       /*@topType=dynamic*/ y);
+//                            ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:29:80: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:27:64: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
-//       {/*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ y});
-//                                                                                ^
+//   /*@topType=int*/ h(/*@topType=int*/ x, {/*@topType=dynamic*/ y});
+//                                                                ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:27:80: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:26:64: Error: Can't infer a type for 'y' as some of the inherited members have different types.
 // Try adding an explicit type.
-//       [/*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ y]);
-//                                                                                ^
+//   /*@topType=int*/ g(/*@topType=int*/ x, [/*@topType=dynamic*/ y]);
+//                                                                ^
 //
-// pkg/front_end/testcases/inference/infer_method_missing_params.dart:23:61: Error: The method 'C.f' has more required arguments than those of overridden method 'B.f'.
-//   /*@topType=int*/ /*@error=OverrideMoreRequiredArguments*/ f(
-//                                                             ^
+// pkg/front_end/testcases/inference/infer_method_missing_params.dart:23:20: Error: The method 'C.f' has more required arguments than those of overridden method 'B.f'.
+//   /*@topType=int*/ f(
+//                    ^
 // pkg/front_end/testcases/inference/infer_method_missing_params.dart:17:7: Context: This is the overridden method ('f').
 //   int f(int x);
 //       ^

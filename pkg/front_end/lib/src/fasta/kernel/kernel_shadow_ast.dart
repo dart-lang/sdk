@@ -301,7 +301,6 @@ class ShadowClass extends Class {
         this, _inferenceInfo.gettersAndMethods, _inferenceInfo.builder.library);
     interfaceResolver.finalizeCovariance(
         this, _inferenceInfo.setters, _inferenceInfo.builder.library);
-    interfaceResolver.recordInstrumentation(this);
   }
 
   /// Creates API members for this class.

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference,error*/
+/*@testedFeatures=inference*/
 library test;
 
 class C {
@@ -11,12 +11,8 @@ class C {
 }
 
 class D extends C {
-  T /*@error=OverrideTypeVariablesMismatch*/ m<T>(
-          T /*@error=OverrideTypeMismatchParameter*/ x) =>
-      x;
-  T /*@error=OverrideTypeVariablesMismatch*/ g<T>(
-          T /*@error=OverrideTypeMismatchParameter*/ x) =>
-      x;
+  T m<T>(T x) => x;
+  T g<T>(T x) => x;
 }
 
 main() {

@@ -23,14 +23,11 @@ class B {
 }
 
 abstract class I<T> {
-  void f([T /*@covariance=genericImpl*/ x]);
-  void g({T /*@covariance=genericImpl*/ x});
+  void f([T x]);
+  void g({T x});
 }
 
-class
-/*@forwardingStub=void f([covariance=(genericImpl) num x])*/
-/*@forwardingStub=void g({covariance=(genericImpl) num x})*/
-    C extends B implements I<num> {}
+class C extends B implements I<num> {}
 
 main() {
   C c = new C();

@@ -38,10 +38,7 @@ import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 
 import '../../base/instrumentation.dart'
-    show
-        Instrumentation,
-        InstrumentationValueForForwardingStub,
-        InstrumentationValueLiteral;
+    show Instrumentation, InstrumentationValueLiteral;
 
 import '../builder/builder.dart' show LibraryBuilder;
 
@@ -948,11 +945,6 @@ class InterfaceResolver {
           resolution.isSyntheticForwarder &&
           identical(resolution.enclosingClass, class_)) {
         class_.addMember(resolution);
-        _instrumentation?.record(
-            class_.location.file,
-            class_.fileOffset,
-            'forwardingStub',
-            new InstrumentationValueForForwardingStub(resolution));
       }
     }
   }
@@ -977,14 +969,6 @@ class InterfaceResolver {
       candidates = _mergeCandidates(candidates, supertype.classNode, setters);
     }
     return candidates;
-  }
-
-  /// If instrumentation is enabled, records the covariance bits for the given
-  /// [class_] to [_instrumentation].
-  void recordInstrumentation(Class class_) {
-    if (_instrumentation != null) {
-      _recordInstrumentation(class_);
-    }
   }
 
   /// Creates the appropriate [InferenceNode] for inferring [procedure] in the
@@ -1081,51 +1065,6 @@ class InterfaceResolver {
     }
     result.length = storeIndex;
     return result;
-  }
-
-  /// Records the covariance bits for the given [class_] to [_instrumentation].
-  ///
-  /// Caller is responsible for checking whether [_instrumentation] is `null`.
-  void _recordInstrumentation(Class class_) {
-    var uri = class_.fileUri;
-    void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
-        bool isGenericCovariantImpl) {
-      var covariance = <String>[];
-      if (isExplicitlyCovariant) covariance.add('explicit');
-      if (!isExplicitlyCovariant && isGenericCovariantImpl) {
-        covariance.add('genericImpl');
-      }
-      if (covariance.isNotEmpty) {
-        _instrumentation.record(uri, fileOffset, 'covariance',
-            new InstrumentationValueLiteral(covariance.join(', ')));
-      }
-    }
-
-    for (var procedure in class_.procedures) {
-      if (procedure.isStatic) continue;
-      // Forwarding stubs are annotated separately
-      if (procedure.isSyntheticForwarder) {
-        continue;
-      }
-      void recordFormalAnnotations(VariableDeclaration formal) {
-        recordCovariance(formal.fileOffset, formal.isCovariant,
-            formal.isGenericCovariantImpl);
-      }
-
-      void recordTypeParameterAnnotations(TypeParameter typeParameter) {
-        recordCovariance(typeParameter.fileOffset, false,
-            typeParameter.isGenericCovariantImpl);
-      }
-
-      procedure.function.positionalParameters.forEach(recordFormalAnnotations);
-      procedure.function.namedParameters.forEach(recordFormalAnnotations);
-      procedure.function.typeParameters.forEach(recordTypeParameterAnnotations);
-    }
-    for (var field in class_.fields) {
-      if (field.isStatic) continue;
-      recordCovariance(
-          field.fileOffset, field.isCovariant, field.isGenericCovariantImpl);
-    }
   }
 
   /// Determines the appropriate substitution to translate type parameters

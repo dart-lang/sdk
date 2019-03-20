@@ -6,25 +6,25 @@
 library test;
 
 class B<T> {
-  T /*@covariance=genericImpl*/ x;
-  T /*@covariance=genericImpl*/ y;
+  T x;
+  T y;
 }
 
 // This class inherits genericImpl annotations from its superclass, but doesn't
 // have any members marked genericInterface because the inferred types of x and
 // y do not depend on the type parameter T.
 abstract class C<T> implements B<num> {
-  var /*@covariance=genericImpl*/ x;
+  var x;
   get y;
-  set y(/*@covariance=genericImpl*/ value);
+  set y(value);
 }
 
 // This class also has members marked genericInterface, since the inferred types
 // of x and y *do* depend on the type parameter T.
 abstract class D<T> implements B<T> {
-  var /*@covariance=genericImpl*/ x;
+  var x;
   get y;
-  set y(/*@covariance=genericImpl*/ value);
+  set y(value);
 }
 
 main() {}

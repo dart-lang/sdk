@@ -39,10 +39,8 @@ class ValidatingInstrumentation implements Instrumentation {
       'target',
     ],
     'checks': const [
-      'covariance',
       'checkGetterReturn',
       'checkReturn',
-      'forwardingStub',
       'genericContravariant',
     ],
   };

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=warning*/
-
 // dynamic is treated as a name exported by dart:core.  void is not treated as a
 // name exported by dart:core.
 

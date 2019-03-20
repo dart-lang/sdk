@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error*/
-
 class A {}
 
 class B extends A {}
@@ -21,10 +19,8 @@ class D extends C {
   void set x1(B value) {} // Ok because covariant is inherited
   void set x2(covariant B value) {} // Ok because covariant
   void set x3(covariant B value) {} // Ok because covariant
-  void set x4(
-      B /*@error=OverrideTypeMismatchParameter*/ value) {} // Not covariant
-  void set x5(
-      covariant String /*@error=OverrideTypeMismatchParameter*/ value) {}
+  void set x4(B value) {} // Not covariant
+  void set x5(covariant String value) {}
   void set x6(covariant A value) {} // Always ok
 }
 

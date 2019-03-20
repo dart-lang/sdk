@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error*/
-
 test() {
   Object x;
   Function f;
-  x /*@error=UndefinedMethod*/ ();
-  x /*@error=UndefinedMethod*/ (3);
+  x();
+  x(3);
   f(5, 2);
-  x. /*@error=UndefinedMethod*/ call();
+  x.call();
   f.call;
   f.call(5, 2);
 }

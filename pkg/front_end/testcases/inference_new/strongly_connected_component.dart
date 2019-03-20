@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference,error*/
+/*@testedFeatures=inference*/
 library test;
 
 bool f() => null;
@@ -14,10 +14,9 @@ bool f() => null;
 // circularity, and for error recovery their type is set to `dynamic`.
 // Thereafter, z infers without problems.
 
-var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=invalid-type*/ () =>
+var /*@topType=invalid-type*/ x = /*@returnType=invalid-type*/ () =>
     f() ? y : z;
-var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=invalid-type*/ () =>
-    x;
+var /*@topType=invalid-type*/ y = /*@returnType=invalid-type*/ () => x;
 var /*@topType=() -> dynamic*/ z = /*@returnType=invalid-type*/ () => x;
 
 main() {}

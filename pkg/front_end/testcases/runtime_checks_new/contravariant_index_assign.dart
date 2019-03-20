@@ -8,7 +8,7 @@ library test;
 typedef void F<T>(T x);
 
 class B<T> {
-  B<T> operator +(B<T> /*@covariance=genericImpl*/ other) => null;
+  B<T> operator +(B<T> other) => null;
 }
 
 class C<T> {

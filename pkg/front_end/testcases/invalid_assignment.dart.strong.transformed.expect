@@ -2,21 +2,21 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/invalid_assignment.dart:13:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/invalid_assignment.dart:11:7: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   i = /*@error=InvalidAssignment*/ s;
-//                                    ^
+//   i = s;
+//       ^
 //
-// pkg/front_end/testcases/invalid_assignment.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/invalid_assignment.dart:13:9: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   i ??= /*@error=InvalidAssignment*/ s;
-//                                      ^
+//   i ??= s;
+//         ^
 //
-// pkg/front_end/testcases/invalid_assignment.dart:17:34: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
+// pkg/front_end/testcases/invalid_assignment.dart:15:5: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/invalid_assignment.dart'.
 // Try changing the type of the left hand side, or casting the right hand side to 'A'.
-//   a /*@error=InvalidAssignment*/ += 1;
-//                                  ^
+//   a += 1;
+//     ^
 //
 import self as self;
 import "dart:core" as core;
@@ -30,20 +30,20 @@ class A extends core::Object {
 }
 static method test(core::int i, core::String s, self::A a) → dynamic {
   i = 1;
-  i = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:13:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  i = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:11:7: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  i = /*@error=InvalidAssignment*/ s;
-                                   ^" in s as{TypeError} core::int;
+  i = s;
+      ^" in s as{TypeError} core::int;
   i.{core::num::==}(null) ?{core::int} i = 1 : null;
-  i.{core::num::==}(null) ?{core::Object} i = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  i.{core::num::==}(null) ?{core::Object} i = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:13:9: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  i ??= /*@error=InvalidAssignment*/ s;
-                                     ^" in s as{TypeError} core::int : null;
+  i ??= s;
+        ^" in s as{TypeError} core::int : null;
   a = new self::A::•();
-  a = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:17:34: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
+  a = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/invalid_assignment.dart:15:5: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/invalid_assignment.dart'.
 Try changing the type of the left hand side, or casting the right hand side to 'A'.
-  a /*@error=InvalidAssignment*/ += 1;
-                                 ^" in a.{self::A::+}(1) as{TypeError} self::A;
+  a += 1;
+    ^" in a.{self::A::+}(1) as{TypeError} self::A;
 }
 static method main() → dynamic {}

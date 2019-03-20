@@ -2,65 +2,65 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:163: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:28: Error: Can't infer a type for 'x' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:163: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:28: Error: Can't infer a type for 'x' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:163: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:28: Error: Can't infer a type for 'x' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:163: Error: The return type of the method 'F.x' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.x'.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:28: Error: The return type of the method 'F.x' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.x'.
 // Change to a subtype of 'int'.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 // pkg/front_end/testcases/inference/infer_field_override_multiple.dart:9:11: Context: This is the overridden method ('x').
 //   int get x;
 //           ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:163: Error: The return type of the method 'F.x' is 'dynamic', which does not match the return type, 'num', of the overridden method, 'C.x'.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:28: Error: The return type of the method 'F.x' is 'dynamic', which does not match the return type, 'num', of the overridden method, 'C.x'.
 // Change to a subtype of 'num'.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 // pkg/front_end/testcases/inference/infer_field_override_multiple.dart:17:11: Context: This is the overridden method ('x').
 //   num get x;
 //           ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:163: Error: The return type of the method 'G.x' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.x'.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:28: Error: The return type of the method 'G.x' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.x'.
 // Change to a subtype of 'int'.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 // pkg/front_end/testcases/inference/infer_field_override_multiple.dart:9:11: Context: This is the overridden method ('x').
 //   int get x;
 //           ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:163: Error: The return type of the method 'G.x' is 'dynamic', which does not match the return type, 'double', of the overridden method, 'D.x'.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:28: Error: The return type of the method 'G.x' is 'dynamic', which does not match the return type, 'double', of the overridden method, 'D.x'.
 // Change to a subtype of 'double'.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 // pkg/front_end/testcases/inference/infer_field_override_multiple.dart:21:14: Context: This is the overridden method ('x').
 //   double get x;
 //              ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:163: Error: The return type of the method 'H.x' is 'dynamic', which does not match the return type, 'num', of the overridden method, 'C.x'.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:28: Error: The return type of the method 'H.x' is 'dynamic', which does not match the return type, 'num', of the overridden method, 'C.x'.
 // Change to a subtype of 'num'.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 // pkg/front_end/testcases/inference/infer_field_override_multiple.dart:17:11: Context: This is the overridden method ('x').
 //   num get x;
 //           ^
 //
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:163: Error: The return type of the method 'H.x' is 'dynamic', which does not match the return type, 'double', of the overridden method, 'D.x'.
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:28: Error: The return type of the method 'H.x' is 'dynamic', which does not match the return type, 'double', of the overridden method, 'D.x'.
 // Change to a subtype of 'double'.
-//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
-//                                                                                                                                                                   ^
+//   var /*@topType=dynamic*/ x;
+//                            ^
 // pkg/front_end/testcases/inference/infer_field_override_multiple.dart:21:14: Context: This is the overridden method ('x').
 //   double get x;
 //              ^

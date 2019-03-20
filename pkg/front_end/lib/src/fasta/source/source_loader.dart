@@ -33,8 +33,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../api_prototype/file_system.dart';
 
-import '../../base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueLiteral;
+import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
@@ -69,8 +68,6 @@ import '../fasta_codes.dart'
         templateSourceOutlineSummary,
         templateUntranslatableUri;
 
-import '../fasta_codes.dart' as fasta_codes;
-
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
 
@@ -104,11 +101,9 @@ import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
-
-import '../severity.dart' show Severity;
 
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
@@ -1072,67 +1067,6 @@ class SourceLoader extends Loader<Library> {
         isStatic: isStatic,
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
-  }
-
-  void recordMessage(Severity severity, Message message, int charOffset,
-      int length, Uri fileUri,
-      {List<LocatedMessage> context}) {
-    if (instrumentation == null) return;
-
-    if (charOffset == -1 &&
-        (message.code == fasta_codes.codeConstConstructorWithBody ||
-            message.code == fasta_codes.codeConstructorNotFound ||
-            message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
-            message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
-            message.code == fasta_codes.codeUnspecified)) {
-      // TODO(ahe): All warnings should have a charOffset, but currently, some
-      // warnings lack them.
-      return;
-    }
-
-    String severityString;
-    switch (severity) {
-      case Severity.error:
-        severityString = "error";
-        break;
-
-      case Severity.internalProblem:
-        severityString = "internal problem";
-        break;
-
-      case Severity.warning:
-        severityString = "warning";
-        break;
-
-      case Severity.errorLegacyWarning:
-        // Should have been resolved to either error or warning at this point.
-        // Use a property name expressing that, in case it slips through.
-        severityString = "unresolved severity";
-        break;
-
-      case Severity.context:
-        severityString = "context";
-        break;
-
-      case Severity.ignored:
-        unhandled("IGNORED", "recordMessage", charOffset, fileUri);
-        return;
-    }
-    instrumentation.record(
-        fileUri,
-        charOffset,
-        severityString,
-        // TODO(ahe): Should I add an InstrumentationValue for Message?
-        new InstrumentationValueLiteral(message.code.name));
-    if (context != null) {
-      for (LocatedMessage contextMessage in context) {
-        instrumentation.record(
-            contextMessage.uri,
-            contextMessage.charOffset,
-            "context",
-            new InstrumentationValueLiteral(contextMessage.code.name));
-      }
-    }
   }
 
   void releaseAncillaryResources() {

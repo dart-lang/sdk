@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference,error*/
+/*@testedFeatures=inference*/
 library test;
 
-var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=invalid-type*/ () =>
-    y;
-var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=invalid-type*/ () =>
-    x;
+var /*@topType=invalid-type*/ x = /*@returnType=invalid-type*/ () => y;
+var /*@topType=invalid-type*/ y = /*@returnType=invalid-type*/ () => x;
 
 main() {}

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference,error*/
+/*@testedFeatures=inference*/
 library test;
 
 class I1 {
@@ -22,14 +22,12 @@ class B {
 }
 
 class C1 implements A, B {
-  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
-      null;
+  get /*@topType=dynamic*/ a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
-      null;
+  get /*@topType=dynamic*/ a => null;
 }
 
 main() {}

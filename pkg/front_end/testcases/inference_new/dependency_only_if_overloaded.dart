@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference,error*/
+/*@testedFeatures=inference*/
 library test;
 
 int intValue = 0;
@@ -12,9 +12,9 @@ double doubleValue = 0.0;
 // There's a circularity between a and b because the type of `int + x` depends
 // on the type of x.
 
-var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
+var /*@topType=invalid-type*/ a = /*@returnType=num*/ () =>
     intValue /*@target=num::+*/ + b;
-var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = a();
+var /*@topType=invalid-type*/ b = a();
 
 // But there's no circularity between c and d because the type of `num + x` is
 // always num.

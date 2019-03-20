@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference,error*/
+/*@testedFeatures=inference*/
 library test;
 
 test() async {
   String s;
-  for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
-  await for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+  for (int x in s) {}
+  await for (int x in s) {}
   int y;
-  for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
-  await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+  for (y in s) {}
+  await for (y in s) {}
 }
 
 main() {}
