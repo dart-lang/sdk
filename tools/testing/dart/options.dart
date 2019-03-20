@@ -755,11 +755,6 @@ compiler.''',
         }
       }
     }
-
-    if (result.length > 1 && data["named_configuration"] != null) {
-      _fail("Named configuration cannot be used with multiple values for "
-          "arch, compiler, mode, or runtime");
-    }
     return result;
   }
 
