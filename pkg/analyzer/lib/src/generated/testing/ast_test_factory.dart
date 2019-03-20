@@ -526,6 +526,17 @@ class AstTestFactory {
           null,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
+  static ForPartsWithDeclarations forPartsWithDeclarations(
+          VariableDeclarationList variables,
+          Expression condition,
+          List<Expression> updaters) =>
+      astFactory.forPartsWithDeclarations(
+          variables: variables,
+          leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          condition: condition,
+          rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          updaters: updaters);
+
   static ForPartsWithExpression forPartsWithExpression(
           Expression initialization,
           Expression condition,

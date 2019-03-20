@@ -49,6 +49,23 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
+  void popVariableNames(int count) {
+    variableNames.length -= count;
+  }
+
+  @override
+  void pushVariableName(String name) {
+    variableNames.add(name);
+  }
+
+  @override
+  void serialize(Expression expr) {
+    int startingVariableCount = variableNames.length;
+    super.serialize(expr);
+    assert(startingVariableCount == variableNames.length);
+  }
+
+  @override
   void serializeAnnotation(Annotation annotation) {
     Identifier name = annotation.name;
     EntityRefBuilder constructor;

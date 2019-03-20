@@ -330,6 +330,87 @@ class C {
         expectedText: expectedText, extraDeclarations: 'int i; int j;');
   }
 
+  void test_list_for_with_one_declaration_typed() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (int i = 0; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements2[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var iRef2 = updater.operand as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+    var iRef3 = forElement.body as SimpleIdentifier;
+    expect(iRef3.staticElement, same(iElement));
+  }
+
+  void test_list_for_with_one_declaration_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i = 0; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements2[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var iRef2 = updater.operand as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+    var iRef3 = forElement.body as SimpleIdentifier;
+    expect(iRef3.staticElement, same(iElement));
+  }
+
+  void test_list_for_with_two_declarations_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i = 0, j = 0; i < 10; j++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements2[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var jElement = loopParts.variables.variables[1].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var jRef = updater.operand as SimpleIdentifier;
+    expect(jRef.staticElement, same(jElement));
+    var iRef2 = forElement.body as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+  }
+
+  void test_list_for_with_uninitialized_declaration_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements2[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var iRef2 = updater.operand as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+    var iRef3 = forElement.body as SimpleIdentifier;
+    expect(iRef3.staticElement, same(iElement));
+  }
+
   void test_list_for_zero_updaters() {
     experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i = 0; i < 10;) i]';

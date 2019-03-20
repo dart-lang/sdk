@@ -7811,6 +7811,178 @@ final v = f<int, String>();
         ]);
   }
 
+  test_expr_list_for_with_one_declaration_typed() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('var v = [for (int i = 0; i < 10; i++) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[for (int i = 0; i < 10; i++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.variableDeclarationStart,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.variableDeclaration,
+          UnlinkedExprOperation.forInitializerDeclarationsTyped,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToParameter,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          0,
+          0,
+          1,
+          10,
+          1,
+          1
+        ],
+        strings: [
+          'i',
+          'i',
+          'i',
+          'i'
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int')
+        ]);
+  }
+
+  test_expr_list_for_with_one_declaration_untyped() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('var v = [for (var i = 0; i < 10; i++) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[for (var i = 0; i < 10; i++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.variableDeclarationStart,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.variableDeclaration,
+          UnlinkedExprOperation.forInitializerDeclarationsUntyped,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToParameter,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          0,
+          0,
+          1,
+          10,
+          1,
+          1
+        ],
+        strings: [
+          'i',
+          'i',
+          'i',
+          'i'
+        ]);
+  }
+
+  test_expr_list_for_with_two_declarations_untyped() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable = serializeVariableText(
+        'var v = [for (var i = 0, j = 0; i < 10; i++) i];');
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        '[for (var i = 0, j = 0; i < 10; i++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.variableDeclarationStart,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.variableDeclaration,
+          UnlinkedExprOperation.variableDeclarationStart,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.variableDeclaration,
+          UnlinkedExprOperation.forInitializerDeclarationsUntyped,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToParameter,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          0,
+          0,
+          0,
+          0,
+          2,
+          10,
+          1,
+          1
+        ],
+        strings: [
+          'i',
+          'j',
+          'i',
+          'i',
+          'i'
+        ]);
+  }
+
+  test_expr_list_for_with_uninitialized_declaration_untyped() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('var v = [for (var i; i < 10; i++) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[for (var i; i < 10; i++) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.variableDeclarationStart,
+          UnlinkedExprOperation.pushEmptyExpression,
+          UnlinkedExprOperation.variableDeclaration,
+          UnlinkedExprOperation.forInitializerDeclarationsUntyped,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.less,
+          UnlinkedExprOperation.assignToParameter,
+          UnlinkedExprOperation.forParts,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        assignmentOperators: [
+          UnlinkedExprAssignOperator.postfixIncrement
+        ],
+        ints: [
+          0,
+          1,
+          10,
+          1,
+          1
+        ],
+        strings: [
+          'i',
+          'i',
+          'i',
+          'i'
+        ]);
+  }
+
   test_expr_list_for_zero_updaters() {
     experimentStatus = ExperimentStatus(
         control_flow_collections: true, spread_collections: true);

@@ -8539,8 +8539,9 @@ class VariableResolverVisitor extends ScopedVisitor {
   /// created based on [definingLibrary] and [typeProvider].
   VariableResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      {Scope nameScope, LocalVariableInfo localVariableInfo})
+      : _localVariableInfo = localVariableInfo,
+        super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
   @override

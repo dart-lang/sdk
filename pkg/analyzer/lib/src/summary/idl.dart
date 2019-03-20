@@ -3921,6 +3921,39 @@ enum UnlinkedExprOperation {
   /// Push the empty expression (used for missing initializers and conditions in
   /// `for` loops)
   pushEmptyExpression,
+
+  /// Add a variable to the current scope whose name is obtained from
+  /// [UnlinkedExpr.strings].  This is separate from [variableDeclaration]
+  /// because the scope of the variable includes its own initializer.
+  variableDeclarationStart,
+
+  /// Pop the top value from the stack, and use it as the initializer for a
+  /// variable declaration; the variable being declared is obtained by looking
+  /// at the nth variable most recently added to the scope (where n counts from
+  /// zero and is obtained from [UnlinkedExpr.ints]).
+  variableDeclaration,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create an untyped for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].
+  forInitializerDeclarationsUntyped,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create a typed for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].  The
+  /// type is obtained from [UnlinkedExpr.references].
+  forInitializerDeclarationsTyped,
+
+  /// Pop from the stack `value` and get a string from [UnlinkedExpr.strings].
+  /// Use this string to look up a parameter.  Perform `parameter op= value`,
+  /// where `op` is the next assignment operator from
+  /// [UnlinkedExpr.assignmentOperators].  Push `value` back onto the stack.
+  ///
+  /// If the assignment operator is a prefix/postfix increment/decrement, then
+  /// `value` is not present in the stack, so it should not be popped and the
+  /// corresponding value of the parameter after/before update is pushed onto
+  /// the stack instead.
+  assignToParameter,
 }
 
 /// Unlinked summary information about an import declaration.

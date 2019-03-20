@@ -68,6 +68,7 @@ class ExprBuilder {
     if (requireValidConst && !_uc.isValidConst) {
       return null;
     }
+    int startingVariableCount = variablesInScope.count;
     for (UnlinkedExprOperation operation in _uc.operations) {
       switch (operation) {
         case UnlinkedExprOperation.pushNull:
@@ -337,6 +338,24 @@ class ExprBuilder {
         case UnlinkedExprOperation.pushEmptyExpression:
           _push(null);
           break;
+        case UnlinkedExprOperation.variableDeclarationStart:
+          _variableDeclarationStart();
+          break;
+        case UnlinkedExprOperation.variableDeclaration:
+          _variableDeclaration();
+          break;
+        case UnlinkedExprOperation.forInitializerDeclarationsUntyped:
+          _forInitializerDeclarations(false);
+          break;
+        case UnlinkedExprOperation.forInitializerDeclarationsTyped:
+          _forInitializerDeclarations(true);
+          break;
+        case UnlinkedExprOperation.assignToParameter:
+          String name = _uc.strings[stringPtr++];
+          SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+          identifier.staticElement = variablesInScope[name];
+          _push(_createAssignment(identifier));
+          break;
         case UnlinkedExprOperation.cascadeSectionBegin:
         case UnlinkedExprOperation.cascadeSectionEnd:
         case UnlinkedExprOperation.pushLocalFunctionReference:
@@ -347,6 +366,7 @@ class ExprBuilder {
               'Unexpected $operation in a constant expression.');
       }
     }
+    assert(startingVariableCount == variablesInScope.count);
     return stack.single;
   }
 
@@ -596,6 +616,17 @@ class ExprBuilder {
     return _buildIdentifierSequence(info);
   }
 
+  void _forInitializerDeclarations(bool hasType) {
+    var count = _uc.ints[intPtr++];
+    var variables = List<VariableDeclaration>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      variables[count - 1 - i] = _popNode();
+    }
+    var type = hasType ? _newTypeName() : null;
+    var keyword = hasType ? null : Keyword.VAR;
+    _pushNode(AstTestFactory.variableDeclarationList(keyword, type, variables));
+  }
+
   PropertyAccessorElement _getStringLengthElement() =>
       resynthesizer.typeProvider.stringType.getGetter('length');
 
@@ -670,6 +701,9 @@ class ExprBuilder {
   void _pushForElement() {
     var body = _popCollectionElement();
     var forLoopParts = _popNode() as ForLoopParts;
+    if (forLoopParts is ForPartsWithDeclarations) {
+      variablesInScope.pop(forLoopParts.variables.variables.length);
+    }
     _pushCollectionElement(AstTestFactory.forElement(forLoopParts, body));
   }
 
@@ -684,8 +718,11 @@ class ExprBuilder {
     if (initialization is Expression || initialization == null) {
       _pushNode(AstTestFactory.forPartsWithExpression(
           initialization, condition, updaters));
+    } else if (initialization is VariableDeclarationList) {
+      _pushNode(AstTestFactory.forPartsWithDeclarations(
+          initialization, condition, updaters));
     } else {
-      throw UnimplementedError('TODO(paulberry)');
+      throw StateError('Unrecognized for parts');
     }
   }
 
@@ -984,6 +1021,21 @@ class ExprBuilder {
     return items;
   }
 
+  void _variableDeclaration() {
+    var index = _uc.ints[intPtr++];
+    var element = variablesInScope.recent(index);
+    var initializer = _pop();
+    var variableDeclaration =
+        AstTestFactory.variableDeclaration2(element.name, initializer);
+    variableDeclaration.name.staticElement = element;
+    _pushNode(variableDeclaration);
+  }
+
+  void _variableDeclarationStart() {
+    var name = _uc.strings[stringPtr++];
+    variablesInScope.push(LocalVariableElementImpl(name, -1));
+  }
+
   /// Figures out the default value of [parametersInScope] based on [context].
   ///
   /// If [context] is (or contains) a constructor, then its parameters are used.
@@ -1007,6 +1059,9 @@ class ExprBuilder {
 class _VariablesInScope {
   final _variableElements = <VariableElement>[];
 
+  /// Returns the number of variables that have been pushed but not popped.
+  int get count => _variableElements.length;
+
   /// Looks up the variable with the given [name].  Returns `null` if no
   /// variable is found.
   VariableElement operator [](String name) {
@@ -1026,4 +1081,9 @@ class _VariablesInScope {
   void push(VariableElement variableElement) {
     _variableElements.add(variableElement);
   }
+
+  /// Retrieves the [index]th most recently pushed element (that hasn't been
+  /// popped).  [index] counts from zero.
+  VariableElement recent(int index) =>
+      _variableElements[_variableElements.length - 1 - index];
 }

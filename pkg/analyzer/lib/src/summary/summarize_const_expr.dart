@@ -127,6 +127,13 @@ abstract class AbstractConstExprSerializer {
   /// Return `true` if the given [name] is a parameter reference.
   bool isParameterName(String name);
 
+  /// Removes the [count] variables that were most recently added to the scope
+  /// by [pushVariableName].
+  void popVariableNames(int count);
+
+  /// Pushes a variable with the given [name] onto the current scope.
+  void pushVariableName(String name);
+
   /// Serialize the given [expr] expression into this serializer state.
   void serialize(Expression expr) {
     try {
@@ -247,6 +254,9 @@ abstract class AbstractConstExprSerializer {
       EntityRefBuilder ref = serializeIdentifierSequence(expr);
       references.add(ref);
       operations.add(UnlinkedExprOperation.assignToRef);
+    } else if (expr is SimpleIdentifier && isParameterName(expr.name)) {
+      strings.add(expr.name);
+      operations.add(UnlinkedExprOperation.assignToParameter);
     } else if (expr is PropertyAccess) {
       if (!expr.isCascaded) {
         _serialize(expr.target);
@@ -562,12 +572,33 @@ abstract class AbstractConstExprSerializer {
       }
     } else if (element is ForElement) {
       var parts = element.forLoopParts;
+      int numVariablesToPop = 0;
       if (parts is ForParts) {
         if (parts is ForPartsWithExpression) {
           _serialize(parts.initialization, emptyExpressionPermitted: true);
+        } else if (parts is ForPartsWithDeclarations) {
+          for (var variable in parts.variables.variables) {
+            operations.add(UnlinkedExprOperation.variableDeclarationStart);
+            var name = variable.name.name;
+            strings.add(name);
+            pushVariableName(name);
+            ++numVariablesToPop;
+            _serialize(variable.initializer, emptyExpressionPermitted: true);
+            operations.add(UnlinkedExprOperation.variableDeclaration);
+            ints.add(0);
+          }
+          var type = parts.variables.type;
+          if (type == null) {
+            operations
+                .add(UnlinkedExprOperation.forInitializerDeclarationsUntyped);
+          } else {
+            references.add(serializeType(type));
+            operations
+                .add(UnlinkedExprOperation.forInitializerDeclarationsTyped);
+          }
+          ints.add(parts.variables.variables.length);
         } else {
-          // See https://github.com/dart-lang/sdk/issues/35569
-          throw StateError('TODO(paulberry)');
+          throw StateError('Unrecognized for parts');
         }
         _serialize(parts.condition, emptyExpressionPermitted: true);
         for (var updater in parts.updaters) {
@@ -580,6 +611,7 @@ abstract class AbstractConstExprSerializer {
         throw new StateError('TODO(paulberry)');
       }
       _serializeCollectionElement(element.body);
+      popVariableNames(numVariablesToPop);
       operations.add(UnlinkedExprOperation.forElement);
     } else {
       throw new StateError('Unsupported CollectionElement: $element');
