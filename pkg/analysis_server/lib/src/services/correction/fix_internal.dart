@@ -715,7 +715,7 @@ class FixProcessor {
       // TODO(brianwilkerson) Consider updating the right operand.
       return;
     }
-    bool needsParentheses = target.precedence2 < Precedence.postfix;
+    bool needsParentheses = target.precedence < Precedence.postfix;
     if (((_isDartCoreIterable(fromType) || _isDartCoreList(fromType)) &&
             _isDartCoreList(toType)) ||
         (_isDartCoreSet(fromType) && _isDartCoreSet(toType))) {

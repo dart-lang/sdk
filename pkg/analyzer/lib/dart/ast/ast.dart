@@ -1962,14 +1962,13 @@ abstract class Expression implements CollectionElement {
   /// integer value that defines how the source code is parsed into an AST. For
   /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
   /// `*` is greater than the precedence of `+`.
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
-  int get precedence;
+  Precedence get precedence;
 
   /// Return the precedence of this expression. The precedence is a positive
   /// integer value that defines how the source code is parsed into an AST. For
   /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
   /// `*` is greater than the precedence of `+`.
+  @Deprecated('Use precedence')
   Precedence get precedence2;
 
   /// If this expression is an argument to an invocation, and the AST structure

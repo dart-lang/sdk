@@ -331,7 +331,7 @@ Precedence getExpressionParentPrecedence(AstNode node) {
  */
 Precedence getExpressionPrecedence(AstNode node) {
   if (node is Expression) {
-    return node.precedence2;
+    return node.precedence;
   }
   return Precedence.none;
 }

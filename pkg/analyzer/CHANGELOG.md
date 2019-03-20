@@ -1,4 +1,7 @@
-##
+## 0.36.0
+* Changed the return type of `Expression.precendence` to `Precedence`.  Clients
+  that prepared for this change by switching to `Expression.precedence2` should
+  now return to using `Expression.precedence`.
 * Removed the following AST node types:
   * `ForEachStatement` (use `ForStatement2` instead)
   * `ForStatement` (use `ForStatement2` instead)

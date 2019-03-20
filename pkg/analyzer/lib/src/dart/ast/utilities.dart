@@ -9054,7 +9054,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
 
   void _writeOperand(Expression node, Expression operand) {
     if (operand != null) {
-      bool needsParenthesis = operand.precedence2 < node.precedence2;
+      bool needsParenthesis = operand.precedence < node.precedence;
       if (needsParenthesis) {
         sink.write('(');
       }
