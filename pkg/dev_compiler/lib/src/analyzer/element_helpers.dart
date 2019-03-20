@@ -66,10 +66,14 @@ DartType instantiateElementTypeToBounds(
   return element.type;
 }
 
-/// Given an annotated [node] and a [test] function, returns the first matching
-/// constant valued annotation.
+/// Given an [element] and a [test] function, returns the first matching
+/// constant valued metadata annotation on the element.
 ///
-/// For example if we had the ClassDeclaration node for `FontElement`:
+/// If the element is a synthetic getter/setter (Analyzer creates these for
+/// fields), then this will use the corresponding real element, which will have
+/// the metadata annotations.
+///
+/// For example if we had the [ClassDeclaration] node for `FontElement`:
 ///
 ///    @js.JS('HTMLFontElement')
 ///    @deprecated
@@ -81,6 +85,11 @@ DartType instantiateElementTypeToBounds(
 ///
 DartObject findAnnotation(Element element, bool test(DartObjectImpl value)) {
   if (element == null) return null;
+  var accessor = element;
+  if (accessor is PropertyAccessorElement && accessor.isSynthetic) {
+    // Look for metadata on the real element, not the synthetic one.
+    element = accessor.variable;
+  }
   for (var metadata in element.metadata) {
     var value = metadata.computeConstantValue();
     if (value is DartObjectImpl && test(value)) return value;

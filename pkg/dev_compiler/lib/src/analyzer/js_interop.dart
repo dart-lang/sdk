@@ -54,6 +54,8 @@ bool isJSAnonymousAnnotation(DartObjectImpl value) =>
 bool isJSExportNameAnnotation(DartObjectImpl value) =>
     isBuiltinAnnotation(value, '_foreign_helper', 'JSExportName');
 
+/// Whether [value] is a `@JSName` (internal annotation used in dart:html for
+/// renaming members).
 bool isJSName(DartObjectImpl value) =>
     isBuiltinAnnotation(value, '_js_helper', 'JSName');
 

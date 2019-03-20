@@ -465,7 +465,21 @@ class CodeGenerator extends Object
     return access;
   }
 
-  JS.Expression _emitJSInteropStaticMemberName(Element e) {
+  /// If the element [e] uses JS interop, this returns the string containing the
+  /// JS member's name, otherwise returns null.
+  ///
+  /// The member name is specified by the parameter to the `@JS()` annotation,
+  /// defaulting to the member's name in Dart, for example:
+  ///
+  ///     @JS('foo')
+  ///     external static bar(); // JS name is "foo"
+  ///
+  ///     @JS()
+  ///     external static bar(); // JS name is "bar"
+  ///
+  ///     static bar() { /* ... */ } // not a JS member; JS name is null
+  ///
+  String _getJSInteropStaticMemberName(Element e) {
     if (!_usesJSInterop(e)) return null;
     var name = getAnnotationName(e, isPublicJSAnnotation);
     if (name != null) {
@@ -477,7 +491,7 @@ class CodeGenerator extends Object
     } else {
       name = _getElementName(e);
     }
-    return js.escapedString(name, "'");
+    return name;
   }
 
   /// Flattens blocks in [items] to a single list.
@@ -2003,7 +2017,7 @@ class CodeGenerator extends Object
       // Emit enum static fields
       var type = classElem.type;
       void addField(FieldElement e, JS.Expression value) {
-        body.add(defineValueOnClass(classElem, _emitStaticClassName(classElem),
+        body.add(defineValueOnClass(classElem, _emitStaticClassName(e),
                 _declareMemberName(e.getter), value)
             .toStatement());
       }
@@ -2014,7 +2028,7 @@ class CodeGenerator extends Object
         if (f.type != type) continue;
         // static const E id_i = const E(i);
         values.add(JS.PropertyAccess(
-            _emitStaticClassName(classElem), _declareMemberName(f.getter)));
+            _emitStaticClassName(f), _declareMemberName(f.getter)));
         var enumValue = runtimeCall('const(new (#.#)(#))', [
           emitConstructorAccess(type),
           _constructorName(''),
@@ -2028,11 +2042,14 @@ class CodeGenerator extends Object
     }
 
     var lazyStatics = classElem.fields
-        .where((f) => f.isStatic && !f.isSynthetic)
+        .where((f) => f.isStatic && !f.isSynthetic && !_isExternal(f))
         .map((f) => members[f] as VariableDeclaration)
         .toList();
     if (lazyStatics.isNotEmpty) {
-      body.add(_emitLazyFields(_emitStaticClassName(classElem), lazyStatics,
+      // Because we filtered out external fields, we don't need to use
+      // `_emitStaticClassName` here as we normally would.
+      _declareBeforeUse(classElem);
+      body.add(_emitLazyFields(_emitTopLevelName(classElem), lazyStatics,
           (e) => _emitStaticMemberName(e.name, e)));
     }
   }
@@ -3109,28 +3126,9 @@ class CodeGenerator extends Object
     var member = _emitMemberName(element.name,
         isStatic: isStatic, type: type, element: accessor);
 
-    // A static native element should just forward directly to the
-    // JS type's member.
-    //
-    // TODO(jmesserly): this code path seems broken. It doesn't exist
-    // elsewhere, such as [_emitAccess], so it will only take affect for
-    // unqualified static access inside of the the same class.
-    //
-    // If we want this feature to work, we'll need to implement it in the
-    // standard [_emitStaticClassName] code path, which will need to know the
-    // member we're calling so it can determine whether to use the Dart class
-    // name or the native JS class name.
-    if (isStatic && _isExternal(element)) {
-      var nativeName = _extensionTypes.getNativePeers(classElem);
-      if (nativeName.isNotEmpty) {
-        var memberName = getAnnotationName(element, isJSName) ?? member;
-        return runtimeCall('global.#.#', [nativeName[0], memberName]);
-      }
-    }
-
     // For instance members, we add implicit-this.
     // For method tear-offs, we ensure it's a bound method.
-    var target = isStatic ? _emitStaticClassName(classElem) : JS.This();
+    var target = isStatic ? _emitStaticClassName(element) : JS.This();
     if (element is MethodElement && _reifyTearoff(element, node)) {
       if (isStatic) {
         // TODO(jmesserly): we could tag static/top-level function types once
@@ -3312,9 +3310,24 @@ class CodeGenerator extends Object
     return _emitJSInterop(type.element) ?? _emitType(type);
   }
 
-  /// Emits an expression that lets you access statics on an [c] from code.
-  JS.Expression _emitStaticClassName(ClassElement c) {
+  /// Emits an expression referring to the class of static [member].
+  ///
+  /// Typically this is equivalent to [_declareBeforeUse] followed by
+  /// [_emitTopLevelName] on the class, but if the member is external, then the
+  /// native class name will be used, for direct access to the native member.
+  JS.Expression _emitStaticClassName(ClassMemberElement member) {
+    var c = member.enclosingElement;
     _declareBeforeUse(c);
+
+    // A static native element should just forward directly to the JS type's
+    // member, for example `Css.supports(...)` in dart:html should be replaced
+    // by a direct call to the DOM API: `global.CSS.supports`.
+    if (_isExternal(member)) {
+      var nativeName = _extensionTypes.getNativePeers(c);
+      if (nativeName.isNotEmpty) {
+        return runtimeCall('global.#', nativeName[0]);
+      }
+    }
     return _emitTopLevelName(c);
   }
 
@@ -3598,7 +3611,7 @@ class CodeGenerator extends Object
     var member = _emitMemberName(field.name,
         isStatic: isStatic, type: classElem.type, element: field.setter);
     jsTarget = isStatic
-        ? (JS.PropertyAccess(_emitStaticClassName(classElem), member)
+        ? (JS.PropertyAccess(_emitStaticClassName(field), member)
           ..sourceInformation = _nodeSpan(id))
         : _emitTargetAccess(jsTarget, member, field.setter, id);
     return _visitExpression(right).toAssignExpression(jsTarget);
@@ -3700,12 +3713,12 @@ class CodeGenerator extends Object
       if (member is PropertyAccessorElement) {
         var field = member.variable;
         if (field is FieldElement) {
-          return _emitStaticClassName(field.enclosingElement)
+          return _emitStaticClassName(field)
             ..sourceInformation = _nodeSpan(target);
         }
       }
       if (member is MethodElement) {
-        return _emitStaticClassName(member.enclosingElement)
+        return _emitStaticClassName(member)
           ..sourceInformation = _nodeSpan(target);
       }
     }
@@ -6123,10 +6136,17 @@ class CodeGenerator extends Object
     return _propertyName(name);
   }
 
+  /// Emits the name of a static member, suitable for use in a JS property
+  /// access when combined with [_emitStaticClassName].
+  ///
+  /// The member [name] should be passed, as well as its [element] when it's
+  /// available. If the element is `external`, the element is used to statically
+  /// resolve the JS interop/dart:html static member. Otherwise it is ignored.
   JS.Expression _emitStaticMemberName(String name, [Element element]) {
-    if (element != null) {
-      var jsName = _emitJSInteropStaticMemberName(element);
-      if (jsName != null) return jsName;
+    if (element != null && _isExternal(element)) {
+      var newName = getAnnotationName(element, isJSName) ??
+          _getJSInteropStaticMemberName(element);
+      if (newName != null) return js.escapedString(newName, "'");
     }
 
     switch (name) {

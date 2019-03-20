@@ -4458,8 +4458,9 @@ class ProgramCompiler extends Object
   JS.Expression _emitStaticTarget(Member target) {
     var c = target.enclosingClass;
     if (c != null) {
-      // A static native element should just forward directly to the
-      // JS type's member.
+      // A static native element should just forward directly to the JS type's
+      // member, for example `Css.supports(...)` in dart:html should be replaced
+      // by a direct call to the DOM API: `global.CSS.supports`.
       if (target is Procedure && target.isStatic && target.isExternal) {
         var nativeName = _extensionTypes.getNativePeers(c);
         if (nativeName.isNotEmpty) {
