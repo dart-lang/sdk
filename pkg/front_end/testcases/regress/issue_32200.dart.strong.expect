@@ -6,12 +6,6 @@ library;
 //   self.Foo self;
 //   ^^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_32200.dart:13:19: Error: A value of type 'Foo' can't be assigned to a variable of type 'invalid-type'.
-//  - 'Foo' is from 'pkg/front_end/testcases/regress/issue_32200.dart'.
-// Try changing the type of the left hand side, or casting the right hand side to 'invalid-type'.
-//   instance.self = instance;
-//                   ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -25,9 +19,5 @@ class Foo extends core::Object {
 }
 static method main() → dynamic {
   self::Foo instance = new self::Foo::•();
-  instance.{self::Foo::self} = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_32200.dart:13:19: Error: A value of type 'Foo' can't be assigned to a variable of type 'invalid-type'.
- - 'Foo' is from 'pkg/front_end/testcases/regress/issue_32200.dart'.
-Try changing the type of the left hand side, or casting the right hand side to 'invalid-type'.
-  instance.self = instance;
-                  ^" in instance as{TypeError} invalid-type;
+  instance.{self::Foo::self} = instance as{TypeError} invalid-type;
 }

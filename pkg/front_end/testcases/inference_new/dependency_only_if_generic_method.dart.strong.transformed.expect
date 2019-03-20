@@ -2,15 +2,15 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/dependency_only_if_generic_method.dart:20:67: Error: Can't infer the type of 'c': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/dependency_only_if_generic_method.dart:20:72: Error: Can't infer the type of 'c': circularity found during type inference.
 // Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ c = /*@returnType=dynamic*/ () =>
-//                                                                   ^
+// var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ c = /*@returnType=invalid-type*/ () =>
+//                                                                        ^
 //
-// pkg/front_end/testcases/inference_new/dependency_only_if_generic_method.dart:18:67: Error: Can't infer the type of 'b': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/dependency_only_if_generic_method.dart:18:72: Error: Can't infer the type of 'b': circularity found during type inference.
 // Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>
-//                                                                   ^
+// var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=invalid-type*/ () =>
+//                                                                        ^
 //
 import self as self;
 import "dart:core" as core;
@@ -25,8 +25,8 @@ class A extends core::Object {
     return 0;
 }
 static field self::A a = new self::A::•();
-static field dynamic b = () → dynamic => self::a.{self::A::f}<dynamic>(self::c);
-static field dynamic c = () → dynamic => self::a.{self::A::f}<dynamic>(self::b);
+static field invalid-type b = (() → invalid-type => self::a.{self::A::f}<invalid-type>(self::c)) as{TypeError} invalid-type;
+static field invalid-type c = (() → invalid-type => self::a.{self::A::f}<invalid-type>(self::b)) as{TypeError} invalid-type;
 static field () → () → core::int d = () → () → core::int => self::a.{self::A::f}<() → core::int>(self::e);
 static field () → core::int e = () → core::int => self::a.{self::A::g}(self::d);
 static method main() → dynamic {}

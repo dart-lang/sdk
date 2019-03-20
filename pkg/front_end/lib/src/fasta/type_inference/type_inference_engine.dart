@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionType,
         InterfaceType,
+        InvalidType,
         Member,
         TypeParameter,
         TypeParameterType,
@@ -64,7 +65,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
             field.fileOffset,
             noLength,
             field.fileUri);
-        inferredType = const DynamicType();
+        inferredType = const InvalidType();
       }
       field.setInferredType(
           _typeInferenceEngine, typeInferrer.uri, inferredType);

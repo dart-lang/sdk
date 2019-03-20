@@ -12,9 +12,9 @@ double doubleValue = 0.0;
 // There's a circularity between a and b because the type of `int + x` depends
 // on the type of x.
 
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ a = /*@returnType=num*/ () =>
     intValue /*@target=num::+*/ + b;
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = a();
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = a();
 
 // But there's no circularity between c and d because the type of `num + x` is
 // always num.

@@ -14,10 +14,10 @@ bool f() => null;
 // circularity, and for error recovery their type is set to `dynamic`.
 // Thereafter, z infers without problems.
 
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=invalid-type*/ () =>
     f() ? y : z;
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=invalid-type*/ () =>
     x;
-var /*@topType=() -> dynamic*/ z = /*@returnType=dynamic*/ () => x;
+var /*@topType=() -> dynamic*/ z = /*@returnType=invalid-type*/ () => x;
 
 main() {}

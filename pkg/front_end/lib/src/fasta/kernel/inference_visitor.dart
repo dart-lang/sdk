@@ -148,10 +148,10 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           name.length,
           node.target.fileUri);
       for (var declaration in node.target.function.positionalParameters) {
-        declaration.type ??= const DynamicType();
+        declaration.type ??= const InvalidType();
       }
       for (var declaration in node.target.function.namedParameters) {
-        declaration.type ??= const DynamicType();
+        declaration.type ??= const InvalidType();
       }
     } else if ((library = inferrer.engine.toBeInferred[node.target]) != null) {
       inferrer.engine.toBeInferred.remove(node.target);

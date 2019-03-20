@@ -5,9 +5,9 @@
 /*@testedFeatures=inference,error*/
 library test;
 
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=invalid-type*/ () =>
     y;
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=invalid-type*/ () =>
     x;
 
 main() {}

@@ -2,18 +2,18 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/circular_reference_via_closures_initializer_types.dart:10:67: Error: Can't infer the type of 'y': circularity found during type inference.
+// pkg/front_end/testcases/inference/circular_reference_via_closures_initializer_types.dart:10:72: Error: Can't infer the type of 'y': circularity found during type inference.
 // Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
-//                                                                   ^
+// var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=invalid-type*/ () =>
+//                                                                        ^
 //
-// pkg/front_end/testcases/inference/circular_reference_via_closures_initializer_types.dart:8:67: Error: Can't infer the type of 'x': circularity found during type inference.
+// pkg/front_end/testcases/inference/circular_reference_via_closures_initializer_types.dart:8:72: Error: Can't infer the type of 'x': circularity found during type inference.
 // Specify the type explicitly.
-// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
-//                                                                   ^
+// var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=invalid-type*/ () =>
+//                                                                        ^
 //
 import self as self;
 
-static field dynamic x = () → dynamic => self::y;
-static field dynamic y = () → dynamic => self::x;
+static field invalid-type x = (() → invalid-type => self::y) as{TypeError} invalid-type;
+static field invalid-type y = (() → invalid-type => self::x) as{TypeError} invalid-type;
 static method main() → dynamic {}

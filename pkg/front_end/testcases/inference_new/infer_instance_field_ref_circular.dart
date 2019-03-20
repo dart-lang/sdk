@@ -8,15 +8,15 @@ library test;
 // In the code below, there is a circularity between A.b and x.
 
 class A {
-  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>
+  var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=invalid-type*/ () =>
       x;
-  var /*@topType=() -> dynamic*/ c = /*@returnType=dynamic*/ () => x;
+  var /*@topType=() -> invalid-type*/ c = /*@returnType=invalid-type*/ () => x;
 }
 
 var /*@topType=A*/ a = new A();
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=invalid-type*/ () =>
     a. /*@target=A::b*/ b;
-var /*@topType=() -> () -> dynamic*/ y = /*@returnType=() -> dynamic*/ () =>
+var /*@topType=() -> () -> invalid-type*/ y = /*@returnType=() -> invalid-type*/ () =>
     a. /*@target=A::c*/ c;
 
 main() {}

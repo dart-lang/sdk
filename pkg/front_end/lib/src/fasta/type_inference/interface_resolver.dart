@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionNode,
         FunctionType,
+        InvalidType,
         Member,
         Name,
         NamedExpression,
@@ -119,23 +120,25 @@ class AccessorInferenceNode extends InferenceNode {
     var declaredMethod = _declaredMethod;
     var kind = declaredMethod.kind;
     var overriddenTypes = _computeAccessorOverriddenTypes();
+    DartType inferredType;
     if (isCircular) {
+      inferredType = const InvalidType();
       _library.addProblem(
           templateCantInferTypeDueToCircularity.withArguments(_name),
           _offset,
           noLength,
           _fileUri);
     } else {
-      var inferredType = _interfaceResolver.matchTypes(
+      inferredType = _interfaceResolver.matchTypes(
           overriddenTypes, _library, _name, _fileUri, _offset);
-      if (declaredMethod is SyntheticAccessor) {
-        declaredMethod._field.type = inferredType;
+    }
+    if (declaredMethod is SyntheticAccessor) {
+      declaredMethod._field.type = inferredType;
+    } else {
+      if (kind == ProcedureKind.Getter) {
+        declaredMethod.function.returnType = inferredType;
       } else {
-        if (kind == ProcedureKind.Getter) {
-          declaredMethod.function.returnType = inferredType;
-        } else {
-          declaredMethod.function.positionalParameters[0].type = inferredType;
-        }
+        declaredMethod.function.positionalParameters[0].type = inferredType;
       }
     }
   }

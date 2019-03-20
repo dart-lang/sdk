@@ -15,10 +15,10 @@ var /*@topType=A*/ a = new A();
 // There's a circularity between b and c because a.f is generic, so the type of
 // c is required to infer b, and vice versa.
 
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>
-    a. /*@typeArgs=dynamic*/ /*@target=A::f*/ f(c);
-var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ c = /*@returnType=dynamic*/ () =>
-    a. /*@typeArgs=dynamic*/ /*@target=A::f*/ f(b);
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=invalid-type*/ () =>
+    a. /*@typeArgs=invalid-type*/ /*@target=A::f*/ f(c);
+var /*@topType=invalid-type*/ /*@error=CantInferTypeDueToCircularity*/ c = /*@returnType=invalid-type*/ () =>
+    a. /*@typeArgs=invalid-type*/ /*@target=A::f*/ f(b);
 
 // e's use of a.g breaks the circularity, because a.g is not generic, therefore
 // the type of e does not depend on the type of d.

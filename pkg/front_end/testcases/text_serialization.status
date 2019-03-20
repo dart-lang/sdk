@@ -546,6 +546,7 @@ inference/void_return_type_subtypes_dynamic: TextSerializationFailure # Was: Pas
 inference_new/const_invocation: TextSerializationFailure # Was: Pass
 inference_new/dependency_only_if_generic_method: TextSerializationFailure # Was: Pass
 inference_new/dependency_only_if_overloaded: TextSerializationFailure # Was: Pass
+inference_new/dependency_only_if_overloaded: TypeCheckError
 inference_new/do_loop: TextSerializationFailure # Was: Pass
 inference_new/downwards_inference_inside_top_level: TextSerializationFailure # Was: Pass
 inference_new/downwards_inference_inside_top_level_2: TextSerializationFailure # Was: Pass
@@ -593,6 +594,7 @@ inference_new/property_assign_combiner: TextSerializationFailure # Was: Pass
 inference_new/property_get_toplevel: TextSerializationFailure # Was: Pass
 inference_new/static_assign_combiner: TextSerializationFailure # Was: Pass
 inference_new/strongly_connected_component: TextSerializationFailure # Was: Pass
+inference_new/strongly_connected_component: TypeCheckError
 inference_new/super_index_get: TextSerializationFailure # Was: Pass
 inference_new/super_index_get_substitution: TextSerializationFailure # Was: Pass
 inference_new/switch: TextSerializationFailure # Was: Pass
