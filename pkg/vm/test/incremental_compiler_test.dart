@@ -437,7 +437,7 @@ main() {
       });
       await portLineCompleter.future;
       print("Compiler terminated with ${await vm.exitCode} exit code");
-    }, skip: "Currently fails");
+    });
   });
 
   group('reload', () {
