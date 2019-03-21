@@ -13,13 +13,51 @@ class TypeBuilder {
 
   TypeBuilder(this.bundleContext);
 
+  LinkedNodeTypeBuilder get _dynamicType {
+    return LinkedNodeTypeBuilder(
+      kind: LinkedNodeTypeKind.dynamic_,
+    );
+  }
+
   void build(TypesToBuild typesToBuild) {
-    for (var node in typesToBuild.typeNames) {
-      _buildTypeName(node);
+    for (var node in typesToBuild.typeAnnotations) {
+      var kind = node.kind;
+      if (kind == LinkedNodeKind.genericFunctionType) {
+        _buildGenericFunctionType(node);
+      } else if (kind == LinkedNodeKind.typeName) {
+        _buildTypeName(node);
+      } else {
+        throw StateError('$kind');
+      }
     }
     for (var node in typesToBuild.declarations) {
       _setTypesForDeclaration(node);
     }
+  }
+
+  void _buildGenericFunctionType(LinkedNodeBuilder node) {
+    // TODO(scheglov) Type parameters?
+    LinkedNodeTypeBuilder returnType;
+    if (node.genericFunctionType_returnType != null) {
+      returnType = _getType(node.genericFunctionType_returnType);
+    } else {
+      returnType = _dynamicType;
+    }
+
+    var formalParameters = <LinkedNodeTypeFormalParameterBuilder>[];
+    for (var parameter in node
+        .genericFunctionType_formalParameters.formalParameterList_parameters) {
+      formalParameters.add(LinkedNodeTypeFormalParameterBuilder(
+        kind: parameter.formalParameter_kind,
+        type: _getType(parameter.simpleFormalParameter_type),
+      ));
+    }
+
+    node.genericFunctionType_type = LinkedNodeTypeBuilder(
+      kind: LinkedNodeTypeKind.function,
+      functionFormalParameters: formalParameters,
+      functionReturnType: returnType,
+    );
   }
 
   void _buildTypeName(LinkedNodeBuilder node) {
@@ -40,6 +78,12 @@ class TypeBuilder {
         interfaceClass: referenceIndex,
         interfaceTypeArguments: typeArguments,
       );
+    } else if (reference.isGenericTypeAlias) {
+      node.typeName_type = LinkedNodeTypeBuilder(
+        kind: LinkedNodeTypeKind.genericTypeAlias,
+        genericTypeAliasReference: referenceIndex,
+        genericTypeAliasTypeArguments: typeArguments,
+      );
     } else if (reference.isEnum) {
       node.typeName_type = LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.interface,
@@ -52,7 +96,7 @@ class TypeBuilder {
       );
     } else {
       // TODO(scheglov) set Object? keep unresolved?
-      throw UnimplementedError();
+      throw UnimplementedError('$reference');
     }
   }
 
@@ -69,6 +113,10 @@ class TypeBuilder {
     } else if (kind == LinkedNodeKind.functionTypeAlias) {
       node.functionTypeAlias_returnType2 = _getType(
         node.functionTypeAlias_returnType,
+      );
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      node.genericFunctionType_returnType2 = _getType(
+        node.genericFunctionType_returnType,
       );
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       node.methodDeclaration_returnType2 = _getType(
@@ -90,7 +138,9 @@ class TypeBuilder {
 
   static LinkedNodeTypeBuilder _getType(LinkedNodeBuilder node) {
     var kind = node.kind;
-    if (kind == LinkedNodeKind.typeName) {
+    if (kind == LinkedNodeKind.genericFunctionType) {
+      return node.genericFunctionType_type;
+    } else if (kind == LinkedNodeKind.typeName) {
       return node.typeName_type;
     } else {
       throw UnimplementedError('$kind');

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -46,19 +47,21 @@ class LinkedBundleContext {
     var kind = linkedType.kind;
     if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
+    } else if (kind == LinkedNodeTypeKind.genericTypeAlias) {
+      var reference = referenceOfIndex(linkedType.genericTypeAliasReference);
+      return GenericTypeAliasElementImpl.typeAfterSubstitution(
+        elementFactory.elementOfReference(reference),
+        linkedType.genericTypeAliasTypeArguments.map(getType).toList(),
+      );
     } else if (kind == LinkedNodeTypeKind.function) {
       var returnType = getType(linkedType.functionReturnType);
-      var typeParameters = linkedType.functionTypeParameters
-          .map(referenceOfIndex)
-          .map(elementFactory.elementOfReference)
-          .cast<TypeParameterElement>()
-          .toList();
-      var formalParameters = linkedType.functionFormalParameters
-          .map(referenceOfIndex)
-          .map(elementFactory.elementOfReference)
-          .cast<ParameterElement>()
-          .toList();
-      // TODO(scheglov) Rework this to purely synthetic types.
+      var formalParameters = linkedType.functionFormalParameters.map((p) {
+        return ParameterElementImpl.synthetic(
+          p.name,
+          getType(p.type),
+          _formalParameterKind(p.kind),
+        );
+      }).toList();
       return FunctionElementImpl.synthetic(formalParameters, returnType).type;
     } else if (kind == LinkedNodeTypeKind.interface) {
       var reference = referenceOfIndex(linkedType.interfaceClass);
@@ -104,5 +107,15 @@ class LinkedBundleContext {
     _references[index] = reference;
 
     return reference;
+  }
+
+  ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
+    if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
+      return ParameterKind.NAMED;
+    }
+    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
+      return ParameterKind.POSITIONAL;
+    }
+    return ParameterKind.REQUIRED;
   }
 }

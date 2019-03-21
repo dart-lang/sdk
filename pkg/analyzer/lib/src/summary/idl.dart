@@ -1531,6 +1531,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(24, variant: LinkedNodeKind.genericFunctionType)
   LinkedNodeType get genericFunctionType_returnType2;
 
+  @VariantId(25, variant: LinkedNodeKind.genericFunctionType)
+  LinkedNodeType get genericFunctionType_type;
+
   @VariantId(6, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_typeParameters;
 
@@ -2433,9 +2436,8 @@ abstract class LinkedNodeReferences extends base.SummaryClass {
 
 /// Information about a Dart type.
 abstract class LinkedNodeType extends base.SummaryClass {
-  /// References to [LinkedNodeReferences].
   @Id(0)
-  List<int> get functionFormalParameters;
+  List<LinkedNodeTypeFormalParameter> get functionFormalParameters;
 
   @Id(1)
   LinkedNodeType get functionReturnType;
@@ -2443,6 +2445,12 @@ abstract class LinkedNodeType extends base.SummaryClass {
   /// References to [LinkedNodeReferences].
   @Id(2)
   List<int> get functionTypeParameters;
+
+  @Id(7)
+  int get genericTypeAliasReference;
+
+  @Id(8)
+  List<LinkedNodeType> get genericTypeAliasTypeArguments;
 
   /// Reference to a [LinkedNodeReferences].
   @Id(3)
@@ -2457,6 +2465,18 @@ abstract class LinkedNodeType extends base.SummaryClass {
   /// Reference to a [LinkedNodeReferences].
   @Id(6)
   int get typeParameterParameter;
+}
+
+/// Information about a formal parameter in a function type.
+abstract class LinkedNodeTypeFormalParameter extends base.SummaryClass {
+  @Id(0)
+  LinkedNodeFormalParameterKind get kind;
+
+  @Id(1)
+  String get name;
+
+  @Id(2)
+  LinkedNodeType get type;
 }
 
 /// Kinds of [LinkedNodeType]s.

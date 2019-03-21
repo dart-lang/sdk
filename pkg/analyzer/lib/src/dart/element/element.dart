@@ -1780,7 +1780,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@typeAlias');
       _typeAliases = linkedNode.compilationUnit_declarations
-          .where((node) => node.kind == LinkedNodeKind.functionTypeAlias)
+          .where((node) =>
+              node.kind == LinkedNodeKind.functionTypeAlias ||
+              node.kind == LinkedNodeKind.genericTypeAlias)
           .map((node) {
         var name = context.getUnitMemberName(node);
         var reference = containerRef.getChild(name);
@@ -4372,32 +4374,12 @@ abstract class ExecutableElementImpl extends ElementImpl
         var context = enclosingUnit.linkedContext;
         var containerRef = reference.getChild('@parameter');
         var formalParameters = context.getFormalParameters(linkedNode);
-        if (formalParameters != null) {
-          _parameters = formalParameters.map((node) {
-            if (node.kind == LinkedNodeKind.defaultFormalParameter) {
-              var parameterNode = node.defaultFormalParameter_parameter;
-              var name = context.getFormalParameterName(parameterNode);
-              var reference = containerRef.getChild(name);
-              reference.node = node;
-              return DefaultParameterElementImpl.forLinkedNode(
-                this,
-                reference,
-                node,
-              );
-            } else {
-              var name = context.getFormalParameterName(node);
-              var reference = containerRef.getChild(name);
-              reference.node = node;
-              return ParameterElementImpl.forLinkedNodeFactory(
-                this,
-                reference,
-                node,
-              );
-            }
-          }).toList();
-        } else {
-          _parameters = const [];
-        }
+        _parameters = ParameterElementImpl.forLinkedNodeList(
+          this,
+          context,
+          containerRef,
+          formalParameters,
+        );
       }
       if (serializedExecutable != null) {
         _parameters = ParameterElementImpl.resynthesizeList(
@@ -5143,6 +5125,10 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   /// The type defined by this element.
   FunctionType _type;
 
+  GenericFunctionTypeElementImpl.forLinkedNode(
+      ElementImpl enclosingElement, Reference reference, LinkedNode linkedNode)
+      : super.forLinkedNode(enclosingElement, reference, linkedNode);
+
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
   GenericFunctionTypeElementImpl.forOffset(int nameOffset)
@@ -5167,6 +5153,15 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   @override
   List<ParameterElement> get parameters {
     if (_parameters == null) {
+      if (linkedNode != null) {
+        var context = enclosingUnit.linkedContext;
+        return _parameters = ParameterElementImpl.forLinkedNodeList(
+          this,
+          context,
+          reference.getChild('@parameter'),
+          context.getFormalParameters(linkedNode),
+        );
+      }
       if (_entityRef != null) {
         _parameters = ParameterElementImpl.resynthesizeList(
             _entityRef.syntheticParams, this);
@@ -5188,6 +5183,10 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   @override
   DartType get returnType {
     if (_returnType == null) {
+      if (linkedNode != null) {
+        var context = enclosingUnit.linkedContext;
+        return _returnType = context.getReturnType(linkedNode);
+      }
       if (_entityRef != null) {
         _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
             this, _entityRef.syntheticReturnType,
@@ -5215,6 +5214,16 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   void set type(FunctionType type) {
     _assertNotResynthesized(_entityRef);
     _type = type;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    if (linkedNode != null) {
+      if (linkedNode.kind == LinkedNodeKind.functionTypeAlias) {
+        return const <TypeParameterElement>[];
+      }
+    }
+    return super.typeParameters;
   }
 
   /// Set the type parameters defined by this function type element to the given
@@ -5362,24 +5371,19 @@ class GenericTypeAliasElementImpl extends ElementImpl
     if (_function != null) return _function;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      _function = new GenericFunctionTypeElementImpl.forOffset(-1);
-      _function.enclosingElement = this;
-      _function.returnType = context.getType(
-        linkedNode.functionTypeAlias_returnType2,
-      );
-      var containerRef = reference.getChild('@parameter');
-      var formalParameters = context.getFormalParameters(linkedNode);
-      _function.parameters = formalParameters.map((node) {
-        var name = context.getFormalParameterName(node);
-        var reference = containerRef.getChild(name);
-        reference.node = node;
-        return ParameterElementImpl.forLinkedNodeFactory(
+      if (linkedNode.kind == LinkedNodeKind.genericTypeAlias) {
+        _function = GenericFunctionTypeElementImpl.forLinkedNode(
           this,
-          reference,
-          node,
+          reference.getChild('@function'),
+          linkedNode.genericTypeAlias_functionType,
         );
-      }).toList();
+      } else {
+        return _function = GenericFunctionTypeElementImpl.forLinkedNode(
+          this,
+          reference.getChild('@function'),
+          linkedNode,
+        );
+      }
       return _function;
     }
 
@@ -8078,6 +8082,39 @@ class ParameterElementImpl extends VariableElementImpl
             .resolveTypeRef(this, unlinkedParam.type, declaredType: true);
       }
     }
+  }
+
+  static List<ParameterElement> forLinkedNodeList(
+      ElementImpl enclosing,
+      LinkedUnitContext context,
+      Reference containerRef,
+      List<LinkedNode> formalParameters) {
+    if (formalParameters == null) {
+      return const [];
+    }
+
+    return formalParameters.map((node) {
+      if (node.kind == LinkedNodeKind.defaultFormalParameter) {
+        var parameterNode = node.defaultFormalParameter_parameter;
+        var name = context.getFormalParameterName(parameterNode);
+        var reference = containerRef.getChild(name);
+        reference.node = node;
+        return DefaultParameterElementImpl.forLinkedNode(
+          enclosing,
+          reference,
+          node,
+        );
+      } else {
+        var name = context.getFormalParameterName(node);
+        var reference = containerRef.getChild(name);
+        reference.node = node;
+        return ParameterElementImpl.forLinkedNodeFactory(
+          enclosing,
+          reference,
+          node,
+        );
+      }
+    }).toList();
   }
 
   /// Create and return [ParameterElement]s for the given [unlinkedParameters].

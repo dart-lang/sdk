@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -56,7 +57,14 @@ class LinkingBundleContext {
     } else if (type is FunctionType) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.function,
-        functionFormalParameters: _getReferences(type.parameters),
+        functionFormalParameters: type.parameters
+            .map((p) => LinkedNodeTypeFormalParameterBuilder(
+                  // ignore: deprecated_member_use_from_same_package
+                  kind: _formalParameterKind(p.parameterKind),
+                  name: p.name,
+                  type: writeType(p.type),
+                ))
+            .toList(),
         functionReturnType: writeType(type.returnType),
         functionTypeParameters: _getReferences(type.typeParameters),
       );
@@ -78,6 +86,16 @@ class LinkingBundleContext {
     } else {
       throw UnimplementedError('(${type.runtimeType}) $type');
     }
+  }
+
+  LinkedNodeFormalParameterKind _formalParameterKind(ParameterKind kind) {
+    if (kind == ParameterKind.NAMED) {
+      return LinkedNodeFormalParameterKind.optionalNamed;
+    }
+    if (kind == ParameterKind.POSITIONAL) {
+      return LinkedNodeFormalParameterKind.optionalPositional;
+    }
+    return LinkedNodeFormalParameterKind.required;
   }
 
   int _getReferenceIndex(Element element) {

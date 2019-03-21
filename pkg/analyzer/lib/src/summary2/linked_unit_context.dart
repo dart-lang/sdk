@@ -56,6 +56,8 @@ class LinkedUnitContext {
           .functionExpression_formalParameters;
     } else if (kind == LinkedNodeKind.functionTypeAlias) {
       parameterList = node.functionTypeAlias_formalParameters;
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      parameterList = node.genericFunctionType_formalParameters;
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       parameterList = node.methodDeclaration_formalParameters;
     } else {
@@ -109,6 +111,10 @@ class LinkedUnitContext {
     var kind = node.kind;
     if (kind == LinkedNodeKind.functionDeclaration) {
       return getType(node.functionDeclaration_returnType2);
+    } else if (kind == LinkedNodeKind.functionTypeAlias) {
+      return getType(node.functionTypeAlias_returnType2);
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      return getType(node.genericFunctionType_returnType2);
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       return getType(node.methodDeclaration_returnType2);
     } else {
@@ -161,6 +167,10 @@ class LinkedUnitContext {
       typeParameterList = node.functionExpression_typeParameters;
     } else if (kind == LinkedNodeKind.functionTypeAlias) {
       typeParameterList = node.functionTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      typeParameterList = node.genericFunctionType_typeParameters;
+    } else if (kind == LinkedNodeKind.genericTypeAlias) {
+      typeParameterList = node.genericTypeAlias_typeParameters;
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       typeParameterList = node.methodDeclaration_typeParameters;
     } else {

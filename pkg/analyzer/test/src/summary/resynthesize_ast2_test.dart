@@ -443,12 +443,6 @@ abstract class num implements Comparable<num> {
 
   @override
   @failingTest
-  test_const_reference_staticMethod_imported() async {
-    await super.test_const_reference_staticMethod_imported();
-  }
-
-  @override
-  @failingTest
   test_const_reference_staticMethod_imported_withPrefix() async {
     await super.test_const_reference_staticMethod_imported_withPrefix();
   }
@@ -750,12 +744,6 @@ abstract class num implements Comparable<num> {
 
   @override
   @failingTest
-  test_executable_parameter_type_typedef() async {
-    await super.test_executable_parameter_type_typedef();
-  }
-
-  @override
-  @failingTest
   test_export_class() async {
     await super.test_export_class();
   }
@@ -1014,38 +1002,8 @@ abstract class num implements Comparable<num> {
 
   @override
   @failingTest
-  test_genericFunction_asFunctionReturnType() async {
-    await super.test_genericFunction_asFunctionReturnType();
-  }
-
-  @override
-  @failingTest
   test_genericFunction_asFunctionTypedParameterReturnType() async {
     await super.test_genericFunction_asFunctionTypedParameterReturnType();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_asGenericFunctionReturnType() async {
-    await super.test_genericFunction_asGenericFunctionReturnType();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_asMethodReturnType() async {
-    await super.test_genericFunction_asMethodReturnType();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_asParameterType() async {
-    await super.test_genericFunction_asParameterType();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_asTopLevelVariableType() async {
-    await super.test_genericFunction_asTopLevelVariableType();
   }
 
   @override
@@ -1683,12 +1641,6 @@ abstract class num implements Comparable<num> {
 
   @override
   @failingTest
-  test_type_reference_lib_to_lib() async {
-    await super.test_type_reference_lib_to_lib();
-  }
-
-  @override
-  @failingTest
   test_type_reference_lib_to_part() async {
     await super.test_type_reference_lib_to_part();
   }
@@ -1773,24 +1725,6 @@ abstract class num implements Comparable<num> {
 
   @override
   @failingTest
-  test_type_reference_to_typedef() async {
-    await super.test_type_reference_to_typedef();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_typedef_with_type_arguments() async {
-    await super.test_type_reference_to_typedef_with_type_arguments();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_typedef_with_type_arguments_implicit() async {
-    await super.test_type_reference_to_typedef_with_type_arguments_implicit();
-  }
-
-  @override
-  @failingTest
   test_type_unresolved_prefixed() async {
     await super.test_type_unresolved_prefixed();
   }
@@ -1823,12 +1757,6 @@ abstract class num implements Comparable<num> {
   @failingTest
   test_typedef_parameter_return_type() async {
     await super.test_typedef_parameter_return_type();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameters_named() async {
-    await super.test_typedef_parameters_named();
   }
 
   @override

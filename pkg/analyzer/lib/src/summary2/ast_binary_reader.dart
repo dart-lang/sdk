@@ -28,6 +28,16 @@ class AstBinaryReader {
     return node;
   }
 
+  ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
+    if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
+      return ParameterKind.NAMED;
+    }
+    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
+      return ParameterKind.POSITIONAL;
+    }
+    return ParameterKind.REQUIRED;
+  }
+
   T _getElement<T extends Element>(int index) {
     var bundleContext = _unitContext.bundleContext;
     return bundleContext.elementOfIndex(index);
@@ -1434,7 +1444,10 @@ class AstBinaryReader {
         return FunctionTypeImpl.synthetic(
           _readType(data.functionReturnType),
           _getElements(data.functionTypeParameters),
-          _getElements(data.functionFormalParameters),
+          data.functionFormalParameters
+              .map((p) => ParameterElementImpl.synthetic(
+                  p.name, _readType(p.type), _formalParameterKind(p.kind)))
+              .toList(),
         );
       case LinkedNodeTypeKind.interface:
         var element = _getElement(data.interfaceClass);

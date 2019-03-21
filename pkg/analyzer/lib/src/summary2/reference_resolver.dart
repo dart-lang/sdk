@@ -203,13 +203,12 @@ class ReferenceResolver {
       var returnType = node.genericFunctionType_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.genericFunctionType_returnType2 =
-            _getTypeAnnotationType(returnType);
-      } else {
-        node.genericFunctionType_returnType2 = _dynamicType;
+        typesToBuild.declarations.add(node);
       }
 
       _node(node.genericFunctionType_formalParameters);
+
+      typesToBuild.typeAnnotations.add(node);
     });
 
     reference = reference.parent.parent;
@@ -227,15 +226,6 @@ class ReferenceResolver {
     });
 
     reference = reference.parent.parent;
-  }
-
-  LinkedNodeTypeBuilder _getTypeAnnotationType(LinkedNodeBuilder node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.typeName) {
-      return node.typeName_type;
-    } else {
-      throw UnimplementedError('$kind');
-    }
   }
 
   void _importDirective(LinkedNodeBuilder node) {}
@@ -385,7 +375,7 @@ class ReferenceResolver {
         _node(typeArgumentList);
       }
 
-      typesToBuild.typeNames.add(node);
+      typesToBuild.typeAnnotations.add(node);
     } else {
       // TODO(scheglov) implement
       throw UnimplementedError();
@@ -445,12 +435,14 @@ class ReferenceResolver {
 /// know this until we resolved `A` declaration, and we might have not yet.
 /// So, we remember [LinkedNodeKind.typeName] nodes to resolve them later.
 class TypesToBuild {
-  /// Nodes with [LinkedNodeKind.typeName], both with type arguments, and
-  /// without them.  These nodes will be resolved by [ReferenceResolver], so
-  /// that they have their references set, but their types will not be set yet.
+  /// Nodes with [LinkedNodeKind.typeName] (with type arguments, and without
+  /// them), and [LinkedNodeKind.genericFunctionType].  These nodes will be
+  /// resolved by [ReferenceResolver], so that they have their references set,
+  /// but their types will not be set yet.
   ///
-  /// Types arguments must be before the types that use them in this list.
-  final List<LinkedNodeBuilder> typeNames = [];
+  /// Types arguments, return types, and types of formal parameters must be
+  /// before the types that use them in this list.
+  final List<LinkedNodeBuilder> typeAnnotations = [];
 
   /// Nodes with type annotations, where we want not just resolve these types
   /// annotations, but also set additional types.  For example instance method

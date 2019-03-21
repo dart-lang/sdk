@@ -1920,13 +1920,16 @@ table LinkedNodeReferences {
 
 /// Information about a Dart type.
 table LinkedNodeType {
-  /// References to [LinkedNodeReferences].
-  functionFormalParameters:[uint] (id: 0);
+  functionFormalParameters:[LinkedNodeTypeFormalParameter] (id: 0);
 
   functionReturnType:LinkedNodeType (id: 1);
 
   /// References to [LinkedNodeReferences].
   functionTypeParameters:[uint] (id: 2);
+
+  genericTypeAliasReference:uint (id: 7);
+
+  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 8);
 
   /// Reference to a [LinkedNodeReferences].
   interfaceClass:uint (id: 3);
@@ -1937,6 +1940,15 @@ table LinkedNodeType {
 
   /// Reference to a [LinkedNodeReferences].
   typeParameterParameter:uint (id: 6);
+}
+
+/// Information about a formal parameter in a function type.
+table LinkedNodeTypeFormalParameter {
+  kind:LinkedNodeFormalParameterKind (id: 0);
+
+  name:string (id: 1);
+
+  type:LinkedNodeType (id: 2);
 }
 
 /// Information about a single library in a [LinkedNodeLibrary].
