@@ -55,6 +55,68 @@ class IrAnnotationData {
   // Returns a list of the `@pragma('dart2js:<suffix>')` annotations on [node].
   List<PragmaAnnotationData> getMemberPragmaAnnotationData(ir.Member node) =>
       _memberPragmaAnnotations[node] ?? const [];
+
+  void forEachNativeClass(void Function(ir.Class, String) f) {
+    _nativeClassNames.forEach(f);
+  }
+
+  void forEachJsInteropLibrary(void Function(ir.Library, String) f) {
+    _jsInteropLibraryNames.forEach(f);
+  }
+
+  void forEachJsInteropClass(
+      void Function(ir.Class, String, {bool isAnonymous}) f) {
+    _jsInteropClassNames.forEach((ir.Class node, String name) {
+      f(node, name, isAnonymous: isAnonymousJsInteropClass(node));
+    });
+  }
+
+  void forEachJsInteropMember(void Function(ir.Member, String) f) {
+    _jsInteropLibraryNames.forEach((ir.Library library, _) {
+      for (ir.Member member in library.members) {
+        if (member.isExternal) {
+          f(member, _jsInteropMemberNames[member] ?? member.name.name);
+        }
+      }
+    });
+    _jsInteropClassNames.forEach((ir.Class cls, _) {
+      for (ir.Member member in cls.members) {
+        if (member is ir.Field) continue;
+        String name = _jsInteropMemberNames[member];
+        if (member.isExternal) {
+          name ??= member.name.name;
+        }
+        f(member, name);
+      }
+    });
+  }
+
+  void forEachNativeMethodData(
+      void Function(ir.Member, String name, Iterable<String> createsAnnotations,
+              Iterable<String> returnsAnnotations)
+          f) {
+    for (ir.Member node in _nativeMembers) {
+      if (node is! ir.Field) {
+        String name = _nativeMemberNames[node] ?? node.name.name;
+        f(node, name, getCreatesAnnotations(node), getReturnsAnnotations(node));
+      }
+    }
+  }
+
+  void forEachNativeFieldData(
+      void Function(ir.Member, String name, Iterable<String> createsAnnotations,
+              Iterable<String> returnsAnnotations)
+          f) {
+    for (ir.Class cls in _nativeClassNames.keys) {
+      for (ir.Field field in cls.fields) {
+        if (field.isInstanceMember) {
+          String name = _nativeMemberNames[field] ?? field.name.name;
+          f(field, name, getCreatesAnnotations(field),
+              getReturnsAnnotations(field));
+        }
+      }
+    }
+  }
 }
 
 IrAnnotationData processAnnotations(ir.Component component) {

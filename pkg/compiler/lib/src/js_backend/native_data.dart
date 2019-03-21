@@ -4,9 +4,13 @@
 
 library js_backend.native_data;
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../common_elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
+import '../ir/annotations.dart';
+import '../kernel/element_map.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../serialization/serialization.dart';
 import '../util/util.dart';
@@ -297,6 +301,38 @@ class NativeBasicDataImpl implements NativeBasicData {
       this.anonymousJsInteropClasses,
       this.jsInteropMembers);
 
+  factory NativeBasicDataImpl.fromIr(
+      KernelToElementMap map, IrAnnotationData data) {
+    ElementEnvironment env = map.elementEnvironment;
+    Map<ClassEntity, NativeClassTag> nativeClassTagInfo = {};
+    Map<LibraryEntity, String> jsInteropLibraries = {};
+    Map<ClassEntity, String> jsInteropClasses = {};
+    Set<ClassEntity> anonymousJsInteropClasses = {};
+    Map<MemberEntity, String> jsInteropMembers = {};
+
+    data.forEachNativeClass((ir.Class node, String text) {
+      nativeClassTagInfo[map.getClass(node)] = new NativeClassTag(text);
+    });
+    data.forEachJsInteropLibrary((ir.Library node, String name) {
+      jsInteropLibraries[env.lookupLibrary(node.importUri, required: true)] =
+          name;
+    });
+    data.forEachJsInteropClass((ir.Class node, String name,
+        {bool isAnonymous}) {
+      ClassEntity cls = map.getClass(node);
+      jsInteropClasses[cls] = name;
+      if (isAnonymous) {
+        anonymousJsInteropClasses.add(cls);
+      }
+    });
+    data.forEachJsInteropMember((ir.Member node, String name) {
+      jsInteropMembers[map.getMember(node)] = name;
+    });
+
+    return new NativeBasicDataImpl(env, nativeClassTagInfo, jsInteropLibraries,
+        jsInteropClasses, anonymousJsInteropClasses, jsInteropMembers);
+  }
+
   factory NativeBasicDataImpl.readFromDataSource(
       DataSource source, ElementEnvironment elementEnvironment) {
     source.begin(tag);
@@ -491,6 +527,48 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
       this.nativeMethodBehavior,
       this.nativeFieldLoadBehavior,
       this.nativeFieldStoreBehavior);
+
+  factory NativeDataImpl.fromIr(KernelToElementMap map, IrAnnotationData data) {
+    NativeBasicDataImpl nativeBasicData =
+        new NativeBasicDataImpl.fromIr(map, data);
+    Map<MemberEntity, String> nativeMemberName = {};
+    Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = {};
+    Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior = {};
+    Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior = {};
+
+    data.forEachNativeMethodData((ir.Member node,
+        String name,
+        Iterable<String> createsAnnotations,
+        Iterable<String> returnsAnnotations) {
+      MemberEntity member = map.getMember(node);
+      nativeMemberName[member] = name;
+      bool isJsInterop = nativeBasicData.isJsInteropMember(member);
+      nativeMethodBehavior[member] = map.getNativeBehaviorForMethod(
+          node, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop);
+    });
+
+    data.forEachNativeFieldData((ir.Member node,
+        String name,
+        Iterable<String> createsAnnotations,
+        Iterable<String> returnsAnnotations) {
+      FieldEntity field = map.getMember(node);
+      nativeMemberName[field] = name;
+      bool isJsInterop = nativeBasicData.isJsInteropMember(field);
+      nativeFieldLoadBehavior[field] = map.getNativeBehaviorForFieldLoad(
+          node, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop);
+      nativeFieldStoreBehavior[field] =
+          map.getNativeBehaviorForFieldStore(node);
+    });
+
+    return new NativeDataImpl(
+        nativeBasicData,
+        nativeMemberName,
+        nativeMethodBehavior,
+        nativeFieldLoadBehavior,
+        nativeFieldStoreBehavior);
+  }
 
   factory NativeDataImpl.readFromDataSource(
       DataSource source, ElementEnvironment elementEnvironment) {

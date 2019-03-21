@@ -272,8 +272,8 @@ class KernelWorkItem implements WorkItem {
   @override
   WorldImpact run() {
     return _compilerTask.measure(() {
-      _nativeMemberResolver.resolveNativeMember(element, _irAnnotationData);
       ir.Member node = _elementMap.getMemberNode(element);
+      _nativeMemberResolver.resolveNativeMember(node, _irAnnotationData);
 
       List<PragmaAnnotationData> pragmaAnnotationData =
           _modularStrategy.getPragmaAnnotationData(node);

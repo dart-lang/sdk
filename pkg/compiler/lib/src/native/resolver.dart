@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart' as ir;
+
 import '../common.dart';
 import '../common_elements.dart' show KElementEnvironment;
 import '../constants/values.dart';
@@ -11,9 +13,8 @@ import '../js_backend/native_data.dart';
 
 /// Interface for computing native members.
 abstract class NativeMemberResolver {
-  /// Computes whether [element] is native or JsInterop.
-  void resolveNativeMember(
-      MemberEntity element, IrAnnotationData annotationData);
+  /// Computes whether [node] is native or JsInterop.
+  void resolveNativeMember(ir.Member node, IrAnnotationData annotationData);
 }
 
 /// Determines all native classes in a set of libraries.
