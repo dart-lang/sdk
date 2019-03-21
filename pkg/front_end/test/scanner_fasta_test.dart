@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:convert';
 
-import 'package:analyzer/src/fasta/token_utils.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner.dart' as usedForFuzzTesting;
 import 'package:front_end/src/fasta/scanner.dart';
@@ -11,6 +10,7 @@ import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as fasta;
+import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart' as fasta;
 import 'package:front_end/src/scanner/errors.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -52,7 +52,6 @@ class ScannerTest_Fasta_FuzzTestAPI {
 
 @reflectiveTest
 class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
-  @override
   createScanner(String source) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
@@ -92,18 +91,14 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
 
 @reflectiveTest
 class ScannerTest_Fasta extends ScannerTestBase {
-  ScannerTest_Fasta() {
-    usingFasta = true;
-  }
-
-  createScanner(String source) =>
-      new fasta.StringScanner(source, includeComments: true);
-
   @override
   Token scanWithListener(String source, ErrorListener listener,
       {bool lazyAssignmentOperators: false}) {
-    var scanner = createScanner(source);
-    var token = scanner.tokenize();
+    var scanner = new fasta.StringScanner(source, includeComments: true);
+    var firstToken = scanner.tokenize();
+    Token token = new Token.eof(-1)..setNext(firstToken);
+
+    // Translate listed scanner errors
     if (scanner.errors != null) {
       for (LocatedMessage error in scanner.errors) {
         translateScanError(error.code, error.charOffset, error.length,
@@ -112,8 +107,24 @@ class ScannerTest_Fasta extends ScannerTestBase {
         });
       }
     }
-    return new ToAnalyzerTokenStreamConverter_WithListener(listener)
-        .convertTokens(token);
+
+    // Translate error tokens
+    if (scanner.hasErrors) {
+      Token next = firstToken;
+      while (!next.isEof) {
+        if (next.type.kind == BAD_INPUT_TOKEN) {
+          translateErrorToken(next,
+              (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+            listener.errors.add(new TestError(offset, errorCode, arguments));
+          });
+          token.setNext(next.next);
+        } else {
+          token = next;
+        }
+        next = token.next;
+      }
+    }
+    return firstToken;
   }
 
   void test_comments() {
@@ -827,31 +838,5 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
       }
       token = token.next;
     }
-  }
-}
-
-/// Override of [ToAnalyzerTokenStreamConverter] that verifies that there are no
-/// errors.
-class ToAnalyzerTokenStreamConverter_NoErrors
-    extends ToAnalyzerTokenStreamConverter {
-  @override
-  void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    fail('Unexpected error: $errorCode, $offset, $arguments');
-  }
-}
-
-/// Override of [ToAnalyzerTokenStreamConverter] that records errors in an
-/// [ErrorListener].
-class ToAnalyzerTokenStreamConverter_WithListener
-    extends ToAnalyzerTokenStreamConverter {
-  final ErrorListener _listener;
-
-  ToAnalyzerTokenStreamConverter_WithListener(this._listener);
-
-  @override
-  void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    _listener.errors.add(new TestError(offset, errorCode, arguments));
   }
 }

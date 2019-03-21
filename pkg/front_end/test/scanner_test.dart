@@ -79,8 +79,6 @@ class ErrorListener {
 }
 
 abstract class ScannerTestBase {
-  bool usingFasta = false;
-
   Token scanWithListener(String source, ErrorListener listener,
       {bool lazyAssignmentOperators: false});
 
@@ -340,20 +338,14 @@ abstract class ScannerTestBase {
     var expectedErrors = [
       new TestError(9, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null),
     ];
-    if (usingFasta) {
-      // fasta inserts synthetic closers
-      expectedTokens.addAll([
-        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 10),
-        new SyntheticStringToken(TokenType.STRING, "\"", 10, 0),
-      ]);
-      expectedErrors.addAll([
-        new TestError(10, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "", 10),
-      ]);
-    }
+    // fasta inserts synthetic closers
+    expectedTokens.addAll([
+      new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 10),
+      new SyntheticStringToken(TokenType.STRING, "\"", 10, 0),
+    ]);
+    expectedErrors.addAll([
+      new TestError(10, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+    ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("\"foo \${bar", listener);
     listener.assertErrors(expectedErrors);
@@ -711,32 +703,23 @@ abstract class ScannerTestBase {
     ErrorListener listener = new ErrorListener();
     BeginToken openBracket = scanWithListener('[(])', listener);
     BeginToken openParen = openBracket.next;
-    if (usingFasta) {
-      // When openers and closers are mismatched
-      // fasta favors considering the opener to be mismatched,
-      // and inserts synthetic closers as needed.
-      // `[(])` is parsed as `[()])` where the first `)` is synthetic
-      // and the trailing `)` is unmatched.
-      var closeParen = openParen.next;
-      expect(closeParen.isSynthetic, isTrue);
-      var closeBracket = closeParen.next;
-      expect(closeBracket.isSynthetic, isFalse);
-      var closeParen2 = closeBracket.next;
-      expect(closeParen2.isSynthetic, isFalse);
-      expect(closeParen2.next.type, TokenType.EOF);
-      expect(openBracket.endToken, same(closeBracket));
-      expect(openParen.endToken, same(closeParen));
-      listener.assertErrors([
-        new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      ]);
-    } else {
-      var closeBracket = openParen.next;
-      var closeParen = closeBracket.next;
-      expect(closeParen.next.type, TokenType.EOF);
-      expect(openBracket.endToken, isNull);
-      expect(openParen.endToken, same(closeParen));
-      listener.assertNoErrors();
-    }
+    // When openers and closers are mismatched
+    // fasta favors considering the opener to be mismatched,
+    // and inserts synthetic closers as needed.
+    // `[(])` is parsed as `[()])` where the first `)` is synthetic
+    // and the trailing `)` is unmatched.
+    var closeParen = openParen.next;
+    expect(closeParen.isSynthetic, isTrue);
+    var closeBracket = closeParen.next;
+    expect(closeBracket.isSynthetic, isFalse);
+    var closeParen2 = closeBracket.next;
+    expect(closeParen2.isSynthetic, isFalse);
+    expect(closeParen2.next.type, TokenType.EOF);
+    expect(openBracket.endToken, same(closeBracket));
+    expect(openParen.endToken, same(closeParen));
+    listener.assertErrors([
+      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+    ]);
   }
 
   void test_mismatched_opener() {
@@ -746,28 +729,20 @@ abstract class ScannerTestBase {
     ErrorListener listener = new ErrorListener();
     BeginToken openParen = scanWithListener('([)', listener);
     BeginToken openBracket = openParen.next;
-    if (usingFasta) {
-      // When openers and closers are mismatched,
-      // fasta favors considering the opener to be mismatched
-      // and inserts synthetic closers as needed.
-      // `([)` is scanned as `([])` where `]` is synthetic.
-      var closeBracket = openBracket.next;
-      expect(closeBracket.isSynthetic, isTrue);
-      var closeParen = closeBracket.next;
-      expect(closeParen.isSynthetic, isFalse);
-      expect(closeParen.next.type, TokenType.EOF);
-      expect(openBracket.endToken, closeBracket);
-      expect(openParen.endToken, closeParen);
-      listener.assertErrors([
-        new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      ]);
-    } else {
-      var closeParen = openBracket.next;
-      expect(closeParen.next.type, TokenType.EOF);
-      expect(openParen.endToken, isNull);
-      expect(openBracket.endToken, isNull);
-      listener.assertNoErrors();
-    }
+    // When openers and closers are mismatched,
+    // fasta favors considering the opener to be mismatched
+    // and inserts synthetic closers as needed.
+    // `([)` is scanned as `([])` where `]` is synthetic.
+    var closeBracket = openBracket.next;
+    expect(closeBracket.isSynthetic, isTrue);
+    var closeParen = closeBracket.next;
+    expect(closeParen.isSynthetic, isFalse);
+    expect(closeParen.next.type, TokenType.EOF);
+    expect(openBracket.endToken, closeBracket);
+    expect(openParen.endToken, closeParen);
+    listener.assertErrors([
+      new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+    ]);
   }
 
   void test_mismatched_opener_in_interpolation() {
@@ -958,16 +933,10 @@ abstract class ScannerTestBase {
 
   void test_string_multi_unterminated() {
     List<Token> expectedTokens = [];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "'''string'''", 0, 9),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "'''string", 0),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "'''string'''", 0, 9),
+    ]);
   }
 
   void test_string_multi_unterminated_interpolation_block() {
@@ -979,20 +948,14 @@ abstract class ScannerTestBase {
     var expectedErrors = [
       new TestError(8, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null),
     ];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 9),
-        new SyntheticStringToken(TokenType.STRING, "'''", 9, 0),
-      ]);
-      expectedErrors.addAll([
-        new TestError(9, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "", 9),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 9),
+      new SyntheticStringToken(TokenType.STRING, "'''", 9, 0),
+    ]);
+    expectedErrors.addAll([
+      new TestError(9, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+    ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'''\${name", listener);
     listener.assertErrors(expectedErrors);
@@ -1005,16 +968,10 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
       new StringToken(TokenType.IDENTIFIER, "name", 4),
     ];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "'''", 8, 0),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "", 8),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "'''", 8, 0),
+    ]);
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
         "'''\$name", expectedTokens);
   }
@@ -1030,16 +987,10 @@ abstract class ScannerTestBase {
   void test_string_raw_multi_unterminated() {
     String source = "r'''string";
     List<Token> expectedTokens = [];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "r'''string'''", 0, 10),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "r'''string", 0),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "r'''string'''", 0, 10),
+    ]);
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9,
         source, expectedTokens);
   }
@@ -1055,16 +1006,10 @@ abstract class ScannerTestBase {
   void test_string_raw_simple_unterminated_eof() {
     String source = "r'string";
     List<Token> expectedTokens = [];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "r'string", 0),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
+    ]);
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
         source, expectedTokens);
   }
@@ -1072,18 +1017,12 @@ abstract class ScannerTestBase {
   void test_string_raw_simple_unterminated_eol() {
     String source = "r'string\n";
     List<Token> expectedTokens = [];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "r'string", 0),
-      ]);
-    }
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        usingFasta ? 7 : 8, source, expectedTokens);
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
+    ]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
+        source, expectedTokens);
   }
 
   void test_string_simple_double() {
@@ -1163,20 +1102,14 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
     ];
     var expectedErrors = <TestError>[];
-    if (usingFasta) {
-      // Fasta scanner inserts a synthetic identifier
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.IDENTIFIER, "", 4, 0),
-        new StringToken(TokenType.STRING, "'", 4),
-      ]);
-      expectedErrors.addAll([
-        new TestError(4, ScannerErrorCode.MISSING_IDENTIFIER, null),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "'", 4),
-      ]);
-    }
+    // Fasta scanner inserts a synthetic identifier
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.IDENTIFIER, "", 4, 0),
+      new StringToken(TokenType.STRING, "'", 4),
+    ]);
+    expectedErrors.addAll([
+      new TestError(4, ScannerErrorCode.MISSING_IDENTIFIER, null),
+    ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\$x\$'", listener);
     listener.assertErrors(expectedErrors);
@@ -1189,14 +1122,12 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
     ];
     var expectedErrors = <TestError>[];
-    if (usingFasta) {
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.IDENTIFIER, "", 2),
-      ]);
-      expectedErrors.addAll([
-        new TestError(2, ScannerErrorCode.MISSING_IDENTIFIER, null),
-      ]);
-    }
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.IDENTIFIER, "", 2),
+    ]);
+    expectedErrors.addAll([
+      new TestError(2, ScannerErrorCode.MISSING_IDENTIFIER, null),
+    ]);
     expectedTokens.addAll([
       new StringToken(TokenType.STRING, "1'", 2),
     ]);
@@ -1213,16 +1144,10 @@ abstract class ScannerTestBase {
   void test_string_simple_unterminated_eof() {
     String source = "'string";
     List<Token> expectedTokens = [];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "'string", 0),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
+    ]);
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6,
         source, expectedTokens);
   }
@@ -1230,18 +1155,12 @@ abstract class ScannerTestBase {
   void test_string_simple_unterminated_eol() {
     String source = "'string\r";
     List<Token> expectedTokens = [];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "'string", 0),
-      ]);
-    }
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        usingFasta ? 6 : 7, source, expectedTokens);
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
+    ]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6,
+        source, expectedTokens);
   }
 
   void test_string_simple_unterminated_interpolation_block() {
@@ -1253,20 +1172,14 @@ abstract class ScannerTestBase {
     List<TestError> expectedErrors = [
       new TestError(6, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null),
     ];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 7),
-        new SyntheticStringToken(TokenType.STRING, "'", 7, 0),
-      ]);
-      expectedErrors.addAll([
-        new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "", 7),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 7),
+      new SyntheticStringToken(TokenType.STRING, "'", 7, 0),
+    ]);
+    expectedErrors.addAll([
+      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+    ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\${name", listener);
     listener.assertErrors(expectedErrors);
@@ -1279,16 +1192,10 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
       new StringToken(TokenType.IDENTIFIER, "name", 2),
     ];
-    if (usingFasta) {
-      // Fasta inserts synthetic closers.
-      expectedTokens.addAll([
-        new SyntheticStringToken(TokenType.STRING, "'", 6, 0),
-      ]);
-    } else {
-      expectedTokens.addAll([
-        new StringToken(TokenType.STRING, "", 6),
-      ]);
-    }
+    // Fasta inserts synthetic closers.
+    expectedTokens.addAll([
+      new SyntheticStringToken(TokenType.STRING, "'", 6, 0),
+    ]);
     _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5,
         "'\$name", expectedTokens);
   }
@@ -1423,8 +1330,7 @@ abstract class ScannerTestBase {
       {bool lazyAssignmentOperators: false}) {
     // Fasta generates errors for unmatched '{', '[', etc
     Token originalToken = _scan(source,
-        lazyAssignmentOperators: lazyAssignmentOperators,
-        ignoreErrors: usingFasta);
+        lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
     expect(originalToken, isNotNull);
     expect(originalToken.type, expectedType);
     expect(originalToken.offset, 0);
@@ -1437,8 +1343,7 @@ abstract class ScannerTestBase {
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
       Token tokenWithSpaces = _scan(" $source",
-          lazyAssignmentOperators: lazyAssignmentOperators,
-          ignoreErrors: usingFasta);
+          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
       expect(tokenWithSpaces, isNotNull);
       expect(tokenWithSpaces.type, expectedType);
       expect(tokenWithSpaces.offset, 1);
@@ -1448,16 +1353,14 @@ abstract class ScannerTestBase {
     } else if (expectedType == TokenType.INT ||
         expectedType == TokenType.DOUBLE) {
       Token tokenWithLowerD = _scan("${source}d",
-          lazyAssignmentOperators: lazyAssignmentOperators,
-          ignoreErrors: usingFasta);
+          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
       expect(tokenWithLowerD, isNotNull);
       expect(tokenWithLowerD.type, expectedType);
       expect(tokenWithLowerD.offset, 0);
       expect(tokenWithLowerD.length, source.length);
       expect(tokenWithLowerD.lexeme, source);
       Token tokenWithUpperD = _scan("${source}D",
-          lazyAssignmentOperators: lazyAssignmentOperators,
-          ignoreErrors: usingFasta);
+          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
       expect(tokenWithUpperD, isNotNull);
       expect(tokenWithUpperD.type, expectedType);
       expect(tokenWithUpperD.offset, 0);
@@ -1465,8 +1368,7 @@ abstract class ScannerTestBase {
       expect(tokenWithUpperD.lexeme, source);
     }
     Token tokenWithSpaces = _scan(" $source ",
-        lazyAssignmentOperators: lazyAssignmentOperators,
-        ignoreErrors: usingFasta);
+        lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
     expect(tokenWithSpaces, isNotNull);
     expect(tokenWithSpaces.type, expectedType);
     expect(tokenWithSpaces.offset, 1);

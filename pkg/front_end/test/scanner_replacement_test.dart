@@ -31,10 +31,6 @@ main() {
 /// stream conversion.
 @reflectiveTest
 class ScannerTest_Replacement extends ScannerTestBase {
-  ScannerTest_Replacement() {
-    usingFasta = true;
-  }
-
   @override
   analyzer.Token scanWithListener(String source, ErrorListener listener,
       {bool lazyAssignmentOperators: false}) {
