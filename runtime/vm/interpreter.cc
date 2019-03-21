@@ -801,39 +801,91 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       }
       if (call_function == Function::null()) {
         // Invoke field getter on receiver.
-        call_top[1] = 0;                       // Result of runtime call.
-        call_top[2] = receiver;                // Receiver.
-        call_top[3] = function->ptr()->name_;  // Field name.
-        Exit(thread, *FP, call_top + 4, *pc);
-        NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
+        call_top[1] = argdesc_;                // Save argdesc_.
+        call_top[2] = 0;                       // Result of runtime call.
+        call_top[3] = receiver;                // Receiver.
+        call_top[4] = function->ptr()->name_;  // Field name.
+        Exit(thread, *FP, call_top + 5, *pc);
+        NativeArguments native_args(thread, 2, call_top + 3, call_top + 2);
         if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch,
                            native_args)) {
           return false;
         }
+        argdesc_ = Array::RawCast(call_top[1]);
+
+        // Replace receiver with field value, keep all other arguments, and
+        // invoke 'call' function, or if not found, invoke noSuchMethod.
+        receiver = call_top[2];
+        call_base[receiver_idx] = receiver;
+
         // If the field value is a closure, no need to resolve 'call' function.
         // Otherwise, call runtime to resolve 'call' function.
-        if (InterpreterHelpers::GetClassId(call_top[1]) == kClosureCid) {
+        if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
           // Closure call.
-          call_function = Closure::RawCast(call_top[1])->ptr()->function_;
+          call_function = Closure::RawCast(receiver)->ptr()->function_;
         } else {
           // Resolve and invoke the 'call' function.
-          call_top[2] = 0;  // Result of runtime call.
-          Exit(thread, *FP, call_top + 3, *pc);
-          NativeArguments native_args(thread, 1, call_top + 1, call_top + 2);
+          call_top[3] = argdesc_;
+          call_top[4] = 0;  // Result of runtime call.
+          Exit(thread, *FP, call_top + 5, *pc);
+          NativeArguments native_args(thread, 2, call_top + 2, call_top + 4);
           if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction,
                              native_args)) {
             return false;
           }
-          call_function = Function::RawCast(call_top[2]);
+          argdesc_ = Array::RawCast(call_top[1]);
+          call_function = Function::RawCast(call_top[4]);
           if (call_function == Function::null()) {
-            // 'Call' could not be resolved. TODO(regis): Can this happen?
-            // Fall back to jitting the field dispatcher function.
-            break;
+            // Function 'call' could not be resolved for argdesc_.
+            // Invoke noSuchMethod.
+            const intptr_t argc =
+                receiver_idx + InterpreterHelpers::ArgDescArgCount(argdesc_);
+            RawObject* null_value = Object::null();
+            call_top[1] = null_value;
+            call_top[2] = call_base[receiver_idx];
+            call_top[3] = argdesc_;
+            call_top[4] = null_value;  // Array of arguments (will be filled).
+
+            // Allocate array of arguments.
+            {
+              call_top[5] = Smi::New(argc);  // length
+              call_top[6] = null_value;      // type
+              Exit(thread, *FP, call_top + 7, *pc);
+              NativeArguments native_args(thread, 2, call_top + 5,
+                                          call_top + 4);
+              if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                                 native_args)) {
+                return false;
+              }
+
+              // Copy arguments into the newly allocated array.
+              RawArray* array = static_cast<RawArray*>(call_top[4]);
+              ASSERT(array->GetClassId() == kArrayCid);
+              for (intptr_t i = 0; i < argc; i++) {
+                array->ptr()->data()[i] = call_base[i];
+              }
+            }
+
+            // We failed to resolve 'call' function.
+            call_top[5] = Symbols::Call().raw();
+
+            // Invoke noSuchMethod passing down receiver, argument descriptor,
+            // array of arguments, and target name.
+            {
+              Exit(thread, *FP, call_top + 6, *pc);
+              NativeArguments native_args(thread, 4, call_top + 2,
+                                          call_top + 1);
+              if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod,
+                                 native_args)) {
+                return false;
+              }
+            }
+            *SP = call_base;
+            **SP = call_top[1];
+            *invoked = true;
+            return true;
           }
         }
-        // Replace receiver with field value, keep all other arguments, and
-        // invoke 'call' function.
-        call_base[receiver_idx] = call_top[1];
       }
       ASSERT(call_function != Function::null());
       // Patch field dispatcher in callee frame with call function.

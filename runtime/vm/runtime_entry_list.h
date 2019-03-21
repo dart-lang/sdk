@@ -33,6 +33,7 @@ namespace dart {
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(InvokeClosureNoSuchMethod)                                                 \
+  V(InvokeNoSuchMethod)                                                        \
   V(InvokeNoSuchMethodDispatcher)                                              \
   V(MegamorphicCacheMissHandler)                                               \
   V(OptimizeInvokedFunction)                                                   \

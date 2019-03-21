@@ -503,16 +503,22 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
 
 // Resolve 'call' function of receiver.
 // Arg0: receiver (not a closure).
+// Arg1: arguments descriptor
 // Return value: 'call' function'.
-DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 1) {
+DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
   ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  ArgumentsDescriptor args_desc(descriptor);
   ASSERT(!receiver.IsClosure());  // Interpreter tests for closure.
   Class& cls = Class::Handle(zone, receiver.clazz());
   Function& call_function = Function::Handle(zone);
   do {
     call_function = cls.LookupDynamicFunction(Symbols::Call());
     if (!call_function.IsNull()) {
+      if (!call_function.AreValidArguments(args_desc, NULL)) {
+        call_function = Function::null();
+      }
       break;
     }
     cls = cls.SuperClass();
@@ -1698,7 +1704,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
   const Object& result = Object::Handle(                                       \
       zone, DartEntry::InvokeNoSuchMethod(                                     \
                 receiver, target_name, orig_arguments, orig_arguments_desc));  \
-  ThrowIfError(result);                                                    \
+  ThrowIfError(result);                                                        \
   arguments.SetReturn(result);
 
 #define CLOSURIZE(some_function)                                               \
@@ -1791,6 +1797,26 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   ASSERT(!function.IsNull());
   const String& original_function_name =
       String::Handle(function.QualifiedUserVisibleName());
+  const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
+      receiver, original_function_name, orig_arguments, orig_arguments_desc));
+  ThrowIfError(result);
+  arguments.SetReturn(result);
+}
+
+// Invoke appropriate noSuchMethod function.
+// Arg0: receiver
+// Arg1: arguments descriptor array.
+// Arg2: arguments array.
+// Arg3: function name.
+DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
+  ASSERT(FLAG_enable_interpreter);
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const String& original_function_name =
+      String::CheckedHandle(zone, arguments.ArgAt(3));
+
   const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
       receiver, original_function_name, orig_arguments, orig_arguments_desc));
   ThrowIfError(result);
