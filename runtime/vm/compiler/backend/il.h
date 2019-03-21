@@ -1938,7 +1938,15 @@ class Definition : public Instruction {
 
   virtual void SetIdentity(AliasIdentity identity) { UNREACHABLE(); }
 
+  // Find the original definition of [this] by following through any
+  // redefinition and check instructions.
   Definition* OriginalDefinition();
+
+  // Find the original definition of [this].
+  //
+  // This is an extension of [OriginalDefinition] which also follows through any
+  // boxing/unboxing and constraint instructions.
+  Definition* OriginalDefinitionIgnoreBoxingAndConstraints();
 
   virtual Definition* AsDefinition() { return this; }
 

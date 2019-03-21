@@ -520,6 +520,20 @@ Definition* Definition::OriginalDefinition() {
   return defn;
 }
 
+Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
+  Definition* def = this;
+  while (true) {
+    Definition* orig;
+    if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
+      orig = def->InputAt(0)->definition();
+    } else {
+      orig = def->OriginalDefinition();
+    }
+    if (orig == def) return def;
+    def = orig;
+  }
+}
+
 const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for

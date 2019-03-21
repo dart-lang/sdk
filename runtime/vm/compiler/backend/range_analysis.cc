@@ -1321,11 +1321,12 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
 
     for (intptr_t i = 0; i < bounds_checks_.length(); i++) {
       // Is this a non-speculative check bound?
-      GenericCheckBoundInstr* aot_check =
-          bounds_checks_[i]->AsGenericCheckBound();
+      auto aot_check = bounds_checks_[i]->AsGenericCheckBound();
       if (aot_check != nullptr) {
-        RangeBoundary array_length =
-            RangeBoundary::FromDefinition(aot_check->length()->definition());
+        auto length = aot_check->length()
+                          ->definition()
+                          ->OriginalDefinitionIgnoreBoxingAndConstraints();
+        auto array_length = RangeBoundary::FromDefinition(length);
         if (aot_check->IsRedundant(array_length)) {
           aot_check->ReplaceUsesWith(aot_check->index()->definition());
           aot_check->RemoveFromGraph();

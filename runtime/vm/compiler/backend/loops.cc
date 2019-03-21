@@ -132,22 +132,6 @@ static bool IsConstant(Definition* def, int64_t* val) {
   return false;
 }
 
-// Helper method to trace back to original true definition, now
-// also ignoring constraints and (un)boxing operations, since
-// these are not relevant to the induction behavior.
-static Definition* OriginalDefinition(Definition* def) {
-  while (true) {
-    Definition* orig;
-    if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
-      orig = def->InputAt(0)->definition();
-    } else {
-      orig = def->OriginalDefinition();
-    }
-    if (orig == def) return def;
-    def = orig;
-  }
-}
-
 void InductionVarAnalysis::VisitHierarchy(LoopInfo* loop) {
   for (; loop != nullptr; loop = loop->next_) {
     VisitLoop(loop);
@@ -273,7 +257,7 @@ void InductionVarAnalysis::Classify(LoopInfo* loop, Definition* def) {
   } else if (def->IsUnaryIntegerOp()) {
     induc = TransferUnary(loop, def);
   } else {
-    Definition* orig = OriginalDefinition(def);
+    Definition* orig = def->OriginalDefinitionIgnoreBoxingAndConstraints();
     if (orig != def) {
       induc = Lookup(loop, orig);  // pass-through
     }
@@ -316,7 +300,7 @@ void InductionVarAnalysis::ClassifySCC(LoopInfo* loop) {
       } else if (def->IsConstraint()) {
         update = SolveConstraint(loop, def, init);
       } else {
-        Definition* orig = OriginalDefinition(def);
+        Definition* orig = def->OriginalDefinitionIgnoreBoxingAndConstraints();
         if (orig != def) {
           update = LookupCycle(orig);  // pass-through
         }
@@ -370,10 +354,14 @@ void InductionVarAnalysis::ClassifyControl(LoopInfo* loop) {
     // Comparison against linear constant stride induction?
     // Express the comparison such that induction appears left.
     int64_t stride = 0;
-    InductionVar* x =
-        Lookup(loop, OriginalDefinition(compare->left()->definition()));
-    InductionVar* y =
-        Lookup(loop, OriginalDefinition(compare->right()->definition()));
+    auto left = compare->left()
+                    ->definition()
+                    ->OriginalDefinitionIgnoreBoxingAndConstraints();
+    auto right = compare->right()
+                     ->definition()
+                     ->OriginalDefinitionIgnoreBoxingAndConstraints();
+    InductionVar* x = Lookup(loop, left);
+    InductionVar* y = Lookup(loop, right);
     if (InductionVar::IsLinear(x, &stride) && InductionVar::IsInvariant(y)) {
       // ok as is
     } else if (InductionVar::IsInvariant(x) &&
