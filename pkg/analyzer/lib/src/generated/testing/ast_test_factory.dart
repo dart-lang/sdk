@@ -556,20 +556,6 @@ class AstTestFactory {
           rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body: body);
 
-  static ForStatement forStatement2(VariableDeclarationList variableList,
-          Expression condition, List<Expression> updaters, Statement body) =>
-      astFactory.forStatement(
-          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          forLoopParts: astFactory.forPartsWithDeclarations(
-              variables: variableList,
-              leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-              condition: condition,
-              rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-              updaters: updaters),
-          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body: body);
-
   static FunctionDeclaration functionDeclaration(
           TypeAnnotation type,
           Keyword keyword,

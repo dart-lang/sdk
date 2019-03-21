@@ -2123,44 +2123,48 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForStatement_i() {
     _assertSource(
         "for (var i;;) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            null,
-            null,
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                null,
+                null),
             AstTestFactory.block()));
   }
 
   void test_visitForStatement_ic() {
     _assertSource(
         "for (var i; c;) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            AstTestFactory.identifier3("c"),
-            null,
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                AstTestFactory.identifier3("c"),
+                null),
             AstTestFactory.block()));
   }
 
   void test_visitForStatement_icu() {
     _assertSource(
         "for (var i; c; u) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            AstTestFactory.identifier3("c"),
-            [AstTestFactory.identifier3("u")],
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                AstTestFactory.identifier3("c"),
+                [AstTestFactory.identifier3("u")]),
             AstTestFactory.block()));
   }
 
   void test_visitForStatement_iu() {
     _assertSource(
         "for (var i;; u) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            null,
-            [AstTestFactory.identifier3("u")],
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                null,
+                [AstTestFactory.identifier3("u")]),
             AstTestFactory.block()));
   }
 
@@ -4833,44 +4837,48 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForStatement_i() {
     _assertSource(
         "for (var i;;) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            null,
-            null,
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                null,
+                null),
             AstTestFactory.block()));
   }
 
   void test_visitForStatement_ic() {
     _assertSource(
         "for (var i; c;) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            AstTestFactory.identifier3("c"),
-            null,
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                AstTestFactory.identifier3("c"),
+                null),
             AstTestFactory.block()));
   }
 
   void test_visitForStatement_icu() {
     _assertSource(
         "for (var i; c; u) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            AstTestFactory.identifier3("c"),
-            [AstTestFactory.identifier3("u")],
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                AstTestFactory.identifier3("c"),
+                [AstTestFactory.identifier3("u")]),
             AstTestFactory.block()));
   }
 
   void test_visitForStatement_iu() {
     _assertSource(
         "for (var i;; u) {}",
-        AstTestFactory.forStatement2(
-            AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
-            null,
-            [AstTestFactory.identifier3("u")],
+        AstTestFactory.forStatement(
+            AstTestFactory.forPartsWithDeclarations(
+                AstTestFactory.variableDeclarationList2(
+                    Keyword.VAR, [AstTestFactory.variableDeclaration("i")]),
+                null,
+                [AstTestFactory.identifier3("u")]),
             AstTestFactory.block()));
   }
 

@@ -3116,11 +3116,12 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_forStatement_withVariables() {
-    ForStatement node = AstTestFactory.forStatement2(
-        AstTestFactory.variableDeclarationList2(
-            null, [AstTestFactory.variableDeclaration("i")]),
-        AstTestFactory.booleanLiteral(true),
-        [AstTestFactory.integer(0)],
+    ForStatement node = AstTestFactory.forStatement(
+        AstTestFactory.forPartsWithDeclarations(
+            AstTestFactory.variableDeclarationList2(
+                null, [AstTestFactory.variableDeclaration("i")]),
+            AstTestFactory.booleanLiteral(true),
+            [AstTestFactory.integer(0)]),
         AstTestFactory.block());
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_forStatement_withVariables_2());

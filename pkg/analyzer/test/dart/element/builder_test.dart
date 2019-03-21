@@ -798,11 +798,12 @@ class C {
     String variableName = "v";
     VariableDeclaration variableIdentifier =
         AstTestFactory.variableDeclaration('v');
-    ForStatement statement = AstTestFactory.forStatement2(
-        AstTestFactory.variableDeclarationList(
-            null, AstTestFactory.typeName4('T'), [variableIdentifier]),
-        null,
-        null,
+    ForStatement statement = AstTestFactory.forStatement(
+        AstTestFactory.forPartsWithDeclarations(
+            AstTestFactory.variableDeclarationList(
+                null, AstTestFactory.typeName4('T'), [variableIdentifier]),
+            null,
+            null),
         AstTestFactory.block());
     _setNodeSourceRange(statement, 100, 110);
     MethodDeclaration method = AstTestFactory.methodDeclaration2(
