@@ -189,13 +189,12 @@ class CodeChecker extends RecursiveAstVisitor {
       var asIterableType = exprType is InterfaceTypeImpl
           ? exprType.asInstanceOf(typeProvider.iterableType.element)
           : null;
-      if (asIterableType != null) {
-        var elementType = asIterableType.typeArguments[0];
-        // Items in the spread will then potentially be downcast to the expected
-        // type.
-        _checkImplicitCast(element.expression, expectedType,
-            from: elementType, forSpread: true);
-      }
+      var elementType =
+          asIterableType == null ? null : asIterableType.typeArguments[0];
+      // Items in the spread will then potentially be downcast to the expected
+      // type.
+      _checkImplicitCast(element.expression, expectedType,
+          from: elementType, forSpread: true);
     }
   }
 
@@ -229,16 +228,16 @@ class CodeChecker extends RecursiveAstVisitor {
           ? exprType.asInstanceOf(typeProvider.mapType.element)
           : null;
 
-      if (asMapType != null) {
-        var elementKeyType = asMapType.typeArguments[0];
-        var elementValueType = asMapType.typeArguments[1];
-        // Keys and values in the spread will then potentially be downcast to
-        // the expected types.
-        _checkImplicitCast(element.expression, expectedKeyType,
-            from: elementKeyType, forSpreadKey: true);
-        _checkImplicitCast(element.expression, expectedValueType,
-            from: elementValueType, forSpreadValue: true);
-      }
+      var elementKeyType =
+          asMapType == null ? null : asMapType.typeArguments[0];
+      var elementValueType =
+          asMapType == null ? null : asMapType.typeArguments[1];
+      // Keys and values in the spread will then potentially be downcast to
+      // the expected types.
+      _checkImplicitCast(element.expression, expectedKeyType,
+          from: elementKeyType, forSpreadKey: true);
+      _checkImplicitCast(element.expression, expectedValueType,
+          from: elementValueType, forSpreadValue: true);
     }
   }
 
