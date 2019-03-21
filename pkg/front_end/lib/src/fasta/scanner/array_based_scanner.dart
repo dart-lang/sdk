@@ -6,8 +6,6 @@ library fasta.scanner.array_based_scanner;
 
 import 'error_token.dart' show ErrorToken, UnmatchedToken;
 
-import '../fasta_codes.dart' show LocatedMessage, Message;
-
 import '../../scanner/token.dart'
     show BeginToken, Keyword, KeywordToken, SyntheticToken, Token, TokenType;
 
@@ -27,14 +25,10 @@ import 'abstract_scanner.dart' show AbstractScanner, closeBraceInfoFor;
 import '../util/link.dart' show Link;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
-  List<LocatedMessage> errors;
-  final bool reportErrors;
   bool hasErrors = false;
 
-  ArrayBasedScanner(bool includeComments,
-      {int numberOfBytesHint, bool reportErrors})
-      : this.reportErrors = reportErrors ?? false,
-        super(includeComments, numberOfBytesHint: numberOfBytesHint);
+  ArrayBasedScanner(bool includeComments, {int numberOfBytesHint})
+      : super(includeComments, numberOfBytesHint: numberOfBytesHint);
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
@@ -368,11 +362,5 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendToken(new SyntheticToken(type, tokenStart)..beforeSynthetic = tail);
     begin.endGroup = tail;
     appendErrorToken(new UnmatchedToken(begin));
-  }
-
-  void addError(int charOffset, int length, Message message) {
-    hasErrors = true;
-    (errors ??= <LocatedMessage>[])
-        .add(new LocatedMessage(null, charOffset, length, message));
   }
 }

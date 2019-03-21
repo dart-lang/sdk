@@ -26,11 +26,9 @@ class StringScanner extends ArrayBasedScanner {
   int scanOffset = -1;
 
   StringScanner(String string,
-      {bool includeComments: false,
-      bool scanLazyAssignmentOperators: false,
-      bool reportErrors})
+      {bool includeComments: false, bool scanLazyAssignmentOperators: false})
       : string = ensureZeroTermination(string),
-        super(includeComments, reportErrors: reportErrors);
+        super(includeComments);
 
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)

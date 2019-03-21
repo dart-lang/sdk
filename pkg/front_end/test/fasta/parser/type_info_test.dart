@@ -58,8 +58,7 @@ ScannerResult _tokenizeAndRecover(Scanner scanner, Recover recover,
     recover ??= defaultRecoveryStrategy;
     tokens = recover(bytes, tokens, scanner.lineStarts);
   }
-  return new ScannerResult(
-      tokens, scanner.lineStarts, scanner.hasErrors, scanner.errors);
+  return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
 }
 
 @reflectiveTest
