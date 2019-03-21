@@ -7692,6 +7692,57 @@ final v = f<int, String>();
         ]);
   }
 
+  test_expr_list_for_each_with_declaration_typed() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('var v = [for (int i in []) i];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[for (int i in []) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.makeUntypedList,
+          UnlinkedExprOperation.forEachPartsWithTypedDeclaration,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [
+          0,
+          1
+        ],
+        strings: [
+          'i',
+          'i'
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int')
+        ]);
+  }
+
+  test_expr_list_for_each_with_declaration_untyped() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('var v = [for (var i in []) i];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[for (var i in []) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.makeUntypedList,
+          UnlinkedExprOperation.forEachPartsWithUntypedDeclaration,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [
+          0,
+          1
+        ],
+        strings: [
+          'i',
+          'i'
+        ]);
+  }
+
   test_expr_list_for_each_with_identifier() {
     experimentStatus = ExperimentStatus(
         control_flow_collections: true, spread_collections: true);

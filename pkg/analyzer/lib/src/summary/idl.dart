@@ -3962,6 +3962,17 @@ enum UnlinkedExprOperation {
   /// Pop the top 2 values from the stack.  The first is the for loop parts.
   /// The second is the body.
   forElementWithAwait,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `var name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings].
+  forEachPartsWithUntypedDeclaration,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `Type name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings], and `Type` is obtained from
+  /// [UnlinkedExpr.references].
+  forEachPartsWithTypedDeclaration,
 }
 
 /// Unlinked summary information about an import declaration.

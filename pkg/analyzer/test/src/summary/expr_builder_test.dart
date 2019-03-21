@@ -303,6 +303,34 @@ class C {
         expectedText: expectedText, extraDeclarations: 'int i;');
   }
 
+  void test_list_for_each_with_declaration_typed() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (int i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements2[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForEachPartsWithDeclaration;
+    var iElement = loopParts.loopVariable.identifier.staticElement;
+    var iRef = forElement.body as SimpleIdentifier;
+    expect(iRef.staticElement, same(iElement));
+  }
+
+  void test_list_for_each_with_declaration_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements2[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForEachPartsWithDeclaration;
+    var iElement = loopParts.loopVariable.identifier.staticElement;
+    var iRef = forElement.body as SimpleIdentifier;
+    expect(iRef.staticElement, same(iElement));
+  }
+
   void test_list_for_each_with_identifier() {
     experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i in const []) i]';

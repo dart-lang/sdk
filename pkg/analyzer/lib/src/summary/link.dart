@@ -1913,6 +1913,7 @@ abstract class ConstNode extends Node<ConstNode> {
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
+        case UnlinkedExprOperation.forEachPartsWithTypedDeclaration:
           refPtr++;
           break;
         case UnlinkedExprOperation.invokeMethodRef:
@@ -5255,6 +5256,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           break;
         case UnlinkedExprOperation.typeCast:
         case UnlinkedExprOperation.typeCheck:
+        case UnlinkedExprOperation.forEachPartsWithTypedDeclaration:
           refPtr++;
           break;
         case UnlinkedExprOperation.pushLocalFunctionReference:

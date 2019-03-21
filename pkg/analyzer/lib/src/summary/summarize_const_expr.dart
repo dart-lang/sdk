@@ -612,9 +612,23 @@ abstract class AbstractConstExprSerializer {
           _serialize(parts.identifier);
           _serialize(parts.iterable);
           operations.add(UnlinkedExprOperation.forEachPartsWithIdentifier);
+        } else if (parts is ForEachPartsWithDeclaration) {
+          _serialize(parts.iterable);
+          var type = parts.loopVariable.type;
+          if (type == null) {
+            operations
+                .add(UnlinkedExprOperation.forEachPartsWithUntypedDeclaration);
+          } else {
+            references.add(serializeType(type));
+            operations
+                .add(UnlinkedExprOperation.forEachPartsWithTypedDeclaration);
+          }
+          var name = parts.loopVariable.identifier.name;
+          strings.add(name);
+          pushVariableName(name);
+          ++numVariablesToPop;
         } else {
-          // See https://github.com/dart-lang/sdk/issues/35569
-          throw new StateError('TODO(paulberry)');
+          throw StateError('Unrecognized for parts');
         }
       } else {
         throw StateError('Unrecognized for parts');

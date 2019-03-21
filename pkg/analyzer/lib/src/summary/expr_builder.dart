@@ -362,6 +362,12 @@ class ExprBuilder {
         case UnlinkedExprOperation.forEachPartsWithIdentifier:
           _forEachPartsWithIdentifier();
           break;
+        case UnlinkedExprOperation.forEachPartsWithUntypedDeclaration:
+          _forEachPartsWithDeclaration(false);
+          break;
+        case UnlinkedExprOperation.forEachPartsWithTypedDeclaration:
+          _forEachPartsWithDeclaration(true);
+          break;
         case UnlinkedExprOperation.cascadeSectionBegin:
         case UnlinkedExprOperation.cascadeSectionEnd:
         case UnlinkedExprOperation.pushLocalFunctionReference:
@@ -622,6 +628,22 @@ class ExprBuilder {
     return _buildIdentifierSequence(info);
   }
 
+  void _forEachPartsWithDeclaration(bool hasType) {
+    var iterable = _pop();
+    var name = _uc.strings[stringPtr++];
+    var element = LocalVariableElementImpl(name, -1);
+    var keyword = hasType ? null : Keyword.VAR;
+    var type = hasType ? _newTypeName() : null;
+    var loopVariable = AstTestFactory.declaredIdentifier2(keyword, type, name);
+    loopVariable.identifier.staticElement = element;
+    if (hasType) {
+      element.type = type.type;
+    }
+    _pushNode(
+        AstTestFactory.forEachPartsWithDeclaration(loopVariable, iterable));
+    variablesInScope.push(element);
+  }
+
   void _forEachPartsWithIdentifier() {
     var iterable = _pop();
     SimpleIdentifier identifier = _pop();
@@ -715,6 +737,8 @@ class ExprBuilder {
     var forLoopParts = _popNode() as ForLoopParts;
     if (forLoopParts is ForPartsWithDeclarations) {
       variablesInScope.pop(forLoopParts.variables.variables.length);
+    } else if (forLoopParts is ForEachPartsWithDeclaration) {
+      variablesInScope.pop(1);
     }
     _pushCollectionElement(
         AstTestFactory.forElement(forLoopParts, body, hasAwait: hasAwait));
