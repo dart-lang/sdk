@@ -1371,18 +1371,6 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   image_pages_ = page;
 }
 
-bool PageSpace::IsObjectFromImagePages(dart::RawObject* object) {
-  uword object_addr = RawObject::ToAddr(object);
-  HeapPage* image_page = image_pages_;
-  while (image_page != nullptr) {
-    if (image_page->Contains(object_addr)) {
-      return true;
-    }
-    image_page = image_page->next();
-  }
-  return false;
-}
-
 PageSpaceController::PageSpaceController(Heap* heap,
                                          int heap_growth_ratio,
                                          int heap_growth_max,

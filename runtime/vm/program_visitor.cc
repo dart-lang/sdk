@@ -654,7 +654,7 @@ void ProgramVisitor::DedupLists() {
           if (!function.IsSignatureFunction() &&
               !function.IsClosureFunction() &&
               (function.name() != Symbols::Call().raw()) &&
-              !list_.InVMIsolateHeap()) {
+              !list_.IsReadOnly()) {
             // Parameter types not needed for function type tests.
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Object::dynamic_type());
@@ -669,8 +669,7 @@ void ProgramVisitor::DedupLists() {
       if (!list_.IsNull()) {
         // Preserve parameter names in case of recompilation for the JIT.
         if (FLAG_precompiled_mode) {
-          if (!function.HasOptionalNamedParameters() &&
-              !list_.InVMIsolateHeap()) {
+          if (!function.HasOptionalNamedParameters() && !list_.IsReadOnly()) {
             // Parameter names not needed for resolution.
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Symbols::OptimizedOut());
@@ -683,7 +682,7 @@ void ProgramVisitor::DedupLists() {
     }
 
     RawArray* DedupList(const Array& list) {
-      if (list.InVMIsolateHeap()) {
+      if (list.IsReadOnly()) {
         // Avoid using read-only VM objects for de-duplication.
         return list.raw();
       }

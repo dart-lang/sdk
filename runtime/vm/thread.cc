@@ -740,7 +740,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->InVMIsolateHeap());                                           \
+  ASSERT((expr)->IsReadOnly());                                                \
   if (object.raw() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }

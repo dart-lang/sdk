@@ -76,6 +76,7 @@ void Deserializer::InitializeHeader(RawObject* raw,
   uint32_t tags = 0;
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
+  tags = RawObject::ReadOnlyBit::update(false, tags);
   tags = RawObject::CanonicalBit::update(is_canonical, tags);
   tags = RawObject::OldBit::update(true, tags);
   tags = RawObject::OldAndNotMarkedBit::update(true, tags);
@@ -1760,8 +1761,7 @@ class RODataSerializationCluster : public SerializationCluster {
     // will be loaded into read-only memory. Extra bytes due to allocation
     // rounding need to be deterministically set for reliable deduplication in
     // shared images.
-    if (object->InVMIsolateHeap() ||
-        s->isolate()->heap()->old_space()->IsObjectFromImagePages(object)) {
+    if (object->IsReadOnly()) {
       // This object is already read-only.
     } else {
       Object::FinalizeReadOnlyObject(object);

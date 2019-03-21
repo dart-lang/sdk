@@ -3113,7 +3113,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
         argument_names_(argument_names),
         arguments_(arguments),
         token_pos_(token_pos) {
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
+    ASSERT(argument_names.IsZoneHandle() || argument_names.IsReadOnly());
   }
 
   RawString* Selector() {

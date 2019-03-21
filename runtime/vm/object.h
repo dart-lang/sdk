@@ -307,9 +307,9 @@ class Object {
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
 #if defined(DEBUG)
-  bool InVMIsolateHeap() const;
+  bool IsReadOnly() const;
 #else
-  bool InVMIsolateHeap() const { return raw()->InVMIsolateHeap(); }
+  bool IsReadOnly() const { return raw()->IsReadOnly(); }
 #endif  // DEBUG
 
   // Print the object on stdout for debugging.

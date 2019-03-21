@@ -302,7 +302,7 @@ class HashTable : public ValueObject {
   }
   void UpdateCollisions(intptr_t collisions) const {
     if (KeyTraits::ReportStats()) {
-      if (data_->raw()->InVMIsolateHeap()) {
+      if (data_->raw()->IsReadOnly()) {
         return;
       }
       AdjustSmiValueAt(kNumProbesIndex, collisions + 1);
