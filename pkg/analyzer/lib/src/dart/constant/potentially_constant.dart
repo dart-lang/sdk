@@ -220,6 +220,17 @@ class _Collector {
       }
     }
 
+    if (element is ParameterElement) {
+      var enclosing = element.enclosingElement;
+      if (enclosing is ConstructorElement && enclosing.isConst) {
+        if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
+          return;
+        }
+      }
+      nodes.add(node);
+      return;
+    }
+
     if (element is VariableElement) {
       if (!element.isConst) {
         nodes.add(node);

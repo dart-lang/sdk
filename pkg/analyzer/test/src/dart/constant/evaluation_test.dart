@@ -573,9 +573,9 @@ const c = false ? 1 : new C();
   test_visitConditionalExpression_lazy_false_invalid_int() async {
     await _resolveTestCode('''
 const c = false ? new C() : 0;
-class C {}
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -599,9 +599,10 @@ const c = true ? 1 : 0;
 
   test_visitConditionalExpression_lazy_true_int_invalid() async {
     await _resolveTestCode('''
-const c = true ? 1 : new C();
+const c = true ? 1: new C();
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 1);
   }

@@ -688,6 +688,29 @@ main() {
     );
   }
 
+  test_simpleIdentifier_parameterOfConstConstructor_inBody() async {
+    await _assertNotConst(
+      r'''
+class C {
+  const C(int a) {
+    var x = a + 1;
+  }
+}
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a +')],
+    );
+  }
+
+  test_simpleIdentifier_parameterOfConstConstructor_inInitializer() async {
+    await _assertConst(r'''
+class C {
+  final int f;
+  const C(int a) : f = a + 1;
+}
+''', () => findNode.constructorFieldInitializer('f =').expression);
+  }
+
   test_simpleIdentifier_topVar_const() async {
     await _assertConst(r'''
 const a = 0;
