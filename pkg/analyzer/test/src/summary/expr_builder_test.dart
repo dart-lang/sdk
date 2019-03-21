@@ -303,6 +303,24 @@ class C {
         expectedText: expectedText, extraDeclarations: 'int i;');
   }
 
+  void test_list_for_each_with_identifier() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_each_with_identifier_await() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[await for (i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
   void test_list_for_empty_condition() {
     experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i = 0;; i++) i]';

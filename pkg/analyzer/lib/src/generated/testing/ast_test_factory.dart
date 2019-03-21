@@ -509,8 +509,11 @@ class AstTestFactory {
           iterable: iterable);
 
   static ForElement forElement(
-          ForLoopParts forLoopParts, CollectionElement body) =>
+          ForLoopParts forLoopParts, CollectionElement body,
+          {bool hasAwait: false}) =>
       astFactory.forElement(
+          awaitKeyword:
+              hasAwait ? TokenFactory.tokenFromKeyword(Keyword.AWAIT) : null,
           forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
           leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           forLoopParts: forLoopParts,

@@ -333,7 +333,10 @@ class ExprBuilder {
           _pushForParts();
           break;
         case UnlinkedExprOperation.forElement:
-          _pushForElement();
+          _pushForElement(false);
+          break;
+        case UnlinkedExprOperation.forElementWithAwait:
+          _pushForElement(true);
           break;
         case UnlinkedExprOperation.pushEmptyExpression:
           _push(null);
@@ -355,6 +358,9 @@ class ExprBuilder {
           SimpleIdentifier identifier = AstTestFactory.identifier3(name);
           identifier.staticElement = variablesInScope[name];
           _push(_createAssignment(identifier));
+          break;
+        case UnlinkedExprOperation.forEachPartsWithIdentifier:
+          _forEachPartsWithIdentifier();
           break;
         case UnlinkedExprOperation.cascadeSectionBegin:
         case UnlinkedExprOperation.cascadeSectionEnd:
@@ -616,6 +622,12 @@ class ExprBuilder {
     return _buildIdentifierSequence(info);
   }
 
+  void _forEachPartsWithIdentifier() {
+    var iterable = _pop();
+    SimpleIdentifier identifier = _pop();
+    _pushNode(AstTestFactory.forEachPartsWithIdentifier(identifier, iterable));
+  }
+
   void _forInitializerDeclarations(bool hasType) {
     var count = _uc.ints[intPtr++];
     var variables = List<VariableDeclaration>.filled(count, null);
@@ -698,13 +710,14 @@ class ExprBuilder {
     _push(AstTestFactory.propertyAccess(target, propertyNode));
   }
 
-  void _pushForElement() {
+  void _pushForElement(bool hasAwait) {
     var body = _popCollectionElement();
     var forLoopParts = _popNode() as ForLoopParts;
     if (forLoopParts is ForPartsWithDeclarations) {
       variablesInScope.pop(forLoopParts.variables.variables.length);
     }
-    _pushCollectionElement(AstTestFactory.forElement(forLoopParts, body));
+    _pushCollectionElement(
+        AstTestFactory.forElement(forLoopParts, body, hasAwait: hasAwait));
   }
 
   void _pushForParts() {

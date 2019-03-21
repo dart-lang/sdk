@@ -1041,7 +1041,15 @@ enum UnlinkedExprOperation : byte {
   /// `value` is not present in the stack, so it should not be popped and the
   /// corresponding value of the parameter after/before update is pushed onto
   /// the stack instead.
-  assignToParameter
+  assignToParameter,
+
+  /// Pop from the stack an identifier and an expression, and create for-each
+  /// parts of the form `identifier in expression`.
+  forEachPartsWithIdentifier,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElementWithAwait
 }
 
 /// Enum used to indicate the kind of a parameter.

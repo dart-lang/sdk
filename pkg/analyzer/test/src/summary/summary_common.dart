@@ -7692,6 +7692,61 @@ final v = f<int, String>();
         ]);
   }
 
+  test_expr_list_for_each_with_identifier() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('int i; var v = [for (i in []) i];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '[for (i in []) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.makeUntypedList,
+          UnlinkedExprOperation.forEachPartsWithIdentifier,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElement,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [
+          0,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
+  test_expr_list_for_each_with_identifier_await() {
+    experimentStatus = ExperimentStatus(
+        control_flow_collections: true, spread_collections: true);
+    UnlinkedVariable variable =
+        serializeVariableText('int i; var v = [await for (i in []) i];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, '[await for (i in []) i]',
+        isValidConst: false,
+        operators: [
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.makeUntypedList,
+          UnlinkedExprOperation.forEachPartsWithIdentifier,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.forElementWithAwait,
+          UnlinkedExprOperation.makeUntypedList
+        ],
+        ints: [
+          0,
+          1
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor),
+          (EntityRef r) => checkTypeRef(r, null, 'i',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
+  }
+
   test_expr_list_for_empty_condition() {
     experimentStatus = ExperimentStatus(
         control_flow_collections: true, spread_collections: true);

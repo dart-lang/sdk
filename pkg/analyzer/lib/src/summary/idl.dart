@@ -3954,6 +3954,14 @@ enum UnlinkedExprOperation {
   /// corresponding value of the parameter after/before update is pushed onto
   /// the stack instead.
   assignToParameter,
+
+  /// Pop from the stack an identifier and an expression, and create for-each
+  /// parts of the form `identifier in expression`.
+  forEachPartsWithIdentifier,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElementWithAwait,
 }
 
 /// Unlinked summary information about an import declaration.

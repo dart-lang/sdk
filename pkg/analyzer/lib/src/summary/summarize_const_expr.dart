@@ -571,6 +571,7 @@ abstract class AbstractConstExprSerializer {
         operations.add(UnlinkedExprOperation.ifElseElement);
       }
     } else if (element is ForElement) {
+      isValidConst = false;
       var parts = element.forLoopParts;
       int numVariablesToPop = 0;
       if (parts is ForParts) {
@@ -606,13 +607,23 @@ abstract class AbstractConstExprSerializer {
         }
         operations.add(UnlinkedExprOperation.forParts);
         ints.add(parts.updaters.length);
+      } else if (parts is ForEachParts) {
+        if (parts is ForEachPartsWithIdentifier) {
+          _serialize(parts.identifier);
+          _serialize(parts.iterable);
+          operations.add(UnlinkedExprOperation.forEachPartsWithIdentifier);
+        } else {
+          // See https://github.com/dart-lang/sdk/issues/35569
+          throw new StateError('TODO(paulberry)');
+        }
       } else {
-        // See https://github.com/dart-lang/sdk/issues/35569
-        throw new StateError('TODO(paulberry)');
+        throw StateError('Unrecognized for parts');
       }
       _serializeCollectionElement(element.body);
       popVariableNames(numVariablesToPop);
-      operations.add(UnlinkedExprOperation.forElement);
+      operations.add(element.awaitKeyword == null
+          ? UnlinkedExprOperation.forElement
+          : UnlinkedExprOperation.forElementWithAwait);
     } else {
       throw new StateError('Unsupported CollectionElement: $element');
     }
