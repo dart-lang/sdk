@@ -7,17 +7,24 @@ main() {
       1,
       if (oracle()) 2,
       if (oracle()) 3 else -1,
-      if (oracle()) if (oracle()) 4
+      if (oracle()) if (oracle()) 4,
   ];
   final aSet = <int>{
       1,
       if (oracle()) 2,
       if (oracle()) 3 else -1,
-      if (oracle()) if (oracle()) 4
+      if (oracle()) if (oracle()) 4,
+  };
+  final aMap = <int, int>{
+    1: 1,
+    if (oracle()) 2: 2,
+    if (oracle()) 3: 3 else -1: -1,
+    if (oracle()) if (oracle()) 4: 4,
   };
 
   print(aList);
   print(aSet);
+  print(aMap);
 }
 
 oracle() => true;

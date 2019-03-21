@@ -34,7 +34,7 @@ import '../problems.dart' show getFileUri, unsupported;
 /// appear in arbitrary expression contexts in the Kernel program.  They can
 /// only appear as elements in list or set literals.  They are translated into
 /// a lower-level representation and never serialized to .dill files.
-mixin CollectionElement on Expression {
+mixin ControlFlowElement on Expression {
   /// Spread and contol-flow elements are not expressions and do not have a
   /// static type.
   @override
@@ -51,7 +51,7 @@ mixin CollectionElement on Expression {
 }
 
 /// A spread element in a list or set literal.
-class SpreadElement extends Expression with CollectionElement {
+class SpreadElement extends Expression with ControlFlowElement {
   Expression expression;
   bool isNullAware;
 
@@ -74,7 +74,7 @@ class SpreadElement extends Expression with CollectionElement {
 }
 
 /// An 'if' element in a list or set literal.
-class IfElement extends Expression with CollectionElement {
+class IfElement extends Expression with ControlFlowElement {
   Expression condition;
   Expression then;
   Expression otherwise;
@@ -110,7 +110,7 @@ class IfElement extends Expression with CollectionElement {
 }
 
 /// A 'for' element in a list or set literal.
-class ForElement extends Expression with CollectionElement {
+class ForElement extends Expression with ControlFlowElement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -147,7 +147,7 @@ class ForElement extends Expression with CollectionElement {
 }
 
 /// A 'for-in' element in a list or set literal.
-class ForInElement extends Expression with CollectionElement {
+class ForInElement extends Expression with ControlFlowElement {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Expression body;
@@ -181,7 +181,7 @@ class ForInElement extends Expression with CollectionElement {
   }
 }
 
-mixin _FakeMapEntryMixin implements MapEntry {
+mixin ControlFlowMapEntry implements MapEntry {
   @override
   Expression get key => throw UnsupportedError('SpreadMapEntry.key getter');
 
@@ -205,7 +205,7 @@ mixin _FakeMapEntryMixin implements MapEntry {
 }
 
 /// A spread element in a map literal.
-class SpreadMapEntry extends TreeNode with _FakeMapEntryMixin {
+class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression expression;
   bool isNullAware;
 
@@ -230,7 +230,7 @@ class SpreadMapEntry extends TreeNode with _FakeMapEntryMixin {
 }
 
 /// An 'if' element in a map literal.
-class IfMapEntry extends TreeNode with _FakeMapEntryMixin {
+class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression condition;
   MapEntry then;
   MapEntry otherwise;
@@ -266,7 +266,7 @@ class IfMapEntry extends TreeNode with _FakeMapEntryMixin {
 }
 
 /// A 'for' element in a map literal.
-class ForMapEntry extends TreeNode with _FakeMapEntryMixin {
+class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -303,7 +303,7 @@ class ForMapEntry extends TreeNode with _FakeMapEntryMixin {
 }
 
 /// A 'for-in' element in a map literal.
-class ForInMapEntry extends TreeNode with _FakeMapEntryMixin {
+class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   MapEntry body;

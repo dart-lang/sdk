@@ -11,11 +11,11 @@ library;
 //       ^^
 //
 // pkg/front_end/testcases/control_flow_collection.dart:10:21: Error: Unexpected token 'if'.
-//       if (oracle()) if (oracle()) 4
+//       if (oracle()) if (oracle()) 4,
 //                     ^^
 //
 // pkg/front_end/testcases/control_flow_collection.dart:10:7: Error: Unexpected token 'if'.
-//       if (oracle()) if (oracle()) 4
+//       if (oracle()) if (oracle()) 4,
 //       ^^
 //
 // pkg/front_end/testcases/control_flow_collection.dart:14:7: Error: Unexpected token 'if'.
@@ -27,12 +27,28 @@ library;
 //       ^^
 //
 // pkg/front_end/testcases/control_flow_collection.dart:16:21: Error: Unexpected token 'if'.
-//       if (oracle()) if (oracle()) 4
+//       if (oracle()) if (oracle()) 4,
 //                     ^^
 //
 // pkg/front_end/testcases/control_flow_collection.dart:16:7: Error: Unexpected token 'if'.
-//       if (oracle()) if (oracle()) 4
+//       if (oracle()) if (oracle()) 4,
 //       ^^
+//
+// pkg/front_end/testcases/control_flow_collection.dart:20:5: Error: Unexpected token 'if'.
+//     if (oracle()) 2: 2,
+//     ^^
+//
+// pkg/front_end/testcases/control_flow_collection.dart:21:5: Error: Unexpected token 'if'.
+//     if (oracle()) 3: 3 else -1: -1,
+//     ^^
+//
+// pkg/front_end/testcases/control_flow_collection.dart:22:19: Error: Unexpected token 'if'.
+//     if (oracle()) if (oracle()) 4: 4,
+//                   ^^
+//
+// pkg/front_end/testcases/control_flow_collection.dart:22:5: Error: Unexpected token 'if'.
+//     if (oracle()) if (oracle()) 4: 4,
+//     ^^
 //
 import self as self;
 import "dart:core" as core;
@@ -40,8 +56,10 @@ import "dart:core" as core;
 static method main() → dynamic {
   final dynamic aList = <core::int>[1];
   final dynamic aSet = <core::int>{1};
+  final dynamic aMap = <core::int, core::int>{1: 1};
   core::print(aList);
   core::print(aSet);
+  core::print(aMap);
 }
 static method oracle() → dynamic
   return true;

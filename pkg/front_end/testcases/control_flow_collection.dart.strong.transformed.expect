@@ -30,8 +30,22 @@ static method main() → dynamic {
       if(self::oracle())
         #t2.{core::Set::add}(4);
   } =>#t2;
+  final core::Map<core::int, core::int> aMap = block {
+    final core::Map<core::int, core::int> #t3 = <core::int, core::int>{};
+    #t3.{core::Map::[]=}(1, 1);
+    if(self::oracle())
+      #t3.{core::Map::[]=}(2, 2);
+    if(self::oracle())
+      #t3.{core::Map::[]=}(3, 3);
+    else
+      #t3.{core::Map::[]=}(1.{core::int::unary-}(), 1.{core::int::unary-}());
+    if(self::oracle())
+      if(self::oracle())
+        #t3.{core::Map::[]=}(4, 4);
+  } =>#t3;
   core::print(aList);
   core::print(aSet);
+  core::print(aMap);
 }
 static method oracle() → dynamic
   return true;
