@@ -88,35 +88,20 @@ class CoercionReifier extends GeneralizingAstVisitor<void> {
       // Visit other children.
       forLoopParts.iterable.accept(this);
       node.body.accept(this);
-
-      // If needed, assert a cast inside the body before the variable is read.
-      SimpleIdentifier variable;
-      if (forLoopParts is ForEachPartsWithIdentifier) {
-        variable = forLoopParts.identifier;
-      } else if (forLoopParts is ForEachPartsWithDeclaration) {
-        variable = forLoopParts.loopVariable.identifier;
-      } else {
-        throw new StateError('Unrecognized for loop parts');
-      }
-      var castType = ast_properties.getImplicitCast(variable);
-      if (castType != null) {
-        // Build the cast. We will place this cast in the body, so need to clone
-        // the variable's AST node and clear out its static type (otherwise we
-        // will optimize away the cast).
-        var cast = castExpression(
-            _clone(variable)..staticType = DynamicTypeImpl.instance, castType);
-
-        var body = node.body;
-        var blockBody = <Statement>[ast.expressionStatement(cast)];
-        if (body is Block) {
-          blockBody.addAll(body.statements);
-        } else {
-          blockBody.add(body);
-        }
-        _replaceNode(node, body, ast.block(blockBody));
-      }
     } else {
       super.visitForStatement(node);
+    }
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachParts) {
+      // Visit other children.
+      forLoopParts.iterable.accept(this);
+      node.body.accept(this);
+    } else {
+      super.visitForElement(node);
     }
   }
 

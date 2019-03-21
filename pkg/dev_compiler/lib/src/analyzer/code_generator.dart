@@ -5435,11 +5435,7 @@ class CodeGenerator extends Object
     return JS.Do(_visitScope(node.body), _visitTest(node.condition));
   }
 
-  JS.Statement _emitAwaitFor(
-      SimpleIdentifier identifier,
-      DeclaredIdentifier loopVariable,
-      Expression iterable,
-      JS.Statement jsBody) {
+  JS.Statement _emitAwaitFor(ForEachParts forParts, JS.Statement jsBody) {
     // Emits `await for (var value in stream) ...`, which desugars as:
     //
     // let iter = new StreamIterator(stream);
@@ -5462,14 +5458,19 @@ class CodeGenerator extends Object
     var createStreamIter = _emitInstanceCreationExpression(
         streamIterator.element.unnamedConstructor,
         streamIterator,
-        [_visitExpression(iterable)]);
+        [_visitExpression(forParts.iterable)]);
     var iter = JS.TemporaryId('iter');
-    var variable = identifier ?? loopVariable.identifier;
-    var init = _visitExpression(identifier);
-    if (init == null) {
+    SimpleIdentifier variable;
+    JS.Expression init;
+    if (forParts is ForEachPartsWithIdentifier) {
+      variable = forParts.identifier;
+      init = js
+          .call('# = #.current', [_visitExpression(forParts.identifier), iter]);
+    } else if (forParts is ForEachPartsWithDeclaration) {
+      variable = forParts.loopVariable.identifier;
       init = js.call('let # = #.current', [_emitVariableDef(variable), iter]);
     } else {
-      init = js.call('# = #.current', [init, iter]);
+      throw new StateError('Unrecognized for loop parts');
     }
     return js.statement(
         '{'
@@ -6480,35 +6481,33 @@ class CodeGenerator extends Object
   @override
   visitWithClause(node) => _unreachable(node);
 
-  // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
-  // Should just accept a ForParts as an arg with fewer casts.
-  JS.For _emitFor(Expression initialization, VariableDeclarationList variables,
-      Expression condition, Iterable<Expression> updaters, JS.Statement body) {
-    var init = _visitExpression(initialization) ??
-        visitVariableDeclarationList(variables);
-    JS.Expression update;
-    if (updaters != null && updaters.isNotEmpty) {
-      update =
-          JS.Expression.binary(updaters.map(_visitExpression).toList(), ',')
-              .toVoidExpression();
+  JS.For _emitFor(ForParts forParts, JS.Statement body) {
+    JS.Expression init;
+    if (forParts is ForPartsWithExpression)
+      init = _visitExpression(forParts.initialization);
+    else if (forParts is ForPartsWithDeclarations) {
+      init = visitVariableDeclarationList(forParts.variables);
+    } else {
+      throw new StateError('Unrecognized for loop parts');
     }
-
-    return JS.For(init, _visitTest(condition), update, body);
+    JS.Expression update;
+    if (forParts.updaters != null && forParts.updaters.isNotEmpty) {
+      update = JS.Expression.binary(
+              forParts.updaters.map(_visitExpression).toList(), ',')
+          .toVoidExpression();
+    }
+    return JS.For(init, _visitTest(forParts.condition), update, body);
   }
 
-  // TODO(nshahan) Simplify when control-flow-collections experiments are removed.
-  // Should just accept a ForEachParts as an arg with fewer casts.
-  JS.Statement _emitForEach(
-      SimpleIdentifier identifier,
-      DeclaredIdentifier loopVariable,
-      Expression iterable,
-      JS.Statement jsBody) {
-    var jsLeftExpression = _visitExpression(identifier);
-    var jsIterable = _visitExpression(iterable);
-    if (jsLeftExpression == null) {
-      var id = _emitVariableDef(loopVariable.identifier);
+  JS.Statement _emitForEach(ForEachParts forParts, JS.Statement jsBody) {
+    var jsIterable = _visitExpression(forParts.iterable);
+    JS.Expression jsLeftExpression;
+    if (forParts is ForEachPartsWithIdentifier) {
+      jsLeftExpression = _visitExpression(forParts.identifier);
+    } else if (forParts is ForEachPartsWithDeclaration) {
+      var id = _emitVariableDef(forParts.loopVariable.identifier);
       jsLeftExpression = js.call('let #', id);
-      if (_annotatedNullCheck(loopVariable.declaredElement)) {
+      if (_annotatedNullCheck(forParts.loopVariable.declaredElement)) {
         jsBody =
             JS.Block([_nullParameterCheck(JS.Identifier(id.name)), jsBody]);
       }
@@ -6519,6 +6518,8 @@ class CodeGenerator extends Object
           JS.ForOf(jsLeftExpression, temp, jsBody)
         ]);
       }
+    } else {
+      throw new StateError('Unrecognized for loop parts');
     }
     return JS.ForOf(jsLeftExpression, jsIterable, jsBody);
   }
@@ -6530,7 +6531,6 @@ class CodeGenerator extends Object
     var jsBody = _isUiAsCodeElement(node.body)
         ? node.body.accept(this)
         : _visitNestedCollectionElement(node.body);
-
     return _forAdaptor(node.forLoopParts, node.awaitKeyword, jsBody);
   }
 
@@ -6564,29 +6564,45 @@ class CodeGenerator extends Object
   JS.Statement visitForStatement(ForStatement node) =>
       _forAdaptor(node.forLoopParts, node.awaitKeyword, _visitScope(node.body));
 
-  // TODO(nshahan) Simplify when control-flow-collections experiment is removed.
   JS.Statement _forAdaptor(
       ForLoopParts forParts, Token awaitKeyword, JS.Statement jsBody) {
-    if (forParts is ForPartsWithExpression) {
-      return _emitFor(forParts.initialization, null, forParts.condition,
-          forParts.updaters, jsBody);
-    } else if (forParts is ForPartsWithDeclarations) {
-      return _emitFor(null, forParts.variables, forParts.condition,
-          forParts.updaters, jsBody);
-    } else if (awaitKeyword == null) {
-      if (forParts is ForEachPartsWithIdentifier) {
-        return _emitForEach(
-            forParts.identifier, null, forParts.iterable, jsBody);
-      } else if (forParts is ForEachPartsWithDeclaration) {
-        return _emitForEach(
-            null, forParts.loopVariable, forParts.iterable, jsBody);
+    /// Returns a new scoped block starting with [first] followed by [rest].
+    ///
+    /// Performs one level of scope flattening when [rest] is already a scoped
+    /// block.
+    JS.Block insertFirst(JS.Statement first, JS.Statement rest) {
+      var bodyStatements = [first];
+      if (rest is JS.Block) {
+        bodyStatements.addAll(rest.statements);
+      } else {
+        bodyStatements.add(rest);
       }
-    } else if (forParts is ForEachPartsWithIdentifier) {
-      return _emitAwaitFor(
-          forParts.identifier, null, forParts.iterable, jsBody);
-    } else if (forParts is ForEachPartsWithDeclaration) {
-      return _emitAwaitFor(
-          null, forParts.loopVariable, forParts.iterable, jsBody);
+      return JS.Block(bodyStatements);
+    }
+
+    if (forParts is ForParts) {
+      return _emitFor(forParts, jsBody);
+    } else if (forParts is ForEachParts) {
+      // If needed, assert a cast inside the body before the variable is read.
+      SimpleIdentifier variable;
+      if (forParts is ForEachPartsWithIdentifier) {
+        variable = forParts.identifier;
+      } else if (forParts is ForEachPartsWithDeclaration) {
+        variable = forParts.loopVariable.identifier;
+      } else {
+        throw new StateError('Unrecognized for loop parts');
+      }
+      var castType = getImplicitCast(variable);
+      if (castType != null) {
+        var castStatement =
+            _emitCast(castType, _visitExpression(variable)).toStatement();
+        jsBody = insertFirst(castStatement, jsBody);
+      }
+      if (awaitKeyword == null) {
+        return _emitForEach(forParts, jsBody);
+      } else {
+        return _emitAwaitFor(forParts, jsBody);
+      }
     }
     return _unreachable(forParts);
   }
