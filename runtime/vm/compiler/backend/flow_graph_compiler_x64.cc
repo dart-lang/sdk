@@ -31,7 +31,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& stub =
         Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
-    if (!stub.IsReadOnly()) {
+    if (!stub.InVMIsolateHeap()) {
       assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
         const intptr_t offset_into_target =
             Thread::WriteBarrierWrappersOffsetForRegister(reg);
@@ -42,7 +42,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& array_stub =
         Code::ZoneHandle(object_store->array_write_barrier_stub());
-    if (!array_stub.IsReadOnly()) {
+    if (!array_stub.InVMIsolateHeap()) {
       assembler_->generate_invoke_array_write_barrier_ = [&]() {
         AddPcRelativeCallStubTarget(array_stub);
         assembler_->GenerateUnRelocatedPcRelativeCall();
@@ -941,7 +941,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      !stub.IsReadOnly()) {
+      !stub.InVMIsolateHeap()) {
     AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall();
     EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);

@@ -1008,7 +1008,6 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
     ASSERT(!obj->IsForwardingCorpse());
     if (!obj->IsFreeListElement()) {
       obj->SetMarkBitUnsynchronized();
-      obj->SetReadOnlyUnsynchronized();
       Object::FinalizeReadOnlyObject(obj);
 #if defined(HASH_IN_OBJECT_HEADER)
       // These objects end up in the read-only VM isolate which is shared
@@ -1198,7 +1197,6 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::ReadOnlyBit::update(false, new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -1229,7 +1227,6 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::ReadOnlyBit::update(false, new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -2014,8 +2011,8 @@ RawError* Object::Init(Isolate* isolate,
 }
 
 #if defined(DEBUG)
-bool Object::IsReadOnly() const {
-  if (FLAG_verify_handles && raw()->IsReadOnly()) {
+bool Object::InVMIsolateHeap() const {
+  if (FLAG_verify_handles && raw()->InVMIsolateHeap()) {
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
     uword addr = RawObject::ToAddr(raw());
     if (!vm_isolate_heap->Contains(addr)) {
@@ -2024,7 +2021,7 @@ bool Object::IsReadOnly() const {
       ASSERT(vm_isolate_heap->Contains(addr));
     }
   }
-  return raw()->IsReadOnly();
+  return raw()->InVMIsolateHeap();
 }
 #endif  // DEBUG
 
@@ -2050,7 +2047,6 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   ASSERT(class_id != kIllegalCid);
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::ReadOnlyBit::update(false, tags);
   const bool is_old =
       (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   tags = RawObject::OldBit::update(is_old, tags);
@@ -16058,7 +16054,7 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
       return result.raw();
     }
     if (IsNew()) {
-      ASSERT((isolate == Dart::vm_isolate()) || !IsReadOnly());
+      ASSERT((isolate == Dart::vm_isolate()) || !InVMIsolateHeap());
       // Create a canonical object in old space.
       result ^= Object::Clone(*this, Heap::kOld);
     } else {
@@ -17403,7 +17399,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     ASSERT(!IsFunctionType());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
-      ASSERT(!cls.raw()->IsReadOnly() || (isolate == Dart::vm_isolate()));
+      ASSERT(!cls.raw()->InVMIsolateHeap() || (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
       type_args = type_args.Canonicalize(trail);
