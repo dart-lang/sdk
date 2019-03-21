@@ -47,7 +47,18 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "Function", function.ToQualifiedCString());
 #endif  // defined(DEBUG)
-#endif  // !defined(PRODUCT)
+#endif  // !defined(SUPPORT_TIMELINE)
+
+  switch (function.kind()) {
+    case RawFunction::kImplicitGetter:
+      function.AttachBytecode(Object::implicit_getter_bytecode());
+      return;
+    case RawFunction::kImplicitSetter:
+      function.AttachBytecode(Object::implicit_setter_bytecode());
+      return;
+    default: {
+    }
+  }
 
   const intptr_t node_offset = function.kernel_offset();
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);

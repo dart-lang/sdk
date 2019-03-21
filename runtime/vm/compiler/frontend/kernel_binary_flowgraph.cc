@@ -929,7 +929,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     if (!function.HasBytecode()) {
       bytecode_metadata_helper_.ReadMetadata(function);
     }
-    if (function.HasBytecode()) {
+    if (function.HasBytecode() &&
+        (function.kind() != RawFunction::kImplicitGetter) &&
+        (function.kind() != RawFunction::kImplicitSetter)) {
       BytecodeFlowGraphBuilder bytecode_compiler(
           flow_graph_builder_, parsed_function(),
           &(flow_graph_builder_->ic_data_array_));

@@ -877,6 +877,28 @@ void Object::Init(Isolate* isolate) {
   // needs to be created earlier as VM isolate snapshot reader references it
   // before Object::FinalizeVMIsolate.
 
+  static const KBCInstr getter_instr[2] = {
+      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitGetter),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *implicit_getter_bytecode_ =
+      Bytecode::New(reinterpret_cast<uword>(getter_instr), sizeof(getter_instr),
+                    -1, Object::empty_object_pool());
+  implicit_getter_bytecode_->set_pc_descriptors(Object::empty_descriptors());
+  implicit_getter_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
+  static const KBCInstr setter_instr[2] = {
+      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitSetter),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *implicit_setter_bytecode_ =
+      Bytecode::New(reinterpret_cast<uword>(setter_instr), sizeof(setter_instr),
+                    -1, Object::empty_object_pool());
+  implicit_setter_bytecode_->set_pc_descriptors(Object::empty_descriptors());
+  implicit_setter_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -934,6 +956,10 @@ void Object::Init(Isolate* isolate) {
   ASSERT(extractor_parameter_types_->IsArray());
   ASSERT(!extractor_parameter_names_->IsSmi());
   ASSERT(extractor_parameter_names_->IsArray());
+  ASSERT(!implicit_getter_bytecode_->IsSmi());
+  ASSERT(implicit_getter_bytecode_->IsBytecode());
+  ASSERT(!implicit_setter_bytecode_->IsSmi());
+  ASSERT(implicit_setter_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(Isolate* isolate) {
@@ -5636,8 +5662,6 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     }
   }
   switch (kind()) {
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitSetter:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
@@ -5655,8 +5679,11 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
 void Function::AttachBytecode(const Bytecode& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(FLAG_enable_interpreter || FLAG_use_bytecode_compiler);
+  ASSERT(!value.IsNull());
   // Finish setting up code before activating it.
-  value.set_function(*this);
+  if (!value.IsReadOnly()) {
+    value.set_function(*this);
+  }
   StorePointer(&raw_ptr()->bytecode_, value.raw());
 
   // We should not have loaded the bytecode if the function had code.
@@ -14926,7 +14953,6 @@ void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 RawBytecode* Bytecode::New(uword instructions,
                            intptr_t instructions_size,
                            intptr_t instructions_offset,
@@ -14947,10 +14973,12 @@ RawBytecode* Bytecode::New(uword instructions,
   }
   return result.raw();
 }
-#endif
 
 RawExternalTypedData* Bytecode::GetBinary(Zone* zone) const {
   const Function& func = Function::Handle(zone, function());
+  if (func.IsNull()) {
+    return ExternalTypedData::null();
+  }
   const Script& script = Script::Handle(zone, func.script());
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(zone, script.kernel_program_info());
@@ -14986,6 +15014,12 @@ const char* Bytecode::ToCString() const {
 }
 
 const char* Bytecode::Name() const {
+  if (raw() == Object::implicit_getter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_ImplicitGetter";
+  } else if (raw() == Object::implicit_setter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSetter";
+  }
+
   Zone* zone = Thread::Current()->zone();
   const Function& fun = Function::Handle(zone, function());
   ASSERT(!fun.IsNull());
@@ -14995,6 +15029,12 @@ const char* Bytecode::Name() const {
 }
 
 const char* Bytecode::QualifiedName() const {
+  if (raw() == Object::implicit_getter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal__ImplicitGetter";
+  } else if (raw() == Object::implicit_setter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal__ImplicitSetter";
+  }
+
   Zone* zone = Thread::Current()->zone();
   const Function& fun = Function::Handle(zone, function());
   ASSERT(!fun.IsNull());

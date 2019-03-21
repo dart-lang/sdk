@@ -320,7 +320,7 @@ void ProgramVisitor::DedupPcDescriptors() {
 
     void Visit(const Function& function) {
       bytecode_ = function.bytecode();
-      if (!bytecode_.IsNull()) {
+      if (!bytecode_.IsNull() && !bytecode_.IsReadOnly()) {
         pc_descriptor_ = bytecode_.pc_descriptors();
         if (!pc_descriptor_.IsNull()) {
           pc_descriptor_ = DedupPcDescriptor(pc_descriptor_);

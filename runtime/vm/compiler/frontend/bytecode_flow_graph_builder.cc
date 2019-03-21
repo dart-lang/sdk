@@ -343,7 +343,7 @@ void BytecodeFlowGraphBuilder::BuildInstruction(KernelBytecode::Opcode opcode) {
     Build##name();                                                             \
     break;
 
-    KERNEL_BYTECODES_LIST(BUILD_BYTECODE_CASE)
+    PUBLIC_KERNEL_BYTECODES_LIST(BUILD_BYTECODE_CASE)
 
 #undef BUILD_BYTECODE_CASE
     default:

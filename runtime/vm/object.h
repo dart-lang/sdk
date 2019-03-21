@@ -396,6 +396,8 @@ class Object {
   V(ExceptionHandlers, empty_exception_handlers)                               \
   V(Array, extractor_parameter_types)                                          \
   V(Array, extractor_parameter_names)                                          \
+  V(Bytecode, implicit_getter_bytecode)                                        \
+  V(Bytecode, implicit_setter_bytecode)                                        \
   V(Instance, sentinel)                                                        \
   V(Instance, transition_sentinel)                                             \
   V(Instance, unknown_constant)                                                \
@@ -5246,12 +5248,10 @@ class Bytecode : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawBytecode));
   }
-#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawBytecode* New(uword instructions,
                           intptr_t instructions_size,
                           intptr_t instructions_offset,
                           const ObjectPool& object_pool);
-#endif
 
   RawExternalTypedData* GetBinary(Zone* zone) const;
 
