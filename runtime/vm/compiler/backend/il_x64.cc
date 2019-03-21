@@ -3609,10 +3609,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       __ cqo();         // Sign extend RAX -> RDX:RAX.
       __ idivq(right);  //  RAX: quotient, RDX: remainder.
-      // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-      // case we cannot tag the result.
-      __ CompareImmediate(result, Immediate(0x4000000000000000));
-      __ j(EQUAL, deopt);
+      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+        // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+        // case we cannot tag the result.
+        __ CompareImmediate(result, Immediate(0x4000000000000000));
+        __ j(EQUAL, deopt);
+      }
       __ Bind(&done);
       __ SmiTag(result);
       break;

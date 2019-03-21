@@ -1839,6 +1839,14 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
     case Token::kMOD:
       return RangeUtils::CanBeZero(right_range());
 
+    case Token::kTRUNCDIV:
+#if defined(TARGET_ARCH_DBC)
+      return true;
+#else
+      return RangeUtils::CanBeZero(right_range()) ||
+             RangeUtils::Overlaps(right_range(), -1, -1);
+#endif
+
     default:
       return can_overflow();
   }

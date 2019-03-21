@@ -2328,6 +2328,31 @@ void Range::Mul(const Range* left_range,
   *result_max = RangeBoundary::PositiveInfinity();
 }
 
+void Range::TruncDiv(const Range* left_range,
+                     const Range* right_range,
+                     RangeBoundary* result_min,
+                     RangeBoundary* result_max) {
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
+
+  if (left_range->OnlyGreaterThanOrEqualTo(0) &&
+      right_range->OnlyGreaterThanOrEqualTo(1)) {
+    const int64_t left_max = ConstantAbsMax(left_range);
+    const int64_t left_min = ConstantAbsMin(left_range);
+    const int64_t right_max = ConstantAbsMax(right_range);
+    const int64_t right_min = ConstantAbsMin(right_range);
+
+    *result_max = RangeBoundary::FromConstant(left_max / right_min);
+    *result_min = RangeBoundary::FromConstant(left_min / right_max);
+    return;
+  }
+
+  *result_min = RangeBoundary::NegativeInfinity();
+  *result_max = RangeBoundary::PositiveInfinity();
+}
+
 // Both the a and b ranges are >= 0.
 bool Range::OnlyPositiveOrZero(const Range& a, const Range& b) {
   return a.OnlyGreaterThanOrEqualTo(0) && b.OnlyGreaterThanOrEqualTo(0);
@@ -2389,6 +2414,10 @@ void Range::BinaryOp(const Token::Kind op,
 
     case Token::kMUL:
       Range::Mul(left_range, right_range, &min, &max);
+      break;
+
+    case Token::kTRUNCDIV:
+      Range::TruncDiv(left_range, right_range, &min, &max);
       break;
 
     case Token::kSHL:

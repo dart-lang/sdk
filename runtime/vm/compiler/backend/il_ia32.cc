@@ -3130,10 +3130,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       __ cdq();         // Sign extend EAX -> EDX:EAX.
       __ idivl(right);  //  EAX: quotient, EDX: remainder.
-      // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-      // case we cannot tag the result.
-      __ cmpl(result, Immediate(0x40000000));
-      __ j(EQUAL, deopt);
+      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+        // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+        // case we cannot tag the result.
+        __ cmpl(result, Immediate(0x40000000));
+        __ j(EQUAL, deopt);
+      }
       __ SmiTag(result);
       break;
     }

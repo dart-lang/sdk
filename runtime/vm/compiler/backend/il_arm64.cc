@@ -3466,11 +3466,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(TMP, right);
 
       __ sdiv(result, temp, TMP);
-
-      // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-      // case we cannot tag the result.
-      __ CompareImmediate(result, 0x4000000000000000LL);
-      __ b(deopt, EQ);
+      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+        // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+        // case we cannot tag the result.
+        __ CompareImmediate(result, 0x4000000000000000LL);
+        __ b(deopt, EQ);
+      }
       __ SmiTag(result);
       break;
     }
