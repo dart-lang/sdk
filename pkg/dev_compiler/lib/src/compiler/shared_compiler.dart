@@ -185,6 +185,18 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// of their library.
   @protected
   JS.TemporaryId emitPrivateNameSymbol(Library library, String name) {
+    // TODO(jmesserly): fix this to support referring to private symbols from
+    // libraries that aren't in the current module.
+    //
+    // This is needed for several uses cases:
+    // - const instances of classes (which directly initialize fields via an
+    //   object literal).
+    // - noSuchMethod stubs created when an interface is implemented that had
+    //   private members from another library.
+    // - stateful hot reload, where we need the ability to patch private
+    //   class members.
+    //
+    // See https://github.com/dart-lang/sdk/issues/36252
     return _privateNames.putIfAbsent(library, () => HashMap()).putIfAbsent(name,
         () {
       var idName = name;

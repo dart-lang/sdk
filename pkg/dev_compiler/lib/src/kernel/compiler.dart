@@ -2215,11 +2215,15 @@ class ProgramCompiler extends Object
       }
     }
 
+    memberClass ??= member?.enclosingClass;
     if (name.startsWith('_')) {
-      return emitPrivateNameSymbol(_currentLibrary, name);
+      // Use the library that this private member's name is scoped to.
+      var memberLibrary = member?.name?.library ??
+          memberClass?.enclosingLibrary ??
+          _currentLibrary;
+      return emitPrivateNameSymbol(memberLibrary, name);
     }
 
-    memberClass ??= member?.enclosingClass;
     useExtension ??= _isSymbolizedMember(memberClass, name);
     name = JS.memberNameForDartMember(
         name, member is Procedure && member.isExternal);
@@ -5157,11 +5161,8 @@ class ProgramCompiler extends Object
       var field = entry.key.asField.name.name;
       var constant = entry.value.accept(this);
       var member = entry.key.asField;
-      var prevLibrary = _currentLibrary;
-      _currentLibrary = member.enclosingLibrary;
       var result =
           JS.Property(_emitMemberName(field, member: member), constant);
-      _currentLibrary = prevLibrary;
       return result;
     }
 
