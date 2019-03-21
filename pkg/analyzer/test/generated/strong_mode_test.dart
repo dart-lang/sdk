@@ -28,7 +28,74 @@ main() {
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
     defineReflectiveTests(StrongModeSpreadCastsTest);
+    defineReflectiveTests(StrongModeControlFlowCollectionsCastsTest);
   });
+}
+
+@reflectiveTest
+class StrongModeControlFlowCollectionsCastsTest extends ResolverTestCase {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.control_flow_collections];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_implicitCastMetadata_ifElement_condition() async {
+    var source = addSource(r'''
+class C {
+  dynamic dyn;
+  Object object;
+  bool boolean;
+
+  void casts() {
+    [if (dyn) null];
+    [if (object) null];
+    <int>{if (dyn) null};
+    <int>{if (object) null};
+    <int, int>{if (dyn) null: null};
+    <int, int>{if (object) null: null};
+  }
+
+  void noCasts() {
+    [if (boolean) null];
+    [if (null) null];
+    <int>{if (dyn) null};
+    <int>{if (object) null};
+    <int, int>{if (boolean) null : null};
+    <int, int>{if (null) null : null};
+  }
+}
+''');
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
+
+    Expression getCondition(ExpressionStatement s) {
+      Expression expression = s.expression;
+      IfElement ifElement;
+      if (expression is ListLiteral) {
+        ifElement = expression.elements[0];
+      } else if (expression is SetOrMapLiteral) {
+        ifElement = expression.elements[0];
+      }
+      return ifElement.condition;
+    }
+
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
+      var expression = getCondition(s);
+      var castType = getImplicitCast(expression);
+      expect(castType, isNotNull,
+          reason: 'Expression $expression does not have implicit cast');
+      expect(castType.toString(), equals('bool'));
+    }
+
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
+      var expression = getCondition(s);
+      var spreadCastType = getImplicitSpreadCast(expression);
+      expect(spreadCastType, isNull,
+          reason: 'Expression $expression should not have implicit cast');
+    }
+  }
 }
 
 /// Strong mode static analyzer local type inference tests

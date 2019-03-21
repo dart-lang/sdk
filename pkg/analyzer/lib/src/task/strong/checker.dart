@@ -174,6 +174,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (element is ForElement) {
       checkCollectionElement(element.body, expectedType);
     } else if (element is IfElement) {
+      checkBoolean(element.condition);
       checkCollectionElement(element.thenElement, expectedType);
       checkCollectionElement(element.elseElement, expectedType);
     } else if (element is Expression) {
@@ -211,6 +212,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (element is ForElement) {
       checkMapElement(element.body, expectedKeyType, expectedValueType);
     } else if (element is IfElement) {
+      checkBoolean(element.condition);
       checkMapElement(element.thenElement, expectedKeyType, expectedValueType);
       checkMapElement(element.elseElement, expectedKeyType, expectedValueType);
     } else if (element is MapLiteralEntry) {

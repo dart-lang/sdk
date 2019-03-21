@@ -11,6 +11,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckerTest);
     defineReflectiveTests(CheckerTest_WithSpreadCollections);
+    defineReflectiveTests(CheckerTest_WithControlFlowCollections);
   });
 }
 
@@ -4511,6 +4512,86 @@ const Object checked = const _Checked();
 class _Virtual { const _Virtual(); }
 const Object virtual = const _Virtual();
     ''', name: '/meta.dart');
+  }
+}
+
+@reflectiveTest
+class CheckerTest_WithControlFlowCollections extends AbstractStrongTest {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.control_flow_collections];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_list_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(
+        'dynamic c; void main() { <int>[if (/*error:NON_BOOL_CONDITION*/c) 0]; }');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_dynamicCondition_implicitCasts() async {
+    addFile('dynamic c; void main() { <int>[if (/*info:DYNAMIC_CAST*/c) 0]; }');
+    await check();
+  }
+
+  test_list_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(
+        'Object c; void main() { <int>[if (/*error:NON_BOOL_CONDITION*/c) 0]; }');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_objectCondition_implicitCasts() async {
+    addFile(
+        'Object c; void main() { <int>[if (/*info:DOWN_CAST_IMPLICIT*/c) 0]; }');
+    await check();
+  }
+
+  test_map_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(
+        'dynamic c; void main() { <int, int>{if (/*error:NON_BOOL_CONDITION*/c) 0: 0}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_dynamicCondition_implicitCasts() async {
+    addFile(
+        'dynamic c; void main() { <int, int>{if (/*info:DYNAMIC_CAST*/c) 0: 0}; }');
+    await check();
+  }
+
+  test_map_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(
+        'Object c; void main() { <int, int>{if (/*error:NON_BOOL_CONDITION*/c) 0: 0}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_objectCondition_implicitCasts() async {
+    addFile(
+        'Object c; void main() { <int, int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0: 0}; }');
+    await check();
+  }
+
+  test_set_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(
+        'dynamic c; void main() { <int>{if (/*error:NON_BOOL_CONDITION*/c) 0}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_dynamicCondition_implicitCasts() async {
+    addFile('dynamic c; void main() { <int>{if (/*info:DYNAMIC_CAST*/c) 0}; }');
+    await check();
+  }
+
+  test_set_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(
+        'Object c; void main() { <int>{if (/*error:NON_BOOL_CONDITION*/c) 0}; }');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_objectCondition_implicitCasts() async {
+    addFile(
+        'Object c; void main() { <int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0}; }');
+    await check();
   }
 }
 
