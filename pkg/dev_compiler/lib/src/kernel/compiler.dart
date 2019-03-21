@@ -3830,10 +3830,9 @@ class ProgramCompiler extends Object
   @override
   visitStaticGet(StaticGet node) {
     var target = node.target;
-    if (target is Field && target.isConst) {
-      var value = _constants.evaluate(target.initializer);
-      if (value is PrimitiveConstant) return value.accept(this);
-    }
+
+    // TODO(vsm): Re-inline constants.  See:
+    // https://github.com/dart-lang/sdk/issues/36285
 
     // TODO(markzipan): reifyTearOff check can be removed when we enable
     // front-end constant evaluation because static tear-offs will be
