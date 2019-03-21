@@ -5,14 +5,12 @@
 * AST cleanup related to the "UI as code" feature:
   * Removed the following AST node types:
     * `ForEachStatement` (use `ForStatement` instead)
-    * `ForStatement` (use `ForStatement` instead)
     * `MapLiteral` and `MapLiteral2` (use `SetOrMapLiteral` instead)
     * `SetLiteral` and `SetLiteral2` (use `SetOrMapLiteral` instead)
     * `ListLiteral2` (use `ListLiteral` instead)
   * Deprecated `ForStatement2` (use `ForStatement` instead)
   * Removed the following visit methods:
     * `visitForEachStatement` (override `visitForStatement` instead)
-    * `visitForStatement` (override `visitForStatement` instead)
     * `visitMapLiteral` and `visitMapLiteral2` (override `visitSetOrMapLiteral`
       instead)
     * `visitSetLiteral` and `visitSetLiteral2` (override `visitSetOrMapLiteral`
@@ -33,6 +31,7 @@
     `SetOrMapLiteral.elements` to replace it
   * Deprecated `NodeLintRegistry.addForStatement2` (use
     `NodeLintRegistry.addForStatement` instead)
+* Bug fixes: #36158, #36212, #36255
 
 ## 0.35.4
 * Deprecated AST structures that will no longer be used after the
