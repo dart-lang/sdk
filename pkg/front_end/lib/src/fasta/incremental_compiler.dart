@@ -27,6 +27,7 @@ import 'package:kernel/kernel.dart'
         Procedure,
         ProcedureKind,
         ReturnStatement,
+        Source,
         TreeNode,
         TypeParameter;
 
@@ -219,14 +220,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
         ..removeAll(reusedLibraryUris)) {
-        dillLoadedData.loader.builders.remove(uri);
+        LibraryBuilder builder = dillLoadedData.loader.builders.remove(uri);
         userBuilders?.remove(uri);
+        CompilerContext.current.uriToSource.remove(builder.fileUri);
       }
 
-      // Remove component problems for libraries we don't reuse.
-      if (remainingComponentProblems.isNotEmpty) {
-        for (LibraryBuilder builder in notReusedLibraries) {
-          Library lib = builder.target;
+      for (LibraryBuilder builder in notReusedLibraries) {
+        Library lib = builder.target;
+        CompilerContext.current.uriToSource.remove(builder.fileUri);
+
+        // Remove component problems for libraries we don't reuse.
+        if (remainingComponentProblems.isNotEmpty) {
           removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
         }
       }
@@ -291,9 +295,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Library> outputLibraries;
       Set<Library> allLibraries;
+      Map<Uri, Source> uriToSource = componentWithDill?.uriToSource;
       if (data.component != null || fullComponent) {
-        outputLibraries = computeTransitiveClosure(compiledLibraries,
-            entryPoints, reusedLibraries, hierarchy, uriTranslator);
+        outputLibraries = computeTransitiveClosure(
+            compiledLibraries,
+            entryPoints,
+            reusedLibraries,
+            hierarchy,
+            uriTranslator,
+            uriToSource);
         allLibraries = outputLibraries.toSet();
         if (!c.options.omitPlatform) {
           for (int i = 0; i < platformBuilders.length; i++) {
@@ -303,8 +313,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       } else {
         outputLibraries = new List<Library>();
-        allLibraries = computeTransitiveClosure(compiledLibraries, entryPoints,
-                reusedLibraries, hierarchy, uriTranslator, outputLibraries)
+        allLibraries = computeTransitiveClosure(
+                compiledLibraries,
+                entryPoints,
+                reusedLibraries,
+                hierarchy,
+                uriTranslator,
+                uriToSource,
+                outputLibraries)
             .toSet();
       }
 
@@ -317,9 +333,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       // This is the incremental component.
-      return context.options.target.configureComponent(new Component(
-          libraries: outputLibraries,
-          uriToSource: componentWithDill?.uriToSource))
+      return context.options.target.configureComponent(
+          new Component(libraries: outputLibraries, uriToSource: uriToSource))
         ..mainMethod = mainMethod
         ..problemsAsJson = problemsAsJson;
     });
@@ -415,6 +430,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries,
       ClassHierarchy hierarchy,
       UriTranslator uriTranslator,
+      Map<Uri, Source> uriToSource,
       [List<Library> inputLibrariesFiltered]) {
     List<Library> result = new List<Library>();
     Map<Uri, Library> libraryMap = <Uri, Library>{};
@@ -468,6 +484,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library lib = builder.target;
         removedLibraries.add(lib);
         dillLoadedData.loader.builders.remove(uri);
+        CompilerContext.current.uriToSource.remove(uri);
+        uriToSource.remove(uri);
         userBuilders?.remove(uri);
         removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
       }

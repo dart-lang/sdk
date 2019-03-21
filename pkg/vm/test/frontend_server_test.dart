@@ -611,9 +611,7 @@ Future<int> main() async {
 
       expect(await result, 0);
       inputStreamController.close();
-    },
-        timeout: Timeout.factor(100),
-        skip: true /* TODO(dartbug/36197): Unskip when compiler is fixed. */);
+    }, timeout: Timeout.factor(100));
 
     test('compile expression when delta is rejected', () async {
       var fileLib = new File('${tempDir.path}/lib.dart')..createSync();

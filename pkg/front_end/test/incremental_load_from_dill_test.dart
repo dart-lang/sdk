@@ -316,11 +316,22 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
     performErrorAndWarningCheck(
         world, gotError, formattedErrors, gotWarning, formattedWarnings);
     util.throwOnEmptyMixinBodies(component);
+    util.throwOnInsufficientUriToSource(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
     newestWholeComponentData = util.postProcess(component);
     newestWholeComponent = component;
     print("*****\n\ncomponent:\n"
         "${componentToStringSdkFiltered(component)}\n\n\n");
+
+    if (world["uriToSourcesDoesntInclude"] != null) {
+      for (String filename in world["uriToSourcesDoesntInclude"]) {
+        Uri uri = base.resolve(filename);
+        if (component.uriToSource[uri] != null) {
+          throw "Expected no uriToSource for $uri but found "
+              "${component.uriToSource[uri]}";
+        }
+      }
+    }
 
     int nonSyntheticLibraries = countNonSyntheticLibraries(component);
     int nonSyntheticPlatformLibraries =
@@ -534,6 +545,7 @@ Future<bool> normalCompile(Uri input, Uri output,
       new TestIncrementalCompiler(options, input);
   Component component = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(component);
+  util.throwOnInsufficientUriToSource(component);
   new File.fromUri(output).writeAsBytesSync(util.postProcess(component));
   return compiler.initializedFromDill;
 }
@@ -549,6 +561,7 @@ Future<bool> initializedCompile(
   }
   Component initializedComponent = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(initializedComponent);
+  util.throwOnInsufficientUriToSource(initializedComponent);
   bool result = compiler.initializedFromDill;
   new File.fromUri(output)
       .writeAsBytesSync(util.postProcess(initializedComponent));
@@ -564,6 +577,7 @@ Future<bool> initializedCompile(
   Component initializedFullComponent =
       await compiler.computeDelta(fullComponent: true);
   util.throwOnEmptyMixinBodies(initializedFullComponent);
+  util.throwOnInsufficientUriToSource(initializedFullComponent);
   Expect.equals(initializedComponent.libraries.length,
       initializedFullComponent.libraries.length);
   Expect.equals(initializedComponent.uriToSource.length,
@@ -575,6 +589,7 @@ Future<bool> initializedCompile(
 
   Component partialComponent = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(partialComponent);
+  util.throwOnInsufficientUriToSource(partialComponent);
   actuallyInvalidatedCount = (compiler
           .getFilteredInvalidatedImportUrisForTesting(invalidateUris)
           ?.length ??
@@ -586,6 +601,7 @@ Future<bool> initializedCompile(
 
   Component emptyComponent = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(emptyComponent);
+  util.throwOnInsufficientUriToSource(emptyComponent);
 
   List<Uri> fullLibUris =
       initializedComponent.libraries.map((lib) => lib.importUri).toList();
