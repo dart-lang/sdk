@@ -16,7 +16,7 @@ class ContainerTypeMask extends AllocationTypeMask {
   final TypeMask forwardTo;
 
   @override
-  final ir.TreeNode allocationNode;
+  final ir.Node allocationNode;
 
   @override
   final MemberEntity allocationElement;

@@ -20,7 +20,7 @@ class DictionaryTypeMask extends MapTypeMask {
 
   DictionaryTypeMask(
       TypeMask forwardTo,
-      ir.TreeNode allocationNode,
+      ir.Node allocationNode,
       MemberEntity allocationElement,
       TypeMask keyType,
       TypeMask valueType,

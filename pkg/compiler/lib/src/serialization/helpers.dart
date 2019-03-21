@@ -48,7 +48,8 @@ enum _TreeNodeKind {
   node,
   functionNode,
   typeParameter,
-  functionDeclarationVariable
+  functionDeclarationVariable,
+  constant,
 }
 
 /// Enum used for identifying [ir.FunctionNode] context in serialization.

@@ -193,4 +193,108 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
     registerNode(node);
     super.visitSuperPropertyGet(node);
   }
+
+  @override
+  void visitConstantExpression(ir.ConstantExpression node) {
+    registerNode(node);
+    super.visitConstantExpression(node);
+  }
+}
+
+/// Visitor that ascribes an index to all [ir.Constant]s that we potentially
+/// need to reference for serialization and deserialization.
+///
+/// Currently this is only list, map, and set constants, which are used as
+/// allocation identities in the global inference.
+class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
+  int _currentIndex = 0;
+  final Map<int, ir.Constant> _indexToNodeMap = {};
+  final Map<ir.Constant, int> _nodeToIndexMap = {};
+
+  void registerConstant(ir.Constant node) {
+    _indexToNodeMap[_currentIndex] = node;
+    _nodeToIndexMap[node] = _currentIndex;
+    _currentIndex++;
+  }
+
+  int getIndex(ir.Constant node) {
+    assert(_nodeToIndexMap.containsKey(node), "Constant without index: $node");
+    return _nodeToIndexMap[node];
+  }
+
+  ir.Constant getConstant(int index) {
+    assert(
+        _indexToNodeMap.containsKey(index), "Index without constant: $index");
+    return _indexToNodeMap[index];
+  }
+
+  @override
+  void visitUnevaluatedConstant(ir.UnevaluatedConstant node) {}
+
+  @override
+  void visitTypeLiteralConstant(ir.TypeLiteralConstant node) {}
+
+  @override
+  void visitTearOffConstant(ir.TearOffConstant node) {}
+
+  @override
+  void visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
+    node.tearOffConstant.accept(this);
+  }
+
+  @override
+  void visitInstanceConstant(ir.InstanceConstant node) {
+    node.fieldValues.forEach((_, ir.Constant value) {
+      value.accept(this);
+    });
+  }
+
+  @override
+  void visitSetConstant(ir.SetConstant node) {
+    registerConstant(node);
+    for (ir.Constant element in node.entries) {
+      element.accept(this);
+    }
+  }
+
+  @override
+  void visitListConstant(ir.ListConstant node) {
+    registerConstant(node);
+    for (ir.Constant element in node.entries) {
+      element.accept(this);
+    }
+  }
+
+  @override
+  void visitMapConstant(ir.MapConstant node) {
+    registerConstant(node);
+    for (ir.ConstantMapEntry entry in node.entries) {
+      entry.key.accept(this);
+      entry.value.accept(this);
+    }
+  }
+
+  @override
+  void visitSymbolConstant(ir.SymbolConstant node) {}
+
+  @override
+  void visitStringConstant(ir.StringConstant node) {}
+
+  @override
+  void visitDoubleConstant(ir.DoubleConstant node) {}
+
+  @override
+  void visitIntConstant(ir.IntConstant node) {}
+
+  @override
+  void visitBoolConstant(ir.BoolConstant node) {}
+
+  @override
+  void visitNullConstant(ir.NullConstant node) {}
+
+  @override
+  void defaultConstant(ir.Constant node) {
+    throw new UnimplementedError(
+        "Unexpected constant: $node (${node.runtimeType})");
+  }
 }

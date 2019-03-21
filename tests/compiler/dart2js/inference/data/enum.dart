@@ -16,7 +16,8 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum1 {
-  /*element: Enum1.a:[exact=Enum1]*/
+  /*strong.element: Enum1.a:[exact=Enum1]*/
+  /*omit.element: Enum1.a:[exact=Enum1]*/
   a,
 }
 
@@ -28,7 +29,8 @@ enumValue() => Enum1.a;
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum2 {
-  /*element: Enum2.a:[exact=Enum2]*/
+  /*strong.element: Enum2.a:[exact=Enum2]*/
+  /*omit.element: Enum2.a:[exact=Enum2]*/
   a,
 }
 
@@ -40,9 +42,11 @@ enumIndex() => Enum2.a. /*[exact=Enum2]*/ index;
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum3 {
-  /*element: Enum3.a:[exact=Enum3]*/
+  /*strong.element: Enum3.a:[exact=Enum3]*/
+  /*omit.element: Enum3.a:[exact=Enum3]*/
   a,
-  /*element: Enum3.b:[exact=Enum3]*/
+  /*strong.element: Enum3.b:[exact=Enum3]*/
+  /*omit.element: Enum3.b:[exact=Enum3]*/
   b,
 }
 
@@ -54,7 +58,8 @@ enumValues() => Enum3.values;
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum4 {
-  /*element: Enum4.a:[exact=Enum4]*/
+  /*strong.element: Enum4.a:[exact=Enum4]*/
+  /*omit.element: Enum4.a:[exact=Enum4]*/
   a,
 }
 
@@ -68,9 +73,11 @@ enumToString1() {
 ////////////////////////////////////////////////////////////////////////////////
 
 enum Enum5 {
-  /*element: Enum5.a:[exact=Enum5]*/
+  /*strong.element: Enum5.a:[exact=Enum5]*/
+  /*omit.element: Enum5.a:[exact=Enum5]*/
   a,
-  /*element: Enum5.b:[exact=Enum5]*/
+  /*strong.element: Enum5.b:[exact=Enum5]*/
+  /*omit.element: Enum5.b:[exact=Enum5]*/
   b,
 }
 

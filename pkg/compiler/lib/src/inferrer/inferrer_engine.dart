@@ -72,7 +72,7 @@ abstract class InferrerEngine {
   NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   TypeSystem get types;
-  Map<ir.Node, TypeInformation> get concreteTypes;
+  Map<ir.TreeNode, TypeInformation> get concreteTypes;
   InferredDataBuilder get inferredDataBuilder;
 
   FunctionEntity get mainElement;
@@ -281,8 +281,8 @@ class InferrerEngineImpl extends InferrerEngine {
   @override
   final TypeSystem types;
   @override
-  final Map<ir.Node, TypeInformation> concreteTypes =
-      new Map<ir.Node, TypeInformation>();
+  final Map<ir.TreeNode, TypeInformation> concreteTypes =
+      new Map<ir.TreeNode, TypeInformation>();
 
   final Set<ConstructorEntity> generativeConstructorsExposingThis =
       new Set<ConstructorEntity>();

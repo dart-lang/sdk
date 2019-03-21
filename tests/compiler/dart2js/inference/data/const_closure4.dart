@@ -8,7 +8,8 @@ method(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) {
   return a;
 }
 
-/*element: foo:[subclass=Closure]*/
+/*strong.element: foo:[subclass=Closure]*/
+/*omit.element: foo:[subclass=Closure]*/
 const foo = method;
 
 /*element: returnNum:[null|subclass=Object]*/

@@ -518,6 +518,14 @@ abstract class AbstractDataSource extends DataSourceMixin
         return _readFunctionNode();
       case _TreeNodeKind.typeParameter:
         return _readTypeParameter();
+      case _TreeNodeKind.constant:
+        // TODO(johnniwinther): Support serialization within a member context
+        // and use this to temporarily cache constant node indices.
+        ir.ConstantExpression expression = _readTreeNode();
+        _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
+        expression.constant.accept(indexer);
+        ir.Constant constant = indexer.getConstant(_readIntInternal());
+        return new ConstantReference(expression, constant);
       case _TreeNodeKind.node:
         _MemberData data = _readMemberData();
         int index = _readIntInternal();
