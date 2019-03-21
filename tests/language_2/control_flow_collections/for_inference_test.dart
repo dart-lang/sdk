@@ -40,8 +40,8 @@ void testBottomUpInference() {
   Expect.type<Set<num>>({for (; false;) 1, for (; false;) 0.2});
   Expect.type<Set<int>>({for (; false;) 1, 2});
   Expect.type<Set<num>>({for (; false;) 1, 0.2});
-  Expect.type<Set<dynamic>>({if (true) ...[]});
-  Expect.type<Set<int>>({if (true) ...<int>[]});
+  Expect.type<Set<dynamic>>({for (; false;) ...[]});
+  Expect.type<Set<int>>({for (; false;) ...<int>[]});
 
   // If a nested iterable's type is dynamic, the element type is dynamic.
   Expect.type<List<dynamic>>([for (; false;) ...([] as dynamic)]);

@@ -5,8 +5,6 @@
 // SharedOptions=--enable-experiment=control-flow-collections
 
 void main() {
-  Object obj = true;
-
   // Non-Boolean if condition.
   var _ = <int>[if (1) 2]; //# 00: compile-time error
   var _ = <int, int>{if (1) 2: 2}; //# 01: compile-time error
@@ -32,12 +30,12 @@ void main() {
   // Wrong for-in element type.
   List<String> s = ["s"];
   var _ = <int>[for (int i in s) 1]; //# 20: compile-time error
-  var _ = <int, int>[for (int i in s) 1: 1]; //# 21: compile-time error
+  var _ = <int, int>{for (int i in s) 1: 1}; //# 21: compile-time error
   var _ = <int>{for (int i in s) 1}; //# 22: compile-time error
 
   // Wrong for declaration element type.
   var _ = <int>[for (int i = "s";;) 1]; //# 23: compile-time error
-  var _ = <int, int>[for (int i = "s";;) 1: 1]; //# 24: compile-time error
+  var _ = <int, int>{for (int i = "s";;) 1: 1}; //# 24: compile-time error
   var _ = <int>{for (int i = "s";;) 1}; //# 25: compile-time error
 
   // Wrong for body element type.
@@ -45,4 +43,16 @@ void main() {
   var _ = <int, int>{for (; false;) "s": 1}; //# 27: compile-time error
   var _ = <int, int>{for (; false;) 1: "s"}; //# 28: compile-time error
   var _ = <int>{for (; false;) "s"}; //# 29: compile-time error
+
+  // Non-iterable sequence type.
+  int nonIterable = 3;
+  var _ = <int>[for (int i in nonIterable) 1]; //# 30: compile-time error
+  var _ = <int, int>{for (int i in nonIterable) 1: 1}; //# 31: compile-time error
+  var _ = <int>{for (int i in nonIterable) 1}; //# 32: compile-time error
+
+  // Object sequence type.
+  Object object = "object";
+  var _ = <int>[for (int i in object) 1]; //# 33: compile-time error
+  var _ = <int, int>{for (int i in object) 1: 1}; //# 34: compile-time error
+  var _ = <int>{for (int i in object) 1}; //# 35: compile-time error
 }
