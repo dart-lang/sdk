@@ -707,10 +707,24 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   }
 
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
+  const intptr_t argc = DecodeOperandA().value();
+
+  // Recognize identical() call.
+  // Note: similar optimization is performed in AST flow graph builder - see
+  // StreamingFlowGraphBuilder::BuildStaticInvocation, special_case_identical.
+  // TODO(alexmarkov): find a better place for this optimization.
+  if (target.name() == Symbols::Identical().raw()) {
+    const auto& owner = Class::Handle(Z, target.Owner());
+    if (owner.IsTopLevel() && (owner.library() == Library::CoreLibrary())) {
+      ASSERT(argc == 2);
+      code_ += B->StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
+      return;
+    }
+  }
+
   const Array& arg_desc_array =
       Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
-  intptr_t argc = DecodeOperandA().value();
 
   ArgumentArray arguments = GetArguments(argc);
 

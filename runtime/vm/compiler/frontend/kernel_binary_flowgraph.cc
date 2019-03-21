@@ -3048,6 +3048,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
                                   NULL));
 
   // Special case identical(x, y) call.
+  // Note: similar optimization is performed in bytecode flow graph builder -
+  // see BytecodeFlowGraphBuilder::BuildDirectCall().
   // TODO(27590) consider moving this into the inliner and force inline it
   // there.
   if (special_case_identical) {
