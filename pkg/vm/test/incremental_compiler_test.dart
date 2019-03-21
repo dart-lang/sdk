@@ -130,17 +130,45 @@ main() {
     Directory mytest;
     File main;
     File lib;
+    Process vm;
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('incremental');
       main = new File('${mytest.path}/main.dart')..createSync();
-      main.writeAsStringSync("import 'lib.dart'; main() => print(foo()); \n");
+      main.writeAsStringSync("""
+      import 'lib.dart';
+      main() => print(foo());
+      class C1 extends Object with C2, C3 {
+        c1method() {
+          print("c1");
+        }
+      }
+      class C3 {
+        c3method() {
+          print("c3");
+        }
+      }
+      """);
       lib = new File('${mytest.path}/lib.dart')..createSync();
-      lib.writeAsStringSync("foo() => 'foo'; main() => print('bar');\n");
+      lib.writeAsStringSync("""
+      import 'main.dart';
+      foo() => 'foo';
+      main() => print('bar');
+      class C2 extends Object with C3 {
+        c2method() {
+          print("c2");
+        }
+      }
+      """);
     });
 
     tearDownAll(() {
       try {
         mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+      try {
+        vm.kill();
       } catch (_) {
         // Ignore errors;
       }
@@ -178,7 +206,7 @@ main() {
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\n${mainDill.path}\n${libDill.path}\n");
-      var vm =
+      vm =
           await Process.start(Platform.resolvedExecutable, <String>[list.path]);
 
       final splitter = new LineSplitter();
@@ -205,7 +233,7 @@ main() {
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\n${libDill.path}\n${mainDill.path}\n");
-      var vm =
+      vm =
           await Process.start(Platform.resolvedExecutable, <String>[list.path]);
 
       final splitter = new LineSplitter();
@@ -227,7 +255,7 @@ main() {
     test('empty list', () async {
       var list = new File(p.join(mytest.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\n");
-      var vm =
+      vm =
           await Process.start(Platform.resolvedExecutable, <String>[list.path]);
 
       Completer<int> exitCodeCompleter = new Completer<int>();
@@ -241,7 +269,7 @@ main() {
     test('fallback to source compilation if fail to load', () async {
       var list = new File('${mytest.path}/myMain.dilllist')..createSync();
       list.writeAsStringSync("main() => print('baz');\n");
-      var vm =
+      vm =
           await Process.start(Platform.resolvedExecutable, <String>[list.path]);
 
       final splitter = new LineSplitter();
@@ -270,8 +298,7 @@ main() {
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\n../main.dart.dill\n../lib.dart.dill\n");
       Directory runFrom = new Directory(dir.path + "/runFrom")..createSync();
-      var vm = await Process.start(
-          Platform.resolvedExecutable, <String>[list.path],
+      vm = await Process.start(Platform.resolvedExecutable, <String>[list.path],
           workingDirectory: runFrom.path);
 
       final splitter = new LineSplitter();
@@ -288,6 +315,129 @@ main() {
       expect(await portLineCompleter.future, equals('foo'));
       print("Compiler terminated with ${await vm.exitCode} exit code");
     });
+
+    test('collect coverage', () async {
+      collectStuff(int port) async {
+        RemoteVm remoteVm = new RemoteVm(port);
+
+        // Wait for the script to have finished.
+        while (true) {
+          Map isolate = await remoteVm.getIsolate();
+          Map pauseEvent = isolate["pauseEvent"];
+          if (pauseEvent["kind"] == "PauseExit") break;
+        }
+
+        // Collect coverage for the two user scripts.
+        Map sourceReport = await remoteVm.getSourceReport();
+        List scripts = sourceReport["scripts"];
+        Map<String, int> scriptIdToIndex = new Map<String, int>();
+        int i = 0;
+        for (Map script in scripts) {
+          if (script["uri"].toString().endsWith("main.dart") ||
+              script["uri"].toString().endsWith("lib.dart")) {
+            scriptIdToIndex[script["id"]] = i;
+          }
+          i++;
+        }
+        expect(scriptIdToIndex.length >= 2, isTrue);
+
+        List<String> errorMessages = new List<String>();
+
+        // Ensure the scripts all have a non-null 'tokenPosTable' entry.
+        Map<int, Map> scriptIndexToScript = new Map<int, Map>();
+        for (String scriptId in scriptIdToIndex.keys) {
+          Map script = await remoteVm.getObject(scriptId);
+          int scriptIdx = scriptIdToIndex[scriptId];
+          scriptIndexToScript[scriptIdx] = script;
+          List tokenPosTable = script["tokenPosTable"];
+          if (tokenPosTable == null) {
+            errorMessages.add("Script with uri ${script['uri']} "
+                "and id ${script['id']} "
+                "has null tokenPosTable.");
+          } else if (tokenPosTable.isEmpty) {
+            errorMessages.add("Script with uri ${script['uri']} "
+                "and id ${script['id']} "
+                "has empty tokenPosTable.");
+          }
+        }
+
+        // Ensure that we can get a line and column number for all reported
+        // positions in the scripts we care about.
+        List ranges = sourceReport["ranges"];
+        Set<int> scriptIndexesSet = new Set<int>.from(scriptIndexToScript.keys);
+        for (Map range in ranges) {
+          if (scriptIndexesSet.contains(range["scriptIndex"])) {
+            Set<int> positions = new Set<int>();
+            positions.add(range["startPos"]);
+            positions.add(range["endPos"]);
+            Map coverage = range["coverage"];
+            for (int pos in coverage["hits"]) positions.add(pos);
+            for (int pos in coverage["misses"]) positions.add(pos);
+            for (int pos in range["possibleBreakpoints"]) positions.add(pos);
+            Map script = scriptIndexToScript[range["scriptIndex"]];
+            Set<int> knownPositions = new Set<int>();
+            if (script["tokenPosTable"] != null) {
+              for (List tokenPosTableLine in script["tokenPosTable"]) {
+                for (int i = 1; i < tokenPosTableLine.length; i += 2) {
+                  knownPositions.add(tokenPosTableLine[i]);
+                }
+              }
+            }
+            for (int pos in positions) {
+              if (!knownPositions.contains(pos)) {
+                errorMessages.add("Script with uri ${script['uri']} "
+                    "and id ${script['id']} "
+                    "references position $pos which cannot be translated to "
+                    "line and column.");
+              }
+            }
+          }
+        }
+        expect(errorMessages, isEmpty);
+        remoteVm.resume();
+      }
+
+      Directory dir = mytest.createTempSync();
+      File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
+      File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
+      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      await compileAndSerialize(mainDill, libDill, compiler);
+
+      var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
+      list.writeAsStringSync("#@dill\n${mainDill.path}\n${libDill.path}\n");
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        "--pause-isolates-on-exit",
+        "--enable-vm-service:0",
+        list.path
+      ]);
+
+      const kObservatoryListening = 'Observatory listening on ';
+      final RegExp observatoryPortRegExp =
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
+      int port;
+      final splitter = new LineSplitter();
+      Completer<String> portLineCompleter = new Completer<String>();
+      vm.stdout
+          .transform(utf8.decoder)
+          .transform(splitter)
+          .listen((String s) async {
+        if (s.startsWith(kObservatoryListening)) {
+          expect(observatoryPortRegExp.hasMatch(s), isTrue);
+          final match = observatoryPortRegExp.firstMatch(s);
+          port = int.parse(match.group(1));
+          await collectStuff(port);
+          if (!portLineCompleter.isCompleted) {
+            portLineCompleter.complete("done");
+          }
+        }
+        print("vm stdout: $s");
+      });
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+      await portLineCompleter.future;
+      print("Compiler terminated with ${await vm.exitCode} exit code");
+    }, skip: "Currently fails");
   });
 
   group('reload', () {
@@ -527,6 +677,28 @@ class RemoteVm {
   Future resume() async {
     var id = await mainId;
     await rpc.sendRequest('resume', {'isolateId': id});
+  }
+
+  Future getIsolate() async {
+    var id = await mainId;
+    return await rpc.sendRequest('getIsolate', {'isolateId': id});
+  }
+
+  Future getSourceReport() async {
+    var id = await mainId;
+    return await rpc.sendRequest('getSourceReport', {
+      'isolateId': id,
+      'reports': ['Coverage', 'PossibleBreakpoints'],
+      'forceCompile': true
+    });
+  }
+
+  Future getObject(String objectId) async {
+    var id = await mainId;
+    return await rpc.sendRequest('getObject', {
+      'isolateId': id,
+      'objectId': objectId,
+    });
   }
 
   /// Close any connections used to communicate with the VM.
