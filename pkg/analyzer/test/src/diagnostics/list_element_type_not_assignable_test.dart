@@ -17,30 +17,55 @@ main() {
 
 @reflectiveTest
 class ListElementTypeNotAssignableTest extends DriverResolutionTest {
-  test_explicitTypeArgs_const() async {
+  test_const_stringInt() async {
     await assertErrorsInCode('''
 var v = const <String>[42];
 ''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
-  test_explicitTypeArgs_const_actualTypeMatch() async {
-    await assertNoErrorsInCode('''
-const dynamic x = null;
-var v = const <String>[x];
-''');
-  }
-
-  test_explicitTypeArgs_const_actualTypeMismatch() async {
+  test_const_stringInt_dynamic() async {
     await assertErrorsInCode('''
 const dynamic x = 42;
 var v = const <String>[x];
 ''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
-  test_explicitTypeArgs_notConst() async {
+  test_const_stringNull() async {
+    await assertNoErrorsInCode('''
+var v = const <String>[null];
+''');
+  }
+
+  test_const_stringNull_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic x = null;
+var v = const <String>[x];
+''');
+  }
+
+  test_const_voidInt() async {
+    await assertNoErrorsInCode('''
+var v = const <void>[42];
+''');
+  }
+
+  test_nonConst_stringInt() async {
     await assertErrorsInCode('''
-var v = <String> [42];
+var v = <String>[42];
 ''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_nonConst_stringInt_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic x = 42;
+var v = <String>[x];
+''');
+  }
+
+  test_nonConst_voidInt() async {
+    await assertNoErrorsInCode('''
+var v = <void>[42];
+''');
   }
 }
 
