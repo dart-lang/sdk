@@ -1,0 +1,98 @@
+diff --git a/bin/flutter b/bin/flutter
+index 178994f56..b62680244 100755
+--- a/bin/flutter
++++ b/bin/flutter
+@@ -121,7 +121,7 @@ function upgrade_flutter () {
+ 
+     retry_upgrade
+ 
+-    "$DART" --snapshot="$SNAPSHOT_PATH" --snapshot-kind=app-jit --packages="$FLUTTER_TOOLS_DIR/.packages" "$SCRIPT_PATH" training
++    "$DART" --snapshot="$SNAPSHOT_PATH" --packages="$FLUTTER_TOOLS_DIR/.packages" "$SCRIPT_PATH"
+     echo "$revision" > "$STAMP_PATH"
+   fi
+   # The exit here is duplicitous since the function is run in a subshell,
+diff --git a/bin/flutter.bat b/bin/flutter.bat
+index 7aa7020c2..cff515aa7 100644
+--- a/bin/flutter.bat
++++ b/bin/flutter.bat
+@@ -152,7 +152,7 @@ GOTO :after_subroutine
+ 
+     POPD
+ 
+-    "%dart%" --snapshot="%snapshot_path%" --snapshot-kind=app-jit --packages="%flutter_tools_dir%\.packages" "%script_path%"
++    "%dart%" --snapshot="%snapshot_path%" --packages="%flutter_tools_dir%\.packages" "%script_path%"
+     IF "%ERRORLEVEL%" NEQ "0" (
+       ECHO Error: Unable to create dart snapshot for flutter tool.
+       SET exit_code=%ERRORLEVEL%
+diff --git a/dev/bots/test.dart b/dev/bots/test.dart
+index 4ac26b408..359d9baf9 100644
+--- a/dev/bots/test.dart
++++ b/dev/bots/test.dart
+@@ -189,6 +189,7 @@ Future<void> _runToolTests() async {
+     await _buildRunnerTest(
+       path.join(flutterRoot, 'packages', 'flutter_tools'),
+       flutterRoot,
++      enableFlutterToolAsserts: true,
+       tableData: bigqueryApi?.tabledata,
+     );
+   }
+@@ -721,4 +722,4 @@ Future<void> _integrationTestsAndroidSdk() async {
+   }
+   // note: this also covers plugin_test_win as long as Windows has an Android SDK available.
+   await _runDevicelabTest('plugin_test', env: env);
+-}
++}
+\ No newline at end of file
+diff --git a/packages/flutter_tools/lib/executable.dart b/packages/flutter_tools/lib/executable.dart
+index eddc0089c..5b368ed4c 100644
+--- a/packages/flutter_tools/lib/executable.dart
++++ b/packages/flutter_tools/lib/executable.dart
+@@ -38,7 +38,6 @@ import 'src/commands/shell_completion.dart';
+ import 'src/commands/stop.dart';
+ import 'src/commands/test.dart';
+ import 'src/commands/trace.dart';
+-import 'src/commands/train.dart';
+ import 'src/commands/update_packages.dart';
+ import 'src/commands/upgrade.dart';
+ import 'src/commands/version.dart';
+@@ -85,7 +84,6 @@ Future<void> main(List<String> args) async {
+     StopCommand(),
+     TestCommand(verboseHelp: verboseHelp),
+     TraceCommand(),
+-    TrainingCommand(),
+     UpdatePackagesCommand(hidden: !verboseHelp),
+     UpgradeCommand(),
+     VersionCommand(),
+diff --git a/packages/flutter_tools/lib/src/commands/train.dart b/packages/flutter_tools/lib/src/commands/train.dart
+deleted file mode 100644
+index 9bd0be5a3..000000000
+--- a/packages/flutter_tools/lib/src/commands/train.dart
++++ /dev/null
+@@ -1,27 +0,0 @@
+-// Copyright 2019 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-import '../runner/flutter_command.dart';
+-
+-/// This command is run when generating the app-jit snapshot for the tool, so it cannot access the Cache
+-/// or any artifacts that haven't been downloaded yet.
+-class TrainingCommand extends FlutterCommand {
+-  @override
+-  String get description => 'training run for app-jit snapshot';
+-
+-  @override
+-  String get name => 'training';
+-
+-  @override
+-  bool get hidden => true;
+-
+-  @override
+-  bool get shouldUpdateCache => false;
+-
+-  @override
+-  Future<FlutterCommandResult> runCommand() async {
+-    // This command does not do anything yet :).
+-    return null;
+-  }
+-}
