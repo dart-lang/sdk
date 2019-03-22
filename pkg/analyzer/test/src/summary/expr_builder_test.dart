@@ -310,7 +310,7 @@ class C {
     var expectedText = 'const $sourceText';
     var list = checkSimpleExpression(sourceText, expectedText: expectedText)
         as ListLiteral;
-    var forElement = list.elements2[0] as ForElement;
+    var forElement = list.elements[0] as ForElement;
     var loopParts = forElement.forLoopParts as ForEachPartsWithDeclaration;
     var iElement = loopParts.loopVariable.identifier.staticElement;
     var iRef = forElement.body as SimpleIdentifier;
@@ -324,7 +324,7 @@ class C {
     var expectedText = 'const $sourceText';
     var list = checkSimpleExpression(sourceText, expectedText: expectedText)
         as ListLiteral;
-    var forElement = list.elements2[0] as ForElement;
+    var forElement = list.elements[0] as ForElement;
     var loopParts = forElement.forLoopParts as ForEachPartsWithDeclaration;
     var iElement = loopParts.loopVariable.identifier.staticElement;
     var iRef = forElement.body as SimpleIdentifier;
@@ -383,7 +383,7 @@ class C {
     var expectedText = 'const $sourceText';
     var list = checkSimpleExpression(sourceText, expectedText: expectedText)
         as ListLiteral;
-    var forElement = list.elements2[0] as ForElement;
+    var forElement = list.elements[0] as ForElement;
     var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
     var iElement = loopParts.variables.variables[0].name.staticElement;
     var condition = loopParts.condition as BinaryExpression;
@@ -403,7 +403,7 @@ class C {
     var expectedText = 'const $sourceText';
     var list = checkSimpleExpression(sourceText, expectedText: expectedText)
         as ListLiteral;
-    var forElement = list.elements2[0] as ForElement;
+    var forElement = list.elements[0] as ForElement;
     var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
     var iElement = loopParts.variables.variables[0].name.staticElement;
     var condition = loopParts.condition as BinaryExpression;
@@ -423,7 +423,7 @@ class C {
     var expectedText = 'const $sourceText';
     var list = checkSimpleExpression(sourceText, expectedText: expectedText)
         as ListLiteral;
-    var forElement = list.elements2[0] as ForElement;
+    var forElement = list.elements[0] as ForElement;
     var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
     var iElement = loopParts.variables.variables[0].name.staticElement;
     var jElement = loopParts.variables.variables[1].name.staticElement;
@@ -444,7 +444,7 @@ class C {
     var expectedText = 'const $sourceText';
     var list = checkSimpleExpression(sourceText, expectedText: expectedText)
         as ListLiteral;
-    var forElement = list.elements2[0] as ForElement;
+    var forElement = list.elements[0] as ForElement;
     var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
     var iElement = loopParts.variables.variables[0].name.staticElement;
     var condition = loopParts.condition as BinaryExpression;
