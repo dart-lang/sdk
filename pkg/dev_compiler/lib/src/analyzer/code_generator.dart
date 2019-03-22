@@ -44,7 +44,7 @@ import 'error_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
 import 'js_typerep.dart';
-import 'module_compiler.dart' show CompilerOptions, JSModuleFile;
+import 'module_compiler.dart' show CompilerOptions;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
 import 'reify_coercions.dart' show CoercionReifier;
@@ -84,16 +84,6 @@ class CodeGenerator extends Object
 
   JSTypeRep jsTypeRep;
 
-  /// The set of libraries we are currently compiling, and the temporaries used
-  /// to refer to them.
-  ///
-  /// We sometimes special case codegen for a single library, as it simplifies
-  /// name scoping requirements.
-  final _libraries = Map<LibraryElement, JS.Identifier>();
-
-  /// Imported libraries, and the temporaries used to refer to them.
-  final _imports = Map<LibraryElement, JS.TemporaryId>();
-
   /// The list of dart:_runtime SDK functions; these are assumed by other code
   /// in the SDK to be generated before anything else.
   final _internalSdkFunctions = <JS.ModuleItem>[];
@@ -117,9 +107,6 @@ class CodeGenerator extends Object
   JS.TemporaryId _asyncStarController;
 
   final _initializingFormalTemps = HashMap<ParameterElement, JS.TemporaryId>();
-
-  JS.Identifier _extensionSymbolsModule;
-  final _extensionSymbols = Map<String, JS.TemporaryId>();
 
   /// The  type provider from the current Analysis [context].
   final TypeProvider types;
@@ -286,47 +273,16 @@ class CodeGenerator extends Object
 
     // Transform the AST to make coercions explicit.
     compilationUnits = CoercionReifier.reify(compilationUnits);
-    var items = <JS.ModuleItem>[];
-    var root = JS.Identifier('_root');
-    items.add(js.statement('const # = Object.create(null)', [root]));
+    var libraries = compilationUnits
+        .where((unit) {
+          var library = unit.declaredElement.library;
+          return unit.declaredElement == library.definingCompilationUnit;
+        })
+        .map((unit) => unit.declaredElement.library)
+        .toList();
 
-    var isBuildingSdk = compilationUnits
-        .any((u) => isSdkInternalRuntime(u.declaredElement.library));
-    if (isBuildingSdk) {
-      // Don't allow these to be renamed when we're building the SDK.
-      // There is JS code in dart:* that depends on their names.
-      runtimeModule = JS.Identifier('dart');
-      _extensionSymbolsModule = JS.Identifier('dartx');
-    } else {
-      // Otherwise allow these to be renamed so users can write them.
-      runtimeModule = JS.TemporaryId('dart');
-      _extensionSymbolsModule = JS.TemporaryId('dartx');
-    }
+    var items = startModule(libraries);
     _typeTable = TypeTable(runtimeModule);
-
-    // Initialize our library variables.
-    var exports = <JS.NameSpecifier>[];
-    void emitLibrary(JS.Identifier id) {
-      items.add(js.statement('const # = Object.create(#)', [id, root]));
-      exports.add(JS.NameSpecifier(id));
-    }
-
-    for (var unit in compilationUnits) {
-      var library = unit.declaredElement.library;
-      if (unit.declaredElement != library.definingCompilationUnit) continue;
-
-      var libraryTemp = isSdkInternalRuntime(library)
-          ? runtimeModule
-          : JS.TemporaryId(jsLibraryName(_libraryRoot, library));
-      _libraries[library] = libraryTemp;
-      emitLibrary(libraryTemp);
-    }
-
-    // dart:_runtime has a magic module that holds extension method symbols.
-    // TODO(jmesserly): find a cleaner design for this.
-    if (isBuildingSdk) emitLibrary(_extensionSymbolsModule);
-
-    items.add(JS.ExportDeclaration(JS.ExportClause(exports)));
 
     // Collect all class/type Element -> Node mappings
     // in case we need to forward declare any classes.
@@ -363,50 +319,15 @@ class CodeGenerator extends Object
     // Visit directives (for exports)
     compilationUnits.forEach(_emitExportDirectives);
 
-    // Declare imports
-    _finishImports(items);
-    // Initialize extension symbols
-    _extensionSymbols.forEach((name, id) {
-      JS.Expression value =
-          JS.PropertyAccess(_extensionSymbolsModule, _propertyName(name));
-      if (isBuildingSdk) {
-        value = js.call('# = Symbol(#)', [value, js.string("dartx.$name")]);
-      }
-      items.add(js.statement('const # = #;', [id, value]));
-    });
-
-    _emitDebuggerExtensionInfo(options.moduleName);
+    // Declare imports and extension symbols
+    emitImportsAndExtensionSymbols(items);
 
     // Discharge the type table cache variables and
     // hoisted definitions.
     items.addAll(_typeTable.discharge());
     items.addAll(_internalSdkFunctions);
 
-    // Add the module's code (produced by visiting compilation units, above)
-    _copyAndFlattenBlocks(items, moduleItems);
-
-    // Build the module.
-    return JS.Program(items, name: options.moduleName);
-  }
-
-  void _emitDebuggerExtensionInfo(String name) {
-    var properties = <JS.Property>[];
-    _libraries.forEach((library, value) {
-      // TODO(jacobr): we could specify a short library name instead of the
-      // full library uri if we wanted to save space.
-      properties.add(JS.Property(
-          js.escapedString(jsLibraryDebuggerName(_libraryRoot, library)),
-          value));
-    });
-
-    // Track the module name for each library in the module.
-    // This data is only required for debugging.
-    moduleItems.add(js
-        .statement('#.trackLibraries(#, #, ${JSModuleFile.sourceMapHoleID});', [
-      runtimeModule,
-      js.string(name),
-      JS.ObjectInitializer(properties, multiline: true)
-    ]));
+    return finishModule(items, options.moduleName);
   }
 
   /// If [e] is a property accessor element, this returns the
@@ -494,22 +415,54 @@ class CodeGenerator extends Object
     return name;
   }
 
-  /// Flattens blocks in [items] to a single list.
+  /// Choose a canonical name from the [library] element.
   ///
-  /// This will not flatten blocks that are marked as being scopes.
-  void _copyAndFlattenBlocks(
-      List<JS.ModuleItem> result, Iterable<JS.ModuleItem> items) {
-    for (var item in items) {
-      if (item is JS.Block && !item.isScope) {
-        _copyAndFlattenBlocks(result, item.statements);
-      } else if (item != null) {
-        result.add(item);
-      }
+  /// This never uses the library's name (the identifier in the `library`
+  /// declaration) as it doesn't have any meaningful rules enforced.
+  @override
+  String jsLibraryName(LibraryElement library) {
+    var uri = library.source.uri;
+    if (uri.scheme == 'dart') {
+      return uri.path;
     }
+    // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
+    var encodedSeparator = '__';
+    String qualifiedPath;
+    if (uri.scheme == 'package') {
+      // Strip the package name.
+      // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
+      // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
+      qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
+    } else {
+      qualifiedPath = path
+          .relative(uri.toFilePath(), from: _libraryRoot)
+          .replaceAll(path.separator, encodedSeparator)
+          .replaceAll('..', encodedSeparator);
+    }
+    return pathToJSIdentifier(qualifiedPath);
   }
 
-  String _libraryToModule(LibraryElement library) {
-    assert(!_libraries.containsKey(library));
+  /// Debugger friendly name for a Dart Library.
+  @override
+  String jsLibraryDebuggerName(LibraryElement library) {
+    var uri = library.source.uri;
+    // For package: and dart: uris show the entire
+    if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
+
+    var filePath = uri.toFilePath();
+    // Relative path to the library.
+    return path.relative(filePath, from: _libraryRoot);
+  }
+
+  /// Returns true if the library [l] is dart:_runtime.
+  @override
+  bool isSdkInternalRuntime(LibraryElement l) {
+    var uri = l.source.uri;
+    return uri.scheme == 'dart' && uri.path == '_runtime';
+  }
+
+  @override
+  String libraryToModule(LibraryElement library) {
     var source = library.source;
     // TODO(jmesserly): we need to split out HTML.
     if (source.uri.scheme == 'dart') {
@@ -522,39 +475,6 @@ class CodeGenerator extends Object
           'from summary path "$summaryPath".');
     }
     return moduleName;
-  }
-
-  void _finishImports(List<JS.ModuleItem> items) {
-    var modules = Map<String, List<LibraryElement>>();
-
-    for (var import in _imports.keys) {
-      modules.putIfAbsent(_libraryToModule(import), () => []).add(import);
-    }
-
-    String coreModuleName;
-    if (!_libraries.containsKey(coreLibrary)) {
-      coreModuleName = _libraryToModule(coreLibrary);
-    }
-    modules.forEach((module, libraries) {
-      // Generate import directives.
-      //
-      // Our import variables are temps and can get renamed. Since our renaming
-      // is integrated into js_ast, it is aware of this possibility and will
-      // generate an "as" if needed. For example:
-      //
-      //     import {foo} from 'foo';         // if no rename needed
-      //     import {foo as foo$} from 'foo'; // if rename was needed
-      //
-      var imports =
-          libraries.map((l) => JS.NameSpecifier(_imports[l])).toList();
-      if (module == coreModuleName) {
-        imports.add(JS.NameSpecifier(runtimeModule));
-        imports.add(JS.NameSpecifier(_extensionSymbolsModule));
-      }
-
-      items.add(JS.ImportDeclaration(
-          namedImports: imports, from: js.string(module, "'")));
-    });
   }
 
   /// Called to emit class declarations.
@@ -1506,7 +1426,7 @@ class CodeGenerator extends Object
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
       jsMethods
-          .add(JS.Method(_propertyName('constructor'), js.fun(r'''function() {
+          .add(JS.Method(propertyName('constructor'), js.fun(r'''function() {
                   throw Error("use `new " + #.typeName(#.getReifiedType(this)) +
                       ".new(...)` to create a Dart object");
               }''', [runtimeModule, runtimeModule])));
@@ -1613,7 +1533,7 @@ class CodeGenerator extends Object
           if (param.kind == ParameterKind.NAMED) {
             foundNamedParams = true;
 
-            var name = _propertyName(param.name);
+            var name = propertyName(param.name);
             body.add(js.statement('if (# in #) #;', [
               name,
               namedArgumentTemp,
@@ -1743,7 +1663,7 @@ class CodeGenerator extends Object
       // Sort the names to match dart2js order.
       var sortedNames = (namedParameterTypes.keys.toList())..sort();
       var named = sortedNames
-          .map((n) => JS.Property(_propertyName(n), JS.Identifier(n)));
+          .map((n) => JS.Property(propertyName(n), JS.Identifier(n)));
       addProperty('namedArguments', JS.ObjectInitializer(named.toList()));
       positionalArgs.removeLast();
     }
@@ -2085,7 +2005,7 @@ class CodeGenerator extends Object
       if (extensions.isEmpty) return;
 
       var names = extensions
-          .map((e) => _propertyName(JS.memberNameForDartMember(e)))
+          .map((e) => propertyName(JS.memberNameForDartMember(e)))
           .toList();
       body.add(js.statement('#.#(#, #);', [
         runtimeModule,
@@ -2119,7 +2039,7 @@ class CodeGenerator extends Object
         var proto = classElem.type.isObject
             ? js.call('Object.create(null)')
             : runtimeCall('get${name}s(#.__proto__)', [className]);
-        elements.insert(0, JS.Property(_propertyName('__proto__'), proto));
+        elements.insert(0, JS.Property(propertyName('__proto__'), proto));
       }
       body.add(runtimeStatement('set${name}Signature(#, () => #)', [
         className,
@@ -2333,7 +2253,7 @@ class CodeGenerator extends Object
   JS.Expression _constructorName(String name) {
     if (name == '') {
       // Default constructors (factory or not) use `new` as their name.
-      return _propertyName('new');
+      return propertyName('new');
     }
     return _emitStaticMemberName(name);
   }
@@ -2718,7 +2638,7 @@ class CodeGenerator extends Object
   JS.Method _emitTopLevelProperty(FunctionDeclaration node) {
     var name = node.name.name;
     return JS.Method(
-        _propertyName(name), _emitFunctionExpression(node.functionExpression),
+        propertyName(name), _emitFunctionExpression(node.functionExpression),
         isGetter: node.isGetter, isSetter: node.isSetter)
       ..sourceInformation = _functionEnd(node);
   }
@@ -2890,7 +2810,7 @@ class CodeGenerator extends Object
       t = covariantParams.lookup(t) as TypeParameterElement;
       if (t != null) {
         body.add(runtimeStatement('checkTypeBound(#, #, #)',
-            [_emitType(t.type), _emitType(t.bound), _propertyName(t.name)]));
+            [_emitType(t.type), _emitType(t.bound), propertyName(t.name)]));
       }
     }
   }
@@ -3230,7 +3150,7 @@ class CodeGenerator extends Object
       {bool cacheType = true}) {
     var properties = <JS.Property>[];
     types.forEach((name, type) {
-      var key = _propertyName(name);
+      var key = propertyName(name);
       var value = _emitType(type, cacheType: cacheType);
       properties.add(JS.Property(key, value));
     });
@@ -3421,7 +3341,7 @@ class CodeGenerator extends Object
   /// function does not handle JS interop.
   JS.Expression _emitTopLevelMemberName(Element e, {String suffix = ''}) {
     var name = getJSExportName(e) ?? _getElementName(e);
-    return _propertyName(name + suffix);
+    return propertyName(name + suffix);
   }
 
   @override
@@ -3686,7 +3606,7 @@ class CodeGenerator extends Object
         }
       }
       if (e.name == 'extensionSymbol' && firstArg is StringLiteral) {
-        return _getExtensionSymbolInternal(firstArg.stringValue);
+        return getExtensionSymbolInternal(firstArg.stringValue);
       }
     }
 
@@ -4125,7 +4045,7 @@ class CodeGenerator extends Object
   JS.Property visitNamedExpression(NamedExpression node) {
     assert(node.parent is ArgumentList);
     return JS.Property(
-        _propertyName(node.name.label.name), _visitExpression(node.expression));
+        propertyName(node.name.label.name), _visitExpression(node.expression));
   }
 
   List<JS.Parameter> _emitParametersForElement(ExecutableElement member) {
@@ -4526,7 +4446,7 @@ class CodeGenerator extends Object
         var args = ctor.positionalArguments.map(_emitDartObject).toList();
         var named = <JS.Property>[];
         ctor.namedArguments.forEach((name, value) {
-          named.add(JS.Property(_propertyName(name), _emitDartObject(value)));
+          named.add(JS.Property(propertyName(name), _emitDartObject(value)));
         });
         if (named.isNotEmpty) args.add(JS.ObjectInitializer(named));
         return _emitInstanceCreationExpression(ctor.constructor, type, args,
@@ -6113,11 +6033,11 @@ class CodeGenerator extends Object
       var runtimeName = getJSExportName(element);
       if (runtimeName != null) {
         var parts = runtimeName.split('.');
-        if (parts.length < 2) return _propertyName(runtimeName);
+        if (parts.length < 2) return propertyName(runtimeName);
 
         JS.Expression result = JS.Identifier(parts[0]);
         for (int i = 1; i < parts.length; i++) {
-          result = JS.PropertyAccess(result, _propertyName(parts[i]));
+          result = JS.PropertyAccess(result, propertyName(parts[i]));
         }
         return result;
       }
@@ -6132,9 +6052,9 @@ class CodeGenerator extends Object
     // actually try to access those JS members via interop.
     name = JS.memberNameForDartMember(name, _isExternal(element));
     if (useExtension) {
-      return _getExtensionSymbolInternal(name);
+      return getExtensionSymbolInternal(name);
     }
-    return _propertyName(name);
+    return propertyName(name);
   }
 
   /// Emits the name of a static member, suitable for use in a JS property
@@ -6173,20 +6093,7 @@ class CodeGenerator extends Object
           name += '_';
         }
     }
-    return _propertyName(name);
-  }
-
-  /// This is an internal method used by [_emitMemberName] and the
-  /// optimized `dart:_runtime extensionSymbol` builtin to get the symbol
-  /// for `dartx.<name>`.
-  ///
-  /// Do not call this directly; you want [_emitMemberName], which knows how to
-  /// handle the many details involved in naming.
-  JS.TemporaryId _getExtensionSymbolInternal(String name) {
-    return _extensionSymbols.putIfAbsent(
-        name,
-        () => JS.TemporaryId(
-            '\$${JS.friendlyNameForDartOperator[name] ?? name}'));
+    return propertyName(name);
   }
 
   var _forwardingCache = HashMap<Element, Map<String, Element>>();
@@ -6251,14 +6158,6 @@ class CodeGenerator extends Object
       return true;
     }
     return false;
-  }
-
-  /// Returns the canonical name to refer to the Dart library.
-  JS.Identifier emitLibraryName(LibraryElement library) {
-    // It's either one of the libraries in this module, or it's an import.
-    return _libraries[library] ??
-        _imports.putIfAbsent(library,
-            () => JS.TemporaryId(jsLibraryName(_libraryRoot, library)));
   }
 
   /// Return true if this is one of the methods/properties on all Dart Objects
@@ -6667,49 +6566,6 @@ class CodeGenerator extends Object
   visitForPartsWithExpression(ForPartsWithExpression node) =>
       _unreachable(node);
 }
-
-/// Choose a canonical name from the [library] element.
-///
-/// This never uses the library's name (the identifier in the `library`
-/// declaration) as it doesn't have any meaningful rules enforced.
-String jsLibraryName(String libraryRoot, LibraryElement library) {
-  var uri = library.source.uri;
-  if (uri.scheme == 'dart') {
-    return uri.path;
-  }
-  // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
-  var encodedSeparator = '__';
-  String qualifiedPath;
-  if (uri.scheme == 'package') {
-    // Strip the package name.
-    // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
-    // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
-    qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
-  } else {
-    qualifiedPath = path
-        .relative(uri.toFilePath(), from: libraryRoot)
-        .replaceAll(path.separator, encodedSeparator)
-        .replaceAll('..', encodedSeparator);
-  }
-  return pathToJSIdentifier(qualifiedPath);
-}
-
-/// Debugger friendly name for a Dart Library.
-String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
-  var uri = library.source.uri;
-  // For package: and dart: uris show the entire
-  if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
-
-  var filePath = uri.toFilePath();
-  // Relative path to the library.
-  return path.relative(filePath, from: libraryRoot);
-}
-
-/// Shorthand for identifier-like property names.
-/// For now, we emit them as strings and the printer restores them to
-/// identifiers if it can.
-// TODO(jmesserly): avoid the round tripping through quoted form.
-JS.LiteralString _propertyName(String name) => js.string(name, "'");
 
 // TODO(jacobr): we would like to do something like the following
 // but we don't have summary support yet.

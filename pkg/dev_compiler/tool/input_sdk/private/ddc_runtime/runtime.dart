@@ -147,6 +147,22 @@ void trackProfile(bool flag) {
 
 final JsSymbol = JS('', 'Symbol');
 
+/// The prototype used for all Dart libraries.
+///
+/// This makes it easy to identify Dart library objects, and also improves
+/// performance (JS engines such as V8 tend to assume `Object.create(null)` is
+/// used for a Map, so they don't optimize it as they normally would for
+/// class-like objects).
+///
+/// The `dart.library` field is set by the compiler during SDK bootstrapping
+/// (because it is needed for dart:_runtime itself), so we don't need to
+/// initialize it here. The name `dart.library` is used because it reads nicely,
+/// for example:
+///
+///     const my_library = Object.create(dart.library);
+///
+Object libraryPrototype = JS('', 'dart.library');
+
 // TODO(vsm): Remove once this flag we've removed the ability to
 // whitelist / fallback on the old behavior.
 bool startAsyncSynchronously = true;

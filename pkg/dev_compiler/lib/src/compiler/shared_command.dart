@@ -56,6 +56,10 @@ class SharedCompilerOptions {
   /// code.
   final bool sourceMap;
 
+  /// Whether to emit the source mapping file in the program text, so the
+  /// runtime can enable synchronous stack trace deobsfuscation.
+  final bool inlineSourceMap;
+
   /// Whether to emit a summary file containing API signatures.
   ///
   /// This is required for a modular build process.
@@ -95,6 +99,7 @@ class SharedCompilerOptions {
 
   SharedCompilerOptions(
       {this.sourceMap = true,
+      this.inlineSourceMap = false,
       this.summarizeApi = true,
       this.emitMetadata = false,
       this.enableAsserts = true,
@@ -109,6 +114,7 @@ class SharedCompilerOptions {
       [String moduleRoot, String summaryExtension])
       : this(
             sourceMap: args['source-map'] as bool,
+            inlineSourceMap: args['inline-source-map'] as bool,
             summarizeApi: args['summarize'] as bool,
             emitMetadata: args['emit-metadata'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
@@ -137,6 +143,8 @@ class SharedCompilerOptions {
           help: 'emit an API summary file', defaultsTo: true, hide: hide)
       ..addFlag('source-map',
           help: 'emit source mapping', defaultsTo: true, hide: hide)
+      ..addFlag('inline-source-map',
+          help: 'emit source mapping inline', defaultsTo: false, hide: hide)
       ..addFlag('emit-metadata',
           help: 'emit metadata annotations queriable via mirrors', hide: hide)
       ..addFlag('enable-asserts',

@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
-import 'package:dev_compiler/src/flutter/track_widget_constructor_locations.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
@@ -20,7 +19,10 @@ import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
+import '../compiler/shared_compiler.dart';
+import '../flutter/track_widget_constructor_locations.dart';
 import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 
 import 'analyzer_to_kernel.dart';
@@ -275,7 +277,8 @@ Future<CompilerResult> _compile(List<String> args,
   // --single-out-file is used, but that option does not appear to be used by
   // any of our build systems.
   var jsCode = jsProgramToCode(jsModule, options.moduleFormats.first,
-      buildSourceMap: argResults['source-map'] as bool,
+      buildSourceMap: options.sourceMap,
+      inlineSourceMap: options.inlineSourceMap,
       jsUrl: path.toUri(output).toString(),
       mapUrl: path.toUri(output + '.map').toString(),
       bazelMapping: options.bazelMapping,
@@ -311,6 +314,7 @@ class JSCode {
 
 JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
+    bool inlineSourceMap = false,
     String jsUrl,
     String mapUrl,
     Map<String, String> bazelMapping,
@@ -344,6 +348,10 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
   }
 
   var text = printer.getText();
+  var rawSourceMap = inlineSourceMap
+      ? js.escapedString(json.encode(builtMap), "'").value
+      : 'null';
+  text = text.replaceFirst(SharedCompiler.sourceMapLocationID, rawSourceMap);
 
   return JSCode(text, builtMap);
 }
