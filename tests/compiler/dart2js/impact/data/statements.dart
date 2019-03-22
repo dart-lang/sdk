@@ -142,21 +142,7 @@ testTryFinally() {
   try {} finally {}
 }
 
-/*strong.element: testSwitchWithoutFallthrough:
- static=[
-  throwExpression(1),
-  wrapException(1)],
- type=[
-  inst:JSDouble,
-  inst:JSInt,
-  inst:JSNumber,
-  inst:JSPositiveInt,
-  inst:JSString,
-  inst:JSUInt31,
-  inst:JSUInt32]
-*/
-/*strongConst.element: testSwitchWithoutFallthrough:
- constant=[0,1,2,3,4],
+/*element: testSwitchWithoutFallthrough:
  static=[
   throwExpression(1),
   wrapException(1)],

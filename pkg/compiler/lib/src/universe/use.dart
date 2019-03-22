@@ -233,6 +233,11 @@ class StaticUse {
       }
       sb.write(')');
     }
+    if (deferredImport != null) {
+      sb.write('{');
+      sb.write(deferredImport.name);
+      sb.write('}');
+    }
     return sb.toString();
   }
 
@@ -643,6 +648,7 @@ enum TypeUseKind {
   TYPE_LITERAL,
   INSTANTIATION,
   NATIVE_INSTANTIATION,
+  CONST_INSTANTIATION,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
   RTI_VALUE,
@@ -681,6 +687,9 @@ class TypeUse {
       case TypeUseKind.INSTANTIATION:
         sb.write('inst:');
         break;
+      case TypeUseKind.CONST_INSTANTIATION:
+        sb.write('const:');
+        break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         sb.write('native:');
         break;
@@ -698,6 +707,11 @@ class TypeUse {
         break;
     }
     sb.write(type);
+    if (deferredImport != null) {
+      sb.write('{');
+      sb.write(deferredImport.name);
+      sb.write('}');
+    }
     return sb.toString();
   }
 
@@ -742,6 +756,13 @@ class TypeUse {
   /// [type] used in an instantiation, like `new T();`.
   factory TypeUse.instantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
+  }
+
+  /// [type] used in a constant instantiation, like `const T();`.
+  factory TypeUse.constInstantiation(
+      InterfaceType type, ImportEntity deferredImport) {
+    return new TypeUse.internal(
+        type, TypeUseKind.CONST_INSTANTIATION, deferredImport);
   }
 
   /// [type] used in a native instantiation.

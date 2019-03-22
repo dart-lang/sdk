@@ -345,8 +345,8 @@ class KernelModularStrategy extends ModularStrategy {
   @override
   ModularMemberData getModularMemberData(
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
-    ScopeModel scopeModel = _compilerTask.measureSubtask(
-        'closures', () => new ScopeModel.from(node));
+    ScopeModel scopeModel = _compilerTask.measureSubtask('closures',
+        () => new ScopeModel.from(node, _elementMap.constantEvaluator));
     ImpactBuilderData impactBuilderData;
     if (useImpactDataForTesting) {
       // TODO(johnniwinther): Always create and use the [ImpactBuilderData].

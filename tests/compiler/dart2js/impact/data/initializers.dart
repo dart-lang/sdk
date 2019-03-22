@@ -29,11 +29,11 @@ main() {
 }
 
 /*strong.element: testDefaultValuesPositional:type=[inst:JSBool,param:bool]*/
-/*strongConst.element: testDefaultValuesPositional:constant=[false],type=[inst:JSBool,param:bool]*/
+/*strongConst.element: testDefaultValuesPositional:type=[inst:JSBool,param:bool]*/
 testDefaultValuesPositional([bool value = false]) {}
 
 /*strong.element: testDefaultValuesNamed:type=[inst:JSBool,param:bool]*/
-/*strongConst.element: testDefaultValuesNamed:constant=[false],type=[inst:JSBool,param:bool]*/
+/*strongConst.element: testDefaultValuesNamed:type=[inst:JSBool,param:bool]*/
 testDefaultValuesNamed({bool value: false}) {}
 
 class ClassFieldInitializer1 {

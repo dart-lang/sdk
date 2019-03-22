@@ -105,25 +105,25 @@ testRedirectingFactoryInvokeGenericDynamic() {
 }
 
 /*strong.element: testConstRedirectingFactoryInvoke:static=[Class.generative(0)]*/
-/*strongConst.element: testConstRedirectingFactoryInvoke:constant=[Class()]*/
+/*strongConst.element: testConstRedirectingFactoryInvoke:type=[const:Class]*/
 testConstRedirectingFactoryInvoke() {
   const Class.redirect();
 }
 
 /*strong.element: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
-/*strongConst.element: testConstRedirectingFactoryInvokeGeneric:constant=[GenericClass<int, String>()]*/
+/*strongConst.element: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
 testConstRedirectingFactoryInvokeGeneric() {
   const GenericClass<int, String>.redirect();
 }
 
 /*strong.element: testConstRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
-/*strongConst.element: testConstRedirectingFactoryInvokeGenericRaw:constant=[GenericClass()]*/
+/*strongConst.element: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericRaw() {
   const GenericClass.redirect();
 }
 
 /*strong.element: testConstRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
-/*strongConst.element: testConstRedirectingFactoryInvokeGenericDynamic:constant=[GenericClass()]*/
+/*strongConst.element: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericDynamic() {
   const GenericClass<dynamic, dynamic>.redirect();
 }

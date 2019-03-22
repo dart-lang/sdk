@@ -719,8 +719,13 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitSetConstant(ir.SetConstant node) {
-    // TODO(johnniwinther, fishythefish): Create a set constant value.
-    throw new UnsupportedError("Set literal constants not implemented.");
+    List<ConstantValue> elements = [];
+    for (ir.Constant element in node.entries) {
+      elements.add(element.accept(this));
+    }
+    DartType type = elementMap.commonElements
+        .setType(elementMap.getDartType(node.typeArgument));
+    return constant_system.createSet(elementMap.commonElements, type, elements);
   }
 
   @override

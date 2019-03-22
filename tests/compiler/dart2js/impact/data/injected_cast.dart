@@ -54,8 +54,7 @@ method2(dynamic o, dynamic value) {
 
 /*element: Class3.:static=[Object.(0)]*/
 class Class3 {
-  /*strong.element: Class3.method3:type=[inst:JSBool,inst:JSNull,param:A,param:B,param:C]*/
-  /*strongConst.element: Class3.method3:constant=[null],type=[inst:JSBool,param:A,param:B,param:C]*/
+  /*element: Class3.method3:type=[inst:JSBool,inst:JSNull,param:A,param:B,param:C]*/
   method3(A a, [B b, C c]) {}
 }
 
@@ -75,12 +74,8 @@ method3(dynamic o, dynamic a, B b, dynamic c) {
 
 /*element: Class4.:static=[Object.(0)]*/
 class Class4 {
-  /*strong.element: Class4.method4:
+  /*element: Class4.method4:
    type=[inst:JSBool,inst:JSNull,param:A,param:B,param:C]
-  */
-  /*strongConst.element: Class4.method4:
-    constant=[null],
-    type=[inst:JSBool,param:A,param:B,param:C]
   */
   method4(A a, {B b, C c}) {}
 }
@@ -101,19 +96,7 @@ method4(dynamic o, dynamic a, B b, dynamic c) {
 
 /*element: Class5.:static=[Object.(0)]*/
 class Class5<T1, T2> {
-  /*strong.element: Class5.method5:
-   static=*,
-   type=[
-    inst:*,
-    param:C,
-    param:Class5.T1,
-    param:Class5.T2,
-    param:Object,
-    param:method5.S1,
-    param:method5.S2]
-  */
-  /*strongConst.element: Class5.method5:
-   constant=[null],
+  /*element: Class5.method5:
    static=*,
    type=[
     inst:*,
@@ -146,19 +129,7 @@ method5(dynamic o, dynamic a, B b, C c, dynamic d, E e) {
 
 /*element: Class6.:static=[Object.(0)]*/
 class Class6<T1, T2> {
-  /*strong.element: Class6.method6:
-   static=*,
-   type=[
-    inst:*,
-    param:C,
-    param:Class6.T1,
-    param:Class6.T2,
-    param:Object,
-    param:method6.S1,
-    param:method6.S2]
-  */
-  /*strongConst.element: Class6.method6:
-   constant=[null],
+  /*element: Class6.method6:
    static=*,
    type=[
     inst:*,

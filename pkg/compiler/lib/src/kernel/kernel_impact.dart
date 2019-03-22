@@ -330,6 +330,15 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
+  void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
+      ir.LibraryDependency import) {
+    ImportEntity deferredImport = elementMap.getImport(import);
+    InterfaceType type = elementMap.createInterfaceType(cls, typeArguments);
+    impactBuilder
+        .registerTypeUse(new TypeUse.constInstantiation(type, deferredImport));
+  }
+
+  @override
   void registerConstConstructorInvocationNode(ir.ConstructorInvocation node) {
     assert(node.isConst);
     ConstructorEntity constructor = elementMap.getConstructor(node.target);
@@ -765,7 +774,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerFieldInitializer(ir.Field node) {
+  void registerFieldInitialization(ir.Field node) {
     impactBuilder
         .registerStaticUse(new StaticUse.fieldInit(elementMap.getField(node)));
   }
@@ -781,12 +790,6 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         target,
         new CallStructure(positionalArguments + namedArguments.length,
             namedArguments, typeArguments.length)));
-  }
-
-  @override
-  void registerConstant(ir.ConstantExpression node) {
-    ConstantValue value = elementMap.getConstantValue(node);
-    impactBuilder.registerConstantUse(new ConstantUse.literal(value));
   }
 
   @override

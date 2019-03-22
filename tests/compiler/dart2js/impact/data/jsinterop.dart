@@ -59,7 +59,7 @@ typedef void Callback<T>(T value);
 /*element: GenericClass.:static=[JavaScriptObject.(0)]*/
 @JS()
 class GenericClass<T> {
-  /*strong.element: GenericClass.method:
+  /*element: GenericClass.method:
    static=[
     checkSubtype(4),
     getRuntimeTypeArgument(3),
@@ -74,24 +74,6 @@ class GenericClass<T> {
     inst:JSFixedArray<dynamic>,
     inst:JSMutableArray<dynamic>,
     inst:JSNull,
-    inst:JSUnmodifiableArray<dynamic>,
-    param:void Function(GenericClass.T)]
-  */
-  /*strongConst.element: GenericClass.method:
-   constant=[null],
-   static=[
-    checkSubtype(4),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
-    setRuntimeTypeInfo(2)],
-   type=[
-    inst:JSArray<dynamic>,
-    inst:JSBool,
-    inst:JSExtendableArray<dynamic>,
-    inst:JSFixedArray<dynamic>,
-    inst:JSMutableArray<dynamic>,
     inst:JSUnmodifiableArray<dynamic>,
     param:void Function(GenericClass.T)]
   */

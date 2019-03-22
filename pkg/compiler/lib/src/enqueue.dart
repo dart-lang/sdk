@@ -387,6 +387,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
+      case TypeUseKind.CONST_INSTANTIATION:
         _registerInstantiatedType(type, globalDependency: false);
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:

@@ -338,6 +338,13 @@ abstract class DeferredLoadTask extends CompilerTask {
                     interface.element, typeUse.deferredImport);
               }
               break;
+            case TypeUseKind.CONST_INSTANTIATION:
+              if (type.isInterfaceType) {
+                InterfaceType interface = type;
+                dependencies.addClass(
+                    interface.element, typeUse.deferredImport);
+              }
+              break;
             case TypeUseKind.INSTANTIATION:
             case TypeUseKind.NATIVE_INSTANTIATION:
             case TypeUseKind.IS_CHECK:

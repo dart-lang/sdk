@@ -18,10 +18,7 @@ class A {
   /*omit.element: A.DEFAULT:Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
   static const DEFAULT = const {'fun': closure};
 
-  /*strong.element: A.map:Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-  /*omit.element: A.map:Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-  /*strongConst.element: A.map:Dictionary([exact=ConstantStringMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-  /*omitConst.element: A.map:Dictionary([exact=ConstantStringMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
+  /*element: A.map:Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
   final map;
 
   /*element: A.:[exact=A]*/
@@ -32,10 +29,7 @@ class A {
 main() {
   var a = new A();
   a. /*[exact=A]*/ map
-      /*strong.Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-      /*omit.Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-      /*strongConst.Dictionary([exact=ConstantStringMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-      /*omitConst.Dictionary([exact=ConstantStringMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
+      /*Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
       ['fun'](3.3);
   print(closure(22));
 }

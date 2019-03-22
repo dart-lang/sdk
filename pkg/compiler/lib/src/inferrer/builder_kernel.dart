@@ -1932,8 +1932,7 @@ class TypeInformationConstantVisitor
 
   @override
   TypeInformation visitUnevaluatedConstant(ir.UnevaluatedConstant node) {
-    // TODO(johnniwinther): These should have been replaced by their evaluated
-    // counterpart during impact building.
+    assert(false, "Unexpected unevaluated constant: $node");
     return builder._types.dynamicType;
   }
 }

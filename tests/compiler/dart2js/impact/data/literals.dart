@@ -90,7 +90,7 @@ testStringInterpolation() => '${true}';
  dynamic=[toString(0)],
  static=[S(1)],type=[inst:JSBool,inst:JSString]
 */
-/*strongConst.element: testStringInterpolationConst:constant=["true"]*/
+/*strongConst.element: testStringInterpolationConst:type=[inst:JSString]*/
 testStringInterpolationConst() {
   const b = '${true}';
   return b;
@@ -103,15 +103,14 @@ testStringInterpolationConst() {
 */
 testStringJuxtaposition() => 'a' 'b';
 
-/*strong.element: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
-/*strongConst.element: testSymbol:constant=[Symbol(_name="main")]*/
+/*element: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testSymbol() => #main;
 
 /*strong.element: testConstSymbol:
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
  type=[inst:JSString,inst:Symbol]
 */
-/*strongConst.element: testConstSymbol:constant=[Symbol(_name="main")]*/
+/*strongConst.element: testConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testConstSymbol() => const Symbol('main');
 
 /*strong.element: complexSymbolField1:
@@ -193,7 +192,7 @@ const complexSymbolField =
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1),complexSymbolField],
  type=[impl:String,inst:JSBool,inst:Symbol]
 */
-/*strongConst.element: testComplexConstSymbol:constant=[Symbol(_name="truefalsetruenull")]*/
+/*strongConst.element: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
 /*strong.element: testIfNullConstSymbol:
@@ -201,7 +200,7 @@ testComplexConstSymbol() => const Symbol(complexSymbolField);
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
  type=[inst:JSNull,inst:JSString,inst:Symbol]
 */
-/*strongConst.element: testIfNullConstSymbol:constant=[Symbol(_name="foo")]*/
+/*strongConst.element: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
 /*element: testTypeLiteral:
@@ -211,7 +210,7 @@ testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 testTypeLiteral() => Object;
 
 /*strong.element: testBoolFromEnvironment:static=[bool.fromEnvironment(1)],type=[inst:JSString]*/
-/*strongConst.element: testBoolFromEnvironment:constant=[false]*/
+/*strongConst.element: testBoolFromEnvironment:type=[inst:JSBool]*/
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 
 /*element: testEmptyListLiteral:type=[inst:List<dynamic>]*/
@@ -223,8 +222,7 @@ testEmptyListLiteralDynamic() => <dynamic>[];
 /*element: testEmptyListLiteralTyped:type=[inst:List<String>]*/
 testEmptyListLiteralTyped() => <String>[];
 
-/*strong.element: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
-/*strongConst.element: testEmptyListLiteralConstant:constant=[[]]*/
+/*element: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
 testEmptyListLiteralConstant() => const [];
 
 /*element: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
@@ -239,13 +237,13 @@ testEmptyMapLiteralDynamic() => <dynamic, dynamic>{};
 /*element: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
 testEmptyMapLiteralTyped() => <String, int>{};
 
-/*strong.element: testEmptyMapLiteralConstant:
+/*element: testEmptyMapLiteralConstant:
 type=[
  inst:ConstantMap<dynamic,dynamic>,
  inst:ConstantProtoMap<dynamic,dynamic>,
  inst:ConstantStringMap<dynamic,dynamic>,
- inst:GeneralConstantMap<dynamic,dynamic>]*/
-/*strongConst.element: testEmptyMapLiteralConstant:constant=[{}]*/
+ inst:GeneralConstantMap<dynamic,dynamic>]
+*/
 testEmptyMapLiteralConstant() => const {};
 
 /*element: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
