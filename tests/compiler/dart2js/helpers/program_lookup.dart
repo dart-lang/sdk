@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
@@ -44,6 +45,15 @@ class ProgramLookup {
   ProgramLookup(Compiler compiler)
       : this.program = compiler.backend.emitter.emitter.programForTesting,
         this.namer = compiler.backend.namer;
+
+  Fragment getFragment(OutputUnit outputUnit) {
+    for (Fragment fragment in program.fragments) {
+      if (fragment.outputUnit == outputUnit) {
+        return fragment;
+      }
+    }
+    return null;
+  }
 
   Map<LibraryEntity, LibraryData> libraryMap;
 

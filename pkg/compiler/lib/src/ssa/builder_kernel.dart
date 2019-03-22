@@ -1526,8 +1526,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitConstantExpression(ir.ConstantExpression node) {
-    stack.add(
-        graph.addConstant(_elementMap.getConstantValue(node), closedWorld));
+    ConstantValue value = _elementMap.getConstantValue(node);
+    ir.LibraryDependency import = getDeferredImport(node);
+    if (import != null) {
+      stack.add(graph.addDeferredConstant(
+          value,
+          closedWorld.outputUnitData.outputUnitForConstant(value),
+          _sourceInformationBuilder.buildGet(node),
+          closedWorld));
+    } else {
+      stack.add(graph.addConstant(value, closedWorld));
+    }
   }
 
   /// Returns true if the [type] is a valid return type for an asynchronous
@@ -3094,8 +3103,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // unit, the old FE would still generate a deferred wrapper here.
         if (!closedWorld.outputUnitData
             .hasOnlyNonDeferredImportPaths(targetElement, field)) {
-          stack.add(graph.addDeferredConstant(fieldData.initialValue, unit,
-              sourceInformation, compiler, closedWorld));
+          stack.add(graph.addDeferredConstant(
+              fieldData.initialValue, unit, sourceInformation, closedWorld));
         } else {
           stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
               sourceInformation: sourceInformation));
