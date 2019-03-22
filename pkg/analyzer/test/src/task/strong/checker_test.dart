@@ -4543,6 +4543,50 @@ void main() {
     await check();
   }
 
+  test_list_ifElement_falseBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) 0 else /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_falseBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) 0 else /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_falseBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) 0 else /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_falseBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum];
+}
+''');
+    await check();
+  }
+
   test_list_ifElement_objectCondition_disableImplicitCasts() async {
     addFile(r'''
 Object c;
@@ -4558,6 +4602,50 @@ void main() {
 Object c;
 void main() {
   <int>[if (/*info:DOWN_CAST_IMPLICIT*/c) 0];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_trueBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_trueBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_trueBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_trueBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) /*info:DOWN_CAST_IMPLICIT*/someNum];
 }
 ''');
     await check();
@@ -4799,6 +4887,50 @@ void main() {
     await check();
   }
 
+  test_set_ifElement_falseBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) 0 else /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_falseBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) 0 else /*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_falseBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) 0 else /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_falseBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum};
+}
+''');
+    await check();
+  }
+
   test_set_ifElement_objectCondition_disableImplicitCasts() async {
     addFile(r'''
 Object c;
@@ -4814,6 +4946,50 @@ void main() {
 Object c;
 void main() {
   <int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_trueBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_trueBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_trueBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_trueBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) /*info:DOWN_CAST_IMPLICIT*/someNum};
 }
 ''');
     await check();

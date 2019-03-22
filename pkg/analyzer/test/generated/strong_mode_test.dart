@@ -96,6 +96,106 @@ class C {
     }
   }
 
+  test_implicitCastMetadata_ifElement_list_branches() async {
+    var source = addSource(r'''
+class C {
+  bool c;
+  dynamic dyn;
+  Object object;
+  num someNum;
+  int someInt;
+
+  void casts() {
+    <num>[if (c) dyn];
+    <num>[if (c) object];
+    <int>[if (c) dyn];
+    <int>[if (c) object];
+    <int>[if (c) someNum];
+    <Null>[if (c) dyn];
+    <Null>[if (c) object];
+    <Null>[if (c) someNum];
+    <Null>[if (c) someInt];
+    <num>[if (c) dyn else dyn];
+    <num>[if (c) object else object];
+    <int>[if (c) dyn else dyn];
+    <int>[if (c) object else object];
+    <int>[if (c) someNum else someNum];
+    <Null>[if (c) dyn else dyn];
+    <Null>[if (c) object else object];
+    <Null>[if (c) someNum else someNum];
+    <Null>[if (c) someInt else someInt];
+  }
+
+  void noCasts() {
+    <dynamic>[if (c) dyn];
+    <dynamic>[if (c) object];
+    <dynamic>[if (c) someNum];
+    <dynamic>[if (c) someInt];
+    <dynamic>[if (c) null];
+    <Object>[if (c) dyn];
+    <Object>[if (c) object];
+    <Object>[if (c) someNum];
+    <Object>[if (c) someInt];
+    <Object>[if (c) null];
+    <num>[if (c) someNum];
+    <num>[if (c) someInt];
+    <num>[if (c) null];
+    <int>[if (c) someInt];
+    <int>[if (c) null];
+    <Null>[if (c) null];
+    <dynamic>[if (c) dyn else dyn];
+    <dynamic>[if (c) object else object];
+    <dynamic>[if (c) someNum else someNum];
+    <dynamic>[if (c) someInt else someInt];
+    <dynamic>[if (c) null else null];
+    <Object>[if (c) dyn else dyn];
+    <Object>[if (c) object else object];
+    <Object>[if (c) someNum else someNum];
+    <Object>[if (c) someInt else someInt];
+    <Object>[if (c) null else null];
+    <num>[if (c) someNum else someNum];
+    <num>[if (c) someInt else someInt];
+    <num>[if (c) null else null];
+    <int>[if (c) someInt else someInt];
+    <int>[if (c) null else null];
+    <Null>[if (c) null else null];
+  }
+}
+''');
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
+
+    List<Expression> getBranches(ExpressionStatement s) {
+      ListLiteral literal = s.expression;
+      IfElement ifElement = literal.elements[0];
+      return ifElement.elseElement == null
+          ? [ifElement.thenElement]
+          : [ifElement.thenElement, ifElement.elseElement];
+    }
+
+    DartType getListElementType(ExpressionStatement s) {
+      ListLiteral literal = s.expression;
+      return literal.typeArguments.arguments[0].type;
+    }
+
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
+      for (var expression in getBranches(s)) {
+        var castType = getImplicitCast(expression);
+        expect(castType, isNotNull,
+            reason: 'Expression $expression does not have implicit cast');
+        expect(castType, equals(getListElementType(s)));
+      }
+    }
+
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
+      for (var expression in getBranches(s)) {
+        var castType = getImplicitCast(expression);
+        expect(castType, isNull,
+            reason: 'Expression $expression should not have implicit cast');
+      }
+    }
+  }
+
   test_implicitCastMetadata_ifElement_map_keys() async {
     var source = addSource(r'''
 class C {
@@ -295,6 +395,106 @@ class C {
 
     for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
       for (var expression in getValues(s)) {
+        var castType = getImplicitCast(expression);
+        expect(castType, isNull,
+            reason: 'Expression $expression should not have implicit cast');
+      }
+    }
+  }
+
+  test_implicitCastMetadata_ifElement_set_trueBranch() async {
+    var source = addSource(r'''
+class C {
+  bool c;
+  dynamic dyn;
+  Object object;
+  num someNum;
+  int someInt;
+
+  void casts() {
+    <num>{if (c) dyn};
+    <num>{if (c) object};
+    <int>{if (c) dyn};
+    <int>{if (c) object};
+    <int>{if (c) someNum};
+    <Null>{if (c) dyn};
+    <Null>{if (c) object};
+    <Null>{if (c) someNum};
+    <Null>{if (c) someInt};
+    <num>{if (c) dyn else dyn};
+    <num>{if (c) object else object};
+    <int>{if (c) dyn else dyn};
+    <int>{if (c) object else object};
+    <int>{if (c) someNum else someNum};
+    <Null>{if (c) dyn else dyn};
+    <Null>{if (c) object else object};
+    <Null>{if (c) someNum else someNum};
+    <Null>{if (c) someInt else someInt};
+  }
+
+  void noCasts() {
+    <dynamic>{if (c) dyn};
+    <dynamic>{if (c) object};
+    <dynamic>{if (c) someNum};
+    <dynamic>{if (c) someInt};
+    <dynamic>{if (c) null};
+    <Object>{if (c) dyn};
+    <Object>{if (c) object};
+    <Object>{if (c) someNum};
+    <Object>{if (c) someInt};
+    <Object>{if (c) null};
+    <num>{if (c) someNum};
+    <num>{if (c) someInt};
+    <num>{if (c) null};
+    <int>{if (c) someInt};
+    <int>{if (c) null};
+    <Null>{if (c) null};
+    <dynamic>{if (c) dyn else dyn};
+    <dynamic>{if (c) object else object};
+    <dynamic>{if (c) someNum else someNum};
+    <dynamic>{if (c) someInt else someInt};
+    <dynamic>{if (c) null else null};
+    <Object>{if (c) dyn else dyn};
+    <Object>{if (c) object else object};
+    <Object>{if (c) someNum else someNum};
+    <Object>{if (c) someInt else someInt};
+    <Object>{if (c) null else null};
+    <num>{if (c) someNum else someNum};
+    <num>{if (c) someInt else someInt};
+    <num>{if (c) null else null};
+    <int>{if (c) someInt else someInt};
+    <int>{if (c) null else null};
+    <Null>{if (c) null else null};
+ }
+}
+''');
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
+
+    List<Expression> getBranches(ExpressionStatement s) {
+      SetOrMapLiteral literal = s.expression;
+      IfElement ifElement = literal.elements[0];
+      return ifElement.elseElement == null
+          ? [ifElement.thenElement]
+          : [ifElement.thenElement, ifElement.elseElement];
+    }
+
+    DartType getSetElementType(ExpressionStatement s) {
+      SetOrMapLiteral literal = s.expression;
+      return literal.typeArguments.arguments[0].type;
+    }
+
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
+      for (var expression in getBranches(s)) {
+        var castType = getImplicitCast(expression);
+        expect(castType, isNotNull,
+            reason: 'Expression $expression does not have implicit cast');
+        expect(castType, equals(getSetElementType(s)));
+      }
+    }
+
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
+      for (var expression in getBranches(s)) {
         var castType = getImplicitCast(expression);
         expect(castType, isNull,
             reason: 'Expression $expression should not have implicit cast');
