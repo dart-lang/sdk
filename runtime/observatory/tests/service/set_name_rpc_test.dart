@@ -12,6 +12,7 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     expect(
         ((isolate.name == 'set_name_rpc_test.dart:main()') ||
+            (isolate.name == 'out.dill:main()') ||
             (isolate.name == 'out.jitsnapshot:main()')),
         isTrue);
 
