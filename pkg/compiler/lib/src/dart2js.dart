@@ -250,10 +250,16 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot read and write serialized simultaneously.");
     }
     if (argument != Flags.readData) {
-      readDataUri = currentDirectory
-          .resolve(nativeToUriPath(extractPath(argument, isDirectory: false)));
+      readDataUri = nativeToUri(extractPath(argument, isDirectory: false));
     }
     compilationStrategy = CompilationStrategy.fromData;
+  }
+
+  void setDillDependencies(String argument) {
+    String dependencies = extractParameter(argument);
+    String uriDependencies = dependencies.splitMapJoin(',',
+        onMatch: (_) => ',', onNonMatch: (p) => '${nativeToUri(p)}');
+    options.add('${Flags.dillDependencies}=${uriDependencies}');
   }
 
   void setCfeOnly(String argument) {
@@ -265,8 +271,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot read and write serialized simultaneously.");
     }
     if (argument != Flags.writeData) {
-      writeDataUri = currentDirectory
-          .resolve(nativeToUriPath(extractPath(argument, isDirectory: false)));
+      writeDataUri = nativeToUri(extractPath(argument, isDirectory: false));
     }
     compilationStrategy = CompilationStrategy.toData;
   }
@@ -341,6 +346,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.version, (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', ignoreOption),
     new OptionHandler('--libraries-spec=.+', setLibrarySpecificationUri),
+    new OptionHandler('${Flags.dillDependencies}=.+', setDillDependencies),
     new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
     new OptionHandler(Flags.cfeOnly, setCfeOnly),

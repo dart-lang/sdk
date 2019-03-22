@@ -51,6 +51,19 @@ class CompilerOptions implements DiagnosticOptions {
   /// If not null then [packageRoot] should be null.
   Uri packageConfig;
 
+  /// List of kernel files to load.
+  ///
+  /// When compiling modularly, this contains kernel files that are needed
+  /// to compile a single module.
+  ///
+  /// When linking, this contains all kernel files that form part of the final
+  /// program.
+  ///
+  /// At this time, this list points to full kernel files. In the future, we may
+  /// use a list of outline files for modular compiles, and only use full kernel
+  /// files for linking.
+  List<Uri> dillDependencies;
+
   /// Location from which serialized inference data is read.
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
@@ -374,6 +387,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
+      ..dillDependencies =
+          _extractUriListOption(options, '${Flags.dillDependencies}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
@@ -524,6 +539,15 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
     }
   }
   return null;
+}
+
+/// Extract list of comma separated Uris provided for [flag]. Returns an
+/// empty list if [option] contain [flag] without arguments. Returns `null` if
+/// [option] doesn't contain [flag] with or without arguments.
+List<Uri> _extractUriListOption(List<String> options, String flag) {
+  List<String> stringUris = _extractOptionalCsvOption(options, flag);
+  if (stringUris == null) return null;
+  return stringUris.map(Uri.parse).toList();
 }
 
 Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
