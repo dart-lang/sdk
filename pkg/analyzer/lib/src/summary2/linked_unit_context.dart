@@ -129,6 +129,10 @@ class LinkedUnitContext {
     return getTokenLexeme(node.simpleIdentifier_token);
   }
 
+  List<String> getSimpleNameList(List<LinkedNode> nodeList) {
+    return nodeList.map(getSimpleName).toList();
+  }
+
   int getSimpleOffset(LinkedNode node) {
     return tokensContext.offset(node.simpleIdentifier_token);
   }

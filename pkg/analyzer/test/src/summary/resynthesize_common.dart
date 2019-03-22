@@ -4601,9 +4601,16 @@ dynamic main((int) → dynamic f) {}
   test_export_class() async {
     addLibrarySource('/a.dart', 'class C {}');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  C: a.dart;C
+''',
+        withExportScope: true);
   }
 
   test_export_class_type_alias() async {
@@ -4613,9 +4620,16 @@ class _D {}
 class _E {}
 ''');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  C: a.dart;C
+''',
+        withExportScope: true);
   }
 
   test_export_configurations_useDefault() async {
@@ -4629,9 +4643,16 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'foo.dart';
-''');
+
+--------------------
+Exports:
+  A: foo.dart;A
+''',
+        withExportScope: true);
     expect(library.exports[0].exportedLibrary.source.shortName, 'foo.dart');
   }
 
@@ -4646,9 +4667,16 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'foo_io.dart';
-''');
+
+--------------------
+Exports:
+  A: foo_io.dart;A
+''',
+        withExportScope: true);
     expect(library.exports[0].exportedLibrary.source.shortName, 'foo_io.dart');
   }
 
@@ -4663,9 +4691,16 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'foo_html.dart';
-''');
+
+--------------------
+Exports:
+  A: foo_html.dart;A
+''',
+        withExportScope: true);
     ExportElement export = library.exports[0];
     expect(export.exportedLibrary.source.shortName, 'foo_html.dart');
   }
@@ -4673,9 +4708,16 @@ export 'foo_html.dart';
   test_export_function() async {
     addLibrarySource('/a.dart', 'f() {}');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  f: a.dart;f
+''',
+        withExportScope: true);
   }
 
   test_export_getter() async {
@@ -4690,67 +4732,130 @@ export 'a.dart';
     addLibrary('dart:async');
     var library =
         await checkLibrary('export "dart:async" hide Stream, Future;');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'dart:async' hide Stream, Future;
-''');
+
+--------------------
+Exports:
+  Completer: dart:async;Completer
+  FutureOr: dart:async;FutureOr
+  StreamIterator: dart:async;dart:async/stream.dart;StreamIterator
+  StreamSubscription: dart:async;dart:async/stream.dart;StreamSubscription
+  StreamTransformer: dart:async;dart:async/stream.dart;StreamTransformer
+  Timer: dart:async;Timer
+''',
+        withExportScope: true);
   }
 
   test_export_multiple_combinators() async {
     addLibrary('dart:async');
     var library =
         await checkLibrary('export "dart:async" hide Stream show Future;');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'dart:async' hide Stream show Future;
-''');
+
+--------------------
+Exports:
+  Future: dart:async;Future
+''',
+        withExportScope: true);
   }
 
   test_export_setter() async {
     addLibrarySource('/a.dart', 'void set f(value) {}');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  f=: a.dart;f=
+''',
+        withExportScope: true);
   }
 
   test_export_show() async {
     addLibrary('dart:async');
     var library =
         await checkLibrary('export "dart:async" show Future, Stream;');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'dart:async' show Future, Stream;
-''');
+
+--------------------
+Exports:
+  Future: dart:async;Future
+  Stream: dart:async;dart:async/stream.dart;Stream
+''',
+        withExportScope: true);
   }
 
   test_export_typedef() async {
     addLibrarySource('/a.dart', 'typedef F();');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  F: a.dart;F
+''',
+        withExportScope: true);
   }
 
   test_export_variable() async {
     addLibrarySource('/a.dart', 'var x;');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  x: a.dart;x?
+  x=: a.dart;x=
+''',
+        withExportScope: true);
   }
 
   test_export_variable_const() async {
     addLibrarySource('/a.dart', 'const x = 0;');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  x: a.dart;x?
+''',
+        withExportScope: true);
   }
 
   test_export_variable_final() async {
     addLibrarySource('/a.dart', 'final x = 0;');
     var library = await checkLibrary('export "a.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
-''');
+
+--------------------
+Exports:
+  x: a.dart;x?
+''',
+        withExportScope: true);
   }
 
   test_exportImport_configurations_useDefault() async {
@@ -4805,10 +4910,16 @@ class B extends A {
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
     var library = await checkLibrary('export "a.dart"; export "b.dart";');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 export 'a.dart';
 export 'b.dart';
-''');
+
+--------------------
+Exports:
+''',
+        withExportScope: true);
   }
 
   test_expr_invalid_typeParameter_asPrefix() async {

@@ -120,6 +120,8 @@ class ReferenceResolver {
     _nodeList(node.enumDeclaration_constants);
   }
 
+  void _exportDirective(LinkedNodeBuilder node) {}
+
   void _fieldDeclaration(LinkedNodeBuilder node) {
     _node(node.fieldDeclaration_fields);
   }
@@ -267,6 +269,8 @@ class ReferenceResolver {
       _enumDeclaration(node);
     } else if (node.kind == LinkedNodeKind.enumConstantDeclaration) {
       _enumConstantDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.exportDirective) {
+      _exportDirective(node);
     } else if (node.kind == LinkedNodeKind.fieldDeclaration) {
       _fieldDeclaration(node);
     } else if (node.kind == LinkedNodeKind.fieldFormalParameter) {
@@ -289,6 +293,8 @@ class ReferenceResolver {
       _libraryDirective(node);
     } else if (node.kind == LinkedNodeKind.methodDeclaration) {
       _methodDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.partDirective) {
+      _partDirective(node);
     } else if (node.kind == LinkedNodeKind.simpleFormalParameter) {
       _simpleFormalParameter(node);
     } else if (node.kind == LinkedNodeKind.topLevelVariableDeclaration) {
@@ -317,6 +323,8 @@ class ReferenceResolver {
       _node(node);
     }
   }
+
+  void _partDirective(LinkedNodeBuilder node) {}
 
   void _simpleFormalParameter(LinkedNodeBuilder node) {
     var typeNode = node.simpleFormalParameter_type;

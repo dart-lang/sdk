@@ -4552,6 +4552,12 @@ class ExportElementImpl extends UriReferencedElementImpl
         _unlinkedExportNonPublic = null,
         super(null, offset);
 
+  ExportElementImpl.forLinkedNode(
+      LibraryElementImpl enclosing, LinkedNode linkedNode)
+      : _unlinkedExportPublic = null,
+        _unlinkedExportNonPublic = null,
+        super.forLinkedNode(enclosing, null, linkedNode);
+
   /// Initialize using the given serialized information.
   ExportElementImpl.forSerialized(this._unlinkedExportPublic,
       this._unlinkedExportNonPublic, LibraryElementImpl enclosingLibrary)
@@ -4574,14 +4580,31 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  CompilationUnitElementImpl get enclosingUnit {
+    LibraryElementImpl enclosingLibrary = enclosingElement;
+    return enclosingLibrary._definingCompilationUnit;
+  }
+
+  @override
   LibraryElement get exportedLibrary {
-    if (_exportedLibrary == null) {
-      if (_unlinkedExportNonPublic != null) {
-        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
-        _exportedLibrary =
-            library.resynthesizerContext.buildExportedLibrary(uri);
-      }
+    if (_exportedLibrary != null) return _exportedLibrary;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var relativeUriStr = context.getStringContent(
+        linkedNode.uriBasedDirective_uri,
+      );
+      var relativeUri = Uri.parse(relativeUriStr);
+      var uri = resolveRelativeUri(librarySource.uri, relativeUri);
+      var elementFactory = context.bundleContext.elementFactory;
+      return _exportedLibrary = elementFactory.libraryOfUri('$uri');
     }
+
+    if (_unlinkedExportNonPublic != null) {
+      LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+      _exportedLibrary = library.resynthesizerContext.buildExportedLibrary(uri);
+    }
+
     return _exportedLibrary;
   }
 
@@ -4598,6 +4621,11 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (linkedNode != null) {
+      if (_metadata != null) return _metadata;
+      var metadata = enclosingUnit.linkedContext.getMetadataOrEmpty(linkedNode);
+      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
+    }
     if (_metadata == null) {
       if (_unlinkedExportNonPublic != null) {
         return _metadata = _buildAnnotations(library.definingCompilationUnit,
@@ -6139,6 +6167,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Namespace get exportNamespace {
+    if (linkedNode != null) {
+      if (_exportNamespace != null) return _exportNamespace;
+      var elements = linkedContext.bundleContext.elementFactory;
+      return _exportNamespace = elements.buildExportNamespace(source.uri);
+    }
     if (resynthesizerContext != null) {
       _exportNamespace ??= resynthesizerContext.buildExportNamespace();
     }
@@ -6152,6 +6185,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   List<ExportElement> get exports {
     if (_exports == null) {
+      if (linkedNode != null) {
+        return _exports = linkedNode.compilationUnit_directives
+            .where((node) => node.kind == LinkedNodeKind.exportDirective)
+            .map((node) {
+          return ExportElementImpl.forLinkedNode(this, node);
+        }).toList();
+      }
       if (unlinkedDefiningUnit != null) {
         List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
             unlinkedDefiningUnit.exports;
@@ -8446,7 +8486,11 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      return reference.name;
+      var name = reference.name;
+      if (isSetter) {
+        return '$name=';
+      }
+      return name;
     }
     if (serializedExecutable != null) {
       return serializedExecutable.name;

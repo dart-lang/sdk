@@ -9,7 +9,9 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/builder/prefix_builder.dart';
+import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/declaration.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -35,6 +37,8 @@ class SourceLibraryBuilder {
   /// The export scope of the library.
   final Scope exportScope = Scope.top();
 
+  final List<Export> exporters = [];
+
   SourceLibraryBuilder(Linker linker, Uri uri, Reference reference,
       LinkedNodeLibraryBuilder node)
       : this._(linker, uri, reference, node, Scope.top());
@@ -43,8 +47,37 @@ class SourceLibraryBuilder {
       this.linker, this.uri, this.reference, this.node, this.importScope)
       : scope = Scope(importScope, <String, Declaration>{});
 
+  void addExporters() {
+    var unitContext = units[0].context;
+    for (var directive in units[0].node.compilationUnit_directives) {
+      if (directive.kind == LinkedNodeKind.exportDirective) {
+        var relativeUriStr = unitContext.getStringContent(
+          directive.uriBasedDirective_uri,
+        );
+        var relativeUri = Uri.parse(relativeUriStr);
+        var uri = resolveRelativeUri(this.uri, relativeUri);
+        var exported = linker.builders[uri];
+        if (exported != null) {
+          var combinatorNodeList = directive.namespaceDirective_combinators;
+          var combinators = combinatorNodeList.map((node) {
+            if (node.kind == LinkedNodeKind.showCombinator) {
+              var nodeList = node.showCombinator_shownNames;
+              var nameList = unitContext.getSimpleNameList(nodeList);
+              return Combinator.show(nameList);
+            } else {
+              var nodeList = node.hideCombinator_hiddenNames;
+              var nameList = unitContext.getSimpleNameList(nodeList);
+              return Combinator.hide(nameList);
+            }
+          }).toList();
+
+          exported.exporters.add(new Export(this, exported, combinators));
+        }
+      }
+    }
+  }
+
   void addImportsToScope() {
-    // TODO
     var hasDartCore = false;
     var unitContext = units[0].context;
     for (var directive in units[0].node.compilationUnit_directives) {
@@ -148,7 +181,8 @@ class SourceLibraryBuilder {
             var getter = getterRef.getChild(name);
             scope.declare(name, Declaration(name, getter));
 
-            if (!unit.context.isFinal(variable)) {
+            if (!unit.context.isConst(variable) &&
+                !unit.context.isFinal(variable)) {
               var setter = setterRef.getChild(name);
               scope.declare('$name=', Declaration(name, setter));
             }
@@ -158,6 +192,12 @@ class SourceLibraryBuilder {
           throw UnimplementedError('${node.kind}');
         }
       }
+    }
+    if ('$uri' == 'dart:core') {
+      scope.declare(
+        'dynamic',
+        Declaration('dynamic', reference.getChild('dynamic')),
+      );
     }
   }
 

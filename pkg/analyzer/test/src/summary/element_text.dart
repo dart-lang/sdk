@@ -55,6 +55,7 @@ void applyCheckElementTextReplacements() {
 void checkElementText(LibraryElement library, String expected,
     {bool withCodeRanges: false,
     bool withConstElements: true,
+    bool withExportScope: false,
     bool withOffsets: false,
     bool withSyntheticAccessors: false,
     bool withSyntheticFields: false,
@@ -62,6 +63,7 @@ void checkElementText(LibraryElement library, String expected,
   var writer = new _ElementWriter(
       withCodeRanges: withCodeRanges,
       withConstElements: withConstElements,
+      withExportScope: withExportScope,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
       withSyntheticFields: withSyntheticFields,
@@ -127,6 +129,7 @@ void checkElementText(LibraryElement library, String expected,
  */
 class _ElementWriter {
   final bool withCodeRanges;
+  final bool withExportScope;
   final bool withOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
@@ -137,6 +140,7 @@ class _ElementWriter {
   _ElementWriter(
       {this.withCodeRanges,
       this.withConstElements: true,
+      this.withExportScope: false,
       this.withOffsets: false,
       this.withSyntheticAccessors: false,
       this.withSyntheticFields: false,
@@ -405,6 +409,8 @@ class _ElementWriter {
     e.parts.forEach(writePartElement);
 
     e.units.forEach(writeUnitElement);
+
+    writeExportScope(e);
   }
 
   void writeList<T>(String open, String close, List<T> items, String separator,
@@ -930,6 +936,22 @@ class _ElementWriter {
     e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);
+  }
+
+  void writeExportScope(LibraryElement e) {
+    if (!withExportScope) return;
+
+    buffer.writeln();
+    buffer.writeln('-' * 20);
+    buffer.writeln('Exports:');
+
+    var map = e.exportNamespace.definedNames;
+    var names = map.keys.toList()..sort();
+    for (var name in names) {
+      var element = map[name];
+      var elementLocationStr = _getElementLocationString(element);
+      buffer.writeln('  $name: $elementLocationStr');
+    }
   }
 
   void writeUri(Source source) {

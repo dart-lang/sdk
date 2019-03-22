@@ -78,6 +78,10 @@ class TypeBuilder {
         interfaceClass: referenceIndex,
         interfaceTypeArguments: typeArguments,
       );
+    } else if (reference.isDynamic) {
+      node.typeName_type = LinkedNodeTypeBuilder(
+        kind: LinkedNodeTypeKind.dynamic_,
+      );
     } else if (reference.isGenericTypeAlias) {
       node.typeName_type = LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.genericTypeAlias,

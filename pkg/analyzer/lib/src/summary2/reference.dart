@@ -48,6 +48,8 @@ class Reference {
 
   bool get isClass => parent != null && parent.name == '@class';
 
+  bool get isDynamic => name == 'dynamic' && parent?.name == 'dart:core';
+
   bool get isEnum => parent != null && parent.name == '@enum';
 
   bool get isGenericTypeAlias => parent != null && parent.name == '@typeAlias';

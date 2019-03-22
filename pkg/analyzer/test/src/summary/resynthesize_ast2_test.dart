@@ -35,6 +35,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       {bool allowErrors = false, bool dumpSummaries = false}) async {
     var dartCoreSource = sourceFactory.forUri('dart:core');
     var dartAsyncSource = sourceFactory.forUri('dart:async');
+    var dartMathSource = sourceFactory.forUri('dart:math');
 
     var dartCoreCode = getFile(dartCoreSource.fullName).readAsStringSync();
     dartCoreCode = r'''
@@ -123,9 +124,21 @@ class Future<T> {}
 class FutureOr<T> {}
 ''';
 
+    var dartMathCode = r'''
+library dart.math;
+
+const double E = 2.718281828459045;
+const double PI = 3.1415926535897932;
+const double LN10 =  2.302585092994046;
+
+T min<T extends num>(T a, T b) => null;
+T max<T extends num>(T a, T b) => null;
+''';
+
     var dartCoreResult = _link({
       dartCoreSource: dartCoreCode,
       dartAsyncSource: dartAsyncCode,
+      dartMathSource: dartMathCode,
     });
 
     var source = addTestSource(text);
@@ -761,24 +774,6 @@ class FutureOr<T> {}
 
   @override
   @failingTest
-  test_export_class() async {
-    await super.test_export_class();
-  }
-
-  @override
-  @failingTest
-  test_export_class_type_alias() async {
-    await super.test_export_class_type_alias();
-  }
-
-  @override
-  @failingTest
-  test_export_configurations_useDefault() async {
-    await super.test_export_configurations_useDefault();
-  }
-
-  @override
-  @failingTest
   test_export_configurations_useFirst() async {
     await super.test_export_configurations_useFirst();
   }
@@ -787,18 +782,6 @@ class FutureOr<T> {}
   @failingTest
   test_export_configurations_useSecond() async {
     await super.test_export_configurations_useSecond();
-  }
-
-  @override
-  @failingTest
-  test_export_function() async {
-    await super.test_export_function();
-  }
-
-  @override
-  @failingTest
-  test_export_getter() async {
-    await super.test_export_getter();
   }
 
   @override
@@ -815,56 +798,14 @@ class FutureOr<T> {}
 
   @override
   @failingTest
-  test_export_setter() async {
-    await super.test_export_setter();
-  }
-
-  @override
-  @failingTest
   test_export_show() async {
     await super.test_export_show();
   }
 
   @override
   @failingTest
-  test_export_typedef() async {
-    await super.test_export_typedef();
-  }
-
-  @override
-  @failingTest
-  test_export_variable() async {
-    await super.test_export_variable();
-  }
-
-  @override
-  @failingTest
-  test_export_variable_const() async {
-    await super.test_export_variable_const();
-  }
-
-  @override
-  @failingTest
-  test_export_variable_final() async {
-    await super.test_export_variable_final();
-  }
-
-  @override
-  @failingTest
-  test_exportImport_configurations_useDefault() async {
-    await super.test_exportImport_configurations_useDefault();
-  }
-
-  @override
-  @failingTest
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
-  }
-
-  @override
-  @failingTest
-  test_exports() async {
-    await super.test_exports();
   }
 
   @override
@@ -949,12 +890,6 @@ class FutureOr<T> {}
   @failingTest
   test_function_asyncStar() async {
     await super.test_function_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_function_entry_point_in_export() async {
-    await super.test_function_entry_point_in_export();
   }
 
   @override
@@ -1232,12 +1167,6 @@ class FutureOr<T> {}
 
   @override
   @failingTest
-  test_invalid_nameConflict_imported_exported() async {
-    await super.test_invalid_nameConflict_imported_exported();
-  }
-
-  @override
-  @failingTest
   test_invalid_setterParameter_fieldFormalParameter() async {
     await super.test_invalid_setterParameter_fieldFormalParameter();
   }
@@ -1270,36 +1199,6 @@ class FutureOr<T> {}
   @failingTest
   test_library_documented_stars() async {
     await super.test_library_documented_stars();
-  }
-
-  @override
-  @failingTest
-  test_main_class_alias_via_export() async {
-    await super.test_main_class_alias_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_class_via_export() async {
-    await super.test_main_class_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_getter_via_export() async {
-    await super.test_main_getter_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_typedef_via_export() async {
-    await super.test_main_typedef_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_variable_via_export() async {
-    await super.test_main_variable_via_export();
   }
 
   @override
@@ -1426,18 +1325,6 @@ class FutureOr<T> {}
   @failingTest
   test_mixin_implicitObjectSuperclassConstraint() async {
     await super.test_mixin_implicitObjectSuperclassConstraint();
-  }
-
-  @override
-  @failingTest
-  test_nameConflict_exportedAndLocal() async {
-    await super.test_nameConflict_exportedAndLocal();
-  }
-
-  @override
-  @failingTest
-  test_nameConflict_exportedAndLocal_exported() async {
-    await super.test_nameConflict_exportedAndLocal_exported();
   }
 
   @override

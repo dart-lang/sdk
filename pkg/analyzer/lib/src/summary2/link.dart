@@ -95,6 +95,12 @@ class Linker {
     _buildOutlines();
   }
 
+  void _addExporters() {
+    for (var library in builders.values) {
+      library.addExporters();
+    }
+  }
+
   void _addSyntheticConstructors() {
     for (var library in builders.values) {
       library.addSyntheticConstructors();
@@ -102,6 +108,7 @@ class Linker {
   }
 
   void _buildOutlines() {
+    _addExporters();
     _computeLibraryScopes();
     _addSyntheticConstructors();
     _createTypeSystem();
@@ -111,12 +118,45 @@ class Linker {
   }
 
   void _computeLibraryScopes() {
+    var exporters = new Set<SourceLibraryBuilder>();
+    var exportees = new Set<SourceLibraryBuilder>();
+
     for (var library in builders.values) {
       library.addLocalDeclarations();
+      if (library.exporters.isNotEmpty) {
+        exportees.add(library);
+        for (var exporter in library.exporters) {
+          exporters.add(exporter.exporter);
+        }
+      }
     }
 
     for (var library in builders.values) {
       library.buildInitialExportScope();
+    }
+
+    var both = new Set<SourceLibraryBuilder>();
+    for (var exported in exportees) {
+      if (exporters.contains(exported)) {
+        both.add(exported);
+      }
+      for (var export in exported.exporters) {
+        exported.exportScope.forEach(export.addToExportScope);
+      }
+    }
+
+    while (true) {
+      var hasChanges = false;
+      for (var exported in both) {
+        for (var export in exported.exporters) {
+          exported.exportScope.forEach((name, member) {
+            if (export.addToExportScope(name, member)) {
+              hasChanges = true;
+            }
+          });
+        }
+      }
+      if (!hasChanges) break;
     }
 
     for (var library in builders.values) {
@@ -126,8 +166,6 @@ class Linker {
     for (var library in builders.values) {
       library.storeExportScope();
     }
-
-    // TODO(scheglov) process imports and exports
   }
 
   void _createTypeSystem() {

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -26,6 +27,18 @@ class LinkedElementFactory {
     for (var library in bundle.libraries) {
       libraryMap[library.uriStr] = _Library(context, library);
     }
+  }
+
+  Namespace buildExportNamespace(Uri uri) {
+    var exportedNames = <String, Element>{};
+
+    var exportedReferences = exportsOfLibrary('$uri');
+    for (var exportedReference in exportedReferences) {
+      var element = elementOfReference(exportedReference);
+      exportedNames[element.name] = element;
+    }
+
+    return Namespace(exportedNames);
   }
 
   Element elementOfReference(Reference reference) {
@@ -90,9 +103,9 @@ class _ElementRequest {
       return _function(enclosing, reference);
     }
 
-    if (parentName == '@getter') {
+    if (parentName == '@getter' || parentName == '@setter') {
       var enclosing = elementOfReference(parent2);
-      return _getter(enclosing, reference);
+      return _accessor(enclosing, reference);
     }
 
     if (parentName == '@method') {
@@ -124,6 +137,24 @@ class _ElementRequest {
 
     // TODO(scheglov) support other elements
     throw StateError('Not found: $input');
+  }
+
+  PropertyAccessorElementImpl _accessor(
+      ElementImpl enclosing, Reference reference) {
+    if (enclosing is ClassElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and fields.
+      assert(reference.element != null);
+      return reference.element;
+    }
+    if (enclosing is CompilationUnitElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and variables.
+      assert(reference.element != null);
+      return reference.element;
+    }
+    // Only classes and units have accessors.
+    throw StateError('${enclosing.runtimeType}');
   }
 
   ClassElementImpl _class(
@@ -201,24 +232,6 @@ class _ElementRequest {
     enclosing.functions;
     assert(reference.element != null);
     return reference.element;
-  }
-
-  PropertyAccessorElementImpl _getter(
-      ElementImpl enclosing, Reference reference) {
-    if (enclosing is ClassElementImpl) {
-      enclosing.accessors;
-      // Requesting accessors sets elements for accessors and fields.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is CompilationUnitElementImpl) {
-      enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    // Only classes and units have accessors.
-    throw StateError('${enclosing.runtimeType}');
   }
 
   void _indexUnitDeclarations(CompilationUnitElementImpl unit) {
