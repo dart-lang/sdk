@@ -490,6 +490,7 @@ class AstCloner
 
   @override
   ForElement visitForElement(ForElement node) => astFactory.forElement(
+      awaitKeyword: cloneToken(node.awaitKeyword),
       forKeyword: cloneToken(node.forKeyword),
       leftParenthesis: cloneToken(node.leftParenthesis),
       forLoopParts: cloneNode(node.forLoopParts),
@@ -1617,7 +1618,8 @@ class AstComparator
   @override
   bool visitForElement(ForElement node) {
     ForElement other = _other as ForElement;
-    return isEqualTokens(node.forKeyword, other.forKeyword) &&
+    return isEqualTokens(node.awaitKeyword, other.awaitKeyword) &&
+        isEqualTokens(node.forKeyword, other.forKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.forLoopParts, other.forLoopParts) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
@@ -1658,6 +1660,7 @@ class AstComparator
   bool visitForStatement(ForStatement node) {
     ForStatement other = _other as ForStatement;
     return isEqualTokens(node.forKeyword, other.forKeyword) &&
+        isEqualTokens(node.awaitKeyword, other.awaitKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.forLoopParts, other.forLoopParts) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
@@ -2853,6 +2856,7 @@ class IncrementalAstCloner
 
   @override
   ForElement visitForElement(ForElement node) => astFactory.forElement(
+      awaitKeyword: _mapToken(node.awaitKeyword),
       forKeyword: _mapToken(node.forKeyword),
       leftParenthesis: _mapToken(node.leftParenthesis),
       forLoopParts: _cloneNode(node.forLoopParts),
@@ -2890,6 +2894,7 @@ class IncrementalAstCloner
 
   @override
   ForStatement visitForStatement(ForStatement node) => astFactory.forStatement(
+      awaitKeyword: _mapToken(node.awaitKeyword),
       forKeyword: _mapToken(node.forKeyword),
       leftParenthesis: _mapToken(node.leftParenthesis),
       forLoopParts: _cloneNode(node.forLoopParts),
@@ -5625,6 +5630,7 @@ class ResolutionCopier
   bool visitForElement(ForElement node) {
     ForElement toNode = this._toNode as ForElement;
     return _and(
+        _isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
         _isEqualTokens(node.forKeyword, toNode.forKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodes(node.forLoopParts, toNode.forLoopParts),
@@ -5669,6 +5675,7 @@ class ResolutionCopier
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
     return _and(
+        _isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
         _isEqualTokens(node.forKeyword, toNode.forKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodes(node.forLoopParts, toNode.forLoopParts),
