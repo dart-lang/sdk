@@ -39,7 +39,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
 
   // Marks and pushes. Used to initialize this stack with roots.
   // We can use ObjectIdTable normally used by serializers because it
-  // won't be in use while handling a service request(only use for ObjectGraph).
+  // won't be in use while handling a service request (ObjectGraph's only use).
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     Heap* heap = isolate()->heap();
     for (RawObject** current = first; current <= last; ++current) {
