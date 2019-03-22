@@ -2243,6 +2243,22 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the keyword 'const' from the set literal.");
 
   static const CompileTimeErrorCode
+      NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be spread into a "
+          "const literal.",
+          correction: "Try making the deferred import non-deferred.");
+
+  static const CompileTimeErrorCode
+      NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be used as values in "
+          "an if condition inside a const collection literal.",
+          correction: "Try making the deferred import non-deferred.");
+
+  static const CompileTimeErrorCode
       NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY',

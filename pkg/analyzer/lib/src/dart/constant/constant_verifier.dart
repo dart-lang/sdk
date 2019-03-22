@@ -578,10 +578,27 @@ class _ConstLiteralVerifier {
     this.forSet = false,
   });
 
+  ErrorCode get _fromDeferredErrorCode {
+    if (forList) {
+      return CompileTimeErrorCode
+          .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY;
+    } else if (forSet) {
+      return CompileTimeErrorCode
+          .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY;
+    }
+
+    return null;
+  }
+
   bool verify(CollectionElement element) {
     if (element is Expression) {
       var value = verifier._validate(element, errorCode);
       if (value == null) return false;
+
+      if (_fromDeferredErrorCode != null) {
+        verifier._reportErrorIfFromDeferredLibrary(
+            element, _fromDeferredErrorCode);
+      }
 
       if (forList) {
         return _validateListExpression(element, value);
@@ -601,6 +618,11 @@ class _ConstLiteralVerifier {
 
       // The errors have already been reported.
       if (conditionBool == null) return false;
+
+      verifier._reportErrorIfFromDeferredLibrary(
+          element.condition,
+          CompileTimeErrorCode
+              .NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY);
 
       var thenValid = true;
       var elseValid = true;
@@ -622,6 +644,11 @@ class _ConstLiteralVerifier {
     } else if (element is SpreadElement) {
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
+
+      verifier._reportErrorIfFromDeferredLibrary(
+          element.expression,
+          CompileTimeErrorCode
+              .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY);
 
       if (forList || forSet) {
         return _validateListOrSetSpread(element, value);

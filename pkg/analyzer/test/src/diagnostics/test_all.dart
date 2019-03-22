@@ -48,6 +48,8 @@ import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'non_bool_condition_test.dart' as non_bool_condition;
+import 'non_constant_if_element_condition_from_deferred_library_test.dart'
+    as non_constant_if_element_condition_from_deferred_library;
 import 'non_constant_list_element_from_deferred_library_test.dart'
     as non_constant_list_element_from_deferred_library;
 import 'non_constant_list_element_test.dart' as non_constant_list_element;
@@ -61,6 +63,8 @@ import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_from_deferred_library_test.dart'
     as non_constant_set_element_from_deferred_library;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
+import 'non_constant_spread_expression_from_deferred_library_test.dart'
+    as non_constant_spread_expression_from_deferred_library;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
 import 'sdk_version_async_exported_from_core_test.dart'
@@ -135,6 +139,7 @@ main() {
     must_be_immutable.main();
     must_call_super.main();
     non_bool_condition.main();
+    non_constant_if_element_condition_from_deferred_library.main();
     non_constant_list_element.main();
     non_constant_list_element_from_deferred_library.main();
     non_constant_map_key.main();
@@ -144,6 +149,7 @@ main() {
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_set_element_from_deferred_library.main();
+    non_constant_spread_expression_from_deferred_library.main();
     not_iterable_spread.main();
     not_map_spread.main();
     sdk_version_async_exported_from_core.main();
