@@ -190,6 +190,18 @@ Token splitGtFromGtGtGt(Token token) {
       ..next = token.next);
 }
 
+/// Split `>>>=` into two separate tokens... `>` followed by `>>=`.
+/// Call [Token.setNext] to add the token to the stream.
+Token splitGtFromGtGtGtEq(Token token) {
+  assert(optional('>>>=', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.GT_GT_EQ, token.charOffset + 1)
+      // Set next rather than calling Token.setNext
+      // so that the previous token is not set.
+      ..next = token.next);
+}
+
 /// Return a synthetic `<` followed by [next].
 /// Call [Token.setNext] to add the token to the stream.
 Token syntheticGt(Token next) {

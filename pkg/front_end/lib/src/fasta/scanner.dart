@@ -71,6 +71,7 @@ ScannerResult scan(List<int> bytes,
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
     {bool enableGtGtGt: false,
+    bool enableGtGtGtEq: false,
     bool includeComments: false,
     bool scanLazyAssignmentOperators: false,
     Recover recover}) {
@@ -80,6 +81,7 @@ ScannerResult scanString(String source,
   StringScanner scanner =
       new StringScanner(source, includeComments: includeComments);
   scanner.enableGtGtGt = enableGtGtGt;
+  scanner.enableGtGtGtEq = enableGtGtGtEq;
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

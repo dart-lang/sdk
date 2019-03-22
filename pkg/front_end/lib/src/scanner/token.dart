@@ -1279,6 +1279,10 @@ class TokenType {
       '>>>', 'GT_GT_GT', SHIFT_PRECEDENCE, GT_GT_GT_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
+  static const TokenType GT_GT_GT_EQ = const TokenType(
+      '>>>=', 'GT_GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_GT_EQ_TOKEN,
+      isOperator: true);
+
   static const TokenType HASH =
       const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 

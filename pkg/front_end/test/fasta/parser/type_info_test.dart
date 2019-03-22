@@ -45,7 +45,8 @@ ScannerResult scanString(String source,
   assert(source != null, 'source must not be null');
   StringScanner scanner =
       new StringScanner(source, includeComments: includeComments)
-        ..enableGtGtGt = true;
+        ..enableGtGtGt = true
+        ..enableGtGtGtEq = true;
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 
@@ -1806,6 +1807,45 @@ class TypeParamOrArgInfoTest {
       'handleType S null',
       'endTypeArguments 1 < >'
     ]);
+    expectComplexTypeArg('<S<T<U>>>=',
+        typeArgumentCount: 1,
+        expectedAfter: '=',
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier U typeReference',
+          'handleNoTypeArguments >>>=',
+          'handleType U null',
+          'endTypeArguments 1 < >',
+          'handleType T null',
+          'endTypeArguments 1 < >',
+          'handleType S null',
+          'endTypeArguments 1 < >'
+        ]);
+    expectComplexTypeArg('<S<T<U,V>>>=',
+        typeArgumentCount: 1,
+        expectedAfter: '=',
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier U typeReference',
+          'handleNoTypeArguments ,',
+          'handleType U null',
+          'handleIdentifier V typeReference',
+          'handleNoTypeArguments >>>=',
+          'handleType V null',
+          'endTypeArguments 2 < >',
+          'handleType T null',
+          'endTypeArguments 1 < >',
+          'handleType S null',
+          'endTypeArguments 1 < >'
+        ]);
     expectComplexTypeArg('<S<Function()>>',
         typeArgumentCount: 1,
         expectedCalls: [
@@ -1857,6 +1897,27 @@ class TypeParamOrArgInfoTest {
         ]);
     expectComplexTypeArg('<S<T<void Function()>>>',
         typeArgumentCount: 1,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType void', // was 'beginFunctionType Function'
+          'handleVoidKeyword void', // was 'handleNoType <'
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function null',
+          'endTypeArguments 1 < >',
+          'handleType T null',
+          'endTypeArguments 1 < >',
+          'handleType S null',
+          'endTypeArguments 1 < >'
+        ]);
+    expectComplexTypeArg('<S<T<void Function()>>>=',
+        typeArgumentCount: 1,
+        expectedAfter: '=',
         expectedCalls: [
           'beginTypeArguments <',
           'handleIdentifier S typeReference',
@@ -2360,6 +2421,33 @@ class TypeParamOrArgInfoTest {
           'endTypeArguments 1 < >',
           'handleType List null',
           'endTypeVariable > 0 extends',
+          'endTypeVariables < >'
+        ]);
+    expectComplexTypeParam('<T extends List<Map<S, T>>>=',
+        typeArgumentCount: 1,
+        expectedAfter: '=',
+        expectedCalls: [
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined > 1',
+          'handleIdentifier List typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier Map typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'handleNoTypeArguments ,',
+          'handleType S null',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >>>=',
+          'handleType T null',
+          'endTypeArguments 2 < >',
+          'handleType Map null',
+          'endTypeArguments 1 < >',
+          'handleType List null',
+          'endTypeVariable >= 0 extends',
           'endTypeVariables < >'
         ]);
   }

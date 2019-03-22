@@ -56,42 +56,12 @@ typedef analyzer.Token ParseFunction(analyzer.Token token);
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
   void test_parseClassMember_operator_gtgtgt() {
-    final sourceText = 'class C { bool operator >>>(other) => false; }';
-
-    // ---------------------------------------------------
-    // TODO(danrubel): Replace this section with a call to parseCompilationUnit
-    // once '>>>' token support is enabled permanently.
-
-    var source = new StringSource(sourceText, 'parser_test_StringSource.dart');
-    GatheringErrorListener errorListener =
-        new GatheringErrorListener(checkRanges: true);
-
-    // Scan tokens
-    StringScanner scanner = new StringScanner(sourceText, includeComments: true)
-      ..enableGtGtGt = true;
-    Token tokens = scanner.tokenize();
-    expect(scanner.hasErrors, isFalse);
-
-    // Run parser
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-    fasta.Parser parser = new fasta.Parser(null);
-    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
-    parser.listener = astBuilder;
-    astBuilder.parser = parser;
-    parser.parseUnit(tokens);
-
-    CompilationUnitImpl unit = astBuilder.pop();
-    expect(unit, isNotNull);
-    unit.localDeclarations = astBuilder.localDeclarations;
-    errorListener.assertNoErrors();
-
-    // ---------------------------------------------------
-
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { bool operator >>>(other) => false; }',
+        enableGtGtGt: true);
     ClassDeclaration declaration = unit.declarations[0];
-    ClassMember member = declaration.members[0];
-    expect(member, isNotNull);
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
+    MethodDeclaration method = declaration.members[0];
+
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
@@ -102,6 +72,24 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_operator_gtgtgteq() {
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { foo(int value) { x >>>= value; } }',
+        enableGtGtGtEq: true);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+    BlockFunctionBody blockFunctionBody = method.body;
+    NodeList<Statement> statements = blockFunctionBody.block.statements;
+    expect(statements, hasLength(1));
+    ExpressionStatement statement = statements[0];
+    AssignmentExpression assignment = statement.expression;
+    SimpleIdentifier leftHandSide = assignment.leftHandSide;
+    expect(leftHandSide.name, 'x');
+    expect(assignment.operator.lexeme, '>>>=');
+    SimpleIdentifier rightHandSide = assignment.rightHandSide;
+    expect(rightHandSide.name, 'value');
   }
 }
 
@@ -1406,12 +1394,16 @@ class FastaParserTestCase
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      bool enableControlFlowCollections}) {
+      bool enableControlFlowCollections,
+      bool enableGtGtGt,
+      bool enableGtGtGtEq}) {
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
 
     CompilationUnit unit = parseCompilationUnit2(content, listener,
-        enableControlFlowCollections: enableControlFlowCollections);
+        enableControlFlowCollections: enableControlFlowCollections,
+        enableGtGtGt: enableGtGtGt,
+        enableGtGtGtEq: enableGtGtGtEq);
 
     // Assert and return result
     if (codes != null) {
@@ -1427,7 +1419,9 @@ class FastaParserTestCase
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener,
-      {bool enableControlFlowCollections}) {
+      {bool enableControlFlowCollections,
+      bool enableGtGtGt,
+      bool enableGtGtGtEq}) {
     var source = new StringSource(content, 'parser_test_StringSource.dart');
 
     void reportError(
@@ -1437,7 +1431,10 @@ class FastaParserTestCase
     }
 
     // Scan tokens
-    ScannerResult result = scanString(content, includeComments: true);
+    ScannerResult result = scanString(content,
+        includeComments: true,
+        enableGtGtGt: enableGtGtGt ?? enableGtGtGtEq ?? false,
+        enableGtGtGtEq: enableGtGtGtEq ?? false);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
