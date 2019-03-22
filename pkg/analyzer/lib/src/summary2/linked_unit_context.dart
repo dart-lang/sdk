@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -52,8 +54,9 @@ class LinkedUnitContext {
     if (kind == LinkedNodeKind.constructorDeclaration) {
       parameterList = node.constructorDeclaration_parameters;
     } else if (kind == LinkedNodeKind.functionDeclaration) {
-      parameterList = node.functionDeclaration_functionExpression
-          .functionExpression_formalParameters;
+      return getFormalParameters(node.functionDeclaration_functionExpression);
+    } else if (kind == LinkedNodeKind.functionExpression) {
+      parameterList = node.functionExpression_formalParameters;
     } else if (kind == LinkedNodeKind.functionTypeAlias) {
       parameterList = node.functionTypeAlias_formalParameters;
     } else if (kind == LinkedNodeKind.genericFunctionType) {
@@ -347,16 +350,31 @@ class LinkedUnitContext {
     }
   }
 
-  Expression readInitializer(LinkedNode linkedNode) {
-    if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
-      return readNode(linkedNode.defaultFormalParameter_defaultValue);
-    }
-    return readNode(linkedNode.variableDeclaration_initializer);
+  Expression readInitializer(ElementImpl enclosing, LinkedNode linkedNode) {
+    var reader = AstBinaryReader(this);
+    return reader.withLocalScope(enclosing, () {
+      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
+        var data = linkedNode.defaultFormalParameter_defaultValue;
+        return reader.readNode(data);
+      }
+      var data = linkedNode.variableDeclaration_initializer;
+      return reader.readNode(data);
+    });
   }
 
   AstNode readNode(LinkedNode linkedNode) {
     var reader = AstBinaryReader(this);
     return reader.readNode(linkedNode);
+  }
+
+  void setReturnType(LinkedNodeBuilder node, DartType type) {
+    var typeData = bundleContext.linking.writeType(type);
+    node.functionDeclaration_returnType2 = typeData;
+  }
+
+  void setVariableType(LinkedNodeBuilder node, DartType type) {
+    var typeData = bundleContext.linking.writeType(type);
+    node.simpleFormalParameter_type2 = typeData;
   }
 
   Iterable<LinkedNode> topLevelVariables(LinkedNode unit) sync* {
@@ -375,8 +393,9 @@ class LinkedUnitContext {
     if (kind == LinkedNodeKind.constructorDeclaration) {
       return node.constructorDeclaration_body;
     } else if (kind == LinkedNodeKind.functionDeclaration) {
-      return node
-          .functionDeclaration_functionExpression.functionExpression_body;
+      return _getFunctionBody(node.functionDeclaration_functionExpression);
+    } else if (kind == LinkedNodeKind.functionExpression) {
+      return node.functionExpression_body;
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       return node.methodDeclaration_body;
     } else {

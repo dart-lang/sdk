@@ -76,6 +76,7 @@ class Linker {
       elementFactory,
       linkingBundle.references,
     );
+    bundleContext.linking = linkingBundleContext;
   }
 
   void link(List<LinkedNodeBundle> inputs,
@@ -132,7 +133,13 @@ class Linker {
   void _createTypeSystem() {
     var coreRef = rootReference.getChild('dart:core');
     var coreLib = elementFactory.elementOfReference(coreRef);
-    typeProvider = SummaryTypeProvider()..initializeCore(coreLib);
+
+    var asyncRef = rootReference.getChild('dart:async');
+    var asyncLib = elementFactory.elementOfReference(asyncRef);
+
+    typeProvider = SummaryTypeProvider()
+      ..initializeCore(coreLib)
+      ..initializeAsync(asyncLib);
     analysisContext.typeProvider = typeProvider;
 
     typeSystem = Dart2TypeSystem(typeProvider);

@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 /// The context of a linked bundle, with shared references.
@@ -16,6 +17,10 @@ class LinkedBundleContext {
   final LinkedElementFactory elementFactory;
   final LinkedNodeReferences referencesData;
   final List<Reference> _references;
+
+  /// If the bundle is being linked, the reference to the linking context.
+  /// Otherwise `null`, and we are not expected to access it.
+  LinkingBundleContext linking;
 
   LinkedBundleContext(this.elementFactory, this.referencesData)
       : _references = List<Reference>.filled(referencesData.name.length, null,

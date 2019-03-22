@@ -13,10 +13,16 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 
 /// Deserializer of fully resolved ASTs from flat buffers.
 class AstBinaryReader {
   final LinkedUnitContext _unitContext;
+
+  ElementImpl _enclosingElement;
+  Reference _localRef;
+  int _localRefNextId;
+  List<ParameterElement> _localParameters;
 
   AstBinaryReader(this._unitContext);
 
@@ -26,6 +32,27 @@ class AstBinaryReader {
 
     _unitContext.tokensContext.linkTokens(node.beginToken, node.endToken);
     return node;
+  }
+
+  /// Run [f] that reads nodes with local declarations, making sure that
+  /// [_localRef] is ready for adding local references.
+  T withLocalScope<T>(ElementImpl enclosingElement, T f()) {
+    var isLocalContextOwner = _localRef == null;
+    try {
+      if (_localRef == null) {
+        _enclosingElement = enclosingElement;
+        _localRef = Reference.root().getChild('@local');
+        _localRefNextId = 0;
+      }
+      return f();
+    } finally {
+      if (isLocalContextOwner) {
+        _enclosingElement = null;
+        _localRef = null;
+        _localRefNextId = null;
+        _localParameters = null;
+      }
+    }
   }
 
   ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
@@ -554,11 +581,37 @@ class AstBinaryReader {
   }
 
   FunctionExpression _read_functionExpression(LinkedNode data) {
-    return astFactory.functionExpression(
+    var prevLocalParameters = _localParameters;
+    var thisLocalParameters = <ParameterElement>[];
+    _localParameters = thisLocalParameters;
+
+    var node = astFactory.functionExpression(
       _readNode(data.functionExpression_typeParameters),
       _readNode(data.functionExpression_formalParameters),
       _readNode(data.functionExpression_body),
     );
+    _localParameters = prevLocalParameters;
+
+    if (_localRef != null) {
+      var element = FunctionElementImpl.forLinkedNode(
+        _enclosingElement,
+        _localRef.getChild('${_localRefNextId++}'),
+        data,
+      );
+      element.parameters = thisLocalParameters;
+
+      var body = node.body;
+      if (body.isAsynchronous) {
+        element.asynchronous = true;
+      }
+      if (body.isGenerator) {
+        element.generator = true;
+      }
+
+      element.type = new FunctionTypeImpl(element);
+      (node as FunctionExpressionImpl).declaredElement = element;
+    }
+    return node;
   }
 
   FunctionExpressionInvocation _read_functionExpressionInvocation(
@@ -968,7 +1021,7 @@ class AstBinaryReader {
   }
 
   SimpleFormalParameter _read_simpleFormalParameter(LinkedNode data) {
-    return astFactory.simpleFormalParameter2(
+    SimpleFormalParameterImpl node = astFactory.simpleFormalParameter2(
       identifier: _readNode(data.normalFormalParameter_identifier),
       type: _readNode(data.simpleFormalParameter_type),
       covariantKeyword: _getToken(data.normalFormalParameter_covariantKeyword),
@@ -976,6 +1029,20 @@ class AstBinaryReader {
       metadata: _readNodeList(data.normalFormalParameter_metadata),
       keyword: _getToken(data.simpleFormalParameter_keyword),
     );
+
+    if (_localRef != null) {
+      var name = node.identifier.name;
+      var element = ParameterElementImpl.forLinkedNodeFactory(
+        _enclosingElement,
+        _localRef.getChild('${_localRefNextId++}').getChild(name),
+        data,
+      );
+      _localParameters.add(element);
+      node.identifier.staticElement = element;
+      node.declaredElement = element;
+    }
+
+    return node;
   }
 
   SimpleIdentifier _read_simpleIdentifier(LinkedNode data) {

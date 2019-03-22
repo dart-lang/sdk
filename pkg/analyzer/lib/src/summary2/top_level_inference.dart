@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -23,8 +24,13 @@ class TopLevelInference {
   final Linker linker;
   final Reference libraryRef;
   final UnitBuilder unit;
+  CompilationUnitElementImpl unitElement;
 
-  TopLevelInference(this.linker, this.libraryRef, this.unit);
+  TopLevelInference(this.linker, this.libraryRef, this.unit) {
+    unitElement = linker.elementFactory.elementOfReference(
+      libraryRef.getChild('@unit').getChild('${unit.uri}'),
+    );
+  }
 
   void infer() {
     _inferFieldsTemporary();
@@ -131,7 +137,7 @@ class TopLevelInference {
       return;
     }
 
-    var expression = unit.context.readInitializer(node);
+    var expression = unit.context.readInitializer(unitElement, node);
     astFactory.expressionFunctionBody(null, null, expression, null);
 
     // TODO(scheglov) can be shared for the whole library

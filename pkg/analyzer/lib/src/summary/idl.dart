@@ -1477,7 +1477,10 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionDeclaration)
   LinkedNode get functionDeclaration_returnType;
 
-  @VariantId(24, variant: LinkedNodeKind.functionDeclaration)
+  @VariantId(24, variantList: [
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionExpression,
+  ])
   LinkedNodeType get functionDeclaration_returnType2;
 
   @VariantId(6, variant: LinkedNodeKind.functionDeclarationStatement)

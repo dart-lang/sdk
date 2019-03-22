@@ -8978,7 +8978,8 @@ class LinkedNodeBuilder extends Object
 
   @override
   LinkedNodeTypeBuilder get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration);
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression);
     return _variantField_24;
   }
 
@@ -9036,7 +9037,8 @@ class LinkedNodeBuilder extends Object
   }
 
   void set functionDeclaration_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration);
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression);
     _variantField_24 = value;
   }
 
@@ -10701,10 +10703,12 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionExpression_body,
     LinkedNodeBuilder functionExpression_formalParameters,
     LinkedNodeBuilder functionExpression_typeParameters,
+    LinkedNodeTypeBuilder functionDeclaration_returnType2,
   })  : _kind = idl.LinkedNodeKind.functionExpression,
         _variantField_6 = functionExpression_body,
         _variantField_7 = functionExpression_formalParameters,
-        _variantField_8 = functionExpression_typeParameters;
+        _variantField_8 = functionExpression_typeParameters,
+        _variantField_24 = functionDeclaration_returnType2;
 
   LinkedNodeBuilder.functionExpressionInvocation({
     LinkedNodeBuilder functionExpressionInvocation_function,
@@ -14558,7 +14562,8 @@ class _LinkedNodeImpl extends Object
 
   @override
   idl.LinkedNodeType get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration);
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression);
     _variantField_24 ??=
         const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
     return _variantField_24;
@@ -16261,6 +16266,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (functionExpression_typeParameters != null)
         _result["functionExpression_typeParameters"] =
             functionExpression_typeParameters.toJson();
+      if (functionDeclaration_returnType2 != null)
+        _result["functionDeclaration_returnType2"] =
+            functionDeclaration_returnType2.toJson();
     }
     if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
       if (functionExpressionInvocation_function != null)
@@ -17613,6 +17621,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "functionExpression_formalParameters":
             functionExpression_formalParameters,
         "functionExpression_typeParameters": functionExpression_typeParameters,
+        "functionDeclaration_returnType2": functionDeclaration_returnType2,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };

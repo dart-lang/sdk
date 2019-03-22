@@ -2744,7 +2744,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
 
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
-      return _constantInitializer = context.readInitializer(linkedNode);
+      return _constantInitializer = context.readInitializer(this, linkedNode);
     }
 
     if (_unlinkedConst != null) {
@@ -4893,9 +4893,9 @@ class FunctionElementImpl extends ExecutableElementImpl
   /// [offset].
   FunctionElementImpl(String name, int offset) : super(name, offset);
 
-  FunctionElementImpl.forLinkedNode(CompilationUnitElementImpl enclosingUnit,
-      Reference reference, LinkedNode linkedNode)
-      : super.forLinkedNode(enclosingUnit, reference, linkedNode);
+  FunctionElementImpl.forLinkedNode(
+      ElementImpl enclosing, Reference reference, LinkedNode linkedNode)
+      : super.forLinkedNode(enclosing, reference, linkedNode);
 
   /// Initialize a newly created function element to have the given [name].
   FunctionElementImpl.forNode(Identifier name) : super.forNode(name);
@@ -4955,6 +4955,14 @@ class FunctionElementImpl extends ExecutableElementImpl
       );
     }
     return super.returnType;
+  }
+
+  @override
+  void set returnType(DartType returnType) {
+    if (linkedNode != null) {
+      enclosingUnit.linkedContext.setReturnType(linkedNode, returnType);
+    }
+    super.returnType = returnType;
   }
 
   @override
@@ -9231,6 +9239,9 @@ abstract class VariableElementImpl extends ElementImpl
   DartObject get constantValue => evaluationResult?.value;
 
   void set declaredType(DartType type) {
+    if (linkedNode != null) {
+      enclosingUnit.linkedContext.setVariableType(linkedNode, type);
+    }
     _declaredType = _checkElementOfType(type);
   }
 

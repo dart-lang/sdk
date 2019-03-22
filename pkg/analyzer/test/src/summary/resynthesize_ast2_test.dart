@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -33,6 +34,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
     var dartCoreSource = sourceFactory.forUri('dart:core');
+    var dartAsyncSource = sourceFactory.forUri('dart:async');
+
     var dartCoreCode = getFile(dartCoreSource.fullName).readAsStringSync();
     dartCoreCode = r'''
 library dart.core;
@@ -112,7 +115,18 @@ abstract class num implements Comparable<num> {
 }
 ''';
 
-    var dartCoreResult = _link(dartCoreSource, dartCoreCode);
+    var dartAsyncCode = r'''
+library dart.async;
+
+class Future<T> {}
+
+class FutureOr<T> {}
+''';
+
+    var dartCoreResult = _link({
+      dartCoreSource: dartCoreCode,
+      dartAsyncSource: dartAsyncCode,
+    });
 
     var source = addTestSource(text);
     var unit = parseText(text, experimentStatus: experimentStatus);
@@ -150,7 +164,10 @@ abstract class num implements Comparable<num> {
     elementFactory.addBundle(linkResult.bundle);
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
-    var typeProvider = SummaryTypeProvider()..initializeCore(dartCore);
+    var dartAsync = elementFactory.libraryOfUri('dart:async');
+    var typeProvider = SummaryTypeProvider()
+      ..initializeCore(dartCore)
+      ..initializeAsync(dartAsync);
     analysisContext.typeProvider = typeProvider;
     analysisContext.typeSystem = Dart2TypeSystem(typeProvider);
 
@@ -984,24 +1001,6 @@ abstract class num implements Comparable<num> {
 
   @override
   @failingTest
-  test_futureOr() async {
-    await super.test_futureOr();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_const() async {
-    await super.test_futureOr_const();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_inferred() async {
-    await super.test_futureOr_inferred();
-  }
-
-  @override
-  @failingTest
   test_genericFunction_asFunctionTypedParameterReturnType() async {
     await super.test_genericFunction_asFunctionTypedParameterReturnType();
   }
@@ -1174,40 +1173,6 @@ abstract class num implements Comparable<num> {
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     await super
         .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure() async {
-    await super.test_initializer_executable_with_return_type_from_closure();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future3_int() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future3_int();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future_int() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future_int();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future_noArg() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future_noArg();
   }
 
   @override
@@ -1563,18 +1528,6 @@ abstract class num implements Comparable<num> {
 
   @override
   @failingTest
-  test_syntheticFunctionType_noArguments() async {
-    await super.test_syntheticFunctionType_noArguments();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_withArguments() async {
-    await super.test_syntheticFunctionType_withArguments();
-  }
-
-  @override
-  @failingTest
   test_type_arguments_implicit() async {
     await super.test_type_arguments_implicit();
   }
@@ -1601,18 +1554,6 @@ abstract class num implements Comparable<num> {
   @failingTest
   test_type_inference_depends_on_exported_variable() async {
     await super.test_type_inference_depends_on_exported_variable();
-  }
-
-  @override
-  @failingTest
-  test_type_inference_nested_function() async {
-    await super.test_type_inference_nested_function();
-  }
-
-  @override
-  @failingTest
-  test_type_inference_nested_function_with_parameter_types() async {
-    await super.test_type_inference_nested_function_with_parameter_types();
   }
 
   @override
@@ -1870,13 +1811,14 @@ abstract class num implements Comparable<num> {
     await super.test_variable_setterInPart_getterInPart();
   }
 
-  LinkResult _link(Source source, String code) {
-    var unit = parseText(code, experimentStatus: experimentStatus);
-
-    // TODO(scheglov) add other libraries
-    var libraryUnitMap = {
-      source: {source: unit},
-    };
+  LinkResult _link(Map<Source, String> codeMap) {
+    // TODO(scheglov) support for parts
+    var libraryUnitMap = <Source, Map<Source, CompilationUnit>>{};
+    for (var source in codeMap.keys) {
+      var code = codeMap[source];
+      var unit = parseText(code, experimentStatus: experimentStatus);
+      libraryUnitMap[source] = {source: unit};
+    }
 
     return link(
       AnalysisOptionsImpl(),
