@@ -6,7 +6,7 @@ abstract class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  method noSuchMethod(dynamic i) → dynamic
+  method noSuchMethod(core::Invocation i) → dynamic
     return null;
   abstract method foo() → void;
 }

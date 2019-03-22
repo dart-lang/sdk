@@ -26,8 +26,6 @@ import 'package:kernel/ast.dart'
         TreeNode,
         VariableGet;
 
-import 'kernel_shadow_ast.dart' show ShadowClass;
-
 import '../fasta_codes.dart'
     show
         LocatedMessage,
@@ -86,7 +84,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name,
       Scope scope,
       Scope constructors,
-      ShadowClass cls,
+      Class cls,
       this.enumConstantInfos,
       this.intType,
       this.listType,
@@ -114,7 +112,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     KernelTypeBuilder stringType = new KernelNamedTypeBuilder("String", null);
     KernelNamedTypeBuilder objectType =
         new KernelNamedTypeBuilder("Object", null);
-    ShadowClass cls = new ShadowClass(name: name);
+    Class cls = new Class(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(name, null);
@@ -253,7 +251,6 @@ class KernelEnumBuilder extends SourceClassBuilder
     members.forEach(setParent);
     constructors.forEach(setParent);
     selfType.bind(enumBuilder);
-    ShadowClass.setBuilder(cls, enumBuilder);
     return enumBuilder;
   }
 

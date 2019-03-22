@@ -34,7 +34,7 @@ class Z extends core::Object {
   synthetic constructor •() → self::Z
     : super core::Object::•()
     ;
-  set native(core::String s) → dynamic
+  set native(core::String s) → void
     return this.{self::Z::f} = s;
 }
 static method main() → dynamic {

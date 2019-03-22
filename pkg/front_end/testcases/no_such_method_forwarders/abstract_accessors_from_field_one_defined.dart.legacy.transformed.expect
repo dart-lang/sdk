@@ -14,7 +14,7 @@ abstract class B extends core::Object implements self::A {
     ;
   get foo() → core::int
     return 42;
-  method noSuchMethod(dynamic i) → dynamic
+  method noSuchMethod(core::Invocation i) → dynamic
     return "bar";
 }
 class C extends self::B {
@@ -29,7 +29,7 @@ abstract class D extends core::Object implements self::A {
     : super core::Object::•()
     ;
   set foo(core::int value) → void {}
-  method noSuchMethod(dynamic i) → dynamic
+  method noSuchMethod(core::Invocation i) → dynamic
     return "bar";
 }
 class E extends self::D {

@@ -21,9 +21,9 @@ class C extends core::Object {
 class D extends self::C {
   synthetic constructor •() → self::D
     ;
-  set x(dynamic value) → void
+  set x(self::A value) → void
     ;
-  get y() → dynamic
+  get y() → self::B
     ;
 }
 class E extends self::D {

@@ -1,4 +1,17 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:20:14: Error: Can't infer a type for 'value' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   set field1(value) {}
+//              ^^^^^
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:21:14: Error: Can't infer a type for 'value' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   set field2(value) {}
+//              ^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -20,9 +33,11 @@ class B extends self::A implements self::I {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  get field1() → dynamic
+  get field1() → core::int
     return null;
-  get field2() → dynamic
+  get field2() → core::int
     return null;
+  set field1(invalid-type value) → void {}
+  set field2(invalid-type value) → void {}
 }
 static method main() → dynamic {}

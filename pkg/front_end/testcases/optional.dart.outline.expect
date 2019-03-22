@@ -22,13 +22,13 @@ abstract class Listener extends core::Object {
 class TestListener extends self::Listener {
   synthetic constructor •() → self::TestListener
     ;
-  method event(dynamic input, [dynamic x, dynamic y]) → void
+  method event(core::String input, [core::int x, core::int y]) → void
     ;
 }
 class ExtendedListener extends self::Listener {
   synthetic constructor •() → self::ExtendedListener
     ;
-  method event(dynamic input, [dynamic x, dynamic y, dynamic z]) → void
+  method event(core::String input, [core::int x, core::int y, dynamic z]) → void
     ;
 }
 class InvalidListener extends core::Object {

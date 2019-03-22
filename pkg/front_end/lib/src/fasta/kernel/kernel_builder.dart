@@ -16,7 +16,8 @@ import '../combinator.dart' as fasta;
 
 export '../builder/builder.dart';
 
-export 'class_hierarchy_builder.dart' show ClassHierarchyBuilder;
+export 'class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
 
 export 'implicit_field_type.dart' show ImplicitFieldType;
 

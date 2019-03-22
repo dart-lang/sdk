@@ -12,6 +12,6 @@ class B extends self::A<core::String> {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  method f<V extends core::Object = dynamic>(core::Map<core::String, self::B::f::V> m) → void {}
+  method f<V extends core::Object = dynamic>(generic-covariant-impl core::Map<core::String, self::B::f::V> m) → void {}
 }
 static method main() → dynamic {}

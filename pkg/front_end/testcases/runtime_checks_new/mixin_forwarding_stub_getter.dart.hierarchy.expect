@@ -99,7 +99,7 @@ C:
   interfaceMembers:
     M.f
     Object.toString
-    M.x
+    C.M.x%I.x
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
@@ -136,7 +136,7 @@ D:
   interfaceMembers:
     D.f
     Object.toString
-    M.x
+    D.M.x%I.x
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf

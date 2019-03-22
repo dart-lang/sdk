@@ -4,6 +4,8 @@
 
 library fasta.member_builder;
 
+import '../problems.dart' show unsupported;
+
 import 'builder.dart'
     show ClassBuilder, Declaration, LibraryBuilder, ModifierBuilder;
 
@@ -39,4 +41,10 @@ abstract class MemberBuilder extends ModifierBuilder {
 
   @override
   String get fullNameForErrors => name;
+
+  void inferType() => unsupported("inferType", charOffset, fileUri);
+
+  void inferCopiedType(covariant Object other) {
+    unsupported("inferType", charOffset, fileUri);
+  }
 }

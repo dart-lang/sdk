@@ -288,7 +288,7 @@ MyMock2:
     Object._simpleInstanceOf
     B.bMethod
     Object._instanceOf
-    MyMock1.noSuchMethod
+    MyMock2.MyMock1.noSuchMethod%MyMock2.noSuchMethod
     A.abstractMethod
     Object._identityHashCode
     Object.hashCode
@@ -308,7 +308,7 @@ MyMock2:
     Object._simpleInstanceOf
     B.bMethod
     Object._instanceOf
-    MyMock1.noSuchMethod
+    MyMock2.MyMock1.noSuchMethod%MyMock2.noSuchMethod
     A.abstractMethod
     Interface1.interfaceMethod1
     Object._identityHashCode
@@ -338,7 +338,7 @@ MyMock3:
     Object._simpleInstanceOf
     B.bMethod
     Object._instanceOf
-    Object.noSuchMethod
+    MyMock3.Object.noSuchMethod%MyMock3.noSuchMethod
     A.abstractMethod
     Object._identityHashCode
     Object.hashCode
@@ -358,7 +358,7 @@ MyMock3:
     Object._simpleInstanceOf
     B.bMethod
     Object._instanceOf
-    Object.noSuchMethod
+    MyMock3.Object.noSuchMethod%MyMock3.noSuchMethod
     A.abstractMethod
     Interface1.interfaceMethod1
     Object._identityHashCode

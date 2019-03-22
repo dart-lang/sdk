@@ -102,6 +102,7 @@ function_type_recovery: TextSerializationFailure # Was: Pass
 functions: TextSerializationFailure # Was: Pass
 future_or_test: TextSerializationFailure # Was: Pass
 hello: TextSerializationFailure # Was: Pass
+ignore_function: TypeCheckError
 illegal_named_function_expression: TextSerializationFailure # Was: Pass
 illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
@@ -158,6 +159,7 @@ inference/coerce_bottom_and_null_types: TextSerializationFailure # Was: Pass
 inference/complex_predecrement: TextSerializationFailure # Was: Pass
 inference/conditional_lub: TextSerializationFailure # Was: Pass
 inference/conditional_upwards_inference: TextSerializationFailure # Was: Pass
+inference/conflicting_fields: ExpectationFileMismatch
 inference/conflicting_fields: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError
 inference/conflicts_can_happen: TypeCheckError
@@ -273,6 +275,7 @@ inference/generic_methods_iterable_and_future: TextSerializationFailure # Was: P
 inference/generic_methods_nested_generic_instantiation: TextSerializationFailure # Was: Pass
 inference/generic_methods_uses_greatest_lower_bound: TextSerializationFailure # Was: Pass
 inference/greatest_closure_multiple_params: TextSerializationFailure # Was: Pass
+inference/inconsistent_overrides: TypeCheckError
 inference/index_assign_operator_return_type: TextSerializationFailure # Was: Pass
 inference/index_assign_operator_return_type_2: TextSerializationFailure # Was: Pass
 inference/infer_accessor_from_later_inferred_field: TextSerializationFailure # Was: Pass
@@ -336,6 +339,7 @@ inference/infer_list_literal_nested_in_map_literal: TextSerializationFailure # W
 inference/infer_local_function_referenced_before_declaration: TextSerializationFailure # Was: Pass
 inference/infer_local_function_return_type: TextSerializationFailure # Was: Pass
 inference/infer_method_function_typed: TextSerializationFailure # Was: Pass
+inference/infer_method_missing_params: ExpectationFileMismatch
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_parameter_type_setter_from_field: TextSerializationFailure # Was: Pass
 inference/infer_parameter_type_setter_from_setter: TextSerializationFailure # Was: Pass
@@ -582,6 +586,7 @@ inference_new/infer_assign_to_ref: TextSerializationFailure # Was: Pass
 inference_new/infer_assign_to_static: TextSerializationFailure # Was: Pass
 inference_new/infer_assign_to_static_upwards: TextSerializationFailure # Was: Pass
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
+inference_new/infer_field_override_accessors: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 inference_new/infer_field_override_setter_overrides_getter: TextSerializationFailure # Was: Pass
 inference_new/infer_instance_accessor_ref: TextSerializationFailure # Was: Pass
@@ -601,6 +606,7 @@ inference_new/strongly_connected_component: TypeCheckError
 inference_new/super_index_get: TextSerializationFailure # Was: Pass
 inference_new/super_index_get_substitution: TextSerializationFailure # Was: Pass
 inference_new/switch: TextSerializationFailure # Was: Pass
+inference_new/top_level_field_depends_on_multiple_inheritance: ExpectationFileMismatch
 inference_new/top_level_field_depends_on_multiple_inheritance: TextSerializationFailure # Was: Pass
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: TextSerializationFailure # Was: Pass
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: TextSerializationFailure # Was: Pass
@@ -686,6 +692,7 @@ micro: TextSerializationFailure # Was: RuntimeError
 minimum_int: TextSerializationFailure # Was: Pass
 missing_constructor: TextSerializationFailure # Was: Pass
 mixin: TextSerializationFailure # Was: Pass
+mixin_application_override: ExpectationFileMismatch
 mixin_application_override: TypeCheckError
 mixin_conflicts: TextSerializationFailure
 mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
@@ -949,6 +956,7 @@ runtime_checks/covariant_setter: TextSerializationFailure # Was: Pass
 runtime_checks/dynamic_invocation: TextSerializationFailure # Was: Pass
 runtime_checks/dynamic_invocation_generic: TextSerializationFailure # Was: Pass
 runtime_checks/dynamic_invocation_of_getter: TextSerializationFailure # Was: Pass
+runtime_checks/field_forwarding_stub_generic_covariant: ExpectationFileMismatch
 runtime_checks/field_forwarding_stub_generic_covariant: TextSerializationFailure # Was: Pass
 runtime_checks/forwarding_stub_with_default_values: TextSerializationFailure # Was: Pass
 runtime_checks/forwarding_stub_with_non_covariant_param: TextSerializationFailure # Was: Pass
@@ -962,6 +970,7 @@ runtime_checks/implicit_downcast_for_condition: TextSerializationFailure # Was: 
 runtime_checks/implicit_downcast_if: TextSerializationFailure # Was: Pass
 runtime_checks/implicit_downcast_not: TextSerializationFailure # Was: Pass
 runtime_checks/implicit_downcast_while: TextSerializationFailure # Was: Pass
+runtime_checks_new/abstract_override_becomes_forwarding_stub: ExpectationFileMismatch
 runtime_checks_new/abstract_override_becomes_forwarding_stub: TextSerializationFailure # Was: Pass
 runtime_checks_new/call_through_this: TextSerializationFailure # Was: Pass
 runtime_checks_new/contravariant_combiner: TextSerializationFailure # Was: Pass
@@ -971,12 +980,15 @@ runtime_checks_new/contravariant_index_assign: TextSerializationFailure # Was: P
 runtime_checks_new/contravariant_index_get: TextSerializationFailure # Was: Pass
 runtime_checks_new/derived_class_typed: TextSerializationFailure # Was: Pass
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: TextSerializationFailure # Was: Pass
+runtime_checks_new/field_forwarding_stub_explicit_covariant: ExpectationFileMismatch
 runtime_checks_new/field_forwarding_stub_explicit_covariant: TextSerializationFailure # Was: Pass
 runtime_checks_new/for_in_call_kinds: TextSerializationFailure # Was: Pass
 runtime_checks_new/generic_covariance_based_on_inference: TextSerializationFailure # Was: Pass
 runtime_checks_new/implicit_downcast_field: TextSerializationFailure # Was: Pass
+runtime_checks_new/mixin_forwarding_stub_field: ExpectationFileMismatch
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_setter: ExpectationFileMismatch
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 runtime_checks_new/stub_checked_via_target: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_contravariant_from_class: TextSerializationFailure # Was: Pass

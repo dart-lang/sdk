@@ -39,7 +39,6 @@ CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/example: Fail
-CantInferTypeDueToInconsistentOverrides/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ColonInPlaceOfIn/example: Fail

@@ -38,7 +38,7 @@ class B<E extends core::Object = dynamic> extends test::A<test::B::E> implements
     ;
   get y() → core::int
     return 0;
-  method m(dynamic a, (dynamic, core::int) → dynamic f) → dynamic {}
+  method m(dynamic a, (dynamic, core::int) → dynamic f) → test::A<test::B::E> {}
 }
 static method foo() → dynamic {
   core::int y = new test::B::•<core::String>().m(null, null).value;

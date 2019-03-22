@@ -17,7 +17,7 @@ class B<T extends core::Object = dynamic> extends self::A {
   const constructor •() → self::B<self::B::T>
     : super self::A::empty()
     ;
-  method toString() → dynamic
+  method toString() → core::String
     return "${self::B::T}";
 }
 static method main() → void {

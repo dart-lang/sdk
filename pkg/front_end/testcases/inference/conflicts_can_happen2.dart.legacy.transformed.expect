@@ -1,4 +1,12 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/conflicts_can_happen2.dart:34:7: Error: Can't infer a return type for 'a' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   get a => null;
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -44,7 +52,7 @@ class C2 extends core::Object implements self::A, self::B {
   synthetic constructor •() → self::C2
     : super core::Object::•()
     ;
-  get a() → dynamic
+  get a() → invalid-type
     return null;
 }
 static method main() → dynamic {}

@@ -18,22 +18,22 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  set a(dynamic #synthetic) → dynamic
+  set a(dynamic #synthetic) → void
     ;
-  set d(dynamic #synthetic) → dynamic
+  set d(dynamic #synthetic) → void
     ;
 }
 abstract class B extends core::Object {
   synthetic constructor •() → self::B
     ;
-  set a(dynamic #synthetic) → dynamic
+  set a(dynamic #synthetic) → void
     ;
-  set d(dynamic #synthetic) → dynamic
+  set d(dynamic #synthetic) → void
     ;
 }
-static set b(dynamic #synthetic) → dynamic
+static set b(dynamic #synthetic) → void
   ;
-static set c(dynamic #synthetic) → dynamic
+static set c(dynamic #synthetic) → void
   ;
 static method main() → dynamic
   ;

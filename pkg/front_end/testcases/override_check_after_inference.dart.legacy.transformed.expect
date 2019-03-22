@@ -22,7 +22,7 @@ class D extends self::C {
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  method f(dynamic x) → void {}
+  method f(self::A x) → void {}
 }
 class E extends self::D {
   synthetic constructor •() → self::E

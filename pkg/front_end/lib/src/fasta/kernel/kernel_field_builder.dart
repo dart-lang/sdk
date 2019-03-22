@@ -5,14 +5,21 @@
 library fasta.kernel_field_builder;
 
 import 'package:kernel/ast.dart'
-    show Class, DartType, DynamicType, Expression, Field, Name, NullLiteral;
+    show Class, DartType, Expression, Field, InvalidType, Name, NullLiteral;
 
-import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
+import '../fasta_codes.dart'
+    show
+        messageInternalProblemAlreadyInitialized,
+        templateCantInferTypeDueToCircularity;
 
-import '../problems.dart' show internalProblem, unsupported;
+import '../problems.dart' show internalProblem;
 
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersCovariantly;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
+
+import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
@@ -26,17 +33,16 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         MetadataBuilder;
 
-import 'kernel_shadow_ast.dart' show ShadowField;
-
 class KernelFieldBuilder extends FieldBuilder<Expression> {
-  final ShadowField field;
+  final Field field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
 
+  bool hadTypesInferred = false;
+
   KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
       Declaration compilationUnit, int charOffset, int charEndOffset)
-      : field = new ShadowField(null, type == null,
-            fileUri: compilationUnit?.fileUri)
+      : field = new Field(null, fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(name, modifiers, compilationUnit, charOffset);
@@ -84,32 +90,76 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (isEligibleForInference && !isInstanceMember) {
-      library.loader.typeInferenceEngine
-          .recordStaticFieldInferenceCandidate(field, library);
-    }
     return field;
   }
 
   Field get target => field;
 
-  void prepareTopLevelInference() {
-    if (!isEligibleForInference) return;
+  @override
+  void inferType() {
     KernelLibraryBuilder library = this.library;
-    var typeInferrer = library.loader.typeInferenceEngine
-        .createTopLevelTypeInferrer(
-            field.enclosingClass?.thisType, field, null);
-    if (hasInitializer) {
-      if (field.type is! ImplicitFieldType) {
-        unsupported(
-            "$name has unexpected type ${field.type}", charOffset, fileUri);
-        return;
-      }
-      ImplicitFieldType type = field.type;
-      field.type = const DynamicType();
-      initializer = new KernelBodyBuilder.forField(this, typeInferrer)
-          .parseFieldInitializer(type.initializerToken);
+    if (field.type is! ImplicitFieldType) {
+      // We have already inferred a type.
+      return;
     }
+    ImplicitFieldType type = field.type;
+    if (type.member != this) {
+      // The implicit type was inherited.
+      KernelFieldBuilder other = type.member;
+      other.inferCopiedType(field);
+      return;
+    }
+    if (type.isStarted) {
+      library.addProblem(
+          templateCantInferTypeDueToCircularity.withArguments(name),
+          charOffset,
+          name.length,
+          fileUri);
+      field.type = const InvalidType();
+      return;
+    }
+    type.isStarted = true;
+    TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
+        .createTopLevelTypeInferrer(
+            fileUri, field.enclosingClass?.thisType, null);
+    initializer = new KernelBodyBuilder.forField(this, typeInferrer)
+        .parseFieldInitializer(type.initializerToken);
+
+    DartType inferredType = typeInferrer.inferDeclarationType(typeInferrer
+        .inferExpression(field.initializer, const UnknownType(), true,
+            isVoidAllowed: true));
+
+    if (field.type is ImplicitFieldType) {
+      // `field.type` may have changed if a circularity was detected when
+      // [inferredType] was computed.
+      field.type = inferredType;
+
+      IncludesTypeParametersCovariantly needsCheckVisitor;
+      if (parent is ClassBuilder) {
+        Class enclosingClass = parent.target;
+        if (enclosingClass.typeParameters.isNotEmpty) {
+          needsCheckVisitor = new IncludesTypeParametersCovariantly(
+              enclosingClass.typeParameters);
+        }
+      }
+      if (needsCheckVisitor != null) {
+        if (field.type.accept(needsCheckVisitor)) {
+          field.isGenericCovariantImpl = true;
+        }
+      }
+    }
+
+    // The following is a hack. The outline should contain the compiled
+    // initializers, however, as top-level inference is subtly different from
+    // we need to compile the field initializer again when everything else is
+    // compiled.
+    field.initializer = null;
+  }
+
+  void inferCopiedType(Field other) {
+    inferType();
+    other.type = field.type;
+    other.initializer = null;
   }
 
   @override

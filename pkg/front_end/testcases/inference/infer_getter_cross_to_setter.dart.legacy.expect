@@ -12,6 +12,6 @@ abstract class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  abstract get x() → dynamic;
+  abstract get x() → core::double;
 }
 static method main() → dynamic {}

@@ -67,8 +67,6 @@ generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
 issue31596_super_test/05: RuntimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError
@@ -258,7 +256,6 @@ implicit_creation/implicit_const_not_default_values_test/e4: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
-mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
 spread_collections/await_test: Crash
 spread_collections/const_error_test/02: MissingCompileTimeError
 spread_collections/const_error_test/03: MissingCompileTimeError
@@ -291,22 +288,16 @@ deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fast
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
+issue31596_super_test/01: CompileTimeError
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
+issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
-issue34488_test/01: MissingCompileTimeError # Issue 34488
-issue34488_test/02: MissingCompileTimeError # Issue 34488
-issue34488_test/03: MissingCompileTimeError # Issue 34488
-issue34488_test/04: MissingCompileTimeError # Issue 34488
-issue34488_test/05: MissingCompileTimeError # Issue 34488
-issue34488_test/06: MissingCompileTimeError # Issue 34488
 mixin_declaration/mixin_declaration_invalid_override_test/08: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/04: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/05: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/06: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/07: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/08: MissingCompileTimeError
-mixin_method_override_test/G5: Crash # Issue 34354
-override_inheritance_field_test/42: MissingCompileTimeError
 regress_22976_test/*: CompileTimeError # Issue 31935
 set_literals/invalid_set_literal_test/08: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/09: MissingCompileTimeError # Requires constant evaluation
@@ -838,8 +829,6 @@ invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
 issue21079_test: SkipByDesign
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
 issue31596_super_test/05: RuntimeError
 least_upper_bound_expansive_test/none: RuntimeError
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
@@ -957,8 +946,6 @@ generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -1368,8 +1355,6 @@ generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError, RuntimeError
 if_null_evaluation_order_test: Pass
 instantiate_tearoff_of_call_test: CompileTimeError
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
 issue31596_super_test/05: RuntimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.

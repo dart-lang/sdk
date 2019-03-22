@@ -87,7 +87,6 @@ import 'constant_evaluator.dart' as constants show transformLibraries;
 import 'kernel_builder.dart'
     show
         ClassBuilder,
-        ClassHierarchyBuilder,
         Declaration,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -148,8 +147,6 @@ class KernelTarget extends TargetImplementation {
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();
   }
-
-  void set builderHierarchy(ClassHierarchyBuilder o) {}
 
   SourceLoader createLoader() =>
       new SourceLoader(fileSystem, includeComments, this);
@@ -265,8 +262,7 @@ class KernelTarget extends TargetImplementation {
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
-      builderHierarchy =
-          loader.buildClassHierarchy(myClasses, objectClassBuilder);
+      loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
