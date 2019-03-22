@@ -1142,7 +1142,13 @@ class AstBuilder extends StackListener {
               // This error is also reported in the body builder
               handleRecoverableError(messageThisAccessInInitializer,
                   targetFunct.thisKeyword, targetFunct.thisKeyword);
+            } else {
+              throw new UnsupportedError(
+                  'unsupported initializer $initializerObject');
             }
+          } else {
+            throw new UnsupportedError(
+                'unsupported initializer $initializerObject');
           }
         }
       } else if (initializerObject is AssignmentExpression) {
@@ -1177,6 +1183,36 @@ class AstBuilder extends StackListener {
             initializerObject.rightHandSide));
       } else if (initializerObject is AssertInitializer) {
         initializers.add(initializerObject);
+      } else if (initializerObject is PropertyAccess) {
+        // Recovery: Invalid initializer
+        Expression target = initializerObject.target;
+        if (target is FunctionExpressionInvocation) {
+          var targetFunct = target.function;
+          if (targetFunct is SuperExpression) {
+            initializers.add(ast.superConstructorInvocation(
+                targetFunct.superKeyword, null, null, target.argumentList));
+            // TODO(danrubel): Consider generating this error in the parser
+            // This error is also reported in the body builder
+            handleRecoverableError(messageSuperAsExpression,
+                targetFunct.superKeyword, targetFunct.superKeyword);
+          } else if (targetFunct is ThisExpression) {
+            initializers.add(ast.redirectingConstructorInvocation(
+                targetFunct.thisKeyword, null, null, target.argumentList));
+            // TODO(danrubel): Consider generating this error in the parser
+            // This error is also reported in the body builder
+            handleRecoverableError(messageThisAccessInInitializer,
+                targetFunct.thisKeyword, targetFunct.thisKeyword);
+          } else {
+            throw new UnsupportedError(
+                'unsupported initializer $initializerObject');
+          }
+        } else {
+          throw new UnsupportedError(
+              'unsupported initializer $initializerObject');
+        }
+      } else {
+        throw new UnsupportedError('unsupported initializer:'
+            ' ${initializerObject.runtimeType} :: $initializerObject');
       }
     }
 

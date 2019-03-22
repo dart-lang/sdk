@@ -843,7 +843,15 @@ main() { // missing async
     ]);
   }
 
-  void test_constructor_super_asExpression() {
+  void test_constructor_super_field() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): super().foo {} }', errors: [
+      expectedError(ParserErrorCode.SUPER_AS_EXPRESSION, 25, 5),
+    ]);
+  }
+
+  void test_constructor_super_method() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
     parseCompilationUnit('class B extends A { B(): super().foo() {} }',
@@ -852,7 +860,15 @@ main() { // missing async
         ]);
   }
 
-  void test_constructor_this_invalid() {
+  void test_constructor_this_field() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): this().foo; }', errors: [
+      expectedError(ParserErrorCode.THIS_ACCESS_FROM_INITIALIZER, 25, 4),
+    ]);
+  }
+
+  void test_constructor_this_method() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
     parseCompilationUnit('class B extends A { B(): this().foo(); }', errors: [
