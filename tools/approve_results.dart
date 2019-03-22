@@ -96,7 +96,7 @@ class Test implements Comparable {
   String get baselineResult => (baselineData ?? const {})["result"];
   String get approvedResult => (approvedResultData ?? const {})["result"];
   bool get isDifferent => result != null && result != baselineResult;
-  bool get isApproved => result == approvedResult;
+  bool get isApproved => result == null || result == approvedResult;
   List<String> get flakyModes =>
       flakinessData != null ? flakinessData["outcomes"].cast<String>() : null;
   bool get isFlake => flakinessData != null && flakyModes.contains(result);
