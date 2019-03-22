@@ -1035,6 +1035,17 @@ class CodeChecker extends RecursiveAstVisitor {
   DartType _getExpressionType(Expression expr) =>
       getExpressionType(expr, rules, typeProvider);
 
+  DartType _getInstanceTypeArgument(
+      DartType expressionType, ClassElement instanceType) {
+    if (expressionType is InterfaceTypeImpl) {
+      var asInstanceType = expressionType.asInstanceOf(instanceType);
+      if (asInstanceType != null) {
+        return asInstanceType.typeArguments[0];
+      }
+    }
+    return null;
+  }
+
   /// Given an expression, return its type assuming it is
   /// in the caller position of a call (that is, accounting
   /// for the possibility of a call method).  Returns null
@@ -1342,7 +1353,7 @@ class CodeChecker extends RecursiveAstVisitor {
         : typeProvider.iterableType;
     var iterableType = _getExpressionType(node.iterable);
     var elementType =
-        rules.mostSpecificTypeArgument(iterableType, sequenceInterface);
+        _getInstanceTypeArgument(iterableType, sequenceInterface.element);
 
     // If the sequence is not an Iterable (or Stream for await for) but is a
     // supertype of it, do an implicit downcast to Iterable<dynamic>. Then
