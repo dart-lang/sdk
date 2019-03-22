@@ -565,10 +565,14 @@ class StandardTestSuite extends TestSuite {
           _testListPossibleFilenames
               .add(suiteDir.append('$s.dart').toNativePath());
           // If the test is a multitest, the filename doesn't include the label.
-          if (s.lastIndexOf('/') != -1) {
-            s = s.substring(0, s.lastIndexOf('/'));
-            _testListPossibleFilenames
-                .add(suiteDir.append('$s.dart').toNativePath());
+          // Also if it has multiple VMOptions.  If both, remove two labels.
+          for (var i in [1, 2]) {
+            // Twice
+            if (s.lastIndexOf('/') != -1) {
+              s = s.substring(0, s.lastIndexOf('/'));
+              _testListPossibleFilenames
+                  .add(suiteDir.append('$s.dart').toNativePath());
+            }
           }
         }
       }
