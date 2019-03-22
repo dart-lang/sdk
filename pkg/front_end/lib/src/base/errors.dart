@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -26,6 +26,12 @@ abstract class ErrorCode {
   final String correction;
 
   /**
+   * The URL of a page containing documentation for errors with this code, or
+   * `null` if there is no known documentation.
+   */
+  final String url;
+
+  /**
    * Whether this error is caused by an unresolved identifier.
    */
   final bool isUnresolvedIdentifier;
@@ -36,7 +42,7 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode(this.name, this.message, [this.correction])
+  const ErrorCode(this.name, this.message, [this.correction, this.url])
       : isUnresolvedIdentifier = false;
 
   /**
@@ -46,7 +52,7 @@ abstract class ErrorCode {
    * given [correction] template.
    */
   const ErrorCode.temporary(this.name, this.message,
-      {this.correction, this.isUnresolvedIdentifier: false});
+      {this.correction, this.isUnresolvedIdentifier: false, this.url});
 
   /**
    * The severity of the error.

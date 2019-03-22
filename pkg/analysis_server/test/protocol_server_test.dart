@@ -67,6 +67,31 @@ class AnalysisErrorTest {
     });
   }
 
+  void test_fromEngine_hasUrl() {
+    engineError = new MockAnalysisError(
+        source,
+        new MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
+        10,
+        20,
+        'my message');
+    AnalysisError error = newAnalysisError_fromEngine(lineInfo, engineError);
+    expect(error.toJson(), {
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2
+      },
+      MESSAGE: 'my message',
+      CODE: 'test_error',
+      URL: 'http://codes.dartlang.org/TEST_ERROR',
+      HAS_FIX: false
+    });
+  }
+
   void test_fromEngine_noCorrection() {
     engineError.correction = null;
     AnalysisError error = newAnalysisError_fromEngine(lineInfo, engineError);
@@ -212,4 +237,42 @@ class MockAnalysisError implements engine.AnalysisError {
 
   MockAnalysisError(
       this.source, this.errorCode, this.offset, this.length, this.message);
+}
+
+class MockErrorCode implements engine.ErrorCode {
+  @override
+  engine.ErrorType type;
+
+  @override
+  engine.ErrorSeverity errorSeverity;
+
+  @override
+  String name;
+
+  @override
+  String url;
+
+  MockErrorCode(
+      {this.type: engine.ErrorType.COMPILE_TIME_ERROR,
+      this.errorSeverity: engine.ErrorSeverity.ERROR,
+      this.name: 'TEST_ERROR',
+      this.url});
+
+  @override
+  String get correction {
+    throw new StateError('Unexpected invocation of correction');
+  }
+
+  @override
+  bool get isUnresolvedIdentifier => false;
+
+  @override
+  String get message {
+    throw new StateError('Unexpected invocation of message');
+  }
+
+  @override
+  String get uniqueName {
+    throw new StateError('Unexpected invocation of uniqueName');
+  }
 }

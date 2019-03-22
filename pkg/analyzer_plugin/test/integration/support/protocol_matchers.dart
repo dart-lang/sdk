@@ -34,6 +34,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "message": String
  *   "correction": optional String
  *   "code": String
+ *   "url": optional String
  *   "hasFix": optional bool
  * }
  */
@@ -46,6 +47,7 @@ final Matcher isAnalysisError =
           "code": isString
         }, optionalFields: {
           "correction": isString,
+          "url": isString,
           "hasFix": isBool
         }));
 

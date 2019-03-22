@@ -102,6 +102,7 @@ class AddContentOverlay implements HasToJson {
  *   "message": String
  *   "correction": optional String
  *   "code": String
+ *   "url": optional String
  *   "hasFix": optional bool
  * }
  *
@@ -119,6 +120,8 @@ class AnalysisError implements HasToJson {
   String _correction;
 
   String _code;
+
+  String _url;
 
   bool _hasFix;
 
@@ -206,6 +209,18 @@ class AnalysisError implements HasToJson {
   }
 
   /**
+   * The URL of a page containing documentation associated with this error.
+   */
+  String get url => _url;
+
+  /**
+   * The URL of a page containing documentation associated with this error.
+   */
+  void set url(String value) {
+    this._url = value;
+  }
+
+  /**
    * A hint to indicate to interested clients that this error has an associated
    * fix (or fixes). The absence of this field implies there are not known to
    * be fixes. Note that since the operation to calculate whether fixes apply
@@ -233,13 +248,14 @@ class AnalysisError implements HasToJson {
 
   AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
       Location location, String message, String code,
-      {String correction, bool hasFix}) {
+      {String correction, String url, bool hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
     this.code = code;
+    this.url = url;
     this.hasFix = hasFix;
   }
 
@@ -288,12 +304,16 @@ class AnalysisError implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "code");
       }
+      String url;
+      if (json.containsKey("url")) {
+        url = jsonDecoder.decodeString(jsonPath + ".url", json["url"]);
+      }
       bool hasFix;
       if (json.containsKey("hasFix")) {
         hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
       }
       return new AnalysisError(severity, type, location, message, code,
-          correction: correction, hasFix: hasFix);
+          correction: correction, url: url, hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
     }
@@ -310,6 +330,9 @@ class AnalysisError implements HasToJson {
       result["correction"] = correction;
     }
     result["code"] = code;
+    if (url != null) {
+      result["url"] = url;
+    }
     if (hasFix != null) {
       result["hasFix"] = hasFix;
     }
@@ -328,6 +351,7 @@ class AnalysisError implements HasToJson {
           message == other.message &&
           correction == other.correction &&
           code == other.code &&
+          url == other.url &&
           hasFix == other.hasFix;
     }
     return false;
@@ -342,6 +366,7 @@ class AnalysisError implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, correction.hashCode);
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, url.hashCode);
     hash = JenkinsSmiHash.combine(hash, hasFix.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

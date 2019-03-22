@@ -40,34 +40,6 @@ List<AnalysisError> doAnalysisError_listFromEngine(
 }
 
 /**
- * Translates engine errors through the ErrorProcessor.
- */
-List<T> mapEngineErrors<T>(
-    engine.AnalysisOptions analysisOptions,
-    engine.LineInfo lineInfo,
-    List<engine.AnalysisError> errors,
-    T Function(engine.LineInfo lineInfo, engine.AnalysisError error,
-            [engine.ErrorSeverity errorSeverity])
-        constructor) {
-  List<T> serverErrors = <T>[];
-  for (engine.AnalysisError error in errors) {
-    ErrorProcessor processor =
-        ErrorProcessor.getProcessor(analysisOptions, error);
-    if (processor != null) {
-      engine.ErrorSeverity severity = processor.severity;
-      // Errors with null severity are filtered out.
-      if (severity != null) {
-        // Specified severities override.
-        serverErrors.add(constructor(lineInfo, error, severity));
-      }
-    } else {
-      serverErrors.add(constructor(lineInfo, error));
-    }
-  }
-  return serverErrors;
-}
-
-/**
  * Adds [edit] to the file containing the given [element].
  */
 void doSourceChange_addElementEdit(
@@ -101,6 +73,34 @@ String getReturnTypeString(engine.Element element) {
   } else {
     return null;
   }
+}
+
+/**
+ * Translates engine errors through the ErrorProcessor.
+ */
+List<T> mapEngineErrors<T>(
+    engine.AnalysisOptions analysisOptions,
+    engine.LineInfo lineInfo,
+    List<engine.AnalysisError> errors,
+    T Function(engine.LineInfo lineInfo, engine.AnalysisError error,
+            [engine.ErrorSeverity errorSeverity])
+        constructor) {
+  List<T> serverErrors = <T>[];
+  for (engine.AnalysisError error in errors) {
+    ErrorProcessor processor =
+        ErrorProcessor.getProcessor(analysisOptions, error);
+    if (processor != null) {
+      engine.ErrorSeverity severity = processor.severity;
+      // Errors with null severity are filtered out.
+      if (severity != null) {
+        // Specified severities override.
+        serverErrors.add(constructor(lineInfo, error, severity));
+      }
+    } else {
+      serverErrors.add(constructor(lineInfo, error));
+    }
+  }
+  return serverErrors;
 }
 
 /**
@@ -140,8 +140,9 @@ AnalysisError newAnalysisError_fromEngine(
   String code = errorCode.name.toLowerCase();
   String correction = error.correction;
   bool fix = hasFix(error.errorCode);
+  String url = errorCode.url;
   return new AnalysisError(severity, type, location, message, code,
-      correction: correction, hasFix: fix);
+      correction: correction, hasFix: fix, url: url);
 }
 
 /**
