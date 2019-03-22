@@ -798,6 +798,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       List<String> ddcOptions,
       List<String> originalArguments) {
     List<String> args = [];
+    if (_useEnableAsserts) {
+      args.add('--enable_asserts');
+    }
     return args
       ..addAll(filterVmOptions(vmOptions))
       ..addAll(sharedOptions)
@@ -871,6 +874,9 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
     var args = <String>[];
+    if (_useEnableAsserts) {
+      args.add('--enable_asserts');
+    }
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
