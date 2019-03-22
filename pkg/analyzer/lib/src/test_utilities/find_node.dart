@@ -151,6 +151,10 @@ class FindNode {
     return _node(search, (n) => n is MixinDeclaration);
   }
 
+  NamedExpression namedExpression(String search) {
+    return _node(search, (n) => n is NamedExpression);
+  }
+
   ParenthesizedExpression parenthesized(String search) {
     return _node(search, (n) => n is ParenthesizedExpression);
   }

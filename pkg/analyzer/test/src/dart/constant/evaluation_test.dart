@@ -284,6 +284,19 @@ class A {}
     expect(result.type, typeProvider.nullType);
   }
 
+  test_visitAsExpression_potentialConst() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+
+class MyClass {
+  final A a;
+  const MyClass(Object o) : a = o as A;
+}
+''');
+  }
+
   test_visitBinaryExpression_and_bool_known_known() async {
     await _resolveTestCode('''
 const c = false & true;

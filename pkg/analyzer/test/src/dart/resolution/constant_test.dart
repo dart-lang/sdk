@@ -143,7 +143,6 @@ class C extends B {
 ''');
     await resolveTestFile();
     assertTestErrors([
-      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
       CompileTimeErrorCode.CONST_NOT_INITIALIZED,
       CompileTimeErrorCode.CONST_NOT_INITIALIZED,
     ]);

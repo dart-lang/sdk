@@ -2668,17 +2668,15 @@ main() {
 
   test_invalid_const_as() async {
     addTestFile(r'''
-class A {
-  final int a;
-  const A(num b) : a = b as int;
-}
+const num a = 1.2;
+const int b = a as int;
 ''');
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var bRef = findNode.simple('b as int');
-    assertElement(bRef, findElement.parameter('b'));
-    assertType(bRef, 'num');
+    var aRef = findNode.simple('a as int');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'num');
 
     assertTypeName(findNode.typeName('int;'), intElement, 'int');
   }

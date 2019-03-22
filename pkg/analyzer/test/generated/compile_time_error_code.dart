@@ -1046,9 +1046,15 @@ var x = const C(2);
     verify([source]);
   }
 
-  test_constEvalTypeBool_binary() async {
-    await _check_constEvalTypeBool_withParameter_binary("p && ''");
-    await _check_constEvalTypeBool_withParameter_binary("p || ''");
+  test_constEvalTypeBool_binary_and() async {
+    Source source = addSource(r'''
+const _ = true && '';
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+      StaticTypeWarningCode.NON_BOOL_OPERAND,
+    ]);
   }
 
   test_constEvalTypeBool_binary_leftTrue() async {
@@ -1057,6 +1063,17 @@ var x = const C(2);
     assertErrors(
         source, [StaticTypeWarningCode.NON_BOOL_OPERAND, HintCode.DEAD_CODE]);
     verify([source]);
+  }
+
+  test_constEvalTypeBool_binary_or() async {
+    Source source = addSource(r'''
+const _ = false || '';
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+      StaticTypeWarningCode.NON_BOOL_OPERAND,
+    ]);
   }
 
   test_constEvalTypeBool_logicalOr_trueLeftOperand() async {
@@ -1077,10 +1094,10 @@ const c = const C();
 class A {
   const A();
 }
-class B {
-  final a;
-  const B(num p) : a = p == const A();
-}''');
+
+const num a = 0;
+const _ = a == const A();
+''');
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
@@ -1092,10 +1109,10 @@ class B {
 class A {
   const A();
 }
-class B {
-  final a;
-  const B(String p) : a = p != const A();
-}''');
+
+const num a = 0;
+const _ = a != const A();
+''');
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
@@ -1103,24 +1120,24 @@ class B {
   }
 
   test_constEvalTypeInt_binary() async {
-    await _check_constEvalTypeBoolOrInt_withParameter_binary("p ^ ''");
-    await _check_constEvalTypeBoolOrInt_withParameter_binary("p & ''");
-    await _check_constEvalTypeBoolOrInt_withParameter_binary("p | ''");
-    await _check_constEvalTypeInt_withParameter_binary("p >> ''");
-    await _check_constEvalTypeInt_withParameter_binary("p << ''");
+    await _check_constEvalTypeBoolOrInt_binary("a ^ ''");
+    await _check_constEvalTypeBoolOrInt_binary("a & ''");
+    await _check_constEvalTypeBoolOrInt_binary("a | ''");
+    await _check_constEvalTypeInt_binary("a >> ''");
+    await _check_constEvalTypeInt_binary("a << ''");
   }
 
   test_constEvalTypeNum_binary() async {
-    await _check_constEvalTypeNum_withParameter_binary("p + ''");
-    await _check_constEvalTypeNum_withParameter_binary("p - ''");
-    await _check_constEvalTypeNum_withParameter_binary("p * ''");
-    await _check_constEvalTypeNum_withParameter_binary("p / ''");
-    await _check_constEvalTypeNum_withParameter_binary("p ~/ ''");
-    await _check_constEvalTypeNum_withParameter_binary("p > ''");
-    await _check_constEvalTypeNum_withParameter_binary("p < ''");
-    await _check_constEvalTypeNum_withParameter_binary("p >= ''");
-    await _check_constEvalTypeNum_withParameter_binary("p <= ''");
-    await _check_constEvalTypeNum_withParameter_binary("p % ''");
+    await _check_constEvalTypeNum_binary("a + ''");
+    await _check_constEvalTypeNum_binary("a - ''");
+    await _check_constEvalTypeNum_binary("a * ''");
+    await _check_constEvalTypeNum_binary("a / ''");
+    await _check_constEvalTypeNum_binary("a ~/ ''");
+    await _check_constEvalTypeNum_binary("a > ''");
+    await _check_constEvalTypeNum_binary("a < ''");
+    await _check_constEvalTypeNum_binary("a >= ''");
+    await _check_constEvalTypeNum_binary("a <= ''");
+    await _check_constEvalTypeNum_binary("a % ''");
   }
 
   test_constFormalParameter_fieldFormalParameter() async {
@@ -4292,8 +4309,7 @@ class A {
   const A(int i) : assert(i.isNegative);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CONSTANT]);
     verify([source]);
   }
 
@@ -4303,64 +4319,7 @@ class A {
   const A(int i) : assert(i < 0, 'isNegative = ${i.isNegative}');
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
-    verify([source]);
-  }
-
-  test_nonConstValueInInitializer_binary_notBool_left() async {
-    Source source = addSource(r'''
-class A {
-  final bool a;
-  const A(String p) : a = p && true;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND
-    ]);
-    verify([source]);
-  }
-
-  test_nonConstValueInInitializer_binary_notBool_right() async {
-    Source source = addSource(r'''
-class A {
-  final bool a;
-  const A(String p) : a = true && p;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND
-    ]);
-    verify([source]);
-  }
-
-  test_nonConstValueInInitializer_binary_notInt() async {
-    Source source = addSource(r'''
-class A {
-  final int a;
-  const A(String p) : a = 5 & p;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    ]);
-    verify([source]);
-  }
-
-  test_nonConstValueInInitializer_binary_notNum() async {
-    Source source = addSource(r'''
-class A {
-  final int a;
-  const A(String p) : a = 5 + p;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CONSTANT]);
     verify([source]);
   }
 
@@ -4372,8 +4331,7 @@ class A {
   const A() : a = C;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CONSTANT]);
     verify([source]);
   }
 
@@ -4391,7 +4349,7 @@ var b = const B();''');
     // ought to be suppressed. Or not?
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+      CompileTimeErrorCode.INVALID_CONSTANT,
       CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
     ]);
     verify([source]);
@@ -4424,8 +4382,7 @@ class A {
   const A() : this.named(C);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CONSTANT]);
     verify([source]);
   }
 
@@ -4439,8 +4396,7 @@ class B extends A {
   const B() : super(C);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CONSTANT]);
     verify([source]);
   }
 
@@ -4457,8 +4413,7 @@ class A {
   const A() : x = a.c;
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode
-          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode.INVALID_CONSTANT
     ]);
   }
 
@@ -4475,8 +4430,7 @@ class A {
   const A() : x = a.c + 1;
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode
-          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode.INVALID_CONSTANT
     ]);
   }
 
@@ -4493,8 +4447,7 @@ class A {
   const A() : this.named(a.c);
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode
-          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode.INVALID_CONSTANT
     ]);
   }
 
@@ -4513,8 +4466,7 @@ class B extends A {
   const B() : super(a.c);
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode
-          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode.INVALID_CONSTANT
     ]);
   }
 
@@ -6169,28 +6121,11 @@ f() {
     }
   }
 
-  Future<void> _check_constEvalTypeBool_withParameter_binary(
-      String expr) async {
+  Future<void> _check_constEvalTypeBoolOrInt_binary(String expr) async {
     Source source = addSource('''
-class A {
-  final a;
-  const A(bool p) : a = $expr;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND
-    ]);
-    verify([source]);
-  }
-
-  Future<void> _check_constEvalTypeBoolOrInt_withParameter_binary(
-      String expr) async {
-    Source source = addSource('''
-class A {
-  final a;
-  const A(int p) : a = $expr;
-}''');
+const int a = 0;
+const _ = $expr;
+''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT,
@@ -6199,12 +6134,11 @@ class A {
     verify([source]);
   }
 
-  Future<void> _check_constEvalTypeInt_withParameter_binary(String expr) async {
+  Future<void> _check_constEvalTypeInt_binary(String expr) async {
     Source source = addSource('''
-class A {
-  final a;
-  const A(int p) : a = $expr;
-}''');
+const int a = 0;
+const _ = $expr;
+''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
@@ -6213,12 +6147,11 @@ class A {
     verify([source]);
   }
 
-  Future<void> _check_constEvalTypeNum_withParameter_binary(String expr) async {
+  Future<void> _check_constEvalTypeNum_binary(String expr) async {
     Source source = addSource('''
-class A {
-  final a;
-  const A(num p) : a = $expr;
-}''');
+const num a = 0;
+const _ = $expr;
+''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,

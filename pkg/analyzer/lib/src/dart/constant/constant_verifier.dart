@@ -37,17 +37,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The set of variables declared using '-D' on the command line.
   final DeclaredVariables declaredVariables;
 
-  /// The type representing the type 'bool'.
-  InterfaceType _boolType;
-
   /// The type representing the type 'int'.
   InterfaceType _intType;
-
-  /// The type representing the type 'num'.
-  InterfaceType _numType;
-
-  /// The type representing the type 'string'.
-  InterfaceType _stringType;
 
   /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
@@ -62,10 +53,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       {bool forAnalysisDriver: false})
       : _currentLibrary = currentLibrary,
         _typeSystem = currentLibrary.context.typeSystem {
-    this._boolType = _typeProvider.boolType;
     this._intType = _typeProvider.intType;
-    this._numType = _typeProvider.numType;
-    this._stringType = _typeProvider.stringType;
     this._evaluationEngine = new ConstantEvaluationEngine(
         _typeProvider, declaredVariables,
         forAnalysisDriver: forAnalysisDriver,
@@ -415,6 +403,29 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _reportNotPotentialConstants(AstNode node) {
+    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    if (notPotentiallyConstants.isEmpty) return;
+
+    for (var notConst in notPotentiallyConstants) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_CONSTANT,
+        notConst,
+      );
+    }
+  }
+
+  /// Validates that all arguments in the [argumentList] are potentially
+  /// constant expressions.
+  void _reportNotPotentialConstantsArguments(ArgumentList argumentList) {
+    if (argumentList == null) {
+      return;
+    }
+    for (Expression argument in argumentList.arguments) {
+      _reportNotPotentialConstants(argument);
+    }
+  }
+
   /// Validate that the given expression is a compile time constant. Return the
   /// value of the compile time constant, or `null` if the expression is not a
   /// compile time constant.
@@ -448,26 +459,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Validates that the expressions of the initializers of the given constant
   /// [constructor] are all compile time constants.
   void _validateConstructorInitializers(ConstructorDeclaration constructor) {
-    List<ParameterElement> parameterElements =
-        constructor.parameters.parameterElements;
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
     for (ConstructorInitializer initializer in initializers) {
       if (initializer is AssertInitializer) {
-        _validateInitializerExpression(
-            parameterElements, initializer.condition);
+        _reportNotPotentialConstants(initializer.condition);
         Expression message = initializer.message;
         if (message != null) {
-          _validateInitializerExpression(parameterElements, message);
+          _reportNotPotentialConstants(message);
         }
       } else if (initializer is ConstructorFieldInitializer) {
-        _validateInitializerExpression(
-            parameterElements, initializer.expression);
+        _reportNotPotentialConstants(initializer.expression);
       } else if (initializer is RedirectingConstructorInvocation) {
-        _validateInitializerInvocationArguments(
-            parameterElements, initializer.argumentList);
+        _reportNotPotentialConstantsArguments(initializer.argumentList);
       } else if (initializer is SuperConstructorInvocation) {
-        _validateInitializerInvocationArguments(
-            parameterElements, initializer.argumentList);
+        _reportNotPotentialConstantsArguments(initializer.argumentList);
       }
     }
   }
@@ -539,107 +544,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
-  }
-
-  /// Validates that the given expression is a compile time constant.
-  ///
-  /// @param parameterElements the elements of parameters of constant
-  ///        constructor, they are considered as a valid potentially constant
-  ///        expressions
-  /// @param expression the expression to validate
-  void _validateInitializerExpression(
-      List<ParameterElement> parameterElements, Expression expression) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter subErrorReporter =
-        new ErrorReporter(errorListener, _errorReporter.source);
-    DartObjectImpl result = expression.accept(
-        new _ConstantVerifier_validateInitializerExpression(_typeSystem,
-            _evaluationEngine, subErrorReporter, this, parameterElements));
-    _reportErrors(errorListener.errors,
-        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
-    if (result != null) {
-      _reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
-    }
-  }
-
-  /// Validates that all of the arguments of a constructor initializer are
-  /// compile time constants.
-  ///
-  /// @param parameterElements the elements of parameters of constant
-  ///        constructor, they are considered as a valid potentially constant
-  ///        expressions
-  /// @param argumentList the argument list to validate
-  void _validateInitializerInvocationArguments(
-      List<ParameterElement> parameterElements, ArgumentList argumentList) {
-    if (argumentList == null) {
-      return;
-    }
-    for (Expression argument in argumentList.arguments) {
-      _validateInitializerExpression(parameterElements, argument);
-    }
-  }
-}
-
-class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
-  final TypeSystem typeSystem;
-  final ConstantVerifier verifier;
-
-  List<ParameterElement> parameterElements;
-
-  _ConstantVerifier_validateInitializerExpression(
-      this.typeSystem,
-      ConstantEvaluationEngine evaluationEngine,
-      ErrorReporter errorReporter,
-      this.verifier,
-      this.parameterElements)
-      : super(evaluationEngine, errorReporter);
-
-  @override
-  DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    int length = parameterElements.length;
-    for (int i = 0; i < length; i++) {
-      ParameterElement parameterElement = parameterElements[i];
-      if (identical(parameterElement, element) && parameterElement != null) {
-        DartType type = parameterElement.type;
-        if (type != null) {
-          if (type.isDynamic) {
-            return new DartObjectImpl(
-                verifier._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._boolType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(
-              type, verifier._typeProvider.doubleType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._intType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.intType, IntState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._numType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.numType, NumState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._stringType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.stringType, StringState.UNKNOWN_VALUE);
-          }
-          //
-          // We don't test for other types of objects (such as List, Map,
-          // Function or Type) because there are no operations allowed on such
-          // types other than '==' and '!=', which means that we don't need to
-          // know the type when there is no specific data about the state of
-          // such objects.
-          //
-        }
-        return new DartObjectImpl(
-            type is InterfaceType ? type : verifier._typeProvider.objectType,
-            GenericState.UNKNOWN_VALUE);
-      }
-    }
-    return super.visitSimpleIdentifier(node);
   }
 }
 
