@@ -2099,6 +2099,11 @@ class AstBuilder extends StackListener {
     push(ast.emptyStatement(semicolon));
   }
 
+  @override
+  void handleErrorToken(ErrorToken token) {
+    translateErrorToken(token, errorReporter.reportScannerError);
+  }
+
   void handleExpressionFunctionBody(Token arrowToken, Token semicolon) {
     assert(optional('=>', arrowToken) || optional('=', arrowToken));
     assert(optionalOrNull(';', semicolon));

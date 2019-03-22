@@ -3000,11 +3000,8 @@ class Foo {
   }
 
   void test_expectedInterpolationIdentifier() {
-    StringLiteral literal = parseExpression("'\$x\$'", errors: [
-      usingFastaParser
-          ? expectedError(ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 4, 1)
-          : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)
-    ]);
+    StringLiteral literal = parseExpression("'\$x\$'",
+        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -3012,11 +3009,8 @@ class Foo {
     // The scanner inserts an empty string token between the two $'s; we need to
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
-    StringLiteral literal = parseExpression("'\$\$foo'", errors: [
-      usingFastaParser
-          ? expectedError(ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 2, 1)
-          : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)
-    ]);
+    StringLiteral literal = parseExpression("'\$\$foo'",
+        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -3949,11 +3943,8 @@ class Wrong<T> {
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
-    StringLiteral literal = parseExpression("'\$1'", errors: [
-      usingFastaParser
-          ? expectedError(ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 2, 1)
-          : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)
-    ]);
+    StringLiteral literal = parseExpression("'\$1'",
+        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -4707,18 +4698,16 @@ class Wrong<T> {
     createParser('(a, {b: 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
-        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
+    listener
+        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
     createParser('(a, [b = 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
-        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
+    listener
+        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
@@ -5708,7 +5697,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -5727,7 +5716,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
       ]);
     } else {
       listener.assertErrors([

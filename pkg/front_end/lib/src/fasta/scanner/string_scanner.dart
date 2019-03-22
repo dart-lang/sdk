@@ -25,8 +25,7 @@ class StringScanner extends ArrayBasedScanner {
   /** The current offset in [string]. */
   int scanOffset = -1;
 
-  StringScanner(String string,
-      {bool includeComments: false, bool scanLazyAssignmentOperators: false})
+  StringScanner(String string, {bool includeComments: false})
       : string = ensureZeroTermination(string),
         super(includeComments);
 

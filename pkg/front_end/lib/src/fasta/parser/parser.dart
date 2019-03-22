@@ -258,11 +258,6 @@ import 'util.dart'
 /// doesn't matter how we got there, only that we've identified that it's
 /// easier if the parser reports as many errors it can, but informs the
 /// listener if the error is recoverable or not.
-///
-/// Currently, the parser is particularly lax when it comes to the order of
-/// modifiers such as `abstract`, `final`, `static`, etc. Historically, dart2js
-/// would handle such errors in later phases. We hope that these cases will go
-/// away as Fasta matures.
 class Parser {
   Listener listener;
 
@@ -6181,7 +6176,7 @@ class Parser {
   }
 
   void reportErrorToken(ErrorToken token) {
-    listener.handleRecoverableError(token.assertionMessage, token, token);
+    listener.handleErrorToken(token);
   }
 
   Token parseInvalidTopLevelDeclaration(Token token) {

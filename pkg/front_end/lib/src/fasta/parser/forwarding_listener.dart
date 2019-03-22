@@ -1027,6 +1027,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleErrorToken(ErrorToken token) {
+    listener?.handleErrorToken(token);
+  }
+
+  @override
   void handleExpressionFunctionBody(Token arrowToken, Token endToken) {
     listener?.handleExpressionFunctionBody(arrowToken, endToken);
   }
