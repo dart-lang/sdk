@@ -781,7 +781,8 @@ ${parser.usage}""");
     exitCode = 1;
     return;
   }
-  final now = new DateTime.now().toUtc().toIso8601String();
+  final nowDate = new DateTime.now().toUtc();
+  final now = nowDate.toIso8601String();
 
   // Deep clones a decoded json object.
   dynamic deepClone(dynamic object) {
@@ -862,6 +863,8 @@ ${parser.usage}""");
       preapproval["expected"] = test.expected;
       preapproval["preapprover"] = username;
       preapproval["preapproved_at"] = now;
+      preapproval["expires"] =
+          nowDate.add(const Duration(days: 30)).toIso8601String();
     }
   } else {
     // Import all the existing approval data for tests, removing tests that
