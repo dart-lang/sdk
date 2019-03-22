@@ -676,11 +676,16 @@ class ParserErrorCode extends ErrorCode {
           "Top-level declarations can't be declared to be static.",
           correction: "Try removing the keyword 'static'.");
 
+  static const ParserErrorCode SUPER_AS_EXPRESSION = _SUPER_AS_EXPRESSION;
+
   static const ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE =
       _SWITCH_HAS_CASE_AFTER_DEFAULT_CASE;
 
   static const ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES =
       _SWITCH_HAS_MULTIPLE_DEFAULT_CASES;
+
+  static const ParserErrorCode THIS_ACCESS_FROM_INITIALIZER =
+      _THIS_ACCESS_FROM_INITIALIZER;
 
   static const ParserErrorCode TOP_LEVEL_OPERATOR = _TOP_LEVEL_OPERATOR;
 

@@ -8554,7 +8554,7 @@ const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperAsExpression = const MessageCode(
     "SuperAsExpression",
-    analyzerCodes: <String>["SUPER_AS_EXPRESSION"],
+    index: 95,
     message: r"""Can't use 'super' as an expression.""",
     tip:
         r"""To delegate a constructor to a super constructor, put the super call as an initializer.""");
@@ -8880,7 +8880,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
     const Code<Message Function(String name)>(
         "ThisAccessInFieldInitializer", templateThisAccessInFieldInitializer,
-        analyzerCodes: <String>["THIS_ACCESS_FROM_INITIALIZER"]);
+        analyzerCodes: <String>["THIS_ACCESS_FROM_FIELD_INITIALIZER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThisAccessInFieldInitializer(String name) {
@@ -8891,6 +8891,15 @@ Message _withArgumentsThisAccessInFieldInitializer(String name) {
           """Can't access 'this' in a field initializer to read '${name}'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeThisAccessInInitializer = messageThisAccessInInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageThisAccessInInitializer = const MessageCode(
+    "ThisAccessInInitializer",
+    index: 96,
+    message: r"""Can't access 'this' in an initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeThisAsIdentifier = messageThisAsIdentifier;

@@ -371,6 +371,7 @@ SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
 ThisAccessInFieldInitializer/example: Fail
+ThisAccessInInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail

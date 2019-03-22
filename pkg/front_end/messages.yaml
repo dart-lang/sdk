@@ -2510,9 +2510,14 @@ SdkSpecificationNotFound:
   template: "SDK libraries specification not found: #uri."
   tip: "Normally, the specification is a file named 'libraries.json' in the Dart SDK install location."
 
+ThisAccessInInitializer:
+  index: 96
+  template: "Can't access 'this' in an initializer."
+  analyzerCode: ParserErrorCode.THIS_ACCESS_FROM_INITIALIZER
+
 ThisAccessInFieldInitializer:
   template: "Can't access 'this' in a field initializer to read '#name'."
-  analyzerCode: THIS_ACCESS_FROM_INITIALIZER
+  analyzerCode: THIS_ACCESS_FROM_FIELD_INITIALIZER
 
 ThisOrSuperAccessInFieldInitializer:
   template: "Can't access '#string' in a field initializer."
@@ -2527,9 +2532,10 @@ SuperAsIdentifier:
   analyzerCode: SUPER_AS_EXPRESSION
 
 SuperAsExpression:
+  index: 95
   template: "Can't use 'super' as an expression."
   tip: "To delegate a constructor to a super constructor, put the super call as an initializer."
-  analyzerCode: SUPER_AS_EXPRESSION
+  analyzerCode: ParserErrorCode.SUPER_AS_EXPRESSION
 
 SwitchExpressionNotAssignable:
   template: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."

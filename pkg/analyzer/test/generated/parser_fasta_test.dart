@@ -803,16 +803,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
-  void test_await_missing_async_issue36048() {
-    parseCompilationUnit('''
-main() { // missing async
-  await foo();
-}
-''', errors: [
-      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 28, 5)
-    ]);
-  }
-
   void test_await_missing_async2_issue36048() {
     parseCompilationUnit('''
 main() { // missing async
@@ -840,6 +830,33 @@ main() { // missing async
 }
 ''', errors: [
       expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 29, 5)
+    ]);
+  }
+
+  void test_await_missing_async_issue36048() {
+    parseCompilationUnit('''
+main() { // missing async
+  await foo();
+}
+''', errors: [
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 28, 5)
+    ]);
+  }
+
+  void test_constructor_super_asExpression() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): super().foo() {} }',
+        errors: [
+          expectedError(ParserErrorCode.SUPER_AS_EXPRESSION, 25, 5),
+        ]);
+  }
+
+  void test_constructor_this_invalid() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): this().foo(); }', errors: [
+      expectedError(ParserErrorCode.THIS_ACCESS_FROM_INITIALIZER, 25, 4),
     ]);
   }
 

@@ -102,6 +102,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _MISSING_CATCH_OR_FINALLY,
   _EXPERIMENT_NOT_ENABLED,
   _EXPECTED_ELSE_OR_COMMA,
+  _SUPER_AS_EXPRESSION,
+  _THIS_ACCESS_FROM_INITIALIZER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -515,6 +517,11 @@ const ParserErrorCode _STATIC_OPERATOR = const ParserErrorCode(
     'STATIC_OPERATOR', r"Operators can't be static.",
     correction: "Try removing the keyword 'static'.");
 
+const ParserErrorCode _SUPER_AS_EXPRESSION = const ParserErrorCode(
+    'SUPER_AS_EXPRESSION', r"Can't use 'super' as an expression.",
+    correction:
+        "To delegate a constructor to a super constructor, put the super call as an initializer.");
+
 const ParserErrorCode _SWITCH_HAS_CASE_AFTER_DEFAULT_CASE =
     const ParserErrorCode('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE',
         r"The default case should be the last case in a switch statement.",
@@ -525,6 +532,9 @@ const ParserErrorCode _SWITCH_HAS_MULTIPLE_DEFAULT_CASES =
     const ParserErrorCode('SWITCH_HAS_MULTIPLE_DEFAULT_CASES',
         r"The 'default' case can only be declared once.",
         correction: "Try removing all but one default case.");
+
+const ParserErrorCode _THIS_ACCESS_FROM_INITIALIZER = const ParserErrorCode(
+    'THIS_ACCESS_FROM_INITIALIZER', r"Can't access 'this' in an initializer.");
 
 const ParserErrorCode _TOP_LEVEL_OPERATOR = const ParserErrorCode(
     'TOP_LEVEL_OPERATOR', r"Operators must be declared within a class.",

@@ -32,6 +32,8 @@ import 'package:front_end/src/fasta/messages.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageStaticConstructor,
+        messageSuperAsExpression,
+        messageThisAccessInInitializer,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
@@ -1123,8 +1125,25 @@ class AstBuilder extends StackListener {
               initializerObject.methodName,
               initializerObject.argumentList));
         } else {
-          // Invalid initializer
-          // TODO(danrubel): Capture this in the AST.
+          // Recovery: Invalid initializer
+          if (target is FunctionExpressionInvocation) {
+            var targetFunct = target.function;
+            if (targetFunct is SuperExpression) {
+              initializers.add(ast.superConstructorInvocation(
+                  targetFunct.superKeyword, null, null, target.argumentList));
+              // TODO(danrubel): Consider generating this error in the parser
+              // This error is also reported in the body builder
+              handleRecoverableError(messageSuperAsExpression,
+                  targetFunct.superKeyword, targetFunct.superKeyword);
+            } else if (targetFunct is ThisExpression) {
+              initializers.add(ast.redirectingConstructorInvocation(
+                  targetFunct.thisKeyword, null, null, target.argumentList));
+              // TODO(danrubel): Consider generating this error in the parser
+              // This error is also reported in the body builder
+              handleRecoverableError(messageThisAccessInInitializer,
+                  targetFunct.thisKeyword, targetFunct.thisKeyword);
+            }
+          }
         }
       } else if (initializerObject is AssignmentExpression) {
         Token thisKeyword;
