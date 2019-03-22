@@ -254,6 +254,10 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
     if ($f != null) {
+      // Getting the member succeeded, so update the originalTarget.
+      // (we're now trying `call()` on `f`, so we want to call its nSM rather
+      // than the original target's nSM).
+      originalTarget = f;
       $f = ${bindCall(f, _canonicalMember(f, 'call'))};
       $ftype = null;
     }
