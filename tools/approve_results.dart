@@ -92,7 +92,7 @@ class Test implements Comparable {
   String get key => "$configuration:$name";
   String get expected => _sharedData["expected"];
   String get result => (resultData ?? const {})["result"];
-  bool get matches => resultData["matches"];
+  bool get matches => _sharedData["matches"];
   String get baselineResult => (baselineData ?? const {})["result"];
   String get approvedResult => (approvedResultData ?? const {})["result"];
   bool get isDifferent => result != null && result != baselineResult;
