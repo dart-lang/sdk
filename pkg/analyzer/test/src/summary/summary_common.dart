@@ -805,6 +805,19 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return findVariable(variableName, failIfAbsent: true);
   }
 
+  test_constExpr_binary_bitShiftRightLogical() {
+    experimentStatus = ExperimentStatus(constant_update_2018: true);
+    UnlinkedVariable variable = serializeVariableText('const v = 1 >>> 2;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '1 >>> 2', operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitShiftRightLogical
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
   test_apiSignature() {
     List<int> signature1;
     List<int> signature2;
@@ -11632,7 +11645,8 @@ final v = $expr;
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
     var reader = new CharSequenceReader(sourceText);
     var stringSource = new StringSource(sourceText, null);
-    var scanner = new Scanner(stringSource, reader, errorListener);
+    var scanner = new Scanner(stringSource, reader, errorListener)
+      ..enableGtGtGt = true;
     var startToken = scanner.tokenize();
     var parser = new Parser(stringSource, errorListener)
       ..enableNonNullable = experimentStatus.non_nullable;

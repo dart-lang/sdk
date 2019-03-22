@@ -3996,6 +3996,10 @@ enum UnlinkedExprOperation {
   /// [UnlinkedExpr.strings], and `Type` is obtained from
   /// [UnlinkedExpr.references].
   forEachPartsWithTypedDeclaration,
+
+  /// Pop the top 2 values from the stack, compute `v1 >>> v2`, and push the
+  /// result back onto the stack.
+  bitShiftRightLogical,
 }
 
 /// Unlinked summary information about an import declaration.

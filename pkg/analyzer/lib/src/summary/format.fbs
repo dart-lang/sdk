@@ -1060,7 +1060,11 @@ enum UnlinkedExprOperation : byte {
   /// `Type name in expression`, where `name` is obtained from
   /// [UnlinkedExpr.strings], and `Type` is obtained from
   /// [UnlinkedExpr.references].
-  forEachPartsWithTypedDeclaration
+  forEachPartsWithTypedDeclaration,
+
+  /// Pop the top 2 values from the stack, compute `v1 >>> v2`, and push the
+  /// result back onto the stack.
+  bitShiftRightLogical
 }
 
 /// Enum used to indicate the kind of a parameter.

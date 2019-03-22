@@ -517,6 +517,8 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedExprOperation.bitOr);
     } else if (operator == TokenType.GT_GT) {
       operations.add(UnlinkedExprOperation.bitShiftRight);
+    } else if (operator == TokenType.GT_GT_GT) {
+      operations.add(UnlinkedExprOperation.bitShiftRightLogical);
     } else if (operator == TokenType.LT_LT) {
       operations.add(UnlinkedExprOperation.bitShiftLeft);
     } else if (operator == TokenType.PLUS) {

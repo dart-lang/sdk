@@ -24,6 +24,7 @@ import 'test_strategies.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExprBuilderTest);
+    defineReflectiveTests(ExprBuilderWithConstantUpdateTest);
     defineReflectiveTests(TokensToStringTest);
   });
 }
@@ -764,6 +765,18 @@ mixin ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
   TestSummaryResynthesizer encodeSource(String text) {
     var source = addTestSource(text);
     return encodeLibrary(source);
+  }
+}
+
+@reflectiveTest
+class ExprBuilderWithConstantUpdateTest extends ResynthesizeTestStrategyTwoPhase
+    with ExprBuilderTestHelpers {
+  @override
+  ExperimentStatus get experimentStatus =>
+      new ExperimentStatus.fromStrings([EnableString.constant_update_2018]);
+
+  void test_bitShiftRightLogical() {
+    checkSimpleExpression('0 >>> 1');
   }
 }
 

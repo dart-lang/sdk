@@ -146,6 +146,9 @@ class ExprBuilder {
         case UnlinkedExprOperation.bitShiftRight:
           _pushBinary(TokenType.GT_GT);
           break;
+        case UnlinkedExprOperation.bitShiftRightLogical:
+          _pushBinary(TokenType.GT_GT_GT);
+          break;
         case UnlinkedExprOperation.add:
           _pushBinary(TokenType.PLUS);
           break;
