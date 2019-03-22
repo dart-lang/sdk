@@ -93,6 +93,12 @@ abstract class DartType {
   bool get isDartCoreNull;
 
   /**
+   * Return `true` if this type represents the type 'String' defined in the
+   * dart:core library.
+   */
+  bool get isDartCoreString;
+
+  /**
    * Return `true` if this type represents the type 'dynamic'.
    */
   bool get isDynamic;

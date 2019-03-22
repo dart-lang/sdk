@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -25,6 +28,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;
+
+  /// A cached flag indicating whether references to the constant-update-2018
+  /// features need to be checked. Use [checkConstantUpdate2018] to access this
+  /// field.
+  bool _checkConstantUpdate2018;
 
   /// A cached flag indicating whether references to Future and Stream need to
   /// be checked. Use [checkFutureAndStream] to access this field.
@@ -64,6 +72,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   VersionRange get before_2_2_2 =>
       new VersionRange(max: Version.parse('2.2.2'), includeMax: false);
 
+  /// Return `true` if references to the constant-update-2018 features need to
+  /// be checked.
+  bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
+      !before_2_2_2.intersect(_versionConstraint).isEmpty;
+
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
       !before_2_1_0.intersect(_versionConstraint).isEmpty;
@@ -76,6 +89,51 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// spread collections) need to be checked.
   bool get checkUiAsCode =>
       _checkUiAsCode ??= !before_2_2_2.intersect(_versionConstraint).isEmpty;
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    if (checkConstantUpdate2018 &&
+        (node as AsExpressionImpl).inConstantContext) {
+      _errorReporter.reportErrorForNode(
+          HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
+    }
+    super.visitAsExpression(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    if (checkConstantUpdate2018) {
+      TokenType operatorType = node.operator.type;
+      if (operatorType == TokenType.GT_GT_GT) {
+        _errorReporter.reportErrorForToken(
+            HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
+      } else if (operatorType == TokenType.AMPERSAND ||
+          operatorType == TokenType.BAR ||
+          operatorType == TokenType.CARET) {
+        if (node.leftOperand.staticType.isDartCoreBool) {
+          _errorReporter.reportErrorForToken(HintCode.SDK_VERSION_BOOL_OPERATOR,
+              node.operator, [node.operator.lexeme]);
+        }
+      } else if (operatorType == TokenType.EQ_EQ &&
+          (node as BinaryExpressionImpl).inConstantContext) {
+        bool primitive(Expression node) {
+          DartType type = node.staticType;
+          return type.isDartCoreBool ||
+              type.isDartCoreDouble ||
+              type.isDartCoreInt ||
+              type.isDartCoreNull ||
+              type.isDartCoreString;
+        }
+
+        if (!primitive(node.leftOperand) || !primitive(node.rightOperand)) {
+          _errorReporter.reportErrorForToken(
+              HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
+              node.operator);
+        }
+      }
+    }
+    super.visitBinaryExpression(node);
+  }
 
   @override
   void visitForElement(ForElement node) {
@@ -98,6 +156,25 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     _inUiAsCode = true;
     super.visitIfElement(node);
     _inUiAsCode = wasInUiAsCode;
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    if (checkConstantUpdate2018 &&
+        (node as IsExpressionImpl).inConstantContext) {
+      _errorReporter.reportErrorForNode(
+          HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, node);
+    }
+    super.visitIsExpression(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (checkConstantUpdate2018 && node.isOperator && node.name.name == '>>>') {
+      _errorReporter.reportErrorForNode(
+          HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
+    }
+    super.visitMethodDeclaration(node);
   }
 
   @override

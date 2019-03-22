@@ -67,8 +67,16 @@ import 'non_constant_spread_expression_from_deferred_library_test.dart'
     as non_constant_spread_expression_from_deferred_library;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
+import 'sdk_version_as_expression_in_const_context_test.dart'
+    as sdk_version_as_expression_in_const_context;
 import 'sdk_version_async_exported_from_core_test.dart'
     as sdk_version_async_exported_from_core;
+import 'sdk_version_bool_operator_test.dart' as sdk_version_bool_operator;
+import 'sdk_version_eq_eq_operator_test.dart' as sdk_version_eq_eq_operator;
+import 'sdk_version_gt_gt_gt_operator_test.dart'
+    as sdk_version_gt_gt_gt_operator;
+import 'sdk_version_is_expression_in_const_context_test.dart'
+    as sdk_version_is_expression_in_const_context;
 import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'set_element_type_not_assignable_test.dart'
@@ -152,7 +160,12 @@ main() {
     non_constant_spread_expression_from_deferred_library.main();
     not_iterable_spread.main();
     not_map_spread.main();
+    sdk_version_as_expression_in_const_context.main();
     sdk_version_async_exported_from_core.main();
+    sdk_version_bool_operator.main();
+    sdk_version_eq_eq_operator.main();
+    sdk_version_gt_gt_gt_operator.main();
+    sdk_version_is_expression_in_const_context.main();
     sdk_version_set_literal.main();
     sdk_version_ui_as_code.main();
     set_element_type_not_assignable.main();

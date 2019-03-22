@@ -550,6 +550,61 @@ class HintCode extends ErrorCode {
           "Try either importing 'dart:async' or updating the SDK constraints.");
 
   /**
+   * An as expression being used in a const context is expected to run on
+   * versions of the SDK that did not support them.
+   */
+  static const HintCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
+      const HintCode(
+          'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
+          "The use of an as expression in a constant expression wasn't "
+          "supported until version 2.2.2, but this code is required to be able "
+          "to run on earlier versions.",
+          correction: "Try updating the SDK constraints.");
+
+  /**
+   * The operator '&', '|' or '^' is being used on boolean values in code that
+   * is expected to run on versions of the SDK that did not support it.
+   */
+  static const HintCode SDK_VERSION_BOOL_OPERATOR = const HintCode(
+      'SDK_VERSION_BOOL_OPERATOR',
+      "Using the operator '{0}' for 'bool's was not supported until version "
+      "2.2.2, but this code is required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
+
+  /**
+   * The operator '==' is being used on non-primitive values in code that
+   * is expected to run on versions of the SDK that did not support it.
+   */
+  static const HintCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT = const HintCode(
+      'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
+      "Using the operator '==' for non-primitive types was not supported until "
+      "version 2.2.2, but this code is required to be able to run on earlier "
+      "versions.",
+      correction: "Try updating the SDK constraints.");
+
+  /**
+   * The operator '>>>' is being used in code that is expected to run on
+   * versions of the SDK that did not support it.
+   */
+  static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = const HintCode(
+      'SDK_VERSION_GT_GT_GT_OPERATOR',
+      "The operator '>>>' was not supported until version 2.2.2, but this code "
+      "is required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
+
+  /**
+   * An is expression being used in a const context is expected to run on
+   * versions of the SDK that did not support them.
+   */
+  static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT =
+      const HintCode(
+          'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
+          "The use of an is expression in a constant expression wasn't "
+          "supported until version 2.2.2, but this code is required to be able "
+          "to run on earlier versions.",
+          correction: "Try updating the SDK constraints.");
+
+  /**
    * A set literal is being used in code that is expected to run on versions of
    * the SDK that did not support them.
    */

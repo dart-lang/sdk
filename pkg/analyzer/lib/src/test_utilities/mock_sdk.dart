@@ -143,9 +143,12 @@ external bool identical(Object a, Object b);
 
 void print(Object object) {}
 
-class bool extends Object {
+abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});
+  bool operator &(bool other);
+  bool operator |(bool other);
+  bool operator ^(bool other);
 }
 
 abstract class Comparable<T> {
