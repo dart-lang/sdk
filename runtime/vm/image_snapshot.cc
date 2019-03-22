@@ -336,7 +336,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
     // Write object header with the mark and read-only bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
-    marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
@@ -487,7 +486,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
       // Write Instructions with the mark and read-only bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
       marked_tags = RawObject::OldBit::update(true, marked_tags);
       marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
       marked_tags =
@@ -737,7 +735,6 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     // Write Instructions with the mark and read-only bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
-    marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);

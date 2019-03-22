@@ -44,7 +44,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
     Heap* heap = isolate()->heap();
     for (RawObject** current = first; current <= last; ++current) {
       if ((*current)->IsHeapObject() &&
-          !(*current)->IsReadOnly() &&
+          !(*current)->InVMIsolateHeap() &&
           heap->GetObjectId(*current) == 0) {  // not visited yet
         if (!include_vm_objects_ && !IsUserClass((*current)->GetClassId())) {
           continue;
@@ -513,7 +513,7 @@ class WritePointerVisitor : public ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
       RawObject* object = *current;
-      if (!object->IsHeapObject() || object->IsReadOnly()) {
+      if (!object->IsHeapObject() || object->InVMIsolateHeap()) {
         // Ignore smis and objects in the VM isolate for now.
         // TODO(koda): To track which field each pointer corresponds to,
         // we'll need to encode which fields were omitted here.

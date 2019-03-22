@@ -445,6 +445,8 @@ class PageSpace {
     enable_concurrent_mark_ = enable_concurrent_mark;
   }
 
+  bool IsObjectFromImagePages(RawObject* object);
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {

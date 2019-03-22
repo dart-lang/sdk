@@ -1506,7 +1506,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   for (intptr_t i = 0; i < types.length(); i++) {
     const AbstractType& type = types.At(i);
 
-    if (type.IsReadOnly()) {
+    if (type.InVMIsolateHeap()) {
       // The only important types in the vm isolate are "dynamic"/"void", which
       // will get their optimized top-type testing stub installed at creation.
       continue;

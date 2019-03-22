@@ -1025,7 +1025,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Now check if it is an object from the VM isolate. These objects are shared
   // by all isolates.
-  if (rawobj->IsReadOnly() && HandleVMIsolateObject(rawobj)) {
+  if (rawobj->InVMIsolateHeap() && HandleVMIsolateObject(rawobj)) {
     return true;
   }
 

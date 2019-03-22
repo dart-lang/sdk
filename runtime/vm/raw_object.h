@@ -121,10 +121,10 @@ class RawObject {
     kOldBit = 3,                  // Incremental barrier source.
     kOldAndNotRememberedBit = 4,  // Generational barrier source.
     kCanonicalBit = 5,
-    kReadOnlyBit = 6,
-    kReservedBit = 7,
+    kReservedTagPos = 6,
+    kReservedTagSize = 2,
 
-    kSizeTagPos = 8,
+    kSizeTagPos = kReservedTagPos + kReservedTagSize, // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
@@ -192,14 +192,14 @@ class RawObject {
 
   class CanonicalBit : public BitField<uint32_t, bool, kCanonicalBit, 1> {};
 
-  class ReservedBit : public BitField<uint32_t, bool, kReservedBit, 1> {};
-
-  class ReadOnlyBit : public BitField<uint32_t, bool, kReadOnlyBit, 1> {};
-
   class OldBit : public BitField<uint32_t, bool, kOldBit, 1> {};
 
   class OldAndNotRememberedBit
       : public BitField<uint32_t, bool, kOldAndNotRememberedBit, 1> {};
+
+  class ReservedBits
+      : public BitField<uint32_t, intptr_t, kReservedTagPos, kReservedTagSize> {
+  };
 
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
@@ -283,13 +283,7 @@ class RawObject {
   void SetCanonical() { UpdateTagBit<CanonicalBit>(true); }
   void ClearCanonical() { UpdateTagBit<CanonicalBit>(false); }
 
-  // Objects in the VM-isolate's heap or on an image page from an AppJIT or
-  // AppAOT snapshot are permanently read-only. They may never be modified
-  // again. In particular, they cannot be marked.
-  bool IsReadOnly() const { return ReadOnlyBit::decode(ptr()->tags_); }
-  void SetReadOnlyUnsynchronized() {
-    ptr()->tags_ = ReadOnlyBit::update(true, ptr()->tags_);
-  }
+  bool InVMIsolateHeap() const;
 
   // Support for GC remembered bit.
   bool IsRemembered() const {
@@ -452,8 +446,6 @@ class RawObject {
   static uword ToAddr(const RawObject* raw_obj) {
     return reinterpret_cast<uword>(raw_obj->ptr());
   }
-
-  static bool IsReadOnly(intptr_t value) { return ReadOnlyBit::decode(value); }
 
   static bool IsCanonical(intptr_t value) {
     return CanonicalBit::decode(value);
