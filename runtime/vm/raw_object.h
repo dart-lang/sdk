@@ -122,7 +122,7 @@ class RawObject {
     kOldAndNotRememberedBit = 4,  // Generational barrier source.
     kCanonicalBit = 5,
     kReadOnlyBit = 6,
-    kGraphMarkedBit = 7,  // ObjectGraph needs to mark through new space.
+    kReservedBit = 7,
 
     kSizeTagPos = 8,
     kSizeTagSize = 8,
@@ -192,7 +192,7 @@ class RawObject {
 
   class CanonicalBit : public BitField<uint32_t, bool, kCanonicalBit, 1> {};
 
-  class GraphMarkedBit : public BitField<uint32_t, bool, kGraphMarkedBit, 1> {};
+  class ReservedBit : public BitField<uint32_t, bool, kReservedBit, 1> {};
 
   class ReadOnlyBit : public BitField<uint32_t, bool, kReadOnlyBit, 1> {};
 
@@ -289,23 +289,6 @@ class RawObject {
   bool IsReadOnly() const { return ReadOnlyBit::decode(ptr()->tags_); }
   void SetReadOnlyUnsynchronized() {
     ptr()->tags_ = ReadOnlyBit::update(true, ptr()->tags_);
-  }
-
-  // Support for ObjectGraph marking bit, used by various tools provided by the
-  // VM-service.
-  bool IsGraphMarked() const {
-    if (IsReadOnly()) return true;
-    return GraphMarkedBit::decode(ptr()->tags_);
-  }
-  void SetGraphMarked() {
-    ASSERT(!IsReadOnly());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = GraphMarkedBit::update(true, tags);
-  }
-  void ClearGraphMarked() {
-    ASSERT(!IsReadOnly());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = GraphMarkedBit::update(false, tags);
   }
 
   // Support for GC remembered bit.
