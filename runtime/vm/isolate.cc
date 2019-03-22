@@ -66,20 +66,6 @@ DECLARE_FLAG(bool, reload_every_back_off);
 DECLARE_FLAG(bool, trace_reload);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(PRODUCT)
-static void CheckedModeHandler(bool value) {
-  FLAG_enable_asserts = value;
-}
-
-// --enable-checked-mode and --checked both enable checked mode which is
-// equivalent to setting --enable-asserts and --enable-type-checks.
-DEFINE_FLAG_HANDLER(CheckedModeHandler,
-                    enable_checked_mode,
-                    "Enable checked mode.");
-
-DEFINE_FLAG_HANDLER(CheckedModeHandler, checked, "Enable checked mode.");
-#endif  // !defined(PRODUCT)
-
 static void DeterministicModeHandler(bool value) {
   if (value) {
     FLAG_background_compilation = false;  // Timing dependent.

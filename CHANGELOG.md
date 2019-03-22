@@ -8,6 +8,7 @@
 
 ### Dart VM
 
+* Support for deprecated flags '-c' and '--checked' has been removed
 * RegExp patterns can now use lookbehind assertions.
 * RegExp patterns can now use named capture groups and named backreferences.
   Currently, named group matches can only be retrieved in Dart either by

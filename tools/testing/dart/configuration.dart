@@ -234,7 +234,6 @@ class TestConfiguration {
     }
 
     var args = ['--test-mode'];
-    if (isChecked) args.add('--enable-checked-mode');
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");

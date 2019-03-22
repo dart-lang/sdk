@@ -351,8 +351,6 @@ bool Options::ProcessAbiVersionOption(const char* arg,
   return true;
 }
 
-static bool checked_set = false;
-
 int Options::ParseArguments(int argc,
                             char** argv,
                             bool vm_run_app_snapshot,
@@ -376,14 +374,7 @@ int Options::ParseArguments(int argc,
       i++;
     } else {
       // Check if this flag is a potentially valid VM flag.
-      const char* kChecked = "-c";
-      const char* kCheckedFull = "--checked";
-      if ((strncmp(argv[i], kChecked, strlen(kChecked)) == 0) ||
-          (strncmp(argv[i], kCheckedFull, strlen(kCheckedFull)) == 0)) {
-        checked_set = true;
-        i++;
-        continue;  // '-c' is not a VM flag so don't add to vm options.
-      } else if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+      if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
         break;
       }
       // The following two flags are processed by both the embedder and
@@ -484,9 +475,6 @@ int Options::ParseArguments(int argc,
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
     return -1;
-  }
-  if (checked_set) {
-    vm_options->AddArgument("--enable-asserts");
   }
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.
