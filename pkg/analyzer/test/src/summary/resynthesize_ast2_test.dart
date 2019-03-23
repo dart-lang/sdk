@@ -146,15 +146,15 @@ T max<T extends num>(T a, T b) => null;
     var source = addTestSource(text);
     var unit = parseText(text, experimentStatus: experimentStatus);
 
-    // TODO(scheglov) add other libraries
     var libraryUnitMap = {
-      source: {source: unit},
+      source: _unitsOfLibrary(source, unit),
     };
 
     for (var otherLibrarySource in otherLibrarySources) {
       var text = getFile(otherLibrarySource.fullName).readAsStringSync();
       var unit = parseText(text, experimentStatus: experimentStatus);
-      libraryUnitMap[otherLibrarySource] = {otherLibrarySource: unit};
+      var unitMap = _unitsOfLibrary(otherLibrarySource, unit);
+      libraryUnitMap[otherLibrarySource] = unitMap;
     }
 
     var linkResult = link(
@@ -219,12 +219,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_closure_generic() async {
     await super.test_closure_generic();
-  }
-
-  @override
-  @failingTest
-  test_closure_in_variable_declaration_in_part() async {
-    await super.test_closure_in_variable_declaration_in_part();
   }
 
   @override
@@ -444,12 +438,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_const_reference_type_functionType() async {
     await super.test_const_reference_type_functionType();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_type_imported() async {
-    await super.test_const_reference_type_imported();
   }
 
   @override
@@ -823,12 +811,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_function_entry_point_in_export_hidden() async {
     await super.test_function_entry_point_in_export_hidden();
-  }
-
-  @override
-  @failingTest
-  test_function_entry_point_in_part() async {
-    await super.test_function_entry_point_in_part();
   }
 
   @override
@@ -1226,12 +1208,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_nameConflict_exportedAndParted() async {
-    await super.test_nameConflict_exportedAndParted();
-  }
-
-  @override
-  @failingTest
   test_nameConflict_importWithRelativeUri_exportWithAbsolute() async {
     // TODO(scheglov) unexpectedly passes on Windows
     fail('unexpectedly passes on Windows');
@@ -1266,18 +1242,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_parameter_return_type_void() async {
     await super.test_parameter_return_type_void();
-  }
-
-  @override
-  @failingTest
-  test_parts() async {
-    await super.test_parts();
-  }
-
-  @override
-  @failingTest
-  test_parts_invalidUri() async {
-    await super.test_parts_invalidUri();
   }
 
   @override
@@ -1350,84 +1314,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_invalid_typeParameter_asPrefix() async {
     await super.test_type_invalid_typeParameter_asPrefix();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_lib_to_part() async {
-    await super.test_type_reference_lib_to_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_part_to_lib() async {
-    await super.test_type_reference_part_to_lib();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_part_to_other_part() async {
-    await super.test_type_reference_part_to_other_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_part_to_part() async {
-    await super.test_type_reference_part_to_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import() async {
-    await super.test_type_reference_to_import();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export() async {
-    await super.test_type_reference_to_import_export();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export_export() async {
-    await super.test_type_reference_to_import_export_export();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_export_in_subdirs();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_in_subdirs();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_part() async {
-    await super.test_type_reference_to_import_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_part2() async {
-    await super.test_type_reference_to_import_part2();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_part_in_subdir() async {
-    await super.test_type_reference_to_import_part_in_subdir();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_relative() async {
-    await super.test_type_reference_to_import_relative();
   }
 
   @override
@@ -1537,30 +1423,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_unresolved_part() async {
-    await super.test_unresolved_part();
-  }
-
-  @override
-  @failingTest
-  test_variable_getterInLib_setterInPart() async {
-    await super.test_variable_getterInLib_setterInPart();
-  }
-
-  @override
-  @failingTest
-  test_variable_getterInPart_setterInLib() async {
-    await super.test_variable_getterInPart_setterInLib();
-  }
-
-  @override
-  @failingTest
-  test_variable_getterInPart_setterInPart() async {
-    await super.test_variable_getterInPart_setterInPart();
-  }
-
-  @override
-  @failingTest
   test_variable_propagatedType_final_dep_inLib() async {
     await super.test_variable_propagatedType_final_dep_inLib();
   }
@@ -1569,12 +1431,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_variable_propagatedType_final_dep_inPart() async {
     await super.test_variable_propagatedType_final_dep_inPart();
-  }
-
-  @override
-  @failingTest
-  test_variable_setterInPart_getterInPart() async {
-    await super.test_variable_setterInPart_getterInPart();
   }
 
   LinkResult _link(Map<Source, String> codeMap) {
@@ -1592,6 +1448,35 @@ T max<T extends num>(T a, T b) => null;
       [],
       libraryUnitMap,
     );
+  }
+
+  Map<Source, CompilationUnit> _unitsOfLibrary(
+      Source definingSource, CompilationUnit definingUnit) {
+    var result = <Source, CompilationUnit>{
+      definingSource: definingUnit,
+    };
+    for (var directive in definingUnit.directives) {
+      if (directive is PartDirective) {
+        var relativeUriStr = directive.uri.stringValue;
+
+        var partSource = sourceFactory.resolveUri(
+          definingSource,
+          relativeUriStr,
+        );
+
+        String text;
+        try {
+          var partFile = resourceProvider.getFile(partSource.fullName);
+          text = partFile.readAsStringSync();
+        } catch (_) {
+          text = '';
+        }
+
+        var partUnit = parseText(text, experimentStatus: experimentStatus);
+        result[partSource] = partUnit;
+      }
+    }
+    return result;
   }
 }
 

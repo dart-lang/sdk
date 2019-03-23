@@ -295,6 +295,8 @@ class ReferenceResolver {
       _methodDeclaration(node);
     } else if (node.kind == LinkedNodeKind.partDirective) {
       _partDirective(node);
+    } else if (node.kind == LinkedNodeKind.partOfDirective) {
+      _partOfDirective(node);
     } else if (node.kind == LinkedNodeKind.simpleFormalParameter) {
       _simpleFormalParameter(node);
     } else if (node.kind == LinkedNodeKind.topLevelVariableDeclaration) {
@@ -325,6 +327,8 @@ class ReferenceResolver {
   }
 
   void _partDirective(LinkedNodeBuilder node) {}
+
+  void _partOfDirective(LinkedNodeBuilder node) {}
 
   void _simpleFormalParameter(LinkedNodeBuilder node) {
     var typeNode = node.simpleFormalParameter_type;

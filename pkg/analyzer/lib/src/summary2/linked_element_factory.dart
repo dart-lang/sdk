@@ -125,6 +125,11 @@ class _ElementRequest {
       return _constructor(class_, reference);
     }
 
+    if (parentName == '@enum') {
+      var unit = elementOfReference(parent2);
+      return _enum(unit, reference);
+    }
+
     if (parentName == '@function') {
       CompilationUnitElementImpl enclosing = elementOfReference(parent2);
       return _function(enclosing, reference);
@@ -255,6 +260,18 @@ class _ElementRequest {
     return reference.element = libraryElement;
   }
 
+  EnumElementImpl _enum(CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node == null) {
+      _indexUnitElementDeclarations(unit);
+      assert(reference.node != 0, '$reference');
+    }
+    return reference.element = EnumElementImpl.forLinkedNode(
+      unit,
+      reference,
+      reference.node,
+    );
+  }
+
   Element _function(CompilationUnitElementImpl enclosing, Reference reference) {
     enclosing.functions;
     assert(reference.element != null);
@@ -308,7 +325,7 @@ class _ElementRequest {
     LinkedNode unitNode,
   ) {
     var classRef = unitRef.getChild('@class');
-    var enumRef = unitRef.getChild('@class');
+    var enumRef = unitRef.getChild('@enum');
     var functionRef = unitRef.getChild('@function');
     var typeAliasRef = unitRef.getChild('@typeAlias');
     var variableRef = unitRef.getChild('@variable');
