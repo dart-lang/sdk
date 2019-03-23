@@ -5794,13 +5794,32 @@ class CodeGenerator extends Object
   ///     })(), 10]
   List<JS.Expression> _visitCollectionElementList(
       Iterable<CollectionElement> nodes, DartType elementType) {
+    /// Returns [body] wrapped in a function and a call.
+    ///
+    /// Alternatively if [body] contains a yield, will wrap body in a gerarator
+    /// fucntion, call it, and yield the result of [yieldType].
+    /// TODO(nshahan) Move to share between compilers. Need to work out a common
+    /// emitLibraryName().
+    JS.Expression detectYieldAndCall(
+        JS.Statement body, InterfaceType yieldType) {
+      var finder = YieldFinder();
+      body.accept(finder);
+      if (finder.hasYield) {
+        var genFn = JS.Fun([], body, isGenerator: true);
+        var asyncLibrary = emitLibraryName(types.futureType.element.library);
+        return JS.Yield(js.call(
+            '#.async(#, #)', [asyncLibrary, _emitType(yieldType), genFn]));
+      }
+      return JS.Call(JS.ArrowFun([], body), []);
+    }
+
     var expressions = <JS.Expression>[];
     for (var node in nodes) {
       if (_isUiAsCodeElement(node)) {
         // Create a temporary variable to build a new collection from.
         var previousCollectionVariable = _currentCollectionVariable;
-        var temporaryIdentifier =
-            _createTemporary('items', _jsArray.type.instantiate([elementType]));
+        var arrayType = _jsArray.type.instantiate([elementType]);
+        var temporaryIdentifier = _createTemporary('items', arrayType);
         _currentCollectionVariable = _emitSimpleIdentifier(temporaryIdentifier);
         var items = js.statement('let # = #',
             [_currentCollectionVariable, _emitList(elementType, [])]);
@@ -5812,7 +5831,7 @@ class CodeGenerator extends Object
           node.accept<JS.Node>(this),
           JS.Return(_currentCollectionVariable)
         ]);
-        var functionCall = JS.Call(JS.ArrowFun([], functionBody), []);
+        var functionCall = detectYieldAndCall(functionBody, arrayType);
 
         // Finally, spread the temporary control-flow-collections list.
         expressions.add(JS.Spread(functionCall));
@@ -6425,8 +6444,6 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitForElement(ForElement node) {
-    // TODO(nshahan) Need to support await for in collections.
-    if (node.awaitKeyword != null) return _unreachable(node);
     var jsBody = _isUiAsCodeElement(node.body)
         ? node.body.accept(this)
         : _visitNestedCollectionElement(node.body);
