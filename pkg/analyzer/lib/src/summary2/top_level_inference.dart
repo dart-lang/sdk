@@ -48,13 +48,16 @@ class TopLevelInference {
         if (type == null) {
           throw StateError('Field $name should have a type.');
         }
-        fields[name] = type;
+        fields[name] ??= type;
       });
 
       for (var member in members) {
         if (member.kind == LinkedNodeKind.constructorDeclaration) {
           for (var parameter in member.constructorDeclaration_parameters
               .formalParameterList_parameters) {
+            if (parameter.kind == LinkedNodeKind.defaultFormalParameter) {
+              parameter = parameter.defaultFormalParameter_parameter;
+            }
             if (parameter.kind == LinkedNodeKind.fieldFormalParameter &&
                 parameter.fieldFormalParameter_type2 == null) {
               var name = unit.context.getSimpleName(

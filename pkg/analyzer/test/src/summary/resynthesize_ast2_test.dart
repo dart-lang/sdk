@@ -189,22 +189,9 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_alias_with_forwarding_constructors() async {
-    await super.test_class_alias_with_forwarding_constructors();
-  }
-
-  @override
-  @failingTest
   test_class_alias_with_forwarding_constructors_type_substitution() async {
     await super
         .test_class_alias_with_forwarding_constructors_type_substitution();
-  }
-
-  @override
-  @failingTest
-  test_class_alias_with_forwarding_constructors_type_substitution_complex() async {
-    await super
-        .test_class_alias_with_forwarding_constructors_type_substitution_complex();
   }
 
   @override
@@ -219,36 +206,6 @@ T max<T extends num>(T a, T b) => null;
   test_class_constructor_field_formal_functionTyped_withReturnType() async {
     await super
         .test_class_constructor_field_formal_functionTyped_withReturnType();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_multiple_matching_fields() async {
-    await super.test_class_constructor_field_formal_multiple_matching_fields();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_fieldFormal_named_noDefault() async {
-    await super.test_class_constructor_fieldFormal_named_noDefault();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_fieldFormal_named_withDefault() async {
-    await super.test_class_constructor_fieldFormal_named_withDefault();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_fieldFormal_optional_noDefault() async {
-    await super.test_class_constructor_fieldFormal_optional_noDefault();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_fieldFormal_optional_withDefault() async {
-    await super.test_class_constructor_fieldFormal_optional_withDefault();
   }
 
   @override
@@ -450,19 +407,6 @@ T max<T extends num>(T a, T b) => null;
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     await super
         .test_const_parameterDefaultValue_initializingFormal_functionTyped();
-  }
-
-  @override
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_named() async {
-    await super.test_const_parameterDefaultValue_initializingFormal_named();
-  }
-
-  @override
-  @failingTest
-  test_const_parameterDefaultValue_initializingFormal_positional() async {
-    await super
-        .test_const_parameterDefaultValue_initializingFormal_positional();
   }
 
   @override
@@ -1369,12 +1313,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_parameter_return_type_void() async {
     await super.test_parameter_return_type_void();
-  }
-
-  @override
-  @failingTest
-  test_parameterTypeNotInferred_initializingFormal() async {
-    await super.test_parameterTypeNotInferred_initializingFormal();
   }
 
   @override

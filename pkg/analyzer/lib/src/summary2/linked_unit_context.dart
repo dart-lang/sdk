@@ -212,6 +212,12 @@ class LinkedUnitContext {
 
   bool isConst(LinkedNode node) {
     var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return isConst(node.defaultFormalParameter_parameter);
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return isConstKeyword(node.simpleFormalParameter_keyword);
+    }
     if (kind == LinkedNodeKind.variableDeclaration) {
       return node.variableDeclaration_declaration.isConst;
     }
@@ -239,10 +245,33 @@ class LinkedUnitContext {
     }
   }
 
+  DartType getFormalParameterType(LinkedNode node) {
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return getFormalParameterType(node.defaultFormalParameter_parameter);
+    }
+    if (kind == LinkedNodeKind.fieldFormalParameter) {
+      return getType(node.fieldFormalParameter_type2);
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return getType(node.simpleFormalParameter_type2);
+    }
+    throw UnimplementedError('$kind');
+  }
+
   bool isFinal(LinkedNode node) {
     var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return isFinal(node.defaultFormalParameter_parameter);
+    }
     if (kind == LinkedNodeKind.enumConstantDeclaration) {
       return false;
+    }
+    if (kind == LinkedNodeKind.fieldFormalParameter) {
+      return isFinalKeyword(node.fieldFormalParameter_keyword);
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return isFinalKeyword(node.simpleFormalParameter_keyword);
     }
     if (kind == LinkedNodeKind.variableDeclaration) {
       return node.variableDeclaration_declaration.isFinal;
