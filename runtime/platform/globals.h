@@ -531,8 +531,8 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 #if !defined(DISALLOW_COPY_AND_ASSIGN)
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
  private:                                                                      \
-  TypeName(const TypeName&);                                                   \
-  void operator=(const TypeName&)
+  TypeName(const TypeName&) = delete;                                          \
+  void operator=(const TypeName&) = delete
 #endif  // !defined(DISALLOW_COPY_AND_ASSIGN)
 
 // A macro to disallow all the implicit constructors, namely the default
@@ -543,7 +543,7 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 #if !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 #define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName)                               \
  private:                                                                      \
-  TypeName();                                                                  \
+  TypeName() = delete;                                                         \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
 #endif  // !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 

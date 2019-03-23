@@ -152,6 +152,7 @@ config("dart_config") {
       "-Wall",
       "-Wextra",  # Also known as -W.
       "-Wno-unused-parameter",
+      "-Wno-unused-private-field",
       "-Wnon-virtual-dtor",
       "-Wvla",
       "-Wno-conversion-null",

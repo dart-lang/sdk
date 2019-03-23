@@ -166,10 +166,10 @@ class Symbols;
                                                                                \
  private: /* NOLINT */                                                         \
   void* operator new(size_t size);                                             \
-  object(const object& value);                                                 \
-  void operator=(Raw##super* value);                                           \
-  void operator=(const object& value);                                         \
-  void operator=(const super& value);
+  object(const object& value) = delete;                                        \
+  void operator=(Raw##super* value) = delete;                                  \
+  void operator=(const object& value) = delete;                                \
+  void operator=(const super& value) = delete;
 
 // Conditionally include object_service.cc functionality in the vtable to avoid
 // link errors like the following:
