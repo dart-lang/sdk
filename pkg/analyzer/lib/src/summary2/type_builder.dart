@@ -5,6 +5,8 @@
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 
 /// Build types in a [TypesToBuild].
@@ -64,7 +66,7 @@ class TypeBuilder {
     var referenceIndex = _typeNameElementIndex(node.typeName_name);
     var reference = bundleContext.referenceOfIndex(referenceIndex);
 
-    var typeArguments = const <LinkedNodeTypeBuilder>[];
+    List<LinkedNodeTypeBuilder> typeArguments;
     var typeArgumentList = node.typeName_typeArguments;
     if (typeArgumentList != null) {
       typeArguments = typeArgumentList.typeArgumentList_arguments
@@ -73,6 +75,15 @@ class TypeBuilder {
     }
 
     if (reference.isClass) {
+      // TODO(scheglov) Use instantiate to bounds.
+      var typeParametersLength = _typeParametersLength(reference);
+      if (typeArguments == null ||
+          typeArguments.length != typeParametersLength) {
+        typeArguments = List<LinkedNodeTypeBuilder>.filled(
+          typeParametersLength,
+          _dynamicType,
+        );
+      }
       node.typeName_type = LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.interface,
         interfaceClass: referenceIndex,
@@ -83,6 +94,15 @@ class TypeBuilder {
         kind: LinkedNodeTypeKind.dynamic_,
       );
     } else if (reference.isGenericTypeAlias) {
+      // TODO(scheglov) Use instantiate to bounds.
+      var typeParametersLength = _typeParametersLength(reference);
+      if (typeArguments == null ||
+          typeArguments.length != typeParametersLength) {
+        typeArguments = List<LinkedNodeTypeBuilder>.filled(
+          typeParametersLength,
+          _dynamicType,
+        );
+      }
       node.typeName_type = LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.genericTypeAlias,
         genericTypeAliasReference: referenceIndex,
@@ -138,6 +158,11 @@ class TypeBuilder {
     } else {
       throw UnimplementedError('$kind');
     }
+  }
+
+  int _typeParametersLength(Reference reference) {
+    var node = bundleContext.elementFactory.nodeOfReference(reference);
+    return LinkedUnitContext.getTypeParameters(node)?.length ?? 0;
   }
 
   static LinkedNodeTypeBuilder _getType(LinkedNodeBuilder node) {

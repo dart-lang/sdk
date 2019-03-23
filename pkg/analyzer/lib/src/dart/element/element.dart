@@ -1061,7 +1061,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@typeParameter');
-      var typeParameters = context.getTypeParameters(linkedNode);
+      var typeParameters = LinkedUnitContext.getTypeParameters(linkedNode);
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }
@@ -9073,7 +9073,7 @@ mixin TypeParameterizedElementMixin
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@typeParameter');
-      var typeParameters = context.getTypeParameters(linkedNode);
+      var typeParameters = LinkedUnitContext.getTypeParameters(linkedNode);
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }

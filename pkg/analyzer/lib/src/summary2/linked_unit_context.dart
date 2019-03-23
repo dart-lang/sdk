@@ -158,34 +158,6 @@ class LinkedUnitContext {
     }
   }
 
-  List<LinkedNode> getTypeParameters(LinkedNode node) {
-    LinkedNode typeParameterList;
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.classTypeAlias) {
-      typeParameterList = node.classTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.classDeclaration ||
-        kind == LinkedNodeKind.mixinDeclaration) {
-      typeParameterList = node.classOrMixinDeclaration_typeParameters;
-    } else if (kind == LinkedNodeKind.constructorDeclaration) {
-      return const [];
-    } else if (kind == LinkedNodeKind.functionDeclaration) {
-      return getTypeParameters(node.functionDeclaration_functionExpression);
-    } else if (kind == LinkedNodeKind.functionExpression) {
-      typeParameterList = node.functionExpression_typeParameters;
-    } else if (kind == LinkedNodeKind.functionTypeAlias) {
-      typeParameterList = node.functionTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.genericFunctionType) {
-      typeParameterList = node.genericFunctionType_typeParameters;
-    } else if (kind == LinkedNodeKind.genericTypeAlias) {
-      typeParameterList = node.genericTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.methodDeclaration) {
-      typeParameterList = node.methodDeclaration_typeParameters;
-    } else {
-      throw UnimplementedError('$kind');
-    }
-    return typeParameterList?.typeParameterList_typeParameters;
-  }
-
   String getUnitMemberName(LinkedNode node) {
     return getSimpleName(node.namedCompilationUnitMember_name);
   }
@@ -202,12 +174,16 @@ class LinkedUnitContext {
   bool isAsynchronous(LinkedNode node) {
     LinkedNode body = _getFunctionBody(node);
     if (body.kind == LinkedNodeKind.blockFunctionBody) {
-      return body.blockFunctionBody_keyword != 0;
+      return isAsyncKeyword(body.blockFunctionBody_keyword);
     } else if (body.kind == LinkedNodeKind.emptyFunctionBody) {
       return false;
     } else {
-      return body.expressionFunctionBody_keyword != 0;
+      return isAsyncKeyword(body.expressionFunctionBody_keyword);
     }
+  }
+
+  bool isAsyncKeyword(int token) {
+    return tokensContext.type(token) == UnlinkedTokenType.ASYNC;
   }
 
   bool isConst(LinkedNode node) {
@@ -347,6 +323,10 @@ class LinkedUnitContext {
     throw UnimplementedError('$kind');
   }
 
+  bool isSyncKeyword(int token) {
+    return tokensContext.type(token) == UnlinkedTokenType.SYNC;
+  }
+
   void loadClassMemberReferences(Reference reference) {
     var node = reference.node;
     if (node.kind != LinkedNodeKind.classDeclaration &&
@@ -442,5 +422,33 @@ class LinkedUnitContext {
 
   bool _isSetToken(int token) {
     return tokensContext.type(token) == UnlinkedTokenType.SET;
+  }
+
+  static List<LinkedNode> getTypeParameters(LinkedNode node) {
+    LinkedNode typeParameterList;
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.classTypeAlias) {
+      typeParameterList = node.classTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.classDeclaration ||
+        kind == LinkedNodeKind.mixinDeclaration) {
+      typeParameterList = node.classOrMixinDeclaration_typeParameters;
+    } else if (kind == LinkedNodeKind.constructorDeclaration) {
+      return const [];
+    } else if (kind == LinkedNodeKind.functionDeclaration) {
+      return getTypeParameters(node.functionDeclaration_functionExpression);
+    } else if (kind == LinkedNodeKind.functionExpression) {
+      typeParameterList = node.functionExpression_typeParameters;
+    } else if (kind == LinkedNodeKind.functionTypeAlias) {
+      typeParameterList = node.functionTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      typeParameterList = node.genericFunctionType_typeParameters;
+    } else if (kind == LinkedNodeKind.genericTypeAlias) {
+      typeParameterList = node.genericTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.methodDeclaration) {
+      typeParameterList = node.methodDeclaration_typeParameters;
+    } else {
+      throw UnimplementedError('$kind');
+    }
+    return typeParameterList?.typeParameterList_typeParameters;
   }
 }

@@ -122,6 +122,8 @@ library dart.async;
 class Future<T> {}
 
 class FutureOr<T> {}
+
+class Stream<T> {}
 ''';
 
     var dartMathCode = r'''
@@ -826,18 +828,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_function_async() async {
-    await super.test_function_async();
-  }
-
-  @override
-  @failingTest
-  test_function_asyncStar() async {
-    await super.test_function_asyncStar();
-  }
-
-  @override
-  @failingTest
   test_function_entry_point_in_export_hidden() async {
     await super.test_function_entry_point_in_export_hidden();
   }
@@ -1147,24 +1137,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_member_function_async() async {
-    await super.test_member_function_async();
-  }
-
-  @override
-  @failingTest
-  test_member_function_asyncStar() async {
-    await super.test_member_function_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_member_function_syncStar() async {
-    await super.test_member_function_syncStar();
-  }
-
-  @override
-  @failingTest
   test_metadata_constructor_call_named_prefixed() async {
     await super.test_metadata_constructor_call_named_prefixed();
   }
@@ -1353,12 +1325,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_type_arguments_implicit() async {
-    await super.test_type_arguments_implicit();
-  }
-
-  @override
-  @failingTest
   test_type_inference_based_on_loadLibrary() async {
     await super.test_type_inference_based_on_loadLibrary();
   }
@@ -1427,12 +1393,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_reference_part_to_part() async {
     await super.test_type_reference_part_to_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_class_with_type_arguments_implicit() async {
-    await super.test_type_reference_to_class_with_type_arguments_implicit();
   }
 
   @override
