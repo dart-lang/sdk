@@ -21,14 +21,16 @@ class MetadataResolver {
   }
 
   void resolve(UnitBuilder unit) {
+    var unitDirectives = unit.node.compilationUnit_directives;
+    for (var directive in unitDirectives) {
+      _annotatedNode(unit, directive);
+    }
+
     var unitDeclarations = unit.node.compilationUnit_declarations;
     for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
       var kind = unitDeclaration.kind;
       if (_isAnnotatedNode(kind)) {
-        _annotatedNode(
-          unit,
-          unitDeclaration,
-        );
+        _annotatedNode(unit, unitDeclaration);
       }
       if (kind == LinkedNodeKind.classDeclaration) {
         _class(unit, unitDeclaration);

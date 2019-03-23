@@ -69,6 +69,20 @@ class LinkedUnitContext {
     return parameterList?.formalParameterList_parameters;
   }
 
+  DartType getFormalParameterType(LinkedNode node) {
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return getFormalParameterType(node.defaultFormalParameter_parameter);
+    }
+    if (kind == LinkedNodeKind.fieldFormalParameter) {
+      return getType(node.fieldFormalParameter_type2);
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return getType(node.simpleFormalParameter_type2);
+    }
+    throw UnimplementedError('$kind');
+  }
+
   LinkedNode getImplementsClause(LinkedNode node) {
     var kind = node.kind;
     if (kind == LinkedNodeKind.classDeclaration) {
@@ -84,6 +98,15 @@ class LinkedUnitContext {
     return bundleContext.getInterfaceType(linkedType);
   }
 
+  List<LinkedNode> getLibraryMetadataOrEmpty(LinkedNode unit) {
+    for (var directive in unit.compilationUnit_directives) {
+      if (directive.kind == LinkedNodeKind.libraryDirective) {
+        return getMetadataOrEmpty(directive);
+      }
+    }
+    return const <LinkedNode>[];
+  }
+
   List<LinkedNode> getMetadataOrEmpty(LinkedNode node) {
     var kind = node.kind;
     if (kind == LinkedNodeKind.classDeclaration ||
@@ -91,10 +114,15 @@ class LinkedUnitContext {
         kind == LinkedNodeKind.constructorDeclaration ||
         kind == LinkedNodeKind.enumConstantDeclaration ||
         kind == LinkedNodeKind.enumDeclaration ||
+        kind == LinkedNodeKind.exportDirective ||
         kind == LinkedNodeKind.functionDeclaration ||
         kind == LinkedNodeKind.functionTypeAlias ||
+        kind == LinkedNodeKind.libraryDirective ||
+        kind == LinkedNodeKind.importDirective ||
         kind == LinkedNodeKind.methodDeclaration ||
         kind == LinkedNodeKind.mixinDeclaration ||
+        kind == LinkedNodeKind.partDirective ||
+        kind == LinkedNodeKind.partOfDirective ||
         kind == LinkedNodeKind.variableDeclaration) {
       return node.annotatedNode_metadata;
     }
@@ -219,20 +247,6 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('$kind');
     }
-  }
-
-  DartType getFormalParameterType(LinkedNode node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.defaultFormalParameter) {
-      return getFormalParameterType(node.defaultFormalParameter_parameter);
-    }
-    if (kind == LinkedNodeKind.fieldFormalParameter) {
-      return getType(node.fieldFormalParameter_type2);
-    }
-    if (kind == LinkedNodeKind.simpleFormalParameter) {
-      return getType(node.simpleFormalParameter_type2);
-    }
-    throw UnimplementedError('$kind');
   }
 
   bool isFinal(LinkedNode node) {

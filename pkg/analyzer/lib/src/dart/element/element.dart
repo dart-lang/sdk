@@ -6463,7 +6463,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       if (_metadata != null) return _metadata;
       CompilationUnitElementImpl enclosingUnit = _definingCompilationUnit;
       var context = enclosingUnit.linkedContext;
-      var metadata = context.getMetadataOrEmpty(linkedNode);
+      var metadata = context.getLibraryMetadataOrEmpty(linkedNode);
       return _metadata = _buildAnnotations2(enclosingUnit, metadata);
     }
     if (_metadata == null) {

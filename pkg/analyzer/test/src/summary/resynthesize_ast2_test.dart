@@ -191,13 +191,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_alias_with_forwarding_constructors_type_substitution() async {
-    await super
-        .test_class_alias_with_forwarding_constructors_type_substitution();
-  }
-
-  @override
-  @failingTest
   test_class_constructor_field_formal_functionTyped_noReturnType() async {
     await super
         .test_class_constructor_field_formal_functionTyped_noReturnType();
@@ -1149,12 +1142,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_metadata_exportDirective() async {
-    await super.test_metadata_exportDirective();
-  }
-
-  @override
-  @failingTest
   test_metadata_fieldFormalParameter() async {
     await super.test_metadata_fieldFormalParameter();
   }
@@ -1187,12 +1174,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_metadata_invalid_classDeclaration() async {
     await super.test_metadata_invalid_classDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_metadata_libraryDirective() async {
-    await super.test_metadata_libraryDirective();
   }
 
   @override
