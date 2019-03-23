@@ -29,11 +29,11 @@ import 'package:front_end/src/fasta/messages.dart'
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
+        messageInvalidSuperInInitializer,
+        messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageStaticConstructor,
-        messageSuperAsExpression,
-        messageThisAccessInInitializer,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
@@ -1133,14 +1133,14 @@ class AstBuilder extends StackListener {
                   targetFunct.superKeyword, null, null, target.argumentList));
               // TODO(danrubel): Consider generating this error in the parser
               // This error is also reported in the body builder
-              handleRecoverableError(messageSuperAsExpression,
+              handleRecoverableError(messageInvalidSuperInInitializer,
                   targetFunct.superKeyword, targetFunct.superKeyword);
             } else if (targetFunct is ThisExpression) {
               initializers.add(ast.redirectingConstructorInvocation(
                   targetFunct.thisKeyword, null, null, target.argumentList));
               // TODO(danrubel): Consider generating this error in the parser
               // This error is also reported in the body builder
-              handleRecoverableError(messageThisAccessInInitializer,
+              handleRecoverableError(messageInvalidThisInInitializer,
                   targetFunct.thisKeyword, targetFunct.thisKeyword);
             } else {
               throw new UnsupportedError(
@@ -1193,14 +1193,14 @@ class AstBuilder extends StackListener {
                 targetFunct.superKeyword, null, null, target.argumentList));
             // TODO(danrubel): Consider generating this error in the parser
             // This error is also reported in the body builder
-            handleRecoverableError(messageSuperAsExpression,
+            handleRecoverableError(messageInvalidSuperInInitializer,
                 targetFunct.superKeyword, targetFunct.superKeyword);
           } else if (targetFunct is ThisExpression) {
             initializers.add(ast.redirectingConstructorInvocation(
                 targetFunct.thisKeyword, null, null, target.argumentList));
             // TODO(danrubel): Consider generating this error in the parser
             // This error is also reported in the body builder
-            handleRecoverableError(messageThisAccessInInitializer,
+            handleRecoverableError(messageInvalidThisInInitializer,
                 targetFunct.thisKeyword, targetFunct.thisKeyword);
           } else {
             throw new UnsupportedError(

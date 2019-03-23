@@ -6178,6 +6178,17 @@ Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidSuperInInitializer =
+    messageInvalidSuperInInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidSuperInInitializer = const MessageCode(
+    "InvalidSuperInInitializer",
+    index: 95,
+    message:
+        r"""Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidSyncModifier = messageInvalidSyncModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6186,6 +6197,16 @@ const MessageCode messageInvalidSyncModifier = const MessageCode(
     analyzerCodes: <String>["MISSING_STAR_AFTER_SYNC"],
     message: r"""Invalid modifier 'sync'.""",
     tip: r"""Try replacing 'sync' with 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidThisInInitializer = messageInvalidThisInInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidThisInInitializer = const MessageCode(
+    "InvalidThisInInitializer",
+    index: 96,
+    message:
+        r"""Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
@@ -8616,7 +8637,7 @@ const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperAsExpression = const MessageCode(
     "SuperAsExpression",
-    index: 95,
+    analyzerCodes: <String>["SUPER_AS_EXPRESSION"],
     message: r"""Can't use 'super' as an expression.""",
     tip:
         r"""To delegate a constructor to a super constructor, put the super call as an initializer.""");
@@ -8953,15 +8974,6 @@ Message _withArgumentsThisAccessInFieldInitializer(String name) {
           """Can't access 'this' in a field initializer to read '${name}'.""",
       arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeThisAccessInInitializer = messageThisAccessInInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageThisAccessInInitializer = const MessageCode(
-    "ThisAccessInInitializer",
-    index: 96,
-    message: r"""Can't access 'this' in an initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeThisAsIdentifier = messageThisAsIdentifier;

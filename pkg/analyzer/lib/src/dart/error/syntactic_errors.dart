@@ -379,10 +379,16 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'async*' isn't allowed for an expression function body.",
       correction: "Try converting the body to a block.");
 
+  static const ParserErrorCode INVALID_SUPER_IN_INITIALIZER =
+      _INVALID_SUPER_IN_INITIALIZER;
+
   static const ParserErrorCode INVALID_SYNC = const ParserErrorCode(
       'INVALID_SYNC',
       "The modifier 'sync' isn't allowed for an expression function body.",
       correction: "Try converting the body to a block.");
+
+  static const ParserErrorCode INVALID_THIS_IN_INITIALIZER =
+      _INVALID_THIS_IN_INITIALIZER;
 
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = _INVALID_UNICODE_ESCAPE;
 
@@ -676,16 +682,11 @@ class ParserErrorCode extends ErrorCode {
           "Top-level declarations can't be declared to be static.",
           correction: "Try removing the keyword 'static'.");
 
-  static const ParserErrorCode SUPER_AS_EXPRESSION = _SUPER_AS_EXPRESSION;
-
   static const ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE =
       _SWITCH_HAS_CASE_AFTER_DEFAULT_CASE;
 
   static const ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES =
       _SWITCH_HAS_MULTIPLE_DEFAULT_CASES;
-
-  static const ParserErrorCode THIS_ACCESS_FROM_INITIALIZER =
-      _THIS_ACCESS_FROM_INITIALIZER;
 
   static const ParserErrorCode TOP_LEVEL_OPERATOR = _TOP_LEVEL_OPERATOR;
 

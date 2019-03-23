@@ -239,6 +239,8 @@ InvalidInitializer/analyzerCode: Fail # The analyzer reports a different error
 InvalidInitializer/example: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
+InvalidSuperInInitializer/example: Fail
+InvalidThisInInitializer/example: Fail
 InvalidUseOfNullAwareAccess/example: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
@@ -370,7 +372,6 @@ SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
 ThisAccessInFieldInitializer/example: Fail
-ThisAccessInInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail

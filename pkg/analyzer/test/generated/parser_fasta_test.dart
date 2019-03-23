@@ -835,7 +835,7 @@ main() { // missing async
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
     parseCompilationUnit('class B extends A { B(): super().foo {} }', errors: [
-      expectedError(ParserErrorCode.SUPER_AS_EXPRESSION, 25, 5),
+      expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
     ]);
   }
 
@@ -844,7 +844,7 @@ main() { // missing async
     // https://github.com/dart-lang/sdk/issues/31198
     parseCompilationUnit('class B extends A { B(): super().foo() {} }',
         errors: [
-          expectedError(ParserErrorCode.SUPER_AS_EXPRESSION, 25, 5),
+          expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
         ]);
   }
 
@@ -852,7 +852,7 @@ main() { // missing async
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
     parseCompilationUnit('class B extends A { B(): this().foo; }', errors: [
-      expectedError(ParserErrorCode.THIS_ACCESS_FROM_INITIALIZER, 25, 4),
+      expectedError(ParserErrorCode.INVALID_THIS_IN_INITIALIZER, 25, 4),
     ]);
   }
 
@@ -860,7 +860,7 @@ main() { // missing async
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
     parseCompilationUnit('class B extends A { B(): this().foo(); }', errors: [
-      expectedError(ParserErrorCode.THIS_ACCESS_FROM_INITIALIZER, 25, 4),
+      expectedError(ParserErrorCode.INVALID_THIS_IN_INITIALIZER, 25, 4),
     ]);
   }
 
