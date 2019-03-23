@@ -88,7 +88,7 @@ class Test implements Comparable {
   Map<String, dynamic> get _sharedData =>
       resultData ?? baselineData ?? approvedResultData;
   String get name => _sharedData["name"];
-  String get configuration => _sharedData["configuration"];
+  String get configuration => _sharedData["configuration"] ?? "";
   String get key => "$configuration:$name";
   String get expected => _sharedData["expected"];
   String get result => (resultData ?? const {})["result"];
@@ -872,7 +872,7 @@ ${parser.usage}""");
     for (final test in tests) {
       if (test.approvedResultData == null) continue;
       if (test.result == null &&
-          test.approvedResultData["preapprovals"].isEmpty) continue;
+          (test.approvedResultData["preapprovals"] ?? "").isEmpty) continue;
       final approvalData = deepClone(test.approvedResultData);
       // TODO(https://github.com/dart-lang/sdk/issues/36279): Remove needless
       // fields that shouldn't be in the approvals data. Remove this 2019-04-03.
