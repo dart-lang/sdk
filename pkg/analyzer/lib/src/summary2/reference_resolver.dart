@@ -5,7 +5,6 @@
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
-import 'package:analyzer/src/summary2/declaration.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/scope.dart';
@@ -330,6 +329,11 @@ class ReferenceResolver {
 
   void _partOfDirective(LinkedNodeBuilder node) {}
 
+  void _setSimpleElement(LinkedNodeBuilder identifier, Reference reference) {
+    var referenceIndex = linkingBundleContext.indexOfReference(reference);
+    identifier.simpleIdentifier_element = referenceIndex;
+  }
+
   void _simpleFormalParameter(LinkedNodeBuilder node) {
     var typeNode = node.simpleFormalParameter_type;
     if (typeNode != null) {
@@ -361,6 +365,8 @@ class ReferenceResolver {
     if (node == null) return;
 
     var identifier = node.typeName_name;
+    Reference reference;
+
     if (identifier.kind == LinkedNodeKind.simpleIdentifier) {
       var name = unit.context.getSimpleName(identifier);
 
@@ -371,27 +377,40 @@ class ReferenceResolver {
         return;
       }
 
-      var declaration = scope.lookup(name);
-      if (declaration == null) {
+      reference = scope.lookup(name);
+    } else {
+      var prefixNode = identifier.prefixedIdentifier_prefix;
+      var prefixName = unit.context.getSimpleName(prefixNode);
+      var prefixReference = scope.lookup(prefixName);
+      _setSimpleElement(prefixNode, prefixReference);
+
+      identifier = identifier.prefixedIdentifier_identifier;
+      var name = unit.context.getSimpleName(identifier);
+
+      if (prefixReference != null && prefixReference.isPrefix) {
+        var prefixScope = prefixReference.prefixScope;
+        reference = prefixScope.lookup(name);
+      } else {
         identifier.simpleIdentifier_element = 0;
         node.typeName_type = _dynamicType;
         return;
       }
-
-      var reference = declaration.reference;
-      var referenceIndex = linkingBundleContext.indexOfReference(reference);
-      identifier.simpleIdentifier_element = referenceIndex;
-
-      var typeArgumentList = node.typeName_typeArguments;
-      if (typeArgumentList != null) {
-        _node(typeArgumentList);
-      }
-
-      typesToBuild.typeAnnotations.add(node);
-    } else {
-      // TODO(scheglov) implement
-      throw UnimplementedError();
     }
+
+    if (reference == null) {
+      identifier.simpleIdentifier_element = 0;
+      node.typeName_type = _dynamicType;
+      return;
+    }
+
+    _setSimpleElement(identifier, reference);
+
+    var typeArgumentList = node.typeName_typeArguments;
+    if (typeArgumentList != null) {
+      _node(typeArgumentList);
+    }
+
+    typesToBuild.typeAnnotations.add(node);
   }
 
   void _typeParameter(LinkedNodeBuilder node) {
@@ -428,7 +447,7 @@ class ReferenceResolver {
       var name = unit.context.getSimpleName(typeParameter.typeParameter_name);
       var reference = containerRef.getChild(name);
       reference.node = typeParameter;
-      scope.declare(name, Declaration(name, reference));
+      scope.declare(name, reference);
     }
 
     _node(typeParameterList);

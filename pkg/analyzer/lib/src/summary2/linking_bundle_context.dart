@@ -31,6 +31,7 @@ class LinkingBundleContext {
   LinkingBundleContext(this.dynamicReference);
 
   int indexOfReference(Reference reference) {
+    if (reference == null) return 0;
     if (reference.parent == null) return 0;
     if (reference.index != null) return reference.index;
 

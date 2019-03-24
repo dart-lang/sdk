@@ -2136,7 +2136,18 @@ class C<K, V> {
 import 'a.dart' as p;
 const V = const p.C<int, String>.named(1, '222');
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const C<int, String> V = const
+        p/*location: test.dart;p*/.
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>.
+        named/*location: a.dart;C;named*/(1, '222');
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const C<int, String> V = const
         C/*location: a.dart;C*/<
@@ -2144,6 +2155,7 @@ const C<int, String> V = const
         String/*location: dart:core;String*/>.
         named/*location: a.dart;C;named*/(1, '222');
 ''');
+    }
   }
 
   test_const_invokeConstructor_generic_noTypeArguments() async {
@@ -2209,13 +2221,24 @@ class C<K, V> {
 import 'a.dart' as p;
 const V = const p.C<int, String>();
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const C<int, String> V = const
+        p/*location: test.dart;p*/.
+        C/*location: a.dart;C*/<
+        int/*location: dart:core;int*/,
+        String/*location: dart:core;String*/>();
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const C<int, String> V = const
         C/*location: a.dart;C*/<
         int/*location: dart:core;int*/,
         String/*location: dart:core;String*/>();
 ''');
+    }
   }
 
   test_const_invokeConstructor_named() async {
@@ -2265,12 +2288,22 @@ class C {
 import 'a.dart' as p;
 const V = const p.C.named();
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const C V = const
+        p/*location: test.dart;p*/.
+        C/*location: a.dart;C*/.
+        named/*location: a.dart;C;named*/();
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const C V = const
         C/*location: a.dart;C*/.
         named/*location: a.dart;C;named*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved() async {
@@ -2400,11 +2433,20 @@ class C {
 import 'a.dart' as p;
 const V = const p.C();
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const C V = const
+        p/*location: test.dart;p*/.
+        C/*location: a.dart;C*/();
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const C V = const
         C/*location: a.dart;C*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_unnamed_unresolved() async {
@@ -3533,11 +3575,20 @@ const List<C> v = const <
 import 'a.dart' as p;
 const v = const <p.C>[];
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const List<C> v = const <
+        p/*location: test.dart;p*/.
+        C/*location: a.dart;C*/>[];
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const List<C> v = const <
         C/*location: a.dart;C*/>[];
 ''');
+    }
   }
 
   test_const_topLevel_typedList_typedefArgument() async {
@@ -6142,11 +6193,19 @@ import 'foo.dart' as foo;
 var a1 = foo.A();
 var a2 = foo.A.named();
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'foo.dart' as foo;
+dynamic a1;
+dynamic a2;
+''');
+    } else {
+      checkElementText(library, r'''
 import 'foo.dart' as foo;
 A a1;
 A a2;
 ''');
+    }
   }
 
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
@@ -6900,7 +6959,18 @@ import 'foo.dart' as foo;
 @foo.A.named()
 class C {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'foo.dart' as foo;
+@
+        foo/*location: test.dart;foo*/.
+        A/*location: foo.dart;A*/.
+        named/*location: foo.dart;A;named*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 import 'foo.dart' as foo;
 @
         A/*location: foo.dart;A*/.
@@ -6908,6 +6978,7 @@ import 'foo.dart' as foo;
 class C {
 }
 ''');
+    }
   }
 
   test_metadata_constructor_call_unnamed() async {
@@ -6927,13 +6998,24 @@ class C {
     addLibrarySource('/foo.dart', 'class A { const A(); }');
     var library =
         await checkLibrary('import "foo.dart" as foo; @foo.A() class C {}');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'foo.dart' as foo;
+@
+        foo/*location: test.dart;foo*/.
+        A/*location: foo.dart;A*/()
+class C {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 import 'foo.dart' as foo;
 @
         A/*location: foo.dart;A*/()
 class C {
 }
 ''');
+    }
   }
 
   test_metadata_constructor_call_with_args() async {
@@ -8239,6 +8321,15 @@ class C<T> {
 class C<T> {
   dynamic m(dynamic p) {}
 }
+''');
+  }
+
+  test_type_invalid_unresolvedPrefix() async {
+    var library = await checkLibrary('''
+p.C v;
+''', allowErrors: true);
+    checkElementText(library, r'''
+dynamic v;
 ''');
   }
 

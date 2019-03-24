@@ -5855,6 +5855,19 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   PrefixElement get prefix {
     if (_prefix == null) {
+      if (linkedNode != null) {
+        var prefix = linkedNode.importDirective_prefix;
+        if (prefix != null) {
+          var context = enclosingUnit.linkedContext;
+          var name = context.getSimpleName(prefix);
+          LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+          _prefix = new PrefixElementImpl.forLinkedNode(
+            library,
+            library.reference.getChild('@prefix').getChild(name),
+            prefix,
+          );
+        }
+      }
       if (_unlinkedImport != null && _unlinkedImport.prefixReference != 0) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
         _prefix = new PrefixElementImpl.forSerialized(_unlinkedImport, library);
@@ -8321,6 +8334,11 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
       : _unlinkedImport = null,
         super(name, nameOffset);
 
+  PrefixElementImpl.forLinkedNode(
+      ElementImpl enclosing, Reference reference, LinkedNode linkedNode)
+      : _unlinkedImport = null,
+        super.forLinkedNode(enclosing, reference, linkedNode);
+
   /// Initialize a newly created prefix element to have the given [name].
   PrefixElementImpl.forNode(Identifier name)
       : _unlinkedImport = null,
@@ -8339,9 +8357,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
       super.enclosingElement as LibraryElement;
 
   @override
-  String get identifier => "_${super.identifier}";
-
-  @override
   List<LibraryElement> get importedLibraries => const <LibraryElement>[];
 
   @override
@@ -8349,6 +8364,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   String get name {
+    if (linkedNode != null) {
+      return reference.name;
+    }
     if (_name == null) {
       if (_unlinkedImport != null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
@@ -8361,6 +8379,10 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   int get nameOffset {
+    if (linkedNode != null) {
+      LibraryElementImpl library = enclosingElement;
+      return library.linkedContext.getSimpleOffset(linkedNode);
+    }
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedImport != null) {
       return _unlinkedImport.prefixOffset;

@@ -119,8 +119,7 @@ class TypeBuilder {
         typeParameterParameter: referenceIndex,
       );
     } else {
-      // TODO(scheglov) set Object? keep unresolved?
-      throw UnimplementedError('$reference');
+      node.typeName_type = _dynamicType;
     }
   }
 
@@ -180,8 +179,8 @@ class TypeBuilder {
     if (name.kind == LinkedNodeKind.simpleIdentifier) {
       return name.simpleIdentifier_element;
     } else {
-      // TODO(scheglov) implement
-      throw UnimplementedError();
+      var identifier = name.prefixedIdentifier_identifier;
+      return identifier.simpleIdentifier_element;
     }
   }
 }

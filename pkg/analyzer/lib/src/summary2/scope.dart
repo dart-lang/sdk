@@ -2,27 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary2/declaration.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 
 class Scope {
   final Scope parent;
-  final Map<String, Declaration> map;
+  final Map<String, Reference> map;
 
   Scope(this.parent, this.map);
 
-  Scope.top() : this(null, <String, Declaration>{});
+  Scope.top() : this(null, <String, Reference>{});
 
-  void declare(String name, Declaration declaration) {
-    map[name] = declaration;
+  void declare(String name, Reference reference) {
+    map[name] = reference;
   }
 
-  void forEach(f(String name, Declaration declaration)) {
+  void forEach(f(String name, Reference reference)) {
     map.forEach(f);
   }
 
-  Declaration lookup(String name) {
-    var declaration = map[name];
-    if (declaration != null) return declaration;
+  Reference lookup(String name) {
+    var reference = map[name];
+    if (reference != null) return reference;
 
     if (parent == null) return null;
     return parent.lookup(name);

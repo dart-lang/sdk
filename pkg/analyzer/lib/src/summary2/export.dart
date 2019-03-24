@@ -4,7 +4,7 @@
 
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
-import 'package:analyzer/src/summary2/declaration.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 
 class Export {
   final SourceLibraryBuilder exporter;
@@ -13,13 +13,13 @@ class Export {
 
   Export(this.exporter, this.exported, this.combinators);
 
-  bool addToExportScope(String name, Declaration declaration) {
+  bool addToExportScope(String name, Reference reference) {
     if (combinators != null) {
       for (Combinator combinator in combinators) {
         if (combinator.isShow && !combinator.names.contains(name)) return false;
         if (combinator.isHide && combinator.names.contains(name)) return false;
       }
     }
-    return exporter.addToExportScope(name, declaration);
+    return exporter.addToExportScope(name, reference);
   }
 }

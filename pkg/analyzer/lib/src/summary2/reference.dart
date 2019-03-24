@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/scope.dart';
 
 /// Indirection between a name and the corresponding [Element].
 ///
@@ -42,6 +43,9 @@ class Reference {
 
   Map<String, Reference> _children;
 
+  /// If this reference is an import prefix, the scope of this prefix.
+  Scope prefixScope;
+
   Reference.root() : this._(null, '');
 
   Reference._(this.parent, this.name);
@@ -53,6 +57,8 @@ class Reference {
   bool get isEnum => parent != null && parent.name == '@enum';
 
   bool get isGenericTypeAlias => parent != null && parent.name == '@typeAlias';
+
+  bool get isPrefix => parent != null && parent.name == '@prefix';
 
   bool get isTypeParameter => parent != null && parent.name == '@typeParameter';
 

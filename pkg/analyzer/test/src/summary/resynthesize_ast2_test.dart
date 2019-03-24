@@ -236,28 +236,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_invokeConstructor_generic_named_imported_withPrefix() async {
-    await super
-        .test_const_invokeConstructor_generic_named_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_generic_unnamed_imported_withPrefix() async {
-    await super
-        .test_const_invokeConstructor_generic_unnamed_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_named() async {
     await super.test_const_invokeConstructor_named();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_named_imported_withPrefix() async {
-    await super.test_const_invokeConstructor_named_imported_withPrefix();
   }
 
   @override
@@ -274,38 +254,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_invokeConstructor_named_unresolved4() async {
-    await super.test_const_invokeConstructor_named_unresolved4();
-  }
-
-  @override
-  @failingTest
   test_const_invokeConstructor_named_unresolved6() async {
     await super.test_const_invokeConstructor_named_unresolved6();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_unnamed_imported_withPrefix() async {
-    await super.test_const_invokeConstructor_unnamed_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_unnamed_unresolved2() async {
-    await super.test_const_invokeConstructor_unnamed_unresolved2();
-  }
-
-  @override
-  @failingTest
-  test_const_length_ofClassConstField_imported_withPrefix() async {
-    await super.test_const_length_ofClassConstField_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_length_ofTopLevelVariable_imported_withPrefix() async {
-    await super.test_const_length_ofTopLevelVariable_imported_withPrefix();
   }
 
   @override
@@ -317,26 +267,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_reference_staticField_imported_withPrefix() async {
-    await super.test_const_reference_staticField_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_staticMethod_imported_withPrefix() async {
-    await super.test_const_reference_staticMethod_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
   test_const_reference_topLevelFunction_generic() async {
     await super.test_const_reference_topLevelFunction_generic();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_topLevelFunction_imported_withPrefix() async {
-    await super.test_const_reference_topLevelFunction_imported_withPrefix();
   }
 
   @override
@@ -353,26 +285,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_reference_type_imported_withPrefix() async {
-    await super.test_const_reference_type_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
   test_const_reference_type_typeParameter() async {
     await super.test_const_reference_type_typeParameter();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_unresolved_prefix2() async {
-    await super.test_const_reference_unresolved_prefix2();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_typedList_importedWithPrefix() async {
-    await super.test_const_topLevel_typedList_importedWithPrefix();
   }
 
   @override
@@ -762,18 +676,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_import_prefixed() async {
-    await super.test_import_prefixed();
-  }
-
-  @override
-  @failingTest
-  test_import_self() async {
-    await super.test_import_self();
-  }
-
-  @override
-  @failingTest
   test_import_short_absolute() async {
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
@@ -877,12 +779,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_inferredType_implicitCreation_prefixed() async {
-    await super.test_inferredType_implicitCreation_prefixed();
-  }
-
-  @override
-  @failingTest
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     await super
         .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
@@ -926,18 +822,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_invalid_annotation_prefixed_constructor() async {
-    await super.test_invalid_annotation_prefixed_constructor();
-  }
-
-  @override
-  @failingTest
-  test_invalid_importPrefix_asTypeArgument() async {
-    await super.test_invalid_importPrefix_asTypeArgument();
-  }
-
-  @override
-  @failingTest
   test_invalid_setterParameter_fieldFormalParameter() async {
     await super.test_invalid_setterParameter_fieldFormalParameter();
   }
@@ -970,18 +854,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_library_documented_stars() async {
     await super.test_library_documented_stars();
-  }
-
-  @override
-  @failingTest
-  test_metadata_constructor_call_named_prefixed() async {
-    await super.test_metadata_constructor_call_named_prefixed();
-  }
-
-  @override
-  @failingTest
-  test_metadata_constructor_call_unnamed_prefixed() async {
-    await super.test_metadata_constructor_call_unnamed_prefixed();
   }
 
   @override
@@ -1024,12 +896,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_metadata_partDirective() async {
     await super.test_metadata_partDirective();
-  }
-
-  @override
-  @failingTest
-  test_metadata_prefixed_variable() async {
-    await super.test_metadata_prefixed_variable();
   }
 
   @override
@@ -1162,30 +1028,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_type_invalid_topLevelVariableElement_asType() async {
-    await super.test_type_invalid_topLevelVariableElement_asType();
-  }
-
-  @override
-  @failingTest
-  test_type_invalid_topLevelVariableElement_asTypeArgument() async {
-    await super.test_type_invalid_topLevelVariableElement_asTypeArgument();
-  }
-
-  @override
-  @failingTest
-  test_type_invalid_typeParameter_asPrefix() async {
-    await super.test_type_invalid_typeParameter_asPrefix();
-  }
-
-  @override
-  @failingTest
-  test_type_unresolved_prefixed() async {
-    await super.test_type_unresolved_prefixed();
-  }
-
-  @override
-  @failingTest
   test_typedef_generic() async {
     await super.test_typedef_generic();
   }
@@ -1242,33 +1084,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_typedef_type_parameters_f_bound_simple_new_syntax() async {
     await super.test_typedef_type_parameters_f_bound_simple_new_syntax();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    await super.test_unresolved_annotation_prefixedIdentifier_noDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
-    await super
-        .test_unresolved_annotation_prefixedNamedConstructorCall_noClass();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
-    await super
-        .test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    await super
-        .test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass();
   }
 
   @override
