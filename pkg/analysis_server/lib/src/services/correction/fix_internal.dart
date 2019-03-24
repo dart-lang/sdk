@@ -209,9 +209,6 @@ class FixProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Fix>> compute() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     node = new NodeLocator2(errorOffset).searchWithin(unit);
     coveredNode = new NodeLocator2(errorOffset, errorOffset + errorLength - 1)
         .searchWithin(unit);
@@ -561,6 +558,9 @@ class FixProcessor {
         CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE) {
       await _addFix_extendClassForMixin();
     }
+    if (errorCode == StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
+      await _addFix_addMissingEnumCaseClauses();
+    }
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
@@ -783,6 +783,69 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_EXPLICIT_CAST);
     }
+  }
+
+  Future<void> _addFix_addMissingEnumCaseClauses() async {
+    SwitchStatement statement = node as SwitchStatement;
+    String enumName;
+    List<String> enumConstantNames = [];
+    DartType expressionType = statement.expression.staticType;
+    if (expressionType is InterfaceType) {
+      ClassElement enumElement = expressionType.element;
+      if (enumElement.isEnum) {
+        enumName = enumElement.name;
+        for (FieldElement field in enumElement.fields) {
+          if (!field.isSynthetic) {
+            enumConstantNames.add(field.name);
+          }
+        }
+      }
+    }
+    if (enumName == null) {
+      return;
+    }
+    for (SwitchMember member in statement.members) {
+      if (member is SwitchCase) {
+        Expression expression = member.expression;
+        if (expression is Identifier) {
+          Element element = expression.staticElement;
+          if (element is PropertyAccessorElement) {
+            enumConstantNames.remove(element.name);
+          }
+        }
+      }
+    }
+    if (enumConstantNames.isEmpty) {
+      return;
+    }
+
+    String statementIndent = utils.getLinePrefix(statement.offset);
+    String singleIndent = utils.getIndent(1);
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addInsertion(utils.getLineThis(statement.end), (builder) {
+        for (String constantName in enumConstantNames) {
+          builder.write(statementIndent);
+          builder.write(singleIndent);
+          builder.write('case ');
+          builder.write(enumName);
+          builder.write('.');
+          builder.write(constantName);
+          builder.writeln(':');
+          builder.write(statementIndent);
+          builder.write(singleIndent);
+          builder.write(singleIndent);
+          builder.writeln('// TODO: Handle this case.');
+          builder.write(statementIndent);
+          builder.write(singleIndent);
+          builder.write(singleIndent);
+          builder.writeln('break;');
+        }
+      });
+    });
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES);
   }
 
   Future<void> _addFix_addMissingParameter() async {

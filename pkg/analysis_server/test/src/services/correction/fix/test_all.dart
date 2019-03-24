@@ -8,6 +8,8 @@ import 'add_async_test.dart' as add_async;
 import 'add_await_test.dart' as add_await;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
+import 'add_missing_enum_case_clauses_test.dart'
+    as add_missing_enum_case_clauses;
 import 'add_missing_parameter_named_test.dart' as add_missing_parameter_named;
 import 'add_missing_parameter_positional_test.dart'
     as add_missing_parameter_positional;
@@ -110,6 +112,7 @@ main() {
     add_await.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
+    add_missing_enum_case_clauses.main();
     add_missing_parameter_named.main();
     add_missing_parameter_positional.main();
     add_missing_parameter_required.main();
