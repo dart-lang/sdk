@@ -230,19 +230,8 @@ T max<T extends num>(T a, T b) => null;
   @override
   @failingTest
   test_const_finalField_hasConstConstructor() async {
+    // TODO(scheglov) Needs initializer, because of const constructor.
     await super.test_const_finalField_hasConstConstructor();
-  }
-
-  @override
-  @failingTest
-  test_const_invalid_field_const() async {
-    await super.test_const_invalid_field_const();
-  }
-
-  @override
-  @failingTest
-  test_const_invalid_field_final() async {
-    await super.test_const_invalid_field_final();
   }
 
   @override
@@ -360,12 +349,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_const_reference_topLevelVariable_imported_withPrefix() async {
     await super.test_const_reference_topLevelVariable_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_type_functionType() async {
-    await super.test_const_reference_type_functionType();
   }
 
   @override
@@ -677,26 +660,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_field_inferred_type_nonStatic_implicit_initialized() async {
-    await super.test_field_inferred_type_nonStatic_implicit_initialized();
-  }
-
-  @override
-  @failingTest
   test_field_inferred_type_nonStatic_implicit_uninitialized() async {
     await super.test_field_inferred_type_nonStatic_implicit_uninitialized();
-  }
-
-  @override
-  @failingTest
-  test_field_inferred_type_static_implicit_initialized() async {
-    await super.test_field_inferred_type_static_implicit_initialized();
-  }
-
-  @override
-  @failingTest
-  test_field_propagatedType_const_noDep() async {
-    await super.test_field_propagatedType_const_noDep();
   }
 
   @override
@@ -709,30 +674,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_field_propagatedType_final_dep_inPart() async {
     await super.test_field_propagatedType_final_dep_inPart();
-  }
-
-  @override
-  @failingTest
-  test_field_propagatedType_final_noDep_instance() async {
-    await super.test_field_propagatedType_final_noDep_instance();
-  }
-
-  @override
-  @failingTest
-  test_field_propagatedType_final_noDep_static() async {
-    await super.test_field_propagatedType_final_noDep_static();
-  }
-
-  @override
-  @failingTest
-  test_field_static_final_untyped() async {
-    await super.test_field_static_final_untyped();
-  }
-
-  @override
-  @failingTest
-  test_field_untyped() async {
-    await super.test_field_untyped();
   }
 
   @override
@@ -945,13 +886,6 @@ T max<T extends num>(T a, T b) => null;
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     await super
         .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_field() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_field();
   }
 
   @override

@@ -82,12 +82,11 @@ class TopLevelInference {
     for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
       if (unitDeclaration.kind == LinkedNodeKind.classDeclaration) {
         _visitClassFields(unitDeclaration, (field) {
-          var name = unit.context.getVariableName(field);
+//          var name = unit.context.getVariableName(field);
           // TODO(scheglov) Use inheritance
+          // TODO(scheglov) infer in the correct order
           if (field.variableDeclaration_type2 == null) {
-            field.variableDeclaration_type2 = LinkedNodeTypeBuilder(
-              kind: LinkedNodeTypeKind.dynamic_,
-            );
+            _inferVariableTypeFromInitializerTemporary(field);
           }
         });
 
