@@ -1958,6 +1958,22 @@ int commentAroundAnnotation2/*codeOffset=365, codeLength=24*/;
         withConstElements: false);
   }
 
+  test_codeRange_type_parameter() async {
+    var library = await checkLibrary('''
+class A<T> {}
+void f<U extends num> {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A/*codeOffset=0, codeLength=13*/<T/*codeOffset=8, codeLength=1*/> {
+}
+void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends num>() {}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
   test_const_constructor_inferred_args() async {
     var library = await checkLibrary('''
 class C<T> {

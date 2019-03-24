@@ -1044,6 +1044,44 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.classTypeAlias)
   LinkedNode get classTypeAlias_withClause;
 
+  @VariantId(34, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.defaultFormalParameter,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  int get codeLength;
+
+  @VariantId(33, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.defaultFormalParameter,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  int get codeOffset;
+
   @VariantId(19, variantList: [
     LinkedNodeKind.hideCombinator,
     LinkedNodeKind.showCombinator,

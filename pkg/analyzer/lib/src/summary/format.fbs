@@ -1856,6 +1856,10 @@ table LinkedNode {
 
   variantField_13:LinkedNode (id: 13);
 
+  variantField_34:uint (id: 34);
+
+  variantField_33:uint (id: 33);
+
   variantField_28:[uint] (id: 28);
 
   variantField_29:LinkedNodeCommentType (id: 29);
@@ -1863,8 +1867,6 @@ table LinkedNode {
   variantField_3:[LinkedNode] (id: 3);
 
   variantField_10:LinkedNode (id: 10);
-
-  variantField_33:uint (id: 33);
 
   variantField_21:double (id: 21);
 

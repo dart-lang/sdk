@@ -281,6 +281,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       constructorDeclaration_separator: _getToken(node.separator),
     );
     _storeClassMember(builder, node);
+    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -332,12 +333,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitDefaultFormalParameter(DefaultFormalParameter node) {
-    return LinkedNodeBuilder.defaultFormalParameter(
+    var builder = LinkedNodeBuilder.defaultFormalParameter(
       defaultFormalParameter_defaultValue: node.defaultValue?.accept(this),
       defaultFormalParameter_isNamed: node.isNamed,
       defaultFormalParameter_parameter: node.parameter.accept(this),
       defaultFormalParameter_separator: _getToken(node.separator),
     );
+    _storeCodeOffsetLength(builder, node);
+    return builder;
   }
 
   @override
@@ -814,6 +817,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       methodDeclaration_typeParameters: node.typeParameters?.accept(this),
     );
     _storeClassMember(builder, node);
+    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -1208,6 +1212,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
         typeParameter_extendsKeyword: _getToken(node.extendsKeyword),
         typeParameter_name: node.name.accept(this));
     _storeDeclaration(builder, node);
+    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -1243,6 +1248,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       variableDeclarationList_variables: _writeNodeList(node.variables),
     );
     _storeAnnotatedNode(builder, node);
+    _storeCodeOffsetLengthVariables(builder, node);
     return builder;
   }
 
@@ -1341,6 +1347,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     _storeNamedCompilationUnitMember(builder, node);
   }
 
+  void _storeCodeOffsetLength(LinkedNodeBuilder builder, AstNode node) {
+    builder.codeOffset = node.offset;
+    builder.codeLength = node.length;
+  }
+
+  void _storeCodeOffsetLengthVariables(
+      LinkedNodeBuilder builder, VariableDeclarationList node) {
+    var builders = builder.variableDeclarationList_variables;
+    for (var i = 0; i < builders.length; ++i) {
+      var variableBuilder = builders[i];
+      var variableNode = node.variables[i];
+      var offset = (i == 0 ? node.parent : variableNode).offset;
+      variableBuilder.codeOffset = offset;
+      variableBuilder.codeLength = variableNode.end - offset;
+    }
+  }
+
   void _storeCombinator(LinkedNodeBuilder builder, Combinator node) {
     builder.combinator_keyword = _getToken(node.keyword);
   }
@@ -1382,8 +1405,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     } else if (node.isOptionalPositional) {
       kind = LinkedNodeFormalParameterKind.optionalPositional;
     }
-
     builder.formalParameter_kind = kind;
+
+    _storeCodeOffsetLength(builder, node);
   }
 
   void _storeForMixin(LinkedNodeBuilder builder, ForMixin node) {
@@ -1427,6 +1451,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   void _storeNamedCompilationUnitMember(
       LinkedNodeBuilder builder, NamedCompilationUnitMember node) {
     _storeCompilationUnitMember(builder, node);
+    _storeCodeOffsetLength(builder, node);
     builder..namedCompilationUnitMember_name = node.name.accept(this);
   }
 

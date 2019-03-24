@@ -913,6 +913,7 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeName(e);
+    writeCodeRange(e);
     if (e.bound != null && !e.bound.isObject) {
       buffer.write(' extends ');
       writeType(e.bound);

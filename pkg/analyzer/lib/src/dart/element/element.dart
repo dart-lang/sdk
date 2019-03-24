@@ -519,6 +519,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedNode.codeLength;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.codeRange?.length;
     }
@@ -527,6 +530,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedNode.codeOffset;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.codeRange?.offset;
     }
@@ -3910,6 +3916,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedNode.codeLength;
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.codeRange?.length;
     }
@@ -3918,6 +3927,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedNode.codeOffset;
+    }
     if (_unlinkedEnum != null) {
       return _unlinkedEnum.codeRange?.offset;
     }
@@ -4219,6 +4231,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedNode.codeLength;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.codeRange?.length;
     }
@@ -4227,6 +4242,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedNode.codeOffset;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.codeRange?.offset;
     }
@@ -5365,6 +5383,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedNode.codeLength;
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.codeRange?.length;
     }
@@ -5373,6 +5394,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedNode.codeOffset;
+    }
     if (_unlinkedTypedef != null) {
       return _unlinkedTypedef.codeRange?.offset;
     }
@@ -7501,6 +7525,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedNode.codeLength;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.codeRange?.length;
     }
@@ -7509,6 +7536,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedNode.codeOffset;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.codeRange?.offset;
     }
@@ -7764,6 +7794,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedNode.codeLength;
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.codeRange?.length;
     }
@@ -7772,6 +7805,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedNode.codeOffset;
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.codeRange?.offset;
     }
@@ -8965,6 +9001,9 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedNode.codeLength;
+    }
     if (_unlinkedTypeParam != null) {
       return _unlinkedTypeParam.codeRange?.length;
     }
@@ -8973,6 +9012,9 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedNode.codeOffset;
+    }
     if (_unlinkedTypeParam != null) {
       return _unlinkedTypeParam.codeRange?.offset;
     }
