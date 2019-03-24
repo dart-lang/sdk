@@ -478,7 +478,7 @@ class _CodeGenerator {
   }
 
   void outputHeader() {
-    out('// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file');
+    out('// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file');
     out('// for details. All rights reserved. Use of this source code is governed by a');
     out('// BSD-style license that can be found in the LICENSE file.');
     out('//');
