@@ -12,7 +12,7 @@ class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  set x(core::Object o) → void {}
+  set x(core::Object o) → dynamic {}
 }
 static method main() → dynamic {
   new self::B::•().x = "hello";

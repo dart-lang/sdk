@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Bar extends core::Object {
   get x() → self::Bar
     ;
-  set x(self::Bar value) → void
+  set x(self::Bar value) → dynamic
     ;
   method f() → dynamic
     ;

@@ -10,19 +10,19 @@ class B<T extends core::Object = dynamic> extends core::Object {
     ;
 }
 abstract class C<T extends core::Object = dynamic> extends core::Object implements self::B<core::num> {
-  generic-covariant-impl field core::num x = null;
+  field dynamic x = null;
   synthetic constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
-  abstract get y() → core::num;
-  abstract set y(generic-covariant-impl core::num value) → void;
+  abstract get y() → dynamic;
+  abstract set y(dynamic value) → dynamic;
 }
 abstract class D<T extends core::Object = dynamic> extends core::Object implements self::B<self::D::T> {
-  generic-covariant-impl field self::D::T x = null;
+  field dynamic x = null;
   synthetic constructor •() → self::D<self::D::T>
     : super core::Object::•()
     ;
-  abstract get y() → self::D::T;
-  abstract set y(generic-covariant-impl self::D::T value) → void;
+  abstract get y() → dynamic;
+  abstract set y(dynamic value) → dynamic;
 }
 static method main() → dynamic {}

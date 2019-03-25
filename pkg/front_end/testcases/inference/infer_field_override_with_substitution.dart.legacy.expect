@@ -11,9 +11,9 @@ abstract class A<T extends core::Object = dynamic> extends core::Object {
   abstract set y(generic-covariant-impl core::List<self::A::T> value) → void;
 }
 class B extends self::A<core::int> {
-  field core::List<core::int> x = null;
-  generic-covariant-impl field core::List<core::int> y = null;
-  generic-covariant-impl field core::List<core::int> z = null;
+  field dynamic x = null;
+  field dynamic y = null;
+  field dynamic z = null;
   synthetic constructor •() → self::B
     : super self::A::•()
     ;

@@ -17,7 +17,7 @@ class D extends self::C {
 class E extends self::D {
   synthetic constructor •() → self::E
     ;
-  set x(covariant core::int value) → void
+  set x(core::int value) → void
     ;
 }
 static method main() → dynamic

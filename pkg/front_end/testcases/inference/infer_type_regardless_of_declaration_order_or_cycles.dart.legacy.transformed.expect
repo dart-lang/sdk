@@ -9,7 +9,7 @@ class C extends inf::B {
   synthetic constructor •() → self::C
     : super inf::B::•()
     ;
-  get x() → core::int
+  get x() → dynamic
     return null;
 }
 class A extends core::Object {

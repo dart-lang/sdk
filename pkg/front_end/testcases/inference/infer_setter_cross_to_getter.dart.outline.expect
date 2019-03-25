@@ -10,7 +10,7 @@ abstract class A extends core::Object {
 abstract class B extends self::A {
   synthetic constructor •() → self::B
     ;
-  abstract set x(core::double value) → void;
+  abstract set x(dynamic value) → void;
 }
 static method main() → dynamic
   ;

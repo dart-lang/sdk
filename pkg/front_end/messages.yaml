@@ -2953,13 +2953,6 @@ CantInferTypeDueToInconsistentOverrides:
   template: "Can't infer a type for '#name' as some of the inherited members have different types."
   tip: "Try adding an explicit type."
   analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
-
-CantInferReturnTypeDueToInconsistentOverrides:
-  template: "Can't infer a return type for '#name' as some of the inherited members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
@@ -3584,19 +3577,3 @@ NonNullAwareSpreadIsNull:
     main() {
       <int>[...null];
     }
-
-CombinedMemberSignatureFailed:
-  template: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."
-  tip: "Try adding a declaration of '#name2' to '#name'."
-  analyzerCode: INCONSISTENT_INHERITANCE
-  script:
-    - |
-      abstract class I1 {
-        foo(x);
-      }
-
-      abstract class I2 {
-        foo();
-      }
-
-      abstract class C implements I2, I1 {}

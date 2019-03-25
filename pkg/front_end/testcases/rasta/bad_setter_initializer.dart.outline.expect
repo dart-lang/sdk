@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   constructor •() → self::C
     ;
-  set field(dynamic value) → void
+  set field(dynamic value) → dynamic
     ;
 }
 static method main() → dynamic

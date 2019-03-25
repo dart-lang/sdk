@@ -194,7 +194,7 @@ class MyMock1 extends self::B {
   synthetic constructor •() → self::MyMock1
     : super self::B::•()
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(dynamic _) → dynamic
     return null;
   no-such-method-forwarder method interfaceMethod2() → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod2, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
@@ -217,13 +217,13 @@ class MyMock2 extends self::MyMock1 {
   synthetic constructor •() → self::MyMock2
     : super self::MyMock1::•()
     ;
-  abstract method noSuchMethod(core::Invocation _) → dynamic;
+  abstract method noSuchMethod(dynamic _) → dynamic;
 }
 class MyMock3 extends self::B {
   synthetic constructor •() → self::MyMock3
     : super self::B::•()
     ;
-  abstract method noSuchMethod(core::Invocation _) → dynamic;
+  abstract method noSuchMethod(dynamic _) → dynamic;
   no-such-method-forwarder get interfaceMethod1() → dynamic
     return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
   no-such-method-forwarder set property3(dynamic _) → void

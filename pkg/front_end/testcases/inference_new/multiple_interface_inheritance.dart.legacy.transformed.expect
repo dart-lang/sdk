@@ -18,7 +18,6 @@ abstract class C extends core::Object implements self::I1, self::I2 {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  abstract forwarding-stub method f(core::Object o) → void;
 }
 class D extends self::C {
   synthetic constructor •() → self::D

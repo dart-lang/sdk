@@ -62,8 +62,10 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
+import '../type_inference/interface_resolver.dart' show InterfaceResolver;
+
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, TypeInferenceEngine;
+    show IncludesTypeParametersCovariantly, InferenceNode, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
@@ -268,6 +270,59 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
   @override
   void acceptInference(InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitCascadeJudgment(this, typeContext);
+  }
+}
+
+/// Shadow object representing a class in kernel form.
+class ShadowClass extends Class {
+  ClassInferenceInfo _inferenceInfo;
+
+  ShadowClass(
+      {String name,
+      Supertype supertype,
+      Supertype mixedInType,
+      List<TypeParameter> typeParameters,
+      List<Supertype> implementedTypes,
+      List<Procedure> procedures,
+      List<Field> fields})
+      : super(
+            name: name,
+            supertype: supertype,
+            mixedInType: mixedInType,
+            typeParameters: typeParameters,
+            implementedTypes: implementedTypes,
+            procedures: procedures,
+            fields: fields);
+
+  /// Resolves all forwarding nodes for this class, propagates covariance
+  /// annotations, and creates forwarding stubs as needed.
+  void finalizeCovariance(InterfaceResolver interfaceResolver) {
+    interfaceResolver.finalizeCovariance(
+        this, _inferenceInfo.gettersAndMethods, _inferenceInfo.builder.library);
+    interfaceResolver.finalizeCovariance(
+        this, _inferenceInfo.setters, _inferenceInfo.builder.library);
+  }
+
+  /// Creates API members for this class.
+  void setupApiMembers(InterfaceResolver interfaceResolver) {
+    interfaceResolver.createApiMembers(this, _inferenceInfo.gettersAndMethods,
+        _inferenceInfo.setters, _inferenceInfo.builder.library);
+  }
+
+  static void clearClassInferenceInfo(ShadowClass class_) {
+    class_._inferenceInfo = null;
+  }
+
+  static ClassInferenceInfo getClassInferenceInfo(Class class_) {
+    if (class_ is ShadowClass) return class_._inferenceInfo;
+    return null;
+  }
+
+  /// Initializes the class inference information associated with the given
+  /// [class_], starting with the fact that it is associated with the given
+  /// [builder].
+  static void setBuilder(ShadowClass class_, SourceClassBuilder builder) {
+    class_._inferenceInfo = new ClassInferenceInfo(builder);
   }
 }
 
@@ -570,6 +625,32 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
   @override
   void acceptInference(InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitFactoryConstructorInvocationJudgment(this, typeContext);
+  }
+}
+
+/// Concrete shadow object representing a field in kernel form.
+class ShadowField extends Field implements ShadowMember {
+  @override
+  InferenceNode inferenceNode;
+
+  ShadowTypeInferrer _typeInferrer;
+
+  final bool _isImplicitlyTyped;
+
+  ShadowField(Name name, this._isImplicitlyTyped, {Uri fileUri})
+      : super(name, fileUri: fileUri) {}
+
+  @override
+  void setInferredType(
+      TypeInferenceEngine engine, Uri uri, DartType inferredType) {
+    type = inferredType;
+  }
+
+  static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
+
+  static void setInferenceNode(ShadowField field, InferenceNode node) {
+    assert(field.inferenceNode == null);
+    field.inferenceNode = node;
   }
 }
 
@@ -912,6 +993,18 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
   }
 }
 
+/// Abstract shadow object representing a field or procedure in kernel form.
+abstract class ShadowMember implements Member {
+  Uri get fileUri;
+
+  InferenceNode get inferenceNode;
+
+  void set inferenceNode(InferenceNode value);
+
+  void setInferredType(
+      TypeInferenceEngine engine, Uri uri, DartType inferredType);
+}
+
 /// Shadow object for [MethodInvocation].
 class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
@@ -1007,6 +1100,37 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
   @override
   void acceptInference(InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertyGetJudgment(this, typeContext);
+  }
+}
+
+/// Concrete shadow object representing a procedure in kernel form.
+class ShadowProcedure extends Procedure implements ShadowMember {
+  @override
+  InferenceNode inferenceNode;
+
+  final bool _hasImplicitReturnType;
+
+  ShadowProcedure(Name name, ProcedureKind kind, FunctionNode function,
+      this._hasImplicitReturnType,
+      {Uri fileUri, bool isAbstract: false})
+      : super(name, kind, function, fileUri: fileUri, isAbstract: isAbstract);
+
+  @override
+  void setInferredType(
+      TypeInferenceEngine engine, Uri uri, DartType inferredType) {
+    if (isSetter) {
+      if (function.positionalParameters.length > 0) {
+        function.positionalParameters[0].type = inferredType;
+      }
+    } else if (isGetter) {
+      function.returnType = inferredType;
+    } else {
+      unhandled("setInferredType", "not accessor", fileOffset, uri);
+    }
+  }
+
+  static bool hasImplicitReturnType(ShadowProcedure procedure) {
+    return procedure._hasImplicitReturnType;
   }
 }
 
@@ -1339,8 +1463,14 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
-    return new TypeInferrer(this, uri, true, thisType, library);
+      InterfaceType thisType, ShadowField field, KernelLibraryBuilder library) {
+    return field._typeInferrer =
+        new TypeInferrer(this, field.fileUri, true, thisType, library);
+  }
+
+  @override
+  ShadowTypeInferrer getFieldTypeInferrer(ShadowField field) {
+    return field._typeInferrer;
   }
 }
 
@@ -1356,7 +1486,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
         super.private(engine, uri, topLevel, thisType, library);
 
   @override
-  Expression getFieldInitializer(Field field) {
+  Expression getFieldInitializer(ShadowField field) {
     return field.initializer;
   }
 
@@ -1396,6 +1526,13 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       }
     }
     return inferredType;
+  }
+
+  @override
+  DartType inferFieldTopLevel(ShadowField field) {
+    if (field.initializer == null) return const DynamicType();
+    return inferExpression(field.initializer, const UnknownType(), true,
+        isVoidAllowed: true);
   }
 
   @override

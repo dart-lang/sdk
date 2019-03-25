@@ -15,8 +15,8 @@ var a = new A();
 // There's a circularity between b and c because a.f is generic, so the type of
 // c is required to infer b, and vice versa.
 
-var b = /*@returnType=() -> invalid-type*/ () =>
-    a. /*@typeArgs=() -> invalid-type*/ /*@target=A::f*/ f(c);
+var b = /*@returnType=invalid-type*/ () =>
+    a. /*@typeArgs=invalid-type*/ /*@target=A::f*/ f(c);
 var c = /*@returnType=invalid-type*/ () =>
     a. /*@typeArgs=invalid-type*/ /*@target=A::f*/ f(b);
 

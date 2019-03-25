@@ -27,7 +27,6 @@ import 'builder.dart'
     show
         ClassBuilder,
         Declaration,
-        FieldBuilder,
         ModifierBuilder,
         NameIterator,
         PrefixBuilder,
@@ -236,8 +235,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   }
 
   void recordAccess(int charOffset, int length, Uri fileUri) {}
-
-  List<FieldBuilder> takeImplicitlyTypedFields() => null;
 }
 
 class LibraryLocalDeclarationIterator implements Iterator<Declaration> {

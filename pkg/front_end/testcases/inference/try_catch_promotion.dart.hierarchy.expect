@@ -58,7 +58,7 @@ StackTrace:
     Object
   interfaces:
   classMembers:
-    StackTrace.Object.toString%StackTrace.toString
+    Object.toString
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
@@ -77,7 +77,7 @@ E:
       -> StackTrace
   interfaces:
   classMembers:
-    StackTrace.Object.toString%StackTrace.toString
+    Object.toString
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf

@@ -38,17 +38,19 @@ import '../kernel/kernel_builder.dart'
         TypeVariableBuilder,
         compareProcedures;
 
+import '../kernel/kernel_shadow_ast.dart' show ShadowClass;
+
 import '../problems.dart' show unexpected, unhandled;
 
-Class initializeClass(
-    Class cls,
+ShadowClass initializeClass(
+    ShadowClass cls,
     List<TypeVariableBuilder> typeVariables,
     String name,
     KernelLibraryBuilder parent,
     int startCharOffset,
     int charOffset,
     int charEndOffset) {
-  cls ??= new Class(
+  cls ??= new ShadowClass(
       name: name,
       typeParameters:
           KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
@@ -98,10 +100,12 @@ class SourceClassBuilder extends KernelClassBuilder
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, charOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            scope, constructors, parent, charOffset);
+            scope, constructors, parent, charOffset) {
+    ShadowClass.setBuilder(this.cls, this);
+  }
 
   @override
-  Class get cls => origin.actualCls;
+  ShadowClass get cls => origin.actualCls;
 
   @override
   KernelLibraryBuilder get library => super.library;
@@ -236,6 +240,20 @@ class SourceClassBuilder extends KernelClassBuilder
     DillMemberBuilder memberBuilder = new DillMemberBuilder(constructor, this);
     memberBuilder.next = constructorScopeBuilder[name];
     constructorScopeBuilder.addMember(name, memberBuilder);
+  }
+
+  void prepareTopLevelInference() {
+    scope.forEach((String name, Declaration declaration) {
+      do {
+        if (declaration is KernelFieldBuilder) {
+          declaration.prepareTopLevelInference();
+        }
+        declaration = declaration.next;
+      } while (declaration != null);
+    });
+    if (!isPatch) {
+      cls.setupApiMembers(library.loader.interfaceResolver);
+    }
   }
 
   @override

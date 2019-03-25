@@ -122,8 +122,6 @@ import 'redirecting_factory_body.dart'
 
 import 'kernel_target.dart' show KernelTarget;
 
-import 'types.dart' show Types;
-
 abstract class KernelClassBuilder
     extends ClassBuilder<KernelTypeBuilder, InterfaceType> {
   KernelClassBuilder actualOrigin;
@@ -523,7 +521,7 @@ abstract class KernelClassBuilder
   }
 
   void handleSeenCovariant(
-      Types types,
+      ClassHierarchy hierarchy,
       Member declaredMember,
       Member interfaceMember,
       bool isSetter,
@@ -531,8 +529,9 @@ abstract class KernelClassBuilder
     // When a parameter is covariant we have to check that we also
     // override the same member in all parents.
     for (Supertype supertype in interfaceMember.enclosingClass.supers) {
-      Member m = types.hierarchy.getInterfaceMemberKernel(
-          supertype.classNode, interfaceMember.name, isSetter);
+      Member m = hierarchy.getInterfaceMember(
+          supertype.classNode, interfaceMember.name,
+          setter: isSetter);
       if (m != null) {
         callback(declaredMember, m, isSetter);
       }
@@ -540,7 +539,8 @@ abstract class KernelClassBuilder
   }
 
   void checkOverride(
-      Types types,
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
       Member declaredMember,
       Member interfaceMember,
       bool isSetter,
@@ -556,25 +556,25 @@ abstract class KernelClassBuilder
     if (declaredMember is Procedure && interfaceMember is Procedure) {
       if (declaredMember.kind == ProcedureKind.Method &&
           interfaceMember.kind == ProcedureKind.Method) {
-        bool seenCovariant = checkMethodOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
+        bool seenCovariant = checkMethodOverride(hierarchy, typeEnvironment,
+            declaredMember, interfaceMember, isInterfaceCheck);
         if (seenCovariant) {
           handleSeenCovariant(
-              types, declaredMember, interfaceMember, isSetter, callback);
+              hierarchy, declaredMember, interfaceMember, isSetter, callback);
         }
       }
       if (declaredMember.kind == ProcedureKind.Getter &&
           interfaceMember.kind == ProcedureKind.Getter) {
-        checkGetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
+        checkGetterOverride(hierarchy, typeEnvironment, declaredMember,
+            interfaceMember, isInterfaceCheck);
       }
       if (declaredMember.kind == ProcedureKind.Setter &&
           interfaceMember.kind == ProcedureKind.Setter) {
-        bool seenCovariant = checkSetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
+        bool seenCovariant = checkSetterOverride(hierarchy, typeEnvironment,
+            declaredMember, interfaceMember, isInterfaceCheck);
         if (seenCovariant) {
           handleSeenCovariant(
-              types, declaredMember, interfaceMember, isSetter, callback);
+              hierarchy, declaredMember, interfaceMember, isSetter, callback);
         }
       }
     } else {
@@ -582,24 +582,19 @@ abstract class KernelClassBuilder
           declaredMember is Procedure && declaredMember.isGetter;
       bool interfaceMemberHasGetter = interfaceMember is Field ||
           interfaceMember is Procedure && interfaceMember.isGetter;
-      bool declaredMemberHasSetter = (declaredMember is Field &&
-              !declaredMember.isFinal &&
-              !declaredMember.isConst) ||
+      bool declaredMemberHasSetter = declaredMember is Field ||
           declaredMember is Procedure && declaredMember.isSetter;
-      bool interfaceMemberHasSetter = (interfaceMember is Field &&
-              !interfaceMember.isFinal &&
-              !interfaceMember.isConst) ||
+      bool interfaceMemberHasSetter = interfaceMember is Field ||
           interfaceMember is Procedure && interfaceMember.isSetter;
       if (declaredMemberHasGetter && interfaceMemberHasGetter) {
-        checkGetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
-      }
-      if (declaredMemberHasSetter && interfaceMemberHasSetter) {
-        bool seenCovariant = checkSetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
+        checkGetterOverride(hierarchy, typeEnvironment, declaredMember,
+            interfaceMember, isInterfaceCheck);
+      } else if (declaredMemberHasSetter && interfaceMemberHasSetter) {
+        bool seenCovariant = checkSetterOverride(hierarchy, typeEnvironment,
+            declaredMember, interfaceMember, isInterfaceCheck);
         if (seenCovariant) {
           handleSeenCovariant(
-              types, declaredMember, interfaceMember, isSetter, callback);
+              hierarchy, declaredMember, interfaceMember, isSetter, callback);
         }
       }
     }
@@ -607,10 +602,85 @@ abstract class KernelClassBuilder
   }
 
   void checkOverrides(
-      ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {}
+      ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
+    void overridePairCallback(
+        Member declaredMember, Member interfaceMember, bool isSetter) {
+      checkOverride(hierarchy, typeEnvironment, declaredMember, interfaceMember,
+          isSetter, overridePairCallback);
+    }
+
+    hierarchy.forEachOverridePair(cls, overridePairCallback);
+  }
 
   void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      TypeEnvironment typeEnvironment) {}
+      TypeEnvironment typeEnvironment) {
+    // TODO(ahe): Move this to [ClassHierarchyBuilder].
+    if (isAbstract) {
+      // Unimplemented members allowed
+      return;
+    }
+
+    bool mustHaveImplementation(Member member) {
+      // Public member
+      if (!member.name.isPrivate) return true;
+      // Private member in different library
+      if (member.enclosingLibrary != cls.enclosingLibrary) return false;
+      // Private member in patch
+      if (member.fileUri != member.enclosingClass.fileUri) return false;
+      // Private member in same library
+      return true;
+    }
+
+    void overridePairCallback(
+        Member declaredMember, Member interfaceMember, bool isSetter) {
+      checkOverride(hierarchy, typeEnvironment, declaredMember, interfaceMember,
+          isSetter, overridePairCallback,
+          isInterfaceCheck: true);
+    }
+
+    void findMissingImplementations({bool setters}) {
+      List<Member> dispatchTargets =
+          hierarchy.getDispatchTargets(cls, setters: setters);
+      int targetIndex = 0;
+      for (Member interfaceMember
+          in hierarchy.getInterfaceMembers(cls, setters: setters)) {
+        if (mustHaveImplementation(interfaceMember)) {
+          while (targetIndex < dispatchTargets.length &&
+              ClassHierarchy.compareMembers(
+                      dispatchTargets[targetIndex], interfaceMember) <
+                  0) {
+            targetIndex++;
+          }
+          bool foundTarget = targetIndex < dispatchTargets.length &&
+              ClassHierarchy.compareMembers(
+                      dispatchTargets[targetIndex], interfaceMember) <=
+                  0;
+          if (foundTarget) {
+            Member dispatchTarget = dispatchTargets[targetIndex];
+            while (dispatchTarget is Procedure &&
+                !dispatchTarget.isExternal &&
+                dispatchTarget.forwardingStubSuperTarget != null) {
+              dispatchTarget =
+                  (dispatchTarget as Procedure).forwardingStubSuperTarget;
+            }
+            while (interfaceMember is Procedure &&
+                !interfaceMember.isExternal &&
+                interfaceMember.forwardingStubInterfaceTarget != null) {
+              interfaceMember =
+                  (interfaceMember as Procedure).forwardingStubInterfaceTarget;
+            }
+            if (!hierarchy.isSubtypeOf(dispatchTarget.enclosingClass,
+                interfaceMember.enclosingClass)) {
+              overridePairCallback(dispatchTarget, interfaceMember, setters);
+            }
+          }
+        }
+      }
+    }
+
+    findMissingImplementations(setters: false);
+    findMissingImplementations(setters: true);
+  }
 
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass) {
@@ -837,7 +907,7 @@ abstract class KernelClassBuilder
   }
 
   Substitution _computeInterfaceSubstitution(
-      Types types,
+      ClassHierarchy hierarchy,
       Member declaredMember,
       Member interfaceMember,
       FunctionNode declaredFunction,
@@ -845,9 +915,8 @@ abstract class KernelClassBuilder
       bool isInterfaceCheck) {
     Substitution interfaceSubstitution = Substitution.empty;
     if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
-      interfaceSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(
-              cls.thisType, interfaceMember.enclosingClass));
+      interfaceSubstitution = Substitution.fromSupertype(
+          hierarchy.getClassAsInstanceOf(cls, interfaceMember.enclosingClass));
     }
     if (declaredFunction?.typeParameters?.length !=
         interfaceFunction?.typeParameters?.length) {
@@ -914,18 +983,17 @@ abstract class KernelClassBuilder
   }
 
   Substitution _computeDeclaredSubstitution(
-      Types types, Member declaredMember) {
+      ClassHierarchy hierarchy, Member declaredMember) {
     Substitution declaredSubstitution = Substitution.empty;
     if (declaredMember.enclosingClass.typeParameters.isNotEmpty) {
-      declaredSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(
-              cls.thisType, declaredMember.enclosingClass));
+      declaredSubstitution = Substitution.fromSupertype(
+          hierarchy.getClassAsInstanceOf(cls, declaredMember.enclosingClass));
     }
     return declaredSubstitution;
   }
 
-  void _checkTypes(
-      Types types,
+  bool _checkTypes(
+      TypeEnvironment typeEnvironment,
       Substitution interfaceSubstitution,
       Substitution declaredSubstitution,
       Member declaredMember,
@@ -936,7 +1004,7 @@ abstract class KernelClassBuilder
       VariableDeclaration declaredParameter,
       bool isInterfaceCheck,
       {bool asIfDeclaredParameter = false}) {
-    if (library.loader.target.backendTarget.legacyMode) return;
+    if (library.loader.target.backendTarget.legacyMode) return false;
 
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
@@ -949,9 +1017,9 @@ abstract class KernelClassBuilder
     DartType subtype = inParameter ? interfaceType : declaredType;
     DartType supertype = inParameter ? declaredType : interfaceType;
 
-    if (types.isSubtypeOfKernel(subtype, supertype)) {
+    if (typeEnvironment.isSubtypeOf(subtype, supertype)) {
       // No problem--the proper subtyping relation is satisfied.
-    } else if (isCovariant && types.isSubtypeOfKernel(supertype, subtype)) {
+    } else if (isCovariant && typeEnvironment.isSubtypeOf(supertype, subtype)) {
       // No problem--the overriding parameter is marked "covariant" and has
       // a type which is a subtype of the parameter it overrides.
     } else if (subtype is InvalidType || supertype is InvalidType) {
@@ -989,13 +1057,19 @@ abstract class KernelClassBuilder
                         interfaceMember.fileOffset, noLength)
               ] +
               inheritedContext(isInterfaceCheck, declaredMember));
+      return true;
     }
+    return false;
   }
 
   /// Returns whether a covariant parameter was seen and more methods thus have
   /// to be checked.
-  bool checkMethodOverride(Types types, Procedure declaredMember,
-      Procedure interfaceMember, bool isInterfaceCheck) {
+  bool checkMethodOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Procedure declaredMember,
+      Procedure interfaceMember,
+      bool isInterfaceCheck) {
     assert(declaredMember.kind == ProcedureKind.Method);
     assert(interfaceMember.kind == ProcedureKind.Method);
     bool seenCovariant = false;
@@ -1003,7 +1077,7 @@ abstract class KernelClassBuilder
     FunctionNode interfaceFunction = interfaceMember.function;
 
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
-        types,
+        hierarchy,
         declaredMember,
         interfaceMember,
         declaredFunction,
@@ -1011,10 +1085,10 @@ abstract class KernelClassBuilder
         isInterfaceCheck);
 
     Substitution declaredSubstitution =
-        _computeDeclaredSubstitution(types, declaredMember);
+        _computeDeclaredSubstitution(hierarchy, declaredMember);
 
     _checkTypes(
-        types,
+        typeEnvironment,
         interfaceSubstitution,
         declaredSubstitution,
         declaredMember,
@@ -1069,7 +1143,7 @@ abstract class KernelClassBuilder
       var declaredParameter = declaredFunction.positionalParameters[i];
       var interfaceParameter = interfaceFunction.positionalParameters[i];
       _checkTypes(
-          types,
+          typeEnvironment,
           interfaceSubstitution,
           declaredSubstitution,
           declaredMember,
@@ -1146,7 +1220,7 @@ abstract class KernelClassBuilder
       }
       var declaredParameter = declaredNamedParameters.current;
       _checkTypes(
-          types,
+          typeEnvironment,
           interfaceSubstitution,
           declaredSubstitution,
           declaredMember,
@@ -1161,16 +1235,25 @@ abstract class KernelClassBuilder
     return seenCovariant;
   }
 
-  void checkGetterOverride(Types types, Member declaredMember,
-      Member interfaceMember, bool isInterfaceCheck) {
+  void checkGetterOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Member declaredMember,
+      Member interfaceMember,
+      bool isInterfaceCheck) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
-        types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
+        hierarchy,
+        declaredMember,
+        interfaceMember,
+        null,
+        null,
+        isInterfaceCheck);
     Substitution declaredSubstitution =
-        _computeDeclaredSubstitution(types, declaredMember);
+        _computeDeclaredSubstitution(hierarchy, declaredMember);
     var declaredType = declaredMember.getterType;
     var interfaceType = interfaceMember.getterType;
     _checkTypes(
-        types,
+        typeEnvironment,
         interfaceSubstitution,
         declaredSubstitution,
         declaredMember,
@@ -1184,25 +1267,29 @@ abstract class KernelClassBuilder
 
   /// Returns whether a covariant parameter was seen and more methods thus have
   /// to be checked.
-  bool checkSetterOverride(Types types, Member declaredMember,
-      Member interfaceMember, bool isInterfaceCheck) {
+  bool checkSetterOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Member declaredMember,
+      Member interfaceMember,
+      bool isInterfaceCheck) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
-        types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
+        hierarchy,
+        declaredMember,
+        interfaceMember,
+        null,
+        null,
+        isInterfaceCheck);
     Substitution declaredSubstitution =
-        _computeDeclaredSubstitution(types, declaredMember);
+        _computeDeclaredSubstitution(hierarchy, declaredMember);
     var declaredType = declaredMember.setterType;
     var interfaceType = interfaceMember.setterType;
     var declaredParameter =
         declaredMember.function?.positionalParameters?.elementAt(0);
     bool isCovariant = declaredParameter?.isCovariant ?? false;
-    if (!isCovariant && declaredMember is Field) {
-      isCovariant = declaredMember.isCovariant;
-    }
-    if (!isCovariant && interfaceMember is Field) {
-      isCovariant = interfaceMember.isCovariant;
-    }
+    if (declaredMember is Field) isCovariant = declaredMember.isCovariant;
     _checkTypes(
-        types,
+        typeEnvironment,
         interfaceSubstitution,
         declaredSubstitution,
         declaredMember,

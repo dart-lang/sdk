@@ -253,24 +253,24 @@ class A extends core::Object {
     ;
   get e() → dynamic
     return null;
-  set g(dynamic _) → void {}
+  set g(dynamic _) → dynamic {}
   get h() → dynamic
     return null;
-  set h(dynamic _) → void {}
+  set h(dynamic _) → dynamic {}
   get i() → dynamic
     return null;
   operator [](dynamic _) → dynamic
     return null;
-  operator []=(dynamic a, dynamic b) → void {}
+  operator []=(dynamic a, dynamic b) → dynamic {}
   operator ~() → dynamic
     return 117;
   operator unary-() → dynamic
     return 117;
-  operator ==(dynamic other) → core::bool
+  operator ==(dynamic other) → dynamic
     return true;
   method m() → void {}
   method n() → void {}
-  set n(dynamic _) → void {}
+  set n(dynamic _) → dynamic {}
 }
 class B extends self::A {
   final field dynamic d = null;
@@ -279,8 +279,8 @@ class B extends self::A {
     ;
   get b() → dynamic
     return null;
-  set c(dynamic x) → void {}
-  set i(dynamic x) → void {}
+  set c(dynamic x) → dynamic {}
+  set i(dynamic x) → dynamic {}
 }
 class C extends self::B {
   synthetic constructor •() → self::C

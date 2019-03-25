@@ -9,7 +9,7 @@ abstract class A extends core::Object {
     ;
 }
 class B extends self::A {
-  final field core::double x;
+  final field dynamic x;
   constructor •(dynamic x) → self::B
     ;
 }

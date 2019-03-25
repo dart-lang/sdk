@@ -696,7 +696,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  bool includePart(
+  void includePart(
       SourceLibraryBuilder<T, R> part, Set<Uri> usedParts, int partOffset) {
     if (part.partOfUri != null) {
       if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
@@ -708,7 +708,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             partOffset,
             noLength,
             fileUri);
-        return false;
+        return;
       }
     } else if (part.partOfName != null) {
       if (name != null) {
@@ -721,7 +721,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
               partOffset,
               noLength,
               fileUri);
-          return false;
+          return;
         }
       } else {
         // This is an error, but the part is not removed from the list of parts,
@@ -732,7 +732,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             partOffset,
             noLength,
             fileUri);
-        return false;
+        return;
       }
     } else {
       // This is an error, but the part is not removed from the list of parts,
@@ -742,7 +742,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         addProblem(templateMissingPartOf.withArguments(part.fileUri),
             partOffset, noLength, fileUri);
       }
-      return false;
+      return;
     }
     part.validatePart(this, usedParts);
     NameIterator partDeclarations = part.nameIterator;
@@ -791,7 +791,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     part.partOfLibrary = this;
     part.scope.becomePartOf(scope);
     // TODO(ahe): Include metadata from part?
-    return true;
   }
 
   void buildInitialScopes() {

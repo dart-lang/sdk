@@ -22,29 +22,29 @@ class A extends core::Object {
     ;
   get e() → dynamic
     ;
-  set g(dynamic _) → void
+  set g(dynamic _) → dynamic
     ;
   get h() → dynamic
     ;
-  set h(dynamic _) → void
+  set h(dynamic _) → dynamic
     ;
   get i() → dynamic
     ;
   operator [](dynamic _) → dynamic
     ;
-  operator []=(dynamic a, dynamic b) → void
+  operator []=(dynamic a, dynamic b) → dynamic
     ;
   operator ~() → dynamic
     ;
   operator unary-() → dynamic
     ;
-  operator ==(dynamic other) → core::bool
+  operator ==(dynamic other) → dynamic
     ;
   method m() → void
     ;
   method n() → void
     ;
-  set n(dynamic _) → void
+  set n(dynamic _) → dynamic
     ;
 }
 class B extends self::A {
@@ -53,9 +53,9 @@ class B extends self::A {
     ;
   get b() → dynamic
     ;
-  set c(dynamic x) → void
+  set c(dynamic x) → dynamic
     ;
-  set i(dynamic x) → void
+  set i(dynamic x) → dynamic
     ;
 }
 class C extends self::B {

@@ -19,7 +19,7 @@ class C extends core::Object {
 class D extends self::C {
   synthetic constructor •() → self::D
     ;
-  method f(self::A x) → void
+  method f(dynamic x) → void
     ;
 }
 class E extends self::D {

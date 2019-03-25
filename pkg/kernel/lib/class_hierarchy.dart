@@ -247,14 +247,14 @@ abstract class ClassHierarchy {
   /// Compares members by name, using the same sort order as
   /// [getDeclaredMembers] and [getInterfaceMembers].
   static int compareMembers(Member first, Member second) {
-    return compareNames(first.name, second.name);
+    return _compareNames(first.name, second.name);
   }
 
   /// Compares names, using the same sort order as [getDeclaredMembers] and
   /// [getInterfaceMembers].
   ///
   /// This is an arbitrary as-fast-as-possible sorting criterion.
-  static int compareNames(Name firstName, Name secondName) {
+  static int _compareNames(Name firstName, Name secondName) {
     int firstHash = firstName.hashCode;
     int secondHash = secondName.hashCode;
     if (firstHash != secondHash) return firstHash - secondHash;
@@ -291,7 +291,7 @@ abstract class ClassHierarchy {
     while (low <= high) {
       int mid = low + ((high - low) >> 1);
       Member pivot = members[mid];
-      int comparison = compareNames(name, pivot.name);
+      int comparison = _compareNames(name, pivot.name);
       if (comparison < 0) {
         high = mid - 1;
       } else if (comparison > 0) {

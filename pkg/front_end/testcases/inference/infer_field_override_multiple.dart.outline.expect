@@ -1,22 +1,4 @@
 library test;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var x;
-//       ^
-//
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var x;
-//       ^
-//
-// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
-// Try adding an explicit type.
-//   var x;
-//       ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -41,22 +23,22 @@ abstract class D extends core::Object {
   abstract get x() → core::double;
 }
 class E extends self::A implements self::B {
-  field core::int x;
+  field dynamic x;
   synthetic constructor •() → self::E
     ;
 }
 class F extends self::A implements self::C {
-  field invalid-type x;
+  field dynamic x;
   synthetic constructor •() → self::F
     ;
 }
 class G extends self::A implements self::D {
-  field invalid-type x;
+  field dynamic x;
   synthetic constructor •() → self::G
     ;
 }
 class H extends self::C implements self::D {
-  field invalid-type x;
+  field dynamic x;
   synthetic constructor •() → self::H
     ;
 }

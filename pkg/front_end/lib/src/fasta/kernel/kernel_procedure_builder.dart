@@ -30,6 +30,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
+        VoidType,
         setParents;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
@@ -72,7 +73,8 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+import 'kernel_shadow_ast.dart'
+    show ShadowProcedure, VariableDeclarationJudgment;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -272,15 +274,13 @@ abstract class KernelFunctionBuilder
 }
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
-  final Procedure procedure;
+  final ShadowProcedure procedure;
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
   @override
   KernelProcedureBuilder actualOrigin;
-
-  bool hadTypesInferred = false;
 
   KernelProcedureBuilder(
       List<MetadataBuilder> metadata,
@@ -296,11 +296,11 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
-      : procedure =
-            new Procedure(null, kind, null, fileUri: compilationUnit?.fileUri)
-              ..startFileOffset = startCharOffset
-              ..fileOffset = charOffset
-              ..fileEndOffset = charEndOffset,
+      : procedure = new ShadowProcedure(null, kind, null, returnType == null,
+            fileUri: compilationUnit?.fileUri)
+          ..startFileOffset = startCharOffset
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -352,6 +352,11 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isExternal = isExternal;
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
+    }
+    if (!library.loader.target.legacyMode &&
+        (isSetter || (isOperator && name == '[]=')) &&
+        returnType == null) {
+      procedure.function.returnType = const VoidType();
     }
     return procedure;
   }

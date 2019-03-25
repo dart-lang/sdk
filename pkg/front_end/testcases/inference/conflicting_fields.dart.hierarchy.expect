@@ -79,8 +79,8 @@ B:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-    B.field1
-    B.field2
+    A.field1
+    A.field2
   interfaceMembers:
     B.field1
     Object.toString
@@ -95,5 +95,5 @@ B:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    B.field1
-    B.field2
+    A.field1
+    A.field2

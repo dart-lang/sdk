@@ -15,7 +15,7 @@ abstract class B extends self::A {
   abstract get x() → core::int;
 }
 class C extends self::B {
-  field core::int x = null;
+  field dynamic x = null;
   synthetic constructor •() → self::C
     : super self::B::•()
     ;

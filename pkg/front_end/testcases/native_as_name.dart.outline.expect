@@ -28,7 +28,7 @@ class Z extends core::Object {
   field core::String f;
   synthetic constructor •() → self::Z
     ;
-  set native(core::String s) → void
+  set native(core::String s) → dynamic
     ;
 }
 static method main() → dynamic

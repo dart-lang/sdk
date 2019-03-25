@@ -11,17 +11,17 @@ abstract class I<T extends core::Object = dynamic> extends core::Object {
 class C<U extends core::Object = dynamic> extends core::Object implements self::I<core::int> {
   synthetic constructor •() → self::C<self::C::U>
     ;
-  method f1(generic-covariant-impl core::int x) → void
+  method f1(core::int x) → void
     ;
-  method f2(generic-covariant-impl core::int x, [generic-covariant-impl self::C::U y]) → void
+  method f2(core::int x, [generic-covariant-impl self::C::U y]) → void
     ;
 }
 class D<U extends core::Object = dynamic> extends self::C<self::D::U> {
   synthetic constructor •() → self::D<self::D::U>
     ;
-  method f1(generic-covariant-impl core::int x) → void
+  method f1(core::int x) → void
     ;
-  method f2(generic-covariant-impl core::int x, [generic-covariant-impl self::D::U y]) → void
+  method f2(core::int x, [generic-covariant-impl self::D::U y]) → void
     ;
 }
 static method g1(self::C<core::num> c) → void

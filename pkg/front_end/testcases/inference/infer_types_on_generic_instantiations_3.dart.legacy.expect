@@ -13,9 +13,9 @@ class B extends core::Object implements self::A<core::int> {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  get x() → core::int
+  get x() → dynamic
     return 3;
-  get w() → core::int
+  get w() → dynamic
     return "hello";
 }
 static method foo() → dynamic {

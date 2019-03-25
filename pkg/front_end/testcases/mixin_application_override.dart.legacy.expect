@@ -122,66 +122,6 @@ library;
 // class B2X extends S with M1, M2, M, MX {}
 //       ^^^
 //
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
-//   foo([x]) {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:26:7: Context: Override was introduced in the mixin application class 'A1X'.
-// class A1X = S with M1, M, MX;
-//       ^^^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
-//   foo([x]) {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:27:7: Context: Override was introduced in the mixin application class 'A2X'.
-// class A2X = S with M1, M2, M, MX;
-//       ^^^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
-//   foo([x]) {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:31:7: Context: Both members are inherited by the non-abstract class 'B1'.
-// class B1 extends S with M1, M {}
-//       ^^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
-//   foo([x]) {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:33:7: Context: Both members are inherited by the non-abstract class 'B2'.
-// class B2 extends S with M1, M2, M {}
-//       ^^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
-//   foo([x]) {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:37:7: Context: Both members are inherited by the non-abstract class 'B1X'.
-// class B1X extends S with M1, M, MX {}
-//       ^^^
-//
-// pkg/front_end/testcases/mixin_application_override.dart:12:3: Warning: The method 'M.foo' has fewer positional arguments than those of overridden method 'S.foo'.
-//   foo() {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:8:3: Context: This is the overridden method ('foo').
-//   foo([x]) {}
-//   ^
-// pkg/front_end/testcases/mixin_application_override.dart:39:7: Context: Both members are inherited by the non-abstract class 'B2X'.
-// class B2X extends S with M1, M2, M, MX {}
-//       ^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -226,7 +166,6 @@ class A1 = self::_A1&S&M1 with self::M {
   synthetic constructor •() → self::A1
     : super self::_A1&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _A2&S&M1 = self::S with self::M1 {
   synthetic constructor •() → self::_A2&S&M1
@@ -242,7 +181,6 @@ class A2 = self::_A2&S&M1&M2 with self::M {
   synthetic constructor •() → self::A2
     : super self::_A2&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _A0X&S&M = self::S with self::M {
   synthetic constructor •() → self::_A0X&S&M
@@ -263,13 +201,11 @@ abstract class _A1X&S&M1&M = self::_A1X&S&M1 with self::M {
   synthetic constructor •() → self::_A1X&S&M1&M
     : super self::_A1X&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class A1X = self::_A1X&S&M1&M with self::MX {
   synthetic constructor •() → self::A1X
     : super self::_A1X&S&M1&M::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _A2X&S&M1 = self::S with self::M1 {
   synthetic constructor •() → self::_A2X&S&M1
@@ -285,13 +221,11 @@ abstract class _A2X&S&M1&M2&M = self::_A2X&S&M1&M2 with self::M {
   synthetic constructor •() → self::_A2X&S&M1&M2&M
     : super self::_A2X&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class A2X = self::_A2X&S&M1&M2&M with self::MX {
   synthetic constructor •() → self::A2X
     : super self::_A2X&S&M1&M2&M::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B0&S&M = self::S with self::M {
   synthetic constructor •() → self::_B0&S&M
@@ -312,13 +246,11 @@ abstract class _B1&S&M1&M = self::_B1&S&M1 with self::M {
   synthetic constructor •() → self::_B1&S&M1&M
     : super self::_B1&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class B1 extends self::_B1&S&M1&M {
   synthetic constructor •() → self::B1
     : super self::_B1&S&M1&M::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B2&S&M1 = self::S with self::M1 {
   synthetic constructor •() → self::_B2&S&M1
@@ -334,13 +266,11 @@ abstract class _B2&S&M1&M2&M = self::_B2&S&M1&M2 with self::M {
   synthetic constructor •() → self::_B2&S&M1&M2&M
     : super self::_B2&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class B2 extends self::_B2&S&M1&M2&M {
   synthetic constructor •() → self::B2
     : super self::_B2&S&M1&M2&M::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B0X&S&M = self::S with self::M {
   synthetic constructor •() → self::_B0X&S&M
@@ -366,19 +296,16 @@ abstract class _B1X&S&M1&M = self::_B1X&S&M1 with self::M {
   synthetic constructor •() → self::_B1X&S&M1&M
     : super self::_B1X&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B1X&S&M1&M&MX = self::_B1X&S&M1&M with self::MX {
   synthetic constructor •() → self::_B1X&S&M1&M&MX
     : super self::_B1X&S&M1&M::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class B1X extends self::_B1X&S&M1&M&MX {
   synthetic constructor •() → self::B1X
     : super self::_B1X&S&M1&M&MX::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B2X&S&M1 = self::S with self::M1 {
   synthetic constructor •() → self::_B2X&S&M1
@@ -394,18 +321,15 @@ abstract class _B2X&S&M1&M2&M = self::_B2X&S&M1&M2 with self::M {
   synthetic constructor •() → self::_B2X&S&M1&M2&M
     : super self::_B2X&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B2X&S&M1&M2&M&MX = self::_B2X&S&M1&M2&M with self::MX {
   synthetic constructor •() → self::_B2X&S&M1&M2&M&MX
     : super self::_B2X&S&M1&M2&M::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class B2X extends self::_B2X&S&M1&M2&M&MX {
   synthetic constructor •() → self::B2X
     : super self::_B2X&S&M1&M2&M&MX::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 static method main() → dynamic {}

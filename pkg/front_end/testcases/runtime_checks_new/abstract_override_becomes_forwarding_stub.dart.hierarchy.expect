@@ -60,7 +60,7 @@ C:
       -> B
   interfaces: I<num>
   classMembers:
-    C.B.f%C.f
+    B.f
     Object.toString
     Object.runtimeType
     Object._simpleInstanceOf
@@ -73,7 +73,7 @@ C:
     Object.==
   classSetters:
   interfaceMembers:
-    C.B.f%C.f
+    B.f
     Object.toString
     Object.runtimeType
     Object._simpleInstanceOf

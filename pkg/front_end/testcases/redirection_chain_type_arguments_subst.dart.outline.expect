@@ -21,7 +21,7 @@ abstract class B<U extends core::Object = dynamic, W extends core::Object = dyna
 class C<V extends core::Object = dynamic, S extends core::Object = dynamic, R extends core::Object = dynamic> extends self::B<self::C::V, self::C::S> {
   constructor •() → self::C<self::C::V, self::C::S, self::C::R>
     ;
-  method toString() → core::String
+  method toString() → dynamic
     ;
 }
 static method main() → dynamic

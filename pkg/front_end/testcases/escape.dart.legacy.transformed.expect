@@ -18,7 +18,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  operator ==(dynamic x) → core::bool
+  operator ==(dynamic x) → dynamic
     return false;
 }
 class X extends core::Object implements self::A, self::B {

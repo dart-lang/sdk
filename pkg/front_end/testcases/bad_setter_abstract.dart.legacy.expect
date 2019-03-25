@@ -47,13 +47,13 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  set a(dynamic #synthetic) → void {
+  set a(dynamic #synthetic) → dynamic {
     invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:10:8: Error: A setter should have exactly one formal parameter.
   set a();
        ^";
     ;
   }
-  set d(dynamic #synthetic) → void {
+  set d(dynamic #synthetic) → dynamic {
     invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:11:8: Error: A setter should have exactly one formal parameter.
   set d(x, y);
        ^";
@@ -68,13 +68,13 @@ abstract class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  set a(dynamic #synthetic) → void {
+  set a(dynamic #synthetic) → dynamic {
     invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:15:8: Error: A setter should have exactly one formal parameter.
   set a();
        ^";
     ;
   }
-  set d(dynamic #synthetic) → void {
+  set d(dynamic #synthetic) → dynamic {
     invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:16:8: Error: A setter should have exactly one formal parameter.
   set d(x, y);
        ^";
@@ -85,13 +85,13 @@ abstract class B extends core::Object {
     }
   }
 }
-static set b(dynamic #synthetic) → void {
+static set b(dynamic #synthetic) → dynamic {
   invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.
 set b();
      ^";
   ;
 }
-static set c(dynamic #synthetic) → void {
+static set c(dynamic #synthetic) → dynamic {
   invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:7:6: Error: A setter should have exactly one formal parameter.
 set c(x, y);
      ^";

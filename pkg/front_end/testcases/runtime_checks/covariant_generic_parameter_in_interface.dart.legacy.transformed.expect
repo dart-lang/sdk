@@ -13,15 +13,15 @@ class C<U extends core::Object = dynamic> extends core::Object implements self::
   synthetic constructor •() → self::C<self::C::U>
     : super core::Object::•()
     ;
-  method f1(generic-covariant-impl core::int x) → void {}
-  method f2(generic-covariant-impl core::int x, [generic-covariant-impl self::C::U y = null]) → void {}
+  method f1(core::int x) → void {}
+  method f2(core::int x, [generic-covariant-impl self::C::U y = null]) → void {}
 }
 class D<U extends core::Object = dynamic> extends self::C<self::D::U> {
   synthetic constructor •() → self::D<self::D::U>
     : super self::C::•()
     ;
-  method f1(generic-covariant-impl core::int x) → void {}
-  method f2(generic-covariant-impl core::int x, [generic-covariant-impl self::D::U y = null]) → void {}
+  method f1(core::int x) → void {}
+  method f2(core::int x, [generic-covariant-impl self::D::U y = null]) → void {}
 }
 static method g1(self::C<core::num> c) → void {
   c.f1(1);

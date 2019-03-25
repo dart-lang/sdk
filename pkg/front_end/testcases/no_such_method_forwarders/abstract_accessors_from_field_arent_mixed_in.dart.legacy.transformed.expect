@@ -12,7 +12,7 @@ class B extends core::Object implements self::A {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method noSuchMethod(core::Invocation i) → dynamic {
+  method noSuchMethod(dynamic i) → dynamic {
     self::count = self::count.+(1);
     return null;
   }
@@ -25,7 +25,7 @@ abstract class _C&Object&B extends core::Object implements self::B {
   const synthetic constructor •() → self::_C&Object&B
     : super core::Object::•()
     ;
-  method noSuchMethod(core::Invocation i) → dynamic {
+  method noSuchMethod(dynamic i) → dynamic {
     self::count = self::count.+(1);
     return null;
   }

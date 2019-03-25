@@ -9,7 +9,7 @@ abstract class B extends core::Object {
   abstract get f() → core::String;
 }
 class A extends core::Object implements self::B {
-  final field core::String f;
+  final field dynamic f;
   constructor •(dynamic f) → self::A
     : self::A::f = f, super core::Object::•()
     ;

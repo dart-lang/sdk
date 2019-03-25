@@ -18,7 +18,6 @@ class C extends self::B implements self::I<core::num> {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  forwarding-stub forwarding-semi-stub method f(generic-covariant-impl core::num x) → void
-    return super.{self::B::f}(x);
+  abstract method f(core::num x) → void;
 }
 static method main() → dynamic {}

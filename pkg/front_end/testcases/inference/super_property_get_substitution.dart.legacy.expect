@@ -27,7 +27,7 @@ class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U
     ;
   get x() → self::E<asy::Future<self::C::U>>
     return null;
-  set x(generic-covariant-impl core::Object x) → void {}
+  set x(core::Object x) → void {}
   method g() → void {
     dynamic y = super.{self::B::x};
   }

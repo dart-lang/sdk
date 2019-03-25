@@ -9,7 +9,7 @@ class A extends core::Object {
     ;
   operator [](dynamic i) → dynamic
     ;
-  operator []=(dynamic i, dynamic val) → void
+  operator []=(dynamic i, dynamic val) → dynamic
     ;
 }
 class B extends self::A {
@@ -19,7 +19,7 @@ class B extends self::A {
     ;
   operator [](dynamic i) → dynamic
     ;
-  operator []=(dynamic i, dynamic val) → void
+  operator []=(dynamic i, dynamic val) → dynamic
     ;
 }
 class Autobianchi extends core::Object {

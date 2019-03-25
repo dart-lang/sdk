@@ -11,7 +11,7 @@ class A extends core::Object {
 class B extends self::A {
   synthetic constructor •() → self::B
     ;
-  set x(core::Object o) → void
+  set x(core::Object o) → dynamic
     ;
 }
 static method main() → dynamic

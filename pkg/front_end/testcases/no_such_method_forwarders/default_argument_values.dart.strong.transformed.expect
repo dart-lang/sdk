@@ -31,10 +31,10 @@ class B extends self::A {
 static method main() → dynamic {
   self::B b = new self::B::•();
   dynamic value;
-  if(!(value = b.{self::A::foo}()).{core::String::==}("baz")) {
+  if(!(value = b.{self::B::foo}()).{core::String::==}("baz")) {
     throw "Unexpected value: '${value}'; expected 'baz'.";
   }
-  if(!(value = b.{self::A::hest}()).{core::num::==}(42)) {
+  if(!(value = b.{self::B::hest}()).{core::num::==}(42)) {
     throw "Unexpected value: '${value}'; expected '42'.";
   }
 }
