@@ -2740,7 +2740,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType type = buildDartType(pop());
     library.checkBoundsInType(type, typeEnvironment, operator.charOffset);
     Expression expression = popForValue();
-    if (constantContext != ConstantContext.none) {
+    if (!library.loader.target.enableConstantUpdate2018 &&
+        constantContext != ConstantContext.none) {
       push(desugarSyntheticExpression(buildProblem(
           fasta.templateNotConstantExpression.withArguments('As expression'),
           operator.charOffset,
@@ -2764,7 +2765,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       typePromoter?.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
     }
-    if (constantContext != ConstantContext.none) {
+    if (!library.loader.target.enableConstantUpdate2018 &&
+        constantContext != ConstantContext.none) {
       push(desugarSyntheticExpression(buildProblem(
           fasta.templateNotConstantExpression.withArguments('Is expression'),
           isOperator.charOffset,

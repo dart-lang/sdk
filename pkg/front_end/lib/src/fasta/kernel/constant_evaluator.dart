@@ -1468,8 +1468,24 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (hasUnevaluatedChild(node)) {
       return unevaluated(node, new AsExpression(extract(constant), node.type));
     }
-    ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
-    return constant;
+    return ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
+  }
+
+  visitIsExpression(IsExpression node) {
+    final Constant constant = node.operand.accept(this);
+    if (hasUnevaluatedChild(node)) {
+      return unevaluated(node, new IsExpression(extract(constant), node.type));
+    }
+    if (constant is NullConstant) {
+      return node.type == typeEnvironment.nullType ||
+              node.type == typeEnvironment.objectType ||
+              node.type is DynamicType
+          ? trueConstant
+          : falseConstant;
+    }
+    return isSubtype(constant, evaluateDartType(node, node.type))
+        ? trueConstant
+        : falseConstant;
   }
 
   visitNot(Not node) {
@@ -1535,15 +1551,19 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return new DoubleConstant(value);
   }
 
-  void ensureIsSubtype(Constant constant, DartType type, TreeNode node) {
+  bool isSubtype(Constant constant, DartType type) {
     DartType constantType = constant.getType(typeEnvironment);
+    return typeEnvironment.isSubtypeOf(constantType, type);
+  }
 
-    if (!typeEnvironment.isSubtypeOf(constantType, type)) {
+  Constant ensureIsSubtype(Constant constant, DartType type, TreeNode node) {
+    if (!isSubtype(constant, type)) {
       return report(
           node,
           templateConstEvalInvalidType.withArguments(
               constant, type, constant.getType(typeEnvironment)));
     }
+    return constant;
   }
 
   List<DartType> evaluateTypeArguments(TreeNode node, Arguments arguments) {
