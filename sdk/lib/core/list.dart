@@ -108,7 +108,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * print(unique); // => [[499], [], []]
    * ```
    */
-  external factory List.filled(int length, E fill, {bool growable: false});
+  external factory List.filled(int length, E fill, {bool growable = false});
 
   /**
    * Creates a list containing all [elements].
@@ -127,7 +127,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This constructor creates a growable list when [growable] is true;
    * otherwise, it returns a fixed-length list.
    */
-  external factory List.from(Iterable elements, {bool growable: true});
+  external factory List.from(Iterable elements, {bool growable = true});
 
   /**
    * Creates a list from [elements].
@@ -137,8 +137,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This constructor creates a growable list when [growable] is true;
    * otherwise, it returns a fixed-length list.
    */
-  factory List.of(Iterable<E> elements, {bool growable: true}) =>
-      new List<E>.from(elements, growable: growable);
+  factory List.of(Iterable<E> elements, {bool growable = true}) =>
+      List<E>.from(elements, growable: growable);
 
   /**
    * Generates a list of values.
@@ -152,12 +152,12 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * The created list is fixed-length unless [growable] is true.
    */
   factory List.generate(int length, E generator(int index),
-      {bool growable: true}) {
+      {bool growable = true}) {
     List<E> result;
     if (growable) {
       result = <E>[]..length = length;
     } else {
-      result = new List<E>(length);
+      result = List<E>(length);
     }
     for (int i = 0; i < length; i++) {
       result[i] = generator(i);
@@ -190,7 +190,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * of [S],
    * then the returned list can be used as a `List<T>`.
    */
-  static List<T> castFrom<S, T>(List<S> source) => new CastList<S, T>(source);
+  static List<T> castFrom<S, T>(List<S> source) => CastList<S, T>(source);
 
   /**
    * Copy a range of one list into another list.
@@ -214,7 +214,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
     end = RangeError.checkValidRange(start, end, source.length);
     int length = end - start;
     if (target.length < at + length) {
-      throw new ArgumentError.value(target, "target",
+      throw ArgumentError.value(target, "target",
           "Not big enough to hold $length elements at position $at");
     }
     if (!identical(source, target) || start >= at) {
@@ -247,7 +247,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
     int targetLength = target.length;
     for (var element in source) {
       if (index == targetLength) {
-        throw new IndexError(targetLength, target);
+        throw IndexError(targetLength, target);
       }
       target[index] = element;
       index++;

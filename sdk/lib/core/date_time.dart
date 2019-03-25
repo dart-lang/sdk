@@ -329,11 +329,11 @@ class DateTime implements Comparable<DateTime> {
       int value = _brokenDownDateToValue(years, month, day, hour, minute,
           second, millisecond, microsecond, isUtc);
       if (value == null) {
-        throw new FormatException("Time out of range", formattedString);
+        throw FormatException("Time out of range", formattedString);
       }
-      return new DateTime._withValue(value, isUtc: isUtc);
+      return DateTime._withValue(value, isUtc: isUtc);
     } else {
-      throw new FormatException("Invalid date format", formattedString);
+      throw FormatException("Invalid date format", formattedString);
     }
   }
 
@@ -365,7 +365,7 @@ class DateTime implements Comparable<DateTime> {
    * time zone (local or UTC).
    */
   external DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc: false});
+      {bool isUtc = false});
 
   /**
    * Constructs a new [DateTime] instance
@@ -378,7 +378,7 @@ class DateTime implements Comparable<DateTime> {
    * time zone (local or UTC).
    */
   external DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc: false});
+      {bool isUtc = false});
 
   /**
    * Constructs a new [DateTime] instance with the given value.
@@ -389,11 +389,11 @@ class DateTime implements Comparable<DateTime> {
     if (millisecondsSinceEpoch.abs() > _maxMillisecondsSinceEpoch ||
         (millisecondsSinceEpoch.abs() == _maxMillisecondsSinceEpoch &&
             microsecond != 0)) {
-      throw new ArgumentError(
+      throw ArgumentError(
           "DateTime is outside valid range: $millisecondsSinceEpoch");
     }
     if (isUtc == null) {
-      throw new ArgumentError("'isUtc' flag may not be 'null'");
+      throw ArgumentError("'isUtc' flag may not be 'null'");
     }
   }
 
@@ -505,7 +505,7 @@ class DateTime implements Comparable<DateTime> {
    */
   DateTime toLocal() {
     if (isUtc) {
-      return new DateTime._withValue(_value, isUtc: false);
+      return DateTime._withValue(_value, isUtc: false);
     }
     return this;
   }
@@ -523,7 +523,7 @@ class DateTime implements Comparable<DateTime> {
    */
   DateTime toUtc() {
     if (isUtc) return this;
-    return new DateTime._withValue(_value, isUtc: true);
+    return DateTime._withValue(_value, isUtc: true);
   }
 
   static String _fourDigits(int n) {
@@ -866,7 +866,7 @@ class DateTime implements Comparable<DateTime> {
    * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
    * timezonemins_opt ::= <empty> | colon_opt digit{2}
    */
-  static final RegExp _parseFormat = new RegExp(
+  static final RegExp _parseFormat = RegExp(
       r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
       r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d{1,6}))?)?)?' // Time part.
       r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.

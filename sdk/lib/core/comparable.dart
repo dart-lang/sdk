@@ -18,7 +18,7 @@ part of dart.core;
  * * zero if [a] is equal to [b], and
  * * a positive integer if [a] is greater than [b].
  */
-typedef int Comparator<T>(T a, T b);
+typedef Comparator<T> = int Function(T a, T b);
 
 /**
  * Interface used by types that have an intrinsic ordering.

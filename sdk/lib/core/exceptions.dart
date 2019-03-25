@@ -18,7 +18,7 @@ part of dart.core;
  * until the actual exceptions used by a library are done.
  */
 abstract class Exception {
-  factory Exception([var message]) => new _Exception(message);
+  factory Exception([var message]) => _Exception(message);
 }
 
 /** Default implementation of [Exception] which carries a message. */

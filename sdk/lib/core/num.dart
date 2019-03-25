@@ -471,7 +471,7 @@ abstract class num implements Comparable<num> {
   static num parse(String input, [@deprecated num onError(String input)]) {
     num result = tryParse(input);
     if (result != null) return result;
-    if (onError == null) throw new FormatException(input);
+    if (onError == null) throw FormatException(input);
     return onError(input);
   }
 

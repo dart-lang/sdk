@@ -73,7 +73,7 @@ class Duration implements Comparable<Duration> {
 
   static const int minutesPerDay = minutesPerHour * hoursPerDay;
 
-  static const Duration zero = const Duration(seconds: 0);
+  static const Duration zero = Duration(seconds: 0);
 
   /*
    * The value of this Duration object in microseconds.
@@ -91,12 +91,12 @@ class Duration implements Comparable<Duration> {
    * All arguments are 0 by default.
    */
   const Duration(
-      {int days: 0,
-      int hours: 0,
-      int minutes: 0,
-      int seconds: 0,
-      int milliseconds: 0,
-      int microseconds: 0})
+      {int days = 0,
+      int hours = 0,
+      int minutes = 0,
+      int seconds = 0,
+      int milliseconds = 0,
+      int microseconds = 0})
       : this._microseconds(microsecondsPerDay * days +
             microsecondsPerHour * hours +
             microsecondsPerMinute * minutes +
@@ -113,7 +113,7 @@ class Duration implements Comparable<Duration> {
    * returns the sum as a new Duration object.
    */
   Duration operator +(Duration other) {
-    return new Duration._microseconds(_duration + other._duration);
+    return Duration._microseconds(_duration + other._duration);
   }
 
   /**
@@ -121,7 +121,7 @@ class Duration implements Comparable<Duration> {
    * returns the difference as a new Duration object.
    */
   Duration operator -(Duration other) {
-    return new Duration._microseconds(_duration - other._duration);
+    return Duration._microseconds(_duration - other._duration);
   }
 
   /**
@@ -132,7 +132,7 @@ class Duration implements Comparable<Duration> {
    * 53 bits, precision is lost because of double-precision arithmetic.
    */
   Duration operator *(num factor) {
-    return new Duration._microseconds((_duration * factor).round());
+    return Duration._microseconds((_duration * factor).round());
   }
 
   /**
@@ -144,8 +144,8 @@ class Duration implements Comparable<Duration> {
   Duration operator ~/(int quotient) {
     // By doing the check here instead of relying on "~/" below we get the
     // exception even with dart2js.
-    if (quotient == 0) throw new IntegerDivisionByZeroException();
-    return new Duration._microseconds(_duration ~/ quotient);
+    if (quotient == 0) throw IntegerDivisionByZeroException();
+    return Duration._microseconds(_duration ~/ quotient);
   }
 
   /**
@@ -280,7 +280,7 @@ class Duration implements Comparable<Duration> {
    * The returned `Duration` has the same length as this one, but is always
    * positive.
    */
-  Duration abs() => new Duration._microseconds(_duration.abs());
+  Duration abs() => Duration._microseconds(_duration.abs());
 
   /**
    * Returns a new `Duration` representing this `Duration` negated.
@@ -289,5 +289,5 @@ class Duration implements Comparable<Duration> {
    * opposite sign of this one.
    */
   // Using subtraction helps dart2js avoid negative zeros.
-  Duration operator -() => new Duration._microseconds(0 - _duration);
+  Duration operator -() => Duration._microseconds(0 - _duration);
 }

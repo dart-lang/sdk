@@ -60,7 +60,7 @@ abstract class RegExp implements Pattern {
    * interpolation is required.
    */
   external factory RegExp(String source,
-      {bool multiLine: false, bool caseSensitive: true});
+      {bool multiLine = false, bool caseSensitive = true});
 
   /**
    * Returns a regular expression that matches [text].

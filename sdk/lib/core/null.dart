@@ -14,7 +14,7 @@ part of dart.core;
 @pragma("vm:entry-point")
 class Null {
   factory Null._uninstantiable() {
-    throw new UnsupportedError('class Null cannot be instantiated');
+    throw UnsupportedError('class Null cannot be instantiated');
   }
 
   external int get hashCode;
