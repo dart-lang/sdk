@@ -6530,49 +6530,97 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitSpreadElement(SpreadElement node) {
-    /// Returns `true` if [node] is or is a sub element of a Map literal.
-    isMap(AstNode node) {
+    /// Returns `true` if [node] is or is a child element of a map literal.
+    bool isMap(AstNode node) {
       if (node is SetOrMapLiteral) return node.isMap;
       if (node is ListLiteral) return false;
       return isMap(node.parent);
     }
 
-    /// Appends all elements in [spreadItems] to the collection being built.
-    ///
-    /// Walks the parent nodes starting at [parent] to determine if this is
-    /// spread is in a Map literal.
-    emitSpread(AstNode parent, JS.Expression spreadExpression) {
-      if (isMap(parent)) {
-        return js.statement('#.forEach((k, v) => {#.push(k); #.push(v)})', [
-          spreadExpression,
-          _currentCollectionVariable,
-          _currentCollectionVariable
-        ]);
-      }
-      return js.statement('#.forEach((i) => #.push(i))',
-          [spreadExpression, _currentCollectionVariable]);
-    }
+    /// Returns [expression] wrapped in an implict cast to [castType] or
+    /// [expression] as provided if [castType] is `null` signifying that
+    /// no cast is needed.
+    JS.Expression wrapInImplicitCast(JS.Expression expression, castType) =>
+        castType == null ? expression : _emitCast(castType, expression);
 
-    /// Emits a null check on [spreadExpression] then appends all elements to
-    /// the collection being built.
+    /// Returns a statement spreading the elements of [expression] into
+    /// [_currentCollectionVariable].
     ///
-    /// Walks the parent nodes starting at [parent] to determine if this is
-    /// spread is in a Map literal.
-    emitNullSafeSpread(AstNode parent, JS.Expression spreadExpression) {
-      // TODO(nshahan) Could optimize out if we know the value is null.
-      var spreadItems = _emitSimpleIdentifier(
-          _createTemporary('items', getStaticType(node.expression)));
-      return JS.Block([
-        js.statement('let # = #', [spreadItems, spreadExpression]),
-        js.statement('if (# != null) #',
-            [spreadItems, emitSpread(node.parent, spreadItems)])
+    /// Expects the collection literal containing [expression] to be a list or
+    /// set literal. Inserts implicit casts to [elementCastType] for each
+    /// element if needed.
+    JS.Statement emitListOrSetSpread(
+        JS.Expression expression, DartType elementCastType) {
+      var forEachTemp =
+          _emitSimpleIdentifier(_createTemporary('i', types.dynamicType));
+      return js.statement('#.forEach((#) => #.push(#))', [
+        expression,
+        forEachTemp,
+        _currentCollectionVariable,
+        wrapInImplicitCast(forEachTemp, elementCastType)
       ]);
     }
 
-    var spreadExpression = _visitExpression(node.expression);
+    /// Returns a statement spreading the key/value pairs of [expression]
+    /// into [_currentCollectionVariable].
+    ///
+    /// Expects the collection literal containing [expression] to be a map
+    /// literal. Inserts implicit casts to [keyCastType] for keys and
+    /// [valueCastType] for values if needed.
+    JS.Statement emitMapSpread(JS.Expression expression, DartType keyCastType,
+        DartType valueCastType) {
+      var keyTemp =
+          _emitSimpleIdentifier(_createTemporary('k', types.dynamicType));
+      var valueTemp =
+          _emitSimpleIdentifier(_createTemporary('v', types.dynamicType));
+      return js.statement('#.forEach((#, #) => {#.push(#); #.push(#)})', [
+        expression,
+        keyTemp,
+        valueTemp,
+        _currentCollectionVariable,
+        wrapInImplicitCast(keyTemp, keyCastType),
+        _currentCollectionVariable,
+        wrapInImplicitCast(valueTemp, valueCastType)
+      ]);
+    }
+
+    /// Appends all elements in [expression] to the collection being built.
+    ///
+    /// Uses implict cast information from [node] to insert the correct casts
+    /// for the collection elements when spreading. Inspects parents of [node]
+    /// to determine the type of the enclosing collection literal.
+    JS.Statement emitSpread(JS.Expression expression, Expression node) {
+      expression = wrapInImplicitCast(expression, getImplicitCast(node));
+
+      // Start searching for a map literal at the parent of the SpreadElement.
+      if (isMap(node.parent.parent)) {
+        return emitMapSpread(expression, getImplicitSpreadKeyCast(node),
+            getImplicitSpreadValueCast(node));
+      }
+      return emitListOrSetSpread(expression, getImplicitSpreadCast(node));
+    }
+
+    /// Emits a null check on [expression] then appends all elements to the
+    /// collection being built.
+    ///
+    /// Uses implict cast information from [node] to insert the correct casts
+    /// for the collection elements when spreading. Inspects parents of [node]
+    /// to determine the type of the enclosing collection literal.
+    JS.Statement emitNullSafeSpread(JS.Expression expression, Expression node) {
+      // TODO(nshahan) Could optimize out if we know the value is null.
+      var spreadItems =
+          _emitSimpleIdentifier(_createTemporary('items', getStaticType(node)));
+      return JS.Block([
+        js.statement('let # = #', [spreadItems, expression]),
+        js.statement(
+            'if (# != null) #', [spreadItems, emitSpread(spreadItems, node)])
+      ]);
+    }
+
+    var expression = _visitExpression(node.expression);
     return node.beginToken.lexeme == '...?'
-        ? emitNullSafeSpread(node.parent, spreadExpression)
-        : emitSpread(node.parent, spreadExpression);
+        ? emitNullSafeSpread(expression, node.expression)
+        : emitSpread(expression, node.expression);
   }
 
   @override

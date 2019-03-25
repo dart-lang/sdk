@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart'
     show AstCloner, NodeReplacer;
-import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/task/strong/ast_properties.dart' as ast_properties;
 
@@ -64,6 +63,13 @@ class CoercionReifier extends GeneralizingAstVisitor<void> {
     if (castType != null) {
       _replaceNode(node.parent, node, castExpression(node, castType));
     }
+  }
+
+  @override
+  visitSpreadElement(SpreadElement node) {
+    // Skip visiting the expression so we can handle all casts during code
+    // generation.
+    node.expression.visitChildren(this);
   }
 
   @override
@@ -128,6 +134,12 @@ class _TreeCloner extends AstCloner {
           clone, ast_properties.getImplicitCast(node));
       ast_properties.setImplicitOperationCast(
           clone, ast_properties.getImplicitOperationCast(node));
+      ast_properties.setImplicitSpreadCast(
+          clone, ast_properties.getImplicitSpreadCast(node));
+      ast_properties.setImplicitSpreadKeyCast(
+          clone, ast_properties.getImplicitSpreadKeyCast(node));
+      ast_properties.setImplicitSpreadValueCast(
+          clone, ast_properties.getImplicitSpreadValueCast(node));
       ast_properties.setIsDynamicInvoke(
           clone, ast_properties.isDynamicInvoke(node));
     }
