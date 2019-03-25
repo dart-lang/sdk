@@ -203,7 +203,7 @@ void testDuplicateKeys() {
     1,
     for (var i in <int>[1, 2, 3]) i,
     for (var i = 2; i <= 3; i++) i,
-    3, 
+    3,
     4
   });
 }
@@ -222,6 +222,7 @@ void testKeyOrder() {
     for (var i = 0; i < keys.length; i++) keys[i]: values[i]
   };
   Expect.equals("1:a,2:a", map.keys.join(","));
+  Expect.equals("2,4", map.values.join(","));
 
   var set = <Equality>{e1a, for (var i = 0; i < keys.length; i++) keys[i]};
   Expect.equals("1:a,2:a", set.join(","));
