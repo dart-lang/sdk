@@ -144,6 +144,7 @@ abstract class CompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -235,6 +236,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -356,7 +358,12 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dartOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
     return <String>[]
@@ -457,6 +464,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -509,6 +517,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -809,6 +818,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> originalArguments) {
@@ -889,7 +899,12 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dartOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> originalArguments) {
     var args = <String>[];
     if (_useEnableAsserts) {
       args.add('--enable_asserts');
@@ -898,7 +913,8 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments);
+      ..addAll(originalArguments)
+      ..addAll(dartOptions);
   }
 
   List<String> computeRuntimeArguments(
@@ -913,13 +929,12 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     if (_useEnableAsserts) {
       args.add('--enable_asserts');
     }
-    args
+    return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
       ..addAll(_replaceDartFiles(originalArguments, artifact.filename))
       ..addAll(dartOptions);
-    return args;
   }
 }
 
@@ -1190,6 +1205,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {

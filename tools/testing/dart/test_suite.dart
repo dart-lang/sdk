@@ -821,14 +821,23 @@ class StandardTestSuite extends TestSuite {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
     var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
+    var dartOptions = info.optionsFromFile['dartOptions'] as List<String>;
     var dart2jsOptions = info.optionsFromFile['dart2jsOptions'] as List<String>;
     var ddcOptions = info.optionsFromFile['ddcOptions'] as List<String>;
+
+    var isMultitest = info.optionsFromFile["isMultitest"] as bool;
+    assert(!isMultitest || dartOptions.isEmpty);
 
     var compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args);
+          vmOptions,
+          sharedOptions,
+          dartOptions,
+          dart2jsOptions,
+          ddcOptions,
+          args);
       // Avoid doing this for analyzer.
       var path = info.filePath;
       if (vmOptionsVariant != 0) {
@@ -861,10 +870,6 @@ class StandardTestSuite extends TestSuite {
       // error should be reported by the compilation command.
       return commands;
     }
-
-    var isMultitest = info.optionsFromFile["isMultitest"] as bool;
-    var dartOptions = info.optionsFromFile['dartOptions'] as List<String>;
-    assert(!isMultitest || dartOptions.isEmpty);
 
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
