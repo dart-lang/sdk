@@ -9,12 +9,15 @@ import 'dart:io' show Platform;
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
+const bool isProduct = const bool.fromEnvironment("dart.vm.product");
+
 abstract class GCWatcher {
   factory GCWatcher() => _GCWatcherImpl();
   factory GCWatcher.dummy() => _MockGCWatcher();
-  factory GCWatcher.ifAvailable() => (Platform.isWindows || Platform.isAndroid)
-      ? GCWatcher.dummy()
-      : GCWatcher();
+  factory GCWatcher.ifAvailable() =>
+      (Platform.isWindows || Platform.isAndroid || isProduct)
+          ? GCWatcher.dummy()
+          : GCWatcher();
 
   Future<int> size();
   void dispose();

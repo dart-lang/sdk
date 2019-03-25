@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Dart test program for testing error handling with dart:ffi functions.
+//
+// SharedObjects=ffi_test_functions
 
 import 'dart:ffi' as ffi;
 import 'dylib_utils.dart';

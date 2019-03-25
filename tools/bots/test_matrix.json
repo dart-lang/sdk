@@ -42,6 +42,7 @@
       "tests/search/",
       "tests/standalone/",
       "tests/standalone_2/",
+      "tests/ffi/",
       "third_party/d8/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
@@ -80,6 +81,7 @@
       "tests/search/",
       "tests/standalone/",
       "tests/standalone_2/",
+      "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -168,6 +170,7 @@
       "tests/search/",
       "tests/standalone/",
       "tests/standalone_2/",
+      "tests/ffi/",
       "pkg/async_helper/",
       "pkg/build_integration/",
       "pkg/dart_internal/",
@@ -265,6 +268,7 @@
       "options": {
         "use-blobs": true
     }},
+    "dartk-android-(debug|product|release)-(arm|arm64)": {},
     "dartkp-linux-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-blobs": true
@@ -428,7 +432,8 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "standalone_2"
+            "standalone_2",
+            "ffi"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -440,7 +445,8 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "standalone_2"
+            "standalone_2",
+            "ffi"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -452,7 +458,8 @@
             "language_2",
             "corelib_2",
             "lib_2",
-            "standalone_2"
+            "standalone_2",
+            "ffi"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -511,6 +518,37 @@
           ],
           "fileset": "vm-kernel",
           "shards": 15
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-ffi-android-debug-arm64",
+        "vm-ffi-android-debug-arm",
+        "vm-ffi-android-release-arm64",
+        "vm-ffi-android-release-arm",
+        "vm-ffi-android-product-arm64",
+        "vm-ffi-android-product-arm"
+      ],
+      "meta": {
+        "description": "This configuration is used for running FFI tests in JIT-mode on Android."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "--os=android"
+          ]
+        },
+        {
+          "name": "ffi tests",
+          "arguments": [
+            "-ndartk-android-${mode}-${arch}",
+            "ffi"
+          ],
+          "fileset": "vm-kernel"
         }
       ]
     },

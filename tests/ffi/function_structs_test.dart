@@ -4,6 +4,8 @@
 //
 // Dart test program for testing dart:ffi function pointers with struct
 // arguments.
+//
+// SharedObjects=ffi_test_functions
 
 library FfiTest;
 

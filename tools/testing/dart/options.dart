@@ -25,7 +25,8 @@ const _defaultTestSelectors = const [
   'analyze_library',
   'service',
   'kernel',
-  'observatory_ui'
+  'observatory_ui',
+  'ffi'
 ];
 
 /// Specifies a single command line option.

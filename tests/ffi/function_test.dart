@@ -6,6 +6,7 @@
 //
 // VMOptions=
 // VMOptions=--deterministic --optimization-counter-threshold=10
+// SharedObjects=ffi_test_functions
 
 library FfiTest;
 

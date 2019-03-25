@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Dart test program for testing dart:ffi extra checks
+//
+// SharedObjects=ffi_test_dynamic_library
 
 library FfiTest;
 

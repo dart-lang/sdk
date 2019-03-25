@@ -10,6 +10,8 @@
 //
 // NOTE: This test does not produce useful stderr when it fails because the
 // stderr is redirected to a file for reflection.
+//
+// SharedObjects=ffi_test_functions
 
 import 'dart:ffi' as ffi;
 import 'dylib_utils.dart';

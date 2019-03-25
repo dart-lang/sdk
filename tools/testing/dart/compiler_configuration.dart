@@ -81,7 +81,8 @@ abstract class CompilerConfiguration {
       case Compiler.dartk:
         if (configuration.architecture == Architecture.simdbc64 ||
             configuration.architecture == Architecture.simarm ||
-            configuration.architecture == Architecture.simarm64) {
+            configuration.architecture == Architecture.simarm64 ||
+            configuration.system == System.android) {
           return new VMKernelCompilerConfiguration(configuration);
         }
         return new NoneCompilerConfiguration(configuration);
@@ -260,11 +261,17 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     } else if (_configuration.hotReloadRollback) {
       args.add('--hot-reload-rollback-test-mode');
     }
+    var filename = artifact.filename;
+    if (runtimeConfiguration is DartkAdbRuntimeConfiguration) {
+      // On Android the Dill file will be pushed to a different directory on the
+      // device. Use that one instead.
+      filename = "${DartkAdbRuntimeConfiguration.DeviceTestDir}/out.dill";
+    }
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(_replaceDartFiles(originalArguments, artifact.filename))
+      ..addAll(_replaceDartFiles(originalArguments, filename))
       ..addAll(dartOptions);
   }
 }

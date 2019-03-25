@@ -883,8 +883,13 @@ class StandardTestSuite extends TestSuite {
     }
 
     return commands
-      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(this,
-          compilationArtifact, runtimeArguments, environment, isCrashExpected));
+      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
+          this,
+          compilationArtifact,
+          runtimeArguments,
+          environment,
+          info.optionsFromFile["sharedObjects"] as List<String>,
+          isCrashExpected));
   }
 
   CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {
@@ -1200,6 +1205,11 @@ class StandardTestSuite extends TestSuite {
    *   .html instead of .dart exists, the test was intended to be a web test
    *   and no wrapping is necessary.
    *
+   *     // SharedObjects=foobar
+   *
+   *   - This test requires libfoobar.so, libfoobar.dylib or foobar.dll to be
+   *   in the system linker path of the VM.
+   *
    *   - 'test.dart' assumes tests fail if
    *   the process returns a non-zero exit code (in the case of web tests, we
    *   check for PASS/FAIL indications in the test output).
@@ -1215,6 +1225,7 @@ class StandardTestSuite extends TestSuite {
     RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
+    RegExp sharedObjectsRegExp = new RegExp(r"// SharedObjects=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
     RegExp packagesRegExp = new RegExp(r"// Packages=(.*)");
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
@@ -1317,6 +1328,12 @@ class StandardTestSuite extends TestSuite {
       otherResources.addAll(wordSplit(match[1]));
     }
 
+    var sharedObjects = <String>[];
+    matches = sharedObjectsRegExp.allMatches(contents);
+    for (var match in matches) {
+      sharedObjects.addAll(wordSplit(match[1]));
+    }
+
     var isMultitest = multiTestRegExp.hasMatch(contents);
     var isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
     var isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -1374,6 +1391,7 @@ class StandardTestSuite extends TestSuite {
       "hasStaticWarning": hasStaticWarning,
       "otherScripts": otherScripts,
       "otherResources": otherResources,
+      "sharedObjects": sharedObjects,
       "isMultitest": isMultitest,
       "isMultiHtmlTest": isMultiHtmlTest,
       "subtestNames": subtestNames,
