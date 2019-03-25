@@ -17,6 +17,10 @@ Failed Steps:
 {{ end -}}
 {{ end -}}
 </ul>
+See the documentation at
+<a href="https://goto.google.com/dart-status-file-free-workflow">
+go/dart-status-file-free-workflow
+</a>.
 <br />
 Completed at: {{ .Build.EndTime | time }}
 {{ end -}}
