@@ -1394,7 +1394,7 @@ class ClassHierarchyNodeBuilder {
       }
     }
     return new MergeResult(mergeLists(memberLists, MergeKind.interfacesMembers),
-        mergeLists(setterLists, MergeKind.interfacesMembers));
+        mergeLists(setterLists, MergeKind.interfacesSetters));
   }
 
   List<Declaration> mergeLists(
@@ -2249,10 +2249,13 @@ class InterfaceConflict extends DelayedMember {
 
     debug?.log(
         "Combined Member Signature of ${fullNameForErrors}: new ForwardingNode($parent, $bestSoFar, $declarations, $kind)");
-    Member stub =
-        new ForwardingNode(hierarchy, parent, bestSoFar, declarations, kind)
-            .finalize();
-    if (parent.cls == stub.enclosingClass) {
+    Declaration declaration = kind == ProcedureKind.Setter
+        ? parent.scope.setters[target.name.name]
+        : parent.scope.local[target.name.name];
+    Member stub = new ForwardingNode(
+            hierarchy, parent, declaration ?? bestSoFar, declarations, kind)
+        .finalize();
+    if (declaration == null && parent.cls == stub.enclosingClass) {
       parent.cls.addMember(stub);
       KernelLibraryBuilder library = parent.library;
       if (bestSoFar.target is Procedure) {
