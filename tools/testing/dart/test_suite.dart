@@ -862,12 +862,17 @@ class StandardTestSuite extends TestSuite {
       return commands;
     }
 
+    var isMultitest = info.optionsFromFile["isMultitest"] as bool;
+    var dartOptions = info.optionsFromFile['dartOptions'] as List<String>;
+    assert(!isMultitest || dartOptions.isEmpty);
+
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
             configuration.runtimeConfiguration,
             info,
             vmOptions,
             sharedOptions,
+            dartOptions,
             args,
             compilationArtifact);
 
@@ -1134,18 +1139,7 @@ class StandardTestSuite extends TestSuite {
       }
     }
 
-    var isMultitest = optionsFromFile["isMultitest"] as bool;
-    var dartOptions = optionsFromFile["dartOptions"] as List<String>;
-
-    assert(!isMultitest || dartOptions == null);
     args.add(filePath.toNativePath());
-    if (dartOptions != null) {
-      // TODO(ahe): Because we add [dartOptions] here,
-      // [CompilerConfiguration.computeCompilerArguments] has to discard them
-      // later. Perhaps it would be simpler to pass [dartOptions] to
-      // [CompilerConfiguration.computeRuntimeArguments].
-      args.addAll(dartOptions);
-    }
 
     return args;
   }
@@ -1370,7 +1364,7 @@ class StandardTestSuite extends TestSuite {
       "sharedOptions": sharedOptions ?? <String>[],
       "dart2jsOptions": dart2jsOptions ?? <String>[],
       "ddcOptions": ddcOptions ?? <String>[],
-      "dartOptions": dartOptions,
+      "dartOptions": dartOptions ?? <String>[],
       "environment": environment,
       "packageRoot": packageRoot,
       "packages": packages,
@@ -1393,7 +1387,7 @@ class StandardTestSuite extends TestSuite {
       "vmOptions": const [const <String>[]],
       "sharedOptions": const <String>[],
       "dart2jsOptions": const <String>[],
-      "dartOptions": null,
+      "dartOptions": const <String>[],
       "packageRoot": null,
       "packages": null,
       "hasSyntaxError": false,

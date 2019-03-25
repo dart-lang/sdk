@@ -156,6 +156,7 @@ abstract class CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [artifact.filename];
@@ -174,6 +175,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
@@ -194,7 +196,8 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments);
+      ..addAll(originalArguments)
+      ..addAll(dartOptions);
   }
 }
 
@@ -245,6 +248,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
@@ -260,7 +264,8 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
+      ..addAll(_replaceDartFiles(originalArguments, artifact.filename))
+      ..addAll(dartOptions);
   }
 }
 
@@ -359,6 +364,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     CompilerConfiguration lastCompilerConfiguration =
@@ -368,6 +374,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
         info,
         vmOptions,
         sharedOptions,
+        dartOptions,
         originalArguments,
         artifact);
   }
@@ -468,6 +475,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     Uri sdk = _useSdk
@@ -813,6 +821,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
@@ -832,7 +841,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments);
+      ..addAll(originalArguments)
+      ..addAll(dartOptions);
   }
 }
 
@@ -889,6 +899,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
@@ -899,7 +910,8 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
+      ..addAll(_replaceDartFiles(originalArguments, artifact.filename))
+      ..addAll(dartOptions);
     return args;
   }
 }
@@ -953,6 +965,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return <String>[];
@@ -993,6 +1006,7 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return <String>[];
@@ -1021,6 +1035,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return <String>[];
@@ -1192,6 +1207,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     if (runtimeConfiguration is! NoneRuntimeConfiguration) {
