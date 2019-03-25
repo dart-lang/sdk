@@ -229,6 +229,11 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     final approvedResults =
         await loadResultsMapIfExists("${tmpdir.path}/approved_results.json");
 
+    // TODO: Remove 2019-04-08: Discard any invalid pre-approvals made with a
+    // version of approve_results between 065910f0 and a13ac1b4. Pre-approving
+    // a new test could add pre-approvals with null configuration and null name.
+    approvedResults.remove("null:null");
+
     // Construct an object for every test containing its current result,
     // what the last approved result was, and whether it's flaky.
     final tests = <Test>[];
