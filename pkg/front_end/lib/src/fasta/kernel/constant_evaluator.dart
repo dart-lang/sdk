@@ -1078,7 +1078,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         final Constant other = arguments[0];
         final op = node.name.name;
         if (other is IntConstant) {
-          if ((op == '<<' || op == '>>') && other.value < 0) {
+          if ((op == '<<' || op == '>>' || op == '>>>') && other.value < 0) {
             return report(
                 node.arguments.positional.first,
                 // TODO(askesc): Change argument types in template to constants.
@@ -1101,6 +1101,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             case '>>':
               return canonicalize(
                   new IntConstant(receiver.value >> other.value));
+            case '>>>':
+              int result = other.value >= 64
+                  ? 0
+                  : (receiver.value >> other.value) &
+                      ((1 << (64 - other.value)) - 1);
+              return canonicalize(new IntConstant(result));
           }
         }
 
@@ -1150,6 +1156,23 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 receiver,
                 typeEnvironment.numType,
                 other.getType(typeEnvironment)));
+      }
+    } else if (receiver is BoolConstant) {
+      if (arguments.length == 1) {
+        final Constant other = arguments[0];
+        if (other is BoolConstant) {
+          switch (node.name.name) {
+            case '|':
+              return canonicalize(
+                  new BoolConstant(receiver.value || other.value));
+            case '&':
+              return canonicalize(
+                  new BoolConstant(receiver.value && other.value));
+            case '^':
+              return canonicalize(
+                  new BoolConstant(receiver.value != other.value));
+          }
+        }
       }
     } else if (receiver is NullConstant) {
       return report(node, messageConstEvalNullValue);
