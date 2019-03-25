@@ -40,7 +40,8 @@ import '../names.dart'
         mustacheName,
         percentName,
         plusName,
-        rightShiftName;
+        rightShiftName,
+        tripleShiftName;
 
 import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
@@ -955,6 +956,9 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
       return generator.buildCompoundAssignment(rightShiftName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical(">>>=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(tripleShiftName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
       return generator.buildNullAwareAssignment(
