@@ -78,6 +78,7 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/parameter_assignments.dart';
 import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
 import 'package:linter/src/rules/prefer_asserts_in_initializer_lists.dart';
+import 'package:linter/src/rules/prefer_asserts_with_message.dart';
 import 'package:linter/src/rules/prefer_bool_in_asserts.dart';
 import 'package:linter/src/rules/prefer_collection_literals.dart';
 import 'package:linter/src/rules/prefer_conditional_assignment.dart';
@@ -219,6 +220,7 @@ void registerLintRules() {
     ..register(new PackagePrefixedLibraryNames())
     ..register(new ParameterAssignments())
     ..register(new PreferAdjacentStringConcatenation())
+    ..register(new PreferAssertsWithMessage())
     ..register(new PreferBoolInAsserts())
     ..register(new PreferCollectionLiterals())
     ..register(new PreferConditionalAssignment())
