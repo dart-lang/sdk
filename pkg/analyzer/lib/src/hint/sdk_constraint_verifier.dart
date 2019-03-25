@@ -107,9 +107,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.reportErrorForToken(
             HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
-      } else if (operatorType == TokenType.AMPERSAND ||
-          operatorType == TokenType.BAR ||
-          operatorType == TokenType.CARET) {
+      } else if ((operatorType == TokenType.AMPERSAND ||
+              operatorType == TokenType.BAR ||
+              operatorType == TokenType.CARET) &&
+          (node as BinaryExpressionImpl).inConstantContext) {
         if (node.leftOperand.staticType.isDartCoreBool) {
           _errorReporter.reportErrorForToken(HintCode.SDK_VERSION_BOOL_OPERATOR,
               node.operator, [node.operator.lexeme]);

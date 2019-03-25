@@ -42,7 +42,7 @@ var c = true & false;
   test_and_nonConst_lessThan() {
     verifyVersion('2.2.0', '''
 var c = true & false;
-''', errorCodes: [HintCode.SDK_VERSION_BOOL_OPERATOR]);
+''');
   }
 
   test_or_const_equals() {
@@ -66,7 +66,7 @@ var c = true | false;
   test_or_nonConst_lessThan() {
     verifyVersion('2.2.0', '''
 var c = true | false;
-''', errorCodes: [HintCode.SDK_VERSION_BOOL_OPERATOR]);
+''');
   }
 
   test_xor_const_equals() {
@@ -90,6 +90,6 @@ var c = true ^ false;
   test_xor_nonConst_lessThan() {
     verifyVersion('2.2.0', '''
 var c = true ^ false;
-''', errorCodes: [HintCode.SDK_VERSION_BOOL_OPERATOR]);
+''');
   }
 }
