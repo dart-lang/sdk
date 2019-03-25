@@ -2208,12 +2208,14 @@ class InterfaceConflict extends DelayedMember {
           debug?.log(
               "Combined Member Signature: ${fullName(bestSoFar)} !<: ${fullName(candidate)}");
 
-          if ("${parent.fileUri}" !=
-                  "org-dartlang-sdk:///sdk/lib/js/dart2js/js_dart2js.dart" &&
-              "${parent.fileUri}" !=
-                  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_number.dart") {
+          String uri = '${parent.library.uri}';
+          if (uri == 'dart:js' &&
+                  parent.fileUri.pathSegments.last == 'js_dart2js.dart' ||
+              uri == 'dart:_interceptors' &&
+                  parent.fileUri.pathSegments.last == 'js_number.dart') {
             // TODO(johnniwinther): Fix the dart2js libraries and remove the
             // above URIs.
+          } else {
             bestSoFar = null;
             bestTypeSoFar = null;
           }

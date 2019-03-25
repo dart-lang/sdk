@@ -58,7 +58,7 @@ import '../fasta_codes.dart'
 
 Component transformComponent(Component component, ConstantsBackend backend,
     Map<String, String> environmentDefines, ErrorReporter errorReporter,
-    {bool keepFields: false,
+    {bool keepFields: true,
     bool enableAsserts: false,
     bool evaluateAnnotations: true,
     CoreTypes coreTypes,
@@ -82,7 +82,7 @@ void transformLibraries(
     Map<String, String> environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
-    {bool keepFields: false,
+    {bool keepFields: true,
     bool keepVariables: false,
     bool evaluateAnnotations: true,
     bool enableAsserts: false}) {
@@ -137,7 +137,7 @@ class ConstantsTransformer extends Transformer {
       // The transformer API does not iterate over `Library.additionalExports`,
       // so we manually delete the references to shaken nodes.
       library.additionalExports.removeWhere((Reference reference) {
-        return reference.canonicalName == null;
+        return reference.node is Field && reference.canonicalName == null;
       });
     }
   }
