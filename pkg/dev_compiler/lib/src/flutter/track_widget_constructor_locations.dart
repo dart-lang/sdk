@@ -80,7 +80,15 @@ void _maybeAddCreationLocationArgument(
     return;
   }
   if (!_hasNamedParameter(function, _creationLocationParameterName)) {
-    return;
+    // TODO(jakemac): We don't apply the transformation to dependencies kernel
+    // outlines, so instead we just assume the named parameter exists.
+    //
+    // The only case in which it shouldn't exist is if the function has optional
+    // positional parameters so it cannot have optional named parameters.
+    if (function.requiredParameterCount !=
+        function.positionalParameters.length) {
+      return;
+    }
   }
 
   final NamedExpression namedArgument =
@@ -315,17 +323,18 @@ class WidgetCreatorTracker {
     // the latest version
     for (Library library in libraries) {
       final Uri importUri = library.importUri;
-      if (!library.isExternal &&
-          importUri != null &&
-          importUri.scheme == 'package') {
-        if (importUri.path == 'flutter/src/widgets/framework.dart') {
+      if (importUri != null && importUri.scheme == 'package') {
+        if (importUri.path == 'flutter/src/widgets/framework.dart' ||
+            importUri.path == 'flutter_web/src/widgets/framework.dart') {
           for (Class class_ in library.classes) {
             if (class_.name == 'Widget') {
               _widgetClass = class_;
             }
           }
         } else {
-          if (importUri.path == 'flutter/src/widgets/widget_inspector.dart') {
+          if (importUri.path == 'flutter/src/widgets/widget_inspector.dart' ||
+              importUri.path ==
+                  'flutter_web/src/widgets/widget_inspector.dart') {
             for (Class class_ in library.classes) {
               if (class_.name == '_HasCreationLocation') {
                 _hasCreationLocationClass = class_;
