@@ -421,11 +421,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
-  Expression evaluationRoot;
-  Set<TreeNode> unevaluatedNodes;
-  Set<Expression> replacementNodes;
+  Set<Expression> replacementNodes = new Set<Expression>.identity();
 
+  bool seenUnevaluatedChild; // Any children that were left unevaluated?
   int lazyDepth; // Current nesting depth of lazy regions.
+
+  bool get shouldBeUnevaluated => seenUnevaluatedChild || lazyDepth != 0;
 
   bool get targetingJavaScript => numberSemantics == NumberSemantics.js;
 
@@ -457,7 +458,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// If the expression in the UnevaluatedConstant is an InvalidExpression,
   /// an error occurred during constant evaluation.
   Constant evaluate(Expression node) {
-    evaluationRoot = node;
+    seenUnevaluatedChild = false;
     lazyDepth = 0;
     try {
       return _evaluateSubexpression(node);
@@ -479,11 +480,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     } on _AbortDueToInvalidExpression catch (e) {
       errorReporter.reportInvalidExpression(e.node);
       return new UnevaluatedConstant(e.node);
-    } finally {
-      // Release collections used to keep track of unevaluated nodes.
-      evaluationRoot = null;
-      unevaluatedNodes = null;
-      replacementNodes = null;
     }
   }
 
@@ -496,17 +492,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   /// Produce an unevaluated constant node for an expression.
-  /// Mark all ancestors (up to the root of the constant evaluation) to
-  /// indicate that they should also be unevaluated.
   Constant unevaluated(Expression original, Expression replacement) {
-    assert(evaluationRoot != null);
     replacement.fileOffset = original.fileOffset;
-    unevaluatedNodes ??= new Set<TreeNode>.identity();
-    TreeNode mark = original;
-    while (unevaluatedNodes.add(mark)) {
-      if (identical(mark, evaluationRoot)) break;
-      mark = mark.parent;
-    }
     return new UnevaluatedConstant(replacement);
   }
 
@@ -516,7 +503,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// cloning further instances.
   Expression extract(Constant constant) {
     Expression expression = constant.asExpression();
-    replacementNodes ??= new Set<Expression>.identity();
     if (!replacementNodes.add(expression)) {
       expression = cloner.clone(expression);
       replacementNodes.add(expression);
@@ -536,28 +522,28 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// Leave a (possibly nested) region of lazy evaluation.
   void leaveLazy() => lazyDepth--;
 
-  /// Should this node become unevaluated because of an unevaluated child?
-  bool hasUnevaluatedChild(TreeNode node) {
-    if (lazyDepth != 0) return true;
-    return unevaluatedNodes != null && unevaluatedNodes.contains(node);
-  }
-
   /// Evaluate [node] and possibly cache the evaluation result.
   /// @throws _AbortDueToError or _AbortDueToInvalidExpression if expression
   /// can't be evaluated.
   Constant _evaluateSubexpression(Expression node) {
     if (node == null) return nullConstant;
+    bool wasUnevaluated = seenUnevaluatedChild;
+    seenUnevaluatedChild = false;
+    Constant result;
     if (env.isEmpty) {
       // We only try to evaluate the same [node] *once* within an empty
       // environment.
       if (nodeCache.containsKey(node)) {
-        return nodeCache[node] ?? report(node, messageConstEvalCircularity);
+        result = nodeCache[node] ?? report(node, messageConstEvalCircularity);
+      } else {
+        nodeCache[node] = null;
+        result = nodeCache[node] = node.accept(this);
       }
-
-      nodeCache[node] = null;
-      return nodeCache[node] = node.accept(this);
+    } else {
+      result = node.accept(this);
     }
-    return node.accept(this);
+    seenUnevaluatedChild = wasUnevaluated || result is UnevaluatedConstant;
+    return result;
   }
 
   Constant runInsideContext(TreeNode node, Constant fun()) {
@@ -634,7 +620,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     for (int i = 0; i < node.expressions.length; ++i) {
       entries[i] = _evaluateSubexpression(node.expressions[i]);
     }
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       final expressions = new List<Expression>(node.expressions.length);
       for (int i = 0; i < node.expressions.length; ++i) {
         expressions[i] = extract(entries[i]);
@@ -658,7 +644,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     for (int i = 0; i < node.expressions.length; ++i) {
       entries[i] = _evaluateSubexpression(node.expressions[i]);
     }
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       final expressions = new List<Expression>(node.expressions.length);
       for (int i = 0; i < node.expressions.length; ++i) {
         expressions[i] = extract(entries[i]);
@@ -685,7 +671,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       final value = _evaluateSubexpression(node.entries[i].value);
       entries[i] = new ConstantMapEntry(key, value);
     }
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       final mapEntries = new List<MapEntry>(node.entries.length);
       for (int i = 0; i < node.entries.length; ++i) {
         mapEntries[i] =
@@ -740,7 +726,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         constructor.initializers.isEmpty &&
         constructor.enclosingClass.supertype != null;
 
-    if (isUnavailable || hasUnevaluatedChild(node)) {
+    if (isUnavailable || shouldBeUnevaluated) {
       return unevaluated(
           node,
           new ConstructorInvocation(constructor,
@@ -1027,7 +1013,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final List<Constant> arguments =
         evaluatePositionalArguments(node.arguments);
 
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       return unevaluated(
           node,
           new MethodInvocation(extract(receiver), node.name,
@@ -1186,7 +1172,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   visitLogicalExpression(LogicalExpression node) {
     final Constant left = _evaluateSubexpression(node.left);
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       enterLazy();
       Constant right = _evaluateSubexpression(node.right);
       leaveLazy();
@@ -1254,7 +1240,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return _evaluateSubexpression(node.then);
     } else if (condition == falseConstant) {
       return _evaluateSubexpression(node.otherwise);
-    } else if (hasUnevaluatedChild(node)) {
+    } else if (shouldBeUnevaluated) {
       enterLazy();
       Constant then = _evaluateSubexpression(node.then);
       Constant otherwise = _evaluateSubexpression(node.otherwise);
@@ -1291,7 +1277,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           return receiver.fieldValues[fieldRef];
         }
       }
-    } else if (hasUnevaluatedChild(node)) {
+    } else if (shouldBeUnevaluated) {
       return unevaluated(node,
           new PropertyGet(extract(receiver), node.name, node.interfaceTarget));
     } else if (receiver is NullConstant) {
@@ -1372,7 +1358,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         } else {
           concatenated.add(new StringBuffer(value));
         }
-      } else if (hasUnevaluatedChild(node)) {
+      } else if (shouldBeUnevaluated) {
         concatenated.add(constant);
       } else {
         return report(
@@ -1402,7 +1388,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final Arguments arguments = node.arguments;
     final positionals = evaluatePositionalArguments(arguments);
     final named = evaluateNamedArguments(arguments);
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       return unevaluated(
           node,
           new StaticInvocation(
@@ -1488,7 +1474,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       return unevaluated(node, new AsExpression(extract(constant), node.type));
     }
     return ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
@@ -1496,7 +1482,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   visitIsExpression(IsExpression node) {
     final Constant constant = node.operand.accept(this);
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       return unevaluated(node, new IsExpression(extract(constant), node.type));
     }
     if (constant is NullConstant) {
@@ -1516,7 +1502,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (constant is BoolConstant) {
       return constant == trueConstant ? falseConstant : trueConstant;
     }
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       return unevaluated(node, new Not(extract(constant)));
     }
     return report(
@@ -1533,7 +1519,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   visitInstantiation(Instantiation node) {
     final Constant constant = _evaluateSubexpression(node.expression);
-    if (hasUnevaluatedChild(node)) {
+    if (shouldBeUnevaluated) {
       return unevaluated(
           node, new Instantiation(extract(constant), node.typeArguments));
     }
