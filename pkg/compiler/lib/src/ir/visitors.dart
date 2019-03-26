@@ -434,6 +434,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     return defaultExpression(node);
   }
 
+  @override
+  ConstantExpression visitBlockExpression(ir.BlockExpression node) {
+    return defaultExpression(node);
+  }
+
   /// Compute the [ConstantConstructor] corresponding to the const constructor
   /// [node].
   ConstantConstructor computeConstantConstructor(ir.Constructor node) {

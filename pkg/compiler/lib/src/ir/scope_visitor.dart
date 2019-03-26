@@ -926,6 +926,13 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   }
 
   @override
+  InitializerComplexity visitBlockExpression(ir.BlockExpression node) {
+    visitNode(node.body);
+    visitNode(node.value);
+    return const InitializerComplexity.lazy();
+  }
+
+  @override
   InitializerComplexity visitCatch(ir.Catch node) {
     visitInContext(node.guard, VariableUse.explicit);
     visitNode(node.exception);

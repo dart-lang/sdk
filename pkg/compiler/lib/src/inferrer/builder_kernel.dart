@@ -1002,6 +1002,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitBlockExpression(ir.BlockExpression node) {
+    visit(node.body);
+    return visit(node.value);
+  }
+
+  @override
   TypeInformation visitForInStatement(ir.ForInStatement node) {
     if (node.iterable is ir.ThisExpression) {
       // Any reasonable implementation of an iterator would expose

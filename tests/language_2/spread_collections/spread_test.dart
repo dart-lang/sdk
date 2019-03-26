@@ -19,7 +19,6 @@ void main() {
   testSet();
   testDuplicateKeys();
   testKeyOrder();
-  testCastFailures();
 }
 
 void testList() {
@@ -196,28 +195,4 @@ void testKeyOrder() {
   transcript.clear();
   set = <Equality>{log(e1a), ...<Equality>[log(e1b), log(e2a), log(e2b)]};
   Expect.equals("1:a,1:b,2:a,2:b", transcript.join(","));
-}
-
-void testCastFailures() {
-  dynamic nonIterable = 3;
-  Expect.throwsTypeError(() => <int>[...nonIterable]);
-  Expect.throwsTypeError(() => <int>{...nonIterable});
-
-  dynamic nonMap = 3;
-  Expect.throwsTypeError(() => <int, int>{...nonMap});
-
-  dynamic wrongIterableType = <String>["s"];
-  Expect.throwsTypeError(() => <int>[...wrongIterableType]);
-  Expect.throwsTypeError(() => <int>{...wrongIterableType});
-
-  dynamic wrongKeyType = <String, int>{"s": 1};
-  dynamic wrongValueType = <int, String>{1: "s"};
-  Expect.throwsTypeError(() => <int, int>{...wrongKeyType});
-  Expect.throwsTypeError(() => <int, int>{...wrongValueType});
-
-  // Mismatched collection types.
-  Expect.throwsTypeError(() => <int>[...map]);
-  Expect.throwsTypeError(() => <int, int>{...list});
-  Expect.throwsTypeError(() => <int, int>{...set});
-  Expect.throwsTypeError(() => <int>{...map});
 }

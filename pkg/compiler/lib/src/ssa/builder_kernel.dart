@@ -3304,6 +3304,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     node.body.accept(this);
   }
 
+  @override
+  void visitBlockExpression(ir.BlockExpression node) {
+    node.body.accept(this);
+    node.value.accept(this);
+  }
+
   /// Extracts the list of instructions for the positional subset of arguments.
   List<HInstruction> _visitPositionalArguments(ir.Arguments arguments) {
     List<HInstruction> result = <HInstruction>[];

@@ -919,6 +919,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return super.visitLet(node);
   }
 
+  @override
+  ir.DartType visitBlockExpression(ir.BlockExpression node) {
+    visitNode(node.body);
+    return super.visitBlockExpression(node);
+  }
+
   ir.DartType _computeInstantiationType(
       ir.Instantiation node, ir.FunctionType expressionType) {
     return ir.Substitution.fromPairs(
