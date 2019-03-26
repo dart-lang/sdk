@@ -68,6 +68,7 @@ constructor_initializer_invalid: TextSerializationFailure # Was: RuntimeError # 
 continue_inference_after_error: TextSerializationFailure # Was: Pass
 continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
 control_flow_collection: TextSerializationFailure
+control_flow_collection_inference: TextSerializationFailure
 covariant_generic: TextSerializationFailure # Was: RuntimeError
 cycles: TextSerializationFailure # Was: Pass
 default_values: TextSerializationFailure # Was: Pass

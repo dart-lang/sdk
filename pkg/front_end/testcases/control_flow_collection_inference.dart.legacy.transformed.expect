@@ -1,0 +1,572 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:9:17: Error: Unexpected token 'if'.
+//   var list10 = [if (oracle("foo")) 42];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:10:16: Error: Unexpected token 'if'.
+//   var set10 = {if (oracle("foo")) 42, null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:11:17: Error: Unexpected token 'if'.
+//   var list11 = [if (oracle("foo")) dynVar];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:12:16: Error: Unexpected token 'if'.
+//   var set11 = {if (oracle("foo")) dynVar, null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:13:17: Error: Unexpected token 'if'.
+//   var list12 = [if (oracle("foo")) [42]];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:14:16: Error: Unexpected token 'if'.
+//   var set12 = {if (oracle("foo")) [42], null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:15:36: Error: Unexpected token '...'.
+//   var list20 = [if (oracle("foo")) ...[42]];
+//                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:15:17: Error: Unexpected token 'if'.
+//   var list20 = [if (oracle("foo")) ...[42]];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:16:35: Error: Unexpected token '...'.
+//   var set20 = {if (oracle("foo")) ...[42], null};
+//                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:16:16: Error: Unexpected token 'if'.
+//   var set20 = {if (oracle("foo")) ...[42], null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:17:36: Error: Unexpected token '...'.
+//   var list21 = [if (oracle("foo")) ...[dynVar]];
+//                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:17:17: Error: Unexpected token 'if'.
+//   var list21 = [if (oracle("foo")) ...[dynVar]];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:18:35: Error: Unexpected token '...'.
+//   var set21 = {if (oracle("foo")) ...[dynVar], null};
+//                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:18:16: Error: Unexpected token 'if'.
+//   var set21 = {if (oracle("foo")) ...[dynVar], null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:19:36: Error: Unexpected token '...'.
+//   var list22 = [if (oracle("foo")) ...[[42]]];
+//                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:19:17: Error: Unexpected token 'if'.
+//   var list22 = [if (oracle("foo")) ...[[42]]];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:20:35: Error: Unexpected token '...'.
+//   var set22 = {if (oracle("foo")) ...[[42]], null};
+//                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:20:16: Error: Unexpected token 'if'.
+//   var set22 = {if (oracle("foo")) ...[[42]], null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:21:50: Error: Unexpected token '...'.
+//   var list30 = [if (oracle("foo")) if (oracle()) ...[42]];
+//                                                  ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:21:36: Error: Unexpected token 'if'.
+//   var list30 = [if (oracle("foo")) if (oracle()) ...[42]];
+//                                    ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:21:17: Error: Unexpected token 'if'.
+//   var list30 = [if (oracle("foo")) if (oracle()) ...[42]];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:22:49: Error: Unexpected token '...'.
+//   var set30 = {if (oracle("foo")) if (oracle()) ...[42], null};
+//                                                 ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:22:35: Error: Unexpected token 'if'.
+//   var set30 = {if (oracle("foo")) if (oracle()) ...[42], null};
+//                                   ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:22:16: Error: Unexpected token 'if'.
+//   var set30 = {if (oracle("foo")) if (oracle()) ...[42], null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:23:50: Error: Unexpected token '...'.
+//   var list31 = [if (oracle("foo")) if (oracle()) ...[dynVar]];
+//                                                  ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:23:36: Error: Unexpected token 'if'.
+//   var list31 = [if (oracle("foo")) if (oracle()) ...[dynVar]];
+//                                    ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:23:17: Error: Unexpected token 'if'.
+//   var list31 = [if (oracle("foo")) if (oracle()) ...[dynVar]];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:24:49: Error: Unexpected token '...'.
+//   var set31 = {if (oracle("foo")) if (oracle()) ...[dynVar], null};
+//                                                 ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:24:35: Error: Unexpected token 'if'.
+//   var set31 = {if (oracle("foo")) if (oracle()) ...[dynVar], null};
+//                                   ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:24:16: Error: Unexpected token 'if'.
+//   var set31 = {if (oracle("foo")) if (oracle()) ...[dynVar], null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:25:50: Error: Unexpected token '...'.
+//   var list33 = [if (oracle("foo")) if (oracle()) ...[[42]]];
+//                                                  ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:25:36: Error: Unexpected token 'if'.
+//   var list33 = [if (oracle("foo")) if (oracle()) ...[[42]]];
+//                                    ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:25:17: Error: Unexpected token 'if'.
+//   var list33 = [if (oracle("foo")) if (oracle()) ...[[42]]];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:26:49: Error: Unexpected token '...'.
+//   var set33 = {if (oracle("foo")) if (oracle()) ...[[42]], null};
+//                                                 ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:26:35: Error: Unexpected token 'if'.
+//   var set33 = {if (oracle("foo")) if (oracle()) ...[[42]], null};
+//                                   ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:26:16: Error: Unexpected token 'if'.
+//   var set33 = {if (oracle("foo")) if (oracle()) ...[[42]], null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:27:48: Error: Unexpected token '...'.
+//   List<List<int>> list40 = [if (oracle("foo")) ...[[]]];
+//                                                ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:27:29: Error: Unexpected token 'if'.
+//   List<List<int>> list40 = [if (oracle("foo")) ...[[]]];
+//                             ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:28:46: Error: Unexpected token '...'.
+//   Set<List<int>> set40 = {if (oracle("foo")) ...[[]], null};
+//                                              ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:28:27: Error: Unexpected token 'if'.
+//   Set<List<int>> set40 = {if (oracle("foo")) ...[[]], null};
+//                           ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:29:48: Error: Unexpected token '...'.
+//   List<List<int>> list41 = [if (oracle("foo")) ...{[]}];
+//                                                ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:29:29: Error: Unexpected token 'if'.
+//   List<List<int>> list41 = [if (oracle("foo")) ...{[]}];
+//                             ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:30:46: Error: Unexpected token '...'.
+//   Set<List<int>> set41 = {if (oracle("foo")) ...{[]}, null};
+//                                              ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:30:27: Error: Unexpected token 'if'.
+//   Set<List<int>> set41 = {if (oracle("foo")) ...{[]}, null};
+//                           ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:31:62: Error: Unexpected token '...'.
+//   List<List<int>> list42 = [if (oracle("foo")) if (oracle()) ...[[]]];
+//                                                              ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:31:48: Error: Unexpected token 'if'.
+//   List<List<int>> list42 = [if (oracle("foo")) if (oracle()) ...[[]]];
+//                                                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:31:29: Error: Unexpected token 'if'.
+//   List<List<int>> list42 = [if (oracle("foo")) if (oracle()) ...[[]]];
+//                             ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:32:60: Error: Unexpected token '...'.
+//   Set<List<int>> set42 = {if (oracle("foo")) if (oracle()) ...[[]], null};
+//                                                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:32:46: Error: Unexpected token 'if'.
+//   Set<List<int>> set42 = {if (oracle("foo")) if (oracle()) ...[[]], null};
+//                                              ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:32:27: Error: Unexpected token 'if'.
+//   Set<List<int>> set42 = {if (oracle("foo")) if (oracle()) ...[[]], null};
+//                           ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:33:42: Error: Unexpected token '...'.
+//   List<int> list50 = [if (oracle("foo")) ...[]];
+//                                          ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:33:23: Error: Unexpected token 'if'.
+//   List<int> list50 = [if (oracle("foo")) ...[]];
+//                       ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:34:40: Error: Unexpected token '...'.
+//   Set<int> set50 = {if (oracle("foo")) ...[], null};
+//                                        ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:34:21: Error: Unexpected token 'if'.
+//   Set<int> set50 = {if (oracle("foo")) ...[], null};
+//                     ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:35:42: Error: Unexpected token '...'.
+//   List<int> list51 = [if (oracle("foo")) ...{}];
+//                                          ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:35:23: Error: Unexpected token 'if'.
+//   List<int> list51 = [if (oracle("foo")) ...{}];
+//                       ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:36:40: Error: Unexpected token '...'.
+//   Set<int> set51 = {if (oracle("foo")) ...{}, null};
+//                                        ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:36:21: Error: Unexpected token 'if'.
+//   Set<int> set51 = {if (oracle("foo")) ...{}, null};
+//                     ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:37:56: Error: Unexpected token '...'.
+//   List<int> list52 = [if (oracle("foo")) if (oracle()) ...[]];
+//                                                        ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:37:42: Error: Unexpected token 'if'.
+//   List<int> list52 = [if (oracle("foo")) if (oracle()) ...[]];
+//                                          ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:37:23: Error: Unexpected token 'if'.
+//   List<int> list52 = [if (oracle("foo")) if (oracle()) ...[]];
+//                       ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:38:54: Error: Unexpected token '...'.
+//   Set<int> set52 = {if (oracle("foo")) if (oracle()) ...[], null};
+//                                                      ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:38:40: Error: Unexpected token 'if'.
+//   Set<int> set52 = {if (oracle("foo")) if (oracle()) ...[], null};
+//                                        ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:38:21: Error: Unexpected token 'if'.
+//   Set<int> set52 = {if (oracle("foo")) if (oracle()) ...[], null};
+//                     ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:39:48: Error: Unexpected token '...'.
+//   List<List<int>> list60 = [if (oracle("foo")) ...[[]]];
+//                                                ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:39:29: Error: Unexpected token 'if'.
+//   List<List<int>> list60 = [if (oracle("foo")) ...[[]]];
+//                             ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:40:46: Error: Unexpected token '...'.
+//   Set<List<int>> set60 = {if (oracle("foo")) ...[[]], null};
+//                                              ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:40:27: Error: Unexpected token 'if'.
+//   Set<List<int>> set60 = {if (oracle("foo")) ...[[]], null};
+//                           ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:41:62: Error: Unexpected token '...'.
+//   List<List<int>> list61 = [if (oracle("foo")) if (oracle()) ...[[]]];
+//                                                              ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:41:48: Error: Unexpected token 'if'.
+//   List<List<int>> list61 = [if (oracle("foo")) if (oracle()) ...[[]]];
+//                                                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:41:29: Error: Unexpected token 'if'.
+//   List<List<int>> list61 = [if (oracle("foo")) if (oracle()) ...[[]]];
+//                             ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:42:60: Error: Unexpected token '...'.
+//   Set<List<int>> set61 = {if (oracle("foo")) if (oracle()) ...[[]], null};
+//                                                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:42:46: Error: Unexpected token 'if'.
+//   Set<List<int>> set61 = {if (oracle("foo")) if (oracle()) ...[[]], null};
+//                                              ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:42:27: Error: Unexpected token 'if'.
+//   Set<List<int>> set61 = {if (oracle("foo")) if (oracle()) ...[[]], null};
+//                           ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:43:29: Error: Unexpected token 'if'.
+//   List<List<int>> list70 = [if (oracle("foo")) []];
+//                             ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:44:27: Error: Unexpected token 'if'.
+//   Set<List<int>> set70 = {if (oracle("foo")) [], null};
+//                           ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:45:48: Error: Unexpected token 'if'.
+//   List<List<int>> list71 = [if (oracle("foo")) if (oracle()) []];
+//                                                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:45:29: Error: Unexpected token 'if'.
+//   List<List<int>> list71 = [if (oracle("foo")) if (oracle()) []];
+//                             ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:46:46: Error: Unexpected token 'if'.
+//   Set<List<int>> set71 = {if (oracle("foo")) if (oracle()) [], null};
+//                                              ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:46:27: Error: Unexpected token 'if'.
+//   Set<List<int>> set71 = {if (oracle("foo")) if (oracle()) [], null};
+//                           ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:47:17: Error: Unexpected token 'if'.
+//   var list80 = [if (oracle("foo")) 42 else 3.14];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:48:16: Error: Unexpected token 'if'.
+//   var set80 = {if (oracle("foo")) 42 else 3.14, null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:49:36: Error: Unexpected token '...'.
+//   var list81 = [if (oracle("foo")) ...listInt else ...listDouble];
+//                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:49:52: Error: Unexpected token '...'.
+//   var list81 = [if (oracle("foo")) ...listInt else ...listDouble];
+//                                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:49:17: Error: Unexpected token 'if'.
+//   var list81 = [if (oracle("foo")) ...listInt else ...listDouble];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:50:35: Error: Unexpected token '...'.
+//   var set81 = {if (oracle("foo")) ...listInt else ...listDouble, null};
+//                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:50:51: Error: Unexpected token '...'.
+//   var set81 = {if (oracle("foo")) ...listInt else ...listDouble, null};
+//                                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:50:16: Error: Unexpected token 'if'.
+//   var set81 = {if (oracle("foo")) ...listInt else ...listDouble, null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:51:36: Error: Unexpected token '...'.
+//   var list82 = [if (oracle("foo")) ...listInt else ...dynVar];
+//                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:51:52: Error: Unexpected token '...'.
+//   var list82 = [if (oracle("foo")) ...listInt else ...dynVar];
+//                                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:51:17: Error: Unexpected token 'if'.
+//   var list82 = [if (oracle("foo")) ...listInt else ...dynVar];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:52:35: Error: Unexpected token '...'.
+//   var set82 = {if (oracle("foo")) ...listInt else ...dynVar, null};
+//                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:52:51: Error: Unexpected token '...'.
+//   var set82 = {if (oracle("foo")) ...listInt else ...dynVar, null};
+//                                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:52:16: Error: Unexpected token 'if'.
+//   var set82 = {if (oracle("foo")) ...listInt else ...dynVar, null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:53:44: Error: Unexpected token '...'.
+//   var list83 = [if (oracle("foo")) 42 else ...listDouble];
+//                                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:53:17: Error: Unexpected token 'if'.
+//   var list83 = [if (oracle("foo")) 42 else ...listDouble];
+//                 ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:54:35: Error: Unexpected token '...'.
+//   var set83 = {if (oracle("foo")) ...listInt else 3.14, null};
+//                                   ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:54:16: Error: Unexpected token 'if'.
+//   var set83 = {if (oracle("foo")) ...listInt else 3.14, null};
+//                ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:55:23: Error: Unexpected token 'if'.
+//   List<int> list90 = [if (oracle("foo")) dynVar];
+//                       ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:56:21: Error: Unexpected token 'if'.
+//   Set<int> set90 = {if (oracle("foo")) dynVar, null};
+//                     ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:57:42: Error: Unexpected token '...'.
+//   List<int> list91 = [if (oracle("foo")) ...dynVar];
+//                                          ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:57:23: Error: Unexpected token 'if'.
+//   List<int> list91 = [if (oracle("foo")) ...dynVar];
+//                       ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:58:40: Error: Unexpected token '...'.
+//   Set<int> set91 = {if (oracle("foo")) ...dynVar, null};
+//                                        ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:58:21: Error: Unexpected token 'if'.
+//   Set<int> set91 = {if (oracle("foo")) ...dynVar, null};
+//                     ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:62:9: Error: Unexpected token 'if'.
+//   <int>[if (oracle("foo")) "bar"];
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:63:9: Error: Unexpected token 'if'.
+//   <int>{if (oracle("foo")) "bar", null};
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:64:28: Error: Unexpected token '...'.
+//   <int>[if (oracle("foo")) ...["bar"]];
+//                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:64:9: Error: Unexpected token 'if'.
+//   <int>[if (oracle("foo")) ...["bar"]];
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:65:28: Error: Unexpected token '...'.
+//   <int>{if (oracle("foo")) ...["bar"], null};
+//                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:65:9: Error: Unexpected token 'if'.
+//   <int>{if (oracle("foo")) ...["bar"], null};
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:66:28: Error: Unexpected token '...'.
+//   <int>[if (oracle("foo")) ...map];
+//                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:66:9: Error: Unexpected token 'if'.
+//   <int>[if (oracle("foo")) ...map];
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:67:28: Error: Unexpected token '...'.
+//   <int>{if (oracle("foo")) ...map, null};
+//                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:67:9: Error: Unexpected token 'if'.
+//   <int>{if (oracle("foo")) ...map, null};
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:68:12: Error: Unexpected token 'if'.
+//   <String>[if (oracle("foo")) 42 else 3.14];
+//            ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:69:12: Error: Unexpected token 'if'.
+//   <String>{if (oracle("foo")) 42 else 3.14, null};
+//            ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:70:28: Error: Unexpected token '...'.
+//   <int>[if (oracle("foo")) ...map else 42];
+//                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:70:9: Error: Unexpected token 'if'.
+//   <int>[if (oracle("foo")) ...map else 42];
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:71:28: Error: Unexpected token '...'.
+//   <int>{if (oracle("foo")) ...map else 42, null};
+//                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:71:9: Error: Unexpected token 'if'.
+//   <int>{if (oracle("foo")) ...map else 42, null};
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:72:36: Error: Unexpected token '...'.
+//   <int>[if (oracle("foo")) 42 else ...map];
+//                                    ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:72:9: Error: Unexpected token 'if'.
+//   <int>[if (oracle("foo")) 42 else ...map];
+//         ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:73:28: Error: Unexpected token '...'.
+//   <int>{if (oracle("foo")) ...map else 42, null};
+//                            ^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:73:9: Error: Unexpected token 'if'.
+//   <int>{if (oracle("foo")) ...map else 42, null};
+//         ^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method oracle<T extends core::Object = dynamic>([self::oracle::T t = null]) → dynamic
+  return true;
+static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core::List<core::double> listDouble) → dynamic {
+  dynamic list10 = <dynamic>[];
+  dynamic set10 = <dynamic>{null};
+  dynamic list11 = <dynamic>[];
+  dynamic set11 = <dynamic>{null};
+  dynamic list12 = <dynamic>[];
+  dynamic set12 = <dynamic>{null};
+  dynamic list20 = <dynamic>[];
+  dynamic set20 = <dynamic>{null};
+  dynamic list21 = <dynamic>[];
+  dynamic set21 = <dynamic>{null};
+  dynamic list22 = <dynamic>[];
+  dynamic set22 = <dynamic>{null};
+  dynamic list30 = <dynamic>[];
+  dynamic set30 = <dynamic>{null};
+  dynamic list31 = <dynamic>[];
+  dynamic set31 = <dynamic>{null};
+  dynamic list33 = <dynamic>[];
+  dynamic set33 = <dynamic>{null};
+  core::List<core::List<core::int>> list40 = <dynamic>[];
+  core::Set<core::List<core::int>> set40 = <dynamic>{null};
+  core::List<core::List<core::int>> list41 = <dynamic>[];
+  core::Set<core::List<core::int>> set41 = <dynamic>{null};
+  core::List<core::List<core::int>> list42 = <dynamic>[];
+  core::Set<core::List<core::int>> set42 = <dynamic>{null};
+  core::List<core::int> list50 = <dynamic>[];
+  core::Set<core::int> set50 = <dynamic>{null};
+  core::List<core::int> list51 = <dynamic>[];
+  core::Set<core::int> set51 = <dynamic>{null};
+  core::List<core::int> list52 = <dynamic>[];
+  core::Set<core::int> set52 = <dynamic>{null};
+  core::List<core::List<core::int>> list60 = <dynamic>[];
+  core::Set<core::List<core::int>> set60 = <dynamic>{null};
+  core::List<core::List<core::int>> list61 = <dynamic>[];
+  core::Set<core::List<core::int>> set61 = <dynamic>{null};
+  core::List<core::List<core::int>> list70 = <dynamic>[];
+  core::Set<core::List<core::int>> set70 = <dynamic>{null};
+  core::List<core::List<core::int>> list71 = <dynamic>[];
+  core::Set<core::List<core::int>> set71 = <dynamic>{null};
+  dynamic list80 = <dynamic>[];
+  dynamic set80 = <dynamic>{null};
+  dynamic list81 = <dynamic>[];
+  dynamic set81 = <dynamic>{null};
+  dynamic list82 = <dynamic>[];
+  dynamic set82 = <dynamic>{null};
+  dynamic list83 = <dynamic>[];
+  dynamic set83 = <dynamic>{null};
+  core::List<core::int> list90 = <dynamic>[];
+  core::Set<core::int> set90 = <dynamic>{null};
+  core::List<core::int> list91 = <dynamic>[];
+  core::Set<core::int> set91 = <dynamic>{null};
+}
+static method testIfElementErrors(core::Map<core::int, core::int> map) → dynamic {
+  <core::int>[];
+  <core::int>{null};
+  <core::int>[];
+  <core::int>{null};
+  <core::int>[];
+  <core::int>{null};
+  <core::String>[];
+  <core::String>{null};
+  <core::int>[];
+  <core::int>{null};
+  <core::int>[];
+  <core::int>{null};
+}
+static method main() → dynamic {}

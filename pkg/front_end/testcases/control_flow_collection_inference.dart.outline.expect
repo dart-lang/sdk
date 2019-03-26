@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method oracle<T extends core::Object = dynamic>([self::oracle::T t]) → dynamic
+  ;
+static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core::List<core::double> listDouble) → dynamic
+  ;
+static method testIfElementErrors(core::Map<core::int, core::int> map) → dynamic
+  ;
+static method main() → dynamic
+  ;
