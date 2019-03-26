@@ -32,7 +32,7 @@
 #include "platform/utils.h"
 
 // The EventHandler for Fuchsia uses its "ports v2" API:
-// https://fuchsia.googlesource.com/zircon/+/HEAD/docs/syscalls/port_create.md
+// https://fuchsia.googlesource.com/fuchsia/+/HEAD/zircon/docs/syscalls/port_create.md
 // This API does not have epoll()-like edge triggering (EPOLLET). Since clients
 // of the EventHandler expect edge-triggered notifications, we must simulate it.
 // When a packet from zx_port_wait() indicates that a signal is asserted for a
@@ -45,7 +45,7 @@
 // 4. Some time later the Dart thread actually does a write().
 // 5. After writing, the Dart thread resubscribes to write events.
 //
-// We use he same procedure for ZX_SOCKET_READABLE, and read()/accept().
+// We use the same procedure for ZX_SOCKET_READABLE, and read()/accept().
 
 // define EVENTHANDLER_LOG_ERROR to get log messages only for errors.
 // define EVENTHANDLER_LOG_INFO to get log messages for both information and
@@ -267,7 +267,23 @@ intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
     LOG_INFO("IOHandle::ToggleEvents: fd=%ld de-asserting read\n", fd_);
     event_mask = event_mask & ~(1 << kInEvent);
   }
-  if ((event_mask & (1 << kInEvent)) != 0) {
+  // We may get In events without available bytes, so we must make sure there
+  // are actually bytes, or we will never resubscribe (due to a short-circuit
+  // on the Dart side).
+  //
+  // This happens due to how packets get enqueued on the port with all signals
+  // asserted at that time. Sometimes we enqueue a packet due to
+  // zx_object_wait_async e.g. for POLLOUT (writability) while the socket is
+  // readable and while we have a Read queued up on the Dart side. This packet
+  // will also have POLLIN (readable) asserted. We may then perform the Read
+  // and drain the socket before our zx_port_wait is serviced, at which point
+  // when we process the packet for POLLOUT with its stale POLLIN (readable)
+  // signal, the socket is no longer actually readable.
+  //
+  // As a detail, negative available bytes (errors) are handled specially; see
+  // IOHandle::AvailableBytes for more information.
+  if ((event_mask & (1 << kInEvent)) != 0 &&
+      FDUtils::AvailableBytes(fd_) != 0) {
     LOG_INFO("IOHandle::ToggleEvents: fd = %ld asserting read and disabling\n",
              fd_);
     read_events_enabled_ = false;
@@ -468,15 +484,15 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
 void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
   LOG_INFO("HandlePacket: Got event packet: key=%lx\n", pkt->key);
-  LOG_INFO("HandlePacket: Got event packet: type=%lx\n", pkt->type);
-  LOG_INFO("HandlePacket: Got event packet: status=%ld\n", pkt->status);
+  LOG_INFO("HandlePacket: Got event packet: type=%x\n", pkt->type);
+  LOG_INFO("HandlePacket: Got event packet: status=%d\n", pkt->status);
   if (pkt->type == ZX_PKT_TYPE_USER) {
     ASSERT(pkt->key == kInterruptPacketKey);
     InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(&pkt->user);
     HandleInterrupt(msg);
     return;
   }
-  LOG_INFO("HandlePacket: Got event packet: observed = %lx\n",
+  LOG_INFO("HandlePacket: Got event packet: observed = %x\n",
            pkt->signal.observed);
   LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);
 
