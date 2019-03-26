@@ -114,6 +114,16 @@ bool equalSets<E>(Set<E> a, Set<E> b) {
   return a.length == b.length && a.containsAll(b) && b.containsAll(a);
 }
 
+bool equalMaps<K, V>(Map<K, V> a, Map<K, V> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (K key in a.keys) {
+    if (a[key] != b[key]) return false;
+  }
+  return true;
+}
+
 /// File name prefix used to shorten the file name in stack traces printed by
 /// [trace].
 String stackTraceFilePrefix = null;

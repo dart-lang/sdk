@@ -566,7 +566,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
     origin.constructor.isExternal = constructor.isExternal;
     origin.constructor.function = constructor.function;
-    origin.constructor.function.parent = constructor.function;
+    origin.constructor.function.parent = origin.constructor;
     origin.constructor.initializers = constructor.initializers;
     setParents(origin.constructor.initializers, origin.constructor);
     return 1;

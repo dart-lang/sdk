@@ -112,7 +112,8 @@ InitializedCompilerState initializeCompiler(
     List<Uri> linkedDependencies,
     Uri packagesFileUri,
     {List<Uri> dependencies,
-    Map<ExperimentalFlag, bool> experimentalFlags}) {
+    Map<ExperimentalFlag, bool> experimentalFlags,
+    bool verify: false}) {
   bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
     if (a == null || b == null) return a == b;
     if (a.length != b.length) return false;
@@ -146,7 +147,8 @@ InitializedCompilerState initializeCompiler(
     ..linkedDependencies = linkedDependencies
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
-    ..experimentalFlags = experimentalFlags;
+    ..experimentalFlags = experimentalFlags
+    ..verify = verify;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

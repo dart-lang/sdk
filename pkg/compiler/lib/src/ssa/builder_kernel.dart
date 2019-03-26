@@ -4025,26 +4025,40 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     ir.Expression closure = invocation.arguments.positional.single;
     String problem = 'requires a static method or top-level method';
+
+    bool handleTarget(ir.Procedure procedure) {
+      ir.FunctionNode function = procedure.function;
+      if (function != null &&
+          function.requiredParameterCount ==
+              function.positionalParameters.length &&
+          function.namedParameters.isEmpty) {
+        push(new HForeignCode(
+            js.js.expressionTemplateYielding(
+                emitter.staticFunctionAccess(_elementMap.getMethod(procedure))),
+            abstractValueDomain.dynamicType,
+            <HInstruction>[],
+            nativeBehavior: NativeBehavior.PURE,
+            foreignFunction: _elementMap.getMethod(procedure)));
+        return true;
+      }
+      problem = 'does not handle a closure with optional parameters';
+      return false;
+    }
+
     if (closure is ir.StaticGet) {
       ir.Member staticTarget = closure.target;
       if (staticTarget is ir.Procedure) {
         if (staticTarget.kind == ir.ProcedureKind.Method) {
-          ir.FunctionNode function = staticTarget.function;
-          if (function != null &&
-              function.requiredParameterCount ==
-                  function.positionalParameters.length &&
-              function.namedParameters.isEmpty) {
-            push(new HForeignCode(
-                js.js.expressionTemplateYielding(emitter
-                    .staticFunctionAccess(_elementMap.getMethod(staticTarget))),
-                abstractValueDomain.dynamicType,
-                <HInstruction>[],
-                nativeBehavior: NativeBehavior.PURE,
-                foreignFunction: _elementMap.getMethod(staticTarget)));
+          if (handleTarget(staticTarget)) {
             return;
           }
-          problem = 'does not handle a closure with optional parameters';
         }
+      }
+    } else if (closure is ir.ConstantExpression &&
+        closure.constant is ir.TearOffConstant) {
+      ir.TearOffConstant tearOff = closure.constant;
+      if (handleTarget(tearOff.procedure)) {
+        return;
       }
     }
 

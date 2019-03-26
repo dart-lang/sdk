@@ -236,7 +236,7 @@ class ConstantsTransformer extends Transformer {
       if (variable.initializer != null) {
         variable.initializer =
             tryEvaluateAndTransformWithContext(variable, variable.initializer)
-              ..parent = node;
+              ..parent = variable;
       }
     }
     for (final VariableDeclaration variable in node.namedParameters) {
@@ -244,7 +244,7 @@ class ConstantsTransformer extends Transformer {
       if (variable.initializer != null) {
         variable.initializer =
             tryEvaluateAndTransformWithContext(variable, variable.initializer)
-              ..parent = node;
+              ..parent = variable;
       }
     }
     if (node.body != null) {

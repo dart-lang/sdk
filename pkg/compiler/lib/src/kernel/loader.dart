@@ -74,7 +74,9 @@ class KernelLoaderTask extends CompilerTask {
         if (_options.dillDependencies != null) {
           // Modular compiles do not include the platform on the input dill
           // either.
-          await read(_options.platformBinaries.resolve(platform));
+          if (_options.platformBinaries != null) {
+            await read(_options.platformBinaries.resolve(platform));
+          }
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
           }
@@ -90,7 +92,10 @@ class KernelLoaderTask extends CompilerTask {
           return null;
         }
       } else {
-        List<Uri> dependencies = [_options.platformBinaries.resolve(platform)];
+        List<Uri> dependencies = [];
+        if (_options.platformBinaries != null) {
+          dependencies.add(_options.platformBinaries.resolve(platform));
+        }
         if (_options.dillDependencies != null) {
           dependencies.addAll(_options.dillDependencies);
         }

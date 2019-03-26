@@ -127,7 +127,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showHints;
   bool enableColors;
   int optimizationLevel = null;
-  Uri platformBinaries = fe.computePlatformBinariesLocation();
+  Uri platformBinaries;
   Map<String, String> environment = new Map<String, String>();
   CompilationStrategy compilationStrategy = CompilationStrategy.direct;
 

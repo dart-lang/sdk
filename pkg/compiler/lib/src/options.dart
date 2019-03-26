@@ -7,6 +7,7 @@ library dart2js.src.options;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'commandline_options.dart' show Flags;
+import 'util/util.dart';
 
 /// Options used for controlling diagnostic messages.
 abstract class DiagnosticOptions {
@@ -320,6 +321,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
       {Uri librariesSpecificationUri, Uri platformBinaries}) {
+    Map<fe.ExperimentalFlag, bool> languageExperiments =
+        _extractExperiments(options);
+    if (equalMaps(languageExperiments, defaultExperimentalFlags)) {
+      platformBinaries ??= fe.computePlatformBinariesLocation();
+    }
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -338,7 +344,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
-      ..languageExperiments = _extractExperiments(options)
+      ..languageExperiments = languageExperiments
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
@@ -413,7 +419,8 @@ class CompilerOptions implements DiagnosticOptions {
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("[packageRoot] must end with a /");
     }
-    if (platformBinaries == null) {
+    if (platformBinaries == null &&
+        equalMaps(languageExperiments, defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
   }
@@ -553,8 +560,18 @@ List<Uri> _extractUriListOption(List<String> options, String flag) {
 Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
   List<String> experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
-  return fe.parseExperimentalFlags(
+  Map<fe.ExperimentalFlag, bool> flags = fe.parseExperimentalFlags(
       experiments, (String error) => throw new ArgumentError(error));
+  for (fe.ExperimentalFlag flag in defaultExperimentalFlags.keys) {
+    flags[flag] ??= defaultExperimentalFlags[flag];
+  }
+  return flags;
 }
+
+const Map<fe.ExperimentalFlag, bool> defaultExperimentalFlags = {
+  fe.ExperimentalFlag.constantUpdate2018: false,
+  fe.ExperimentalFlag.controlFlowCollections: false,
+  fe.ExperimentalFlag.spreadCollections: false,
+};
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

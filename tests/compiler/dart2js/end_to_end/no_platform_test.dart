@@ -12,7 +12,7 @@ import 'package:front_end/src/api_prototype/standard_file_system.dart' as fe;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 main() {
-  asyncTest(() async {
+  runTest(Map<fe.ExperimentalFlag, bool> experimentalFlags) async {
     fe.InitializedCompilerState initializedCompilerState =
         fe.initializeCompiler(
             null,
@@ -21,9 +21,8 @@ main() {
                 .resolve('sdk/lib/libraries.json'), // librariesSpecificationUri
             [], // linkedDependencies
             Uri.base.resolve('.packages'), // packagesFileUri
-            experimentalFlags: const {
-              fe.ExperimentalFlag.constantUpdate2018: true
-            });
+            experimentalFlags: experimentalFlags,
+            verify: true);
     ir.Component component = await fe.compile(
         initializedCompilerState, false, fe.StandardFileSystem.instance,
         (fe.DiagnosticMessage message) {
@@ -33,5 +32,11 @@ main() {
         Uri.base.resolve(
             'tests/compiler/dart2js/end_to_end/data/hello_world.dart'));
     Expect.isNotNull(new ir.CoreTypes(component).futureClass);
+  }
+
+  asyncTest(() async {
+    await runTest(const {});
+    await runTest(const {fe.ExperimentalFlag.constantUpdate2018: true});
+    await runTest(const {fe.ExperimentalFlag.spreadCollections: true});
   });
 }
