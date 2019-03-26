@@ -110,6 +110,10 @@ ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' within a const context."
   analyzerCode: UNDEFINED_OPERATOR
 
+ConstEvalInvalidPropertyGet:
+  template: "The property '#string' can't be accessed on '#constant' within a const context."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 ConstEvalInvalidStringInterpolationOperand:
   template: "The '#constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used."
   analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING

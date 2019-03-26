@@ -48,6 +48,7 @@ import '../fasta_codes.dart'
         templateConstEvalInvalidType,
         templateConstEvalInvalidBinaryOperandType,
         templateConstEvalInvalidMethodInvocation,
+        templateConstEvalInvalidPropertyGet,
         templateConstEvalInvalidStaticInvocation,
         templateConstEvalInvalidStringInterpolationOperand,
         templateConstEvalInvalidSymbolName,
@@ -478,17 +479,27 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       errorReporter.report(locatedMessage, contextMessages);
       return new UnevaluatedConstant(new InvalidExpression(e.message.message));
     } on _AbortDueToInvalidExpression catch (e) {
-      errorReporter.reportInvalidExpression(e.node);
-      return new UnevaluatedConstant(e.node);
+      // TODO(askesc): Copy position from erroneous node.
+      // Currently not possible, as it might be in a different file.
+      // Can be done if we add an explicit URI to InvalidExpression.
+      InvalidExpression invalid = new InvalidExpression(e.message);
+      if (invalid.fileOffset == TreeNode.noOffset) {
+        invalid.fileOffset = node.fileOffset;
+      }
+      errorReporter.reportInvalidExpression(invalid);
+      return new UnevaluatedConstant(invalid);
     }
   }
 
+  /// Report an error that has been detected during constant evaluation.
   Null report(TreeNode node, Message message, {List<LocatedMessage> context}) {
     throw new _AbortDueToError(node, message, context: context);
   }
 
-  Null reportInvalidExpression(InvalidExpression node) {
-    throw new _AbortDueToInvalidExpression(node);
+  /// Report a construct that should not occur inside a potentially constant
+  /// expression. It is assumed that an error has already been reported.
+  Null reportInvalid(TreeNode node, String message) {
+    throw new _AbortDueToInvalidExpression(node, message);
   }
 
   /// Produce an unevaluated constant node for an expression.
@@ -575,7 +586,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   defaultTreeNode(Node node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
-    throw 'Constant evaluation has no support for ${node.runtimeType} yet!';
+    return reportInvalid(
+        node, 'Constant evaluation has no support for ${node.runtimeType}!');
   }
 
   visitNullLiteral(NullLiteral node) => nullConstant;
@@ -707,15 +719,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final Constructor constructor = node.target;
     final Class klass = constructor.enclosingClass;
     if (!constructor.isConst) {
-      throw 'The front-end should ensure we do not encounter a '
-          'constructor invocation of a non-const constructor.';
+      return reportInvalid(node, 'Non-const constructor invocation.');
     }
     if (constructor.function.body != null &&
         constructor.function.body is! EmptyStatement) {
-      throw 'Constructor "$node" has non-trivial body "${constructor.function.body.runtimeType}".';
+      return reportInvalid(
+          node,
+          'Constructor "$node" has non-trivial body '
+          '"${constructor.function.body.runtimeType}".');
     }
     if (klass.isAbstract) {
-      throw 'Constructor "$node" belongs to abstract class "${klass}".';
+      return reportInvalid(
+          node, 'Constructor "$node" belongs to abstract class "${klass}".');
     }
 
     final positionals = evaluatePositionalArguments(node.arguments);
@@ -993,8 +1008,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               }
             }
           } else {
-            throw new Exception(
-                'No support for handling initializer of type "${init.runtimeType}".');
+            return reportInvalid(
+                constructor,
+                'No support for handling initializer of type '
+                '"${init.runtimeType}".');
           }
         }
       });
@@ -1002,7 +1019,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   visitInvalidExpression(InvalidExpression node) {
-    return reportInvalidExpression(node);
+    return reportInvalid(node, node.message);
   }
 
   visitMethodInvocation(MethodInvocation node) {
@@ -1260,12 +1277,16 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   visitPropertyGet(PropertyGet node) {
     if (node.receiver is ThisExpression) {
       // Access "this" during instance creation.
+      if (instanceBuilder == null) {
+        return reportInvalid(node, 'Instance field access outside constructor');
+      }
       for (final Field field in instanceBuilder.fields.keys) {
         if (field.name == node.name) {
           return instanceBuilder.fields[field];
         }
       }
-      throw 'Could not evaluate field get ${node.name} on incomplete instance';
+      return reportInvalid(node,
+          'Could not evaluate field get ${node.name} on incomplete instance');
     }
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
@@ -1283,7 +1304,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     } else if (receiver is NullConstant) {
       return report(node, messageConstEvalNullValue);
     }
-    throw 'Could not evaluate property get on $receiver.';
+    return report(
+        node,
+        templateConstEvalInvalidPropertyGet.withArguments(
+            node.name.name, receiver));
   }
 
   visitLet(Let node) {
@@ -1310,8 +1334,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (variable.isConst) {
       return _evaluateSubexpression(variable.initializer);
     }
-    throw new Exception('The front-end should ensure we do not encounter a '
-        'variable get of a non-const variable.');
+    return reportInvalid(node, 'Variable get of a non-const variable.');
   }
 
   visitStaticGet(StaticGet node) {
@@ -1340,8 +1363,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             templateConstEvalInvalidStaticInvocation
                 .withArguments(target.name.name));
       } else {
-        throw new Exception(
-            'No support for ${target.runtimeType} in a static-get.');
+        reportInvalid(
+            node, 'No support for ${target.runtimeType} in a static-get.');
       }
     });
   }
@@ -1530,14 +1553,15 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return canonicalize(
             new PartialInstantiationConstant(constant, typeArguments));
       }
-      throw new Exception(
+      return reportInvalid(
+          node,
           'The number of type arguments supplied in the partial instantiation '
           'does not match the number of type arguments of the $constant.');
     }
     // The inner expression in an instantiation can never be null, since
     // instantiations are only inferred on direct references to declarations.
-    throw new Exception(
-        'Only tear-off constants can be partially instantiated.');
+    return reportInvalid(
+        node, 'Only tear-off constants can be partially instantiated.');
   }
 
   @override
@@ -1701,7 +1725,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return a > b ? trueConstant : falseConstant;
     }
 
-    throw new Exception("Unexpected binary numeric operation '$op'.");
+    return reportInvalid(node, "Unexpected binary numeric operation '$op'.");
   }
 
   Library libraryOf(TreeNode node) {
@@ -1793,9 +1817,10 @@ class _AbortDueToError {
 }
 
 class _AbortDueToInvalidExpression {
-  final InvalidExpression node;
+  final TreeNode node;
+  final String message;
 
-  _AbortDueToInvalidExpression(this.node);
+  _AbortDueToInvalidExpression(this.node, this.message);
 }
 
 abstract class ErrorReporter {

@@ -72,6 +72,7 @@ ConstEvalFreeTypeParameter/example: Fail
 ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
 ConstEvalInvalidBinaryOperandType/example: Fail
 ConstEvalInvalidMethodInvocation/example: Fail
+ConstEvalInvalidPropertyGet/example: Fail
 ConstEvalInvalidStaticInvocation/example: Fail
 ConstEvalInvalidStringInterpolationOperand/example: Fail
 ConstEvalInvalidSymbolName/example: Fail

@@ -1217,6 +1217,38 @@ Message _withArgumentsConstEvalInvalidMethodInvocation(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
+        Constant
+            _constant)> templateConstEvalInvalidPropertyGet = const Template<
+        Message Function(String string, Constant _constant)>(
+    messageTemplate:
+        r"""The property '#string' can't be accessed on '#constant' within a const context.""",
+    withArguments: _withArgumentsConstEvalInvalidPropertyGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, Constant _constant)>
+    codeConstEvalInvalidPropertyGet =
+    const Code<Message Function(String string, Constant _constant)>(
+        "ConstEvalInvalidPropertyGet", templateConstEvalInvalidPropertyGet,
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidPropertyGet(
+    String string, Constant _constant) {
+  if (string.isEmpty) throw 'No string provided';
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalInvalidPropertyGet,
+      message:
+          """The property '${string}' can't be accessed on '${constant}' within a const context.""" +
+              labeler.originMessages,
+      arguments: {'string': string, 'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String
             name)> templateConstEvalInvalidStaticInvocation = const Template<
         Message Function(String name)>(
