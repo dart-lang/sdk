@@ -3866,13 +3866,22 @@ static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
       UIntParameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
       UIntParameter::Parse(js->LookupParam("timeExtentMicros"));
+  bool code_trie = BoolParameter::Parse(js->LookupParam("code"), false);
   ProfilerService::PrintTimelineJSON(js, tag_order, time_origin_micros,
-                                     time_extent_micros);
+                                     time_extent_micros, code_trie);
   return true;
 }
 
 static bool WriteCpuProfileTimeline(Thread* thread, JSONStream* js) {
-  ProfilerService::AddToTimeline();
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  int64_t time_origin_micros =
+      UIntParameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      UIntParameter::Parse(js->LookupParam("timeExtentMicros"));
+  bool code_trie = BoolParameter::Parse(js->LookupParam("code"), true);
+  ProfilerService::AddToTimeline(tag_order, time_origin_micros,
+                                 time_extent_micros, code_trie);
   return true;
 }
 
