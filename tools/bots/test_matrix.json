@@ -134,6 +134,11 @@
       "out/DebugX64/",
       "out/ProductX64/",
       "out/ReleaseAndroidARM/",
+      "out/DebugAndroidARM/",
+      "out/ProductAndroidARM/",
+      "out/ReleaseAndroidARM64/",
+      "out/DebugAndroidARM64/",
+      "out/ProductAndroidARM64/",
       "out/ReleaseIA32/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
@@ -548,7 +553,8 @@
             "-ndartk-android-${mode}-${arch}",
             "ffi"
           ],
-          "fileset": "vm-kernel"
+          "fileset": "vm-kernel",
+          "shards": 1
         }
       ]
     },
