@@ -9094,10 +9094,7 @@ bool Script::IsPartOfDartColonLibrary() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void Script::LoadSourceFromKernel(const uint8_t* kernel_buffer,
                                   intptr_t kernel_buffer_len) const {
-  const char* dart_prefix = "dart:";
-  const size_t dart_prefix_len = strlen(dart_prefix);
-  String& uri = String::Handle(url());
-  uri ^= String::SubString(uri, dart_prefix_len);
+  String& uri = String::Handle(resolved_url());
   String& source = String::Handle(kernel::KernelLoader::FindSourceForScript(
       kernel_buffer, kernel_buffer_len, uri));
   set_source(source);
