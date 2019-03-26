@@ -2,7 +2,7 @@
 
 import "package:test/test.dart";
 
-import 'package:sqlite3/sqlite.dart';
+import '../lib/sqlite.dart';
 
 void main() {
   test("sqlite integration test", () {
