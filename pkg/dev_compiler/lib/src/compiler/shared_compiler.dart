@@ -606,3 +606,42 @@ class YieldFinder extends JS.BaseVisitor {
     super.visitNode(node);
   }
 }
+
+/// Given the function [fn], returns a function declaration statement, binding
+/// `this` and `super` if necessary (using an arrow function).
+JS.Statement toBoundFunctionStatement(JS.Fun fn, JS.Identifier name) {
+  if (usesThisOrSuper(fn)) {
+    return js.statement('const # = (#) => {#}', [name, fn.params, fn.body]);
+  } else {
+    return JS.FunctionDeclaration(name, fn);
+  }
+}
+
+/// Returns whether [node] uses `this` or `super`.
+bool usesThisOrSuper(JS.Expression node) {
+  var finder = _ThisOrSuperFinder.instance;
+  finder.found = false;
+  node.accept(finder);
+  return finder.found;
+}
+
+class _ThisOrSuperFinder extends JS.BaseVisitor<void> {
+  bool found = false;
+
+  static final instance = _ThisOrSuperFinder();
+
+  @override
+  visitThis(JS.This node) {
+    found = true;
+  }
+
+  @override
+  visitSuper(JS.Super node) {
+    found = true;
+  }
+
+  @override
+  visitNode(JS.Node node) {
+    if (!found) super.visitNode(node);
+  }
+}

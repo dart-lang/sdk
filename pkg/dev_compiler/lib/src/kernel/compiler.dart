@@ -2718,7 +2718,7 @@ class ProgramCompiler extends Object
         }
 
         gen.sourceInformation = _nodeEnd(function.fileEndOffset);
-        if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
+        if (usesThisOrSuper(gen)) gen = js.call('#.bind(this)', gen);
       });
 
       _asyncStarController = savedController;
@@ -3569,11 +3569,7 @@ class ProgramCompiler extends Object
 
     var name = _emitVariableDef(node.variable);
     JS.Statement declareFn;
-    if (JS.This.foundIn(fn)) {
-      declareFn = js.statement('const # = #.bind(this);', [name, fn]);
-    } else {
-      declareFn = JS.FunctionDeclaration(name, fn);
-    }
+    declareFn = toBoundFunctionStatement(fn, name);
     if (_reifyFunctionType(func)) {
       declareFn = JS.Block([
         declareFn,

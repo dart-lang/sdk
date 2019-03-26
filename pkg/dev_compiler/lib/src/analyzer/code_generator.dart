@@ -2844,7 +2844,7 @@ class CodeGenerator extends Object
             genFn);
       }
       gen.sourceInformation = _functionEnd(body);
-      if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
+      if (usesThisOrSuper(gen)) gen = js.call('#.bind(this)', gen);
 
       _superAllowed = savedSuperAllowed;
       _asyncStarController = savedController;
@@ -2922,14 +2922,9 @@ class CodeGenerator extends Object
     }
 
     var fn = _emitFunctionExpression(func.functionExpression);
-
     var name = _emitVariableDef(func.name);
     JS.Statement declareFn;
-    if (JS.This.foundIn(fn)) {
-      declareFn = js.statement('const # = #.bind(this);', [name, fn]);
-    } else {
-      declareFn = JS.FunctionDeclaration(name, fn);
-    }
+    declareFn = toBoundFunctionStatement(fn, name);
     var element = func.declaredElement;
     if (_reifyFunctionType(element)) {
       declareFn = JS.Block(
