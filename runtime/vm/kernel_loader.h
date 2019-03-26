@@ -147,36 +147,9 @@ class ClassIndex {
   DISALLOW_COPY_AND_ASSIGN(ClassIndex);
 };
 
-struct UriToSourceTableEntry : public ZoneAllocated {
-  UriToSourceTableEntry() {}
-
-  const String* uri = nullptr;
-  const String* sources = nullptr;
-  const TypedData* line_starts = nullptr;
-};
-
-struct UriToSourceTableTrait {
-  typedef UriToSourceTableEntry* Value;
-  typedef const UriToSourceTableEntry* Key;
-  typedef UriToSourceTableEntry* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) { return key->uri->Hash(); }
-
-  static inline bool IsKeyEqual(Pair kv, Key key) {
-    // Only compare uri.
-    return kv->uri->CompareTo(*key->uri) == 0;
-  }
-};
-
 class KernelLoader : public ValueObject {
  public:
-  explicit KernelLoader(
-      Program* program,
-      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
+  explicit KernelLoader(Program* program);
   static Object& LoadEntireProgram(Program* program,
                                    bool process_pending_classes = true);
 
@@ -279,8 +252,7 @@ class KernelLoader : public ValueObject {
                const ExternalTypedData& kernel_data,
                intptr_t data_program_offset);
 
-  void InitializeFields(
-      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
+  void InitializeFields();
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs,
@@ -316,9 +288,7 @@ class KernelLoader : public ValueObject {
   RawArray* MakeFieldsArray();
   RawArray* MakeFunctionsArray();
 
-  RawScript* LoadScriptAt(
-      intptr_t index,
-      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
+  RawScript* LoadScriptAt(intptr_t index);
 
   // If klass's script is not the script at the uri index, return a PatchClass
   // for klass whose script corresponds to the uri index.

@@ -89,7 +89,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
     return ApiError::New(msg, Heap::kOld);
   }
-  kernel::KernelLoader loader(program, /*uri_to_source_table=*/nullptr);
+  kernel::KernelLoader loader(program);
 
   Isolate* isolate = thread->isolate();
 
