@@ -58,9 +58,9 @@ Set<T> expectIntSet<T>() {
   return Set();
 }
 
-Stream<T> expectIntStream<T>(dynamic value) {
+Stream<T> expectIntStream<T>(dynamic elements) {
   Expect.identical(int, T);
-  return value;
+  return Stream<T>.fromIterable(elements);
 }
 
 Set<T> expectDynamicSet<T>() {
