@@ -23,12 +23,14 @@ import 'mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
     defineReflectiveTests(CompletionDomainHandlerTest);
   });
 }
 
 @reflectiveTest
-class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+class CompletionDomainHandlerGetSuggestionsTest
+    extends AbstractCompletionDomainTest {
   test_ArgumentList_constructor_named_fieldFormalParam() async {
     // https://github.com/dart-lang/sdk/issues/31023
     addTestFile('''
@@ -860,6 +862,81 @@ class B extends A {m() {^}}
           relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
       assertNoResult('HtmlElement');
     });
+  }
+}
+
+@reflectiveTest
+class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+  test_listTokenDetails() async {
+    newFile(testFile, content: '''
+class A {
+  static A b(String s) {}
+  c(int i) {}
+}
+main() {
+  A.b('s').c(3);
+}
+''');
+    Request request =
+        new CompletionListTokenDetailsParams(testFile).toRequest('0');
+    Response response = await waitResponse(request);
+    List<Map<String, dynamic>> tokens = response.result['tokens'];
+    _expectTokens(tokens, [
+      _token('class', 'CLASS', null),
+      _token('A', 'STRING_INT', ['declaration']),
+      _token('{', 'OPEN_CURLY_BRACKET', null),
+      _token('static', 'STATIC', null),
+      _token('A', 'STRING_INT', ['identifier']),
+      _token('b', 'STRING_INT', ['declaration']),
+      _token('(', 'OPEN_PAREN', null),
+      _token('String', 'STRING_INT', ['identifier']),
+      _token('s', 'STRING_INT', ['declaration']),
+      _token(')', 'CLOSE_PAREN', null),
+      _token('{', 'OPEN_CURLY_BRACKET', null),
+      _token('}', 'CLOSE_CURLY_BRACKET', null),
+      _token('c', 'STRING_INT', ['declaration']),
+      _token('(', 'OPEN_PAREN', null),
+      _token('int', 'STRING_INT', ['identifier']),
+      _token('i', 'STRING_INT', ['declaration']),
+      _token(')', 'CLOSE_PAREN', null),
+      _token('{', 'OPEN_CURLY_BRACKET', null),
+      _token('}', 'CLOSE_CURLY_BRACKET', null),
+      _token('}', 'CLOSE_CURLY_BRACKET', null),
+      _token('main', 'STRING_INT', ['declaration']),
+      _token('(', 'OPEN_PAREN', null),
+      _token(')', 'CLOSE_PAREN', null),
+      _token('{', 'OPEN_CURLY_BRACKET', null),
+      _token('A', 'STRING_INT', ['identifier']),
+      _token('.', 'PERIOD', null),
+      _token('b', 'STRING_INT', ['identifier']),
+      _token('(', 'OPEN_PAREN', null),
+      _token("'s'", 'STRING', null),
+      _token(')', 'CLOSE_PAREN', null),
+      _token('.', 'PERIOD', null),
+      _token('c', 'STRING_INT', ['identifier']),
+      _token('(', 'OPEN_PAREN', null),
+      _token('3', 'INT', null),
+      _token(')', 'CLOSE_PAREN', null),
+      _token(';', 'SEMICOLON', null),
+      _token('}', 'CLOSE_CURLY_BRACKET', null),
+    ]);
+  }
+
+  void _expectTokens(List<Map<String, dynamic>> actualTokens,
+      List<TokenDetails> expectedTokens) {
+    int length = expectedTokens.length;
+    expect(actualTokens, hasLength(length));
+    for (int i = 0; i < length; i++) {
+      Map<String, dynamic> actual = actualTokens[i];
+      TokenDetails expected = expectedTokens[i];
+      expect(actual['lexeme'], expected.lexeme);
+      expect(actual['type'], expected.type);
+      expect(actual['validElementKinds'], expected.validElementKinds);
+    }
+  }
+
+  TokenDetails _token(String lexeme, String type, List<String> kinds) {
+    return new TokenDetails(lexeme, type, validElementKinds: kinds);
   }
 }
 

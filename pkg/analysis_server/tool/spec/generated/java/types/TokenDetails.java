@@ -74,7 +74,7 @@ public class TokenDetails {
   public static TokenDetails fromJson(JsonObject jsonObject) {
     String lexeme = jsonObject.get("lexeme").getAsString();
     String type = jsonObject.get("type").getAsString();
-    List<String> validElementKinds = JsonUtilities.decodeStringList(jsonObject.get("validElementKinds").getAsJsonArray());
+    List<String> validElementKinds = jsonObject.get("validElementKinds") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("validElementKinds").getAsJsonArray());
     return new TokenDetails(lexeme, type, validElementKinds);
   }
 
@@ -124,11 +124,13 @@ public class TokenDetails {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("lexeme", lexeme);
     jsonObject.addProperty("type", type);
-    JsonArray jsonArrayValidElementKinds = new JsonArray();
-    for (String elt : validElementKinds) {
-      jsonArrayValidElementKinds.add(new JsonPrimitive(elt));
+    if (validElementKinds != null) {
+      JsonArray jsonArrayValidElementKinds = new JsonArray();
+      for (String elt : validElementKinds) {
+        jsonArrayValidElementKinds.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("validElementKinds", jsonArrayValidElementKinds);
     }
-    jsonObject.add("validElementKinds", jsonArrayValidElementKinds);
     return jsonObject;
   }
 
