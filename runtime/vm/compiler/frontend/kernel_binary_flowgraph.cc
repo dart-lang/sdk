@@ -909,7 +909,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   ASSERT(flow_graph_builder_ != nullptr);
 
   const Function& function = parsed_function()->function();
-  const intptr_t kernel_offset = function.kernel_offset();
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
   // e.g. for type translation.
@@ -922,8 +921,44 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   ActiveMemberScope active_member(active_class(), &outermost_function);
   ActiveTypeParametersScope active_type_params(active_class(), function, Z);
 
-  SetOffset(kernel_offset);
+  if (function.is_declared_in_bytecode()) {
+    if (!(FLAG_use_bytecode_compiler || FLAG_enable_interpreter)) {
+      FATAL1(
+          "Cannot run bytecode function %s: specify --enable-interpreter or "
+          "--use-bytecode-compiler",
+          function.ToFullyQualifiedCString());
+    }
 
+    bytecode_metadata_helper_.ParseBytecodeFunction(parsed_function());
+
+    switch (function.kind()) {
+      case RawFunction::kImplicitClosureFunction:
+        return B->BuildGraphOfImplicitClosureFunction(function);
+      case RawFunction::kImplicitGetter:
+      case RawFunction::kImplicitSetter:
+      case RawFunction::kImplicitStaticFinalGetter:
+        if (!IsBytecodeFieldInitializer(function, Z)) {
+          return B->BuildGraphOfFieldAccessor(function);
+        }
+        break;
+      case RawFunction::kDynamicInvocationForwarder:
+        return B->BuildGraphOfDynamicInvocationForwarder(function);
+      case RawFunction::kMethodExtractor:
+        return B->BuildGraphOfMethodExtractor(function);
+      default:
+        break;
+    }
+
+    ASSERT(function.HasBytecode());
+    BytecodeFlowGraphBuilder bytecode_compiler(
+        flow_graph_builder_, parsed_function(),
+        &(flow_graph_builder_->ic_data_array_));
+    return bytecode_compiler.BuildGraph();
+  }
+
+  // This is the legacy code path to handle bytecode attached to kernel AST
+  // members.
+  // TODO(alexmarkov): clean this up after dropping old format versions.
   if ((FLAG_use_bytecode_compiler || FLAG_enable_interpreter) &&
       function.IsBytecodeAllowed(Z)) {
     if (!function.HasBytecode()) {
@@ -935,50 +970,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       BytecodeFlowGraphBuilder bytecode_compiler(
           flow_graph_builder_, parsed_function(),
           &(flow_graph_builder_->ic_data_array_));
-      FlowGraph* flow_graph = bytecode_compiler.BuildGraph();
-      ASSERT(flow_graph != nullptr);
-      return flow_graph;
+      return bytecode_compiler.BuildGraph();
     }
   }
 
-  // Mark forwarding stubs.
-  switch (function.kind()) {
-    case RawFunction::kRegularFunction:
-    case RawFunction::kImplicitClosureFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kClosureFunction:
-    case RawFunction::kConstructor:
-    case RawFunction::kDynamicInvocationForwarder:
-      if (PeekTag() == kProcedure) {
-        AlternativeReadingScope alt(&reader_);
-        ProcedureHelper procedure_helper(this);
-        procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-        if (procedure_helper.IsForwardingStub() &&
-            !procedure_helper.IsAbstract()) {
-          const NameIndex target_name =
-              procedure_helper.forwarding_stub_super_target_;
-          ASSERT(target_name != NameIndex::kInvalidName);
-          const String& name = function.IsSetterFunction()
-                                   ? H.DartSetterName(target_name)
-                                   : H.DartProcedureName(target_name);
-          const Function* forwarding_target = &Function::ZoneHandle(
-              Z, H.LookupMethodByMember(target_name, name));
-          ASSERT(!forwarding_target->IsNull());
-          parsed_function()->MarkForwardingStub(forwarding_target);
-        }
-      }
-      break;
-    default:
-      break;
-  }
-
-  // The IR builder will create its own local variables and scopes, and it
-  // will not need an AST.  The code generator will assume that there is a
-  // local variable stack slot allocated for the current context and (I
-  // think) that the runtime will expect it to be at a fixed offset which
-  // requires allocating an unused expression temporary variable.
-  set_scopes(parsed_function()->EnsureKernelScopes());
+  ParseKernelASTFunction();
 
   switch (function.kind()) {
     case RawFunction::kRegularFunction:
@@ -1005,11 +1001,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return B->BuildGraphOfFieldAccessor(function);
     }
     case RawFunction::kDynamicInvocationForwarder:
-      if (PeekTag() != kField) {
-        ReadUntilFunctionNode();
-        SetupDefaultParameterValues();
-        ReadDefaultFunctionTypeArguments(function);
-      }
       return B->BuildGraphOfDynamicInvocationForwarder(function);
     case RawFunction::kMethodExtractor:
       return flow_graph_builder_->BuildGraphOfMethodExtractor(function);
@@ -1018,9 +1009,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case RawFunction::kInvokeFieldDispatcher:
       return flow_graph_builder_->BuildGraphOfInvokeFieldDispatcher(function);
     case RawFunction::kImplicitClosureFunction:
-      ReadUntilFunctionNode();
-      SetupDefaultParameterValues();
-      ReadDefaultFunctionTypeArguments(function);
       return flow_graph_builder_->BuildGraphOfImplicitClosureFunction(function);
     case RawFunction::kFfiTrampoline:
       return flow_graph_builder_->BuildGraphOfFfiTrampoline(function);
@@ -1030,6 +1018,85 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   }
   UNREACHABLE();
   return NULL;
+}
+
+void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
+  const Function& function = parsed_function()->function();
+
+  const intptr_t kernel_offset = function.kernel_offset();
+  ASSERT(kernel_offset >= 0);
+
+  SetOffset(kernel_offset);
+
+  // Mark forwarding stubs.
+  switch (function.kind()) {
+    case RawFunction::kRegularFunction:
+    case RawFunction::kImplicitClosureFunction:
+    case RawFunction::kGetterFunction:
+    case RawFunction::kSetterFunction:
+    case RawFunction::kClosureFunction:
+    case RawFunction::kConstructor:
+    case RawFunction::kDynamicInvocationForwarder:
+      ReadForwardingStubTarget(function);
+      break;
+    default:
+      break;
+  }
+
+  set_scopes(parsed_function()->EnsureKernelScopes());
+
+  switch (function.kind()) {
+    case RawFunction::kRegularFunction:
+    case RawFunction::kGetterFunction:
+    case RawFunction::kSetterFunction:
+    case RawFunction::kClosureFunction:
+    case RawFunction::kConstructor:
+    case RawFunction::kImplicitGetter:
+    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitSetter:
+    case RawFunction::kMethodExtractor:
+    case RawFunction::kNoSuchMethodDispatcher:
+    case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kFfiTrampoline:
+      break;
+    case RawFunction::kImplicitClosureFunction:
+      ReadUntilFunctionNode();
+      SetupDefaultParameterValues();
+      ReadDefaultFunctionTypeArguments(function);
+      break;
+    case RawFunction::kDynamicInvocationForwarder:
+      if (PeekTag() != kField) {
+        ReadUntilFunctionNode();
+        SetupDefaultParameterValues();
+        ReadDefaultFunctionTypeArguments(function);
+      }
+      break;
+    case RawFunction::kSignatureFunction:
+    case RawFunction::kIrregexpFunction:
+      UNREACHABLE();
+      break;
+  }
+}
+
+void StreamingFlowGraphBuilder::ReadForwardingStubTarget(
+    const Function& function) {
+  if (PeekTag() == kProcedure) {
+    AlternativeReadingScope alt(&reader_);
+    ProcedureHelper procedure_helper(this);
+    procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
+    if (procedure_helper.IsForwardingStub() && !procedure_helper.IsAbstract()) {
+      const NameIndex target_name =
+          procedure_helper.forwarding_stub_super_target_;
+      ASSERT(target_name != NameIndex::kInvalidName);
+      const String& name = function.IsSetterFunction()
+                               ? H.DartSetterName(target_name)
+                               : H.DartProcedureName(target_name);
+      const Function* forwarding_target =
+          &Function::ZoneHandle(Z, H.LookupMethodByMember(target_name, name));
+      ASSERT(!forwarding_target->IsNull());
+      parsed_function()->MarkForwardingStub(forwarding_target);
+    }
+  }
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {

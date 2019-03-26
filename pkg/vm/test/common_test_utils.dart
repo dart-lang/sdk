@@ -59,6 +59,16 @@ String kernelLibraryToString(Library library) {
       .replaceAll(library.importUri.toString(), library.name);
 }
 
+String kernelComponentToString(Component component) {
+  final StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, showExternal: false, showMetadata: true)
+      .writeComponentFile(component);
+  final mainLibrary = component.mainMethod.enclosingLibrary;
+  return buffer
+      .toString()
+      .replaceAll(mainLibrary.importUri.toString(), mainLibrary.name);
+}
+
 class DevNullSink<T> extends Sink<T> {
   @override
   void add(T data) {}

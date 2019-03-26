@@ -950,7 +950,6 @@ class RawFunction : public RawObject {
                 "RawFunction::packed_fields_ bitfields don't align.");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
-  F(intptr_t, intptr_t, kernel_offset)                                         \
   F(intptr_t, int32_t, usage_counter)                                          \
   F(intptr_t, uint16_t, optimized_instruction_count)                           \
   F(intptr_t, uint16_t, optimized_call_site_count)                             \
@@ -959,12 +958,15 @@ class RawFunction : public RawObject {
   F(int, int8_t, inlining_depth)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+
 #define DECLARE(return_type, type, name) type name##_;
-
   JIT_FUNCTION_COUNTERS(DECLARE)
-
 #undef DECLARE
-#endif
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 class RawClosureData : public RawObject {
@@ -1064,7 +1066,13 @@ class RawField : public RawObject {
   classid_t guarded_cid_;
   classid_t is_nullable_;  // kNullCid if field can contain null value and
                            // any other value otherwise.
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   // Offset to the guarded length field inside an instance of class matching
   // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
   // generated on platforms with weak addressing modes (ARM).

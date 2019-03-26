@@ -108,6 +108,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addFlag('emit-bytecode-source-positions',
       help: 'Emit source positions in bytecode', defaultsTo: false);
+  args.addFlag('emit-bytecode-annotations',
+      help: 'Emit Dart annotations in bytecode', defaultsTo: false);
   args.addFlag('drop-ast',
       help: 'Drop AST for members with bytecode', defaultsTo: false);
   args.addFlag('show-bytecode-size-stat',
@@ -152,6 +154,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool emitBytecodeSourcePositions =
       options['emit-bytecode-source-positions'];
+  final bool emitBytecodeAnnotations = options['emit-bytecode-annotations'];
   final bool dropAST = options['drop-ast'];
   final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
@@ -210,6 +213,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST && !splitOutputByPackages,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,
@@ -247,6 +251,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST,
       showBytecodeSizeStat: showBytecodeSizeStat,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -267,6 +272,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool emitBytecodeSourcePositions: false,
+    bool emitBytecodeAnnotations: false,
     bool dropAST: false,
     bool useFutureBytecodeFormat: false,
     bool enableAsserts: false,
@@ -312,6 +318,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
           emitSourcePositions: emitBytecodeSourcePositions,
+          emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
     });
@@ -602,6 +609,7 @@ Future writeOutputSplitByPackages(
   Map<String, String> environmentDefines,
   bool genBytecode: false,
   bool emitBytecodeSourcePositions: false,
+  bool emitBytecodeAnnotations: false,
   bool dropAST: false,
   bool showBytecodeSizeStat: false,
   bool useFutureBytecodeFormat: false,
@@ -653,6 +661,7 @@ Future writeOutputSplitByPackages(
         generateBytecode(component,
             libraries: libraries,
             emitSourcePositions: emitBytecodeSourcePositions,
+            emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,
             environmentDefines: environmentDefines);
 
@@ -667,11 +676,12 @@ Future writeOutputSplitByPackages(
       final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(component);
-      component.mainMethod = main;
-      component.problemsAsJson = problems;
+
       if (genBytecode && dropAST) {
         astRemover.restoreAST();
       }
+      component.mainMethod = main;
+      component.problemsAsJson = problems;
 
       await sink.close();
     }

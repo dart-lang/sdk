@@ -2417,6 +2417,75 @@ class Function : public Object {
 
 #undef DEFINE_GETTERS_AND_SETTERS
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t binary_declaration_offset() const {
+    return RawFunction::BinaryDeclarationOffset::decode(
+        raw_ptr()->binary_declaration_);
+  }
+  void set_binary_declaration_offset(intptr_t value) const {
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawFunction::BinaryDeclarationOffset::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  intptr_t kernel_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    ASSERT(!is_declared_in_bytecode());
+    return binary_declaration_offset();
+#endif
+  }
+
+  void set_kernel_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(!is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
+  }
+
+  intptr_t bytecode_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    ASSERT(is_declared_in_bytecode());
+    return binary_declaration_offset();
+#endif
+  }
+
+  void set_bytecode_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
+  }
+
+  bool is_declared_in_bytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return false;
+#else
+    return RawFunction::IsDeclaredInBytecode::decode(
+        raw_ptr()->binary_declaration_);
+#endif
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_is_declared_in_bytecode(bool value) const {
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawFunction::IsDeclaredInBytecode::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  void InheritBinaryDeclarationFrom(const Function& src) const;
+  void InheritBinaryDeclarationFrom(const Field& src) const;
+
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
 
   void SetOptimizedInstructionCountClamped(uintptr_t value) const {
@@ -2694,6 +2763,8 @@ class Function : public Object {
 
   RawFunction* GetDynamicInvocationForwarder(const String& mangled_name,
                                              bool allow_add = true) const;
+
+  RawFunction* GetTargetOfDynamicInvocationForwarder() const;
 #endif
 
   // Slow function, use in asserts to track changes in important library
@@ -3100,19 +3171,73 @@ class Field : public Object {
         GenericCovariantImplBit::update(value, raw_ptr()->kind_bits_));
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t binary_declaration_offset() const {
+    return RawField::BinaryDeclarationOffset::decode(
+        raw_ptr()->binary_declaration_);
+  }
+  void set_binary_declaration_offset(intptr_t value) const {
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawField::BinaryDeclarationOffset::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
 #else
-    return raw_ptr()->kernel_offset_;
+    ASSERT(!is_declared_in_bytecode());
+    return binary_declaration_offset();
 #endif
   }
 
-  void set_kernel_offset(intptr_t offset) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
+  void set_kernel_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(!is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
 #endif
   }
+
+  intptr_t bytecode_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    ASSERT(is_declared_in_bytecode());
+    return binary_declaration_offset();
+#endif
+  }
+
+  void set_bytecode_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
+  }
+
+  bool is_declared_in_bytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return false;
+#else
+    return RawField::IsDeclaredInBytecode::decode(
+        raw_ptr()->binary_declaration_);
+#endif
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_is_declared_in_bytecode(bool value) const {
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawField::IsDeclaredInBytecode::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  void InheritBinaryDeclarationFrom(const Field& src) const;
 
   RawExternalTypedData* KernelData() const;
 
@@ -3684,16 +3809,18 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0) const;
+                        intptr_t kernel_offset) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset = 0) const;
+                        intptr_t kernel_offset,
+                        intptr_t bytecode_offset) const;
   void AddFunctionMetadata(const Function& func,
                            TokenPosition token_pos,
-                           intptr_t kernel_offset = 0) const;
+                           intptr_t kernel_offset,
+                           intptr_t bytecode_offset) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset = 0) const;
+                          intptr_t kernel_offset) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
   void CloneMetadataFrom(const Library& from_library,
@@ -3905,7 +4032,8 @@ class Library : public Object {
   void AddMetadata(const Object& owner,
                    const String& name,
                    TokenPosition token_pos,
-                   intptr_t kernel_offset = 0) const;
+                   intptr_t kernel_offset,
+                   intptr_t bytecode_offset) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 

@@ -82,6 +82,16 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetKernelProgramInfo(info);
 }
 
+RawGrowableObjectArray* TranslationHelper::EnsurePotentialPragmaFunctions() {
+  auto& funcs =
+      GrowableObjectArray::Handle(Z, info_.potential_pragma_functions());
+  if (funcs.IsNull()) {
+    funcs = GrowableObjectArray::New(16, Heap::kNew);
+    info_.set_potential_pragma_functions(funcs);
+  }
+  return funcs.raw();
+}
+
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
   string_offsets_ = string_offsets.raw();
@@ -655,6 +665,34 @@ Type& TranslationHelper::GetDeclarationType(const Class& klass) {
                      klass.token_pos());
   }
   return type;
+}
+
+void TranslationHelper::SetupFieldAccessorFunction(
+    const Class& klass,
+    const Function& function,
+    const AbstractType& field_type) {
+  bool is_setter = function.IsImplicitSetterFunction();
+  bool is_method = !function.IsStaticFunction();
+  intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
+
+  function.SetNumOptionalParameters(0, false);
+  function.set_num_fixed_parameters(parameter_count);
+  function.set_parameter_types(
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  function.set_parameter_names(
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+
+  intptr_t pos = 0;
+  if (is_method) {
+    function.SetParameterTypeAt(pos, GetDeclarationType(klass));
+    function.SetParameterNameAt(pos, Symbols::This());
+    pos++;
+  }
+  if (is_setter) {
+    function.SetParameterTypeAt(pos, field_type);
+    function.SetParameterNameAt(pos, Symbols::Value());
+    pos++;
+  }
 }
 
 void TranslationHelper::ReportError(const char* format, ...) {
@@ -1894,9 +1932,8 @@ void KernelReaderHelper::SkipCanonicalNameReference() {
 }
 
 void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
-  H.ReportError(script_, TokenPosition::kNoSource,
-                "Unexpected tag %d (%s) in ?, expected %s", tag,
-                Reader::TagName(tag), variant);
+  FATAL3("Unexpected tag %d (%s) in ?, expected %s", tag, Reader::TagName(tag),
+         variant);
 }
 
 void KernelReaderHelper::ReadUntilFunctionNode() {

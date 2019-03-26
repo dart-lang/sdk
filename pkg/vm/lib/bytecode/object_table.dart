@@ -21,6 +21,7 @@ import 'bytecode_serialization.dart'
         StringWriter;
 import 'generics.dart'
     show getInstantiatorTypeArguments, isRecursiveAfterFlattening;
+import 'declarations.dart' show TypeParametersDeclaration;
 
 /*
 
@@ -797,13 +798,7 @@ class _FunctionTypeHandle extends _TypeHandle {
   @override
   void writeContents(BufferedWriter writer) {
     if ((_flags & flagHasTypeParams) != 0) {
-      writer.writePackedUInt30(typeParams.length);
-      for (var tp in typeParams) {
-        writer.writePackedObject(tp.name);
-      }
-      for (var tp in typeParams) {
-        writer.writePackedObject(tp.type);
-      }
+      new TypeParametersDeclaration(typeParams).write(writer);
     }
     writer.writePackedUInt30(positionalParams.length + namedParams.length);
     if (_flags &
@@ -824,13 +819,7 @@ class _FunctionTypeHandle extends _TypeHandle {
   @override
   void readContents(BufferedReader reader) {
     if ((_flags & flagHasTypeParams) != 0) {
-      final int numTypeParams = reader.readPackedUInt30();
-      List<_NameHandle> names = new List<_NameHandle>.generate(
-          numTypeParams, (_) => reader.readPackedObject());
-      List<_TypeHandle> bounds = new List<_TypeHandle>.generate(
-          numTypeParams, (_) => reader.readPackedObject());
-      typeParams = new List<NameAndType>.generate(
-          numTypeParams, (int i) => new NameAndType(names[i], bounds[i]));
+      typeParams = new TypeParametersDeclaration.read(reader).typeParams;
     } else {
       typeParams = const <NameAndType>[];
     }
@@ -847,7 +836,7 @@ class _FunctionTypeHandle extends _TypeHandle {
         (_) => reader.readPackedObject());
     if (hasNamedParams) {
       namedParams = new List<NameAndType>.generate(
-          reader.readPackedUInt30(),
+          numParams - numRequiredParams,
           (_) => new NameAndType(
               reader.readPackedObject(), reader.readPackedObject()));
     } else {
@@ -1782,11 +1771,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     }
     final returnType = objectTable.getHandle(node.returnType);
 
-    for (int i = 0; i < node.typeParameters.length; ++i) {
-      _typeParameters.remove(node.typeParameters[i]);
-    }
-
-    return objectTable.getOrAddObject(new _FunctionTypeHandle(
+    final result = objectTable.getOrAddObject(new _FunctionTypeHandle(
         node.typeParameters
             .map((tp) => new NameAndType(
                 objectTable.getNameHandle(null, tp.name),
@@ -1796,6 +1781,12 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
         positionalParams,
         namedParams,
         returnType));
+
+    for (int i = 0; i < node.typeParameters.length; ++i) {
+      _typeParameters.remove(node.typeParameters[i]);
+    }
+
+    return result;
   }
 
   @override

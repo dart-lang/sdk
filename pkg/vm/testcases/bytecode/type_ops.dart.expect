@@ -1,9 +1,124 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-class A<T extends core::Object = dynamic> extends core::Object {
+Bytecode (version: stable)
+Main library: #lib
+
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'globalVar', type = dart:core::List < dart:core::Iterable null >, reflectable, static
+    value = null
+
+Function 'foo1', static, reflectable, debuggable
+    parameters [dynamic 'x'] (required: 1)
+    return-type dynamic
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#0
+  InterfaceCall        2, CP#1
+  JumpIfFalse          L1
+  PushConstant         CP#3
+  DirectCall           1, CP#4
+  Drop1
+L1:
+  Push                 FP[-5]
+  PushNull
+  PushNull
+  PushConstant         CP#6
+  InterfaceCall        4, CP#7
+  JumpIfFalse          L2
+  PushConstant         CP#9
+  DirectCall           1, CP#4
+  Drop1
+L2:
+  Push                 FP[-5]
+  PushConstant         CP#10
+  PushNull
+  PushNull
+  PushConstant         CP#11
+  AssertAssignable     0, CP#12
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Type #lib::B
+  [1] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ObjectRef '11'
+  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = Type #lib::C < dart:core::String, dart:core::int, dart:core::Object, dynamic >
+  [7] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 4, num-type-args 0, names []
+  [8] = Reserved
+  [9] = ObjectRef '12'
+  [10] = Type #lib::A < dart:core::int >
+  [11] = ObjectRef ' in type cast'
+  [12] = SubtypeTestCache
+}
+
+
+Function 'foo5', static, reflectable, debuggable
+    parameters [dynamic 'x'] (required: 1)
+    return-type void
+
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-5]
+  PushConstant         CP#0
+  PushNull
+  PushNull
+  PushConstant         CP#1
+  AssertAssignable     0, CP#2
+  StoreStaticTOS       CP#3
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Type dart:core::List < dart:core::Iterable null >
+  [1] = ObjectRef ''
+  [2] = SubtypeTestCache
+  [3] = StaticField #lib::globalVar (field)
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
 [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::A < #lib::A::TypeParam/0 >
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -17,12 +132,25 @@ ConstantPool {
   [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
 }
-]  synthetic constructor •() → self::A<self::A::T>
-    : super core::Object::•()
-    ;
+
 }
-class B extends self::A<core::String> {
+
+}
+]  class A<T extends dart.core::Object = dynamic> extends dart.core::Object {
+    synthetic constructor •() → #lib::A<#lib::A::T>
+      : super dart.core::Object::•()
+      ;
+  }
 [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::B
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -36,12 +164,25 @@ ConstantPool {
   [0] = DirectCall '#lib::A:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
 }
-]  synthetic constructor •() → self::B
-    : super self::A::•()
-    ;
+
 }
-class C<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic, T3 extends core::Object = dynamic> extends self::B {
+
+}
+]  class B extends #lib::A<dart.core::String> {
+    synthetic constructor •() → #lib::B
+      : super #lib::A::•()
+      ;
+  }
 [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::C < dart:core::String, #lib::C::TypeParam/0, #lib::C::TypeParam/1, #lib::C::TypeParam/2 >
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -55,13 +196,27 @@ ConstantPool {
   [0] = DirectCall '#lib::B:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
 }
-]  synthetic constructor •() → self::C<self::C::T1, self::C::T2, self::C::T3>
-    : super self::B::•()
-    ;
+
 }
-class D<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::C<core::int, self::D::Q, self::D::P> {
-  generic-covariant-impl field core::Map<self::D::P, self::D::Q> foo;
+
+}
+]  class C<T1 extends dart.core::Object = dynamic, T2 extends dart.core::Object = dynamic, T3 extends dart.core::Object = dynamic> extends #lib::B {
+    synthetic constructor •() → #lib::C<#lib::C::T1, #lib::C::T2, #lib::C::T3>
+      : super #lib::B::•()
+      ;
+  }
 [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'foo', type = dart:core::Map < #lib::D::TypeParam/0, #lib::D::TypeParam/1 >, getter = 'get:foo', setter = 'set:foo', reflectable
+    value = null
+
+Function '', constructor, reflectable, debuggable
+    parameters [dynamic 'tt'] (required: 1)
+    return-type #lib::D < dart:core::String, dart:core::int, #lib::D::TypeParam/1, #lib::D::TypeParam/0, #lib::D::TypeParam/1 >
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -90,10 +245,13 @@ ConstantPool {
   [6] = DirectCall '#lib::C:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [7] = Reserved
 }
-]  constructor •(dynamic tt) → self::D<self::D::P, self::D::Q>
-    : self::D::foo = tt as{TypeError} core::Map<self::D::P, self::D::Q>, super self::C::•()
-    ;
-[@vm.bytecode=
+
+
+Function 'foo2', reflectable, debuggable
+    parameters [dynamic 'y'] (required: 1)
+    return-type dynamic
+
+
 Bytecode {
   Entry                1
   CheckStack           0
@@ -148,16 +306,14 @@ ConstantPool {
   [12] = InterfaceCall '#lib::D::set:foo', ArgDesc num-args 2, num-type-args 0, names []
   [13] = Reserved
 }
-]  method foo2(dynamic y) → dynamic {
-    if(y is self::A<self::D::P>) {
-      core::print("21");
-    }
-    if(y is self::C<dynamic, self::D::Q, core::List<self::D::P>>) {
-      core::print("22");
-    }
-    [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P, #lib::D::Q>] this.{self::D::foo} = y as{TypeError} core::Map<self::D::P, self::D::Q>;
-  }
-[@vm.bytecode=
+
+
+Function 'foo3', reflectable, debuggable
+    type-params <dart:core::Object T1, dart:core::Object T2>
+    parameters [dynamic 'z'] (required: 1)
+    return-type dynamic
+
+
 Bytecode {
   Entry                1
   CheckStack           0
@@ -209,16 +365,13 @@ ConstantPool {
   [12] = InterfaceCall 'dart:core::Map::get:values', ArgDesc num-args 1, num-type-args 0, names []
   [13] = Reserved
 }
-]  method foo3<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic>(dynamic z) → dynamic {
-    if(z is self::A<self::D::foo3::T1>) {
-      core::print("31");
-    }
-    if(z is self::C<core::Map<self::D::foo3::T1, self::D::P>, core::List<self::D::foo3::T2>, self::D::Q>) {
-      core::print("32");
-    }
-    return (z as core::Map<self::D::foo3::T2, self::D::Q>).{core::Map::values};
-  }
-[@vm.bytecode=
+
+
+Function 'foo4', reflectable, debuggable
+    parameters [dynamic 'w'] (required: 1)
+    return-type dart:core::Map < #lib::D::TypeParam/0, #lib::D::TypeParam/1 >
+
+
 Bytecode {
   Entry                2
   CheckStack           0
@@ -262,13 +415,49 @@ ConstantPool {
   [6] = Reserved
   [7] = SubtypeTestCache
 }
-]  method foo4(dynamic w) → core::Map<self::D::P, self::D::Q> {
-    core::List<core::Map<self::D::P, self::D::Q>> list = <core::Map<self::D::P, self::D::Q>>[w as{TypeError} core::Map<self::D::P, self::D::Q>];
-    return w as{TypeError} core::Map<self::D::P, self::D::Q>;
-  }
+
 }
-class E<P extends core::String = core::String> extends core::Object {
+
+}
+]  class D<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic> extends #lib::C<dart.core::int, #lib::D::Q, #lib::D::P> {
+    generic-covariant-impl field dart.core::Map<#lib::D::P, #lib::D::Q> foo;
+    constructor •(dynamic tt) → #lib::D<#lib::D::P, #lib::D::Q>
+      : #lib::D::foo = tt as{TypeError} dart.core::Map<#lib::D::P, #lib::D::Q>, super #lib::C::•()
+      ;
+    method foo2(dynamic y) → dynamic {
+      if(y is #lib::A<#lib::D::P>) {
+        dart.core::print("21");
+      }
+      if(y is #lib::C<dynamic, #lib::D::Q, dart.core::List<#lib::D::P>>) {
+        dart.core::print("22");
+      }
+      [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P, #lib::D::Q>] this.{#lib::D::foo} = y as{TypeError} dart.core::Map<#lib::D::P, #lib::D::Q>;
+    }
+    method foo3<T1 extends dart.core::Object = dynamic, T2 extends dart.core::Object = dynamic>(dynamic z) → dynamic {
+      if(z is #lib::A<#lib::D::foo3::T1>) {
+        dart.core::print("31");
+      }
+      if(z is #lib::C<dart.core::Map<#lib::D::foo3::T1, #lib::D::P>, dart.core::List<#lib::D::foo3::T2>, #lib::D::Q>) {
+        dart.core::print("32");
+      }
+      return (z as dart.core::Map<#lib::D::foo3::T2, #lib::D::Q>).{dart.core::Map::values};
+    }
+    method foo4(dynamic w) → dart.core::Map<#lib::D::P, #lib::D::Q> {
+      dart.core::List<dart.core::Map<#lib::D::P, #lib::D::Q>> list = <dart.core::Map<#lib::D::P, #lib::D::Q>>[w as{TypeError} dart.core::Map<#lib::D::P, #lib::D::Q>];
+      return w as{TypeError} dart.core::Map<#lib::D::P, #lib::D::Q>;
+    }
+  }
 [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function '', factory, static, reflectable, debuggable
+    type-params <dart:core::String P>
+    parameters [] (required: 0)
+    return-type #lib::E < #lib::E:: (constructor)::TypeParam/0 >
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -277,9 +466,14 @@ Bytecode {
 }
 ConstantPool {
 }
-]  static factory •<P extends core::String = dynamic>() → self::E<self::E::•::P>
-    return null;
-[@vm.bytecode=
+
+
+Function 'foo6', reflectable, debuggable
+    type-params <#lib::E::TypeParam/0 T, dart:core::List < #lib::E::foo6::TypeParam/0 > U>
+    parameters [dart:core::Map < #lib::E::foo6::TypeParam/0, #lib::E::foo6::TypeParam/1 > 'map'] (required: 1)
+    return-type void
+
+
 Bytecode {
   Entry                1
   CheckStack           0
@@ -301,6 +495,7 @@ L1:
   PushNull
   ReturnTOS
 }
+Default function type arguments: CP#1
 ConstantPool {
   [0] = TypeArgumentsField #lib::E
   [1] = ObjectRef < #lib::E::TypeParam/0, dart:core::List < #lib::E::TypeParam/0 > >
@@ -308,93 +503,27 @@ ConstantPool {
   [3] = Type #lib::E::TypeParam/0
   [4] = ObjectRef 'T'
 }
-]  method foo6<generic-covariant-impl T extends self::E::P = self::E::P, U extends core::List<self::E::foo6::T> = core::List<self::E::P>>(core::Map<self::E::foo6::T, self::E::foo6::U> map) → void {}
+
 }
-static field core::List<core::Iterable<dynamic>> globalVar;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  Push                 FP[-5]
-  PushConstant         CP#0
-  InterfaceCall        2, CP#1
-  JumpIfFalse          L1
-  PushConstant         CP#3
-  DirectCall           1, CP#4
-  Drop1
-L1:
-  Push                 FP[-5]
-  PushNull
-  PushNull
-  PushConstant         CP#6
-  InterfaceCall        4, CP#7
-  JumpIfFalse          L2
-  PushConstant         CP#9
-  DirectCall           1, CP#4
-  Drop1
-L2:
-  Push                 FP[-5]
-  PushConstant         CP#10
-  PushNull
-  PushNull
-  PushConstant         CP#11
-  AssertAssignable     0, CP#12
-  ReturnTOS
+
 }
-ConstantPool {
-  [0] = Type #lib::B
-  [1] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
-  [2] = Reserved
-  [3] = ObjectRef '11'
-  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [5] = Reserved
-  [6] = Type #lib::C < dart:core::String, dart:core::int, dart:core::Object, dynamic >
-  [7] = InterfaceCall 'dart:core::Object::_instanceOf', ArgDesc num-args 4, num-type-args 0, names []
-  [8] = Reserved
-  [9] = ObjectRef '12'
-  [10] = Type #lib::A < dart:core::int >
-  [11] = ObjectRef ' in type cast'
-  [12] = SubtypeTestCache
-}
-]static method foo1(dynamic x) → dynamic {
-  if(x is self::B) {
-    core::print("11");
+]  class E<P extends dart.core::String = dart.core::String> extends dart.core::Object {
+    static factory •<P extends dart.core::String = dynamic>() → #lib::E<#lib::E::•::P>
+      return null;
+    method foo6<generic-covariant-impl T extends #lib::E::P = #lib::E::P, U extends dart.core::List<#lib::E::foo6::T> = dart.core::List<#lib::E::P>>(dart.core::Map<#lib::E::foo6::T, #lib::E::foo6::U> map) → void {}
   }
-  if(x is self::C<core::int, core::Object, dynamic>) {
-    core::print("12");
+  static field dart.core::List<dart.core::Iterable<dynamic>> globalVar;
+  static method foo1(dynamic x) → dynamic {
+    if(x is #lib::B) {
+      dart.core::print("11");
+    }
+    if(x is #lib::C<dart.core::int, dart.core::Object, dynamic>) {
+      dart.core::print("12");
+    }
+    return x as #lib::A<dart.core::int>;
   }
-  return x as self::A<core::int>;
+  static method foo5(dynamic x) → void {
+    #lib::globalVar = x as{TypeError} dart.core::List<dart.core::Iterable<dynamic>>;
+  }
+  static method main() → dynamic {}
 }
-[@vm.bytecode=
-Bytecode {
-  Entry                1
-  CheckStack           0
-  Push                 FP[-5]
-  PushConstant         CP#0
-  PushNull
-  PushNull
-  PushConstant         CP#1
-  AssertAssignable     0, CP#2
-  StoreStaticTOS       CP#3
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Type dart:core::List < dart:core::Iterable null >
-  [1] = ObjectRef ''
-  [2] = SubtypeTestCache
-  [3] = StaticField #lib::globalVar (field)
-}
-]static method foo5(dynamic x) → void {
-  self::globalVar = x as{TypeError} core::List<core::Iterable<dynamic>>;
-}
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-}
-]static method main() → dynamic {}

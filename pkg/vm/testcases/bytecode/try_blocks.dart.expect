@@ -1,8 +1,21 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-[@vm.bytecode=
+Bytecode (version: stable)
+Main library: #lib
+
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function 'testTryCatch1', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                4
   CheckStack           0
@@ -50,15 +63,13 @@ ConstantPool {
   [5] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
   [6] = Reserved
 }
-]static method testTryCatch1() → dynamic {
-  try {
-    core::print("danger!");
-  }
-  on dynamic catch(final dynamic e) {
-    core::print("caught ${e}");
-  }
-}
-[@vm.bytecode=
+
+
+Function 'testTryCatch2', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                5
   CheckStack           0
@@ -190,24 +201,13 @@ ConstantPool {
   [14] = Type dynamic
   [15] = ObjectRef 'caught something '
 }
-]static method testTryCatch2() → dynamic {
-  try {
-    core::print("danger!");
-  }
-  on core::TypeError catch(no-exception-var) {
-    core::print("caught type error");
-  }
-  on core::AssertionError catch(final core::AssertionError e) {
-    core::print("caught assertion error ${e}");
-  }
-  on core::Error catch(final core::Error e, final core::StackTrace st) {
-    core::print("caught error ${e} ${st}");
-  }
-  on dynamic catch(final dynamic e, final core::StackTrace st) {
-    core::print("caught something ${e} ${st}");
-  }
-}
-[@vm.bytecode=
+
+
+Function 'testTryCatch3', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                7
   CheckStack           0
@@ -349,7 +349,7 @@ ConstantPool {
   [31] = EndClosureFunctionScope
 }
 Closure #lib::testTryCatch3::'foo' () -> void
-ClosureBytecode {
+ClosureCode {
   EntryFixed           1, 6
   CheckStack           0
   Push                 FP[-5]
@@ -386,7 +386,7 @@ L1:
 }
 
 Closure #lib::testTryCatch3::'bar' () -> void
-ClosureBytecode {
+ClosureCode {
   EntryFixed           1, 6
   CheckStack           0
   Push                 FP[-5]
@@ -446,36 +446,13 @@ L1:
   ReturnTOS
 
 }
-]static method testTryCatch3() → dynamic {
-  core::int x = 1;
-  try {
-    core::int y = 2;
-    function foo() → void {
-      try {
-        core::print("danger foo");
-      }
-      on dynamic catch(final dynamic e) {
-        core::print(x);
-        y = 3;
-      }
-    }
-    [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
-    core::print(y);
-  }
-  on dynamic catch(final dynamic e, final core::StackTrace st) {
-    core::print("caught ${e} ${st}");
-    function bar() → void {
-      try {
-        core::print("danger bar");
-      }
-      on core::Error catch(final core::Error e) {
-        core::print("error ${e}, captured stack trace: ${st}");
-      }
-    }
-    return bar;
-  }
-}
-[@vm.bytecode=
+
+
+Function 'testRethrow', static, reflectable, debuggable
+    parameters [dart:core::bool 'cond'] (required: 1)
+    return-type dynamic
+
+
 Bytecode {
   Entry                8
   CheckStack           0
@@ -553,29 +530,13 @@ ConstantPool {
   [5] = ObjectRef 'try 1 > catch 2 > catch 3'
   [6] = ObjectRef 'catch 1'
 }
-]static method testRethrow(core::bool cond) → dynamic {
-  try {
-    try {
-      core::print("try 1 > try 2");
-    }
-    on dynamic catch(final dynamic e) {
-      try {
-        core::print("try 1 > catch 2 > try 3");
-        if(cond) {
-          rethrow;
-        }
-      }
-      on dynamic catch(final dynamic e) {
-        core::print("try 1 > catch 2 > catch 3");
-      }
-    }
-  }
-  on dynamic catch(final dynamic e, final core::StackTrace st) {
-    core::print("catch 1");
-    core::print(st);
-  }
-}
-[@vm.bytecode=
+
+
+Function 'testTryFinally1', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                3
   CheckStack           0
@@ -633,20 +594,13 @@ ConstantPool {
   [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
 }
-]static method testTryFinally1() → dynamic {
-  #L1:
-  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
-    try {
-      if(i.{core::num::>}(5)) {
-        break #L1;
-      }
-    }
-    finally {
-      core::print(i);
-    }
-  }
-}
-[@vm.bytecode=
+
+
+Function 'testTryFinally2', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dynamic
+
+
 Bytecode {
   Entry                9
   CheckStack           0
@@ -788,7 +742,7 @@ ConstantPool {
   [26] = ObjectRef 'case 2'
 }
 Closure #lib::testTryFinally2::'foo' () -> void
-ClosureBytecode {
+ClosureCode {
   EntryFixed           1, 2
   CheckStack           0
   Push                 FP[-5]
@@ -806,43 +760,13 @@ ClosureBytecode {
   ReturnTOS
 
 }
-]static method testTryFinally2(core::int x) → dynamic {
-  #L2:
-  switch(x) {
-    #L3:
-    case 1:
-      {
-        try {
-          core::print("before try 1");
-          core::int y = 3;
-          try {
-            core::print("try");
-            function foo() → void {
-              core::print(x);
-              core::print(y);
-            }
-            [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
-            continue #L4;
-          }
-          finally {
-            core::print("finally 1");
-          }
-          core::print("after try 1");
-        }
-        finally {
-          core::print("finally 2");
-        }
-        break #L2;
-      }
-    #L4:
-    case 2:
-      {
-        core::print("case 2");
-        break #L2;
-      }
-  }
-}
-[@vm.bytecode=
+
+
+Function 'testTryFinally3', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                6
   CheckStack           0
@@ -936,7 +860,7 @@ ConstantPool {
   [21] = ICData dynamic target-name 'call', arg-desc CP#19
 }
 Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int
-ClosureBytecode {
+ClosureCode {
   EntryFixed           1, 6
   CheckStack           0
   Push                 FP[-5]
@@ -1025,33 +949,13 @@ L3:
   ReturnTOS
 
 }
-]static method testTryFinally3() → dynamic {
-  core::int x = 11;
-  dynamic y;
-  try {
-    y = () → core::int {
-      core::print(x);
-      try {
-        core::print("try 1");
-        return 42;
-      }
-      finally {
-        try {
-          core::print("try 2");
-          return 43;
-        }
-        finally {
-          core::print(x);
-        }
-      }
-    };
-  }
-  finally {
-    core::print(x);
-    [@vm.call-site-attributes.metadata=receiverType:dynamic] y.call();
-  }
-}
-[@vm.bytecode=
+
+
+Function 'testTryCatchFinally', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                5
   CheckStack           0
@@ -1104,19 +1008,13 @@ ConstantPool {
   [4] = ObjectRef 'catch'
   [5] = ObjectRef 'finally'
 }
-]static method testTryCatchFinally() → dynamic {
-  try
-    try {
-      core::print("try");
-    }
-    on dynamic catch(final dynamic e) {
-      core::print("catch");
-    }
-  finally {
-    core::print("finally");
-  }
-}
-[@vm.bytecode=
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -1125,4 +1023,174 @@ Bytecode {
 }
 ConstantPool {
 }
-]static method main() → dynamic {}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method testTryCatch1() → dynamic {
+    try {
+      dart.core::print("danger!");
+    }
+    on dynamic catch(final dynamic e) {
+      dart.core::print("caught ${e}");
+    }
+  }
+  static method testTryCatch2() → dynamic {
+    try {
+      dart.core::print("danger!");
+    }
+    on dart.core::TypeError catch(no-exception-var) {
+      dart.core::print("caught type error");
+    }
+    on dart.core::AssertionError catch(final dart.core::AssertionError e) {
+      dart.core::print("caught assertion error ${e}");
+    }
+    on dart.core::Error catch(final dart.core::Error e, final dart.core::StackTrace st) {
+      dart.core::print("caught error ${e} ${st}");
+    }
+    on dynamic catch(final dynamic e, final dart.core::StackTrace st) {
+      dart.core::print("caught something ${e} ${st}");
+    }
+  }
+  static method testTryCatch3() → dynamic {
+    dart.core::int x = 1;
+    try {
+      dart.core::int y = 2;
+      function foo() → void {
+        try {
+          dart.core::print("danger foo");
+        }
+        on dynamic catch(final dynamic e) {
+          dart.core::print(x);
+          y = 3;
+        }
+      }
+      [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
+      dart.core::print(y);
+    }
+    on dynamic catch(final dynamic e, final dart.core::StackTrace st) {
+      dart.core::print("caught ${e} ${st}");
+      function bar() → void {
+        try {
+          dart.core::print("danger bar");
+        }
+        on dart.core::Error catch(final dart.core::Error e) {
+          dart.core::print("error ${e}, captured stack trace: ${st}");
+        }
+      }
+      return bar;
+    }
+  }
+  static method testRethrow(dart.core::bool cond) → dynamic {
+    try {
+      try {
+        dart.core::print("try 1 > try 2");
+      }
+      on dynamic catch(final dynamic e) {
+        try {
+          dart.core::print("try 1 > catch 2 > try 3");
+          if(cond) {
+            rethrow;
+          }
+        }
+        on dynamic catch(final dynamic e) {
+          dart.core::print("try 1 > catch 2 > catch 3");
+        }
+      }
+    }
+    on dynamic catch(final dynamic e, final dart.core::StackTrace st) {
+      dart.core::print("catch 1");
+      dart.core::print(st);
+    }
+  }
+  static method testTryFinally1() → dynamic {
+    #L1:
+    for (dart.core::int i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
+      try {
+        if(i.{dart.core::num::>}(5)) {
+          break #L1;
+        }
+      }
+      finally {
+        dart.core::print(i);
+      }
+    }
+  }
+  static method testTryFinally2(dart.core::int x) → dynamic {
+    #L2:
+    switch(x) {
+      #L3:
+      case 1:
+        {
+          try {
+            dart.core::print("before try 1");
+            dart.core::int y = 3;
+            try {
+              dart.core::print("try");
+              function foo() → void {
+                dart.core::print(x);
+                dart.core::print(y);
+              }
+              [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
+              continue #L4;
+            }
+            finally {
+              dart.core::print("finally 1");
+            }
+            dart.core::print("after try 1");
+          }
+          finally {
+            dart.core::print("finally 2");
+          }
+          break #L2;
+        }
+      #L4:
+      case 2:
+        {
+          dart.core::print("case 2");
+          break #L2;
+        }
+    }
+  }
+  static method testTryFinally3() → dynamic {
+    dart.core::int x = 11;
+    dynamic y;
+    try {
+      y = () → dart.core::int {
+        dart.core::print(x);
+        try {
+          dart.core::print("try 1");
+          return 42;
+        }
+        finally {
+          try {
+            dart.core::print("try 2");
+            return 43;
+          }
+          finally {
+            dart.core::print(x);
+          }
+        }
+      };
+    }
+    finally {
+      dart.core::print(x);
+      [@vm.call-site-attributes.metadata=receiverType:dynamic] y.call();
+    }
+  }
+  static method testTryCatchFinally() → dynamic {
+    try
+      try {
+        dart.core::print("try");
+      }
+      on dynamic catch(final dynamic e) {
+        dart.core::print("catch");
+      }
+    finally {
+      dart.core::print("finally");
+    }
+  }
+  static method main() → dynamic {}
+}

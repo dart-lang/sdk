@@ -130,7 +130,7 @@ Fragment FlowGraphBuilder::PopContext() {
 Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   // TODO(27590): We could use `active_class_->IsGeneric()`.
   Fragment instructions;
-  if (scopes_->type_arguments_variable != NULL) {
+  if (scopes_ != nullptr && scopes_->type_arguments_variable != nullptr) {
 #ifdef DEBUG
     Function& function =
         Function::Handle(Z, parsed_function_->function().raw());

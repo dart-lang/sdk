@@ -502,7 +502,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(func->ptr()->token_pos_);
         s->WriteTokenPosition(func->ptr()->end_token_pos_);
-        s->Write<int32_t>(func->ptr()->kernel_offset_);
+        s->Write<uint32_t>(func->ptr()->binary_declaration_);
       }
 #endif
       s->Write<uint32_t>(func->ptr()->packed_fields_);
@@ -562,7 +562,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind != Snapshot::kFullAOT) {
         func->ptr()->token_pos_ = d->ReadTokenPosition();
         func->ptr()->end_token_pos_ = d->ReadTokenPosition();
-        func->ptr()->kernel_offset_ = d->Read<int32_t>();
+        func->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
       func->ptr()->packed_fields_ = d->Read<uint32_t>();
@@ -935,7 +935,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteCid(field->ptr()->is_nullable_);
         s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        s->Write<int32_t>(field->ptr()->kernel_offset_);
+        s->Write<uint32_t>(field->ptr()->binary_declaration_);
 #endif
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
@@ -976,7 +976,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->is_nullable_ = d->ReadCid();
         field->ptr()->static_type_exactness_state_ = d->Read<int8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        field->ptr()->kernel_offset_ = d->Read<int32_t>();
+        field->ptr()->binary_declaration_ = d->Read<uint32_t>();
 #endif
       }
       field->ptr()->kind_bits_ = d->Read<uint16_t>();

@@ -477,6 +477,9 @@ class Printer extends Visitor<Null> {
         }
         writeWord('external');
       }
+      if (showMetadata) {
+        inner.writeMetadata(library);
+      }
       writeAnnotationList(library.annotations);
       writeWord('library');
       if (library.name != null) {

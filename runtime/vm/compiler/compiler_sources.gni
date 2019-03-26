@@ -100,6 +100,8 @@ compiler_sources = [
   "frontend/bytecode_flow_graph_builder.h",
   "frontend/bytecode_reader.cc",
   "frontend/bytecode_reader.h",
+  "frontend/bytecode_scope_builder.cc",
+  "frontend/bytecode_scope_builder.h",
   "frontend/constant_evaluator.cc",
   "frontend/constant_evaluator.h",
   "frontend/flow_graph_builder.cc",

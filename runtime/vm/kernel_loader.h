@@ -335,10 +335,6 @@ class KernelLoader : public ValueObject {
                               const Field& field,
                               FieldHelper* field_helper);
 
-  void SetupFieldAccessorFunction(const Class& klass,
-                                  const Function& function,
-                                  const AbstractType& field_type);
-
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
 
@@ -382,14 +378,7 @@ class KernelLoader : public ValueObject {
 
   void EnsurePotentialPragmaFunctions() {
     potential_pragma_functions_ =
-        kernel_program_info_.potential_pragma_functions();
-    if (potential_pragma_functions_.IsNull()) {
-      // To avoid too many grows in this array, we'll set it's initial size to
-      // something close to the actual number of potential native functions.
-      potential_pragma_functions_ = GrowableObjectArray::New(100, Heap::kNew);
-      kernel_program_info_.set_potential_pragma_functions(
-          potential_pragma_functions_);
-    }
+        translation_helper_.EnsurePotentialPragmaFunctions();
   }
 
   void EnsurePotentialExtensionLibraries() {

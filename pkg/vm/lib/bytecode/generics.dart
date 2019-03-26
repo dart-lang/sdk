@@ -73,6 +73,16 @@ List<DartType> getInstantiatorTypeArguments(
   return flatTypeArgs;
 }
 
+List<DartType> getDefaultFunctionTypeArguments(FunctionNode function) {
+  List<DartType> defaultTypes = function.typeParameters
+      .map((p) => p.defaultType ?? const DynamicType())
+      .toList();
+  if (_isAllDynamic(defaultTypes)) {
+    return null;
+  }
+  return defaultTypes;
+}
+
 bool _isAllDynamic(List<DartType> typeArgs) {
   for (var t in typeArgs) {
     if (t != const DynamicType()) {

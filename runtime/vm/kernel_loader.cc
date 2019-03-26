@@ -489,7 +489,10 @@ const Array& KernelLoader::ReadConstantTable() {
 }
 
 void KernelLoader::EvaluateDelayedPragmas() {
+  potential_pragma_functions_ =
+      kernel_program_info_.potential_pragma_functions();
   if (potential_pragma_functions_.IsNull()) return;
+
   Thread* thread = Thread::Current();
   NoOOBMessageScope no_msg_scope(thread);
   NoReloadScope no_reload_scope(thread->isolate(), thread);
@@ -762,12 +765,12 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     EvaluateDelayedPragmas();
 
     NameIndex main = program_->main_method();
-    if (main == -1) {
-      return Library::null();
+    if (main != -1) {
+      NameIndex main_library = H.EnclosingName(main);
+      return LookupLibrary(main_library);
     }
 
-    NameIndex main_library = H.EnclosingName(main);
-    return LookupLibrary(main_library);
+    return bytecode_metadata_helper_.GetMainLibrary();
   }
 
   // Either class finalization failed or we caught a compile error.
@@ -1045,6 +1048,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource, register_class));
+  toplevel_class.set_is_type_finalized();
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
@@ -1098,6 +1102,16 @@ void KernelLoader::FinishTopLevelClassLoading(
 
   TIMELINE_DURATION(Thread::Current(), Isolate, "FinishTopLevelClassLoading");
 
+  ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
+
+  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    if (bytecode_metadata_helper_.ReadMembers(library_kernel_offset_,
+                                              toplevel_class, false)) {
+      ASSERT(toplevel_class.is_loaded());
+      return;
+    }
+  }
+
   // Offsets within library index are whole program offsets and not
   // relative to the library.
   const intptr_t correction = correction_offset_ - library_kernel_offset_;
@@ -1106,7 +1120,6 @@ void KernelLoader::FinishTopLevelClassLoading(
 
   fields_.Clear();
   functions_.Clear();
-  ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
 
   // Load toplevel fields.
   const intptr_t field_count = helper_.ReadListLength();  // read list length.
@@ -1160,7 +1173,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     }
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
-      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
+                               0);
     }
     fields_.Add(&field);
   }
@@ -1508,16 +1522,30 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 
   TIMELINE_DURATION(Thread::Current(), Isolate, "FinishClassLoading");
 
-  fields_.Clear();
-  functions_.Clear();
   ActiveClassScope active_class_scope(&active_class_, &klass);
+
+  bool discard_fields = false;
   if (library.raw() == Library::InternalLibrary() &&
       klass.Name() == Symbols::ClassID().raw()) {
     // If this is a dart:internal.ClassID class ignore field declarations
     // contained in the Kernel file and instead inject our own const
     // fields.
     klass.InjectCIDFields();
-  } else {
+    discard_fields = true;
+  }
+
+  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    if (bytecode_metadata_helper_.ReadMembers(
+            klass.kernel_offset() + library_kernel_offset_, klass,
+            discard_fields)) {
+      ASSERT(klass.is_loaded());
+      return;
+    }
+  }
+
+  fields_.Clear();
+  functions_.Clear();
+  if (!discard_fields) {
     class_helper->ReadUntilExcluding(ClassHelper::kFields);
     int field_count = helper_.ReadListLength();  // read list length.
     for (intptr_t i = 0; i < field_count; ++i) {
@@ -1577,7 +1605,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       }
       if ((FLAG_enable_mirrors || has_pragma_annotation) &&
           annotation_count > 0) {
-        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
+                                 0);
       }
       fields_.Add(&field);
     }
@@ -1667,7 +1696,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                  constructor_offset);
+                                  constructor_offset, 0);
     }
   }
 
@@ -1957,7 +1986,7 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   if (annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                procedure_offset);
+                                procedure_offset, 0);
   }
 
   if (has_pragma_annotation) {
@@ -2136,7 +2165,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_result_type(field_type);
   getter.set_is_debuggable(false);
   getter.set_accessor_field(field);
-  SetupFieldAccessorFunction(klass, getter, field_type);
+  H.SetupFieldAccessorFunction(klass, getter, field_type);
 
   if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
     // Only static fields can be const.
@@ -2156,34 +2185,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
     setter.set_accessor_field(field);
-    SetupFieldAccessorFunction(klass, setter, field_type);
-  }
-}
-
-void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
-                                              const Function& function,
-                                              const AbstractType& field_type) {
-  bool is_setter = function.IsImplicitSetterFunction();
-  bool is_method = !function.IsStaticFunction();
-  intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
-
-  function.SetNumOptionalParameters(0, false);
-  function.set_num_fixed_parameters(parameter_count);
-  function.set_parameter_types(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.set_parameter_names(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-
-  intptr_t pos = 0;
-  if (is_method) {
-    function.SetParameterTypeAt(pos, T.ReceiverType(klass));
-    function.SetParameterNameAt(pos, Symbols::This());
-    pos++;
-  }
-  if (is_setter) {
-    function.SetParameterTypeAt(pos, field_type);
-    function.SetParameterNameAt(pos, Symbols::Value());
-    pos++;
+    H.SetupFieldAccessorFunction(klass, setter, field_type);
   }
 }
 
@@ -2334,12 +2336,12 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
                           false,  // is_external
                           false,  // is_native
                           initializer_owner, TokenPosition::kNoSource));
-  initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_reflectable(false);
   initializer_fun.set_is_inlinable(false);
   initializer_fun.set_token_pos(field.token_pos());
   initializer_fun.set_end_token_pos(field.end_token_pos());
+  initializer_fun.InheritBinaryDeclarationFrom(field);
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
 }

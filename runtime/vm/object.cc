@@ -2935,7 +2935,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
                     RawFunction::kMethodExtractor,
                     false,  // Not static.
                     false,  // Not const.
-                    false,  // Not abstract.
+                    is_abstract(),
                     false,  // Not external.
                     false,  // Not native.
                     owner, TokenPosition::kMethodExtractor));
@@ -2947,7 +2947,8 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_types(Object::extractor_parameter_types());
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
-  extractor.set_kernel_offset(kernel_offset());
+
+  extractor.InheritBinaryDeclarationFrom(*this);
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -3066,7 +3067,8 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   forwarder.set_optimized_instruction_count(0);
   forwarder.set_inlining_depth(0);
   forwarder.set_optimized_call_site_count(0);
-  forwarder.set_kernel_offset(kernel_offset());
+
+  forwarder.InheritBinaryDeclarationFrom(*this);
 
   return forwarder.raw();
 }
@@ -3101,6 +3103,17 @@ RawFunction* Function::GetDynamicInvocationForwarder(
 
   return result.raw();
 }
+
+RawFunction* Function::GetTargetOfDynamicInvocationForwarder() const {
+  ASSERT(IsDynamicInvocationForwarder());
+  auto& func_name = String::Handle(name());
+  func_name = DemangleDynamicInvocationForwarderName(func_name);
+  const auto& owner = Class::Handle(Owner());
+  RawFunction* target = owner.LookupDynamicFunction(func_name);
+  ASSERT(target != Function::null());
+  return target;
+}
+
 #endif
 
 bool AbstractType::InstantiateAndTestSubtype(
@@ -4841,7 +4854,7 @@ typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
 RawInstance* Class::LookupCanonicalInstance(Zone* zone,
                                             const Instance& value) const {
   ASSERT(this->raw() == value.clazz());
-  ASSERT(is_finalized());
+  ASSERT(is_finalized() || is_prefinalized());
   Instance& canonical_value = Instance::Handle(zone);
   if (this->constants() != Object::empty_array().raw()) {
     CanonicalInstancesSet constants(zone, this->constants());
@@ -5664,6 +5677,7 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     case RawFunction::kDynamicInvocationForwarder:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kIrregexpFunction:
+    case RawFunction::kFfiTrampoline:
       return false;
     case RawFunction::kImplicitStaticFinalGetter:
       return kernel::IsFieldInitializer(*this, zone) || is_const();
@@ -7201,7 +7215,8 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
-  NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
+  NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
+  NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
@@ -7379,7 +7394,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
     param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
-  closure_function.set_kernel_offset(kernel_offset());
+  closure_function.InheritBinaryDeclarationFrom(*this);
 
   // Change covariant parameter types to Object in the implicit closure.
   if (!is_static()) {
@@ -7618,6 +7633,28 @@ RawClass* Function::origin() const {
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).origin_class();
+}
+
+void Function::InheritBinaryDeclarationFrom(const Function& src) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  StoreNonPointer(&raw_ptr()->binary_declaration_,
+                  src.raw_ptr()->binary_declaration_);
+#endif
+}
+
+void Function::InheritBinaryDeclarationFrom(const Field& src) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  if (src.is_declared_in_bytecode()) {
+    set_is_declared_in_bytecode(true);
+    set_bytecode_offset(src.bytecode_offset());
+  } else {
+    set_kernel_offset(src.kernel_offset());
+  }
+#endif
 }
 
 void Function::SetKernelDataAndScript(const Script& script,
@@ -7926,8 +7963,10 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  if (!Isolate::Current()->obfuscate() && (kernel_offset() <= 0) &&
-      (SourceFingerprint() != fp)) {
+  // TODO(alexmarkov): '(kernel_offset() <= 0)' looks like an impossible
+  // condition, fix this and re-enable fingerprints checking.
+  if (!Isolate::Current()->obfuscate() && !is_declared_in_bytecode() &&
+      (kernel_offset() <= 0) && (SourceFingerprint() != fp)) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
@@ -8288,6 +8327,15 @@ RawExternalTypedData* Field::KernelData() const {
   return PatchClass::Cast(obj).library_kernel_data();
 }
 
+void Field::InheritBinaryDeclarationFrom(const Field& src) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  StoreNonPointer(&raw_ptr()->binary_declaration_,
+                  src.raw_ptr()->binary_declaration_);
+#endif
+}
+
 intptr_t Field::KernelDataProgramOffset() const {
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   // During background JIT compilation field objects are copied
@@ -8344,7 +8392,8 @@ void Field::InitializeNew(const Field& result,
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(!is_final);
   result.set_initializer_changed_after_initialization(false);
-  result.set_kernel_offset(0);
+  NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
+  NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
@@ -8411,7 +8460,7 @@ RawField* Field::Clone(const Field& original) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
   clone.SetOriginal(original);
-  clone.set_kernel_offset(original.kernel_offset());
+  clone.InheritBinaryDeclarationFrom(original);
   return clone.raw();
 }
 
@@ -9801,7 +9850,11 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
 void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset) const {
+                          intptr_t kernel_offset,
+                          intptr_t bytecode_offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -9814,10 +9867,16 @@ void Library::AddMetadata(const Object& owner,
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
-  field.set_kernel_offset(kernel_offset);
+  if (bytecode_offset > 0) {
+    field.set_is_declared_in_bytecode(true);
+    field.set_bytecode_offset(bytecode_offset);
+  } else {
+    field.set_kernel_offset(kernel_offset);
+  }
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Library::AddClassMetadata(const Class& cls,
@@ -9830,27 +9889,29 @@ void Library::AddClassMetadata(const Class& cls,
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, 0);
 }
 
 void Library::AddFieldMetadata(const Field& field,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset) const {
+                               intptr_t kernel_offset,
+                               intptr_t bytecode_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, field.RawOwner()),
               String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, bytecode_offset);
 }
 
 void Library::AddFunctionMetadata(const Function& func,
                                   TokenPosition token_pos,
-                                  intptr_t kernel_offset) const {
+                                  intptr_t kernel_offset,
+                                  intptr_t bytecode_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, func.RawOwner()),
               String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, bytecode_offset);
 }
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,
@@ -9860,13 +9921,13 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
   AddMetadata(
       Class::Handle(zone, param.parameterized_class()),
       String::Handle(zone, MakeTypeParameterMetaName(thread, zone, param)),
-      token_pos);
+      token_pos, 0, 0);
 }
 
 void Library::AddLibraryMetadata(const Object& tl_owner,
                                  TokenPosition token_pos,
                                  intptr_t kernel_offset) const {
-  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset);
+  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset, 0);
 }
 
 RawString* Library::MakeMetadataName(const Object& obj) const {
@@ -9910,8 +9971,13 @@ void Library::CloneMetadataFrom(const Library& from_library,
   const Field& from_field =
       Field::Handle(from_library.GetMetadataField(metaname));
   if (!from_field.IsNull()) {
-    AddFunctionMetadata(to_fun, from_field.token_pos(),
-                        from_field.kernel_offset());
+    if (from_field.is_declared_in_bytecode()) {
+      AddFunctionMetadata(to_fun, from_field.token_pos(), 0,
+                          from_field.bytecode_offset());
+    } else {
+      AddFunctionMetadata(to_fun, from_field.token_pos(),
+                          from_field.kernel_offset(), 0);
+    }
   }
 }
 
@@ -9932,11 +9998,12 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    if (field.kernel_offset() > 0) {
+    if (field.is_declared_in_bytecode()) {
+      metadata = kernel::BytecodeReader::ReadAnnotation(field);
+    } else {
+      ASSERT(field.kernel_offset() > 0);
       metadata = kernel::EvaluateMetadata(
           field, /* is_annotations_offset = */ obj.IsLibrary());
-    } else {
-      UNREACHABLE();
     }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());

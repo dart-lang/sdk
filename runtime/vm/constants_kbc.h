@@ -502,11 +502,14 @@ typedef uint32_t KBCInstr;
 
 class KernelBytecode {
  public:
+  // Magic value of bytecode files.
+  static const intptr_t kMagicValue = 0x44424332;  // 'DBC2'
   // Minimum bytecode format version supported by VM.
   static const intptr_t kMinSupportedBytecodeFormatVersion = 1;
   // Maximum bytecode format version supported by VM.
-  // Should match futureBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart.
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 2;
+  // The range of supported versions should include version produced by bytecode
+  // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 3;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,

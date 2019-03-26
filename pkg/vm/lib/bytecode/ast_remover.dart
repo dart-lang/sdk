@@ -11,64 +11,167 @@ import '../metadata/bytecode.dart';
 /// Can preserve removed AST and restore it if needed.
 class ASTRemover extends Transformer {
   final BytecodeMetadataRepository metadata;
-  final droppedAST = <Member, dynamic>{};
+  final stashes = <Node, _Stash>{};
 
   ASTRemover(Component component)
-      : metadata = component.metadata[new BytecodeMetadataRepository().tag];
+      : metadata = component.metadata[new BytecodeMetadataRepository().tag] {
+    stashes[component] = new _ComponentStash(component.mainMethod);
+    component.mainMethod = null;
+  }
 
   @override
-  TreeNode defaultMember(Member node) {
-    if (_hasBytecode(node)) {
-      if (node is Field) {
-        droppedAST[node] = node.initializer;
-        node.initializer = null;
-      } else if (node is Constructor) {
-        droppedAST[node] =
-            new _DroppedConstructor(node.initializers, node.function.body);
-        node.initializers = <Initializer>[];
-        node.function.body = null;
-      } else if (node.function != null) {
-        droppedAST[node] = node.function.body;
-        node.function.body = null;
-      }
-    }
+  visitLibrary(Library node) {
+    stashes[node] = new _LibraryStash(
+        new List<Expression>.from(node.annotations),
+        new List<Field>.from(node.fields),
+        new List<Procedure>.from(node.procedures),
+        new List<Reference>.from(node.additionalExports));
 
-    // Instance field initializers do not form separate functions, and bytecode
-    // is not attached to instance fields (it is included into constructors).
-    // When VM reads a constructor from kernel, it also reads and translates
-    // instance field initializers. So, their ASTs can be dropped only if
-    // bytecode was generated for all generative constructors.
-    if (node is Field && !node.isStatic && node.initializer != null) {
-      if (node.enclosingClass.constructors.every(_hasBytecode)) {
-        droppedAST[node] = node.initializer;
-        node.initializer = null;
-      }
-    }
+    node.annotations.clear();
+    node.fields.clear();
+    node.procedures.clear();
+    node.additionalExports.clear();
+
+    super.visitLibrary(node);
 
     return node;
   }
 
-  bool _hasBytecode(Member node) =>
-      metadata != null && metadata.mapping.containsKey(node);
+  @override
+  visitLibraryDependency(LibraryDependency node) {
+    stashes[node] = new _LibraryDependencyStash(
+        new List<Expression>.from(node.annotations));
+
+    node.annotations.clear();
+
+    super.visitLibraryDependency(node);
+
+    return node;
+  }
+
+  // Still referenced from function types which may appear in class supertypes.
+  @override
+  visitTypedef(Typedef node) {
+    stashes[node] = new _TypedefStash(node.annotations);
+
+    node.annotations = const <Expression>[];
+
+    super.visitTypedef(node);
+
+    // TODO(alexmarkov): fix Typedef visitor to visit these fields.
+    transformList(node.positionalParameters, this, node);
+    transformList(node.namedParameters, this, node);
+
+    return node;
+  }
+
+  // May appear in typedefs.
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    stashes[node] = new _VariableDeclarationStash(node.annotations);
+
+    node.annotations = const <Expression>[];
+
+    super.visitVariableDeclaration(node);
+
+    return node;
+  }
+
+  @override
+  visitClass(Class node) {
+    stashes[node] = new _ClassStash(
+        node.annotations,
+        new List<Field>.from(node.fields),
+        new List<Procedure>.from(node.procedures),
+        new List<Constructor>.from(node.constructors));
+
+    node.annotations = const <Expression>[];
+    node.fields.clear();
+    node.procedures.clear();
+    node.constructors.clear();
+
+    super.visitClass(node);
+
+    return node;
+  }
 
   void restoreAST() {
-    droppedAST.forEach((Member node, dynamic dropped) {
-      if (node is Field) {
-        node.initializer = dropped;
-      } else if (node is Constructor) {
-        _DroppedConstructor droppedConstructor = dropped;
-        node.initializers = droppedConstructor.initializers;
-        node.function.body = droppedConstructor.body;
+    stashes.forEach((Node node, _Stash stash) {
+      if (node is Component) {
+        _ComponentStash componentStash = stash as _ComponentStash;
+        node.mainMethod = componentStash.mainMethod;
+      } else if (node is Library) {
+        _LibraryStash libraryStash = stash as _LibraryStash;
+        node.annotations.addAll(libraryStash.annotations);
+        node.fields.addAll(libraryStash.fields);
+        node.procedures.addAll(libraryStash.procedures);
+        node.additionalExports.addAll(libraryStash.additionalExports);
+      } else if (node is LibraryDependency) {
+        _LibraryDependencyStash libraryDependencyStash =
+            stash as _LibraryDependencyStash;
+        node.annotations.addAll(libraryDependencyStash.annotations);
+      } else if (node is Typedef) {
+        _TypedefStash typedefStash = stash as _TypedefStash;
+        node.annotations = typedefStash.annotations;
+      } else if (node is VariableDeclaration) {
+        _VariableDeclarationStash variableDeclarationStash =
+            stash as _VariableDeclarationStash;
+        node.annotations = variableDeclarationStash.annotations;
+      } else if (node is Class) {
+        _ClassStash classStash = stash as _ClassStash;
+        node.annotations = classStash.annotations;
+        node.fields.addAll(classStash.fields);
+        node.procedures.addAll(classStash.procedures);
+        node.constructors.addAll(classStash.constructors);
       } else {
-        node.function.body = dropped;
+        throw 'Unexpected ${node.runtimeType} $node';
       }
     });
   }
 }
 
-class _DroppedConstructor {
-  final List<Initializer> initializers;
-  final Statement body;
+abstract class _Stash {}
 
-  _DroppedConstructor(this.initializers, this.body);
+class _ClassStash extends _Stash {
+  final List<Expression> annotations;
+  final List<Field> fields;
+  final List<Procedure> procedures;
+  final List<Constructor> constructors;
+
+  _ClassStash(
+      this.annotations, this.fields, this.procedures, this.constructors);
+}
+
+class _LibraryStash extends _Stash {
+  final List<Expression> annotations;
+  final List<Field> fields;
+  final List<Procedure> procedures;
+  final List<Reference> additionalExports;
+
+  _LibraryStash(
+      this.annotations, this.fields, this.procedures, this.additionalExports);
+}
+
+class _LibraryDependencyStash extends _Stash {
+  final List<Expression> annotations;
+
+  _LibraryDependencyStash(this.annotations);
+}
+
+class _TypedefStash extends _Stash {
+  final List<Expression> annotations;
+
+  _TypedefStash(this.annotations);
+}
+
+class _VariableDeclarationStash extends _Stash {
+  final List<Expression> annotations;
+
+  _VariableDeclarationStash(this.annotations);
+}
+
+class _ComponentStash extends _Stash {
+  final Procedure mainMethod;
+
+  _ComponentStash(this.mainMethod);
 }
