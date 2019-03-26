@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Prefer asserts with message.';
 
@@ -16,12 +15,24 @@ to the `assert` helps the developer to understand why the AssertionError occurs.
 
 **BAD:**
 ```
-assert(a != null)
+f(a) {
+  assert(a != null);
+}
+
+class A {
+  A(a) : assert(a != null);
+}
 ```
 
 **GOOD:**
 ```
-assert(a != null, 'a must not be null')
+f(a) {
+  assert(a != null, 'a must not be null');
+}
+
+class A {
+  A(a) : assert(a != null, 'a must not be null');
+}
 ```
 
 ''';
