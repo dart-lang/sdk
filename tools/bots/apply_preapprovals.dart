@@ -19,6 +19,10 @@ main(List<String> args) async {
       abbr: "n",
       help: "Don't write out the updated approvals.",
       negatable: false);
+  parser.addMultiOption("apply-changelist",
+      abbr: "A",
+      help: "Apply this changelist even if it hasn't landed",
+      splitCommas: false);
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
   parser.addOption("upload",
       abbr: "u",
@@ -113,6 +117,11 @@ ${parser.usage}""");
     final changelistUrl = "https://dart-review.googlesource.com/q/$changelist";
     final commit = commitOfChangelist[changelist];
     print("Landed: Changelist $changelistUrl landed in commit $commit");
+  }
+  for (final changelist in options["apply-changelist"]) {
+    final changelistUrl = "https://dart-review.googlesource.com/q/$changelist";
+    print("Force applying: Pretending $changelistUrl has landed");
+    landedChangelists.add(changelist);
   }
 
   // Apply the pre-approvals for landed changes.
