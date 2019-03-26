@@ -1104,19 +1104,19 @@ class PluginsPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     h3('Analysis plugins');
     List<PluginInfo> analysisPlugins = server.pluginManager.plugins;
 
     if (analysisPlugins.isEmpty) {
       blankslate('No known analysis plugins.');
     } else {
+      analysisPlugins
+          .sort((first, second) => first.pluginId.compareTo(second.pluginId));
       for (PluginInfo plugin in analysisPlugins) {
-        // TODO(brianwilkerson) Sort the plugins by name.
         String id = plugin.pluginId;
         PluginData data = plugin.data;
+        Map<String, List<int>> responseTimes =
+            PluginManager.pluginResponseTimes[plugin];
 
         List<String> components = pathPackage.split(id);
         int length = components.length;
@@ -1154,6 +1154,19 @@ class PluginsPage extends DiagnosticPageWithNav {
             ul(contexts.toList(), (ContextRoot root) {
               buf.writeln(root.root);
             });
+          }
+          p('Performance:');
+          List<String> requestNames = responseTimes.keys.toList();
+          requestNames.sort();
+          for (String requestName in requestNames) {
+            List<int> data = responseTimes[requestName];
+            // TODO(brianwilkerson) Consider displaying these times as a graph,
+            //  similar to the one in AbstractCompletionPage.generateContent.
+            StringBuffer buffer = new StringBuffer();
+            buffer.write(requestName);
+            buffer.write(' ');
+            buffer.write(data);
+            p(buffer.toString());
           }
         }
       }
