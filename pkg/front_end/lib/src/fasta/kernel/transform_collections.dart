@@ -49,6 +49,8 @@ import 'collections.dart'
         ControlFlowMapEntry,
         ForElement,
         ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
         IfElement,
         IfMapEntry,
         SpreadElement,
@@ -334,6 +336,10 @@ class CollectionTransformer extends Transformer {
       _translateSpreadEntry(entry, entryType, result, body);
     } else if (entry is IfMapEntry) {
       _translateIfEntry(entry, entryType, result, body);
+    } else if (entry is ForMapEntry) {
+      _translateForEntry(entry, entryType, result, body);
+    } else if (entry is ForInMapEntry) {
+      _translateForInEntry(entry, entryType, result, body);
     } else {
       _addNormalEntry(entry.accept(this), result, body);
     }
@@ -366,6 +372,43 @@ class CollectionTransformer extends Transformer {
     }
     body.add(new IfStatement(
         entry.condition.accept(this), thenStatement, elseStatement));
+  }
+
+  void _translateForEntry(ForMapEntry entry, DartType entryType,
+      VariableDeclaration result, List<Statement> body) {
+    List<Statement> statements = <Statement>[];
+    _translateEntry(entry.body, entryType, result, statements);
+    Statement loopBody =
+        statements.length == 1 ? statements.first : new Block(statements);
+    ForStatement loop = new ForStatement(
+        entry.variables, entry.condition?.accept(this), entry.updates, loopBody)
+      ..fileOffset = entry.fileOffset;
+    transformList(loop.variables, this, loop);
+    transformList(loop.updates, this, loop);
+    body.add(loop);
+  }
+
+  void _translateForInEntry(ForInMapEntry entry, DartType entryType,
+      VariableDeclaration result, List<Statement> body) {
+    List<Statement> statements;
+    Statement prologue = entry.prologue;
+    if (prologue == null) {
+      statements = <Statement>[];
+    } else {
+      prologue = prologue.accept(this);
+      statements =
+          prologue is Block ? prologue.statements : <Statement>[prologue];
+    }
+    _translateEntry(entry.body, entryType, result, statements);
+    Statement loopBody =
+        statements.length == 1 ? statements.first : new Block(statements);
+    if (entry.problem != null) {
+      body.add(new ExpressionStatement(entry.problem.accept(this)));
+    }
+    body.add(new ForInStatement(
+        entry.variable, entry.iterable.accept(this), loopBody,
+        isAsync: entry.isAsync)
+      ..fileOffset = entry.fileOffset);
   }
 
   void _translateSpreadEntry(SpreadMapEntry entry, DartType entryType,

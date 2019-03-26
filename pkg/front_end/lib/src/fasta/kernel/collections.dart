@@ -200,25 +200,27 @@ class ForInElement extends Expression with ControlFlowElement {
 
 mixin ControlFlowMapEntry implements MapEntry {
   @override
-  Expression get key => throw UnsupportedError('SpreadMapEntry.key getter');
+  Expression get key {
+    throw UnsupportedError('ControlFlowMapEntry.key getter');
+  }
 
   @override
   void set key(Expression expr) {
-    throw UnsupportedError('SpreadMapEntry.key setter');
+    throw UnsupportedError('ControlFlowMapEntry.key setter');
   }
 
   @override
-  Expression get value => throw UnsupportedError('SpreadMapEntry.value getter');
+  Expression get value {
+    throw UnsupportedError('ControlFlowMapEntry.value getter');
+  }
 
   @override
   void set value(Expression expr) {
-    throw UnsupportedError('SpreadMapEntry.value setter');
+    throw UnsupportedError('ControlFlowMapEntry.value setter');
   }
 
   @override
-  accept(TreeVisitor<Object> v) {
-    throw UnsupportedError('SpreadMapEntry.accept');
-  }
+  accept(TreeVisitor<Object> v) => v.defaultTreeNode(this);
 }
 
 /// A spread element in a map literal.
@@ -229,8 +231,6 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   SpreadMapEntry(this.expression, this.isNullAware) {
     expression?.parent = this;
   }
-
-  accept(TreeVisitor<Object> v) => v.defaultTreeNode(this);
 
   @override
   visitChildren(Visitor<Object> v) {

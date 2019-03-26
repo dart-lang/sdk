@@ -202,7 +202,6 @@ constructor5_test: CompileTimeError # Verification error
 constructor6_test: CompileTimeError # Verification error
 control_flow_collections/await_for_inference_test: CompileTimeError
 control_flow_collections/await_for_test: CompileTimeError
-control_flow_collections/await_for_type_error_test/02: MissingCompileTimeError
 control_flow_collections/await_for_type_error_test/04: MissingCompileTimeError
 control_flow_collections/await_for_type_error_test/05: MissingCompileTimeError
 control_flow_collections/await_for_type_error_test/06: MissingCompileTimeError
@@ -214,10 +213,7 @@ control_flow_collections/await_for_type_error_test/13: MissingCompileTimeError
 control_flow_collections/for_await_test: CompileTimeError
 control_flow_collections/for_await_test: Crash
 control_flow_collections/for_const_test/00: MissingCompileTimeError
-control_flow_collections/for_const_test/01: MissingCompileTimeError
 control_flow_collections/for_const_test/03: MissingCompileTimeError
-control_flow_collections/for_const_test/04: MissingCompileTimeError
-control_flow_collections/for_const_test/07: MissingCompileTimeError
 control_flow_collections/for_inference_test: CompileTimeError
 control_flow_collections/for_test: CompileTimeError
 control_flow_collections/if_await_test: Crash
@@ -265,7 +261,6 @@ control_flow_collections/type_error_test/26: MissingCompileTimeError
 control_flow_collections/type_error_test/27: MissingCompileTimeError
 control_flow_collections/type_error_test/28: MissingCompileTimeError
 control_flow_collections/type_error_test/29: MissingCompileTimeError
-control_flow_collections/type_error_test/31: MissingCompileTimeError
 control_flow_collections/type_error_test/33: MissingCompileTimeError
 control_flow_collections/type_error_test/34: MissingCompileTimeError
 control_flow_collections/type_error_test/35: MissingCompileTimeError

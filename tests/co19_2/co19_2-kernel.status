@@ -132,6 +132,7 @@ LanguageFeatures/Control-flow-collections/const_collections_A05_t02: CompileTime
 LanguageFeatures/Control-flow-collections/const_collections_A06_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A07_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A07_t02: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A01_t01/01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A01_t01/02: MissingCompileTimeError
@@ -181,6 +182,7 @@ LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/21: MissingCo
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/22: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/23: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/24: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/syntax_A02_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/syntax_A03_t01/02: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/syntax_A03_t01/03: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/type_inference_A06_t01: CompileTimeError

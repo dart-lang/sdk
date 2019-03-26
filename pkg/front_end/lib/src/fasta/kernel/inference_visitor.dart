@@ -693,7 +693,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       // TODO(kmillikin): Implement inference rules for if elements.
       inferrer.inferExpression(element.condition,
           inferrer.coreTypes.boolClass.rawType, typeChecksNeeded,
-          isVoidAllowed: false); // Should be void allowed + runtime check?
+          isVoidAllowed: false);
       inferElement(element.then, index, inferredTypeArgument, spreadTypes,
           inferenceNeeded, typeChecksNeeded);
       if (element.otherwise != null) {
@@ -715,7 +715,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
             element.condition,
             inferrer.coreTypes.boolClass.rawType,
             inferenceNeeded || typeChecksNeeded,
-            isVoidAllowed: false); // Should be void allowed + runtime check.
+            isVoidAllowed: false);
       }
       for (Expression expression in element.updates) {
         inferrer.inferExpression(expression, const UnknownType(),
@@ -934,6 +934,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       }
       return spreadType;
     } else if (entry is IfMapEntry) {
+      // TODO(kmillikin): Implement inference rules for if map entries.
       inferrer.inferExpression(entry.condition,
           inferrer.coreTypes.boolClass.rawType, typeChecksNeeded,
           isVoidAllowed: false);
@@ -966,25 +967,68 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         actualTypes.add(const DynamicType());
       }
       return null;
-    } else if (entry is ForMapEntry || entry is ForInMapEntry) {
-      MapEntry replacement = new MapEntry(
-          new InvalidExpression('unhandled loop entry in map literal'),
-          new NullLiteral())
-        ..fileOffset = entry.fileOffset;
-      if (nested) {
-        // VisitChildren doesn't work so replaceChild doesn't work either.
-        IfMapEntry parent = entry.parent;
-        replacement.parent = parent;
-        if (parent.then == entry) {
-          parent.then = replacement;
-        } else {
-          parent.otherwise = replacement;
+    } else if (entry is ForMapEntry) {
+      // TODO(kmillikin): Implement inference rules for for map entries.
+      for (VariableDeclaration declaration in entry.variables) {
+        if (declaration.initializer != null) {
+          inferrer.inferExpression(declaration.initializer, declaration.type,
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
         }
-      } else {
-        MapLiteral parent = entry.parent;
-        parent.entries[index] = replacement..parent = parent;
-        actualTypes.add(const BottomType());
-        actualTypes.add(inferrer.coreTypes.nullClass.rawType);
+      }
+      if (entry.condition != null) {
+        inferrer.inferExpression(
+            entry.condition,
+            inferrer.coreTypes.boolClass.rawType,
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: false);
+      }
+      for (Expression expression in entry.updates) {
+        inferrer.inferExpression(expression, const UnknownType(),
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+      }
+      inferMapEntry(
+          entry.body,
+          index,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          spreadTypes,
+          actualTypes,
+          inferenceNeeded,
+          typeChecksNeeded,
+          nested: true);
+      if (!nested) {
+        actualTypes.add(const DynamicType());
+        actualTypes.add(const DynamicType());
+      }
+      return null;
+    } else if (entry is ForInMapEntry) {
+      // TODO(kmillikin): Implement inference rules for for-in map entries.
+      inferForInIterable(entry.iterable, const UnknownType(),
+          inferenceNeeded || typeChecksNeeded,
+          isAsync: entry.isAsync);
+      if (entry.prologue != null) inferrer.inferStatement(entry.prologue);
+      if (entry.problem != null) {
+        inferrer.inferExpression(entry.problem, const UnknownType(),
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+      }
+      inferMapEntry(
+          entry.body,
+          index,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          spreadTypes,
+          actualTypes,
+          inferenceNeeded,
+          typeChecksNeeded,
+          nested: true);
+      if (!nested) {
+        actualTypes.add(const DynamicType());
+        actualTypes.add(const DynamicType());
       }
       return null;
     } else {
@@ -1104,7 +1148,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           if (!isMap && isSet) {
             iterableSpreadOffset = entry.expression.fileOffset;
           }
-        } else if (entry is IfMapEntry) {
+        } else if (entry is ControlFlowMapEntry) {
         } else {
           mapEntryOffset = entry.fileOffset;
         }
