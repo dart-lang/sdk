@@ -83,7 +83,16 @@ import '../type_inference/type_schema_environment.dart'
 import 'body_builder.dart' show combineStatements;
 
 import 'collections.dart'
-    show IfElement, SpreadElement, IfMapEntry, SpreadMapEntry;
+    show
+        ControlFlowMapEntry,
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement,
+        SpreadMapEntry;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 

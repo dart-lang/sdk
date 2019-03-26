@@ -28,9 +28,23 @@ class InferredTypeVisitor
 
   @override
   DartType defaultExpression(Expression node, TypeInferrerImpl inferrer) {
+    if (node is ForElement) {
+      return visitForElement(node, inferrer);
+    }
+    if (node is ForInElement) {
+      return visitForInElement(node, inferrer);
+    }
     unhandled("${node.runtimeType}", "getInferredType", node.fileOffset,
         inferrer.uri);
     return const InvalidType();
+  }
+
+  DartType visitForElement(ForElement node, TypeInferrerImpl inferrer) {
+    return const BottomType();
+  }
+
+  DartType visitForInElement(ForInElement node, TypeInferrerImpl inferrer) {
+    return const BottomType();
   }
 
   @override

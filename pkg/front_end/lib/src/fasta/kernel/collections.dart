@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Expression,
         MapEntry,
         setParents,
+        Statement,
         transformList,
         TreeNode,
         VariableDeclaration,
@@ -150,19 +151,27 @@ class ForElement extends Expression with ControlFlowElement {
 class ForInElement extends Expression with ControlFlowElement {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
+  Statement prologue; // May be null.
   Expression body;
+  Expression problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
-  ForInElement(this.variable, this.iterable, this.body, {this.isAsync: false}) {
+  ForInElement(
+      this.variable, this.iterable, this.prologue, this.body, this.problem,
+      {this.isAsync: false}) {
     variable?.parent = this;
     iterable?.parent = this;
+    prologue?.parent = this;
     body?.parent = this;
+    problem?.parent = this;
   }
 
   visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
+    prologue?.accept(v);
     body?.accept(v);
+    problem?.accept(v);
   }
 
   transformChildren(Transformer v) {
@@ -174,9 +183,17 @@ class ForInElement extends Expression with ControlFlowElement {
       iterable = iterable.accept(v);
       iterable?.parent = this;
     }
+    if (prologue != null) {
+      prologue = prologue.accept(v);
+      prologue?.parent = this;
+    }
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
+    }
+    if (problem != null) {
+      problem = problem.accept(v);
+      problem?.parent = this;
     }
   }
 }
@@ -306,20 +323,27 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
 class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
+  Statement prologue; // May be null.
   MapEntry body;
+  Expression problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
-  ForInMapEntry(this.variable, this.iterable, this.body,
+  ForInMapEntry(
+      this.variable, this.iterable, this.prologue, this.body, this.problem,
       {this.isAsync: false}) {
     variable?.parent = this;
     iterable?.parent = this;
+    prologue?.parent = this;
     body?.parent = this;
+    problem?.parent = this;
   }
 
   visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
+    prologue?.accept(v);
     body?.accept(v);
+    problem?.accept(v);
   }
 
   transformChildren(Transformer v) {
@@ -331,9 +355,17 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       iterable = iterable.accept(v);
       iterable?.parent = this;
     }
+    if (prologue != null) {
+      prologue = prologue.accept(v);
+      prologue?.parent = this;
+    }
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
+    }
+    if (problem != null) {
+      problem = problem.accept(v);
+      problem?.parent = this;
     }
   }
 }

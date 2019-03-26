@@ -172,10 +172,8 @@ Try correcting the name to the name of an existing setter, or defining a setter 
          ^^^";
         dynamic x;
         dynamic y;
-        {
-          core::print(x);
-          core::print(y);
-        }
+        core::print(x);
+        core::print(y);
       }
     }
     const core::int constant = 0;

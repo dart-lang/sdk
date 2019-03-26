@@ -11,6 +11,14 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
   @override
   void defaultExpression(Expression node, DartType typeContext) {
+    if (node is ForElement) {
+      visitForElement(node, typeContext);
+      return;
+    }
+    if (node is ForInElement) {
+      visitForInElement(node, typeContext);
+      return;
+    }
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
   }
@@ -19,6 +27,18 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   void defaultStatement(Statement node, _) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
+  }
+
+  void visitForElement(ForElement node, DartType typeContext) {
+    node.parent.replaceChild(node,
+        new InvalidExpression('unhandled for element in collection literal'));
+  }
+
+  void visitForInElement(ForInElement node, DartType typeContext) {
+    node.parent.replaceChild(
+        node,
+        new InvalidExpression(
+            'unhandled for-in element in collection literal'));
   }
 
   @override
@@ -908,6 +928,27 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         actualTypes.add(const DynamicType());
       }
       return null;
+    } else if (entry is ForMapEntry || entry is ForInMapEntry) {
+      MapEntry replacement = new MapEntry(
+          new InvalidExpression('unhandled loop entry in map literal'),
+          new NullLiteral())
+        ..fileOffset = entry.fileOffset;
+      if (nested) {
+        // VisitChildren doesn't work so replaceChild doesn't work either.
+        IfMapEntry parent = entry.parent;
+        replacement.parent = parent;
+        if (parent.then == entry) {
+          parent.then = replacement;
+        } else {
+          parent.otherwise = replacement;
+        }
+      } else {
+        MapLiteral parent = entry.parent;
+        parent.entries[index] = replacement..parent = parent;
+        actualTypes.add(const BottomType());
+        actualTypes.add(inferrer.coreTypes.nullClass.rawType);
+      }
+      return null;
     } else {
       Expression key = entry.key;
       inferrer.inferExpression(key, inferredKeyType, true, isVoidAllowed: true);
@@ -984,7 +1025,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         typeChecksNeeded ? new List<DartType>(node.entries.length) : null;
     for (int i = 0; i < node.entries.length; i++) {
       MapEntry entry = node.entries[i];
-      if (entry is! SpreadMapEntry && entry is! IfMapEntry) {
+      if (entry is! ControlFlowMapEntry) {
         cachedKeys[i] = node.entries[i].key;
         cachedValues[i] = node.entries[i].value;
       }
