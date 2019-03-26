@@ -18,6 +18,7 @@ import 'package:kernel/ast.dart'
         ExpressionStatement,
         Field,
         ForInStatement,
+        ForStatement,
         IfStatement,
         InterfaceType,
         InvalidExpression,
@@ -33,6 +34,7 @@ import 'package:kernel/ast.dart'
         SetLiteral,
         Statement,
         StaticInvocation,
+        transformList,
         TreeNode,
         VariableDeclaration,
         VariableGet;
@@ -45,6 +47,8 @@ import 'collections.dart'
     show
         ControlFlowElement,
         ControlFlowMapEntry,
+        ForElement,
+        ForInElement,
         IfElement,
         IfMapEntry,
         SpreadElement,
@@ -153,6 +157,10 @@ class CollectionTransformer extends Transformer {
       _translateSpreadElement(element, elementType, isSet, result, body);
     } else if (element is IfElement) {
       _translateIfElement(element, elementType, isSet, result, body);
+    } else if (element is ForElement) {
+      _translateForElement(element, elementType, isSet, result, body);
+    } else if (element is ForInElement) {
+      _translateForInElement(element, elementType, isSet, result, body);
     } else {
       _addExpressionElement(element.accept(this), isSet, result, body);
     }
@@ -169,22 +177,61 @@ class CollectionTransformer extends Transformer {
 
   void _translateIfElement(IfElement element, DartType elementType, bool isSet,
       VariableDeclaration result, List<Statement> body) {
-    List<Statement> thenBody = [];
-    _translateElement(element.then, elementType, isSet, result, thenBody);
-    List<Statement> elseBody;
+    List<Statement> thenStatements = [];
+    _translateElement(element.then, elementType, isSet, result, thenStatements);
+    List<Statement> elseStatements;
     if (element.otherwise != null) {
       _translateElement(element.otherwise, elementType, isSet, result,
-          elseBody = <Statement>[]);
+          elseStatements = <Statement>[]);
     }
-    Statement thenStatement =
-        thenBody.length == 1 ? thenBody.first : new Block(thenBody);
-    Statement elseStatement;
-    if (elseBody != null && elseBody.isNotEmpty) {
-      elseStatement =
-          elseBody.length == 1 ? elseBody.first : new Block(elseBody);
+    Statement thenBody = thenStatements.length == 1
+        ? thenStatements.first
+        : new Block(thenStatements);
+    Statement elseBody;
+    if (elseStatements != null && elseStatements.isNotEmpty) {
+      elseBody = elseStatements.length == 1
+          ? elseStatements.first
+          : new Block(elseStatements);
     }
-    body.add(new IfStatement(
-        element.condition.accept(this), thenStatement, elseStatement));
+    body.add(new IfStatement(element.condition.accept(this), thenBody, elseBody)
+      ..fileOffset = element.fileOffset);
+  }
+
+  void _translateForElement(ForElement element, DartType elementType,
+      bool isSet, VariableDeclaration result, List<Statement> body) {
+    List<Statement> statements = <Statement>[];
+    _translateElement(element.body, elementType, isSet, result, statements);
+    Statement loopBody =
+        statements.length == 1 ? statements.first : new Block(statements);
+    ForStatement loop = new ForStatement(element.variables,
+        element.condition?.accept(this), element.updates, loopBody)
+      ..fileOffset = element.fileOffset;
+    transformList(loop.variables, this, loop);
+    transformList(loop.updates, this, loop);
+    body.add(loop);
+  }
+
+  void _translateForInElement(ForInElement element, DartType elementType,
+      bool isSet, VariableDeclaration result, List<Statement> body) {
+    List<Statement> statements;
+    Statement prologue = element.prologue;
+    if (prologue == null) {
+      statements = <Statement>[];
+    } else {
+      prologue = prologue.accept(this);
+      statements =
+          prologue is Block ? prologue.statements : <Statement>[prologue];
+    }
+    _translateElement(element.body, elementType, isSet, result, statements);
+    Statement loopBody =
+        statements.length == 1 ? statements.first : new Block(statements);
+    if (element.problem != null) {
+      body.add(new ExpressionStatement(element.problem.accept(this)));
+    }
+    body.add(new ForInStatement(
+        element.variable, element.iterable.accept(this), loopBody,
+        isAsync: element.isAsync)
+      ..fileOffset = element.fileOffset);
   }
 
   void _translateSpreadElement(SpreadElement element, DartType elementType,

@@ -328,15 +328,19 @@ class Fangorn extends Forest {
 
   @override
   Expression forInElement(VariableDeclaration variable, Expression iterable,
-      Statement prologue, Expression body, Expression problem, Token token) {
-    return new ForInElement(variable, iterable, prologue, body, problem)
+      Statement prologue, Expression body, Expression problem, Token token,
+      {bool isAsync: false}) {
+    return new ForInElement(variable, iterable, prologue, body, problem,
+        isAsync: isAsync)
       ..fileOffset = offsetForToken(token);
   }
 
   @override
   MapEntry forInMapEntry(VariableDeclaration variable, Expression iterable,
-      Statement prologue, MapEntry body, Expression problem, Token token) {
-    return new ForInMapEntry(variable, iterable, prologue, body, problem)
+      Statement prologue, MapEntry body, Expression problem, Token token,
+      {bool isAsync: false}) {
+    return new ForInMapEntry(variable, iterable, prologue, body, problem,
+        isAsync: isAsync)
       ..fileOffset = offsetForToken(token);
   }
 

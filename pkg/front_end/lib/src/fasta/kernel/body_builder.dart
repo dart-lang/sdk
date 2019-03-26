@@ -4058,7 +4058,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     var entry = pop();
     Token inToken = pop();
     Token forToken = pop();
-    pop(NullValue.AwaitToken);
+    Token awaitToken = pop(NullValue.AwaitToken);
     Expression iterable = popForValue();
     Object lvalue = pop(); // lvalue
     exitLocalScope();
@@ -4083,10 +4083,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Statement prologue = buildForInBody(lvalue, variable, forToken, inToken);
     if (entry is MapEntry) {
       push(forest.forInMapEntry(
-          variable, iterable, prologue, entry, problem, forToken));
+          variable, iterable, prologue, entry, problem, forToken,
+          isAsync: awaitToken != null));
     } else {
       push(forest.forInElement(
-          variable, iterable, prologue, toValue(entry), problem, forToken));
+          variable, iterable, prologue, toValue(entry), problem, forToken,
+          isAsync: awaitToken != null));
     }
   }
 

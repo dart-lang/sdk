@@ -133,7 +133,6 @@ LanguageFeatures/Control-flow-collections/const_collections_A06_t02: CompileTime
 LanguageFeatures/Control-flow-collections/const_collections_A07_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A07_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_set_A03_t01: CompileTimeError
-LanguageFeatures/Control-flow-collections/scoping_A02_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A01_t01/01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A01_t01/02: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A01_t01/03: MissingCompileTimeError
@@ -153,12 +152,6 @@ LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompi
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/03: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/04: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A05_t01/01: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A05_t01/02: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A06_t01/01: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A06_t01/02: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A07_t01: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A08_t01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A11_t01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/02: MissingCompileTimeError

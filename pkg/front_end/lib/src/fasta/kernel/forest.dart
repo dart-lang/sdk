@@ -211,10 +211,12 @@ abstract class Forest {
       Token token);
 
   Expression forInElement(VariableDeclaration variable, Expression iterable,
-      Statement prologue, Expression body, Expression problem, Token token);
+      Statement prologue, Expression body, Expression problem, Token token,
+      {bool isAsync: false});
 
   MapEntry forInMapEntry(VariableDeclaration variable, Expression iterable,
-      Statement prologue, MapEntry body, Expression problem, Token token);
+      Statement prologue, MapEntry body, Expression problem, Token token,
+      {bool isAsync: false});
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.

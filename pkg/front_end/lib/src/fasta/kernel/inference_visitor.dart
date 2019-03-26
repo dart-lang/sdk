@@ -11,14 +11,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
   @override
   void defaultExpression(Expression node, DartType typeContext) {
-    if (node is ForElement) {
-      visitForElement(node, typeContext);
-      return;
-    }
-    if (node is ForInElement) {
-      visitForInElement(node, typeContext);
-      return;
-    }
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
   }
@@ -27,18 +19,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   void defaultStatement(Statement node, _) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
-  }
-
-  void visitForElement(ForElement node, DartType typeContext) {
-    node.parent.replaceChild(node,
-        new InvalidExpression('unhandled for element in collection literal'));
-  }
-
-  void visitForInElement(ForInElement node, DartType typeContext) {
-    node.parent.replaceChild(
-        node,
-        new InvalidExpression(
-            'unhandled for-in element in collection literal'));
   }
 
   @override
@@ -264,11 +244,12 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         node.field.type, initializerType, node.value, node.fileOffset);
   }
 
-  void handleForInStatementDeclaringVariable(ForInStatement node) {
+  void handleForInDeclaringVariable(
+      VariableDeclaration variable, Expression iterable, Statement body,
+      {bool isAsync: false}) {
     DartType elementType;
     bool typeNeeded = false;
     bool typeChecksNeeded = !inferrer.isTopLevel;
-    final VariableDeclaration variable = node.variable;
     if (VariableDeclarationJudgment.isImplicitlyTyped(variable)) {
       typeNeeded = true;
       elementType = const UnknownType();
@@ -276,45 +257,52 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       elementType = variable.type;
     }
 
-    DartType inferredType =
-        inferForInIterable(node, elementType, typeNeeded || typeChecksNeeded);
+    DartType inferredType = inferForInIterable(
+        iterable, elementType, typeNeeded || typeChecksNeeded,
+        isAsync: isAsync);
     if (typeNeeded) {
       inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
           'type', new InstrumentationValueForType(inferredType));
       variable.type = inferredType;
     }
 
-    inferrer.inferStatement(node.body);
+    if (body != null) inferrer.inferStatement(body);
 
     VariableDeclaration tempVar =
         new VariableDeclaration(null, type: inferredType, isFinal: true);
     VariableGet variableGet = new VariableGet(tempVar)
       ..fileOffset = variable.fileOffset;
+    TreeNode parent = variable.parent;
     Expression implicitDowncast = inferrer.ensureAssignable(
-        variable.type, inferredType, variableGet, node.fileOffset,
+        variable.type, inferredType, variableGet, parent.fileOffset,
         template: templateForInLoopElementTypeNotAssignable);
     if (implicitDowncast != null) {
-      node.variable = tempVar..parent = node;
+      parent.replaceChild(variable, tempVar);
       variable.initializer = implicitDowncast..parent = variable;
-      node.body = combineStatements(variable, node.body)..parent = node;
+      if (body == null) {
+        ForInElement element = parent;
+        element.prologue = variable;
+      } else {
+        parent.replaceChild(body, combineStatements(variable, body));
+      }
     }
   }
 
   DartType inferForInIterable(
-      ForInStatement node, DartType elementType, bool typeNeeded) {
-    Class iterableClass = node.isAsync
+      Expression iterable, DartType elementType, bool typeNeeded,
+      {bool isAsync: false}) {
+    Class iterableClass = isAsync
         ? inferrer.coreTypes.streamClass
         : inferrer.coreTypes.iterableClass;
     DartType context = inferrer.wrapType(elementType, iterableClass);
-    Expression iterable = node.iterable;
     inferrer.inferExpression(iterable, context, typeNeeded);
     DartType inferredExpressionType =
         inferrer.resolveTypeParameter(getInferredType(iterable, inferrer));
     inferrer.ensureAssignable(
         inferrer.wrapType(const DynamicType(), iterableClass),
         inferredExpressionType,
-        node.iterable,
-        node.iterable.fileOffset,
+        iterable,
+        iterable.fileOffset,
         template: templateForInLoopTypeNotIterable);
     DartType inferredType;
     if (typeNeeded) {
@@ -330,15 +318,17 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     return inferredType;
   }
 
-  void handleForInStatementWithoutVariable(ForInStatement node) {
+  void handleForInWithoutVariable(
+      VariableDeclaration variable, Expression iterable, Statement body,
+      {bool isAsync: false}) {
     DartType elementType;
     bool typeChecksNeeded = !inferrer.isTopLevel;
     DartType syntheticWriteType;
     Expression syntheticAssignment;
-    Block block = node.body;
-    ExpressionStatement statement = block.statements[0];
-    SyntheticExpressionJudgment judgment = statement.expression;
     Expression rhs;
+    ExpressionStatement statement =
+        body is Block ? body.statements.first : body;
+    SyntheticExpressionJudgment judgment = statement.expression;
     syntheticAssignment = judgment.desugared;
     if (syntheticAssignment is VariableSet) {
       syntheticWriteType = elementType = syntheticAssignment.variable.type;
@@ -368,18 +358,19 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           inferrer.helper.uri);
     }
 
-    DartType inferredType =
-        inferForInIterable(node, elementType, typeChecksNeeded);
+    DartType inferredType = inferForInIterable(
+        iterable, elementType, typeChecksNeeded,
+        isAsync: isAsync);
     if (typeChecksNeeded) {
-      node.variable.type = inferredType;
+      variable.type = inferredType;
     }
 
-    inferrer.inferStatement(node.body);
+    inferrer.inferStatement(body);
 
     if (syntheticWriteType != null) {
       inferrer.ensureAssignable(
           greatestClosure(inferrer.coreTypes, syntheticWriteType),
-          node.variable.type,
+          variable.type,
           rhs,
           rhs.fileOffset,
           template: templateForInLoopElementTypeNotAssignable,
@@ -390,9 +381,11 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   @override
   void visitForInStatement(ForInStatement node, _) {
     if (node.variable.name == null) {
-      handleForInStatementWithoutVariable(node);
+      handleForInWithoutVariable(node.variable, node.iterable, node.body,
+          isAsync: node.isAsync);
     } else {
-      handleForInStatementDeclaringVariable(node);
+      handleForInDeclaringVariable(node.variable, node.iterable, node.body,
+          isAsync: node.isAsync);
     }
   }
 
@@ -697,16 +690,59 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       return getSpreadElementType(spreadType, element.isNullAware) ??
           const DynamicType();
     } else if (element is IfElement) {
+      // TODO(kmillikin): Implement inference rules for if elements.
       inferrer.inferExpression(element.condition,
           inferrer.coreTypes.boolClass.rawType, typeChecksNeeded,
-          isVoidAllowed: false);
+          isVoidAllowed: false); // Should be void allowed + runtime check?
       inferElement(element.then, index, inferredTypeArgument, spreadTypes,
           inferenceNeeded, typeChecksNeeded);
       if (element.otherwise != null) {
         inferElement(element.otherwise, index, inferredTypeArgument,
             spreadTypes, inferenceNeeded, typeChecksNeeded);
       }
-      // TODO(kmillikin): Implement inference rules for if elements.
+      return const DynamicType();
+    } else if (element is ForElement) {
+      // TODO(kmillikin): Implement inference rules for for elements.
+      for (VariableDeclaration declaration in element.variables) {
+        if (declaration.initializer != null) {
+          inferrer.inferExpression(declaration.initializer, declaration.type,
+              inferenceNeeded || typeChecksNeeded,
+              isVoidAllowed: true);
+        }
+      }
+      if (element.condition != null) {
+        inferrer.inferExpression(
+            element.condition,
+            inferrer.coreTypes.boolClass.rawType,
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: false); // Should be void allowed + runtime check.
+      }
+      for (Expression expression in element.updates) {
+        inferrer.inferExpression(expression, const UnknownType(),
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+      }
+      inferElement(element.body, index, inferredTypeArgument, spreadTypes,
+          inferenceNeeded, typeChecksNeeded);
+      return const DynamicType();
+    } else if (element is ForInElement) {
+      // TODO(kmillikin): Implement inference rules for for-in elements.
+      if (element.variable.name == null) {
+        handleForInWithoutVariable(
+            element.variable, element.iterable, element.prologue,
+            isAsync: element.isAsync);
+      } else {
+        handleForInDeclaringVariable(
+            element.variable, element.iterable, element.prologue,
+            isAsync: element.isAsync);
+      }
+      if (element.problem != null) {
+        inferrer.inferExpression(element.problem, const UnknownType(),
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+      }
+      inferElement(element.body, index, inferredTypeArgument, spreadTypes,
+          inferenceNeeded, typeChecksNeeded);
       return const DynamicType();
     } else {
       return inferrer.inferExpression(
@@ -813,6 +849,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           }
         } else if (item is IfElement) {
           // TODO(kmillikin): Insert type checks on if elements.
+        } else if (item is ForElement || item is ForInElement) {
+          // TODO(kmillikin): Insert type checks on loop elements.
         } else {
           inferrer.ensureAssignable(
               node.typeArgument, actualTypes[i], item, item.fileOffset,
@@ -1553,6 +1591,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           }
         } else if (item is IfElement) {
           // TODO(kmillikin): Insert type checks on if elements.
+        } else if (item is ForElement || item is ForInElement) {
+          // TODO(kmillikin): Insert type checks on loop elements.
         } else {
           inferrer.ensureAssignable(node.typeArgument, actualTypes[i],
               node.expressions[i], node.expressions[i].fileOffset,
