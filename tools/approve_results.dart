@@ -808,16 +808,6 @@ ${parser.usage}""");
     }
   }
 
-  // Reconstruct the old approvals so we can double check there was no race
-  // condition when uploading.
-  final oldApprovalsForBuilders = <String, Map<String, Map<String, dynamic>>>{};
-  for (final test in tests) {
-    if (test.approvedResultData == null) continue;
-    final newApprovals = oldApprovalsForBuilders.putIfAbsent(
-        test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
-    newApprovals[test.key] = test.approvedResultData;
-  }
-
   // Build the new approval data with the changes in test results applied.
   final newApprovalsForBuilders = <String, Map<String, Map<String, dynamic>>>{};
 
@@ -926,14 +916,18 @@ ${parser.usage}""");
     }
   }
 
+  // Reconstruct the old approvals so we can double check there was no race
+  // condition when uploading.
+  final oldApprovalsForBuilders = <String, Map<String, Map<String, dynamic>>>{};
+  for (final test in tests) {
+    if (test.approvedResultData == null) continue;
+    final oldApprovals = oldApprovalsForBuilders.putIfAbsent(
+        test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
+    oldApprovals[test.key] = test.approvedResultData;
+  }
   for (final builder in newApprovalsForBuilders.keys) {
-    final newApprovals = newApprovalsForBuilders[builder];
-    for (final key in newApprovals.keys) {
-      final approvalData = newApprovals[key];
-      if (!approvalData.containsKey("preapprovals")) {
-        throw new Exception(approvalData.toString());
-      }
-    }
+    oldApprovalsForBuilders.putIfAbsent(
+        builder, () => <String, Map<String, dynamic>>{});
   }
 
   // Update approved_results.json for each builder with unapproved changes.
