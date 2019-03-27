@@ -219,6 +219,7 @@ class BaseFlowGraphBuilder {
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(TokenPosition position);
   Fragment CheckStackOverflow(TokenPosition position, intptr_t loop_depth);
+  Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 

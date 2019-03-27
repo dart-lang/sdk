@@ -321,13 +321,8 @@ Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
 
 Fragment FlowGraphBuilder::CheckStackOverflowInPrologue(
     TokenPosition position) {
-  if (IsInlining()) {
-    // If we are inlining don't actually attach the stack check.  We must still
-    // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow(position, loop_depth_);
-    return Fragment();
-  }
-  return CheckStackOverflow(position, loop_depth_);
+  ASSERT(loop_depth_ == 0);
+  return BaseFlowGraphBuilder::CheckStackOverflowInPrologue(position);
 }
 
 Fragment FlowGraphBuilder::CloneContext(

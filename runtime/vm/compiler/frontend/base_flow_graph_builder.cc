@@ -193,6 +193,17 @@ Fragment BaseFlowGraphBuilder::CheckStackOverflow(TokenPosition position,
       new (Z) CheckStackOverflowInstr(position, loop_depth, GetNextDeoptId()));
 }
 
+Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
+    TokenPosition position) {
+  if (IsInlining()) {
+    // If we are inlining don't actually attach the stack check.  We must still
+    // create the stack check in order to allocate a deopt id.
+    CheckStackOverflow(position, 0);
+    return Fragment();
+  }
+  return CheckStackOverflow(position, 0);
+}
+
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {
   ASSERT(value.IsNotTemporaryScopedHandle());
   ConstantInstr* constant = new (Z) ConstantInstr(value);

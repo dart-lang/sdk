@@ -629,7 +629,12 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
-  code_ += B->CheckStackOverflow(position_, DecodeOperandA().value());
+  const intptr_t loop_depth = DecodeOperandA().value();
+  if (loop_depth == 0) {
+    code_ += B->CheckStackOverflowInPrologue(position_);
+  } else {
+    code_ += B->CheckStackOverflow(position_, loop_depth);
+  }
   ASSERT(B->stack_ == nullptr);
 }
 
