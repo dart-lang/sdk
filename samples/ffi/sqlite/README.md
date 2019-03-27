@@ -6,7 +6,7 @@ This is an illustrative sample for how to use `dart:ffi`.
 ## Building and Running this Sample
 
 Building and running this sample is done through pub.
-Running `pub get` and `pub run test` should produce the following output.
+Running `pub get` and `pub run example/main` should produce the following output.
 
 ```sh
 $ pub get
@@ -24,8 +24,7 @@ Precompiled test:test.
 ```
 
 ```
-$ pub run test
-00:01 +0: test/sqlite_test.dart: sqlite integration test
+$ pub run example/main
 1 Chocolade chip cookie Chocolade cookie foo
 2 Ginger cookie null 42
 3 Cinnamon roll null null
@@ -33,7 +32,6 @@ $ pub run test
 2 Ginger cookie null 42
 expected exception on accessing result data after close: The result has already been closed.
 expected this query to fail: no such column: non_existing_column (Code 1: SQL logic error)
-00:02 +3: All tests passed!
 ```
 
 ## Tutorial
