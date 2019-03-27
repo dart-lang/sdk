@@ -5628,15 +5628,13 @@ class CodeGenerator extends Object
     return _emitConstList(elementType, elements);
   }
 
-  // TODO(nshahan) Cleanup after control flow collections experiments are removed.
-  JS.Expression _emitSetLiteral(
-      Iterable<CollectionElement> elements, SetOrMapLiteral node) {
+  JS.Expression _emitSetLiteral(SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
     var elementType = type.typeArguments[0];
-    var jsElements = _visitCollectionElementList(elements, elementType);
+    var jsElements = _visitCollectionElementList(node.elements, elementType);
     if (!node.isConst) {
       var setType = _emitType(type);
-      if (elements.isEmpty) {
+      if (node.elements.isEmpty) {
         return js.call('#.new()', [setType]);
       }
       return js.call('#.from([#])', [setType, jsElements]);
@@ -5666,14 +5664,13 @@ class CodeGenerator extends Object
     return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
-  JS.Expression _emitMapLiteral(
-      Iterable<CollectionElement> elements, SetOrMapLiteral node) {
+  JS.Expression _emitMapLiteral(SetOrMapLiteral node) {
     var type = node.staticType as InterfaceType;
     var elementType = type.typeArguments[0];
-    var jsElements = _visitCollectionElementList(elements, elementType);
+    var jsElements = _visitCollectionElementList(node.elements, elementType);
     if (!node.isConst) {
       var mapType = _emitMapImplType(type);
-      if (elements.isEmpty) {
+      if (node.elements.isEmpty) {
         return js.call('new #.new()', [mapType]);
       }
       return js.call('new #.from([#])', [mapType, jsElements]);
@@ -6519,9 +6516,8 @@ class CodeGenerator extends Object
   }
 
   @override
-  visitSetOrMapLiteral(SetOrMapLiteral node) => node.isSet
-      ? _emitSetLiteral(node.elements, node)
-      : _emitMapLiteral(node.elements, node);
+  visitSetOrMapLiteral(SetOrMapLiteral node) =>
+      node.isSet ? _emitSetLiteral(node) : _emitMapLiteral(node);
 
   @override
   JS.Statement visitSpreadElement(SpreadElement node) {
