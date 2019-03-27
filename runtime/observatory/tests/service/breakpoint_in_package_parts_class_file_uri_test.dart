@@ -12,8 +12,7 @@ import 'test_helper.dart';
 import 'service_test_common.dart';
 
 // Chop off the file name.
-String baseDirectory =
-    path.dirname(Platform.script.path) + Platform.pathSeparator;
+String baseDirectory = path.dirname(Platform.script.path) + '/';
 Uri baseUri = Platform.script.replace(path: baseDirectory);
 Uri breakpointFile = baseUri.resolve('observatory_test_package/the_part.dart');
 const String shortFile = "the_part.dart";
