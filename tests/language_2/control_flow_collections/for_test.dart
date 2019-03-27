@@ -63,6 +63,10 @@ void testList() {
   Expect.mapEquals({1: 1}, [for (var i = 1; i < 2; i++) {i: i}].first);
   Expect.setEquals({1}, [for (var i = 1; i < 2; i++) {i}].first);
 
+  // Downcast iterable.
+  Object obj = <int>[1, 2, 3, 4];
+  Expect.listEquals(list, <int>[for (var n in obj) n]);
+
   // Downcast variable.
   Expect.listEquals(list, <int>[for (int n in <num>[1, 2, 3, 4]) n]);
 
@@ -125,6 +129,10 @@ void testMap() {
     for (var i in <int>[0, 2]) for (var j = 1; j <= 2; j++) i + j: i + j
   });
 
+  // Downcast iterable.
+  Object obj = <int>[1, 2, 3, 4];
+  Expect.mapEquals(map, <int, int>{for (var n in obj) n: n});
+
   // Downcast variable.
   Expect.mapEquals(map, <int, int>{for (int n in <num>[1, 2, 3, 4]) n: n});
 
@@ -179,6 +187,10 @@ void testSet() {
   Expect.listEquals([1], {for (var i = 1; i < 2; i++) [i]}.first);
   Expect.mapEquals({1: 1}, {for (var i = 1; i < 2; i++) {i: i}}.first);
   Expect.setEquals({1}, {for (var i = 1; i < 2; i++) {i}}.first);
+
+  // Downcast iterable.
+  Object obj = <int>[1, 2, 3, 4];
+  Expect.setEquals(set, <int>{for (var n in obj) n});
 
   // Downcast variable.
   Expect.setEquals(set, <int>{for (int n in <num>[1, 2, 3, 4]) n});

@@ -12,12 +12,6 @@ void main() {
     var _ = <int, int>{await for (var i in nonStream) 1: 1}; //# 02: compile-time error
     var _ = <int>{await for (var i in nonStream) 1}; //# 03: compile-time error
 
-    // Object type.
-    Object object = "not stream";
-    var _ = <int>[await for (var i in object) 1]; //# 04: compile-time error
-    var _ = <int, int>{await for (var i in object) 1: 1}; //# 05: compile-time error
-    var _ = <int>{await for (var i in object) 1}; //# 06: compile-time error
-
     // Wrong element type.
     Stream<String> s = Stream.fromIterable(["s"]);
     var _ = <int>[await for (int i in s) 1]; //# 07: compile-time error

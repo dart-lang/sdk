@@ -73,6 +73,10 @@ Future<void> testList() async {
   Expect.mapEquals({1: 1}, [await for (var i in stream([1])) {i: i}].first);
   Expect.setEquals({1}, [await for (var i in stream([1])) {i}].first);
 
+  // Downcast stream.
+  Object obj = stream([1, 2, 3, 4]);
+  Expect.listEquals(list, <int>[await for (var n in obj) n]);
+
   // Downcast variable.
   Expect.listEquals(list,
       <int>[await for (int n in numStream([1, 2, 3, 4])) n]);
@@ -136,6 +140,10 @@ Future<void> testMap() async {
       for (var j = 1; j <= 2; j++) i + j: i + j
   });
 
+  // Downcast stream.
+  Object obj = stream([1, 2, 3, 4]);
+  Expect.mapEquals(map, <int, int>{await for (var n in obj) n: n});
+
   // Downcast variable.
   Expect.mapEquals(map,
       <int, int>{await for (int n in numStream([1, 2, 3, 4])) n: n});
@@ -190,6 +198,10 @@ Future<void> testSet() async {
   Expect.listEquals([1], {await for (var i in stream([1])) [i]}.first);
   Expect.mapEquals({1: 1}, {await for (var i in stream([1])) {i: i}}.first);
   Expect.setEquals({1}, {await for (var i in stream([1])) {i}}.first);
+
+  // Downcast stream.
+  Object obj = stream([1, 2, 3, 4]);
+  Expect.setEquals(set, <int>{await for (var n in obj) n});
 
   // Downcast variable.
   Expect.setEquals(set, <int>{await for (int n in numStream([1, 2, 3, 4])) n});

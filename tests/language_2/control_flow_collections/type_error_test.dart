@@ -49,10 +49,4 @@ void main() {
   var _ = <int>[for (int i in nonIterable) 1]; //# 30: compile-time error
   var _ = <int, int>{for (int i in nonIterable) 1: 1}; //# 31: compile-time error
   var _ = <int>{for (int i in nonIterable) 1}; //# 32: compile-time error
-
-  // Object sequence type.
-  Object object = "object";
-  var _ = <int>[for (int i in object) 1]; //# 33: compile-time error
-  var _ = <int, int>{for (int i in object) 1: 1}; //# 34: compile-time error
-  var _ = <int>{for (int i in object) 1}; //# 35: compile-time error
 }
