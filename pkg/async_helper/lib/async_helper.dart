@@ -25,6 +25,8 @@ library async_helper;
 
 import 'dart:async';
 
+import 'package:expect/expect.dart';
+
 bool _initialized = false;
 int _asyncLevel = 0;
 
@@ -86,4 +88,53 @@ void asyncSuccess(_) => asyncEnd();
 Future<void> asyncTest(f()) {
   asyncStart();
   return f().then(asyncSuccess);
+}
+
+/// Calls [f] and verifies that it throws a `T`.
+///
+/// The optional [check] function can provide additional validation that the
+/// correct object is being thrown. For example, to check the content of the
+/// thrown object you could write this:
+///
+///     asyncExpectThrows<MyException>(myThrowingFunction,
+///          (e) => e.myMessage.contains("WARNING"));
+///
+/// If `f` fails an expectation (i.e., throws an [ExpectException]), that
+/// exception is not caught by [asyncExpectThrows]. The test is still considered
+/// failing.
+void asyncExpectThrows<T>(Future<void> f(),
+    [bool check(T error), String reason]) {
+  var type = "";
+  if (T != dynamic && T != Object) type = "<$T>";
+  var header = "asyncExpectThrows$type(${reason ?? ''}):";
+
+  // TODO(rnystrom): It might useful to validate that T is not bound to
+  // ExpectException since that won't work.
+
+  if (f is! Function()) {
+    // Only throws from executing the function body should count as throwing.
+    // The failure to even call `f` should throw outside the try/catch.
+    Expect.testError("$header Function not callable with zero arguments.");
+  }
+
+  var result = f();
+  if (result is! Future) {
+    Expect.testError("$header Function did not return a Future.");
+  }
+
+  asyncStart();
+  result.then((_) {
+    throw ExpectException("$header Did not throw.");
+  }).catchError((error, stack) {
+    // A test failure doesn't count as throwing.
+    if (error is ExpectException) throw error;
+
+    if (error is! T || (check != null && !check(error))) {
+      // Throws something unexpected.
+      throw ExpectException(
+          "$header Unexpected '${Error.safeToString(error)}'\n$stack");
+    }
+
+    asyncEnd();
+  });
 }

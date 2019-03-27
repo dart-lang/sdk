@@ -4,7 +4,7 @@
 
 // SharedOptions=--enable-experiment=control-flow-collections,spread-collections
 
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'utils.dart';
@@ -250,25 +250,30 @@ Future<void> testKeyOrder() async {
 Future<void> testRuntimeErrors() async {
   // Cast variable.
   dynamic nonStream = 3;
-  Expect.throwsTypeError(() => <int>[await for (int i in nonStream) 1]);
-  Expect.throwsTypeError(() => <int, int>{await for (int i in nonStream) 1: 1});
-  Expect.throwsTypeError(() => <int>{await for (int i in nonStream) 1});
+  asyncExpectThrows<TypeError>(
+      () async => <int>[await for (int i in nonStream) 1]);
+  asyncExpectThrows<TypeError>(
+      () async => <int, int>{await for (int i in nonStream) 1: 1});
+  asyncExpectThrows<TypeError>(
+      () async => <int>{await for (int i in nonStream) 1});
 
   // Null stream.
   Stream<int> nullStream = null;
-  Expect.throwsNoSuchMethodError(
-      () => <int>[await for (var i in nullStream) 1]);
-  Expect.throwsNoSuchMethodError(
-      () => <int, int>{await for (var i in nullStream) 1: 1});
-  Expect.throwsNoSuchMethodError(
-      () => <int>{await for (var i in nullStream) 1});
+  asyncExpectThrows<NoSuchMethodError>(
+      () async => <int>[await for (var i in nullStream) 1]);
+  asyncExpectThrows<NoSuchMethodError>(
+      () async => <int, int>{await for (var i in nullStream) 1: 1});
+  asyncExpectThrows<NoSuchMethodError>(
+      () async => <int>{await for (var i in nullStream) 1});
 
   // Wrong element type.
   dynamic nonInt = "string";
-  Expect.throwsTypeError(() => <int>[await for (var i in stream([1])) nonInt]);
-  Expect.throwsTypeError(
-      () => <int, int>{await for (var i in stream([1])) nonInt: 1});
-  Expect.throwsTypeError(
-      () => <int, int>{await for (var i in stream([1])) 1: nonInt});
-  Expect.throwsTypeError(() => <int>{await for (var i in stream([1])) nonInt});
+  asyncExpectThrows<TypeError>(
+      () async => <int>[await for (var i in stream([1])) nonInt]);
+  asyncExpectThrows<TypeError>(
+      () async => <int, int>{await for (var i in stream([1])) nonInt: 1});
+  asyncExpectThrows<TypeError>(
+      () async => <int, int>{await for (var i in stream([1])) 1: nonInt});
+  asyncExpectThrows<TypeError>(
+      () async => <int>{await for (var i in stream([1])) nonInt});
 }
