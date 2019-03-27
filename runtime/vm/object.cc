@@ -10422,10 +10422,12 @@ RawScript* Library::LookupScript(const String& url,
   const intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
     script ^= scripts.At(i);
-    if (!useResolvedUri) {
-      script_url = script.url();
-    } else {
+    if (useResolvedUri) {
+      // Use for urls with 'org-dartlang-sdk:' or 'file:' schemes
       script_url = script.resolved_url();
+    } else {
+      // Use for urls with 'dart:', 'package:', or 'file:' schemes
+      script_url = script.url();
     }
     const intptr_t start_idx = script_url.Length() - url_length;
     if ((start_idx == 0) && url.Equals(script_url)) {

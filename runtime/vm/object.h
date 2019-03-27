@@ -3790,6 +3790,13 @@ class Library : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
+
+  // Look up a Script based on a url. If 'useResolvedUri' is not provided or is
+  // false, 'url' should have a 'dart:' scheme for Dart core libraries,
+  // a 'package:' scheme for packages, and 'file:' scheme otherwise.
+  //
+  // If 'useResolvedUri' is true, 'url' should have a 'org-dartlang-sdk:' scheme
+  // for Dart core libraries and a 'file:' scheme otherwise.
   RawScript* LookupScript(const String& url, bool useResolvedUri = false) const;
   RawArray* LoadedScripts() const;
 

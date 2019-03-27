@@ -140,6 +140,7 @@ add_breakpoint_rpc_kernel_test: RuntimeError # Issue #34736
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #34736
+breakpoint_in_package_parts_class_file_uri_test: RuntimeError # Issue #34736
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 debugger_inspect_test: RuntimeError, Timeout # Issue #34736
 developer_service_get_isolate_id_test: RuntimeError # Issue #34736

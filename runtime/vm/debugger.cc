@@ -3011,9 +3011,10 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   const GrowableObjectArray& scripts =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  bool is_package = script_url.StartsWith(Symbols::PackageScheme());
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
-    script = lib.LookupScript(script_url);
+    script = lib.LookupScript(script_url, !is_package);
     if (!script.IsNull()) {
       scripts.Add(script);
     }
@@ -3915,9 +3916,10 @@ void Debugger::NotifyDoneLoading() {
   while (loc != NULL) {
     url = loc->url();
     bool found_match = false;
+    bool is_package = url.StartsWith(Symbols::PackageScheme());
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
-      script = lib.LookupScript(url);
+      script = lib.LookupScript(url, !is_package);
       if (!script.IsNull()) {
         // Found a script with matching url for this latent breakpoint.
         // Unlink the latent breakpoint from the list.
