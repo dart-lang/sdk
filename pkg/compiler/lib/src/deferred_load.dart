@@ -8,7 +8,8 @@ import 'dart:collection' show Queue;
 
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment, KElementEnvironment;
+import 'common_elements.dart'
+    show CommonElements, ElementEnvironment, KElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
     show
@@ -144,6 +145,9 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
+
+  CommonElements get commonElements => compiler.frontendStrategy.commonElements;
+
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Given [imports] that refer to an element from a library, determine whether
@@ -247,42 +251,17 @@ abstract class DeferredLoadTask extends CompilerTask {
   void collectConstantsInBody(MemberEntity element, Dependencies dependencies);
 
   /// Recursively collects all the dependencies of [type].
-  void _collectTypeDependencies(DartType type, Dependencies dependencies) {
-    if (type is FunctionType) {
-      _collectFunctionTypeDependencies(type, dependencies);
-    } else if (type is TypedefType) {
-      _collectTypeArgumentDependencies(type.typeArguments, dependencies);
-      _collectTypeDependencies(type.unaliased, dependencies);
-    } else if (type is InterfaceType) {
-      _collectTypeArgumentDependencies(type.typeArguments, dependencies);
-      // TODO(sigmund): when we are able to split classes from types in our
-      // runtime-type representation, this should track type.element as a type
-      // dependency instead.
-      dependencies.addClass(type.element);
-    }
+  void _collectTypeDependencies(DartType type, Dependencies dependencies,
+      [ImportEntity import]) {
+    new TypeDependencyVisitor(dependencies, import, commonElements).visit(type);
   }
 
   void _collectTypeArgumentDependencies(
-      Iterable<DartType> typeArguments, Dependencies dependencies) {
+      Iterable<DartType> typeArguments, Dependencies dependencies,
+      [ImportEntity import]) {
     if (typeArguments == null) return;
-    typeArguments.forEach((t) => _collectTypeDependencies(t, dependencies));
-  }
-
-  void _collectFunctionTypeDependencies(
-      FunctionType type, Dependencies dependencies) {
-    for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      _collectTypeDependencies(typeVariable.bound, dependencies);
-    }
-    for (DartType argumentType in type.parameterTypes) {
-      _collectTypeDependencies(argumentType, dependencies);
-    }
-    for (DartType argumentType in type.optionalParameterTypes) {
-      _collectTypeDependencies(argumentType, dependencies);
-    }
-    for (DartType argumentType in type.namedParameterTypes) {
-      _collectTypeDependencies(argumentType, dependencies);
-    }
-    _collectTypeDependencies(type.returnType, dependencies);
+    new TypeDependencyVisitor(dependencies, import, commonElements)
+        .visitList(typeArguments);
   }
 
   /// Extract any dependencies that are known from the impact of [element].
@@ -301,8 +280,7 @@ abstract class DeferredLoadTask extends CompilerTask {
                 failedAt(usedEntity, "Unexpected static use $staticUse."));
             KLocalFunction localFunction = usedEntity;
             // TODO(sra): Consult KClosedWorld to see if signature is needed.
-            _collectFunctionTypeDependencies(
-                localFunction.functionType, dependencies);
+            _collectTypeDependencies(localFunction.functionType, dependencies);
             dependencies.localFunctions.add(localFunction);
           }
           switch (staticUse.kind) {
@@ -339,11 +317,8 @@ abstract class DeferredLoadTask extends CompilerTask {
               }
               break;
             case TypeUseKind.CONST_INSTANTIATION:
-              if (type.isInterfaceType) {
-                InterfaceType interface = type;
-                dependencies.addClass(
-                    interface.element, typeUse.deferredImport);
-              }
+              _collectTypeDependencies(
+                  type, dependencies, typeUse.deferredImport);
               break;
             case TypeUseKind.INSTANTIATION:
             case TypeUseKind.NATIVE_INSTANTIATION:
@@ -1586,5 +1561,74 @@ class DependencyInfo {
       imports = null;
       isDeferred = false;
     }
+  }
+}
+
+class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
+  final Dependencies _dependencies;
+  final ImportEntity _import;
+  final CommonElements _commonElements;
+
+  TypeDependencyVisitor(this._dependencies, this._import, this._commonElements);
+
+  @override
+  void visit(DartType type, [_]) {
+    type.accept(this, null);
+  }
+
+  void visitList(List<DartType> types) {
+    types.forEach(visit);
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType type, Null argument) {
+    _dependencies.addClass(_commonElements.futureClass);
+    visit(type.typeArgument);
+  }
+
+  @override
+  void visitDynamicType(DynamicType type, Null argument) {
+    // Nothing to add.
+  }
+
+  @override
+  void visitTypedefType(TypedefType type, Null argument) {
+    visitList(type.typeArguments);
+    visit(type.unaliased);
+  }
+
+  @override
+  void visitInterfaceType(InterfaceType type, Null argument) {
+    visitList(type.typeArguments);
+    // TODO(sigmund): when we are able to split classes from types in our
+    // runtime-type representation, this should track type.element as a type
+    // dependency instead.
+    _dependencies.addClass(type.element, _import);
+  }
+
+  @override
+  void visitFunctionType(FunctionType type, Null argument) {
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      visit(typeVariable.bound);
+    }
+    visitList(type.parameterTypes);
+    visitList(type.optionalParameterTypes);
+    visitList(type.namedParameterTypes);
+    visit(type.returnType);
+  }
+
+  @override
+  void visitFunctionTypeVariable(FunctionTypeVariable type, Null argument) {
+    // Nothing to add. Handled in [visitFunctionType].
+  }
+
+  @override
+  void visitTypeVariableType(TypeVariableType type, Null argument) {
+    // TODO(johnniwinther): Do we need to collect the bound?
+  }
+
+  @override
+  void visitVoidType(VoidType type, Null argument) {
+    // Nothing to add.
   }
 }

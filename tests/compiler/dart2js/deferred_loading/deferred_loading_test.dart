@@ -36,7 +36,7 @@ main(List<String> args) {
         options: compilerOptions,
         args: args, setUpFunction: () {
       importPrefixes.clear();
-    });
+    }, testOmit: false, testCFEConstants: true);
   });
 }
 
@@ -128,6 +128,8 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
   final OutputUnitData _data;
   final ClosureData _closureDataLookup;
 
+  Set<String> _constants = {};
+
   OutputUnitIrComputer(
       DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap,
@@ -137,8 +139,14 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
       this._closureDataLookup)
       : super(reporter, actualMap);
 
-  String getMemberValue(MemberEntity member) {
-    return outputUnitString(_data.outputUnitForMember(member));
+  String getMemberValue(MemberEntity member, Set<String> constants) {
+    StringBuffer sb = new StringBuffer();
+    sb.write(outputUnitString(_data.outputUnitForMember(member)));
+    if (constants.isNotEmpty) {
+      List<String> text = constants.toList()..sort();
+      sb.write(',constants=[${text.join(',')}]');
+    }
+    return sb.toString();
   }
 
   @override
@@ -166,14 +174,26 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
       }
     }
 
-    return getMemberValue(_elementMap.getMember(node));
+    String value = getMemberValue(_elementMap.getMember(node), _constants);
+    _constants = {};
+    return value;
+  }
+
+  @override
+  visitConstantExpression(ir.ConstantExpression node) {
+    ConstantValue constant = _elementMap.getConstantValue(node);
+    if (!constant.isPrimitive) {
+      _constants.add('${constant.toStructuredText()}='
+          '${outputUnitString(_data.outputUnitForConstant(constant))}');
+    }
+    return super.visitConstantExpression(node);
   }
 
   @override
   String computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
-      return getMemberValue(info.callMethod);
+      return getMemberValue(info.callMethod, const {});
     }
     return null;
   }

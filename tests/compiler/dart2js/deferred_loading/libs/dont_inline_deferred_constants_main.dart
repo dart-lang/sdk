@@ -5,7 +5,7 @@
 import 'dont_inline_deferred_constants_lib1.dart' deferred as lib1;
 import 'dont_inline_deferred_constants_lib2.dart' deferred as lib2;
 
-/*element: c:OutputUnit(main, {})*/
+/*strong.element: c:OutputUnit(main, {})*/
 const c = "string3";
 
 /*class: C:OutputUnit(main, {})*/
@@ -13,14 +13,23 @@ class C {
   /*element: C.p:OutputUnit(main, {})*/
   final p;
 
-  /*element: C.:OutputUnit(main, {})*/
+  /*strong.element: C.:OutputUnit(main, {})*/
   const C(this.p);
 }
 
 /*element: foo:OutputUnit(2, {lib1, lib2})*/
 foo() => print("main");
 
-/*element: main:OutputUnit(main, {})*/
+/*strong.element: main:OutputUnit(main, {})*/
+/*strongConst.element: main:
+ OutputUnit(main, {}),
+ constants=[
+  ConstructedConstant(C(p=IntConstant(1)))=OutputUnit(main, {}),
+  ConstructedConstant(C(p=IntConstant(1010)))=OutputUnit(1, {lib1}),
+  ConstructedConstant(C(p=IntConstant(2)))=OutputUnit(2, {lib1, lib2}),
+  ConstructedConstant(C(p=StringConstant("string1")))=OutputUnit(1, {lib1}),
+  ConstructedConstant(C(p=StringConstant("string2")))=OutputUnit(1, {lib1})]
+*/
 void main() {
   lib1.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     lib2.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {

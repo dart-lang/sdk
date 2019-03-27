@@ -5,7 +5,11 @@
 /*element: defaultArg:OutputUnit(1, {lib})*/
 defaultArg() => "";
 
-/*element: funky:OutputUnit(1, {lib})*/
+/*strong.element: funky:OutputUnit(1, {lib})*/
+/*strongConst.element: funky:
+ OutputUnit(1, {lib}),
+ constants=[FunctionConstant(defaultArg)=OutputUnit(1, {lib})]
+*/
 funky([x = defaultArg]) => x();
 
 final int notUsed = 3;

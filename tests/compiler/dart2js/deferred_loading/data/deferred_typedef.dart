@@ -4,7 +4,13 @@
 
 import '../libs/deferred_typedef_lib1.dart' deferred as lib1;
 
-/*element: main:OutputUnit(main, {})*/
+/*strong.element: main:OutputUnit(main, {})*/
+/*strongConst.element: main:
+ OutputUnit(main, {}),
+ constants=[
+  ConstructedConstant(C(a=TypeConstant(void Function()),b=FunctionConstant(topLevelMethod)))=OutputUnit(1, {lib1}),
+  TypeConstant(void Function())=OutputUnit(1, {lib1})]
+*/
 main() async {
   await lib1.loadLibrary();
   print(lib1.cA);

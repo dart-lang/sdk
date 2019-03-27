@@ -4,6 +4,6 @@
 
 import 'shared_constant_c.dart';
 
-/*element: constant:OutputUnit(1, {s1, s2})*/
+/*strong.element: constant:OutputUnit(1, {s1, s2})*/
 const constant =
-    /*OutputUnit(1, {s1, s2})*/ const C();
+    /*strong.OutputUnit(1, {s1, s2})*/ const C();

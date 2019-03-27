@@ -7,7 +7,13 @@ library lib2;
 import "package:expect/expect.dart";
 import "static_separate_lib1.dart";
 
-/*element: foo:OutputUnit(3, {lib2})*/
+/*strong.element: foo:OutputUnit(3, {lib2})*/
+/*strongConst.element: foo:
+ OutputUnit(3, {lib2}),
+ constants=[
+  ListConstant(<Map<int,int>>[MapConstant(<int, int>{IntConstant(1): IntConstant(3)})])=OutputUnit(3, {lib2}),
+  MapConstant(<int, int>{IntConstant(1): IntConstant(3)})=OutputUnit(3, {lib2})]
+*/
 foo() {
   Expect.equals(1, C.foo());
   Expect.mapEquals({}, C1.foo);

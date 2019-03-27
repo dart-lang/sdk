@@ -7,7 +7,11 @@ T getFoo<T, S>(T v, S w) => v;
 
 typedef dynamic G<T, S>(T v, S w);
 
-/*element: m:OutputUnit(3, {c})*/
+/*strong.element: m:OutputUnit(3, {c})*/
+/*strongConst.element: m:
+ OutputUnit(3, {c}),
+ constants=[FunctionConstant(getFoo)=OutputUnit(3, {c})]
+*/
 m(int x, int y, {G<int, int> f}) {
   f ??= getFoo;
   print(f(x, y));

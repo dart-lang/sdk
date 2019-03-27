@@ -211,6 +211,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
     // TODO(johnniwinther): The CFE should mark constant instantiations as
     // constant.
     add(node, required: false);
+    super.visitInstantiation(node);
   }
 
   @override

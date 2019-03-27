@@ -6,7 +6,12 @@ import 'package:expect/expect.dart';
 
 import '../libs/deferred_constant2_lib.dart' deferred as lib;
 
-/*element: main:OutputUnit(main, {})*/
+/*strong.element: main:OutputUnit(main, {})*/
+/*strongConst.element: main:
+ OutputUnit(main, {}),
+ constants=[
+  ConstructedConstant(Constant(value=IntConstant(499)))=OutputUnit(1, {lib})]
+*/
 main() {
   lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     Expect.equals(499, lib.C1.value);
