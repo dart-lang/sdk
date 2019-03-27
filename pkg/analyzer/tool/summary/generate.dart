@@ -23,35 +23,36 @@ import 'dart:io';
 import 'package:analysis_tool/tools.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
-import 'package:front_end/src/testing/package_root.dart' as package_root;
-import 'package:path/path.dart';
 
 import 'idl_model.dart' as idlModel;
 import 'mini_ast.dart';
 
-main() async {
-  String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
-  await GeneratedContent.generateAll(pkgPath, allTargets);
+main(List<String> args) async {
+  if (args.length != 1) {
+    print('Error: IDL path is required');
+    print('usage: dart generate.dart path/to/idl.dart');
+  }
+  String idlPath = args[0];
+  await GeneratedContent.generateAll(
+      File(idlPath).parent.path, getAllTargets(idlPath));
 }
 
-final List<GeneratedContent> allTargets = <GeneratedContent>[
-  formatTarget,
-  schemaTarget
-];
+List<GeneratedContent> getAllTargets(String idlPath) {
+  final GeneratedFile formatTarget =
+      new GeneratedFile('format.dart', (_) async {
+    _CodeGenerator codeGenerator = new _CodeGenerator(idlPath);
+    codeGenerator.generateFormatCode();
+    return codeGenerator._outBuffer.toString();
+  });
 
-final GeneratedFile formatTarget =
-    new GeneratedFile('lib/src/summary/format.dart', (String pkgPath) async {
-  _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
-  codeGenerator.generateFormatCode();
-  return codeGenerator._outBuffer.toString();
-});
+  final GeneratedFile schemaTarget = new GeneratedFile('format.fbs', (_) async {
+    _CodeGenerator codeGenerator = new _CodeGenerator(idlPath);
+    codeGenerator.generateFlatBufferSchema();
+    return codeGenerator._outBuffer.toString();
+  });
 
-final GeneratedFile schemaTarget =
-    new GeneratedFile('lib/src/summary/format.fbs', (String pkgPath) async {
-  _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
-  codeGenerator.generateFlatBufferSchema();
-  return codeGenerator._outBuffer.toString();
-});
+  return <GeneratedContent>[formatTarget, schemaTarget];
+}
 
 typedef String _StringToString(String s);
 
@@ -74,9 +75,8 @@ class _CodeGenerator {
    */
   idlModel.Idl _idl;
 
-  _CodeGenerator(String pkgPath) {
+  _CodeGenerator(String idlPath) {
     // Parse the input "IDL" file.
-    String idlPath = join(pkgPath, 'lib', 'src', 'summary', 'idl.dart');
     File idlFile = new File(idlPath);
     String idlText =
         idlFile.readAsStringSync().replaceAll(new RegExp('\r\n?'), '\n');
@@ -483,7 +483,9 @@ class _CodeGenerator {
     out('// BSD-style license that can be found in the LICENSE file.');
     out('//');
     out('// This file has been automatically generated.  Please do not edit it manually.');
-    out('// To regenerate the file, use the script "pkg/analyzer/tool/generate_files".');
+    out('// To regenerate the file, use the SDK script');
+    out('// "pkg/analyzer/tool/summary/generate.dart \$IDL_FILE_PATH",');
+    out('// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.');
     out();
   }
 

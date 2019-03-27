@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // This file has been automatically generated.  Please do not edit it manually.
-// To regenerate the file, use the script "pkg/analyzer/tool/generate_files".
+// To regenerate the file, use the SDK script
+// "pkg/analyzer/tool/summary/generate.dart $IDL_FILE_PATH",
+// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.
 
 
 /// Enum of declaration kinds in available files.
