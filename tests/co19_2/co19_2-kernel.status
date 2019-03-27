@@ -110,8 +110,16 @@ LibTest/isolate/Isolate/spawnUri_A05_t05: RuntimeError
 LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 
 [ $compiler == fasta ]
+Language/Expressions/Assignment/Compound_Assignment/expression_assignment_t12: CompileTimeError
+Language/Expressions/Assignment/Compound_Assignment/indexed_expression_assignment_t12: CompileTimeError
+Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_static_t12: CompileTimeError
+Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_t12: CompileTimeError
+Language/Expressions/Assignment/Compound_Assignment/setter_assignment_t12: CompileTimeError
+Language/Expressions/Assignment/Compound_Assignment/variable_assignment_t12: CompileTimeError
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/none: CompileTimeError
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A02_t03: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A02_t04: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A03_t02/01: MissingCompileTimeError
@@ -148,14 +156,18 @@ LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompi
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/03: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/04: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/03: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/04: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/07: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_semantics_A01_t02/08: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/02: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/03: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/04: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/05: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/06: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/07: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/08: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/09: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/10: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/11: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/12: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/13: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/14: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/15: MissingCompileTimeError
@@ -169,11 +181,20 @@ LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/22: MissingCo
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/23: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/24: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/syntax_A02_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/type_inference_A05_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/type_inference_A06_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/type_promotion_A01_t01: CompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A06_t01/06: MissingCompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A06_t01/07: MissingCompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A02_t02/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/type_inference_A01_t03: Crash
+LanguageFeatures/Set-literals/type_inference_A01_t04: Crash
+LanguageFeatures/Set-literals/type_inference_A02_t03: Crash
+LanguageFeatures/Set-literals/type_inference_A04_t02/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/type_inference_A04_t02/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/type_inference_A06_t02/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/type_inference_A06_t02/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/type_inference_A06_t02/05: MissingCompileTimeError
+LanguageFeatures/Set-literals/type_inference_A06_t02/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/03: MissingCompileTimeError
@@ -625,13 +646,10 @@ LanguageFeatures/Simple-bounds/static/typedef_l2_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/01: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/02: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t10: CompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A02_t01/01: MissingCompileTimeError
-LanguageFeatures/Spread-collections/Ambiguity_A02_t02/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A01_t05: CompileTimeError
 LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t07: MissingCompileTimeError # Issue 35111
