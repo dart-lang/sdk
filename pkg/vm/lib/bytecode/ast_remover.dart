@@ -15,8 +15,10 @@ class ASTRemover extends Transformer {
 
   ASTRemover(Component component)
       : metadata = component.metadata[new BytecodeMetadataRepository().tag] {
-    stashes[component] = new _ComponentStash(component.mainMethod);
+    stashes[component] = new _ComponentStash(component.mainMethod,
+        new Map<String, MetadataRepository<dynamic>>.from(component.metadata));
     component.mainMethod = null;
+    component.metadata.removeWhere((tag, md) => tag != metadata.tag);
   }
 
   @override
@@ -100,6 +102,7 @@ class ASTRemover extends Transformer {
       if (node is Component) {
         _ComponentStash componentStash = stash as _ComponentStash;
         node.mainMethod = componentStash.mainMethod;
+        node.metadata.addAll(componentStash.metadata);
       } else if (node is Library) {
         _LibraryStash libraryStash = stash as _LibraryStash;
         node.annotations.addAll(libraryStash.annotations);
@@ -172,6 +175,7 @@ class _VariableDeclarationStash extends _Stash {
 
 class _ComponentStash extends _Stash {
   final Procedure mainMethod;
+  final Map<String, MetadataRepository<dynamic>> metadata;
 
-  _ComponentStash(this.mainMethod);
+  _ComponentStash(this.mainMethod, this.metadata);
 }
