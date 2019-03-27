@@ -1642,7 +1642,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg"
+            "pkg/pkg/(?!front_end/|kernel/)"
           ]
         },
         {
@@ -1676,7 +1676,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg"
+            "pkg/pkg/(?!front_end/|kernel/)"
           ]
         },
         {
