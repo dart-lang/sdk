@@ -367,6 +367,15 @@ const c = 0xFFFFFFFF >>> 33;
     expect(result.toIntValue(), 0);
   }
 
+  test_visitBinaryExpression_gtGtGt_negative_moreThan64Bits() async {
+    await _resolveTestCode('''
+const c = 0xFFFFFFFF >>> 65;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
   test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
     await _resolveTestCode('''
 const c = 0xFFFFFFFF >>> -2;
@@ -396,6 +405,15 @@ const c = 0xFF >>> 3;
   test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
     await _resolveTestCode('''
 const c = 0xFF >>> 9;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_moreThan64Bits() async {
+    await _resolveTestCode('''
+const c = 0xFF >>> 65;
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.intType);
