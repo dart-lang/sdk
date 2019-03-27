@@ -137,7 +137,6 @@ LanguageFeatures/Control-flow-collections/const_collections_A03_t02/12: MissingC
 LanguageFeatures/Control-flow-collections/const_collections_A03_t02/14: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A04_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A05_t02: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A06_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A07_t01: CompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A07_t02: CompileTimeError
 LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A03_t01: CompileTimeError
@@ -188,7 +187,6 @@ LanguageFeatures/Set-literals/disambiguating_A06_t01/06: MissingCompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A06_t01/07: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A01_t03: Crash
 LanguageFeatures/Set-literals/type_inference_A01_t04: Crash
-LanguageFeatures/Set-literals/type_inference_A02_t03: Crash
 LanguageFeatures/Set-literals/type_inference_A04_t02/02: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A04_t02/03: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A06_t02/03: MissingCompileTimeError
@@ -226,6 +224,7 @@ LibTest/io/RawDatagramSocket/where_A01_t01: Pass, Fail # Issue https://github.co
 Language/Classes/Constructors/Generative_Constructors/initializers_t15: CompileTimeError
 Language/Classes/Getters/type_object_t01: CompileTimeError
 Language/Classes/Getters/type_object_t02: CompileTimeError
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: CompileTimeError
 Language/Classes/Instance_Methods/Operators/return_type_t01: MissingCompileTimeError
 Language/Classes/Setters/return_type_not_void_t01: MissingCompileTimeError
 Language/Classes/Setters/same_name_getter_different_type_t01: MissingCompileTimeError
@@ -247,6 +246,7 @@ Language/Expressions/Assignment/super_assignment_static_warning_t03: CompileTime
 Language/Expressions/Assignment/super_assignment_t06: CompileTimeError
 Language/Expressions/Assignment/super_assignment_value_t02: CompileTimeError
 Language/Expressions/Bitwise_Expressions/syntax_t01: CompileTimeError
+Language/Expressions/Constants/bitwise_operators_t01: CompileTimeError
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Legal because of implicit const
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Legal because of implicit const
 Language/Expressions/Constants/depending_on_itself_t03: MissingCompileTimeError # Issue 34189
@@ -268,11 +268,13 @@ Language/Expressions/Instance_Creation/New/syntax_t04: MissingCompileTimeError #
 Language/Expressions/Instance_Creation/New/type_t08: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t09: CompileTimeError
 Language/Expressions/Lists/constant_list_t01: CompileTimeError
+Language/Expressions/Lists/syntax_t01: CompileTimeError
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/constant_map_type_t01: CompileTimeError
 Language/Expressions/Maps/equal_keys_t01/01: MissingCompileTimeError
 Language/Expressions/Maps/equal_keys_t01/02: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError # Issue 32557
+Language/Expressions/Maps/syntax_t01: CompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t04: CompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: CompileTimeError
 Language/Expressions/Multiplicative_Expressions/syntax_t01: CompileTimeError
@@ -285,9 +287,18 @@ Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closuriz
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: CompileTimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/static_type_t03: CompileTimeError
 Language/Expressions/Relational_Expressions/syntax_t01: CompileTimeError
+Language/Expressions/Shift/allowed_characters_t02: CompileTimeError
+Language/Expressions/Shift/equivalent_super_t02: CompileTimeError
+Language/Expressions/Shift/equivalent_t02: CompileTimeError
+Language/Expressions/Shift/integer_t03: CompileTimeError
 Language/Expressions/Shift/syntax_t01: CompileTimeError
+Language/Expressions/Shift/syntax_t15: CompileTimeError
+Language/Expressions/Strings/String_Interpolation/syntax_t01: CompileTimeError
+Language/Expressions/Symbols/syntax_t02: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
+Language/Expressions/parentheses_t01: CompileTimeError
+Language/Functions/syntax_t03: CompileTimeError
 Language/Generics/syntax_t20: CompileTimeError
 Language/Generics/syntax_t22: CompileTimeError
 Language/Generics/syntax_t23: CompileTimeError
@@ -326,6 +337,9 @@ Language/Mixins/Mixin_Application/warning_t04: Crash
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError
+Language/Reference/Operator_Precedence/precedence_01_assignment_t14: CompileTimeError
+Language/Reference/Operator_Precedence/precedence_12_Shift_t04: CompileTimeError
+Language/Reference/Operator_Precedence/precedence_t05: CompileTimeError
 Language/Statements/Continue/async_loops_t01: CompileTimeError
 Language/Statements/Continue/async_loops_t02: CompileTimeError
 Language/Statements/Continue/async_loops_t03: CompileTimeError
@@ -339,6 +353,7 @@ Language/Statements/Continue/async_loops_t10: CompileTimeError
 Language/Statements/Continue/control_transfer_t08: CompileTimeError
 Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
+Language/Statements/Expression_Statements/syntax_t06: CompileTimeError
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
 Language/Types/Type_Aliases/scope_t01: CompileTimeError
@@ -634,10 +649,11 @@ LanguageFeatures/Set-literals/disambiguating_A06_t02/06: Crash
 LanguageFeatures/Set-literals/disambiguating_A06_t02/07: Crash
 LanguageFeatures/Set-literals/disambiguating_A06_t02/none: Crash
 LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: RuntimeError
-LanguageFeatures/Set-literals/type_inference_A01_t01: Crash
 LanguageFeatures/Set-literals/type_inference_A01_t02: Crash
-LanguageFeatures/Set-literals/type_inference_A02_t01: Crash
-LanguageFeatures/Set-literals/type_inference_A02_t02: Crash
+LanguageFeatures/Set-literals/type_inference_A07_t01: CompileTimeError
+LanguageFeatures/Set-literals/type_inference_A08_t01: CompileTimeError
+LanguageFeatures/Set-literals/type_inference_A09_t01: CompileTimeError
+LanguageFeatures/Set-literals/type_inference_A10_t01: CompileTimeError
 LanguageFeatures/Simple-bounds/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_FutureOr_l1_t02/none: CompileTimeError
@@ -650,6 +666,10 @@ LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeE
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
+LanguageFeatures/Spread-collections/TypeInference_A01_t01: CompileTimeError
+LanguageFeatures/Spread-collections/TypeInference_A01_t02: CompileTimeError
+LanguageFeatures/Spread-collections/TypeInference_A03_t01: CompileTimeError
+LanguageFeatures/Spread-collections/TypeInference_A05_t13: CompileTimeError
 LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
 LanguageFeatures/Super-mixins/covariance_t07: MissingCompileTimeError # Issue 35111
