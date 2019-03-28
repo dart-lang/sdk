@@ -221,11 +221,6 @@ control_flow_collections/if_const_error_test/20: Crash
 control_flow_collections/if_const_error_test/21: MissingCompileTimeError
 control_flow_collections/if_const_error_test/22: MissingCompileTimeError
 control_flow_collections/if_const_error_test/26: Crash
-control_flow_collections/if_const_error_test/28: MissingCompileTimeError
-control_flow_collections/if_const_error_test/33: MissingCompileTimeError
-control_flow_collections/if_const_error_test/34: MissingCompileTimeError
-control_flow_collections/if_const_error_test/38: MissingCompileTimeError
-control_flow_collections/if_const_error_test/39: MissingCompileTimeError
 control_flow_collections/if_const_test: Crash
 control_flow_collections/if_inference_test: CompileTimeError
 control_flow_collections/if_promotion_test/none: CompileTimeError
@@ -273,13 +268,9 @@ spread_collections/const_error_test/05: Crash
 spread_collections/const_error_test/06: Crash
 spread_collections/const_error_test/07: Crash
 spread_collections/const_error_test/08: Crash
-spread_collections/const_error_test/10: MissingCompileTimeError
-spread_collections/const_error_test/11: MissingCompileTimeError
 spread_collections/const_error_test/12: MissingCompileTimeError
 spread_collections/const_error_test/13: Crash
 spread_collections/const_error_test/14: MissingCompileTimeError
-spread_collections/const_error_test/15: MissingCompileTimeError
-spread_collections/const_error_test/16: MissingCompileTimeError
 spread_collections/const_test: Crash
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError

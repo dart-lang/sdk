@@ -1049,6 +1049,34 @@ Message _withArgumentsConstEvalDeferredLibrary(String name) {
 const Template<
     Message Function(
         Constant
+            _constant)> templateConstEvalDuplicateElement = const Template<
+        Message Function(Constant _constant)>(
+    messageTemplate:
+        r"""The element '#constant' conflicts with another existing element in the set.""",
+    withArguments: _withArgumentsConstEvalDuplicateElement);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)> codeConstEvalDuplicateElement =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalDuplicateElement", templateConstEvalDuplicateElement,
+        analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalDuplicateElement(Constant _constant) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalDuplicateElement,
+      message:
+          """The element '${constant}' conflicts with another existing element in the set.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant
             _constant)> templateConstEvalDuplicateKey = const Template<
         Message Function(Constant _constant)>(
     messageTemplate:
@@ -1059,7 +1087,7 @@ const Template<
 const Code<Message Function(Constant _constant)> codeConstEvalDuplicateKey =
     const Code<Message Function(Constant _constant)>(
         "ConstEvalDuplicateKey", templateConstEvalDuplicateKey,
-        analyzerCodes: <String>["EQUAL_KEYS_IN_MAP"]);
+        analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalDuplicateKey(Constant _constant) {
@@ -1379,6 +1407,16 @@ const MessageCode messageConstEvalIterationInConstList = const MessageCode(
     "ConstEvalIterationInConstList",
     analyzerCodes: <String>["NON_CONSTANT_LIST_ELEMENT"],
     message: r"""Iteration can't be used in a constant list.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalIterationInConstSet =
+    messageConstEvalIterationInConstSet;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalIterationInConstSet = const MessageCode(
+    "ConstEvalIterationInConstSet",
+    analyzerCodes: <String>["NON_CONSTANT_SET_ELEMENT"],
+    message: r"""Iteration can't be used in a constant set.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

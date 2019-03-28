@@ -64,6 +64,7 @@ ConstEvalCircularity/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
 ConstEvalDeferredLibrary/example: Fail
+ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
@@ -79,6 +80,7 @@ ConstEvalInvalidSymbolName/example: Fail
 ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
 ConstEvalInvalidType/example: Fail
 ConstEvalIterationInConstList/example: Fail
+ConstEvalIterationInConstSet/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantLiteral/example: Fail

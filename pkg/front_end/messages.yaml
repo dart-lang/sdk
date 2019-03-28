@@ -85,9 +85,13 @@ AsciiControlCharacter:
 ConstEvalContext:
   template: "While analyzing:"
 
+ConstEvalDuplicateElement:
+  template: "The element '#constant' conflicts with another existing element in the set."
+  analyzerCode: EQUAL_ELEMENTS_IN_CONST_SET
+
 ConstEvalDuplicateKey:
   template: "The key '#constant' conflicts with another existing key in the map."
-  analyzerCode: EQUAL_KEYS_IN_MAP
+  analyzerCode: EQUAL_KEYS_IN_CONST_MAP
 
 ConstEvalNonConstantLiteral:
   template: "Can't have a non-constant #string literal within a const context."
@@ -165,6 +169,10 @@ ConstEvalNotListOrSetInSpread:
 ConstEvalIterationInConstList:
   template: "Iteration can't be used in a constant list."
   analyzerCode: NON_CONSTANT_LIST_ELEMENT
+
+ConstEvalIterationInConstSet:
+  template: "Iteration can't be used in a constant set."
+  analyzerCode: NON_CONSTANT_SET_ELEMENT
 
 NotConstantExpression:
   template: "#string is not a constant expression."
