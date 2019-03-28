@@ -220,14 +220,26 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
 }
 
 static void EnsureNewOrRemembered(Thread* thread, const Object& result) {
-  // For write barrier elimination, we need to ensure that the allocation ends
-  // up in the new space if Heap::IsGuaranteedNewSpaceAllocation is true for
-  // this size or else the object needs to go into the store buffer.
+  // For generational write barrier elimination, we need to ensure that the
+  // allocation ends up in the new space if Heap::IsGuaranteedNewSpaceAllocation
+  // is true for this size or else the object needs to go into the store buffer.
   NoSafepointScope no_safepoint_scope;
 
   RawObject* object = result.raw();
   if (!object->IsNewObject()) {
     object->AddToRememberedSet(thread);
+  }
+}
+
+static void EnsureNewOrDeferredMarking(Thread* thread, const Object& result) {
+  // For incremental write barrier elimination, we need to ensure that the
+  // allocation ends up in the new space or else the object needs to added
+  // to deferred marking stack so it will be [re]scanned.
+  NoSafepointScope no_safepoint_scope;
+
+  RawObject* object = result.raw();
+  if (object->IsOldObject() && thread->is_marking()) {
+    thread->DeferredMarkingStackAddObject(object);
   }
 }
 
@@ -266,6 +278,8 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
       if (!array.raw()->IsCardRemembered()) {
         EnsureNewOrRemembered(thread, array);
       }
+      EnsureNewOrDeferredMarking(thread, array);
+
       return;
     }
   }
@@ -314,6 +328,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
 
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     EnsureNewOrRemembered(thread, instance);
+    EnsureNewOrDeferredMarking(thread, instance);
   }
 }
 
@@ -425,6 +440,7 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
       AllocateUninitializedContextInstr::WillAllocateNewOrRemembered(
           num_context_variables)) {
     EnsureNewOrRemembered(thread, context);
+    EnsureNewOrDeferredMarking(thread, context);
   }
 }
 
