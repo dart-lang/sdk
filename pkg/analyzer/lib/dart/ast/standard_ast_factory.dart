@@ -5,7 +5,5 @@
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 
-/**
- * Gets an instance of [AstFactory] based on the standard AST implementation.
- */
+/// Gets an instance of [AstFactory] based on the standard AST implementation.
 final AstFactory astFactory = new AstFactoryImpl();

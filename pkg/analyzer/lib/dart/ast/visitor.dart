@@ -2,79 +2,67 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Defines AST visitors that support useful patterns for visiting the nodes in
- * an [AST structure](ast.dart).
- *
- * Dart is an evolving language, and the AST structure must evolved with it.
- * When the AST structure changes, the visitor interface will sometimes change
- * as well. If it is desirable to get a compilation error when the structure of
- * the AST has been modified, then you should consider implementing the
- * interface [AstVisitor] directly. Doing so will ensure that changes that
- * introduce new classes of nodes will be flagged. (Of course, not all changes
- * to the AST structure require the addition of a new class of node, and hence
- * cannot be caught this way.)
- *
- * But if automatic detection of these kinds of changes is not necessary then
- * you will probably want to extend one of the classes in this library because
- * doing so will simplify the task of writing your visitor and guard against
- * future changes to the AST structure. For example, the [RecursiveAstVisitor]
- * automates the process of visiting all of the descendants of a node.
- */
+/// Defines AST visitors that support useful patterns for visiting the nodes in
+/// an [AST structure](ast.dart).
+///
+/// Dart is an evolving language, and the AST structure must evolved with it.
+/// When the AST structure changes, the visitor interface will sometimes change
+/// as well. If it is desirable to get a compilation error when the structure of
+/// the AST has been modified, then you should consider implementing the
+/// interface [AstVisitor] directly. Doing so will ensure that changes that
+/// introduce new classes of nodes will be flagged. (Of course, not all changes
+/// to the AST structure require the addition of a new class of node, and hence
+/// cannot be caught this way.)
+///
+/// But if automatic detection of these kinds of changes is not necessary then
+/// you will probably want to extend one of the classes in this library because
+/// doing so will simplify the task of writing your visitor and guard against
+/// future changes to the AST structure. For example, the [RecursiveAstVisitor]
+/// automates the process of visiting all of the descendants of a node.
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure, similar to [GeneralizingAstVisitor]. This visitor uses a
- * breadth-first ordering rather than the depth-first ordering of
- * [GeneralizingAstVisitor].
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or explicitly invoke the more general visit method. Failure to
- * do so will cause the visit methods for superclasses of the node to not be
- * invoked and will cause the children of the visited node to not be visited.
- *
- * In addition, subclasses should <b>not</b> explicitly visit the children of a
- * node, but should ensure that the method [visitNode] is used to visit the
- * children (either directly or indirectly). Failure to do will break the order
- * in which nodes are visited.
- *
- * Note that, unlike other visitors that begin to visit a structure of nodes by
- * asking the root node in the structure to accept the visitor, this visitor
- * requires that clients start the visit by invoking the method [visitAllNodes]
- * defined on the visitor with the root node as the argument:
- *
- *     visitor.visitAllNodes(rootNode);
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure, similar to [GeneralizingAstVisitor]. This visitor uses a
+/// breadth-first ordering rather than the depth-first ordering of
+/// [GeneralizingAstVisitor].
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general visit method. Failure to
+/// do so will cause the visit methods for superclasses of the node to not be
+/// invoked and will cause the children of the visited node to not be visited.
+///
+/// In addition, subclasses should <b>not</b> explicitly visit the children of a
+/// node, but should ensure that the method [visitNode] is used to visit the
+/// children (either directly or indirectly). Failure to do will break the order
+/// in which nodes are visited.
+///
+/// Note that, unlike other visitors that begin to visit a structure of nodes by
+/// asking the root node in the structure to accept the visitor, this visitor
+/// requires that clients start the visit by invoking the method [visitAllNodes]
+/// defined on the visitor with the root node as the argument:
+///
+///     visitor.visitAllNodes(rootNode);
+///
+/// Clients may extend this class.
 class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
-  /**
-   * A queue holding the nodes that have not yet been visited in the order in
-   * which they ought to be visited.
-   */
+  /// A queue holding the nodes that have not yet been visited in the order in
+  /// which they ought to be visited.
   Queue<AstNode> _queue = new Queue<AstNode>();
 
-  /**
-   * A visitor, used to visit the children of the current node, that will add
-   * the nodes it visits to the [_queue].
-   */
+  /// A visitor, used to visit the children of the current node, that will add
+  /// the nodes it visits to the [_queue].
   _BreadthFirstChildVisitor _childVisitor;
 
-  /**
-   * Initialize a newly created visitor.
-   */
+  /// Initialize a newly created visitor.
   BreadthFirstVisitor() {
     _childVisitor = new _BreadthFirstChildVisitor(this);
   }
 
-  /**
-   * Visit all nodes in the tree starting at the given [root] node, in
-   * breadth-first order.
-   */
+  /// Visit all nodes in the tree starting at the given [root] node, in
+  /// breadth-first order.
   void visitAllNodes(AstNode root) {
     _queue.add(root);
     while (!_queue.isEmpty) {
@@ -90,33 +78,27 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   }
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure. For each node that is visited, the corresponding visit method on
- * one or more other visitors (the 'delegates') will be invoked.
- *
- * For example, if an instance of this class is created with two delegates V1
- * and V2, and that instance is used to visit the expression 'x + 1', then the
- * following visit methods will be invoked:
- * 1. V1.visitBinaryExpression
- * 2. V2.visitBinaryExpression
- * 3. V1.visitSimpleIdentifier
- * 4. V2.visitSimpleIdentifier
- * 5. V1.visitIntegerLiteral
- * 6. V2.visitIntegerLiteral
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For each node that is visited, the corresponding visit method on
+/// one or more other visitors (the 'delegates') will be invoked.
+///
+/// For example, if an instance of this class is created with two delegates V1
+/// and V2, and that instance is used to visit the expression 'x + 1', then the
+/// following visit methods will be invoked:
+/// 1. V1.visitBinaryExpression
+/// 2. V2.visitBinaryExpression
+/// 3. V1.visitSimpleIdentifier
+/// 4. V2.visitSimpleIdentifier
+/// 5. V1.visitIntegerLiteral
+/// 6. V2.visitIntegerLiteral
+///
+/// Clients may not extend, implement or mix-in this class.
 class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
-  /**
-   * The delegates whose visit methods will be invoked.
-   */
+  /// The delegates whose visit methods will be invoked.
   final Iterable<AstVisitor<T>> delegates;
 
-  /**
-   * Initialize a newly created visitor to use each of the given delegate
-   * visitors to visit the nodes of an AST structure.
-   */
+  /// Initialize a newly created visitor to use each of the given delegate
+  /// visitors to visit the nodes of an AST structure.
   DelegatingAstVisitor(this.delegates);
 
   @override
@@ -129,25 +111,23 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
   }
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure (like instances of the class [RecursiveAstVisitor]). In addition,
- * when a node of a specific type is visited not only will the visit method for
- * that specific type of node be invoked, but additional methods for the
- * superclasses of that node will also be invoked. For example, using an
- * instance of this class to visit a [Block] will cause the method [visitBlock]
- * to be invoked but will also cause the methods [visitStatement] and
- * [visitNode] to be subsequently invoked. This allows visitors to be written
- * that visit all statements without needing to override the visit method for
- * each of the specific subclasses of [Statement].
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or explicitly invoke the more general visit method. Failure to
- * do so will cause the visit methods for superclasses of the node to not be
- * invoked and will cause the children of the visited node to not be visited.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure (like instances of the class [RecursiveAstVisitor]). In addition,
+/// when a node of a specific type is visited not only will the visit method for
+/// that specific type of node be invoked, but additional methods for the
+/// superclasses of that node will also be invoked. For example, using an
+/// instance of this class to visit a [Block] will cause the method [visitBlock]
+/// to be invoked but will also cause the methods [visitStatement] and
+/// [visitNode] to be subsequently invoked. This allows visitors to be written
+/// that visit all statements without needing to override the visit method for
+/// each of the specific subclasses of [Statement].
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general visit method. Failure to
+/// do so will cause the visit methods for superclasses of the node to not be
+/// invoked and will cause the children of the visited node to not be visited.
+///
+/// Clients may extend this class.
 class GeneralizingAstVisitor<R>
     with UIAsCodeVisitorMixin<R>
     implements AstVisitor<R> {
@@ -611,18 +591,16 @@ class GeneralizingAstVisitor<R>
   R visitYieldStatement(YieldStatement node) => visitStatement(node);
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure. For example, using an instance of this class to visit a [Block]
- * will also cause all of the statements in the block to be visited.
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or must explicitly ask the visited node to visit its children.
- * Failure to do so will cause the children of the visited node to not be
- * visited.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For example, using an instance of this class to visit a [Block]
+/// will also cause all of the statements in the block to be visited.
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or must explicitly ask the visited node to visit its children.
+/// Failure to do so will cause the children of the visited node to not be
+/// visited.
+///
+/// Clients may extend this class.
 class RecursiveAstVisitor<R>
     with UIAsCodeVisitorMixin<R>
     implements AstVisitor<R> {
@@ -1342,14 +1320,12 @@ class RecursiveAstVisitor<R>
   }
 }
 
-/**
- * An AST visitor that will do nothing when visiting an AST node. It is intended
- * to be a superclass for classes that use the visitor pattern primarily as a
- * dispatch mechanism (and hence don't need to recursively visit a whole
- * structure) and that only need to visit a small number of node types.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will do nothing when visiting an AST node. It is
+/// intended to be a superclass for classes that use the visitor pattern
+/// primarily as a dispatch mechanism (and hence don't need to recursively visit
+/// a whole structure) and that only need to visit a small number of node types.
+///
+/// Clients may extend this class.
 class SimpleAstVisitor<R>
     with UIAsCodeVisitorMixin<R>
     implements AstVisitor<R> {
@@ -1717,15 +1693,13 @@ class SimpleAstVisitor<R>
   R visitYieldStatement(YieldStatement node) => null;
 }
 
-/**
- * An AST visitor that will throw an exception if any of the visit methods that
- * are invoked have not been overridden. It is intended to be a superclass for
- * classes that implement the visitor pattern and need to (a) override all of
- * the visit methods or (b) need to override a subset of the visit method and
- * want to catch when any other visit methods have been invoked.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will throw an exception if any of the visit methods that
+/// are invoked have not been overridden. It is intended to be a superclass for
+/// classes that implement the visitor pattern and need to (a) override all of
+/// the visit methods or (b) need to override a subset of the visit method and
+/// want to catch when any other visit methods have been invoked.
+///
+/// Clients may extend this class.
 class ThrowingAstVisitor<R>
     with UIAsCodeVisitorMixin<R>
     implements AstVisitor<R> {
@@ -2104,26 +2078,18 @@ class ThrowingAstVisitor<R>
   }
 }
 
-/**
- * An AST visitor that captures visit call timings.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// An AST visitor that captures visit call timings.
+///
+/// Clients may not extend, implement or mix-in this class.
 class TimedAstVisitor<T> with UIAsCodeVisitorMixin<T> implements AstVisitor<T> {
-  /**
-   * The base visitor whose visit methods will be timed.
-   */
+  /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
 
-  /**
-   * Collects elapsed time for visit calls.
-   */
+  /// Collects elapsed time for visit calls.
   final Stopwatch stopwatch;
 
-  /**
-   * Initialize a newly created visitor to time calls to the given base
-   * visitor's visits.
-   */
+  /// Initialize a newly created visitor to time calls to the given base
+  /// visitor's visits.
   TimedAstVisitor(this._baseVisitor, [Stopwatch watch])
       : stopwatch = watch ?? new Stopwatch();
 
@@ -3081,18 +3047,17 @@ class TimedAstVisitor<T> with UIAsCodeVisitorMixin<T> implements AstVisitor<T> {
   }
 }
 
-/**
- * An AST visitor that will recursively visit all of the nodes in an AST
- * structure (like instances of the class [RecursiveAstVisitor]). In addition,
- * every node will also be visited by using a single unified [visitNode] method.
- *
- * Subclasses that override a visit method must either invoke the overridden
- * visit method or explicitly invoke the more general [visitNode] method.
- * Failure to do so will cause the children of the visited node to not be
- * visited.
- *
- * Clients may extend this class.
- */
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure (like instances of the class [RecursiveAstVisitor]). In addition,
+/// every node will also be visited by using a single unified [visitNode]
+/// method.
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general [visitNode] method.
+/// Failure to do so will cause the children of the visited node to not be
+/// visited.
+///
+/// Clients may extend this class.
 class UnifyingAstVisitor<R>
     with UIAsCodeVisitorMixin<R>
     implements AstVisitor<R> {
@@ -3476,19 +3441,13 @@ class UnifyingAstVisitor<R>
   R visitYieldStatement(YieldStatement node) => visitNode(node);
 }
 
-/**
- * A helper class used to implement the correct order of visits for a
- * [BreadthFirstVisitor].
- */
+/// A helper class used to implement the correct order of visits for a
+/// [BreadthFirstVisitor].
 class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
-  /**
-   * The [BreadthFirstVisitor] being helped by this visitor.
-   */
+  /// The [BreadthFirstVisitor] being helped by this visitor.
   final BreadthFirstVisitor outerVisitor;
 
-  /**
-   * Initialize a newly created visitor to help the [outerVisitor].
-   */
+  /// Initialize a newly created visitor to help the [outerVisitor].
   _BreadthFirstChildVisitor(this.outerVisitor);
 
   @override
