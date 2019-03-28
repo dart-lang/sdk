@@ -22,8 +22,10 @@
 
 * Added a CHANGELOG validator that complains if you `pub publish` without mentioning the current
   version.
+* Removed validation of library names when doing `pub publish`.
 * Added support for `pub global activate`ing package from a custom pub URL.
 * Added subcommand: `pub logout`. Logs you out of the current session.
+* Fix: Use default server for `pub uploader` command.
 
 #### dart2js
 
