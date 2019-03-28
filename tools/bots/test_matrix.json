@@ -334,15 +334,15 @@
         "hot-reload-rollback": true
     }},
     "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
-    "dartkb-interpret-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartkb-interpret-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
-    "dartkb-mixed-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartkb-mixed-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "vm-options": ["--enable_interpreter"]
     }},
-    "dartkb-compile-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartkb-compile-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "vm-options": ["--use_bytecode_compiler"]
     }},
@@ -408,7 +408,11 @@
     {
       "builders": [
         "vm-dartkb-linux-debug-x64",
-        "vm-dartkb-linux-release-x64"
+        "vm-dartkb-linux-release-x64",
+        "vm-dartkb-linux-product-x64",
+        "vm-dartkb-linux-debug-simarm64",
+        "vm-dartkb-linux-release-simarm64",
+        "vm-dartkb-linux-product-simarm64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kbc builders."
@@ -418,8 +422,8 @@
           "name": "configure dart",
           "script": "tools/gn.py",
           "arguments": [
-            "--mode=debug,release",
-            "--arch=x64",
+            "--mode=${mode}",
+            "--arch=${arch}",
             "--bytecode"
           ]
         },
@@ -433,7 +437,7 @@
         {
           "name": "vm mixed mode tests",
           "arguments": [
-            "-ndartkb-mixed-linux-${mode}-x64",
+            "-ndartkb-mixed-linux-${mode}-${arch}",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -446,7 +450,7 @@
         {
           "name": "vm bytecode compiler tests",
           "arguments": [
-            "-ndartkb-compile-linux-${mode}-x64",
+            "-ndartkb-compile-linux-${mode}-${arch}",
             "language_2",
             "corelib_2",
             "lib_2",
@@ -459,7 +463,7 @@
         {
           "name": "vm interpreter tests",
           "arguments": [
-            "-ndartkb-interpret-linux-${mode}-x64",
+            "-ndartkb-interpret-linux-${mode}-${arch}",
             "language_2",
             "corelib_2",
             "lib_2",
