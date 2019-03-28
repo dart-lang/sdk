@@ -158,6 +158,14 @@ ConstEvalNullValue:
   template: "Null value during constant evaluation."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
+ConstEvalNotListOrSetInSpread:
+  template: "Only lists and sets can be used in spreads in constant lists and sets."
+  analyzerCode: CONST_SPREAD_EXPECTED_LIST_OR_SET
+
+ConstEvalIterationInConstList:
+  template: "Iteration can't be used in a constant list."
+  analyzerCode: NON_CONSTANT_LIST_ELEMENT
+
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION

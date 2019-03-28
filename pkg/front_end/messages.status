@@ -78,10 +78,12 @@ ConstEvalInvalidStringInterpolationOperand/example: Fail
 ConstEvalInvalidSymbolName/example: Fail
 ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
 ConstEvalInvalidType/example: Fail
+ConstEvalIterationInConstList/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantLiteral/example: Fail
 ConstEvalNonConstantVariableGet/example: Fail
+ConstEvalNotListOrSetInSpread/example: Fail
 ConstEvalNullValue/example: Fail
 ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail

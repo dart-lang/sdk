@@ -206,15 +206,10 @@ control_flow_collections/await_for_type_error_test/08: MissingCompileTimeError
 control_flow_collections/await_for_type_error_test/11: MissingCompileTimeError
 control_flow_collections/await_for_type_error_test/12: MissingCompileTimeError
 control_flow_collections/for_await_test: Crash
-control_flow_collections/for_const_test/00: MissingCompileTimeError
-control_flow_collections/for_const_test/03: MissingCompileTimeError
 control_flow_collections/for_const_test/07: Crash
 control_flow_collections/for_inference_test: CompileTimeError
 control_flow_collections/for_test: CompileTimeError
 control_flow_collections/if_await_test: Crash
-control_flow_collections/if_const_error_test/02: MissingCompileTimeError
-control_flow_collections/if_const_error_test/07: MissingCompileTimeError
-control_flow_collections/if_const_error_test/08: MissingCompileTimeError
 control_flow_collections/if_const_error_test/09: Crash
 control_flow_collections/if_const_error_test/10: Crash
 control_flow_collections/if_const_error_test/11: Crash
@@ -273,8 +268,6 @@ implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
 mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
 spread_collections/await_test: Crash
-spread_collections/const_error_test/02: MissingCompileTimeError
-spread_collections/const_error_test/03: MissingCompileTimeError
 spread_collections/const_error_test/04: Crash
 spread_collections/const_error_test/05: Crash
 spread_collections/const_error_test/06: Crash

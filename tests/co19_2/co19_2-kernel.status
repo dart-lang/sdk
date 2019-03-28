@@ -135,11 +135,6 @@ LanguageFeatures/Control-flow-collections/const_collections_A02_t05/04: Crash
 LanguageFeatures/Control-flow-collections/const_collections_A03_t01/11: Crash
 LanguageFeatures/Control-flow-collections/const_collections_A03_t01/12: Crash
 LanguageFeatures/Control-flow-collections/const_collections_A03_t01/14: Crash
-LanguageFeatures/Control-flow-collections/const_collections_A03_t02/01: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A03_t02/02: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A03_t02/03: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A03_t02/04: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A03_t02/05: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A03_t02/06: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A03_t02/07: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A03_t02/08: MissingCompileTimeError
@@ -177,8 +172,6 @@ LanguageFeatures/Control-flow-collections/static_errors_A03_t01/04: MissingCompi
 LanguageFeatures/Control-flow-collections/static_errors_A03_t01/05: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A04_t01/03: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A04_t01/04: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t01: Crash
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/06: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t02/08: MissingCompileTimeError
@@ -217,7 +210,10 @@ LanguageFeatures/Spread-collections/ConstSpreads_A05_t01/06: Crash
 LanguageFeatures/Spread-collections/ConstSpreads_A05_t01/07: Crash
 LanguageFeatures/Spread-collections/ConstSpreads_A05_t01/08: Crash
 LanguageFeatures/Spread-collections/ConstSpreads_A05_t01/09: Crash
+LanguageFeatures/Spread-collections/ConstSpreads_A06_t01: CompileTimeError
+LanguageFeatures/Spread-collections/ConstSpreads_A06_t02: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A06_t03: Crash
+LanguageFeatures/Spread-collections/ConstSpreads_A07_t01: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A07_t03: Crash
 LanguageFeatures/Spread-collections/StaticSemantic_A08_t01/02: MissingCompileTimeError
 LanguageFeatures/Spread-collections/Syntax_A02_t06: Crash

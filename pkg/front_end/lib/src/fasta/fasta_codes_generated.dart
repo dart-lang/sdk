@@ -1371,6 +1371,16 @@ Message _withArgumentsConstEvalInvalidType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalIterationInConstList =
+    messageConstEvalIterationInConstList;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalIterationInConstList = const MessageCode(
+    "ConstEvalIterationInConstList",
+    analyzerCodes: <String>["NON_CONSTANT_LIST_ELEMENT"],
+    message: r"""Iteration can't be used in a constant list.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,
@@ -1453,6 +1463,17 @@ Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
           """The variable '${string}' is not a constant, only constant expressions are allowed.""",
       arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalNotListOrSetInSpread =
+    messageConstEvalNotListOrSetInSpread;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalNotListOrSetInSpread = const MessageCode(
+    "ConstEvalNotListOrSetInSpread",
+    analyzerCodes: <String>["CONST_SPREAD_EXPECTED_LIST_OR_SET"],
+    message:
+        r"""Only lists and sets can be used in spreads in constant lists and sets.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalNullValue = messageConstEvalNullValue;

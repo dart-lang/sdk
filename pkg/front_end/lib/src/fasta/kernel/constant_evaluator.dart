@@ -39,6 +39,8 @@ import '../fasta_codes.dart'
         messageConstEvalCircularity,
         messageConstEvalContext,
         messageConstEvalFailedAssertion,
+        messageConstEvalIterationInConstList,
+        messageConstEvalNotListOrSetInSpread,
         messageConstEvalNullValue,
         noLength,
         templateConstEvalDeferredLibrary,
@@ -56,6 +58,9 @@ import '../fasta_codes.dart'
         templateConstEvalNonConstantLiteral,
         templateConstEvalNonConstantVariableGet,
         templateConstEvalZeroDivisor;
+
+import 'collections.dart'
+    show ForElement, ForInElement, IfElement, SpreadElement;
 
 Component transformComponent(Component component, ConstantsBackend backend,
     Map<String, String> environmentDefines, ErrorReporter errorReporter,
@@ -623,28 +628,156 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return canonicalize(node.constant);
   }
 
+  /// Add an element (which is possibly a spread or an if element) to a
+  /// constant list represented as a list of (possibly unevaluated) lists
+  /// to be concatenated.
+  /// Each element of [parts] is either a `List<Constant>` (containing fully
+  /// evaluated constants) or a `Constant` (potentially unevaluated).
+  void addToListConstant(
+      List<Object> parts, Expression element, DartType elementType) {
+    if (element is SpreadElement) {
+      Constant spread = _evaluateSubexpression(element.expression);
+      if (shouldBeUnevaluated) {
+        // Unevaluated spread
+        if (element.isNullAware) {
+          VariableDeclaration temp =
+              new VariableDeclaration(null, initializer: extract(spread));
+          parts.add(unevaluated(
+              element.expression,
+              new Let(
+                  temp,
+                  new ConditionalExpression(
+                      new MethodInvocation(new VariableGet(temp),
+                          new Name('=='), new Arguments([new NullLiteral()])),
+                      new ListLiteral([], isConst: true),
+                      new VariableGet(temp),
+                      const DynamicType()))));
+        } else {
+          parts.add(spread);
+        }
+      } else if (spread == nullConstant) {
+        // Null spread
+        if (!element.isNullAware) {
+          report(element.expression, messageConstEvalNullValue);
+        }
+      } else {
+        // Fully evaluated spread
+        List<Constant> entries;
+        if (spread is ListConstant) {
+          entries = spread.entries;
+        } else if (spread is SetConstant) {
+          entries = spread.entries;
+        } else {
+          // Not list or set in spread
+          return report(
+              element.expression, messageConstEvalNotListOrSetInSpread);
+        }
+        for (Constant entry in entries) {
+          addToListConstant(parts, new ConstantExpression(entry), elementType);
+        }
+      }
+    } else if (element is IfElement) {
+      Constant condition = _evaluateSubexpression(element.condition);
+      if (shouldBeUnevaluated) {
+        // Unevaluated if
+        enterLazy();
+        Constant then = _evaluateSubexpression(
+            new ListLiteral([cloner.clone(element.then)], isConst: true));
+        Constant otherwise;
+        if (element.otherwise != null) {
+          otherwise = _evaluateSubexpression(new ListLiteral(
+              [cloner.clone(element.otherwise)],
+              isConst: true));
+        } else {
+          otherwise = new ListConstant(const DynamicType(), []);
+        }
+        leaveLazy();
+        parts.add(unevaluated(
+            element.condition,
+            new ConditionalExpression(extract(condition), extract(then),
+                extract(otherwise), const DynamicType())));
+      } else {
+        // Fully evaluated if
+        if (condition == trueConstant) {
+          addToListConstant(parts, element.then, elementType);
+        } else if (condition == falseConstant) {
+          if (element.otherwise != null) {
+            addToListConstant(parts, element.otherwise, elementType);
+          }
+        } else if (condition == nullConstant) {
+          report(element.condition, messageConstEvalNullValue);
+        } else {
+          report(
+              element.condition,
+              templateConstEvalInvalidType.withArguments(
+                  condition,
+                  typeEnvironment.boolType,
+                  condition.getType(typeEnvironment)));
+        }
+      }
+    } else if (element is ForElement || element is ForInElement) {
+      // For or for-in
+      report(element, messageConstEvalIterationInConstList);
+    } else {
+      // Ordinary expresion element
+      Constant constant = _evaluateSubexpression(element);
+      if (shouldBeUnevaluated) {
+        parts.add(unevaluated(
+            element,
+            new ListLiteral([extract(constant)],
+                typeArgument: elementType, isConst: true)));
+      } else {
+        List<Constant> list;
+        if (parts.last is List<Constant>) {
+          list = parts.last;
+        } else {
+          parts.add(list = <Constant>[]);
+        }
+        list.add(ensureIsSubtype(constant, elementType, element));
+      }
+    }
+  }
+
+  Constant makeListConstantFromParts(
+      List<Object> parts, Expression node, DartType elementType) {
+    if (parts.length == 1) {
+      // Fully evaluated
+      return canonicalize(backend
+          .lowerListConstant(new ListConstant(elementType, parts.single)));
+    }
+    List<Expression> lists = <Expression>[];
+    for (Object part in parts) {
+      if (part is List<Constant>) {
+        lists.add(new ConstantExpression(new ListConstant(elementType, part)));
+      } else if (part is Constant) {
+        lists.add(extract(part));
+      } else {
+        throw 'Non-constant in constant list';
+      }
+    }
+    return unevaluated(
+        node, new ListConcatenation(lists, typeArgument: elementType));
+  }
+
   visitListLiteral(ListLiteral node) {
     if (!node.isConst) {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('List'));
     }
-    final List<Constant> entries = new List<Constant>(node.expressions.length);
-    for (int i = 0; i < node.expressions.length; ++i) {
-      entries[i] = _evaluateSubexpression(node.expressions[i]);
+    final List<Object> parts = <Object>[<Constant>[]];
+    for (Expression element in node.expressions) {
+      addToListConstant(parts, element, node.typeArgument);
     }
-    if (shouldBeUnevaluated) {
-      final expressions = new List<Expression>(node.expressions.length);
-      for (int i = 0; i < node.expressions.length; ++i) {
-        expressions[i] = extract(entries[i]);
-      }
-      return unevaluated(
-          node,
-          new ListLiteral(expressions,
-              typeArgument: node.typeArgument, isConst: true));
+    return makeListConstantFromParts(parts, node, node.typeArgument);
+  }
+
+  visitListConcatenation(ListConcatenation node) {
+    final List<Object> parts = <Object>[<Constant>[]];
+    for (Expression list in node.lists) {
+      addToListConstant(parts, new SpreadElement(cloner.clone(list), false),
+          node.typeArgument);
     }
-    final DartType typeArgument = evaluateDartType(node, node.typeArgument);
-    return canonicalize(
-        backend.lowerListConstant(new ListConstant(typeArgument, entries)));
+    return makeListConstantFromParts(parts, node, node.typeArgument);
   }
 
   visitSetLiteral(SetLiteral node) {
