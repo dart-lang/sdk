@@ -7,6 +7,8 @@
 
 /*@testedFeatures=inference*/
 
+Map<K, V> bar<K, V>() => null;
+
 foo() {
   List<int> spread = <int>[1, 2, 3];
   Map<String, int> mapSpread = <String, int>{"foo": 4, "bar": 2};
@@ -133,6 +135,8 @@ foo() {
     {...?null, ... /*@typeArgs=dynamic*/ []};
 
   Map<String, int> map80 = <String, int>{...?null};
+
+  var /*@type=Map<String, int>*/ map90 = <String, int>{... /*@typeArgs=String, int*/ bar()};
 }
 
 main() {}

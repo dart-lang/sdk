@@ -1215,7 +1215,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         (node.valueType is ImplicitTypeArgument));
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
     KernelLibraryBuilder library = inferrer.library;
-    bool typeContextIsMap = false;
+    bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
     bool typeContextIsIterable = false;
     if (!inferrer.isTopLevel) {
       if (library.loader.target.enableSetLiterals && inferenceNeeded) {
@@ -1223,10 +1223,12 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         DartType context =
             inferrer.typeSchemaEnvironment.unfutureType(typeContext);
         if (context is InterfaceType) {
-          typeContextIsMap = inferrer.classHierarchy
-              .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
-          typeContextIsIterable = inferrer.classHierarchy
-              .isSubtypeOf(context.classNode, inferrer.coreTypes.iterableClass);
+          typeContextIsMap = typeContextIsMap ||
+              inferrer.classHierarchy
+                  .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
+          typeContextIsIterable = typeContextIsIterable ||
+              inferrer.classHierarchy.isSubtypeOf(
+                  context.classNode, inferrer.coreTypes.iterableClass);
           if (node.entries.isEmpty &&
               typeContextIsIterable &&
               !typeContextIsMap) {
@@ -1279,8 +1281,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         spreadTypeContext = inferrer.typeSchemaEnvironment
             .getTypeAsInstanceOf(typeContext, inferrer.coreTypes.iterableClass);
       } else if (!typeContextIsIterable && typeContextIsMap) {
-        spreadTypeContext =
-            new InterfaceType(inferrer.coreTypes.mapClass, inferredTypes);
+        spreadTypeContext = new InterfaceType(inferrer.coreTypes.mapClass,
+            <DartType>[inferredKeyType, inferredValueType]);
       }
       for (int i = 0; i < node.entries.length; ++i) {
         MapEntry entry = node.entries[i];
@@ -1295,6 +1297,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
             inferenceNeeded,
             typeChecksNeeded);
         if (entry is SpreadMapEntry) {
+          spreadMapEntryTypes[i] = spreadType;
           bool isMap = inferrer.typeSchemaEnvironment
               .isSubtypeOf(spreadType, inferrer.coreTypes.mapClass.rawType);
           bool isSet = inferrer.typeSchemaEnvironment.isSubtypeOf(
