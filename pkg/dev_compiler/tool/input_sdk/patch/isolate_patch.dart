@@ -15,6 +15,9 @@ class Isolate {
   static Isolate get current => _unsupported();
 
   @patch
+  String get debugName => _unsupported();
+
+  @patch
   static Future<Uri> get packageRoot => _unsupported();
 
   @patch

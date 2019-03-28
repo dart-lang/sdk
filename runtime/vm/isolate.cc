@@ -2627,6 +2627,18 @@ intptr_t Isolate::IsolateListLength() {
   return count;
 }
 
+Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
+  MonitorLocker ml(isolates_list_monitor_);
+  Isolate* current = isolates_list_head_;
+  while (current != NULL) {
+    if (current->main_port() == port) {
+      return current;
+    }
+    current = current->next_;
+  }
+  return NULL;
+}
+
 bool Isolate::AddIsolateToList(Isolate* isolate) {
   MonitorLocker ml(isolates_list_monitor_);
   if (!creation_enabled_) {
@@ -2912,7 +2924,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
-                                     Dart_Port on_error_port)
+                                     Dart_Port on_error_port,
+                                     const char* debug_name)
     : isolate_(NULL),
       parent_port_(parent_port),
       origin_id_(origin_id),
@@ -2925,6 +2938,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
+      debug_name_(debug_name),
       serialized_args_(NULL),
       serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
@@ -2961,7 +2975,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
-                                     Dart_Port on_error_port)
+                                     Dart_Port on_error_port,
+                                     const char* debug_name)
     : isolate_(NULL),
       parent_port_(parent_port),
       origin_id_(ILLEGAL_PORT),
@@ -2974,6 +2989,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
+      debug_name_(debug_name),
       serialized_args_(args_buffer->StealMessage()),
       serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
@@ -2995,6 +3011,7 @@ IsolateSpawnState::~IsolateSpawnState() {
   delete[] library_url_;
   delete[] class_name_;
   delete[] function_name_;
+  delete[] debug_name_;
   delete serialized_args_;
   delete serialized_message_;
 }

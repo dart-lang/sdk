@@ -6,6 +6,12 @@
 
 ### Core library changes
 
+#### `dart:isolate`
+
+* Added `debugName` property to `Isolate`.
+* Added `debugName` optional parameter to `Isolate.spawn` and
+  `Isolate.spawnUri`.
+
 ### Dart VM
 
 * Support for deprecated flags '-c' and '--checked' has been removed
