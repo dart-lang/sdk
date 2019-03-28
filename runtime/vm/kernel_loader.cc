@@ -1018,11 +1018,9 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     library.SetLoadInProgress();
   }
 
-  StringIndex import_uri_index =
-      H.CanonicalNameString(library_helper.canonical_name_);
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
-  const Script& script = Script::Handle(
-      Z, ScriptAt(library_helper.source_uri_index_, library, import_uri_index));
+  const Script& script =
+      Script::Handle(Z, ScriptAt(library_helper.source_uri_index_));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
   intptr_t annotations_kernel_offset =
@@ -1357,80 +1355,6 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   }
 }
 
-// Workaround for http://dartbug.com/32087: currently Kernel front-end
-// embeds absolute build-time paths to core library sources into Kernel
-// binaries this introduces discrepancy between how stack traces were
-// looked like in legacy pipeline and how they look in Dart 2 pipeline and
-// breaks users' code that attempts to pattern match and filter various
-// irrelevant frames (e.g. frames from dart:async).
-// This also breaks debugging experience in external debuggers because
-// debugger attempts to open files that don't exist in the local file
-// system.
-// To work around this issue we reformat urls of scripts belonging to
-// dart:-scheme libraries to look like they looked like in legacy pipeline:
-//
-//               dart:libname/filename.dart
-//               dart:libname/runtime/lib/filename.dart
-//               dart:libname/runtime/bin/filename.dart
-//
-void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
-                                           const Script& script) {
-  struct Helper {
-    static bool EndsWithCString(const String& haystack,
-                                const char* needle,
-                                intptr_t needle_length,
-                                intptr_t end_pos) {
-      const intptr_t start = end_pos - needle_length + 1;
-      if (start >= 0) {
-        for (intptr_t i = 0; i < needle_length; i++) {
-          if (haystack.CharAt(start + i) != needle[i]) {
-            return false;
-          }
-        }
-        return true;
-      }
-      return false;
-    }
-  };
-
-  if (library.is_dart_scheme()) {
-    String& url = String::Handle(zone_, script.url());
-    if (!url.StartsWith(Symbols::DartScheme())) {
-      // Search backwards until '/' is found. That gives us the filename.
-      // Note: can't use reusable handle in the code below because
-      // concat also needs it.
-      intptr_t pos = url.Length() - 1;
-      while (pos >= 0 && url.CharAt(pos) != '/') {
-        pos--;
-      }
-
-      static const char* kRuntimeLib = "runtime/lib/";
-      static const intptr_t kRuntimeLibLen = strlen(kRuntimeLib);
-      const bool inside_runtime_lib =
-          Helper::EndsWithCString(url, kRuntimeLib, kRuntimeLibLen, pos);
-
-      static const char* kRuntimeBin = "runtime/bin/";
-      static const intptr_t kRuntimeBinLen = strlen(kRuntimeBin);
-      const bool inside_runtime_bin =
-          Helper::EndsWithCString(url, kRuntimeBin, kRuntimeBinLen, pos);
-
-      String& tmp = String::Handle(zone_);
-      url = String::SubString(url, pos + 1);
-      if (inside_runtime_lib) {
-        tmp = String::New(kRuntimeLib, Heap::kNew);
-        url = String::Concat(tmp, url);
-      } else if (inside_runtime_bin) {
-        tmp = String::New(kRuntimeBin, Heap::kNew);
-        url = String::Concat(tmp, url);
-      }
-      tmp = library.url();
-      url = String::Concat(Symbols::Slash(), url);
-      url = String::Concat(tmp, url);
-      script.set_url(url);
-    }
-  }
-}
-
 void KernelLoader::LoadClass(const Library& library,
                              const Class& toplevel_class,
                              intptr_t class_end,
@@ -1452,7 +1376,6 @@ void KernelLoader::LoadClass(const Library& library,
     const Script& script =
         Script::Handle(Z, ScriptAt(class_helper.source_uri_index_));
     out_class->set_script(script);
-    FixCoreLibraryScriptUri(library, script);
   }
   if (out_class->token_pos() == TokenPosition::kNoSource) {
     class_helper.ReadUntilIncluding(ClassHelper::kStartPosition);
@@ -2011,7 +1934,6 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
     patch_class ^= patch_classes_.At(source_uri_index);
     if (patch_class.IsNull() || patch_class.origin_class() != klass.raw()) {
       ASSERT(!library_kernel_data_.IsNull());
-      FixCoreLibraryScriptUri(Library::Handle(klass.library()), correct_script);
       patch_class = PatchClass::New(klass, correct_script);
       patch_class.set_library_kernel_data(library_kernel_data_);
       patch_class.set_library_kernel_offset(library_kernel_offset_);
@@ -2075,20 +1997,6 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
   script.set_line_starts(line_starts);
   script.set_debug_positions(Array::null_array());
   script.set_yield_positions(Array::null_array());
-  return script.raw();
-}
-
-RawScript* KernelLoader::ScriptAt(intptr_t index,
-                                  const Library& library,
-                                  StringIndex import_uri) {
-  ASSERT(!library.IsNull());
-  const Script& script =
-      Script::Handle(Z, kernel_program_info_.ScriptAt(index));
-  if (library.is_dart_scheme()) {
-    FixCoreLibraryScriptUri(library, script);
-  } else if (import_uri != -1) {
-    script.set_url(H.DartString(import_uri, Heap::kOld));
-  }
   return script.raw();
 }
 

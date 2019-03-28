@@ -294,8 +294,6 @@ class KernelLoader : public ValueObject {
   void ReadInferredType(const Field& field, intptr_t kernel_offset);
   void CheckForInitializer(const Field& field);
 
-  void FixCoreLibraryScriptUri(const Library& library, const Script& script);
-
   void LoadClass(const Library& library,
                  const Class& toplevel_class,
                  intptr_t class_end,
@@ -327,9 +325,6 @@ class KernelLoader : public ValueObject {
   RawScript* ScriptAt(intptr_t source_uri_index) {
     return kernel_program_info_.ScriptAt(source_uri_index);
   }
-  RawScript* ScriptAt(intptr_t source_uri_index,
-                      const Library& lib,
-                      StringIndex import_uri);
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,

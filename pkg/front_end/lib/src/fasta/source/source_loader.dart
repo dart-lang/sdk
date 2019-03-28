@@ -203,11 +203,22 @@ class SourceLoader extends Loader<Library> {
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
+      Uri importUri = library.uri;
+      if (library.isPatch) {
+        // For patch files we create a "fake" import uri.
+        // We cannot use the import uri from the patched libarary because
+        // several different files would then have the same import uri,
+        // and the VM does not support that. Also, what would, for instance,
+        // setting a breakpoint on line 42 of some import uri mean, if the uri
+        // represented several files?
+        List<String> newPathSegments =
+            new List<String>.from(importUri.pathSegments);
+        newPathSegments.add(library.fileUri.pathSegments.last);
+        newPathSegments[0] = "${newPathSegments[0]}-patch";
+        importUri = importUri.replace(pathSegments: newPathSegments);
+      }
       target.addSourceInformation(
-          library.isPatch ? library.fileUri : library.uri,
-          library.fileUri,
-          result.lineStarts,
-          source);
+          importUri, library.fileUri, result.lineStarts, source);
     }
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
