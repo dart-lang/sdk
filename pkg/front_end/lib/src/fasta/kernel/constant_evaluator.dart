@@ -1934,6 +1934,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   bool isSubtype(Constant constant, DartType type) {
     DartType constantType = constant.getType(typeEnvironment);
+    if (targetingJavaScript) {
+      if (constantType == typeEnvironment.intType &&
+          type == typeEnvironment.doubleType) {
+        // With JS semantics, an integer is also a double.
+        return true;
+      }
+    }
     return typeEnvironment.isSubtypeOf(constantType, type);
   }
 
