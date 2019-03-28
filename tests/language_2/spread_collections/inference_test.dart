@@ -60,12 +60,12 @@ void testBottomUpInference() {
 void testTopDownInference() {
   // Lists.
   Iterable<T> expectIntIterable<T>() {
-    Expect.identical(int, T);
+    Expect.equals(int, T);
     return [];
   }
 
   Iterable<T> expectDynamicIterable<T>() {
-    Expect.identical(dynamic, T);
+    Expect.equals(dynamic, T);
     return [];
   }
 
@@ -78,14 +78,14 @@ void testTopDownInference() {
 
   // Maps.
   Map<K, V> expectIntStringMap<K, V>() {
-    Expect.identical(int, K);
-    Expect.identical(String, V);
+    Expect.equals(int, K);
+    Expect.equals(String, V);
     return {};
   }
 
   Map<K, V> expectDynamicDynamicMap<K, V>() {
-    Expect.identical(dynamic, K);
-    Expect.identical(dynamic, V);
+    Expect.equals(dynamic, K);
+    Expect.equals(dynamic, V);
     return {};
   }
 
@@ -99,12 +99,12 @@ void testTopDownInference() {
 
   // Sets.
   Set<T> expectIntSet<T>() {
-    Expect.identical(int, T);
+    Expect.equals(int, T);
     return Set();
   }
 
   Set<T> expectDynamicSet<T>() {
-    Expect.identical(dynamic, T);
+    Expect.equals(dynamic, T);
     return Set();
   }
 
