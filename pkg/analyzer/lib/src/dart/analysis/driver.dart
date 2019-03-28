@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
@@ -393,6 +394,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Return the current analysis session.
    */
   AnalysisSession get currentSession => _currentSession;
+
+  /**
+   * Return the information being maintained about the dartdoc directives in
+   * this context.
+   */
+  DartdocDirectiveInfo get dartdocInfo => _fsState.dartdocInfo;
 
   /**
    * Return the stream that produces [ExceptionResult]s.

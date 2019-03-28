@@ -4,8 +4,10 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -17,6 +19,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvailableDeclarationsTest);
     defineReflectiveTests(ChangeFileTest);
+    defineReflectiveTests(DartdocInfoTest);
     defineReflectiveTests(DeclarationTest);
     defineReflectiveTests(ExportTest);
     defineReflectiveTests(GetLibrariesTest);
@@ -786,6 +789,35 @@ class B2 {}
     await _doAllTrackerWork();
     _assertHasNoLibrary('package:test/a.dart');
     _assertHasNoLibrary('package:test/b.dart');
+  }
+}
+
+@reflectiveTest
+class DartdocInfoTest extends _Base {
+  test_samePackage() async {
+    File file = newFile('/home/aaa/lib/definition.dart', content: '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+class A {}
+''');
+
+    createAnalysisContexts();
+
+    DriverBasedAnalysisContext context =
+        analysisContextCollection.contextFor(file.path);
+
+    tracker.addContext(context);
+    await _doAllTrackerWork();
+
+    String result = context.driver.dartdocInfo.processDartdoc('''
+/// Before macro.
+/// {@macro foo}
+/// After macro.''');
+    expect(result, '''
+Before macro.
+Body of the template.
+After macro.''');
   }
 }
 

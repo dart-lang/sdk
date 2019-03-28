@@ -11,8 +11,10 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -1027,6 +1029,7 @@ class _File {
 
       CompilationUnit unit = _parse(content);
       _buildFileDeclarations(unit);
+      _extractDartdocInfoFromUnit(context, unit);
       _putFileDeclarationsToByteStore(contentKey);
     } else {
       _readFileDeclarationsFromBytes(bytes);
@@ -1282,6 +1285,41 @@ class _File {
     for (var declaration in libraryDeclarations) {
       declaration._relevanceTags ??=
           RelevanceTags._forDeclaration(uriStr, declaration);
+    }
+  }
+
+  void _extractDartdocInfoFromUnit(
+      DeclarationsContext context, CompilationUnit unit) {
+    AnalysisContext analysisContext = context._analysisContext;
+    if (analysisContext is DriverBasedAnalysisContext) {
+      DartdocDirectiveInfo info = analysisContext.driver.dartdocInfo;
+      for (Directive directive in unit.directives) {
+        Comment comment = directive.documentationComment;
+        if (comment != null) {
+          info.extractTemplate(getCommentNodeRawText(comment));
+        }
+      }
+      for (CompilationUnitMember declaration in unit.declarations) {
+        Comment comment = declaration.documentationComment;
+        if (comment != null) {
+          info.extractTemplate(getCommentNodeRawText(comment));
+        }
+        if (declaration is ClassOrMixinDeclaration) {
+          for (ClassMember member in declaration.members) {
+            Comment comment = member.documentationComment;
+            if (comment != null) {
+              info.extractTemplate(getCommentNodeRawText(comment));
+            }
+          }
+        } else if (declaration is EnumDeclaration) {
+          for (EnumConstantDeclaration constant in declaration.constants) {
+            Comment comment = constant.documentationComment;
+            if (comment != null) {
+              info.extractTemplate(getCommentNodeRawText(comment));
+            }
+          }
+        }
+      }
     }
   }
 

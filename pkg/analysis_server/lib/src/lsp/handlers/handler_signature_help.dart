@@ -10,6 +10,7 @@ import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 
 class SignatureHelpHandler
     extends MessageHandler<TextDocumentPositionParams, SignatureHelp> {
@@ -28,7 +29,10 @@ class SignatureHelpHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) {
-      final computer = new DartUnitSignatureComputer(unit.result.unit, offset);
+      final computer = new DartUnitSignatureComputer(
+          (unit.result.session as AnalysisSessionImpl).dartdocInfo,
+          unit.result.unit,
+          offset);
       if (!computer.offsetIsValid) {
         return success(); // No error, just no valid hover.
       }

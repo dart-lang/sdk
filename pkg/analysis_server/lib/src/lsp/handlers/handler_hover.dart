@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 
 class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   HoverHandler(LspAnalysisServer server) : super(server);
@@ -82,7 +83,11 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   }
 
   ErrorOr<Hover> _getHover(ResolvedUnitResult unit, int offset) {
-    final hover = new DartUnitHoverComputer(unit.unit, offset).compute();
+    final hover = new DartUnitHoverComputer(
+            (unit.session as AnalysisSessionImpl).dartdocInfo,
+            unit.unit,
+            offset)
+        .compute();
     return success(toHover(unit.lineInfo, hover));
   }
 }
