@@ -227,7 +227,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         CompilerContext.current.uriToSource.remove(builder.fileUri);
       }
 
-      if (hasToCheckPackageUris) {
+      if (hasToCheckPackageUris && false) {
         // The package file was changed.
         // Make sure the dill loader is on the same page.
         DillTarget oldDillLoadedData = dillLoadedData;
