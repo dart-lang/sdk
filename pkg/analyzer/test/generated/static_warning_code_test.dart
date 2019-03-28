@@ -19,9 +19,6 @@ main() {
 
 @reflectiveTest
 class StaticWarningCodeTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_ambiguousImport_as() async {
     Source source = addSource(r'''
 import 'lib1.dart';
@@ -45,9 +42,7 @@ import 'dart:async2';
 Future v;
 ''');
     await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
-    }
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_extends() async {

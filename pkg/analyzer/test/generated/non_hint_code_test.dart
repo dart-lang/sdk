@@ -17,9 +17,6 @@ main() {
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_async_future_object_without_return() async {
     Source source = addSource('''
 import 'dart:async';

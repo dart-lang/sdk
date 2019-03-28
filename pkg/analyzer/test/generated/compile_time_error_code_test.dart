@@ -24,9 +24,6 @@ main() {
 @reflectiveTest
 class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   @failingTest
   test_awaitInWrongContext_sync() {
     return super.test_awaitInWrongContext_sync();
@@ -105,9 +102,6 @@ class CompileTimeErrorCodeTest_WithUIAsCode extends ResolverTestCase {
   List<String> get enabledExperiments =>
       [EnableString.control_flow_collections, EnableString.spread_collections];
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_defaultValueInFunctionTypeAlias_new_named() async {
     // This test used to fail with UI as code enabled. Test the fix here.
     Source source = addSource('''
@@ -137,9 +131,6 @@ typedef F = int Function({Object m: const {1, 2: 3}});
 
 @reflectiveTest
 class ConstSetElementTypeImplementsEqualsTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_constField() async {
     Source source = addSource(r'''
 class A {
@@ -240,9 +231,6 @@ class ControlFlowCollectionsTest extends ResolverTestCase {
   @override
   List<String> get enabledExperiments =>
       [EnableString.control_flow_collections];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 
   test_awaitForIn_declaredVariableWrongType() async {
     await assertErrorsInCode('''
@@ -544,9 +532,6 @@ f() {
 
 @reflectiveTest
 class InvalidTypeArgumentInConstSetTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_class() async {
     Source source = addSource(r'''
 class A<E> {

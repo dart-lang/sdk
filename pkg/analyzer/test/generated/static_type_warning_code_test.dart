@@ -18,9 +18,6 @@ main() {
 
 @reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_assert_message_suppresses_type_promotion() async {
     // If a variable is assigned to inside the expression for an assert
     // message, type promotion should be suppressed, just as it would be if the
@@ -1719,9 +1716,6 @@ Stream<int> f() sync* {
 
 @reflectiveTest
 class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();

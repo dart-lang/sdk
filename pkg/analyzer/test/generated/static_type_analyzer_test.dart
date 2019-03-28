@@ -52,9 +52,6 @@ void _fail(String message) {
 
 @reflectiveTest
 class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_emptySetLiteral_parameter_typed() async {
     String code = r'''
 main() {
@@ -73,9 +70,6 @@ void useSet(Set<int> s) {
  */
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_FunctionExpressionInvocation_block() async {
     String code = r'''
 main() {
@@ -210,8 +204,6 @@ main() {
  */
 @reflectiveTest
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
-  bool get enableNewAnalysisDriver => true;
-
   test_emptyMapLiteral_initializer_var() async {
     String code = r'''
 main() {
@@ -1665,9 +1657,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 @reflectiveTest
 class StaticTypeAnalyzerWithSetLiteralsTest
     extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_emptySetLiteral_inferredFromLinkedHashSet() async {
     String code = r'''
 import 'dart:collection';
@@ -1694,9 +1683,6 @@ Set<Set<int>> ints = {{}};
 @reflectiveTest
 class StaticTypeAnalyzerWithStrictInferenceTest
     extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   void setUp() {
     super.setUp();

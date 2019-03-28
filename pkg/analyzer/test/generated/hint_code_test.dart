@@ -68,9 +68,6 @@ class _VisibleForTesting {
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   void reset() {
     super.resetWith(packages: [
       ['meta', _metaLibraryStub],

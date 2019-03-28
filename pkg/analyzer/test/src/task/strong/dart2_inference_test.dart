@@ -28,9 +28,6 @@ class Dart2InferenceTest extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_bool_assert() async {
     var code = r'''
 T f<T>() => null;

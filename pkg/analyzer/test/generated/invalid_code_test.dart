@@ -28,9 +28,6 @@ class InvalidCodeTest extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   /**
    * This code results in a method with the empty name, and the default
    * constructor, which also has the empty name. The `Map` in `f` initializer

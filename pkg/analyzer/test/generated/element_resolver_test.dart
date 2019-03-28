@@ -1284,9 +1284,6 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
 @reflectiveTest
 class PreviewDart2Test extends ResolverTestCase {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);

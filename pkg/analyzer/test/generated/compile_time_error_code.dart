@@ -1872,12 +1872,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
   test_fromEnvironment_bool_badDefault_whenDefined() async {
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
-    if (enableNewAnalysisDriver) {
-      driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
-    } else {
-      (analysisContext2 as AnalysisContextImpl).declaredVariables =
-          new DeclaredVariables.fromMap({'x': 'true'});
-    }
+    driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
     Source source =
         addSource("var b = const bool.fromEnvironment('x', defaultValue: 1);");
     await computeAnalysisResult(source);
@@ -1976,14 +1971,10 @@ typedef T foo<T extends S Function<S>(S)>(T t);
     var expectedErrorCodes = <ErrorCode>[
       CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
     ];
-    if (enableNewAnalysisDriver) {
-      // Due to dartbug.com/28515, some additional errors appear when using the
-      // new analysis driver.
-      expectedErrorCodes.addAll([
-        StaticWarningCode.UNDEFINED_CLASS,
-        StaticWarningCode.UNDEFINED_CLASS
-      ]);
-    }
+    // Due to dartbug.com/28515, some additional errors appear when using the
+    // new analysis driver.
+    expectedErrorCodes.addAll(
+        [StaticWarningCode.UNDEFINED_CLASS, StaticWarningCode.UNDEFINED_CLASS]);
     assertErrors(source, expectedErrorCodes);
     verify([source]);
   }
@@ -2063,17 +2054,10 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_String_num() async {
     Source source = addSource("class A implements String, num {}");
     await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2143,17 +2127,10 @@ class A {}
 class M {}
 class C = A with M implements String, num;''');
     await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3550,17 +3527,10 @@ class C = A with String;''');
 class A {}
 class C = A with String, num;''');
     await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -4597,19 +4567,12 @@ class A {
 const x = y + 1;
 const y = x + 1;''');
     await computeAnalysisResult(source);
-    if (!enableNewAnalysisDriver) {
-      assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-        StrongModeCode.TOP_LEVEL_CYCLE,
-        StrongModeCode.TOP_LEVEL_CYCLE,
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      StrongModeCode.TOP_LEVEL_CYCLE,
+      StrongModeCode.TOP_LEVEL_CYCLE,
+    ]);
     verify([source]);
   }
 
@@ -4650,16 +4613,10 @@ class C {
 const x = x;
 ''');
     await computeAnalysisResult(source);
-    if (!enableNewAnalysisDriver) {
-      assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-        StrongModeCode.TOP_LEVEL_CYCLE
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      StrongModeCode.TOP_LEVEL_CYCLE
+    ]);
     verify([source]);
   }
 
@@ -4672,16 +4629,10 @@ const elems = const [
 ];
 ''');
     await computeAnalysisResult(source);
-    if (!enableNewAnalysisDriver) {
-      assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-      ]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-        StrongModeCode.TOP_LEVEL_CYCLE,
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      StrongModeCode.TOP_LEVEL_CYCLE,
+    ]);
     verify([source]);
   }
 
@@ -5526,13 +5477,7 @@ main() {
 
     // Remove the overlay in the same way as AnalysisServer.
     deleteFile(target.fullName);
-    if (enableNewAnalysisDriver) {
-      driver.removeFile(target.fullName);
-    } else {
-      analysisContext2.setContents(target, null);
-      ChangeSet changeSet = new ChangeSet()..removedSource(target);
-      analysisContext2.applyChanges(changeSet);
-    }
+    driver.removeFile(target.fullName);
 
     await computeAnalysisResult(test);
     assertErrors(test, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
@@ -5544,20 +5489,9 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
 
     String targetPath = convertPath('/target.dart');
-    if (enableNewAnalysisDriver) {
-      // Add an overlay in the same way as AnalysisServer.
-      fileContentOverlay[targetPath] = '';
-      driver.changeFile(targetPath);
-    } else {
-      // Check that the file is represented as missing.
-      Source target = analysisContext2.getSourcesWithFullName(targetPath).first;
-      expect(analysisContext2.getModificationStamp(target), -1);
-
-      // Add an overlay in the same way as AnalysisServer.
-      analysisContext2
-        ..setContents(target, "")
-        ..handleContentsChanged(target, null, "", true);
-    }
+    // Add an overlay in the same way as AnalysisServer.
+    fileContentOverlay[targetPath] = '';
+    driver.changeFile(targetPath);
 
     // Make sure the error goes away.
     await computeAnalysisResult(source);

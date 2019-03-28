@@ -32,9 +32,6 @@ class NonConstantValueInInitializer extends ResolverTestCase {
   @override
   List<String> get enabledExperiments => [EnableString.constant_update_2018];
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_intLiteralInDoubleContext_const_exact() async {
     Source source = addSource(r'''
 const double x = 0;
@@ -76,9 +73,6 @@ void main() {
 class NonErrorResolverTest extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 
   test_ambiguousExport() async {
     Source source = addSource(r'''

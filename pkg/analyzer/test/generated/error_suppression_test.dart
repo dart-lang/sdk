@@ -18,9 +18,6 @@ main() {
 
 @reflectiveTest
 class ErrorSuppressionTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   String get ignoredCode => 'const_initialized_with_non_constant_value';
 
   List<ErrorCode> get reportedCodes => [

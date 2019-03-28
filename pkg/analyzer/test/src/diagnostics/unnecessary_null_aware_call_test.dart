@@ -10,17 +10,14 @@ import '../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecesaryNullAwareCallTest);
+    defineReflectiveTests(UnnecessaryNullAwareCallTest);
   });
 }
 
 @reflectiveTest
-class UnnecesaryNullAwareCallTest extends ResolverTestCase {
+class UnnecessaryNullAwareCallTest extends ResolverTestCase {
   @override
   List<String> get enabledExperiments => [EnableString.non_nullable];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 
   test_getter_parenthesized_nonNull() async {
     await assertErrorsInCode('''

@@ -20,9 +20,6 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
   @override
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_assertion_throws() async {
     Source source = addSource(r'''
 class A {

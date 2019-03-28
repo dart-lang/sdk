@@ -37,9 +37,6 @@ class StrongModeCastsWithUiAsCodeTest extends ResolverTestCase {
   List<String> get enabledExperiments =>
       [EnableString.spread_collections, EnableString.control_flow_collections];
 
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_implicitCastMetadata_ifElement_condition() async {
     var source = addSource(r'''
 class C {
@@ -1140,9 +1137,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
 
   AsserterBuilder<Element, DartType> _hasElement;
   AsserterBuilder<DartType, DartType> _hasElementOf;
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 
   @override
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
@@ -3906,9 +3900,6 @@ class B<T2, U2> {
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
     with StrongModeStaticTypeAnalyzer2TestCases {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -5501,9 +5492,6 @@ main() {
 
 @reflectiveTest
 class StrongModeTypePropagationTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   void setUp() {
     super.setUp();
