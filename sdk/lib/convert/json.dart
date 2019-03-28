@@ -64,7 +64,7 @@ const JsonCodec json = JsonCodec();
 /// Converts [value] to a JSON string.
 ///
 /// If value contains objects that are not directly encodable to a JSON
-/// string (a value that is not a number, boolean, string, null, list or a map
+/// string (a value that is not a [ToJsonable], [num], [bool], [String], [Null], [List] or a [Map]
 /// with string keys), the [toEncodable] function is used to convert it to an
 /// object that must be directly encodable.
 ///
@@ -110,7 +110,7 @@ class JsonCodec extends Codec<Object, String> {
   ///
   /// The [toEncodable] function is used during encoding. It is invoked for
   /// values that are not directly encodable to a string (a value that is not a
-  /// number, boolean, string, null, list or a map with string keys). The
+  /// [ToJsonable], [num], [bool], [String], [Null], [List] or a [Map] with string keys). The
   /// function must return an object that is directly encodable. The elements of
   /// a returned list and values of a returned map do not need to be directly
   /// encodable, and if they aren't, `toEncodable` will be used on them as well.
@@ -150,7 +150,7 @@ class JsonCodec extends Codec<Object, String> {
   /// Converts [value] to a JSON string.
   ///
   /// If value contains objects that are not directly encodable to a JSON
-  /// string (a value that is not a number, boolean, string, null, list or a map
+  /// string (a value that is not a [ToJsonable], [num], [bool], [string], [Null], [Lis] or a [Map]
   /// with string keys), the [toEncodable] function is used to convert it to an
   /// object that must be directly encodable.
   ///
@@ -189,8 +189,8 @@ class JsonEncoder extends Converter<Object, String> {
 
   /// Creates a JSON encoder.
   ///
-  /// The JSON encoder handles numbers, strings, booleans, null, lists and
-  /// maps with string keys directly.
+  /// The JSON encoder handles [ToJsonable], [num], [String], [bool], [Null], [List] and
+  /// [Map] with string keys directly.
   ///
   /// Any other object is attempted converted by [toEncodable] to an
   /// object that is of one of the convertible types.
@@ -209,8 +209,8 @@ class JsonEncoder extends Converter<Object, String> {
   ///
   /// If [indent] is `null`, the output is encoded as a single line.
   ///
-  /// The JSON encoder handles numbers, strings, booleans, null, lists and
-  /// maps with string keys directly.
+  /// The JSON encoder handles [ToJsonable], [num], [String], [bool], [Null], [List] and
+  /// [Map] with string keys directly.
   ///
   /// Any other object is attempted converted by [toEncodable] to an
   /// object that is of one of the convertible types.
@@ -222,7 +222,7 @@ class JsonEncoder extends Converter<Object, String> {
 
   /// Converts [object] to a JSON [String].
   ///
-  /// Directly serializable values are [num], [String], [bool], and [Null], as
+  /// Directly serializable values are [ToJsonable], [num], [String], [bool], and [Null], as
   /// well as some [List] and [Map] values. For [List], the elements must all be
   /// serializable. For [Map], the keys must be [String] and the values must be
   /// serializable.
@@ -320,7 +320,7 @@ class JsonUtf8Encoder extends Converter<Object, List<int>> {
   /// UTF-8 code units.
   /// If using [startChunkedConversion], it will be the size of the chunks.
   ///
-  /// The JSON encoder handles numbers, strings, booleans, null, lists and maps
+  /// The JSON encoder handles [ToJsonable], [num], [String], [bool], [Null], [List] and [Map]
   /// directly.
   ///
   /// Any other object is attempted converted by [toEncodable] to an object that
@@ -474,7 +474,7 @@ class JsonDecoder extends Converter<String, Object> {
 
   /// Converts the given JSON-string [input] to its corresponding object.
   ///
-  /// Parsed JSON values are of the types [num], [String], [bool], [Null],
+  /// Parsed JSON values are of the types [ToJsonable], [num], [String], [bool], [Null],
   /// [List]s of parsed JSON values or [Map]s from [String] to parsed JSON
   /// values.
   ///
@@ -502,6 +502,12 @@ external _parseJson(String source, reviver(key, value));
 // Implementation of encoder/stringifier.
 
 dynamic _defaultToEncodable(dynamic object) => object.toJson();
+
+/// An interface to be implemented by classes which extend/implement
+/// [Map] and/or [List], but have different JSON representation.
+abstract class ToJsonable {
+  String toJson();
+}
 
 /// JSON encoder that traverses an object structure and writes JSON source.
 ///
@@ -644,12 +650,15 @@ abstract class _JsonStringifier {
     }
   }
 
-  /// Serialize a [num], [String], [bool], [Null], [List] or [Map] value.
+  /// Serialize a [ToJsonable], [num], [String], [bool], [Null], [List] or [Map] value.
   ///
   /// Returns true if the value is one of these types, and false if not.
   /// If a value is both a [List] and a [Map], it's serialized as a [List].
   bool writeJsonValue(object) {
-    if (object is num) {
+    if (object is ToJsonable) {
+      writeString(object.toJson());
+      return true;
+    } else if (object is num) {
       if (!object.isFinite) return false;
       writeNumber(object);
       return true;
