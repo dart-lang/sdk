@@ -67,6 +67,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
     {bool keepFields: true,
     bool enableAsserts: false,
     bool evaluateAnnotations: true,
+    bool desugarSets: false,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   coreTypes ??= new CoreTypes(component);
@@ -78,6 +79,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
       typeEnvironment, errorReporter,
       keepFields: keepFields,
       enableAsserts: enableAsserts,
+      desugarSets: desugarSets,
       evaluateAnnotations: evaluateAnnotations);
   return component;
 }
@@ -91,6 +93,7 @@ void transformLibraries(
     {bool keepFields: true,
     bool keepVariables: false,
     bool evaluateAnnotations: true,
+    bool desugarSets: false,
     bool enableAsserts: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
@@ -98,6 +101,7 @@ void transformLibraries(
       keepFields,
       keepVariables,
       evaluateAnnotations,
+      desugarSets,
       typeEnvironment,
       enableAsserts,
       errorReporter);
@@ -114,6 +118,7 @@ class ConstantsTransformer extends Transformer {
   final bool keepFields;
   final bool keepVariables;
   final bool evaluateAnnotations;
+  final bool desugarSets;
 
   ConstantsTransformer(
       ConstantsBackend backend,
@@ -121,11 +126,13 @@ class ConstantsTransformer extends Transformer {
       this.keepFields,
       this.keepVariables,
       this.evaluateAnnotations,
+      this.desugarSets,
       this.typeEnvironment,
       bool enableAsserts,
       ErrorReporter errorReporter)
       : constantEvaluator = new ConstantEvaluator(backend, environmentDefines,
-            typeEnvironment, enableAsserts, errorReporter);
+            typeEnvironment, enableAsserts, errorReporter,
+            desugarSets: desugarSets);
 
   // Transform the library/class members:
 
@@ -356,6 +363,13 @@ class ConstantsTransformer extends Transformer {
     return super.visitListLiteral(node);
   }
 
+  visitSetLiteral(SetLiteral node) {
+    if (node.isConst) {
+      return tryEvaluateAndTransformWithContext(node, node);
+    }
+    return super.visitSetLiteral(node);
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       return tryEvaluateAndTransformWithContext(node, node);
@@ -413,6 +427,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final bool enableAsserts;
   final ErrorReporter errorReporter;
 
+  final bool desugarSets;
+  final Field unmodifiableSetMap;
+
   final isInstantiated = new IsInstantiatedVisitor().isInstantiated;
 
   final Map<Constant, Constant> canonicalizationCache;
@@ -437,12 +454,17 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool get targetingJavaScript => numberSemantics == NumberSemantics.js;
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
-      this.enableAsserts, this.errorReporter)
+      this.enableAsserts, this.errorReporter,
+      {this.desugarSets = false})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{},
-        env = new EvaluationEnvironment();
+        env = new EvaluationEnvironment(),
+        unmodifiableSetMap = desugarSets
+            ? typeEnvironment.coreTypes.index
+                .getMember('dart:collection', '_UnmodifiableSet', '_map')
+            : null;
 
   Uri getFileUri(TreeNode node) {
     while (node != null && node is! FileUriNode) {
@@ -800,8 +822,22 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               typeArgument: node.typeArgument, isConst: true));
     }
     final DartType typeArgument = evaluateDartType(node, node.typeArgument);
-    return canonicalize(
-        backend.lowerSetConstant(new SetConstant(typeArgument, entries)));
+    if (desugarSets) {
+      final List<ConstantMapEntry> mapEntries =
+          new List<ConstantMapEntry>(entries.length);
+      for (int i = 0; i < entries.length; ++i) {
+        mapEntries[i] = new ConstantMapEntry(entries[i], nullConstant);
+      }
+      Constant map = canonicalize(backend.lowerMapConstant(
+          new MapConstant(typeArgument, typeEnvironment.nullType, mapEntries)));
+      return canonicalize(new InstanceConstant(
+          unmodifiableSetMap.enclosingClass.reference,
+          [typeArgument],
+          <Reference, Constant>{unmodifiableSetMap.reference: map}));
+    } else {
+      return canonicalize(
+          backend.lowerSetConstant(new SetConstant(typeArgument, entries)));
+    }
   }
 
   visitMapLiteral(MapLiteral node) {

@@ -31,7 +31,8 @@ TransformationInfo transformComponent(
   constants.transformComponent(component, vmConstants, environment, null,
       keepFields: true,
       evaluateAnnotations: true,
-      enableAsserts: enableAsserts);
+      enableAsserts: enableAsserts,
+      desugarSets: !target.supportsSetLiterals);
 
   TransformationInfo info = collectInfo ? TransformationInfo() : null;
 

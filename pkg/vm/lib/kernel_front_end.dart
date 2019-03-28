@@ -417,7 +417,8 @@ Future _performConstantEvaluation(
         new ForwardConstantEvaluationErrors(),
         keepFields: true,
         evaluateAnnotations: true,
-        enableAsserts: enableAsserts);
+        enableAsserts: enableAsserts,
+        desugarSets: !compilerOptions.target.supportsSetLiterals);
   });
 }
 

@@ -170,6 +170,10 @@ abstract class Loader<L> {
   void ensureCoreLibrary() {
     if (coreLibrary == null) {
       read(Uri.parse("dart:core"), 0, accessor: first);
+      // TODO(askesc): When all backends support set literals, we no longer
+      // need to index dart:collection, as it is only needed for desugaring of
+      // const sets. We can remove it from this list at that time.
+      read(Uri.parse("dart:collection"), 0, accessor: first);
       assert(coreLibrary != null);
     }
   }
