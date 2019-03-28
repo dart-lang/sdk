@@ -89,6 +89,8 @@ class LinkedUnitContext {
       return node.classOrMixinDeclaration_implementsClause;
     } else if (kind == LinkedNodeKind.classTypeAlias) {
       return node.classTypeAlias_implementsClause;
+    } else if (kind == LinkedNodeKind.mixinDeclaration) {
+      return node.classOrMixinDeclaration_implementsClause;
     } else {
       throw UnimplementedError('$kind');
     }

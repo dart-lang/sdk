@@ -142,7 +142,8 @@ class SourceLibraryBuilder {
       var variableRef = unitRef.getChild('@variable');
       for (var node in unit.node.compilationUnit_declarations) {
         if (node.kind == LinkedNodeKind.classDeclaration ||
-            node.kind == LinkedNodeKind.classTypeAlias) {
+            node.kind == LinkedNodeKind.classTypeAlias ||
+            node.kind == LinkedNodeKind.mixinDeclaration) {
           var name = unit.context.getUnitMemberName(node);
           var reference = classRef.getChild(name);
           reference.node = node;

@@ -552,7 +552,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@constructor');
-      if (linkedNode.kind == LinkedNodeKind.classDeclaration) {
+      if (linkedNode.kind == LinkedNodeKind.classDeclaration ||
+          linkedNode.kind == LinkedNodeKind.mixinDeclaration) {
         _constructors = linkedNode.classOrMixinDeclaration_members
             .where((node) => node.kind == LinkedNodeKind.constructorDeclaration)
             .map((node) {
@@ -590,16 +591,17 @@ class ClassElementImpl extends AbstractClassElementImpl
         }
       }
 
-      // There are no explicit constructors.
-      // Create the implicit default constructor.
+      _constructors = const <ConstructorElement>[];
+    }
+
+    if (_constructors.isEmpty) {
       var constructor = new ConstructorElementImpl('', -1);
       constructor.isSynthetic = true;
       constructor.enclosingElement = this;
       _constructors = <ConstructorElement>[constructor];
     }
 
-    assert(_constructors != null);
-    return _constructors ?? const <ConstructorElement>[];
+    return _constructors;
   }
 
   /// Set the constructors contained in this class to the given [constructors].
@@ -1838,8 +1840,23 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get mixins {
+    if (_mixins != null) return _mixins;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@class');
+      return _mixins = linkedNode.compilationUnit_declarations
+          .where((node) => node.kind == LinkedNodeKind.mixinDeclaration)
+          .map((node) {
+        var name = context.getUnitMemberName(node);
+        var reference = containerRef.getChild(name);
+        reference.node = node;
+        return MixinElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
+    }
+
     if (_unlinkedUnit != null) {
-      _mixins ??= _unlinkedUnit.mixins
+      return _mixins = _unlinkedUnit.mixins
           .map((c) => new MixinElementImpl.forSerialized(c, this))
           .toList(growable: false);
     }
@@ -1917,10 +1934,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get types {
+    if (_types != null) return _types;
+
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@class');
-      _types = linkedNode.compilationUnit_declarations
+      return _types = linkedNode.compilationUnit_declarations
           .where((node) =>
               node.kind == LinkedNodeKind.classDeclaration ||
               node.kind == LinkedNodeKind.classTypeAlias)
@@ -1930,11 +1949,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         reference.node = node;
         return ClassElementImpl.forLinkedNode(this, reference, node);
       }).toList();
-    } else if (_unlinkedUnit != null) {
-      _types ??= _unlinkedUnit.classes
+    }
+
+    if (_unlinkedUnit != null) {
+      return _types = _unlinkedUnit.classes
           .map((c) => new ClassElementImpl.forSerialized(c, this))
           .toList(growable: false);
     }
+
     return _types ?? const <ClassElement>[];
   }
 
@@ -7047,6 +7069,12 @@ class MixinElementImpl extends ClassElementImpl {
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(String name, int offset) : super(name, offset);
 
+  MixinElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
+      Reference reference, LinkedNode linkedNode)
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    enclosing.linkedContext.loadClassMemberReferences(reference);
+  }
+
   /// Initialize a newly created class element to have the given [name].
   MixinElementImpl.forNode(Identifier name) : super.forNode(name);
 
@@ -7062,24 +7090,44 @@ class MixinElementImpl extends ClassElementImpl {
   bool get isMixin => true;
 
   @override
+  List<InterfaceType> get mixins => const <InterfaceType>[];
+
+  @override
   List<InterfaceType> get superclassConstraints {
-    if (_superclassConstraints == null) {
-      if (_unlinkedClass != null) {
-        List<InterfaceType> constraints;
-        if (_unlinkedClass.superclassConstraints.isNotEmpty) {
-          ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-          constraints = _unlinkedClass.superclassConstraints
-              .map((EntityRef t) => context.resolveTypeRef(this, t))
-              .where(_isInterfaceTypeInterface)
-              .cast<InterfaceType>()
-              .toList(growable: false);
-        }
-        if (constraints == null || constraints.isEmpty) {
-          constraints = [context.typeProvider.objectType];
-        }
-        _superclassConstraints = constraints;
+    if (_superclassConstraints != null) return _superclassConstraints;
+
+    if (linkedNode != null) {
+      List<InterfaceType> constraints;
+      var onClause = linkedNode.mixinDeclaration_onClause;
+      if (onClause != null) {
+        var context = enclosingUnit.linkedContext;
+        constraints = onClause.onClause_superclassConstraints
+            .map((node) => context.getInterfaceType(node.typeName_type))
+            .where((type) => type != null)
+            .toList();
       }
+      if (constraints == null || constraints.isEmpty) {
+        constraints = [context.typeProvider.objectType];
+      }
+      return _superclassConstraints = constraints;
     }
+
+    if (_unlinkedClass != null) {
+      List<InterfaceType> constraints;
+      if (_unlinkedClass.superclassConstraints.isNotEmpty) {
+        ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+        constraints = _unlinkedClass.superclassConstraints
+            .map((EntityRef t) => context.resolveTypeRef(this, t))
+            .where(_isInterfaceTypeInterface)
+            .cast<InterfaceType>()
+            .toList(growable: false);
+      }
+      if (constraints == null || constraints.isEmpty) {
+        constraints = [context.typeProvider.objectType];
+      }
+      return _superclassConstraints = constraints;
+    }
+
     return _superclassConstraints ?? const <InterfaceType>[];
   }
 

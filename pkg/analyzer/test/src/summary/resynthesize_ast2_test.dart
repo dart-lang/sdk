@@ -924,18 +924,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_mixin() async {
-    await super.test_mixin();
-  }
-
-  @override
-  @failingTest
-  test_mixin_implicitObjectSuperclassConstraint() async {
-    await super.test_mixin_implicitObjectSuperclassConstraint();
-  }
-
-  @override
-  @failingTest
   test_nameConflict_importWithRelativeUri_exportWithAbsolute() async {
     // TODO(scheglov) unexpectedly passes on Windows
     fail('unexpectedly passes on Windows');

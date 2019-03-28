@@ -52,28 +52,18 @@ class ReferenceResolver {
 
     var typeParameters = node.classOrMixinDeclaration_typeParameters;
     _withTypeParameters(typeParameters, () {
-      var extendsClause = node.classDeclaration_extendsClause;
-      if (extendsClause != null) {
-        _typeName(extendsClause.extendsClause_superclass);
-      }
+      _extendsClause(node.classDeclaration_extendsClause);
+      _withClause(node.classDeclaration_withClause);
+      _implementsClause(node.classOrMixinDeclaration_implementsClause);
 
-      _nodeList(
-        node.classDeclaration_withClause?.withClause_mixinTypes,
-      );
-
-      _nodeList(
-        node.classOrMixinDeclaration_implementsClause
-            ?.implementsClause_interfaces,
-      );
-
-      for (var field in node.classOrMixinDeclaration_members) {
-        if (field.kind != LinkedNodeKind.constructorDeclaration) {
-          _node(field);
+      for (var member in node.classOrMixinDeclaration_members) {
+        if (member.kind != LinkedNodeKind.constructorDeclaration) {
+          _node(member);
         }
       }
-      for (var field in node.classOrMixinDeclaration_members) {
-        if (field.kind == LinkedNodeKind.constructorDeclaration) {
-          _node(field);
+      for (var member in node.classOrMixinDeclaration_members) {
+        if (member.kind == LinkedNodeKind.constructorDeclaration) {
+          _node(member);
         }
       }
     });
@@ -87,18 +77,9 @@ class ReferenceResolver {
 
     var typeParameters = node.classTypeAlias_typeParameters;
     _withTypeParameters(typeParameters, () {
-      var superclass = node.classTypeAlias_superclass;
-      if (superclass != null) {
-        _typeName(superclass);
-      }
-
-      _nodeList(
-        node.classTypeAlias_withClause?.withClause_mixinTypes,
-      );
-
-      _nodeList(
-        node.classTypeAlias_implementsClause?.implementsClause_interfaces,
-      );
+      _typeName(node.classTypeAlias_superclass);
+      _withClause(node.classTypeAlias_withClause);
+      _implementsClause(node.classTypeAlias_implementsClause);
     });
 
     reference = reference.parent.parent;
@@ -120,6 +101,12 @@ class ReferenceResolver {
   }
 
   void _exportDirective(LinkedNodeBuilder node) {}
+
+  void _extendsClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeName(node.extendsClause_superclass);
+  }
 
   void _fieldDeclaration(LinkedNodeBuilder node) {
     _node(node.fieldDeclaration_fields);
@@ -229,6 +216,12 @@ class ReferenceResolver {
     reference = reference.parent.parent;
   }
 
+  void _implementsClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeNameList(node.implementsClause_interfaces);
+  }
+
   void _importDirective(LinkedNodeBuilder node) {}
 
   void _libraryDirective(LinkedNodeBuilder node) {}
@@ -246,6 +239,20 @@ class ReferenceResolver {
       }
 
       _node(node.methodDeclaration_formalParameters);
+    });
+
+    reference = reference.parent.parent;
+  }
+
+  void _mixinDeclaration(LinkedNodeBuilder node) {
+    var name = unit.context.getUnitMemberName(node);
+    reference = reference.getChild('@class').getChild(name);
+
+    var typeParameters = node.classOrMixinDeclaration_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      _onClause(node.mixinDeclaration_onClause);
+      _implementsClause(node.classOrMixinDeclaration_implementsClause);
+      _nodeList(node.classOrMixinDeclaration_members);
     });
 
     reference = reference.parent.parent;
@@ -292,6 +299,8 @@ class ReferenceResolver {
       _libraryDirective(node);
     } else if (node.kind == LinkedNodeKind.methodDeclaration) {
       _methodDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.mixinDeclaration) {
+      _mixinDeclaration(node);
     } else if (node.kind == LinkedNodeKind.partDirective) {
       _partDirective(node);
     } else if (node.kind == LinkedNodeKind.partOfDirective) {
@@ -323,6 +332,12 @@ class ReferenceResolver {
       var node = nodeList[i];
       _node(node);
     }
+  }
+
+  void _onClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeNameList(node.onClause_superclassConstraints);
   }
 
   void _partDirective(LinkedNodeBuilder node) {}
@@ -413,6 +428,13 @@ class ReferenceResolver {
     typesToBuild.typeAnnotations.add(node);
   }
 
+  void _typeNameList(List<LinkedNode> nodeList) {
+    for (var i = 0; i < nodeList.length; ++i) {
+      var node = nodeList[i];
+      _typeName(node);
+    }
+  }
+
   void _typeParameter(LinkedNodeBuilder node) {
     _node(node.typeParameter_bound);
     // TODO(scheglov) set Object bound if no explicit?
@@ -430,6 +452,12 @@ class ReferenceResolver {
       _node(typeNode);
       typesToBuild.declarations.add(node);
     }
+  }
+
+  void _withClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeNameList(node.withClause_mixinTypes);
   }
 
   /// Enter the type parameters scope, visit them, and run [f].

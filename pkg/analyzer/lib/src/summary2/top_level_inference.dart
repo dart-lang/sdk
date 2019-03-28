@@ -80,7 +80,8 @@ class TopLevelInference {
   void _inferFieldsTemporary() {
     var unitDeclarations = unit.node.compilationUnit_declarations;
     for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
-      if (unitDeclaration.kind == LinkedNodeKind.classDeclaration) {
+      if (unitDeclaration.kind == LinkedNodeKind.classDeclaration ||
+          unitDeclaration.kind == LinkedNodeKind.mixinDeclaration) {
         _visitClassFields(unitDeclaration, (field) {
 //          var name = unit.context.getVariableName(field);
           // TODO(scheglov) Use inheritance
@@ -176,7 +177,8 @@ class TopLevelInference {
   void _visitClassList(void Function(LinkedNodeBuilder) f) {
     var unitDeclarations = unit.node.compilationUnit_declarations;
     for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
-      if (unitDeclaration.kind == LinkedNodeKind.classDeclaration) {
+      if (unitDeclaration.kind == LinkedNodeKind.classDeclaration ||
+          unitDeclaration.kind == LinkedNodeKind.mixinDeclaration) {
         f(unitDeclaration);
       }
     }
