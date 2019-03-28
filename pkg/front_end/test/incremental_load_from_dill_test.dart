@@ -33,7 +33,7 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart'
-    show Class, Component, Field, Library, Procedure;
+    show Class, Component, EmptyStatement, Field, Library, Procedure;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -405,13 +405,14 @@ Future<Null> newWorldTest(
         entries.add(base.resolve(entry));
       }
     }
+    bool outlineOnly = world["outlineOnly"] == true;
     if (brandNewWorld) {
       if (world["fromComponent"] == true) {
         compiler = new TestIncrementalCompiler.fromComponent(
-            options, entries.first, newestWholeComponent);
+            options, entries.first, newestWholeComponent, outlineOnly);
       } else {
-        compiler =
-            new TestIncrementalCompiler(options, entries.first, initializeFrom);
+        compiler = new TestIncrementalCompiler(
+            options, entries.first, initializeFrom, outlineOnly);
       }
     }
 
@@ -434,6 +435,18 @@ Future<Null> newWorldTest(
         entryPoints: entries,
         fullComponent:
             brandNewWorld ? false : (noFullComponent ? false : true));
+    if (outlineOnly) {
+      for (Library lib in component.libraries) {
+        for (Class c in lib.classes) {
+          for (Procedure p in c.procedures) {
+            if (p.function.body is! EmptyStatement) throw "Got body";
+          }
+        }
+        for (Procedure p in lib.procedures) {
+          if (p.function.body is! EmptyStatement) throw "Got body";
+        }
+      }
+    }
     performErrorAndWarningCheck(
         world, gotError, formattedErrors, gotWarning, formattedWarnings);
     util.throwOnEmptyMixinBodies(component);
@@ -808,18 +821,20 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   }
 
   TestIncrementalCompiler(CompilerOptions options, this.entryPoint,
-      [Uri initializeFrom])
+      [Uri initializeFrom, bool outlineOnly])
       : super(
             new CompilerContext(
                 new ProcessedOptions(options: options, inputs: [entryPoint])),
-            initializeFrom);
+            initializeFrom,
+            outlineOnly);
 
   TestIncrementalCompiler.fromComponent(CompilerOptions options,
-      this.entryPoint, Component componentToInitializeFrom)
+      this.entryPoint, Component componentToInitializeFrom, [bool outlineOnly])
       : super.fromComponent(
             new CompilerContext(
                 new ProcessedOptions(options: options, inputs: [entryPoint])),
-            componentToInitializeFrom);
+            componentToInitializeFrom,
+            outlineOnly);
 
   @override
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {

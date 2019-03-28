@@ -293,12 +293,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           userCode.loader.builders[entryPoints.first] != null) {
         userCode.loader.first = userCode.loader.builders[entryPoints.first];
       }
-      await userCode.buildOutlines();
+      Component componentWithDill = await userCode.buildOutlines();
 
       // This is not the full component. It is the component including all
       // libraries loaded from .dill files.
-      Component componentWithDill =
-          await userCode.buildComponent(verify: c.options.verify);
+      if (!outlineOnly) {
+        componentWithDill =
+            await userCode.buildComponent(verify: c.options.verify);
+      }
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
         hasToCheckPackageUris = false;
