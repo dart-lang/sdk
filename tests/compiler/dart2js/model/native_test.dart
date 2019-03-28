@@ -139,7 +139,71 @@ main() {
       '53',
       '54',
     ]);
-    // TODO(johnniwinther): Add similar test for native declarations.
+
+    await runTest('tests/compiler/dart2js_native/native_test.dart',
+        'tests/compiler/dart2js_native/', {
+      'Class': Kind.regular,
+      'NativeClass': Kind.native,
+      'topLevelField': Kind.regular,
+      'topLevelGetter': Kind.regular,
+      'topLevelSetter': Kind.regular,
+      'topLevelFunction': Kind.regular,
+      'nativeTopLevelGetter': Kind.native,
+      'nativeTopLevelSetter': Kind.native,
+      'nativeTopLevelFunction': Kind.native,
+      'Class.generative': Kind.regular,
+      'Class.fact': Kind.regular,
+      'Class.instanceField': Kind.regular,
+      'Class.instanceGetter': Kind.regular,
+      'Class.instanceSetter': Kind.regular,
+      'Class.instanceMethod': Kind.regular,
+      'Class.staticField': Kind.regular,
+      'Class.staticGetter': Kind.regular,
+      'Class.staticSetter': Kind.regular,
+      'Class.staticMethod': Kind.regular,
+      'Class.nativeInstanceGetter': Kind.native,
+      'Class.nativeInstanceSetter': Kind.native,
+      'Class.nativeInstanceMethod': Kind.native,
+      'NativeClass.generative': Kind.regular,
+      'NativeClass.fact': Kind.regular,
+      'NativeClass.nativeGenerative': Kind.native,
+      'NativeClass.nativeFact': Kind.native,
+      'NativeClass.instanceField': Kind.native,
+      'NativeClass.instanceGetter': Kind.regular,
+      'NativeClass.instanceSetter': Kind.regular,
+      'NativeClass.instanceMethod': Kind.regular,
+      'NativeClass.staticField': Kind.regular,
+      'NativeClass.staticGetter': Kind.regular,
+      'NativeClass.staticSetter': Kind.regular,
+      'NativeClass.staticMethod': Kind.regular,
+      'NativeClass.nativeInstanceGetter': Kind.native,
+      'NativeClass.nativeInstanceSetter': Kind.native,
+      'NativeClass.nativeInstanceMethod': Kind.native,
+      'NativeClass.nativeStaticGetter': Kind.native,
+      'NativeClass.nativeStaticSetter': Kind.native,
+      'NativeClass.nativeStaticMethod': Kind.native,
+    },
+        skipList: [
+          // External constructors in non-native class
+          //'08',
+          //'09',
+          // External instance members in non-native class
+          //'22',
+          //'23',
+          //'24',
+          // External static members in non-native class
+          //'25',
+          //'26',
+          //'27',
+          // External instance members in native class
+          //'36',
+          //'37',
+          //'38',
+          // External static members in native class
+          //'39',
+          //'40',
+          //'41',
+        ]);
   });
 }
 

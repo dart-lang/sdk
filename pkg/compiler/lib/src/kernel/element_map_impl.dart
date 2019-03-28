@@ -2035,6 +2035,13 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
       ir.Member node, IrAnnotationData annotationData) {
     if (_isNativeMethod(node, annotationData)) {
       if (node.enclosingClass != null && !node.isInstanceMember) {
+        if (!_nativeBasicData
+            .isNativeClass(_elementMap.getClass(node.enclosingClass))) {
+          _elementMap.reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(node),
+              MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS);
+          return false;
+        }
         _setNativeNameForStaticMethod(node, annotationData);
       } else {
         _setNativeName(node, annotationData);
@@ -2065,8 +2072,8 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
     String name = _findJsNameFromAnnotation(node, annotationData);
     name ??= node.name.name;
     if (_isIdentifier(name)) {
-      List<String> nativeNames = _nativeBasicData
-          .getNativeTagsOfClass(_elementMap.getClass(node.enclosingClass));
+      ClassEntity cls = _elementMap.getClass(node.enclosingClass);
+      List<String> nativeNames = _nativeBasicData.getNativeTagsOfClass(cls);
       if (nativeNames.length != 1) {
         failedAt(
             computeSourceSpanFromTreeNode(node),
@@ -2157,15 +2164,25 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
 
   bool _isNativeMethod(ir.Member node, IrAnnotationData annotationData) {
     if (!maybeEnableNative(node.enclosingLibrary.importUri)) return false;
+    bool hasNativeBody;
     if (annotationData != null) {
-      return annotationData.hasNativeBody(node);
+      hasNativeBody = annotationData.hasNativeBody(node);
     } else {
-      return node.annotations.any((ir.Expression expression) {
+      hasNativeBody = node.annotations.any((ir.Expression expression) {
         return expression is ir.ConstructorInvocation &&
             _elementMap.getInterfaceType(expression.constructedType) ==
                 _commonElements.externalNameType;
       });
     }
+    if (!hasNativeBody &&
+        node.isExternal &&
+        !_nativeBasicData.isJsInteropMember(_elementMap.getMember(node))) {
+      // TODO(johnniwinther): Should we change dart:html and friends to use
+      //  `external` instead of the native body syntax?
+      _elementMap.reporter.reportErrorMessage(
+          computeSourceSpanFromTreeNode(node), MessageKind.NON_NATIVE_EXTERNAL);
+    }
+    return hasNativeBody;
   }
 
   bool _isJsInteropMember(ir.Member node) {

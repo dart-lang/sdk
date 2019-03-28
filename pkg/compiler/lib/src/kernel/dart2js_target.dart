@@ -30,7 +30,8 @@ bool maybeEnableNative(Uri uri) {
   bool allowedTestLibrary() {
     String scriptName = uri.path;
     return scriptName.contains('tests/compiler/dart2js_native') ||
-        scriptName.contains('tests/compiler/dart2js_extra');
+        scriptName.contains('tests/compiler/dart2js_extra') ||
+        scriptName.contains('generated_tests/dart2js_native/native_test');
   }
 
   bool allowedDartLibrary() {
