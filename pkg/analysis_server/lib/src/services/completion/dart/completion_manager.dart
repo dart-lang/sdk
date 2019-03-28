@@ -184,6 +184,10 @@ class DartCompletionManager implements CompletionContributor {
 
     var kinds = includedElementKinds;
     if (kinds != null) {
+      if (opType.includeConstructorSuggestions) {
+        kinds.add(protocol.ElementKind.CLASS);
+        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
+      }
       if (opType.includeTypeNameSuggestions) {
         kinds.add(protocol.ElementKind.CLASS);
         kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
