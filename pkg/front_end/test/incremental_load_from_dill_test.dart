@@ -14,7 +14,10 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions;
+
+import 'package:front_end/src/api_prototype/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
@@ -27,7 +30,10 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart' show Component, Library;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+
+import 'package:kernel/kernel.dart'
+    show Class, Component, Field, Library, Procedure;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -111,6 +117,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
         await newWorldTest(
           map["strong"],
           map["worlds"],
+          map["modules"],
           map["omitPlatform"],
         );
         break;
@@ -180,7 +187,74 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
   checkIsEqual(normalDillData, initializedDillData);
 }
 
-Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
+Future<Map<String, List<int>>> createModules(
+    Map module, final List<int> sdkSummaryData, bool strong) async {
+  final Uri base = Uri.parse("org-dartlang-test:///");
+  final Uri sdkSummary = base.resolve("vm_platform.dill");
+
+  MemoryFileSystem fs = new MemoryFileSystem(base);
+  fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
+
+  // Setup all sources
+  for (Map moduleSources in module.values) {
+    for (String filename in moduleSources.keys) {
+      String data = moduleSources[filename];
+      Uri uri = base.resolve(filename);
+      if (await fs.entityForUri(uri).exists())
+        throw "More than one entry for $filename";
+      fs.entityForUri(uri).writeAsStringSync(data);
+    }
+  }
+
+  Map<String, List<int>> moduleResult = new Map<String, List<int>>();
+
+  for (String moduleName in module.keys) {
+    List<Uri> moduleSources = new List<Uri>();
+    Uri packagesUri;
+    for (String filename in module[moduleName].keys) {
+      Uri uri = base.resolve(filename);
+      if (uri.pathSegments.last == ".packages") {
+        packagesUri = uri;
+      } else {
+        moduleSources.add(uri);
+      }
+    }
+    CompilerOptions options = getOptions(strong);
+    options.fileSystem = fs;
+    options.sdkRoot = null;
+    options.sdkSummary = sdkSummary;
+    options.omitPlatform = true;
+    options.onDiagnostic = (DiagnosticMessage message) {
+      if (getMessageCodeObject(message)?.name == "InferredPackageUri") return;
+      throw message.ansiFormatted;
+    };
+    if (packagesUri != null) {
+      options.packagesFileUri = packagesUri;
+    }
+    TestIncrementalCompiler compiler =
+        new TestIncrementalCompiler(options, moduleSources.first, null);
+    Component c = await compiler.computeDelta(entryPoints: moduleSources);
+    c.computeCanonicalNames();
+    List<Library> wantedLibs = new List<Library>();
+    for (Library lib in c.libraries) {
+      if (moduleSources.contains(lib.importUri) ||
+          moduleSources.contains(lib.fileUri)) {
+        wantedLibs.add(lib);
+      }
+    }
+    if (wantedLibs.length != moduleSources.length) {
+      throw "Module probably not setup right.";
+    }
+    Component result = new Component(libraries: wantedLibs);
+    List<int> resultBytes = util.postProcess(result);
+    moduleResult[moduleName] = resultBytes;
+  }
+
+  return moduleResult;
+}
+
+Future<Null> newWorldTest(
+    bool strong, List worlds, Map modules, bool omitPlatform) async {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
@@ -200,7 +274,49 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
   Map<String, String> sourceFiles;
   CompilerOptions options;
   TestIncrementalCompiler compiler;
+
+  Map<String, List<int>> moduleData;
+  Map<String, Component> moduleComponents;
+  Component sdk;
+  if (modules != null) {
+    moduleData = await createModules(modules, sdkSummaryData, strong);
+    sdk = newestWholeComponent = new Component();
+    new BinaryBuilder(sdkSummaryData, filename: null, disableLazyReading: false)
+        .readComponent(newestWholeComponent);
+  }
+
   for (YamlMap world in worlds) {
+    List<Component> modulesToUse;
+    if (world["modules"] != null) {
+      moduleComponents ??= new Map<String, Component>();
+
+      sdk.adoptChildren();
+      for (Component c in moduleComponents.values) {
+        c.adoptChildren();
+      }
+      sdk.unbindCanonicalNames();
+      sdk.computeCanonicalNames();
+
+      modulesToUse = new List<Component>();
+      for (String moduleName in world["modules"]) {
+        Component moduleComponent = moduleComponents[moduleName];
+        if (moduleComponent != null) {
+          moduleComponent.computeCanonicalNames();
+          modulesToUse.add(moduleComponent);
+        }
+      }
+      for (String moduleName in world["modules"]) {
+        Component moduleComponent = moduleComponents[moduleName];
+        if (moduleComponent == null) {
+          moduleComponent = new Component(nameRoot: sdk.root);
+          new BinaryBuilder(moduleData[moduleName],
+                  filename: null, disableLazyReading: false)
+              .readComponent(moduleComponent);
+          moduleComponents[moduleName] = moduleComponent;
+          modulesToUse.add(moduleComponent);
+        }
+      }
+    }
     bool brandNewWorld = true;
     if (world["worldType"] == "updated") {
       brandNewWorld = false;
@@ -308,6 +424,11 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
       }
     }
 
+    if (modulesToUse != null) {
+      compiler.setModulesToLoadOnNextComputeDelta(modulesToUse);
+      compiler.invalidateAllSources();
+    }
+
     Stopwatch stopwatch = new Stopwatch()..start();
     Component component = await compiler.computeDelta(
         entryPoints: entries,
@@ -318,6 +439,9 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
     util.throwOnEmptyMixinBodies(component);
     util.throwOnInsufficientUriToSource(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+    checkExpectedContent(world, component);
+
     newestWholeComponentData = util.postProcess(component);
     newestWholeComponent = component;
     print("*****\n\ncomponent:\n"
@@ -431,6 +555,45 @@ Future<Null> newWorldTest(bool strong, List worlds, bool omitPlatform) async {
         Expect.fail("Previously got error messages $prevFormattedWarnings, "
             "now had ${formattedWarnings}.");
       }
+    }
+  }
+}
+
+void checkExpectedContent(YamlMap world, Component component) {
+  if (world["expectedContent"] != null) {
+    Map<String, Set<String>> actualContent = new Map<String, Set<String>>();
+    for (Library lib in component.libraries) {
+      Set<String> libContent =
+          actualContent[lib.importUri.toString()] = new Set<String>();
+      for (Class c in lib.classes) {
+        libContent.add("Class ${c.name}");
+      }
+      for (Procedure p in lib.procedures) {
+        libContent.add("Procedure ${p.name}");
+      }
+      for (Field f in lib.fields) {
+        libContent.add("Field ${f.name}");
+      }
+    }
+
+    Map expectedContent = world["expectedContent"];
+
+    doThrow() {
+      throw "Expected and actual content not the same.\n"
+          "Expected $expectedContent.\n"
+          "Got $actualContent";
+    }
+
+    if (actualContent.length != expectedContent.length) doThrow();
+    Set<String> missingKeys = actualContent.keys.toSet()
+      ..removeAll(expectedContent.keys);
+    if (missingKeys.isNotEmpty) doThrow();
+    for (String key in expectedContent.keys) {
+      Set<String> expected = new Set<String>.from(expectedContent[key]);
+      Set<String> actual = actualContent[key].toSet();
+      if (expected.length != actual.length) doThrow();
+      actual.removeAll(expected);
+      if (actual.isNotEmpty) doThrow();
     }
   }
 }

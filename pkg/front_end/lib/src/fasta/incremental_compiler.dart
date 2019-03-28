@@ -211,6 +211,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
 
+      invalidateNotKeptUserBuilders(invalidatedUris);
+
       ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
       Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
       List<LibraryBuilder> reusedLibraries = computeReusedLibraries(
@@ -223,6 +225,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         LibraryBuilder builder = dillLoadedData.loader.builders.remove(uri);
         userBuilders?.remove(uri);
         CompilerContext.current.uriToSource.remove(builder.fileUri);
+      }
+
+      if (hasToCheckPackageUris) {
+        // The package file was changed.
+        // Make sure the dill loader is on the same page.
+        DillTarget oldDillLoadedData = dillLoadedData;
+        dillLoadedData =
+            new DillTarget(ticker, uriTranslator, c.options.target);
+        for (DillLibraryBuilder library
+            in oldDillLoadedData.loader.builders.values) {
+          library.loader = dillLoadedData.loader;
+          dillLoadedData.loader.builders[library.uri] = library;
+          if (library.uri.scheme == "dart" && library.uri.path == "core") {
+            dillLoadedData.loader.coreLibrary = library;
+          }
+        }
       }
 
       for (LibraryBuilder builder in notReusedLibraries) {
@@ -249,6 +267,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ticker.logMs("Decided to reuse ${reusedLibraries.length}"
             " of ${userCode.loader.builders.length} libraries");
       }
+
+      await loadEnsureLoadedComponents(reusedLibraryUris, reusedLibraries);
 
       KernelTarget userCodeOld = userCode;
       userCode = new KernelTarget(
@@ -342,13 +362,57 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void invalidateNotKeptUserBuilders(Set<Uri> invalidatedUris) {
-    throw UnimplementedError("Not implemented yet.");
+    if (modulesToLoad != null && userBuilders != null) {
+      Set<Library> loadedNotKept = new Set<Library>();
+      for (LibraryBuilder builder in userBuilders.values) {
+        loadedNotKept.add(builder.target);
+      }
+      for (Component module in modulesToLoad) {
+        loadedNotKept.removeAll(module.libraries);
+      }
+      for (Library lib in loadedNotKept) {
+        invalidatedUris.add(lib.importUri);
+      }
+    }
   }
 
   /// Internal method.
   Future loadEnsureLoadedComponents(
       Set<Uri> reusedLibraryUris, List<LibraryBuilder> reusedLibraries) async {
-    throw UnimplementedError("Not implemented yet.");
+    if (modulesToLoad != null) {
+      bool loadedAnything = false;
+      for (Component module in modulesToLoad) {
+        bool usedComponent = false;
+        for (Library lib in module.libraries) {
+          if (!reusedLibraryUris.contains(lib.importUri)) {
+            dillLoadedData.loader.libraries.add(lib);
+            dillLoadedData.addLibrary(lib);
+            reusedLibraries.add(dillLoadedData.loader.read(lib.importUri, -1));
+            usedComponent = true;
+          }
+        }
+        if (usedComponent) {
+          dillLoadedData.uriToSource.addAll(module.uriToSource);
+          loadedAnything = true;
+        }
+      }
+      if (loadedAnything) {
+        await dillLoadedData.buildOutlines();
+        userBuilders = <Uri, LibraryBuilder>{};
+        platformBuilders = <LibraryBuilder>[];
+        dillLoadedData.loader.builders.forEach((uri, builder) {
+          if (builder.uri.scheme == "dart") {
+            platformBuilders.add(builder);
+          } else {
+            userBuilders[uri] = builder;
+          }
+        });
+        if (userBuilders.isEmpty) {
+          userBuilders = null;
+        }
+      }
+      modulesToLoad = null;
+    }
   }
 
   /// Internal method.
@@ -849,12 +913,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   void invalidateAllSources() {
-    throw UnimplementedError("Not implemented yet.");
+    if (userCode != null) {
+      Set<Uri> uris = new Set<Uri>.from(userCode.loader.builders.keys);
+      uris.removeAll(dillLoadedData.loader.builders.keys);
+      invalidatedUris.addAll(uris);
+    }
   }
 
   @override
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
-    throw UnimplementedError("Not implemented yet.");
+    modulesToLoad = components.toList();
   }
 
   /// Internal method.
