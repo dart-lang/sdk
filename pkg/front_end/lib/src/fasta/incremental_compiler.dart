@@ -227,7 +227,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         CompilerContext.current.uriToSource.remove(builder.fileUri);
       }
 
-      if (hasToCheckPackageUris && false) {
+      if (hasToCheckPackageUris) {
         // The package file was changed.
         // Make sure the dill loader is on the same page.
         DillTarget oldDillLoadedData = dillLoadedData;
@@ -241,6 +241,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             dillLoadedData.loader.coreLibrary = library;
           }
         }
+        dillLoadedData.loader.first = oldDillLoadedData.loader.first;
+        dillLoadedData.loader.libraries
+            .addAll(oldDillLoadedData.loader.libraries);
       }
 
       for (LibraryBuilder builder in notReusedLibraries) {
@@ -295,12 +298,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       Component componentWithDill = await userCode.buildOutlines();
 
-      // This is not the full component. It is the component including all
-      // libraries loaded from .dill files.
+      // This is not the full component. It is the component consisting of all
+      // newly compiled libraries and all libraries loaded from .dill files or
+      // directly from components.
+      // Technically, it's the combination of userCode.loader.libraries and
+      // dillLoadedData.loader.libraries.
       if (!outlineOnly) {
         componentWithDill =
             await userCode.buildComponent(verify: c.options.verify);
       }
+
+      recordNonFullComponentForTesting(componentWithDill);
+
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
         hasToCheckPackageUris = false;
@@ -926,6 +935,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
     modulesToLoad = components.toList();
   }
+
+  /// Internal method.
+  void recordNonFullComponentForTesting(Component component) {}
 
   /// Internal method.
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {}

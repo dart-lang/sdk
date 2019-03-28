@@ -842,6 +842,17 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   }
 
   @override
+  void recordNonFullComponentForTesting(Component component) {
+    // It should at least contain the sdk. Slight smoke test.
+    if (!component.libraries
+        .map((lib) => lib.importUri.toString())
+        .contains("dart:core")) {
+      throw "Loaders builder should contain the sdk, "
+          "but didn't even contain dart:core.";
+    }
+  }
+
+  @override
   Future<Component> computeDelta(
       {List<Uri> entryPoints, bool fullComponent = false}) async {
     Component result = await super
