@@ -175,7 +175,10 @@ void ClassIndex::Init(intptr_t class_offset, intptr_t class_size) {
       class_offset + class_size - 4 - (procedure_count_ + 1) * 4;
 }
 
-KernelLoader::KernelLoader(Program* program)
+using UriToSourceTable = DirectChainedHashMap<UriToSourceTableTrait>;
+
+KernelLoader::KernelLoader(Program* program,
+                           UriToSourceTable* uri_to_source_table)
     : program_(program),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
@@ -209,7 +212,7 @@ KernelLoader::KernelLoader(Program* program)
         "Trying to load a concatenated dill file at a time where that is "
         "not allowed");
   }
-  InitializeFields();
+  InitializeFields(uri_to_source_table);
 }
 
 void KernelLoader::ReadObfuscationProhibitions() {
@@ -223,7 +226,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
   TIMELINE_DURATION(thread, Isolate, "LoadKernel");
 
   if (program->is_single_program()) {
-    KernelLoader loader(program);
+    KernelLoader loader(program, /*uri_to_source_table=*/nullptr);
     return Object::Handle(loader.LoadProgram(process_pending_classes));
   }
 
@@ -233,8 +236,50 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
 
   Zone* zone = thread->zone();
   Library& library = Library::Handle(zone);
-  // Create "fake programs" for each sub-program.
   intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+
+  // First index all source tables.
+  UriToSourceTable uri_to_source_table;
+  UriToSourceTableEntry wrapper;
+  for (intptr_t i = subprogram_count - 1; i >= 0; --i) {
+    intptr_t subprogram_start = subprogram_file_starts.At(i);
+    intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+    Thread* thread_ = Thread::Current();
+    Zone* zone_ = thread_->zone();
+    TranslationHelper translation_helper(thread);
+    KernelReaderHelper helper_(zone_, &translation_helper,
+                               program->kernel_data() + subprogram_start,
+                               subprogram_end - subprogram_start, 0);
+    const intptr_t source_table_size = helper_.SourceTableSize();
+    for (intptr_t index = 0; index < source_table_size; ++index) {
+      const String& uri_string = helper_.SourceTableUriFor(index);
+      wrapper.uri = &uri_string;
+      TypedData& line_starts =
+          TypedData::Handle(Z, helper_.GetLineStartsFor(index));
+      if (line_starts.Length() == 0) continue;
+      const String& script_source = helper_.GetSourceFor(index);
+      wrapper.uri = &uri_string;
+      UriToSourceTableEntry* pair = uri_to_source_table.LookupValue(&wrapper);
+      if (pair != NULL) {
+        // At least two entries with content. Unless the content is the same
+        // that's not valid.
+        if (pair->sources->CompareTo(script_source) != 0 ||
+            !pair->line_starts->CanonicalizeEquals(line_starts)) {
+          FATAL(
+              "Invalid kernel binary: Contains at least two source entries "
+              "that do not agree.");
+        }
+      } else {
+        UriToSourceTableEntry* tmp = new UriToSourceTableEntry();
+        tmp->uri = &uri_string;
+        tmp->sources = &script_source;
+        tmp->line_starts = &line_starts;
+        uri_to_source_table.Insert(tmp);
+      }
+    }
+  }
+
+  // Create "fake programs" for each sub-program.
   for (intptr_t i = subprogram_count - 1; i >= 0; --i) {
     intptr_t subprogram_start = subprogram_file_starts.At(i);
     intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
@@ -243,7 +288,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     reader.set_offset(0);
     Program* subprogram = Program::ReadFrom(&reader);
     ASSERT(subprogram->is_single_program());
-    KernelLoader loader(subprogram);
+    KernelLoader loader(subprogram, &uri_to_source_table);
     Object& load_result = Object::Handle(loader.LoadProgram(false));
     if (load_result.IsError()) return load_result;
 
@@ -301,7 +346,7 @@ RawString* KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
   return String::null();
 }
 
-void KernelLoader::InitializeFields() {
+void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   const intptr_t source_table_size = helper_.SourceTableSize();
   const Array& scripts =
       Array::Handle(Z, Array::New(source_table_size, Heap::kOld));
@@ -370,7 +415,7 @@ void KernelLoader::InitializeFields() {
 
   Script& script = Script::Handle(Z);
   for (intptr_t index = 0; index < source_table_size; ++index) {
-    script = LoadScriptAt(index);
+    script = LoadScriptAt(index, uri_to_source_table);
     scripts.SetAt(index, script);
   }
 
@@ -813,7 +858,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
     // kernel files, these will constitute the modified libraries.
     *is_empty_program = true;
     if (program->is_single_program()) {
-      KernelLoader loader(program);
+      KernelLoader loader(program, /*uri_to_source_table=*/nullptr);
       loader.walk_incremental_kernel(modified_libs, is_empty_program,
                                      p_num_classes, p_num_procedures);
     }
@@ -831,7 +876,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       reader.set_offset(0);
       Program* subprogram = Program::ReadFrom(&reader);
       ASSERT(subprogram->is_single_program());
-      KernelLoader loader(subprogram);
+      KernelLoader loader(subprogram, /*uri_to_source_table=*/nullptr);
       loader.walk_incremental_kernel(modified_libs, is_empty_program,
                                      p_num_classes, p_num_procedures);
       delete subprogram;
@@ -1977,33 +2022,49 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
   return klass;
 }
 
-RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
+RawScript* KernelLoader::LoadScriptAt(intptr_t index,
+                                      UriToSourceTable* uri_to_source_table) {
   const String& uri_string = helper_.SourceTableUriFor(index);
   const String& import_uri_string =
       helper_.SourceTableImportUriFor(index, program_->binary_version());
-  const String& script_source = helper_.GetSourceFor(index);
+
   String& sources = String::Handle(Z);
-  TypedData& line_starts =
-      TypedData::Handle(Z, helper_.GetLineStartsFor(index));
-  if (script_source.raw() == Symbols::Empty().raw() &&
-      line_starts.Length() == 0 && uri_string.Length() > 0) {
-    // Entry included only to provide URI - actual source should already exist
-    // in the VM, so try to find it.
-    Library& lib = Library::Handle(Z);
-    Script& script = Script::Handle(Z);
-    const GrowableObjectArray& libs =
-        GrowableObjectArray::Handle(isolate_->object_store()->libraries());
-    for (intptr_t i = 0; i < libs.Length(); i++) {
-      lib ^= libs.At(i);
-      script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
-      if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
-        sources ^= script.Source();
-        line_starts ^= script.line_starts();
-        break;
-      }
+  TypedData& line_starts = TypedData::Handle(Z);
+
+  if (uri_to_source_table != nullptr) {
+    UriToSourceTableEntry wrapper;
+    wrapper.uri = &uri_string;
+    UriToSourceTableEntry* pair = uri_to_source_table->LookupValue(&wrapper);
+    if (pair != nullptr) {
+      sources ^= pair->sources->raw();
+      line_starts ^= pair->line_starts->raw();
     }
-  } else {
-    sources = script_source.raw();
+  }
+
+  if (sources.IsNull() || line_starts.IsNull()) {
+    const String& script_source = helper_.GetSourceFor(index);
+    line_starts ^= helper_.GetLineStartsFor(index);
+
+    if (script_source.raw() == Symbols::Empty().raw() &&
+        line_starts.Length() == 0 && uri_string.Length() > 0) {
+      // Entry included only to provide URI - actual source should already exist
+      // in the VM, so try to find it.
+      Library& lib = Library::Handle(Z);
+      Script& script = Script::Handle(Z);
+      const GrowableObjectArray& libs =
+          GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+      for (intptr_t i = 0; i < libs.Length(); i++) {
+        lib ^= libs.At(i);
+        script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
+        if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+          sources ^= script.Source();
+          line_starts ^= script.line_starts();
+          break;
+        }
+      }
+    } else {
+      sources = script_source.raw();
+    }
   }
 
   const Script& script =
