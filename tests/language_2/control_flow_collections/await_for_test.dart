@@ -257,15 +257,6 @@ Future<void> testRuntimeErrors() async {
   asyncExpectThrows<TypeError>(
       () async => <int>{await for (int i in nonStream) 1});
 
-  // Null stream.
-  Stream<int> nullStream = null;
-  asyncExpectThrows<NoSuchMethodError>(
-      () async => <int>[await for (var i in nullStream) 1]);
-  asyncExpectThrows<NoSuchMethodError>(
-      () async => <int, int>{await for (var i in nullStream) 1: 1});
-  asyncExpectThrows<NoSuchMethodError>(
-      () async => <int>{await for (var i in nullStream) 1});
-
   // Wrong element type.
   dynamic nonInt = "string";
   asyncExpectThrows<TypeError>(
