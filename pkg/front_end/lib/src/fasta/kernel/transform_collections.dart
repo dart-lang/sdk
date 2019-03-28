@@ -21,7 +21,6 @@ import 'package:kernel/ast.dart'
         ForStatement,
         IfStatement,
         InterfaceType,
-        InvalidExpression,
         ListLiteral,
         MapEntry,
         MapLiteral,
@@ -97,7 +96,7 @@ class CollectionTransformer extends Transformer {
 
   TreeNode _translateListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
-      {bool isSet: false, bool isConst: false}) {
+      {bool isSet: false}) {
     // Translate elements in place up to the first non-expression, if any.
     int i = 0;
     for (; i < elements.length; ++i) {
@@ -107,22 +106,6 @@ class CollectionTransformer extends Transformer {
 
     // If there were only expressions, we are done.
     if (i == elements.length) return node;
-
-    if (isConst) {
-      // We don't desugar const collections here.  Remove non-expression
-      // elements for now so that they don't leak out of the transformation.
-      for (; i < elements.length; ++i) {
-        Expression element = elements[i];
-        if (element is ControlFlowElement) {
-          elements[i] = InvalidExpression('unimplemented collection element')
-            ..fileOffset = element.fileOffset
-            ..parent = node;
-        } else {
-          elements[i] = element.accept(this)..parent = node;
-        }
-      }
-      return node;
-    }
 
     // Build a block expression and create an empty list or set.
     VariableDeclaration result;
@@ -271,18 +254,27 @@ class CollectionTransformer extends Transformer {
 
   @override
   TreeNode visitListLiteral(ListLiteral node) {
+    // Const collections are handled by the constant evaluator.
+    if (node.isConst) return node;
+
     return _translateListOrSet(node, node.typeArgument, node.expressions,
-        isConst: node.isConst, isSet: false);
+        isSet: false);
   }
 
   @override
   TreeNode visitSetLiteral(SetLiteral node) {
+    // Const collections are handled by the constant evaluator.
+    if (node.isConst) return node;
+
     return _translateListOrSet(node, node.typeArgument, node.expressions,
-        isConst: node.isConst, isSet: true);
+        isSet: true);
   }
 
   @override
   TreeNode visitMapLiteral(MapLiteral node) {
+    // Const collections are handled by the constant evaluator.
+    if (node.isConst) return node;
+
     // Translate entries in place up to the first control-flow entry, if any.
     int i = 0;
     for (; i < node.entries.length; ++i) {
@@ -292,23 +284,6 @@ class CollectionTransformer extends Transformer {
 
     // If there were no control-flow entries we are done.
     if (i == node.entries.length) return node;
-
-    if (node.isConst) {
-      // We don't desugar const maps here.  Remove control-flow entries for now
-      // so that they don't leak out of the transformation.
-      for (; i < node.entries.length; ++i) {
-        MapEntry entry = node.entries[i];
-        if (entry is ControlFlowMapEntry) {
-          node.entries[i] = new MapEntry(
-              InvalidExpression('unimplemented map entry')
-                ..fileOffset = entry.fileOffset,
-              new NullLiteral())
-            ..parent = node;
-        } else {
-          node.entries[i] = node.entries[i].accept(this)..parent = node;
-        }
-      }
-    }
 
     // Build a block expression and create an empty map.
     VariableDeclaration result = new VariableDeclaration.forValue(
