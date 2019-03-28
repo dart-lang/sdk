@@ -44,7 +44,8 @@ export '../api_prototype/diagnostic_message.dart'
         getMessageRelatedInformation,
         getMessageUri;
 
-export '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+export '../api_prototype/experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag;
 
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;

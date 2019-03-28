@@ -8,7 +8,8 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
-import 'experimental_flags.dart' show ExperimentalFlag, parseExperimentalFlag;
+import 'experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag, parseExperimentalFlag;
 
 import 'file_system.dart' show FileSystem;
 
@@ -209,30 +210,38 @@ class CompilerOptions {
 
 /// Parse experimental flags from a list of strings, each of which is either a
 /// flag name or a flag name prefixed by 'no-'. Return a map of flags to their
-/// values that can be passed to [experimentalFlags].
+/// values that can be passed to [experimentalFlags]. The returned map is
+/// normalized to contain default values for unmentioned flags.
 ///
 /// If an unknown flag is mentioned, or a flag is mentioned more than once,
 /// the supplied error handler is called with an error message.
 Map<ExperimentalFlag, bool> parseExperimentalFlags(
     Iterable<String> experiments, void onError(String message)) {
   Map<ExperimentalFlag, bool> flags = <ExperimentalFlag, bool>{};
-  if (experiments == null) return flags;
-  for (String experiment in experiments) {
-    bool value = true;
-    if (experiment.startsWith("no-")) {
-      value = false;
-      experiment = experiment.substring(3);
-    }
-    ExperimentalFlag flag = parseExperimentalFlag(experiment);
-    if (flag == null) {
-      onError("Unknown experiment: " + experiment);
-    } else if (flags.containsKey(flag)) {
-      if (flags[flag] != value) {
-        onError("Experiment specified with conflicting values: " + experiment);
+  if (experiments != null) {
+    for (String experiment in experiments) {
+      bool value = true;
+      if (experiment.startsWith("no-")) {
+        value = false;
+        experiment = experiment.substring(3);
       }
-    } else {
-      flags[flag] = value;
+      ExperimentalFlag flag = parseExperimentalFlag(experiment);
+      if (flag == null) {
+        onError("Unknown experiment: " + experiment);
+      } else if (flags.containsKey(flag)) {
+        if (flags[flag] != value) {
+          onError(
+              "Experiment specified with conflicting values: " + experiment);
+        }
+      } else {
+        flags[flag] = value;
+      }
     }
+  }
+  for (ExperimentalFlag flag in ExperimentalFlag.values) {
+    assert(defaultExperimentalFlags.containsKey(flag),
+        "No default value for $flag.");
+    flags[flag] ??= defaultExperimentalFlags[flag];
   }
   return flags;
 }

@@ -327,7 +327,7 @@ class CompilerOptions implements DiagnosticOptions {
       {Uri librariesSpecificationUri, Uri platformBinaries}) {
     Map<fe.ExperimentalFlag, bool> languageExperiments =
         _extractExperiments(options);
-    if (equalMaps(languageExperiments, defaultExperimentalFlags)) {
+    if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       platformBinaries ??= fe.computePlatformBinariesLocation();
     }
     return new CompilerOptions()
@@ -424,7 +424,7 @@ class CompilerOptions implements DiagnosticOptions {
       throw new ArgumentError("[packageRoot] must end with a /");
     }
     if (platformBinaries == null &&
-        equalMaps(languageExperiments, defaultExperimentalFlags)) {
+        equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
   }
@@ -564,18 +564,8 @@ List<Uri> _extractUriListOption(List<String> options, String flag) {
 Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
   List<String> experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
-  Map<fe.ExperimentalFlag, bool> flags = fe.parseExperimentalFlags(
+  return fe.parseExperimentalFlags(
       experiments, (String error) => throw new ArgumentError(error));
-  for (fe.ExperimentalFlag flag in defaultExperimentalFlags.keys) {
-    flags[flag] ??= defaultExperimentalFlags[flag];
-  }
-  return flags;
 }
-
-const Map<fe.ExperimentalFlag, bool> defaultExperimentalFlags = {
-  fe.ExperimentalFlag.constantUpdate2018: false,
-  fe.ExperimentalFlag.controlFlowCollections: false,
-  fe.ExperimentalFlag.spreadCollections: false,
-};
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";
