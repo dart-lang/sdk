@@ -383,8 +383,7 @@ void ConstantEvaluator::EvaluateStaticGet() {
       H.ReportError(script_, position, "Not a constant expression.");
     } else if (field.StaticValue() == Object::sentinel().raw()) {
       field.SetStaticValue(Object::transition_sentinel());
-      const Object& value =
-          Object::Handle(Compiler::EvaluateStaticInitializer(field));
+      const Object& value = Object::Handle(Z, field.EvaluateInitializer());
       if (value.IsError()) {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(Error::Cast(value), script_, position,

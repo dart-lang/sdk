@@ -1246,7 +1246,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
         if (field.IsUninitialized()) {
           if (pending_unevaluated_const_fields.IsNull()) {
             // Evaluate right away.
-            error = field.EvaluateInitializer();
+            error = field.Initialize();
             if (!error.IsNull()) {
               ReportError(error);
             }

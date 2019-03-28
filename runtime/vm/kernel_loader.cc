@@ -707,7 +707,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     for (intptr_t i = 0, n = pending_unevaluated_const_fields.Length(); i < n;
          i++) {
       field ^= pending_unevaluated_const_fields.At(i);
-      error = field.EvaluateInitializer();
+      error = field.Initialize();
       if (!error.IsNull()) {
         H.ReportError(error, "postponed field initializer");
       }
@@ -2242,9 +2242,8 @@ RawFunction::Kind KernelLoader::GetFunctionType(
 RawFunction* CreateFieldInitializerFunction(Thread* thread,
                                             Zone* zone,
                                             const Field& field) {
-  if (field.InitializerFunction() != Function::null()) {
-    return field.InitializerFunction();
-  }
+  ASSERT(field.InitializerFunction() == Function::null());
+
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 

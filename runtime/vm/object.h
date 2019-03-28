@@ -3428,8 +3428,13 @@ class Field : public Object {
 
   bool IsUninitialized() const;
 
-  DART_WARN_UNUSED_RESULT RawError* EvaluateInitializer() const;
+  // Run initializer and set field value.
+  DART_WARN_UNUSED_RESULT RawError* Initialize() const;
 
+  // Run initializer only.
+  DART_WARN_UNUSED_RESULT RawObject* EvaluateInitializer() const;
+
+  RawFunction* EnsureInitializerFunction() const;
   RawFunction* InitializerFunction() const {
     return raw_ptr()->initializer_function_;
   }
@@ -3453,8 +3458,10 @@ class Field : public Object {
   static RawString* LookupSetterSymbol(const String& field_name);
   static RawString* NameFromGetter(const String& getter_name);
   static RawString* NameFromSetter(const String& setter_name);
+  static RawString* NameFromInit(const String& init_name);
   static bool IsGetterName(const String& function_name);
   static bool IsSetterName(const String& function_name);
+  static bool IsInitName(const String& function_name);
 
  private:
   static void InitializeNew(const Field& result,

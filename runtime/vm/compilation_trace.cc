@@ -178,7 +178,14 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
     return Object::null();
   }
 
+  bool is_dyn = Function::IsDynamicInvocationForwarderName(function_name_);
+  if (is_dyn) {
+    function_name_ =
+        Function::DemangleDynamicInvocationForwarderName(function_name_);
+  }
+
   bool is_getter = Field::IsGetterName(function_name_);
+  bool is_init = Field::IsInitName(function_name_);
   bool add_closure = false;
   bool processed = false;
 
@@ -190,6 +197,14 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
       add_closure = true;
       function_name2_ = Field::NameFromGetter(function_name_);
       function_ = lib_.LookupFunctionAllowPrivate(function_name2_);
+      field_ = lib_.LookupFieldAllowPrivate(function_name2_);
+    }
+    if (field_.IsNull() && is_getter) {
+      function_name2_ = Field::NameFromGetter(function_name_);
+      field_ = lib_.LookupFieldAllowPrivate(function_name2_);
+    }
+    if (field_.IsNull() && is_init) {
+      function_name2_ = Field::NameFromInit(function_name_);
       field_ = lib_.LookupFieldAllowPrivate(function_name2_);
     }
   } else {
@@ -244,12 +259,20 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
         }
       }
     }
+    if (field_.IsNull() && is_getter) {
+      function_name2_ = Field::NameFromGetter(function_name_);
+      field_ = cls_.LookupFieldAllowPrivate(function_name2_);
+    }
+    if (field_.IsNull() && is_init) {
+      function_name2_ = Field::NameFromInit(function_name_);
+      field_ = cls_.LookupFieldAllowPrivate(function_name2_);
+    }
   }
 
   if (!field_.IsNull() && field_.is_const() && field_.is_static() &&
       (field_.StaticValue() == Object::sentinel().raw())) {
     processed = true;
-    error_ = field_.EvaluateInitializer();
+    error_ = field_.Initialize();
     if (error_.IsError()) {
       if (FLAG_trace_compilation_trace) {
         THR_Print(
@@ -286,6 +309,38 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
         }
         return error_.raw();
       }
+    } else if (is_dyn) {
+      function_name_ = function_.name();  // With private mangling.
+      function_name_ =
+          Function::CreateDynamicInvocationForwarderName(function_name_);
+      function_ = function_.GetDynamicInvocationForwarder(function_name_);
+      error_ = CompileFunction(function_);
+      if (error_.IsError()) {
+        if (FLAG_trace_compilation_trace) {
+          THR_Print(
+              "Compilation trace: error compiling dynamic forwarder %s,%s,%s "
+              "(%s)\n",
+              uri_.ToCString(), class_name_.ToCString(),
+              function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
+        }
+        return error_.raw();
+      }
+    }
+  }
+
+  if (!field_.IsNull() && field_.is_static() && !field_.is_const() &&
+      field_.has_initializer()) {
+    processed = true;
+    function_ = field_.EnsureInitializerFunction();
+    error_ = CompileFunction(function_);
+    if (error_.IsError()) {
+      if (FLAG_trace_compilation_trace) {
+        THR_Print(
+            "Compilation trace: error compiling initializer %s,%s,%s (%s)\n",
+            uri_.ToCString(), class_name_.ToCString(),
+            function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
+      }
+      return error_.raw();
     }
   }
 

@@ -89,6 +89,8 @@ static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* const kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
+static const char* const kInitPrefix = "init:";
+static const intptr_t kInitPrefixLength = strlen(kInitPrefix);
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
 RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
@@ -8253,12 +8255,21 @@ RawString* Field::NameFromSetter(const String& setter_name) {
                       setter_name.Length() - kSetterPrefixLength);
 }
 
+RawString* Field::NameFromInit(const String& init_name) {
+  return Symbols::New(Thread::Current(), init_name, kInitPrefixLength,
+                      init_name.Length() - kInitPrefixLength);
+}
+
 bool Field::IsGetterName(const String& function_name) {
   return function_name.StartsWith(Symbols::GetterPrefix());
 }
 
 bool Field::IsSetterName(const String& function_name) {
   return function_name.StartsWith(Symbols::SetterPrefix());
+}
+
+bool Field::IsInitName(const String& function_name) {
+  return function_name.StartsWith(Symbols::InitPrefix());
 }
 
 void Field::set_name(const String& value) const {
@@ -8637,6 +8648,22 @@ bool Field::IsUninitialized() const {
   return value.raw() == Object::sentinel().raw();
 }
 
+RawFunction* Field::EnsureInitializerFunction() const {
+  ASSERT(is_static() && has_initializer());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& initializer = Function::Handle(zone, InitializerFunction());
+  if (initializer.IsNull()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
+    SetInitializerFunction(initializer);
+#endif
+  }
+  return initializer.raw();
+}
+
 void Field::SetInitializerFunction(const Function& initializer) const {
   ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->initializer_function_, initializer.raw());
@@ -8646,13 +8673,12 @@ bool Field::HasInitializerFunction() const {
   return raw_ptr()->initializer_function_ != Function::null();
 }
 
-RawError* Field::EvaluateInitializer() const {
+RawError* Field::Initialize() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
     SetStaticValue(Object::transition_sentinel());
-    const Object& value =
-        Object::Handle(Compiler::EvaluateStaticInitializer(*this));
+    const Object& value = Object::Handle(EvaluateInitializer());
     if (!value.IsNull() && value.IsError()) {
       SetStaticValue(Object::null_instance());
       return Error::Cast(value).raw();
@@ -8669,6 +8695,15 @@ RawError* Field::EvaluateInitializer() const {
     UNREACHABLE();
   }
   return Error::null();
+}
+
+RawObject* Field::EvaluateInitializer() const {
+  Thread* const thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  NoOOBMessageScope no_msg_scope(thread);
+  NoReloadScope no_reload_scope(thread->isolate(), thread);
+  const Function& initializer = Function::Handle(EnsureInitializerFunction());
+  return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
 
 static intptr_t GetListLength(const Object& value) {

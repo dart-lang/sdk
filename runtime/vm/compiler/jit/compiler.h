@@ -127,12 +127,6 @@ class Compiler : public AllStatic {
   // on compilation failure.
   static RawObject* ExecuteOnce(SequenceNode* fragment);
 
-  // Evaluates the initializer expression of the given static field.
-  //
-  // The return value is either a RawInstance on success or a RawError
-  // on compilation failure.
-  static RawObject* EvaluateStaticInitializer(const Field& field);
-
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
   static void ComputeLocalVarDescriptors(const Code& code);

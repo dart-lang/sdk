@@ -1193,78 +1193,6 @@ RawError* Compiler::ReadAllBytecode(const Class& cls) {
   return Error::null();
 }
 
-RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  }
-#endif
-  ASSERT(field.is_static());
-  // The VM sets the field's value to transiton_sentinel prior to
-  // evaluating the initializer value.
-  ASSERT(field.StaticValue() == Object::transition_sentinel().raw());
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
-    ASSERT(thread->IsMutatorThread());
-    NoOOBMessageScope no_msg_scope(thread);
-    NoReloadScope no_reload_scope(thread->isolate(), thread);
-    if (field.HasInitializerFunction()) {
-      const Function& initializer =
-          Function::Handle(field.InitializerFunction());
-      return DartEntry::InvokeFunction(initializer, Object::empty_array());
-    }
-    {
-      VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-#if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                                "CompileStaticInitializer");
-      if (tds.enabled()) {
-        tds.SetNumArguments(1);
-        tds.CopyArgument(0, "field", field.ToCString());
-      }
-#endif  // defined(SUPPORT_TIMELINE)
-
-      StackZone stack_zone(thread);
-      Zone* zone = stack_zone.GetZone();
-      ParsedFunction* parsed_function;
-
-      // Create a one-time-use function to evaluate the initializer and invoke
-      // it immediately.
-      parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
-      const Function& initializer = parsed_function->function();
-
-      if (FLAG_enable_interpreter) {
-        ASSERT(initializer.IsBytecodeAllowed(zone));
-        if (!initializer.HasBytecode()) {
-          RawError* error =
-              kernel::BytecodeReader::ReadFunctionBytecode(thread, initializer);
-          if (error != Error::null()) {
-            return error;
-          }
-        }
-        if (initializer.HasBytecode()) {
-          return DartEntry::InvokeFunction(initializer, Object::empty_array());
-        }
-      }
-
-      // Non-optimized code generator.
-      DartCompilationPipeline pipeline;
-      CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
-      const Code& code = Code::Handle(helper.Compile(&pipeline));
-
-      if (!code.IsNull()) {
-        NOT_IN_PRODUCT(
-            code.set_var_descriptors(Object::empty_var_descriptors()));
-        return DartEntry::InvokeFunction(initializer, Object::empty_array());
-      }
-    }
-  }
-
-  return Thread::Current()->StealStickyError();
-}
-
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
@@ -1714,12 +1642,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
   FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
-}
-
-RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-  ASSERT(field.HasInitializerFunction());
-  const Function& initializer = Function::Handle(field.InitializerFunction());
-  return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {

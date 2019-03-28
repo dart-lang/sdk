@@ -2600,7 +2600,7 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
-  const Error& result = Error::Handle(zone, field.EvaluateInitializer());
+  const Error& result = Error::Handle(zone, field.Initialize());
   ThrowIfError(result);
 }
 
