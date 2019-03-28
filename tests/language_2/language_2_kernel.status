@@ -238,8 +238,6 @@ control_flow_collections/syntax_test: CompileTimeError
 control_flow_collections/type_error_test/00: MissingCompileTimeError
 control_flow_collections/type_error_test/01: MissingCompileTimeError
 control_flow_collections/type_error_test/02: MissingCompileTimeError
-control_flow_collections/type_error_test/07: MissingCompileTimeError
-control_flow_collections/type_error_test/08: MissingCompileTimeError
 control_flow_collections/type_error_test/10: MissingCompileTimeError
 control_flow_collections/type_error_test/11: MissingCompileTimeError
 control_flow_collections/type_error_test/12: MissingCompileTimeError
