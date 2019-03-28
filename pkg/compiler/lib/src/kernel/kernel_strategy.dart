@@ -70,7 +70,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    if (useIrAnnotationsDataForTesting) {
+    if (_options.useCFEConstants) {
       _irAnnotationData = processAnnotations(kernelResult.component);
     }
     _annotationProcessor = new KernelAnnotationProcessor(
@@ -322,10 +322,6 @@ class KernelWorkItem implements WorkItem {
 /// the world impact computation.
 bool useImpactDataForTesting = false;
 
-/// If `true` pragma annotations are computed directly on kernel. This is a
-/// pre-step to modularizing the world impact computation.
-bool useIrAnnotationsDataForTesting = false;
-
 class KernelModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
   final KernelToElementMapImpl _elementMap;
@@ -334,7 +330,7 @@ class KernelModularStrategy extends ModularStrategy {
 
   @override
   List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
-    if (useIrAnnotationsDataForTesting) {
+    if (_elementMap.options.useCFEConstants) {
       return computePragmaAnnotationDataFromIr(node);
     } else {
       return computePragmaAnnotationData(_elementMap.commonElements,

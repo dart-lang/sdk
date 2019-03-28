@@ -186,7 +186,6 @@ main(List<String> args) {
     List<String> options = getOptions(argResults);
 
     runTest({bool useIr}) async {
-      useIrAnnotationsDataForTesting = useIr;
       CompilationResult result = await runCompiler(
           entryPoint: Uri.parse('memory:$pathPrefix/main.dart'),
           memorySourceFiles: source,

@@ -7,11 +7,7 @@ main() {
   nativeMethod();
 }
 
-/*strong.element: nativeMethod:[null|subclass=Object]*/
-/*omit.element: nativeMethod:[null|subclass=Object]*/
-// TODO(johnniwinther): Support native behavior from CFE constants:
-/*strongConst.element: nativeMethod:[null]*/
-/*omitConst.element: nativeMethod:[null]*/
+/*element: nativeMethod:[null|subclass=Object]*/
 nativeMethod()
     // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
     native;

@@ -96,6 +96,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// Flags enabling language experiments.
   Map<fe.ExperimentalFlag, bool> languageExperiments = {};
 
+  /// `true` if CFE performs constant evaluation.
+  bool get useCFEConstants =>
+      languageExperiments[fe.ExperimentalFlag.constantUpdate2018];
+
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 

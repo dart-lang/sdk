@@ -9,11 +9,7 @@ main() {
   createRectangle();
 }
 
-/*strong.element: createRectangle:[null|subclass=DomRectReadOnly]*/
-/*omit.element: createRectangle:[null|subclass=DomRectReadOnly]*/
-// TODO(johnniwinther): Support native behavior from CFE constants:
-/*strongConst.element: createRectangle:[null]*/
-/*omitConst.element: createRectangle:[null]*/
+/*element: createRectangle:[null|subclass=DomRectReadOnly]*/
 Rectangle createRectangle()
     // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
     native;
