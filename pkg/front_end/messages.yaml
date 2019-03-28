@@ -166,6 +166,10 @@ ConstEvalNotListOrSetInSpread:
   template: "Only lists and sets can be used in spreads in constant lists and sets."
   analyzerCode: CONST_SPREAD_EXPECTED_LIST_OR_SET
 
+ConstEvalNotMapInSpread:
+  template: "Only maps can be used in spreads in constant maps."
+  analyzerCode: CONST_SPREAD_EXPECTED_MAP
+
 ConstEvalIterationInConstList:
   template: "Iteration can't be used in a constant list."
   analyzerCode: NON_CONSTANT_LIST_ELEMENT
@@ -173,6 +177,10 @@ ConstEvalIterationInConstList:
 ConstEvalIterationInConstSet:
   template: "Iteration can't be used in a constant set."
   analyzerCode: NON_CONSTANT_SET_ELEMENT
+
+ConstEvalIterationInConstMap:
+  template: "Iteration can't be used in a constant map."
+  analyzerCode: NON_CONSTANT_MAP_ELEMENT
 
 NotConstantExpression:
   template: "#string is not a constant expression."

@@ -41,7 +41,9 @@ import '../fasta_codes.dart'
         messageConstEvalFailedAssertion,
         messageConstEvalIterationInConstList,
         messageConstEvalIterationInConstSet,
+        messageConstEvalIterationInConstMap,
         messageConstEvalNotListOrSetInSpread,
+        messageConstEvalNotMapInSpread,
         messageConstEvalNullValue,
         noLength,
         templateConstEvalDeferredLibrary,
@@ -62,7 +64,15 @@ import '../fasta_codes.dart'
         templateConstEvalZeroDivisor;
 
 import 'collections.dart'
-    show ForElement, ForInElement, IfElement, SpreadElement;
+    show
+        ForElement,
+        ForInElement,
+        IfElement,
+        SpreadElement,
+        ForMapEntry,
+        ForInMapEntry,
+        IfMapEntry,
+        SpreadMapEntry;
 
 Component transformComponent(Component component, ConstantsBackend backend,
     Map<String, String> environmentDefines, ErrorReporter errorReporter,
@@ -886,43 +896,166 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return makeSetConstantFromParts(parts, node, node.typeArgument);
   }
 
+  /// Add a map entry (which is possibly a spread or an if map entry) to a
+  /// constant map represented as a list of (possibly unevaluated)
+  /// maps to be concatenated.
+  /// Each element of [parts] is either a `List<ConstantMapEntry>` (containing
+  /// fully evaluated map entries) or a `Constant` (potentially unevaluated).
+  void addToMapConstant(List<Object> parts, MapEntry element, DartType keyType,
+      DartType valueType, Set<Constant> seenKeys) {
+    if (element is SpreadMapEntry) {
+      Constant spread = _evaluateSubexpression(element.expression);
+      if (shouldBeUnevaluated) {
+        // Unevaluated spread
+        if (element.isNullAware) {
+          VariableDeclaration temp =
+              new VariableDeclaration(null, initializer: extract(spread));
+          parts.add(unevaluated(
+              element.expression,
+              new Let(
+                  temp,
+                  new ConditionalExpression(
+                      new MethodInvocation(new VariableGet(temp),
+                          new Name('=='), new Arguments([new NullLiteral()])),
+                      new MapLiteral([], isConst: true),
+                      new VariableGet(temp),
+                      const DynamicType()))));
+        } else {
+          parts.add(spread);
+        }
+      } else if (spread == nullConstant) {
+        // Null spread
+        if (!element.isNullAware) {
+          report(element.expression, messageConstEvalNullValue);
+        }
+      } else {
+        // Fully evaluated spread
+        if (spread is MapConstant) {
+          for (ConstantMapEntry entry in spread.entries) {
+            addToMapConstant(
+                parts,
+                new MapEntry(new ConstantExpression(entry.key),
+                    new ConstantExpression(entry.value)),
+                keyType,
+                valueType,
+                seenKeys);
+          }
+        } else {
+          // Not map in spread
+          return report(element.expression, messageConstEvalNotMapInSpread);
+        }
+      }
+    } else if (element is IfMapEntry) {
+      Constant condition = _evaluateSubexpression(element.condition);
+      if (shouldBeUnevaluated) {
+        // Unevaluated if
+        enterLazy();
+        Constant then = _evaluateSubexpression(
+            new MapLiteral([cloner.clone(element.then)], isConst: true));
+        Constant otherwise;
+        if (element.otherwise != null) {
+          otherwise = _evaluateSubexpression(
+              new MapLiteral([cloner.clone(element.otherwise)], isConst: true));
+        } else {
+          otherwise =
+              new MapConstant(const DynamicType(), const DynamicType(), []);
+        }
+        leaveLazy();
+        parts.add(unevaluated(
+            element.condition,
+            new ConditionalExpression(extract(condition), extract(then),
+                extract(otherwise), const DynamicType())));
+      } else {
+        // Fully evaluated if
+        if (condition == trueConstant) {
+          addToMapConstant(parts, element.then, keyType, valueType, seenKeys);
+        } else if (condition == falseConstant) {
+          if (element.otherwise != null) {
+            addToMapConstant(
+                parts, element.otherwise, keyType, valueType, seenKeys);
+          }
+        } else if (condition == nullConstant) {
+          report(element.condition, messageConstEvalNullValue);
+        } else {
+          report(
+              element.condition,
+              templateConstEvalInvalidType.withArguments(
+                  condition,
+                  typeEnvironment.boolType,
+                  condition.getType(typeEnvironment)));
+        }
+      }
+    } else if (element is ForMapEntry || element is ForInMapEntry) {
+      // For or for-in
+      report(element, messageConstEvalIterationInConstMap);
+    } else {
+      // Ordinary map entry
+      Constant key = _evaluateSubexpression(element.key);
+      Constant value = _evaluateSubexpression(element.value);
+      if (shouldBeUnevaluated) {
+        parts.add(unevaluated(element.key,
+            new MapLiteral([new MapEntry(extract(key), extract(value))])));
+      } else {
+        List<ConstantMapEntry> entries;
+        if (parts.last is List<ConstantMapEntry>) {
+          entries = parts.last;
+        } else {
+          parts.add(entries = <ConstantMapEntry>[]);
+        }
+        if (!seenKeys.add(key)) {
+          report(element.key, templateConstEvalDuplicateKey.withArguments(key));
+        } else {
+          entries.add(new ConstantMapEntry(
+              ensureIsSubtype(key, keyType, element.key),
+              ensureIsSubtype(value, valueType, element.value)));
+        }
+      }
+    }
+  }
+
+  Constant makeMapConstantFromParts(List<Object> parts, Expression node,
+      DartType keyType, DartType valueType) {
+    if (parts.length == 1) {
+      // Fully evaluated
+      return canonicalize(backend
+          .lowerMapConstant(new MapConstant(keyType, valueType, parts.single)));
+    }
+    List<Expression> maps = <Expression>[];
+    for (Object part in parts) {
+      if (part is List<ConstantMapEntry>) {
+        maps.add(
+            new ConstantExpression(new MapConstant(keyType, valueType, part)));
+      } else if (part is Constant) {
+        maps.add(extract(part));
+      } else {
+        throw 'Non-constant in constant map';
+      }
+    }
+    return unevaluated(node,
+        new MapConcatenation(maps, keyType: keyType, valueType: valueType));
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (!node.isConst) {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('Map'));
     }
-    final List<ConstantMapEntry> entries =
-        new List<ConstantMapEntry>(node.entries.length);
-    for (int i = 0; i < node.entries.length; ++i) {
-      final key = _evaluateSubexpression(node.entries[i].key);
-      final value = _evaluateSubexpression(node.entries[i].value);
-      entries[i] = new ConstantMapEntry(key, value);
+    final Set<Constant> seen = new Set<Constant>.identity();
+    final List<Object> parts = <Object>[<ConstantMapEntry>[]];
+    for (MapEntry element in node.entries) {
+      addToMapConstant(parts, element, node.keyType, node.valueType, seen);
     }
-    if (shouldBeUnevaluated) {
-      final mapEntries = new List<MapEntry>(node.entries.length);
-      for (int i = 0; i < node.entries.length; ++i) {
-        mapEntries[i] =
-            new MapEntry(extract(entries[i].key), extract(entries[i].value));
-      }
-      return unevaluated(
-          node,
-          new MapLiteral(mapEntries,
-              keyType: node.keyType, valueType: node.valueType, isConst: true));
+    return makeMapConstantFromParts(parts, node, node.keyType, node.valueType);
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    final Set<Constant> seen = new Set<Constant>.identity();
+    final List<Object> parts = <Object>[<ConstantMapEntry>[]];
+    for (Expression map in node.maps) {
+      addToMapConstant(parts, new SpreadMapEntry(cloner.clone(map), false),
+          node.keyType, node.valueType, seen);
     }
-    final Set<Constant> usedKeys = new Set<Constant>();
-    for (int i = 0; i < node.entries.length; ++i) {
-      if (!usedKeys.add(entries[i].key)) {
-        // TODO(kustermann): We should change the context handling from just
-        // capturing the `TreeNode`s to a `(TreeNode, String message)` tuple and
-        // report where the first key with the same value was.
-        return report(node.entries[i],
-            templateConstEvalDuplicateKey.withArguments(entries[i].key));
-      }
-    }
-    final DartType keyType = evaluateDartType(node, node.keyType);
-    final DartType valueType = evaluateDartType(node, node.valueType);
-    return canonicalize(
-        backend.lowerMapConstant(new MapConstant(keyType, valueType, entries)));
+    return makeMapConstantFromParts(parts, node, node.keyType, node.valueType);
   }
 
   visitFunctionExpression(FunctionExpression node) {

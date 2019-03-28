@@ -1409,6 +1409,16 @@ const MessageCode messageConstEvalIterationInConstList = const MessageCode(
     message: r"""Iteration can't be used in a constant list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalIterationInConstMap =
+    messageConstEvalIterationInConstMap;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalIterationInConstMap = const MessageCode(
+    "ConstEvalIterationInConstMap",
+    analyzerCodes: <String>["NON_CONSTANT_MAP_ELEMENT"],
+    message: r"""Iteration can't be used in a constant map.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalIterationInConstSet =
     messageConstEvalIterationInConstSet;
 
@@ -1512,6 +1522,15 @@ const MessageCode messageConstEvalNotListOrSetInSpread = const MessageCode(
     analyzerCodes: <String>["CONST_SPREAD_EXPECTED_LIST_OR_SET"],
     message:
         r"""Only lists and sets can be used in spreads in constant lists and sets.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalNotMapInSpread = messageConstEvalNotMapInSpread;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalNotMapInSpread = const MessageCode(
+    "ConstEvalNotMapInSpread",
+    analyzerCodes: <String>["CONST_SPREAD_EXPECTED_MAP"],
+    message: r"""Only maps can be used in spreads in constant maps.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalNullValue = messageConstEvalNullValue;
