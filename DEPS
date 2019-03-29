@@ -67,19 +67,19 @@ vars = {
   "csslib_tag" : "0.14.4+1",
   "dart2js_info_tag" : "0.6.0",
 
-  # Note: Updates to dart_style have to be coordinated with the infrastructure
-  # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
-  # matches the version here.
+  # Note: updates to dart_style have to be coordinated carefully with
+  # the infrastructure-team so that the internal formatter in
+  # `sdk/tools/sdks/dart-sdk/bin/dartfmt` matches the version here.
   #
   # Please follow this process to make updates:
-  #
-  # *   Create a commit that updates the version here to the desired version and
-  #     adds any appropriate CHANGELOG text.
-  # *   Send that to eng-prod to review. They will update the checked-in SDK
-  #     and land the review.
+  #   * file an issue with area-infrastructure requesting a roll for this
+  #     package (please also indicate what version to roll).
+  #   * let the infrastructure team submit the change on your behalf,
+  #     so they can build a new dev release and roll the submitted sdks a few
+  #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.5",  # Please see the note above before updating.
+  "dart_style_tag": "1.2.4",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.28.2",
   "fixnum_tag": "0.10.9",
