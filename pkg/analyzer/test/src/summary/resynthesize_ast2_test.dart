@@ -309,93 +309,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_constructor_initializers_assertInvocation() async {
-    await super.test_constructor_initializers_assertInvocation();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_assertInvocation_message() async {
-    await super.test_constructor_initializers_assertInvocation_message();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_field() async {
-    await super.test_constructor_initializers_field();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_field_notConst() async {
-    await super.test_constructor_initializers_field_notConst();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_field_withParameter() async {
-    await super.test_constructor_initializers_field_withParameter();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_superInvocation_named() async {
-    await super.test_constructor_initializers_superInvocation_named();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_superInvocation_named_underscore() async {
-    await super
-        .test_constructor_initializers_superInvocation_named_underscore();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_superInvocation_namedExpression() async {
-    await super.test_constructor_initializers_superInvocation_namedExpression();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_superInvocation_unnamed() async {
-    await super.test_constructor_initializers_superInvocation_unnamed();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_thisInvocation_named() async {
-    await super.test_constructor_initializers_thisInvocation_named();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_thisInvocation_namedExpression() async {
-    await super.test_constructor_initializers_thisInvocation_namedExpression();
-  }
-
-  @override
-  @failingTest
-  test_constructor_initializers_thisInvocation_unnamed() async {
-    await super.test_constructor_initializers_thisInvocation_unnamed();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_named() async {
-    await super.test_constructor_redirected_factory_named();
-  }
-
-  @override
-  @failingTest
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_named_imported() async {
-    await super.test_constructor_redirected_factory_named_imported();
   }
 
   @override
@@ -406,20 +321,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_constructor_redirected_factory_named_prefixed() async {
-    await super.test_constructor_redirected_factory_named_prefixed();
-  }
-
-  @override
-  @failingTest
   test_constructor_redirected_factory_named_prefixed_generic() async {
     await super.test_constructor_redirected_factory_named_prefixed_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_unnamed() async {
-    await super.test_constructor_redirected_factory_unnamed();
   }
 
   @override
@@ -430,56 +333,14 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_constructor_redirected_factory_unnamed_imported() async {
-    await super.test_constructor_redirected_factory_unnamed_imported();
-  }
-
-  @override
-  @failingTest
   test_constructor_redirected_factory_unnamed_imported_generic() async {
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
   }
 
   @override
   @failingTest
-  test_constructor_redirected_factory_unnamed_prefixed() async {
-    await super.test_constructor_redirected_factory_unnamed_prefixed();
-  }
-
-  @override
-  @failingTest
   test_constructor_redirected_factory_unnamed_prefixed_generic() async {
     await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_thisInvocation_named() async {
-    await super.test_constructor_redirected_thisInvocation_named();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_thisInvocation_named_generic() async {
-    await super.test_constructor_redirected_thisInvocation_named_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_thisInvocation_unnamed() async {
-    await super.test_constructor_redirected_thisInvocation_unnamed();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_thisInvocation_unnamed_generic() async {
-    await super.test_constructor_redirected_thisInvocation_unnamed_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_withCycles_const() async {
-    await super.test_constructor_withCycles_const();
   }
 
   @override

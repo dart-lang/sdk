@@ -847,7 +847,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // in-lining _resolveArgumentsToFunction below).
     ClassDeclaration declaration =
         node.thisOrAncestorOfType<ClassDeclaration>();
-    Identifier superclassName = declaration.extendsClause?.superclass?.name;
+    Identifier superclassName = declaration?.extendsClause?.superclass?.name;
     if (superclassName != null &&
         _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
       return;

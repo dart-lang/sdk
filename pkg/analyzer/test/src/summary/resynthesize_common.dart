@@ -3891,7 +3891,19 @@ class C extends A {
   const C() : super.aaa(1, b: 2);
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class A {
+  const A.aaa(dynamic a, {int b});
+}
+class C extends A {
+  const C() : super.
+        aaa/*location: test.dart;A;aaa*/(1,
+        b/*location: test.dart;A;aaa;b*/: 2);
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class A {
   const A.aaa(dynamic a, {int b});
 }
@@ -3901,6 +3913,7 @@ class C extends A {
         b/*location: null*/: 2);
 }
 ''');
+    }
   }
 
   test_constructor_initializers_superInvocation_unnamed() async {
@@ -3945,7 +3958,17 @@ class C {
   const C.named(a, {int b});
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/(1,
+        b/*location: test.dart;C;named;b*/: 2);
+  const C.named(dynamic a, {int b});
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   const C() = C.named : this.
         named/*location: test.dart;C;named*/(1,
@@ -3953,6 +3976,7 @@ class C {
   const C.named(dynamic a, {int b});
 }
 ''');
+    }
   }
 
   test_constructor_initializers_thisInvocation_unnamed() async {
@@ -4287,12 +4311,22 @@ class C {
   C() : this.named();
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  C.named();
+  C() = C.named : this.
+        named/*location: test.dart;C;named*/();
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   C.named();
   C() = C.named;
 }
 ''');
+    }
   }
 
   test_constructor_redirected_thisInvocation_named_generic() async {
@@ -4302,12 +4336,22 @@ class C<T> {
   C() : this.named();
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C<T> {
+  C.named();
+  C() = C<T>.named : this.
+        named/*location: test.dart;C;named*/();
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C<T> {
   C.named();
   C() = C<T>.named;
 }
 ''');
+    }
   }
 
   test_constructor_redirected_thisInvocation_unnamed() async {
@@ -4317,12 +4361,21 @@ class C {
   C.named() : this();
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  C();
+  C.named() = C : this();
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   C();
   C.named() = C;
 }
 ''');
+    }
   }
 
   test_constructor_redirected_thisInvocation_unnamed_generic() async {
@@ -4332,12 +4385,21 @@ class C<T> {
   C.named() : this();
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C<T> {
+  C();
+  C.named() = C<T> : this();
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C<T> {
   C();
   C.named() = C<T>;
 }
 ''');
+    }
   }
 
   test_constructor_withCycles_const() async {

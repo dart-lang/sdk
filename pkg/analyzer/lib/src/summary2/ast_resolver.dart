@@ -9,23 +9,23 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
-import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/linked_unit_context.dart';
 
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
   final Linker _linker;
+  final LibraryElement _library;
+  final Scope _nameScope;
 
-  LibraryElement _library;
-  Scope _nameScope;
+  AstResolver(this._linker, this._library, this._nameScope);
 
-  AstResolver(this._linker, Reference libraryRef) {
-    _library = _linker.elementFactory.elementOfReference(libraryRef);
-    _nameScope = LibraryScope(_library);
-  }
-
-  LinkedNode resolve(UnitBuilder unit, AstNode node) {
+  LinkedNode resolve(
+    LinkedUnitContext context,
+    AstNode node, {
+    ClassElement enclosingClassElement,
+    ExecutableElement enclosingExecutableElement,
+  }) {
     var source = _FakeSource();
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
 
@@ -45,11 +45,16 @@ class AstResolver {
         nameScope: _nameScope,
         propagateTypes: false,
         reportConstEvaluationErrors: false);
+    resolverVisitor.prepareEnclosingDeclarations(
+      enclosingClassElement: enclosingClassElement,
+      enclosingExecutableElement: enclosingExecutableElement,
+    );
+
     node.accept(resolverVisitor);
 
     var writer = AstBinaryWriter(
       _linker.linkingBundleContext,
-      unit.context.tokensContext,
+      context.tokensContext,
     );
     return writer.writeNode(node);
   }

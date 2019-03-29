@@ -2445,6 +2445,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {
     if (_constantInitializers == null) {
+      if (linkedNode != null) {
+        var context = enclosingUnit.linkedContext;
+        return _constantInitializers ??=
+            linkedNode.constructorDeclaration_initializers.map((node) {
+          return context.readNode(node) as ConstructorInitializer;
+        }).toList();
+      }
+
       if (serializedExecutable != null) {
         _constantInitializers = serializedExecutable.constantInitializers
             .map((i) => _buildConstructorInitializer(i))
@@ -2591,6 +2599,25 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   ConstructorElement get redirectedConstructor {
     if (_redirectedConstructor == null) {
+      if (linkedNode != null) {
+        var context = enclosingUnit.linkedContext;
+        if (isFactory) {
+          var node = linkedNode.constructorDeclaration_redirectedConstructor;
+          if (node != null) {
+            ConstructorName ast = context.readNode(node);
+            return ast.staticElement;
+          }
+        } else {
+          for (var node in linkedNode.constructorDeclaration_initializers) {
+            if (node.kind == LinkedNodeKind.redirectingConstructorInvocation) {
+              RedirectingConstructorInvocation ast = context.readNode(node);
+              return ast.staticElement;
+            }
+          }
+        }
+        return null;
+      }
+
       if (serializedExecutable != null) {
         if (serializedExecutable.isRedirectedConstructor) {
           if (serializedExecutable.isFactory) {

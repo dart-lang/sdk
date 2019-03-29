@@ -114,6 +114,7 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     _performTopLevelInference();
+    _resolveConstructors();
     _resolveMetadata();
   }
 
@@ -189,6 +190,12 @@ class Linker {
   void _performTopLevelInference() {
     for (var library in builders.values) {
       library.performTopLevelInference();
+    }
+  }
+
+  void _resolveConstructors() {
+    for (var library in builders.values) {
+      library.resolveConstructors();
     }
   }
 

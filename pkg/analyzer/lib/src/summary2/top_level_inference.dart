@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -144,9 +145,11 @@ class TopLevelInference {
     astFactory.expressionFunctionBody(null, null, expression, null);
 
     // TODO(scheglov) can be shared for the whole library
-    var astResolver = AstResolver(linker, libraryRef);
+    var libraryElement = linker.elementFactory.elementOfReference(libraryRef);
+    var libraryScope = LibraryScope(libraryElement);
+    var astResolver = AstResolver(linker, libraryElement, libraryScope);
 
-    var resolvedNode = astResolver.resolve(unit, expression);
+    var resolvedNode = astResolver.resolve(unit.context, expression);
     node.variableDeclaration_initializer = resolvedNode;
 
     if (node.variableDeclaration_type2 == null) {

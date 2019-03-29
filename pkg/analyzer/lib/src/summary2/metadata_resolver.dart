@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
@@ -17,7 +18,9 @@ class MetadataResolver {
   AstResolver _astResolver;
 
   MetadataResolver(Linker linker, Reference libraryRef) {
-    _astResolver = AstResolver(linker, libraryRef);
+    var libraryElement = linker.elementFactory.elementOfReference(libraryRef);
+    var libraryScope = LibraryScope(libraryElement);
+    _astResolver = AstResolver(linker, libraryElement, libraryScope);
   }
 
   void resolve(UnitBuilder unit) {
@@ -118,7 +121,7 @@ class MetadataResolver {
       // Set some parent, so that resolver does not bail out.
       astFactory.libraryDirective(null, [ast], null, null, null);
 
-      var resolvedNode = _astResolver.resolve(unit, ast);
+      var resolvedNode = _astResolver.resolve(unit.context, ast);
       resolved[i] = resolvedNode;
     }
     return resolved;

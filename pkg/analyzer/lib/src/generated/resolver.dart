@@ -3862,6 +3862,17 @@ class ResolverVisitor extends ScopedVisitor {
     typeAnalyzer.thisType = enclosingClass?.type;
   }
 
+  /// Set information about enclosing declarations.
+  void prepareEnclosingDeclarations({
+    ClassElement enclosingClassElement,
+    ExecutableElement enclosingExecutableElement,
+  }) {
+    _enclosingClassDeclaration = null;
+    enclosingClass = enclosingClassElement;
+    typeAnalyzer.thisType = enclosingClass?.type;
+    _enclosingFunction = enclosingExecutableElement;
+  }
+
   /// Visit the given [comment] if it is not `null`.
   void safelyVisitComment(Comment comment) {
     if (comment != null) {
