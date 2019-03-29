@@ -9,6 +9,7 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsExpression,
         Block,
         BlockExpression,
         Class,
@@ -40,6 +41,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
 import 'package:kernel/visitor.dart' show Transformer;
 
 import 'collections.dart'
@@ -61,6 +64,7 @@ import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 class CollectionTransformer extends Transformer {
   final CoreTypes coreTypes;
+  final TypeEnvironment typeEnvironment;
   final Procedure listAdd;
   final Procedure setFactory;
   final Procedure setAdd;
@@ -79,6 +83,7 @@ class CollectionTransformer extends Transformer {
 
   CollectionTransformer(SourceLoader loader)
       : coreTypes = loader.coreTypes,
+        typeEnvironment = loader.typeInferenceEngine.typeSchemaEnvironment,
         listAdd = loader.coreTypes.index.getMember('dart:core', 'List', 'add'),
         setFactory = _findSetFactory(loader.coreTypes),
         setAdd = loader.coreTypes.index.getMember('dart:core', 'Set', 'add'),
@@ -231,16 +236,34 @@ class CollectionTransformer extends Transformer {
       value = new VariableGet(temp);
     }
 
-    VariableDeclaration elt =
-        new VariableDeclaration(null, type: elementType, isFinal: true);
-    Statement statement = new ForInStatement(
-        elt,
-        value,
+    VariableDeclaration elt;
+    Statement loopBody;
+    if (element.elementType == null ||
+        !typeEnvironment.isSubtypeOf(element.elementType, elementType)) {
+      elt = new VariableDeclaration(null,
+          type: const DynamicType(), isFinal: true);
+      VariableDeclaration castedVar = new VariableDeclaration.forValue(
+          new AsExpression(new VariableGet(elt), elementType)
+            ..isTypeError = true
+            ..fileOffset = element.expression.fileOffset,
+          type: elementType);
+      loopBody = new Block(<Statement>[
+        castedVar,
         new ExpressionStatement(new MethodInvocation(
             new VariableGet(result),
             new Name('add'),
-            new Arguments([new VariableGet(elt)]),
-            isSet ? setAdd : listAdd)));
+            new Arguments([new VariableGet(castedVar)]),
+            isSet ? setAdd : listAdd))
+      ]);
+    } else {
+      elt = new VariableDeclaration(null, type: elementType, isFinal: true);
+      loopBody = new ExpressionStatement(new MethodInvocation(
+          new VariableGet(result),
+          new Name('add'),
+          new Arguments([new VariableGet(elt)]),
+          isSet ? setAdd : listAdd));
+    }
+    Statement statement = new ForInStatement(elt, value, loopBody);
 
     if (element.isNullAware) {
       statement = new IfStatement(
@@ -296,25 +319,24 @@ class CollectionTransformer extends Transformer {
     for (int j = 0; j < i; ++j) {
       _addNormalEntry(node.entries[j], result, body);
     }
-    DartType mapEntryType =
-        new InterfaceType(mapEntryClass, [node.keyType, node.valueType]);
     for (; i < node.entries.length; ++i) {
-      _translateEntry(node.entries[i], mapEntryType, result, body);
+      _translateEntry(
+          node.entries[i], node.keyType, node.valueType, result, body);
     }
 
     return new BlockExpression(new Block(body), new VariableGet(result));
   }
 
-  void _translateEntry(MapEntry entry, DartType entryType,
+  void _translateEntry(MapEntry entry, DartType keyType, DartType valueType,
       VariableDeclaration result, List<Statement> body) {
     if (entry is SpreadMapEntry) {
-      _translateSpreadEntry(entry, entryType, result, body);
+      _translateSpreadEntry(entry, keyType, valueType, result, body);
     } else if (entry is IfMapEntry) {
-      _translateIfEntry(entry, entryType, result, body);
+      _translateIfEntry(entry, keyType, valueType, result, body);
     } else if (entry is ForMapEntry) {
-      _translateForEntry(entry, entryType, result, body);
+      _translateForEntry(entry, keyType, valueType, result, body);
     } else if (entry is ForInMapEntry) {
-      _translateForInEntry(entry, entryType, result, body);
+      _translateForInEntry(entry, keyType, valueType, result, body);
     } else {
       _addNormalEntry(entry.accept(this), result, body);
     }
@@ -329,14 +351,14 @@ class CollectionTransformer extends Transformer {
         mapPut)));
   }
 
-  void _translateIfEntry(IfMapEntry entry, DartType entryType,
+  void _translateIfEntry(IfMapEntry entry, DartType keyType, DartType valueType,
       VariableDeclaration result, List<Statement> body) {
     List<Statement> thenBody = [];
-    _translateEntry(entry.then, entryType, result, thenBody);
+    _translateEntry(entry.then, keyType, valueType, result, thenBody);
     List<Statement> elseBody;
     if (entry.otherwise != null) {
-      _translateEntry(
-          entry.otherwise, entryType, result, elseBody = <Statement>[]);
+      _translateEntry(entry.otherwise, keyType, valueType, result,
+          elseBody = <Statement>[]);
     }
     Statement thenStatement =
         thenBody.length == 1 ? thenBody.first : new Block(thenBody);
@@ -349,10 +371,10 @@ class CollectionTransformer extends Transformer {
         entry.condition.accept(this), thenStatement, elseStatement));
   }
 
-  void _translateForEntry(ForMapEntry entry, DartType entryType,
-      VariableDeclaration result, List<Statement> body) {
+  void _translateForEntry(ForMapEntry entry, DartType keyType,
+      DartType valueType, VariableDeclaration result, List<Statement> body) {
     List<Statement> statements = <Statement>[];
-    _translateEntry(entry.body, entryType, result, statements);
+    _translateEntry(entry.body, keyType, valueType, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : new Block(statements);
     ForStatement loop = new ForStatement(
@@ -363,8 +385,8 @@ class CollectionTransformer extends Transformer {
     body.add(loop);
   }
 
-  void _translateForInEntry(ForInMapEntry entry, DartType entryType,
-      VariableDeclaration result, List<Statement> body) {
+  void _translateForInEntry(ForInMapEntry entry, DartType keyType,
+      DartType valueType, VariableDeclaration result, List<Statement> body) {
     List<Statement> statements;
     Statement prologue = entry.prologue;
     if (prologue == null) {
@@ -374,7 +396,7 @@ class CollectionTransformer extends Transformer {
       statements =
           prologue is Block ? prologue.statements : <Statement>[prologue];
     }
-    _translateEntry(entry.body, entryType, result, statements);
+    _translateEntry(entry.body, keyType, valueType, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : new Block(statements);
     if (entry.problem != null) {
@@ -386,8 +408,8 @@ class CollectionTransformer extends Transformer {
       ..fileOffset = entry.fileOffset);
   }
 
-  void _translateSpreadEntry(SpreadMapEntry entry, DartType entryType,
-      VariableDeclaration result, List<Statement> body) {
+  void _translateSpreadEntry(SpreadMapEntry entry, DartType keyType,
+      DartType valueType, VariableDeclaration result, List<Statement> body) {
     Expression value = entry.expression.accept(this);
     // Null-aware spreads require testing the subexpression's value.
     VariableDeclaration temp;
@@ -398,21 +420,55 @@ class CollectionTransformer extends Transformer {
       value = new VariableGet(temp);
     }
 
-    VariableDeclaration elt =
-        new VariableDeclaration(null, type: entryType, isFinal: true);
-    Statement statement = new ForInStatement(
-        elt,
-        new PropertyGet(value, new Name('entries'), mapEntries),
+    DartType entryType =
+        new InterfaceType(mapEntryClass, <DartType>[keyType, valueType]);
+    VariableDeclaration elt;
+    Statement loopBody;
+    if (entry.entryType == null ||
+        !typeEnvironment.isSubtypeOf(entry.entryType, entryType)) {
+      elt = new VariableDeclaration(null,
+          type: new InterfaceType(mapEntryClass,
+              <DartType>[const DynamicType(), const DynamicType()]),
+          isFinal: true);
+      VariableDeclaration keyVar = new VariableDeclaration.forValue(
+          new AsExpression(
+              new PropertyGet(
+                  new VariableGet(elt), new Name('key'), mapEntryKey),
+              keyType)
+            ..isTypeError = true
+            ..fileOffset = entry.expression.fileOffset,
+          type: keyType);
+      VariableDeclaration valueVar = new VariableDeclaration.forValue(
+          new AsExpression(
+              new PropertyGet(
+                  new VariableGet(elt), new Name('value'), mapEntryValue),
+              valueType)
+            ..isTypeError = true
+            ..fileOffset = entry.expression.fileOffset,
+          type: valueType);
+      loopBody = new Block(<Statement>[
+        keyVar,
+        valueVar,
         new ExpressionStatement(new MethodInvocation(
             new VariableGet(result),
             new Name('[]='),
-            new Arguments([
-              new PropertyGet(
-                  new VariableGet(elt), new Name('key'), mapEntryKey),
-              new PropertyGet(
-                  new VariableGet(elt), new Name('value'), mapEntryValue)
-            ]),
-            mapPut)));
+            new Arguments([new VariableGet(keyVar), new VariableGet(valueVar)]),
+            mapPut))
+      ]);
+    } else {
+      elt = new VariableDeclaration(null, type: entryType, isFinal: true);
+      loopBody = new ExpressionStatement(new MethodInvocation(
+          new VariableGet(result),
+          new Name('[]='),
+          new Arguments([
+            new PropertyGet(new VariableGet(elt), new Name('key'), mapEntryKey),
+            new PropertyGet(
+                new VariableGet(elt), new Name('value'), mapEntryValue)
+          ]),
+          mapPut));
+    }
+    Statement statement = new ForInStatement(
+        elt, new PropertyGet(value, new Name('entries'), mapEntries), loopBody);
 
     if (entry.isNullAware) {
       statement = new IfStatement(

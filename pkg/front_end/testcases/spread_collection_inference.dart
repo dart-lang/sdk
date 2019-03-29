@@ -9,11 +9,14 @@
 
 Map<K, V> bar<K, V>() => null;
 
-foo() {
+foo(dynamic dynVar) {
   List<int> spread = <int>[1, 2, 3];
   Map<String, int> mapSpread = <String, int>{"foo": 4, "bar": 2};
   int notSpreadInt = 42;
   int Function() notSpreadFunction = null;
+  // Note that all values are actually ints.
+  Map<int, num> mapIntNum = <int, num>{42: 42};
+  List<num> listNum = <num>[42];
 
   var /*@type=List<dynamic>*/ lhs10 = /*@typeArgs=dynamic*/ [...
     /*@typeArgs=dynamic*/ []];
@@ -137,6 +140,14 @@ foo() {
   Map<String, int> map80 = <String, int>{...?null};
 
   var /*@type=Map<String, int>*/ map90 = <String, int>{... /*@typeArgs=String, int*/ bar()};
+
+  List<int> list100 = <int>[...listNum];
+
+  Map<num, int> map100 = <num, int>{...mapIntNum};
+
+  List<int> list110 = <int>[...dynVar];
+
+  Map<num, int> map110 = <num, int>{...dynVar};
 }
 
 main() {}

@@ -687,8 +687,9 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         spreadTypes[index] = spreadType;
       }
       // Use 'dynamic' for error recovery.
-      return getSpreadElementType(spreadType, element.isNullAware) ??
-          const DynamicType();
+      return element.elementType =
+          getSpreadElementType(spreadType, element.isNullAware) ??
+              const DynamicType();
     } else if (element is IfElement) {
       inferrer.inferExpression(element.condition,
           inferrer.coreTypes.boolClass.rawType, typeChecksNeeded,
@@ -984,6 +985,10 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       actualTypes.add(const DynamicType());
       storeSpreadMapEntryElementTypes(
           spreadType, entry.isNullAware, actualTypes, length);
+      Class mapEntryClass =
+          inferrer.coreTypes.index.getClass('dart:core', 'MapEntry');
+      entry.entryType = new InterfaceType(mapEntryClass,
+          <DartType>[actualTypes[length], actualTypes[length + 1]]);
       return spreadType;
     } else if (entry is IfMapEntry) {
       inferrer.inferExpression(entry.condition,

@@ -55,6 +55,7 @@ mixin ControlFlowElement on Expression {
 class SpreadElement extends Expression with ControlFlowElement {
   Expression expression;
   bool isNullAware;
+  DartType elementType;
 
   SpreadElement(this.expression, this.isNullAware) {
     expression?.parent = this;
@@ -227,6 +228,7 @@ mixin ControlFlowMapEntry implements MapEntry {
 class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression expression;
   bool isNullAware;
+  DartType entryType;
 
   SpreadMapEntry(this.expression, this.isNullAware) {
     expression?.parent = this;
