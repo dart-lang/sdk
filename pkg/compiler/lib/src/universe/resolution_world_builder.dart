@@ -108,7 +108,8 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
 
   /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
   /// the usage changes for each member.
-  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed);
+  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
+      {bool dryRun: false});
 
   /// Applies the [dynamicUse] to applicable instance members. Calls
   /// [membersUsed] with the usage changes for each member.
@@ -738,11 +739,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
     MemberEntity element = staticUse.element;
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-    MemberUsage usage = _memberUsage.putIfAbsent(element, () {
-      MemberUsage usage = new MemberUsage(element, trackParameters: true);
-      useSet.addAll(usage.appliedUse);
-      return usage;
-    });
+    MemberUsage usage = _getMemberUsage(element, useSet);
 
     if ((element.isStatic || element.isTopLevel) && element.isField) {
       allReferencedStaticFields.add(staticUse.element);
@@ -837,10 +834,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   @override
-  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed) {
+  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
-      _processInstantiatedClassMember(cls, member, memberUsed);
+      _processInstantiatedClassMember(cls, member, memberUsed, dryRun: dryRun);
     });
   }
 
@@ -864,93 +862,129 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     map[memberName].addAll(remaining);
   }
 
+  MemberUsage _getMemberUsage(MemberEntity member, EnumSet<MemberUse> useSet,
+      {bool dryRun: false}) {
+    MemberUsage usage = _memberUsage[member];
+    if (usage == null) {
+      if (member.isInstanceMember) {
+        String memberName = member.name;
+        ClassEntity cls = member.enclosingClass;
+        // TODO(johnniwinther): Change this to use isNativeMember when we use
+        // CFE constants.
+        // The obvious thing to test here would be "member.isNative",
+        // however, that only works after metadata has been parsed/analyzed,
+        // and that may not have happened yet.
+        // So instead we use the enclosing class, which we know have had
+        // its metadata parsed and analyzed.
+        // Note: this assumes that there are no non-native fields on native
+        // classes, which may not be the case when a native class is subclassed.
+        bool isNative = _nativeBasicData.isNativeClass(cls);
+        usage =
+            new MemberUsage(member, isNative: isNative, trackParameters: true);
+        useSet.addAll(usage.appliedUse);
+        if (!dryRun) {
+          if (member.isField && isNative) {
+            registerUsedElement(member);
+          }
+          if (member.isFunction &&
+              member.name == Identifiers.call &&
+              _elementEnvironment.isGenericClass(cls)) {
+            closurizedMembersWithFreeTypeVariables.add(member);
+          }
+        }
+
+        if (!usage.hasRead && _hasInvokedGetter(member)) {
+          useSet.addAll(usage.read());
+        }
+        if (!usage.isFullyInvoked) {
+          Iterable<CallStructure> callStructures =
+              _getInvocationCallStructures(member);
+          for (CallStructure callStructure in callStructures) {
+            useSet.addAll(usage.invoke(callStructure));
+            if (usage.isFullyInvoked) {
+              break;
+            }
+          }
+        }
+        if (!usage.hasWrite && hasInvokedSetter(member)) {
+          useSet.addAll(usage.write());
+        }
+
+        if (!dryRun) {
+          if (usage.hasPendingNormalUse) {
+            // The element is not yet used. Add it to the list of instance
+            // members to still be processed.
+            _instanceMembersByName
+                .putIfAbsent(memberName, () => new Set<MemberUsage>())
+                .add(usage);
+          }
+          if (usage.hasPendingClosurizationUse) {
+            // Store the member in [instanceFunctionsByName] to catch
+            // getters on the function.
+            _instanceFunctionsByName
+                .putIfAbsent(memberName, () => new Set<MemberUsage>())
+                .add(usage);
+          }
+        }
+      } else {
+        usage = new MemberUsage(member, trackParameters: true);
+        useSet.addAll(usage.appliedUse);
+      }
+    }
+    if (!dryRun) {
+      _memberUsage[member] = usage;
+    }
+    return usage;
+  }
+
   void _processInstantiatedClassMember(ClassEntity cls,
-      covariant MemberEntity member, MemberUsedCallback memberUsed) {
+      covariant MemberEntity member, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     if (!member.isInstanceMember) return;
     String memberName = member.name;
-    // The obvious thing to test here would be "member.isNative",
-    // however, that only works after metadata has been parsed/analyzed,
-    // and that may not have happened yet.
-    // So instead we use the enclosing class, which we know have had
-    // its metadata parsed and analyzed.
-    // Note: this assumes that there are no non-native fields on native
-    // classes, which may not be the case when a native class is subclassed.
-    bool newUsage = false;
-    MemberUsage usage = _memberUsage.putIfAbsent(member, () {
-      newUsage = true;
-      bool isNative = _nativeBasicData.isNativeClass(cls);
-      EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-      MemberUsage usage =
-          new MemberUsage(member, isNative: isNative, trackParameters: true);
-      useSet.addAll(usage.appliedUse);
-      if (member.isField && isNative) {
-        registerUsedElement(member);
-      }
-      if (member.isFunction &&
-          member.name == Identifiers.call &&
-          _elementEnvironment.isGenericClass(cls)) {
-        closurizedMembersWithFreeTypeVariables.add(member);
-      }
 
-      if (!usage.hasRead && _hasInvokedGetter(member)) {
-        useSet.addAll(usage.read());
+    MemberUsage usage = _memberUsage[member];
+    if (usage == null) {
+      EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+      usage = _getMemberUsage(member, useSet, dryRun: dryRun);
+      memberUsed(usage.entity, useSet);
+    } else {
+      MemberUsage original = usage;
+      if (dryRun) {
+        usage = usage.clone();
       }
-      if (!usage.isFullyInvoked) {
-        Iterable<CallStructure> callStructures =
-            _getInvocationCallStructures(member);
-        for (CallStructure callStructure in callStructures) {
-          useSet.addAll(usage.invoke(callStructure));
-          if (usage.isFullyInvoked) {
-            break;
+      if (!usage.fullyUsed) {
+        EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+        if (!usage.hasRead && _hasInvokedGetter(member)) {
+          useSet.addAll(usage.read());
+        }
+        if (!usage.isFullyInvoked) {
+          Iterable<CallStructure> callStructures =
+              _getInvocationCallStructures(member);
+          for (CallStructure callStructure in callStructures) {
+            useSet.addAll(usage.invoke(callStructure));
+            if (usage.isFullyInvoked) {
+              break;
+            }
           }
         }
-      }
-      if (!usage.hasWrite && hasInvokedSetter(member)) {
-        useSet.addAll(usage.write());
-      }
-
-      if (usage.hasPendingNormalUse) {
-        // The element is not yet used. Add it to the list of instance
-        // members to still be processed.
-        _instanceMembersByName
-            .putIfAbsent(memberName, () => new Set<MemberUsage>())
-            .add(usage);
-      }
-      if (usage.hasPendingClosurizationUse) {
-        // Store the member in [instanceFunctionsByName] to catch
-        // getters on the function.
-        _instanceFunctionsByName
-            .putIfAbsent(memberName, () => new Set<MemberUsage>())
-            .add(usage);
-      }
-      memberUsed(usage.entity, useSet);
-      return usage;
-    });
-    if (!usage.fullyUsed && !newUsage) {
-      EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-      if (!usage.hasRead && _hasInvokedGetter(member)) {
-        useSet.addAll(usage.read());
-      }
-      if (!usage.isFullyInvoked) {
-        Iterable<CallStructure> callStructures =
-            _getInvocationCallStructures(member);
-        for (CallStructure callStructure in callStructures) {
-          useSet.addAll(usage.invoke(callStructure));
-          if (usage.isFullyInvoked) {
-            break;
+        if (!usage.hasWrite && hasInvokedSetter(member)) {
+          useSet.addAll(usage.write());
+        }
+        if (!dryRun) {
+          if (!usage.hasPendingNormalUse) {
+            _instanceMembersByName[memberName]?.remove(usage);
+          }
+          if (!usage.hasPendingClosurizationUse) {
+            _instanceFunctionsByName[memberName]?.remove(usage);
           }
         }
+        memberUsed(usage.entity, useSet);
       }
-      if (!usage.hasWrite && hasInvokedSetter(member)) {
-        useSet.addAll(usage.write());
+      if (dryRun && !original.dataEquals(usage)) {
+        _elementMap.reporter.internalError(member,
+            'Unenqueued usage of $member: before: $original, after: $usage');
       }
-      if (!usage.hasPendingNormalUse) {
-        _instanceMembersByName[memberName]?.remove(usage);
-      }
-      if (!usage.hasPendingClosurizationUse) {
-        _instanceFunctionsByName[memberName]?.remove(usage);
-      }
-      memberUsed(usage.entity, useSet);
     }
   }
 

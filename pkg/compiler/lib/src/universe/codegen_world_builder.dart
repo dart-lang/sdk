@@ -478,29 +478,33 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     closurizedMembers.add(element);
   }
 
-  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed) {
+  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
-      _processInstantiatedClassMember(cls, member, memberUsed);
+      _processInstantiatedClassMember(cls, member, memberUsed, dryRun: dryRun);
     });
   }
 
   void _processInstantiatedClassMember(ClassEntity cls,
-      covariant MemberEntity member, MemberUsedCallback memberUsed) {
+      covariant MemberEntity member, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     if (!member.isInstanceMember) return;
     _getMemberUsage(member, memberUsed);
   }
 
   MemberUsage _getMemberUsage(
-      covariant MemberEntity member, MemberUsedCallback memberUsed) {
+      covariant MemberEntity member, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
     // [StrongModeConstraint].
-    return _instanceMemberUsage.putIfAbsent(member, () {
+    MemberUsage usage = _instanceMemberUsage[member];
+    if (usage == null) {
       String memberName = member.name;
       ClassEntity cls = member.enclosingClass;
       bool isNative = _nativeBasicData.isNativeClass(cls);
-      MemberUsage usage = new MemberUsage(member, isNative: isNative);
+      usage = new MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
       if (!usage.hasRead && hasInvokedGetter(member)) {
@@ -515,23 +519,30 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.invoke(null));
       }
 
-      if (usage.hasPendingClosurizationUse) {
-        // Store the member in [instanceFunctionsByName] to catch
-        // getters on the function.
-        _instanceFunctionsByName
-            .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
-            .add(usage);
-      }
-      if (usage.hasPendingNormalUse) {
-        // The element is not yet used. Add it to the list of instance
-        // members to still be processed.
-        _instanceMembersByName
-            .putIfAbsent(memberName, () => new Set<MemberUsage>())
-            .add(usage);
+      if (!dryRun) {
+        if (usage.hasPendingClosurizationUse) {
+          // Store the member in [instanceFunctionsByName] to catch
+          // getters on the function.
+          _instanceFunctionsByName
+              .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
+              .add(usage);
+        }
+        if (usage.hasPendingNormalUse) {
+          // The element is not yet used. Add it to the list of instance
+          // members to still be processed.
+          _instanceMembersByName
+              .putIfAbsent(memberName, () => new Set<MemberUsage>())
+              .add(usage);
+        }
+        _instanceMemberUsage[member] = usage;
       }
       memberUsed(member, useSet);
-      return usage;
-    });
+    } else {
+      if (dryRun) {
+        usage = usage.clone();
+      }
+    }
+    return usage;
   }
 
   void _processSet(Map<String, Set<MemberUsage>> map, String memberName,

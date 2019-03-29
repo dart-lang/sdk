@@ -98,6 +98,9 @@ abstract class EnumSet<E> {
   /// Returns `true` if this set is not empty.
   bool get isNotEmpty => value != 0;
 
+  /// Returns a new mutable enum set that contains the values of this set.
+  EnumSet<E> clone() => new EnumSet<E>.fromValue(value);
+
   @override
   int get hashCode => value.hashCode * 19;
 

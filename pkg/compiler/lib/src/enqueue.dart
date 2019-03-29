@@ -308,7 +308,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _reporter.internalError(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    });
+    }, dryRun: true);
   }
 
   /// Callback for applying the use of a [member].
