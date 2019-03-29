@@ -1306,6 +1306,15 @@ class ForwardInstructionIterator : public ValueObject {
 
   Instruction* Current() const { return current_; }
 
+  bool operator==(const ForwardInstructionIterator& other) const {
+    return current_ == other.current_;
+  }
+
+  ForwardInstructionIterator& operator++() {
+    Advance();
+    return *this;
+  }
+
  private:
   Instruction* current_;
 };

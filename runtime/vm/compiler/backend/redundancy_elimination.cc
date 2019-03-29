@@ -3176,18 +3176,270 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
   }
 }
 
-void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
+// TryCatchAnalyzer tries to reduce the state that needs to be synchronized
+// on entry to the catch by discovering Parameter-s which are never used
+// or which are always constant.
+//
+// This analysis is similar to dead/redundant phi elimination because
+// Parameter instructions serve as "implicit" phis.
+//
+// Caveat: when analyzing which Parameter-s are redundant we limit ourselves to
+// constant values because CatchBlockEntry-s are hanging out directly from
+// GraphEntry and thus they are only dominated by constants from GraphEntry -
+// thus we can't replace Parameter with arbitrary Definition which is not a
+// Constant even if we know that this Parameter is redundant and would always
+// evaluate to that Definition.
+class TryCatchAnalyzer : public ValueObject {
+ public:
+  explicit TryCatchAnalyzer(FlowGraph* flow_graph, bool is_aot)
+      : flow_graph_(flow_graph),
+        is_aot_(is_aot),
+        // Initial capacity is selected based on trivial examples.
+        worklist_(flow_graph, /*initial_capacity=*/10) {}
+
+  // Run analysis and eliminate dead/redundant Parameter-s.
+  void Optimize();
+
+ private:
+  // In precompiled mode we can eliminate all parameters that have no real uses
+  // and subsequently clear out corresponding slots in the environments assigned
+  // to instructions that can throw an exception which would be caught by
+  // the corresponding CatchEntryBlock.
+  //
+  // Computing "dead" parameters is essentially a fixed point algorithm because
+  // Parameter value can flow into another Parameter via an environment attached
+  // to an instruction that can throw.
+  //
+  // Note: this optimization pass assumes that environment values are only
+  // used during catching, that is why it should only be used in AOT mode.
+  void OptimizeDeadParameters() {
+    ASSERT(is_aot_);
+
+    NumberCatchEntryParameters();
+    ComputeIncommingValues();
+    CollectAliveParametersOrPhis();
+    PropagateLivenessToInputs();
+    EliminateDeadParameters();
+  }
+
+  // Assign sequential ids to each ParameterInstr in each CatchEntryBlock.
+  // Collect reverse mapping from try indexes to corresponding catches.
+  void NumberCatchEntryParameters() {
+    for (auto catch_entry : flow_graph_->graph_entry()->catch_entries()) {
+      const GrowableArray<Definition*>& idefs =
+          *catch_entry->initial_definitions();
+      for (auto idef : idefs) {
+        if (idef->IsParameter()) {
+          idef->set_place_id(parameter_info_.length());
+          parameter_info_.Add(new ParameterInfo(idef->AsParameter()));
+        }
+      }
+
+      catch_by_index_.EnsureLength(catch_entry->catch_try_index() + 1, nullptr);
+      catch_by_index_[catch_entry->catch_try_index()] = catch_entry;
+    }
+  }
+
+  // Compute potential incoming values for each Parameter in each catch block
+  // by looking into environments assigned to MayThrow instructions within
+  // blocks covered by the corresponding catch.
+  void ComputeIncommingValues() {
+    for (auto block : flow_graph_->reverse_postorder()) {
+      if (block->try_index() == -1) continue;
+
+      auto catch_entry = catch_by_index_[block->try_index()];
+      const auto& idefs = *catch_entry->initial_definitions();
+
+      for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
+           instr_it.Advance()) {
+        Instruction* current = instr_it.Current();
+        if (!current->MayThrow()) continue;
+
+        Environment* env = current->env()->Outermost();
+        ASSERT(env != nullptr);
+
+        for (intptr_t env_idx = 0; env_idx < idefs.length(); ++env_idx) {
+          if (ParameterInstr* param = idefs[env_idx]->AsParameter()) {
+            Definition* defn = env->ValueAt(env_idx)->definition();
+
+            // Add defn as an incoming value to the parameter if it is not
+            // already present in the list.
+            bool found = false;
+            for (auto other_defn :
+                 parameter_info_[param->place_id()]->incoming) {
+              if (other_defn == defn) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              parameter_info_[param->place_id()]->incoming.Add(defn);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Find all parameters (and phis) that are definitely alive - because they
+  // have non-phi uses and place them into worklist.
+  //
+  // Note: phis that only have phi (and environment) uses would be marked as
+  // dead.
+  void CollectAliveParametersOrPhis() {
+    for (auto block : flow_graph_->reverse_postorder()) {
+      if (JoinEntryInstr* join = block->AsJoinEntry()) {
+        if (join->phis() == nullptr) continue;
+
+        for (auto phi : *join->phis()) {
+          phi->mark_dead();
+          if (HasNonPhiUse(phi)) {
+            MarkLive(phi);
+          }
+        }
+      }
+    }
+
+    for (auto info : parameter_info_) {
+      if (HasNonPhiUse(info->instr)) {
+        MarkLive(info->instr);
+      }
+    }
+  }
+
+  // Propagate liveness from live parameters and phis to other parameters and
+  // phis transitively.
+  void PropagateLivenessToInputs() {
+    while (!worklist_.IsEmpty()) {
+      Definition* defn = worklist_.RemoveLast();
+      if (ParameterInstr* param = defn->AsParameter()) {
+        auto s = parameter_info_[param->place_id()];
+        for (auto input : s->incoming) {
+          MarkLive(input);
+        }
+      } else if (PhiInstr* phi = defn->AsPhi()) {
+        for (intptr_t i = 0; i < phi->InputCount(); i++) {
+          MarkLive(phi->InputAt(i)->definition());
+        }
+      }
+    }
+  }
+
+  // Mark definition as live if it is a dead Phi or a dead Parameter and place
+  // them into worklist.
+  void MarkLive(Definition* defn) {
+    if (PhiInstr* phi = defn->AsPhi()) {
+      if (!phi->is_alive()) {
+        phi->mark_alive();
+        worklist_.Add(phi);
+      }
+    } else if (ParameterInstr* param = defn->AsParameter()) {
+      if (param->place_id() != -1) {
+        auto input_s = parameter_info_[param->place_id()];
+        if (!input_s->alive) {
+          input_s->alive = true;
+          worklist_.Add(param);
+        }
+      }
+    }
+  }
+
+  // Replace all dead parameters with null value and clear corresponding
+  // slots in environments.
+  void EliminateDeadParameters() {
+    for (auto info : parameter_info_) {
+      if (!info->alive) {
+        info->instr->ReplaceUsesWith(flow_graph_->constant_null());
+      }
+    }
+
+    for (auto block : flow_graph_->reverse_postorder()) {
+      if (block->try_index() == -1) continue;
+
+      auto catch_entry = catch_by_index_[block->try_index()];
+      const auto& idefs = *catch_entry->initial_definitions();
+
+      for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
+           instr_it.Advance()) {
+        Instruction* current = instr_it.Current();
+        if (!current->MayThrow()) continue;
+
+        Environment* env = current->env()->Outermost();
+        RELEASE_ASSERT(env != nullptr);
+
+        for (intptr_t env_idx = 0; env_idx < idefs.length(); ++env_idx) {
+          if (ParameterInstr* param = idefs[env_idx]->AsParameter()) {
+            if (!parameter_info_[param->place_id()]->alive) {
+              env->ValueAt(env_idx)->BindToEnvironment(
+                  flow_graph_->constant_null());
+            }
+          }
+        }
+      }
+    }
+
+    DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(flow_graph_);
+  }
+
+  // Returns true if definition has a use in an instruction which is not a phi.
+  static bool HasNonPhiUse(Definition* defn) {
+    for (Value* use = defn->input_use_list(); use != nullptr;
+         use = use->next_use()) {
+      if (!use->instruction()->IsPhi()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  struct ParameterInfo : public ZoneAllocated {
+    explicit ParameterInfo(ParameterInstr* instr) : instr(instr) {}
+
+    ParameterInstr* instr;
+    bool alive = false;
+    GrowableArray<Definition*> incoming;
+  };
+
+  FlowGraph* const flow_graph_;
+  const bool is_aot_;
+
+  // Additional information for each Parameter from each CatchBlockEntry.
+  // Parameter-s are numbered and their number is stored in
+  // Instruction::place_id() field which is otherwise not used for anything
+  // at this stage.
+  GrowableArray<ParameterInfo*> parameter_info_;
+
+  // Mapping from catch_try_index to corresponding CatchBlockEntry-s.
+  GrowableArray<CatchBlockEntryInstr*> catch_by_index_;
+
+  // Worklist for live Phi and Parameter instructions which need to be
+  // processed by PropagateLivenessToInputs.
+  DefinitionWorklist worklist_;
+};
+
+void OptimizeCatchEntryStates(FlowGraph* flow_graph, bool is_aot) {
+  if (flow_graph->graph_entry()->catch_entries().is_empty()) {
+    return;
+  }
+
+  TryCatchAnalyzer analyzer(flow_graph, is_aot);
+  analyzer.Optimize();
+}
+
+void TryCatchAnalyzer::Optimize() {
+  // Analyze catch entries and remove "dead" Parameter instructions.
+  if (is_aot_) {
+    OptimizeDeadParameters();
+  }
+
   // For every catch-block: Iterate over all call instructions inside the
   // corresponding try-block and figure out for each environment value if it
   // is the same constant at all calls. If yes, replace the initial definition
   // at the catch-entry with this constant.
   const GrowableArray<CatchBlockEntryInstr*>& catch_entries =
-      flow_graph->graph_entry()->catch_entries();
+      flow_graph_->graph_entry()->catch_entries();
 
-  for (intptr_t catch_idx = 0; catch_idx < catch_entries.length();
-       ++catch_idx) {
-    CatchBlockEntryInstr* catch_entry = catch_entries[catch_idx];
-
+  for (auto catch_entry : catch_entries) {
     // Initialize cdefs with the original initial definitions (ParameterInstr).
     // The following representation is used:
     // ParameterInstr => unknown
@@ -3201,10 +3453,10 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     // generator functions they may be context-allocated in which case they are
     // not tracked in the environment anyway.
 
-    cdefs[flow_graph->EnvIndex(catch_entry->raw_exception_var())] = NULL;
-    cdefs[flow_graph->EnvIndex(catch_entry->raw_stacktrace_var())] = NULL;
+    cdefs[flow_graph_->EnvIndex(catch_entry->raw_exception_var())] = nullptr;
+    cdefs[flow_graph_->EnvIndex(catch_entry->raw_stacktrace_var())] = nullptr;
 
-    for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+    for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
          !block_it.Done(); block_it.Advance()) {
       BlockEntryInstr* block = block_it.Current();
       if (block->try_index() == catch_entry->catch_try_index()) {
@@ -3213,17 +3465,17 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
           Instruction* current = instr_it.Current();
           if (current->MayThrow()) {
             Environment* env = current->env()->Outermost();
-            ASSERT(env != NULL);
+            ASSERT(env != nullptr);
             for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
-              if (cdefs[env_idx] != NULL && !cdefs[env_idx]->IsConstant() &&
+              if (cdefs[env_idx] != nullptr && !cdefs[env_idx]->IsConstant() &&
                   env->ValueAt(env_idx)->BindsToConstant()) {
                 // If the recorded definition is not a constant, record this
                 // definition as the current constant definition.
                 cdefs[env_idx] = env->ValueAt(env_idx)->definition();
               }
               if (cdefs[env_idx] != env->ValueAt(env_idx)->definition()) {
-                // Non-constant definitions are reset to NULL.
-                cdefs[env_idx] = NULL;
+                // Non-constant definitions are reset to nullptr.
+                cdefs[env_idx] = nullptr;
               }
             }
           }
@@ -3231,13 +3483,12 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
       }
     }
     for (intptr_t j = 0; j < idefs->length(); ++j) {
-      if (cdefs[j] != NULL && cdefs[j]->IsConstant()) {
-        // TODO(fschneider): Use constants from the constant pool.
+      if (cdefs[j] != nullptr && cdefs[j]->IsConstant()) {
         Definition* old = (*idefs)[j];
         ConstantInstr* orig = cdefs[j]->AsConstant();
         ConstantInstr* copy =
-            new (flow_graph->zone()) ConstantInstr(orig->value());
-        copy->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
+            new (flow_graph_->zone()) ConstantInstr(orig->value());
+        copy->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
         old->ReplaceUsesWith(copy);
         (*idefs)[j] = copy;
       }
@@ -3266,7 +3517,7 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
         PhiInstr* phi = it.Current();
         // Phis that have uses and phis inside try blocks are
         // marked as live.
-        if (HasRealUse(phi) || join->InsideTryBlock()) {
+        if (HasRealUse(phi)) {
           live_phis.Add(phi);
           phi->mark_alive();
         } else {
@@ -3288,28 +3539,31 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
     }
   }
 
-  for (BlockIterator it(flow_graph->postorder_iterator()); !it.Done();
-       it.Advance()) {
-    JoinEntryInstr* join = it.Current()->AsJoinEntry();
-    if (join != NULL) {
-      if (join->phis_ == NULL) continue;
+  RemoveDeadAndRedundantPhisFromTheGraph(flow_graph);
+}
+
+void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
+    FlowGraph* flow_graph) {
+  for (auto block : flow_graph->postorder()) {
+    if (JoinEntryInstr* join = block->AsJoinEntry()) {
+      if (join->phis_ == nullptr) continue;
 
       // Eliminate dead phis and compact the phis_ array of the block.
       intptr_t to_index = 0;
       for (intptr_t i = 0; i < join->phis_->length(); ++i) {
         PhiInstr* phi = (*join->phis_)[i];
-        if (phi != NULL) {
+        if (phi != nullptr) {
           if (!phi->is_alive()) {
             phi->ReplaceUsesWith(flow_graph->constant_null());
             phi->UnuseAllInputs();
-            (*join->phis_)[i] = NULL;
+            (*join->phis_)[i] = nullptr;
             if (FLAG_trace_optimization) {
               THR_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
           } else if (phi->IsRedundant()) {
             phi->ReplaceUsesWith(phi->InputAt(0)->definition());
             phi->UnuseAllInputs();
-            (*join->phis_)[i] = NULL;
+            (*join->phis_)[i] = nullptr;
             if (FLAG_trace_optimization) {
               THR_Print("Removing redundant phi v%" Pd "\n",
                         phi->ssa_temp_index());
@@ -3320,7 +3574,7 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
         }
       }
       if (to_index == 0) {
-        join->phis_ = NULL;
+        join->phis_ = nullptr;
       } else {
         join->phis_->TruncateTo(to_index);
       }
