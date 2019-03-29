@@ -249,14 +249,24 @@ Language/Expressions/Shift/allowed_characters_t02: CompileTimeError
 Language/Expressions/Shift/equivalent_super_t02: CompileTimeError
 Language/Expressions/Shift/equivalent_t02: CompileTimeError
 Language/Expressions/Shift/integer_t03: CompileTimeError
-Language/Expressions/Shift/syntax_t01: CompileTimeError
-Language/Expressions/Shift/syntax_t15: CompileTimeError
-Language/Expressions/Strings/String_Interpolation/syntax_t01: CompileTimeError
-Language/Expressions/Symbols/syntax_t02: CompileTimeError
+Language/Expressions/Shift/syntax_t01: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t15: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t17: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t18: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t19: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t21: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t22: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t23: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t24: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t25: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t26: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t27: Skip # triple-shift experiment flag
+Language/Expressions/Strings/String_Interpolation/syntax_t01: Skip # triple-shift experiment flag
+Language/Expressions/Symbols/syntax_t02: Skip # triple-shift experiment flag
 Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
-Language/Expressions/parentheses_t01: CompileTimeError
-Language/Functions/syntax_t03: CompileTimeError
+Language/Expressions/parentheses_t01: Skip # triple-shift experiment flag
+Language/Functions/syntax_t03: Skip # triple-shift experiment flag
 Language/Generics/syntax_t20: CompileTimeError
 Language/Generics/syntax_t22: CompileTimeError
 Language/Generics/syntax_t23: CompileTimeError
@@ -295,9 +305,9 @@ Language/Mixins/Mixin_Application/warning_t04: Crash
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError
-Language/Reference/Operator_Precedence/precedence_01_assignment_t14: CompileTimeError
-Language/Reference/Operator_Precedence/precedence_12_Shift_t04: CompileTimeError
-Language/Reference/Operator_Precedence/precedence_t05: CompileTimeError
+Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # triple-shift experimental flag
+Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # triple-shift experimental flag
+Language/Reference/Operator_Precedence/precedence_t05: Skip # triple-shift experimental flag
 Language/Statements/Continue/async_loops_t01: CompileTimeError
 Language/Statements/Continue/async_loops_t02: CompileTimeError
 Language/Statements/Continue/async_loops_t03: CompileTimeError
@@ -311,7 +321,7 @@ Language/Statements/Continue/async_loops_t10: CompileTimeError
 Language/Statements/Continue/control_transfer_t08: CompileTimeError
 Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
-Language/Statements/Expression_Statements/syntax_t06: CompileTimeError
+Language/Statements/Expression_Statements/syntax_t06: Skip # triple-shift experimental flag
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
 Language/Types/Type_Aliases/scope_t01: CompileTimeError
@@ -331,6 +341,7 @@ LanguageFeatures/Constant-update-2018/NewOperators_A01_t02: CompileTimeError
 LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t01: Crash
 LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t02: Crash
 LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/scoping_A01_t01: CompileTimeError # Error in test, will be fixed.
 LanguageFeatures/Control-flow-collections/static_semantics_A02_t01: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t01: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
@@ -614,6 +625,7 @@ LanguageFeatures/Set-literals/type_inference_A07_t01: CompileTimeError
 LanguageFeatures/Set-literals/type_inference_A08_t01: CompileTimeError
 LanguageFeatures/Set-literals/type_inference_A09_t01: CompileTimeError
 LanguageFeatures/Set-literals/type_inference_A10_t01: CompileTimeError
+LanguageFeatures/Set-literals/type_inference_A10_t02: CompileTimeError
 LanguageFeatures/Simple-bounds/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Simple-bounds/static/class_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_FutureOr_l1_t02/none: CompileTimeError
