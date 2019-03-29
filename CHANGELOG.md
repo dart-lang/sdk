@@ -1,3 +1,12 @@
+## 2.2.1-dev.2.1
+
+* Cherry-pick 611a53ee5eb091af491ed8fa74295ee779743a90 to dev
+
+#### dartfmt
+
+* Tweak set literal formatting to follow other collection literals.
+* Add support for "UI as code" features.
+
 ## 2.2.1-dev.2.0
 
 ## 2.2.1-dev.1.1
