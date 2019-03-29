@@ -367,6 +367,7 @@ abstract class AvailableDeclaration extends base.SummaryClass {
 enum AvailableDeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
   FUNCTION,

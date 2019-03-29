@@ -7,11 +7,14 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -102,6 +105,7 @@ class Declaration {
 enum DeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
   FUNCTION,
@@ -812,6 +816,8 @@ class _DeclarationStorage {
         return DeclarationKind.CLASS;
       case idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS:
         return DeclarationKind.CLASS_TYPE_ALIAS;
+      case idl.AvailableDeclarationKind.CONSTRUCTOR:
+        return DeclarationKind.CONSTRUCTOR;
       case idl.AvailableDeclarationKind.ENUM:
         return DeclarationKind.ENUM;
       case idl.AvailableDeclarationKind.ENUM_CONSTANT:
@@ -839,6 +845,8 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.CLASS;
       case DeclarationKind.CLASS_TYPE_ALIAS:
         return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
+      case DeclarationKind.CONSTRUCTOR:
+        return idl.AvailableDeclarationKind.CONSTRUCTOR;
       case DeclarationKind.ENUM:
         return idl.AvailableDeclarationKind.ENUM;
       case DeclarationKind.ENUM_CONSTANT:
@@ -946,7 +954,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 8;
+  static const int DATA_VERSION = 9;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1183,6 +1191,38 @@ class _File {
           kind: DeclarationKind.CLASS,
           name: node.name,
         );
+        for (var classMember in node.members) {
+          if (classMember is ConstructorDeclaration) {
+            setDartDoc(classMember);
+            isDeprecated = _hasDeprecatedAnnotation(classMember);
+
+            var parameters = classMember.parameters;
+            var defaultArguments = _computeDefaultArguments(parameters);
+
+            var constructorName = classMember.name;
+            constructorName ??= SimpleIdentifierImpl(
+              StringToken(
+                TokenType.IDENTIFIER,
+                '',
+                classMember.returnType.offset,
+              ),
+            );
+
+            addDeclaration(
+              defaultArgumentListString: defaultArguments?.text,
+              defaultArgumentListTextRanges: defaultArguments?.ranges,
+              isDeprecated: isDeprecated,
+              kind: DeclarationKind.CONSTRUCTOR,
+              name: constructorName,
+              name2: node.name,
+              parameters: parameters.toSource(),
+              parameterNames: _getFormalParameterNames(parameters),
+              parameterTypes: _getFormalParameterTypes(parameters),
+              requiredParameterCount:
+                  _getFormalParameterRequiredCount(parameters),
+            );
+          }
+        }
       } else if (node is ClassTypeAlias) {
         addDeclaration(
           isDeprecated: isDeprecated,

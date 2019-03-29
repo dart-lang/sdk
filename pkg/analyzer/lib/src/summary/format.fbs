@@ -14,6 +14,8 @@ enum AvailableDeclarationKind : byte {
 
   CLASS_TYPE_ALIAS,
 
+  CONSTRUCTOR,
+
   ENUM,
 
   ENUM_CONSTANT,

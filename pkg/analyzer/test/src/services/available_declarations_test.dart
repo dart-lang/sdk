@@ -915,6 +915,79 @@ class C = Object with M;
     );
   }
 
+  test_CONSTRUCTOR() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {
+  int f1;
+  int f2;
+
+  C() {}
+
+  C.a() {}
+
+  @deprecated
+  C.b() {}
+
+  /// aaa
+  ///
+  /// bbb bbb
+  C.c() {}
+
+  C.d(Map<String, int> p1, int p2, {double p3}) {}
+
+  C.e(this.f1, this.f2) {}
+}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, '', DeclarationKind.CONSTRUCTOR,
+        name2: 'C',
+        parameterNames: [],
+        parameters: '()',
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'a', DeclarationKind.CONSTRUCTOR,
+        name2: 'C',
+        parameterNames: [],
+        parameters: '()',
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'b', DeclarationKind.CONSTRUCTOR,
+        isDeprecated: true,
+        name2: 'C',
+        parameters: '()',
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'c', DeclarationKind.CONSTRUCTOR,
+        docSummary: 'aaa',
+        docComplete: 'aaa\n\nbbb bbb',
+        name2: 'C',
+        parameters: '()',
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'd', DeclarationKind.CONSTRUCTOR,
+        defaultArgumentListString: 'p1, p2',
+        defaultArgumentListTextRanges: [0, 2, 4, 2],
+        name2: 'C',
+        parameters: '(Map<String, int> p1, int p2, {double p3})',
+        parameterNames: ['p1', 'p2', 'p3'],
+        parameterTypes: ['Map<String, int>', 'int', 'double'],
+        requiredParameterCount: 2);
+    _assertDeclaration(library, 'e', DeclarationKind.CONSTRUCTOR,
+        defaultArgumentListString: 'f1, f2',
+        defaultArgumentListTextRanges: [0, 2, 4, 2],
+        name2: 'C',
+        parameters: '(this.f1, this.f2)',
+        parameterNames: ['f1', 'f2'],
+        parameterTypes: ['', ''],
+        requiredParameterCount: 2);
+  }
+
   test_ENUM() async {
     newFile('/home/test/lib/test.dart', content: r'''
 enum A {v}
@@ -2294,7 +2367,7 @@ class _Base extends AbstractContextTest {
     String returnType,
     String typeParameters,
   }) {
-    var declaration = _getDeclaration(library, name);
+    var declaration = _getDeclaration(library, name, name2);
     expect(declaration.defaultArgumentListString, defaultArgumentListString);
     expect(
       declaration.defaultArgumentListTextRanges,
@@ -2382,9 +2455,9 @@ class _Base extends AbstractContextTest {
     await pumpEventQueue();
   }
 
-  Declaration _getDeclaration(Library library, String name) {
-    return library.declarations
-        .singleWhere((declaration) => declaration.name == name);
+  Declaration _getDeclaration(Library library, String name, String name2) {
+    return library.declarations.singleWhere((declaration) =>
+        declaration.name == name && declaration.name2 == name2);
   }
 
   Library _getLibrary(String uriStr) {

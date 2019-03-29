@@ -185,8 +185,7 @@ class DartCompletionManager implements CompletionContributor {
     var kinds = includedElementKinds;
     if (kinds != null) {
       if (opType.includeConstructorSuggestions) {
-        kinds.add(protocol.ElementKind.CLASS);
-        kinds.add(protocol.ElementKind.CLASS_TYPE_ALIAS);
+        kinds.add(protocol.ElementKind.CONSTRUCTOR);
       }
       if (opType.includeTypeNameSuggestions) {
         kinds.add(protocol.ElementKind.CLASS);
@@ -196,6 +195,7 @@ class DartCompletionManager implements CompletionContributor {
         kinds.add(protocol.ElementKind.MIXIN);
       }
       if (opType.includeReturnValueSuggestions) {
+        kinds.add(protocol.ElementKind.CONSTRUCTOR);
         kinds.add(protocol.ElementKind.ENUM_CONSTANT);
         kinds.add(protocol.ElementKind.FUNCTION);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);

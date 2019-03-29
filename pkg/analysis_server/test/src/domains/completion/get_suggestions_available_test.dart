@@ -42,7 +42,7 @@ main() {
     var results = await _getSuggestions(testFile, findOffset('; // ref'));
     expect(
       results.includedElementKinds,
-      unorderedEquals([ElementKind.CLASS, ElementKind.CLASS_TYPE_ALIAS]),
+      unorderedEquals([ElementKind.CONSTRUCTOR]),
     );
 
     var includedIdSet = results.includedSuggestionSets.map((set) => set.id);
@@ -140,6 +140,7 @@ main() {
       unorderedEquals([
         ElementKind.CLASS,
         ElementKind.CLASS_TYPE_ALIAS,
+        ElementKind.CONSTRUCTOR,
         ElementKind.ENUM,
         ElementKind.ENUM_CONSTANT,
         ElementKind.FUNCTION,
