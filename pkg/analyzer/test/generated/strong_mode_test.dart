@@ -3958,25 +3958,6 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
   test_genericMethod_tearoff_instantiated() {
     return super.test_genericMethod_tearoff_instantiated();
   }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_class_error_extension_malbounded() {
-    return super.test_instantiateToBounds_class_error_extension_malbounded();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_class_error_instantiation_malbounded() {
-    return super
-        .test_instantiateToBounds_class_error_instantiation_malbounded();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_generic_function_error_malbounded() {
-    return super.test_instantiateToBounds_generic_function_error_malbounded();
-  }
 }
 
 /// Test cases for [StrongModeStaticTypeAnalyzer2Test]
@@ -4873,7 +4854,8 @@ class C<T0 extends List<T1>, T1 extends List<T0>> {}
 class D extends C {}
 ''';
     await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    assertErrors(
+        testSource, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
@@ -4886,8 +4868,11 @@ void test() {
 }
 ''';
     await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
-    expectIdentifierType('c;', 'C<List<dynamic>, List<dynamic>>');
+    assertErrors(testSource, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+    ]);
+    expectIdentifierType('c =', 'C<List<dynamic>, List<List<dynamic>>>');
   }
 
   test_instantiateToBounds_class_error_recursion() async {
@@ -5015,8 +5000,9 @@ void g() {
 }
 ''';
     await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
-    expectIdentifierType('c;', 'List<dynamic>');
+    assertErrors(
+        testSource, [HintCode.MISSING_RETURN, StrongModeCode.COULD_NOT_INFER]);
+    expectIdentifierType('c =', 'List<dynamic>');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before() async {

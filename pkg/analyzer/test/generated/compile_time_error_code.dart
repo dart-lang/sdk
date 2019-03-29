@@ -2814,7 +2814,7 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
     verify([source]);
   }
 
@@ -2827,7 +2827,7 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
     verify([source]);
   }
 
@@ -2840,7 +2840,7 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
     verify([source]);
   }
 

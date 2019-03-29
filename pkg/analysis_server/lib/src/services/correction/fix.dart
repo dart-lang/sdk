@@ -38,7 +38,6 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
-    errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL ||
     errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
     errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||

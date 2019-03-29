@@ -322,6 +322,8 @@ class HintCode extends ErrorCode {
   /**
    * Hint for the `x is int` type checks.
    */
+  // TODO(brianwilkerson) This hint isn't being generated. Decide whether to
+  //  generate it or remove it.
   static const HintCode IS_INT = const HintCode(
       'IS_INT',
       "When compiled to JS, this test might return true when the left hand "
@@ -340,6 +342,8 @@ class HintCode extends ErrorCode {
   /**
    * Hint for the `x is! int` type checks.
    */
+  // TODO(brianwilkerson) This hint isn't being generated. Decide whether to
+  //  generate it or remove it.
   static const HintCode IS_NOT_INT = const HintCode(
       'IS_NOT_INT',
       "When compiled to JS, this test might return false when the left hand "

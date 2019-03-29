@@ -37,24 +37,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
-  test_invalidIdentifierInAsync_async() {
-    return super.test_invalidIdentifierInAsync_async();
-  }
-
-  @override
-  @failingTest
-  test_invalidIdentifierInAsync_await() {
-    return super.test_invalidIdentifierInAsync_await();
-  }
-
-  @override
-  @failingTest
-  test_invalidIdentifierInAsync_yield() {
-    return super.test_invalidIdentifierInAsync_yield();
-  }
-
-  @override
-  @failingTest
   test_mixinOfNonClass() {
     return super.test_mixinOfNonClass();
   }

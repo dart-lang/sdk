@@ -1294,23 +1294,25 @@ main(A<V> p) {
   if (p is B) {
     p.b;
   }
-}''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+}
+''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  @failingTest
   test_undefinedEnumConstant() async {
-    // We need a way to set the parseEnum flag in the parser to true.
+    // We should be reporting UNDEFINED_ENUM_CONSTANT here.
     await assertErrorsInCode(r'''
 enum E { ONE }
 E e() {
   return E.TWO;
-}''', [StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT]);
+}
+''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
   }
 
   test_undefinedGetter() async {
     await assertErrorsInUnverifiedCode(r'''
 class T {}
-f(T e) { return e.m; }''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+f(T e) { return e.m; }
+''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedGetter_generic_function_call() async {

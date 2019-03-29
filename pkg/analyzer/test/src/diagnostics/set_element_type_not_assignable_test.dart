@@ -30,12 +30,11 @@ var v = const <String>{x};
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/21119')
   test_explicitTypeArgs_const_actualTypeMismatch() async {
     await assertErrorsInCode('''
 const dynamic x = 42;
 var v = const <String>{x};
-''', [CheckedModeCompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_explicitTypeArgs_notConst() async {

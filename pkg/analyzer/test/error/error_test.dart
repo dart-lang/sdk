@@ -91,7 +91,6 @@ class ErrorCodeValuesTest extends ParserTestCase {
       ['lib', 'src', 'dart', 'error', 'hint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'lint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'todo_codes.dart'],
-      ['lib', 'src', 'html', 'error', 'html_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'syntactic_errors.dart'],
       ['lib', 'src', 'error', 'codes.dart'],
       ['..', 'front_end', 'lib', 'src', 'scanner', 'errors.dart']

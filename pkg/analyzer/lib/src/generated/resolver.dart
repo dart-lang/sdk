@@ -3622,10 +3622,6 @@ class ResolverErrorCode extends ErrorCode {
       const ResolverErrorCode('CONTINUE_LABEL_ON_SWITCH',
           "A continue label resolves to switch, must be loop or switch member");
 
-  static const ResolverErrorCode MISSING_LIBRARY_DIRECTIVE_WITH_PART =
-      const ResolverErrorCode('MISSING_LIBRARY_DIRECTIVE_WITH_PART',
-          "Libraries that have parts must have a library directive");
-
   /// Parts: It is a static warning if the referenced part declaration
   /// <i>p</i> names a library that does not have a library tag.
   ///
