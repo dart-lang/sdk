@@ -67,8 +67,6 @@ import '../type_inference/type_promotion.dart'
 
 import 'collections.dart'
     show
-        ControlFlowElement,
-        ControlFlowMapEntry,
         ForElement,
         ForInElement,
         ForInMapEntry,
