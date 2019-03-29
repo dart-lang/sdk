@@ -44,7 +44,7 @@ testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble,
   Map<String, List<int>> map42 = {if (oracle("foo")) if (oracle()) ...{"bar": []}, "baz": null};
   List<int> list50 = [if (oracle("foo")) ...[]];
   Set<int> set50 = {if (oracle("foo")) ...[], null};
-  Map<int> map50 = {if (oracle("foo")) ...{}, "baz": null};
+  Map<String, int> map50 = {if (oracle("foo")) ...{}, "baz": null};
   List<int> list51 = [if (oracle("foo")) ...{}];
   Set<int> set51 = {if (oracle("foo")) ...{}, null};
   List<int> list52 = [if (oracle("foo")) if (oracle()) ...[]];
@@ -65,13 +65,13 @@ testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble,
   var map80 = {if (oracle("foo")) "bar": 42 else "bar": 3.14, "baz": null};
   var list81 = [if (oracle("foo")) ...listInt else ...listDouble];
   var set81 = {if (oracle("foo")) ...listInt else ...listDouble, null};
-  var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, null};
+  var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, "baz": null};
   var list82 = [if (oracle("foo")) ...listInt else ...dynVar];
   var set82 = {if (oracle("foo")) ...listInt else ...dynVar, null};
   var map82 = {if (oracle("foo")) ...mapToInt else ...dynVar, null};
   var list83 = [if (oracle("foo")) 42 else ...listDouble];
   var set83 = {if (oracle("foo")) ...listInt else 3.14, null};
-  var map83 = {if (oracle("foo")) ...mapToInt else 3.14, null};
+  var map83 = {if (oracle("foo")) ...mapToInt else "bar": 3.14, "baz": null};
   List<int> list90 = [if (oracle("foo")) dynVar];
   Set<int> set90 = {if (oracle("foo")) dynVar, null};
   Map<String, int> map90 = {if (oracle("foo")) "bar": dynVar, "baz": null};
@@ -95,10 +95,10 @@ testIfElementErrors(Map<int, int> map) {
   <String, String>{if (oracle("foo")) "bar": 42 else "baz": 3.14, "baz": null};
   <int>[if (oracle("foo")) ...map else 42];
   <int>{if (oracle("foo")) ...map else 42, null};
-  <String, int>{if (oracle("foo")) ...[42] else {"bar": 42}, "baz": null};
+  <String, int>{if (oracle("foo")) ...[42] else "bar": 42, "baz": null};
   <int>[if (oracle("foo")) 42 else ...map];
   <int>{if (oracle("foo")) ...map else 42, null};
-  <String, int>{if (oracle("foo")) {"bar": 42} else ...[42], "baz": null};
+  <String, int>{if (oracle("foo")) "bar": 42 else ...[42], "baz": null};
 }
 
 testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int
@@ -177,7 +177,7 @@ testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int
   Map<String, int> map91 = {for (int i = 0; oracle("foo"); i++) ...dynVar, "baz": null};
   List<int> list100 = <int>[for (index = 0; oracle("foo"); index++) 42];
   Set<int> set100 = <int>{for (index = 0; oracle("foo"); index++) 42};
-  Map<String, int> map100 = <String int>{for (index = 0; oracle("foo"); index++) "bar": 42};
+  Map<String, int> map100 = <String, int>{for (index = 0; oracle("foo"); index++) "bar": 42};
   var list110 = [for (var i in [1, 2, 3]) i];
   var set110 = {for (var i in [1, 2, 3]) i, null};
   var map110 = {for (var i in [1, 2, 3]) "bar": i, "baz": null};

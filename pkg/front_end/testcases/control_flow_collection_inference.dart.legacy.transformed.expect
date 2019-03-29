@@ -310,17 +310,13 @@ library;
 //   Set<int> set50 = {if (oracle("foo")) ...[], null};
 //                     ^^
 //
-// pkg/front_end/testcases/control_flow_collection_inference.dart:47:3: Warning: Expected 2 type arguments.
-//   Map<int> map50 = {if (oracle("foo")) ...{}, "baz": null};
-//   ^^^
+// pkg/front_end/testcases/control_flow_collection_inference.dart:47:48: Error: Unexpected token '...'.
+//   Map<String, int> map50 = {if (oracle("foo")) ...{}, "baz": null};
+//                                                ^^^
 //
-// pkg/front_end/testcases/control_flow_collection_inference.dart:47:40: Error: Unexpected token '...'.
-//   Map<int> map50 = {if (oracle("foo")) ...{}, "baz": null};
-//                                        ^^^
-//
-// pkg/front_end/testcases/control_flow_collection_inference.dart:47:21: Error: Unexpected token 'if'.
-//   Map<int> map50 = {if (oracle("foo")) ...{}, "baz": null};
-//                     ^^
+// pkg/front_end/testcases/control_flow_collection_inference.dart:47:29: Error: Unexpected token 'if'.
+//   Map<String, int> map50 = {if (oracle("foo")) ...{}, "baz": null};
+//                             ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:48:42: Error: Unexpected token '...'.
 //   List<int> list51 = [if (oracle("foo")) ...{}];
@@ -495,15 +491,15 @@ library;
 //                ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:68:35: Error: Unexpected token '...'.
-//   var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, null};
+//   var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, "baz": null};
 //                                   ^^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:68:52: Error: Unexpected token '...'.
-//   var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, null};
+//   var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, "baz": null};
 //                                                    ^^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:68:16: Error: Unexpected token 'if'.
-//   var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, null};
+//   var map81 = {if (oracle("foo")) ...mapToInt else ...mapToDouble, "baz": null};
 //                ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:69:36: Error: Unexpected token '...'.
@@ -559,11 +555,11 @@ library;
 //                ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:74:35: Error: Unexpected token '...'.
-//   var map83 = {if (oracle("foo")) ...mapToInt else 3.14, null};
+//   var map83 = {if (oracle("foo")) ...mapToInt else "bar": 3.14, "baz": null};
 //                                   ^^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:74:16: Error: Unexpected token 'if'.
-//   var map83 = {if (oracle("foo")) ...mapToInt else 3.14, null};
+//   var map83 = {if (oracle("foo")) ...mapToInt else "bar": 3.14, "baz": null};
 //                ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:75:23: Error: Unexpected token 'if'.
@@ -691,11 +687,11 @@ library;
 //         ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:98:36: Error: Unexpected token '...'.
-//   <String, int>{if (oracle("foo")) ...[42] else {"bar": 42}, "baz": null};
+//   <String, int>{if (oracle("foo")) ...[42] else "bar": 42, "baz": null};
 //                                    ^^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:98:17: Error: Unexpected token 'if'.
-//   <String, int>{if (oracle("foo")) ...[42] else {"bar": 42}, "baz": null};
+//   <String, int>{if (oracle("foo")) ...[42] else "bar": 42, "baz": null};
 //                 ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:99:36: Error: Unexpected token '...'.
@@ -714,12 +710,12 @@ library;
 //   <int>{if (oracle("foo")) ...map else 42, null};
 //         ^^
 //
-// pkg/front_end/testcases/control_flow_collection_inference.dart:101:53: Error: Unexpected token '...'.
-//   <String, int>{if (oracle("foo")) {"bar": 42} else ...[42], "baz": null};
-//                                                     ^^^
+// pkg/front_end/testcases/control_flow_collection_inference.dart:101:51: Error: Unexpected token '...'.
+//   <String, int>{if (oracle("foo")) "bar": 42 else ...[42], "baz": null};
+//                                                   ^^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:101:17: Error: Unexpected token 'if'.
-//   <String, int>{if (oracle("foo")) {"bar": 42} else ...[42], "baz": null};
+//   <String, int>{if (oracle("foo")) "bar": 42 else ...[42], "baz": null};
 //                 ^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:106:17: Error: Unexpected token 'for'.
@@ -1374,13 +1370,9 @@ library;
 //   Set<int> set100 = <int>{for (index = 0; oracle("foo"); index++) 42};
 //                           ^^^
 //
-// pkg/front_end/testcases/control_flow_collection_inference.dart:180:37: Error: Expected ',' before this.
-//   Map<String, int> map100 = <String int>{for (index = 0; oracle("foo"); index++) "bar": 42};
-//                                     ^^^
-//
-// pkg/front_end/testcases/control_flow_collection_inference.dart:180:42: Error: Unexpected token 'for'.
-//   Map<String, int> map100 = <String int>{for (index = 0; oracle("foo"); index++) "bar": 42};
-//                                          ^^^
+// pkg/front_end/testcases/control_flow_collection_inference.dart:180:43: Error: Unexpected token 'for'.
+//   Map<String, int> map100 = <String, int>{for (index = 0; oracle("foo"); index++) "bar": 42};
+//                                           ^^^
 //
 // pkg/front_end/testcases/control_flow_collection_inference.dart:181:18: Error: Unexpected token 'for'.
 //   var list110 = [for (var i in [1, 2, 3]) i];
@@ -1732,7 +1724,7 @@ static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core:
   core::Map<core::String, core::List<core::int>> map42 = <dynamic, dynamic>{"baz": null};
   core::List<core::int> list50 = <dynamic>[];
   core::Set<core::int> set50 = <dynamic>{null};
-  core::Map<dynamic, dynamic> map50 = <dynamic, dynamic>{"baz": null};
+  core::Map<core::String, core::int> map50 = <dynamic, dynamic>{"baz": null};
   core::List<core::int> list51 = <dynamic>[];
   core::Set<core::int> set51 = <dynamic>{null};
   core::List<core::int> list52 = <dynamic>[];
@@ -1753,13 +1745,13 @@ static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core:
   dynamic map80 = <dynamic, dynamic>{"baz": null};
   dynamic list81 = <dynamic>[];
   dynamic set81 = <dynamic>{null};
-  dynamic map81 = <dynamic>{null};
+  dynamic map81 = <dynamic, dynamic>{"baz": null};
   dynamic list82 = <dynamic>[];
   dynamic set82 = <dynamic>{null};
   dynamic map82 = <dynamic>{null};
   dynamic list83 = <dynamic>[];
   dynamic set83 = <dynamic>{null};
-  dynamic map83 = <dynamic>{null};
+  dynamic map83 = <dynamic, dynamic>{"baz": null};
   core::List<core::int> list90 = <dynamic>[];
   core::Set<core::int> set90 = <dynamic>{null};
   core::Map<core::String, core::int> map90 = <dynamic, dynamic>{"baz": null};
