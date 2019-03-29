@@ -65,6 +65,11 @@
 
 [visualizer]: https://dart-lang.github.io/dump-info-visualizer/
 
+#### dartfmt
+
+* Tweak set literal formatting to follow other collection literals.
+* Add support for "UI as code" features.
+
 #### Linter
 
 The Linter was updated to `0.1.83` which includes the following changes:
