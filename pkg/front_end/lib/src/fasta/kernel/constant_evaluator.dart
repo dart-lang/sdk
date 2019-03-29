@@ -457,6 +457,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
   Set<Expression> replacementNodes = new Set<Expression>.identity();
+  Map<Constant, Constant> lowered = new Map<Constant, Constant>.identity();
 
   bool seenUnevaluatedChild; // Any children that were left unevaluated?
   int lazyDepth; // Current nesting depth of lazy regions.
@@ -572,6 +573,35 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// Leave a (possibly nested) region of lazy evaluation.
   void leaveLazy() => lazyDepth--;
 
+  Constant lower(Constant original, Constant replacement) {
+    if (!identical(original, replacement)) {
+      original = canonicalize(original);
+      replacement = canonicalize(replacement);
+      lowered[replacement] = original;
+      return replacement;
+    }
+    return canonicalize(replacement);
+  }
+
+  Constant unlower(Constant constant) {
+    return lowered[constant] ?? constant;
+  }
+
+  Constant lowerListConstant(ListConstant constant) {
+    if (shouldBeUnevaluated) return constant;
+    return lower(constant, backend.lowerListConstant(constant));
+  }
+
+  Constant lowerSetConstant(SetConstant constant) {
+    if (shouldBeUnevaluated) return constant;
+    return lower(constant, backend.lowerSetConstant(constant));
+  }
+
+  Constant lowerMapConstant(MapConstant constant) {
+    if (shouldBeUnevaluated) return constant;
+    return lower(constant, backend.lowerMapConstant(constant));
+  }
+
   /// Evaluate [node] and possibly cache the evaluation result.
   /// @throws _AbortDueToError or _AbortDueToInvalidExpression if expression
   /// can't be evaluated.
@@ -673,7 +703,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       [Set<Constant> seen]) {
     bool isSet = seen != null;
     if (element is SpreadElement) {
-      Constant spread = _evaluateSubexpression(element.expression);
+      Constant spread = unlower(_evaluateSubexpression(element.expression));
       if (shouldBeUnevaluated) {
         // Unevaluated spread
         if (element.isNullAware) {
@@ -796,8 +826,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       List<Object> parts, Expression node, DartType elementType) {
     if (parts.length == 1) {
       // Fully evaluated
-      return canonicalize(backend
-          .lowerListConstant(new ListConstant(elementType, parts.single)));
+      return lowerListConstant(new ListConstant(elementType, parts.single));
     }
     List<Expression> lists = <Expression>[];
     for (Object part in parts) {
@@ -839,21 +868,23 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (parts.length == 1) {
       // Fully evaluated
       List<Constant> entries = parts.single;
+      SetConstant result = new SetConstant(elementType, entries);
       if (desugarSets) {
         final List<ConstantMapEntry> mapEntries =
             new List<ConstantMapEntry>(entries.length);
         for (int i = 0; i < entries.length; ++i) {
           mapEntries[i] = new ConstantMapEntry(entries[i], nullConstant);
         }
-        Constant map = canonicalize(backend.lowerMapConstant(new MapConstant(
-            elementType, typeEnvironment.nullType, mapEntries)));
-        return canonicalize(new InstanceConstant(
-            unmodifiableSetMap.enclosingClass.reference,
-            [elementType],
-            <Reference, Constant>{unmodifiableSetMap.reference: map}));
+        Constant map = lowerMapConstant(
+            new MapConstant(elementType, typeEnvironment.nullType, mapEntries));
+        return lower(
+            result,
+            new InstanceConstant(
+                unmodifiableSetMap.enclosingClass.reference,
+                [elementType],
+                <Reference, Constant>{unmodifiableSetMap.reference: map}));
       } else {
-        return canonicalize(
-            backend.lowerSetConstant(new SetConstant(elementType, entries)));
+        return lowerSetConstant(result);
       }
     }
     List<Expression> sets = <Expression>[];
@@ -904,7 +935,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   void addToMapConstant(List<Object> parts, MapEntry element, DartType keyType,
       DartType valueType, Set<Constant> seenKeys) {
     if (element is SpreadMapEntry) {
-      Constant spread = _evaluateSubexpression(element.expression);
+      Constant spread = unlower(_evaluateSubexpression(element.expression));
       if (shouldBeUnevaluated) {
         // Unevaluated spread
         if (element.isNullAware) {
@@ -1017,8 +1048,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       DartType keyType, DartType valueType) {
     if (parts.length == 1) {
       // Fully evaluated
-      return canonicalize(backend
-          .lowerMapConstant(new MapConstant(keyType, valueType, parts.single)));
+      return lowerMapConstant(
+          new MapConstant(keyType, valueType, parts.single));
     }
     List<Expression> maps = <Expression>[];
     for (Object part in parts) {

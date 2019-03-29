@@ -247,7 +247,6 @@ spread_collections/await_test: Crash
 spread_collections/const_error_test/12: MissingCompileTimeError
 spread_collections/const_error_test/13: Crash
 spread_collections/const_error_test/14: MissingCompileTimeError
-spread_collections/const_test: CompileTimeError
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError

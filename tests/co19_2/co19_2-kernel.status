@@ -151,15 +151,6 @@ LanguageFeatures/Set-literals/type_inference_A06_t02/03: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A06_t02/04: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A06_t02/05: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A06_t02/06: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A06_t01: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A06_t02: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A06_t03: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t01: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t02: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t03: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t04: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t06: CompileTimeError
 
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
