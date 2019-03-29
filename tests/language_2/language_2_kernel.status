@@ -136,15 +136,6 @@ super_test: RuntimeError
 type_alias_equality_test/03: RuntimeError # Issue 32783
 type_alias_equality_test/04: RuntimeError # Issue 32783
 type_error_test: RuntimeError
-type_promotion_functions_test/02: CompileTimeError
-type_promotion_functions_test/03: CompileTimeError
-type_promotion_functions_test/04: CompileTimeError
-type_promotion_functions_test/09: CompileTimeError
-type_promotion_functions_test/11: CompileTimeError
-type_promotion_functions_test/12: CompileTimeError
-type_promotion_functions_test/13: CompileTimeError
-type_promotion_functions_test/14: CompileTimeError
-type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
 vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
@@ -609,11 +600,6 @@ vm/symbols_test/03: MissingCompileTimeError
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 external_test/13: Crash
-type_promotion_functions_test/05: Pass
-type_promotion_functions_test/06: Pass
-type_promotion_functions_test/07: Pass
-type_promotion_functions_test/08: Pass
-type_promotion_functions_test/10: Pass
 vm/precompiled_static_initializer_test: Pass, Slow
 
 [ $compiler == dartkp && $mode == product && $runtime == dart_precompiled && $strong ]
@@ -872,15 +858,6 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError # Issue 31537
-type_promotion_functions_test/03: CompileTimeError # Issue 31537
-type_promotion_functions_test/04: CompileTimeError # Issue 31537
-type_promotion_functions_test/09: CompileTimeError # Issue 31537
-type_promotion_functions_test/11: CompileTimeError # Issue 31537
-type_promotion_functions_test/12: CompileTimeError # Issue 31537
-type_promotion_functions_test/13: CompileTimeError # Issue 31537
-type_promotion_functions_test/14: CompileTimeError # Issue 31537
-type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/causal_async_exception_stack2_test: SkipByDesign
@@ -991,15 +968,6 @@ regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 try_catch_test/01: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError
-type_promotion_functions_test/03: CompileTimeError
-type_promotion_functions_test/04: CompileTimeError
-type_promotion_functions_test/09: CompileTimeError
-type_promotion_functions_test/11: CompileTimeError
-type_promotion_functions_test/12: CompileTimeError
-type_promotion_functions_test/13: CompileTimeError
-type_promotion_functions_test/14: CompileTimeError
-type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 
 [ $compiler == fasta && !$strong ]
@@ -1391,15 +1359,6 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test/01: MissingCompileTimeError
 super_test: Fail, OK
-type_promotion_functions_test/02: CompileTimeError # Issue 31537
-type_promotion_functions_test/03: CompileTimeError # Issue 31537
-type_promotion_functions_test/04: CompileTimeError # Issue 31537
-type_promotion_functions_test/09: CompileTimeError # Issue 31537
-type_promotion_functions_test/11: CompileTimeError # Issue 31537
-type_promotion_functions_test/12: CompileTimeError # Issue 31537
-type_promotion_functions_test/13: CompileTimeError # Issue 31537
-type_promotion_functions_test/14: CompileTimeError # Issue 31537
-type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
@@ -2126,12 +2085,6 @@ type_inference_accessor_ref_test/03: MissingCompileTimeError
 type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_promotion_functions_test/01: MissingCompileTimeError
-type_promotion_functions_test/05: MissingCompileTimeError
-type_promotion_functions_test/06: MissingCompileTimeError
-type_promotion_functions_test/07: MissingCompileTimeError
-type_promotion_functions_test/08: MissingCompileTimeError
-type_promotion_functions_test/10: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError

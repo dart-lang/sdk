@@ -101,15 +101,6 @@ syntax_test/61: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError
-type_promotion_functions_test/03: CompileTimeError
-type_promotion_functions_test/04: CompileTimeError
-type_promotion_functions_test/09: CompileTimeError
-type_promotion_functions_test/11: CompileTimeError
-type_promotion_functions_test/12: CompileTimeError
-type_promotion_functions_test/13: CompileTimeError
-type_promotion_functions_test/14: CompileTimeError
-type_promotion_functions_test/none: CompileTimeError
 type_variable_static_context_negative_test: Fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip

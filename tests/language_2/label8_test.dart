@@ -6,7 +6,7 @@ main() {
   int i;
   // Grammar doesn't allow label on block for switch statement.
   switch(i)
-    L: //# 01: compile-time error
+    L: //# 01: syntax error
   {
     case 111:
       while (false) {

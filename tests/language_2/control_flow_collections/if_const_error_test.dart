@@ -131,9 +131,9 @@ void testShortCircuit() {
   const dynamic nil = null;
 
   // With no else.
-  const _ = [if (true) nil + 1]); //# 40: compile-time error
+  const _ = [if (true) nil + 1]; //# 40: compile-time error
 
   // With else.
-  const _ = [if (true) nil + 1 else 1]); //# 41: compile-time error
-  const _ = [if (false) 1 else nil + 1]); //# 42: compile-time error
+  const _ = [if (true) nil + 1 else 1]; //# 41: compile-time error
+  const _ = [if (false) 1 else nil + 1]; //# 42: compile-time error
 }

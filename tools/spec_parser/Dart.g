@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// *** This grammar is under development and it contains known bugs. ***
-//
 // CHANGES:
+//
+// v0.4 Added support for 'unified collections' (spreads and control flow
+// in collection literals).
+//
+// v0.3 Updated to use ANTLR v4 rather than antlr3.
 //
 // v0.2 Changed top level variable declarations to avoid redundant and
 // misleading occurrence of (FINAL|CONST).
@@ -135,7 +138,8 @@ libraryDefinition
     ;
 
 topLevelDefinition
-    :    classDefinition
+    :    classDeclaration
+    |    mixinDeclaration
     |    enumType
     |    typeAlias
     |    EXTERNAL functionSignature ';'
@@ -261,10 +265,16 @@ typeApplication
     :    typeIdentifier typeParameters?
     ;
 
-classDefinition
+classDeclaration
     :    ABSTRACT? CLASS typeApplication (superclass mixins?)? interfaces?
          LBRACE (metadata classMemberDefinition)* RBRACE
     |    ABSTRACT? CLASS mixinApplicationClass
+    ;
+
+mixinDeclaration
+    :    MIXIN typeIdentifier typeParameters?
+         (ON typeNotVoidNotFunctionList)? interfaces?
+         LBRACE (metadata mixinMemberDefinition)* RBRACE
     ;
 
 mixins
@@ -274,6 +284,11 @@ mixins
 classMemberDefinition
     :    methodSignature functionBody
     |    declaration ';'
+    ;
+
+// TODO: We will probably want to make this more strict.
+mixinMemberDefinition
+    :    classMemberDefinition
     ;
 
 methodSignature
@@ -471,7 +486,7 @@ literal
     |    numericLiteral
     |    stringLiteral
     |    symbolLiteral
-    |    mapLiteral
+    |    setOrMapLiteral
     |    listLiteral
     ;
 
@@ -497,17 +512,44 @@ stringLiteralWithoutInterpolation
     :    singleLineStringWithoutInterpolation+
     ;
 
+setOrMapLiteral
+    : CONST? typeArguments? LBRACE elements? RBRACE
+    ;
+
 listLiteral
-    :    CONST? typeArguments? '[' (expressionList ','?)? ']'
+    : CONST? typeArguments? '[' elements? ']'
     ;
 
-mapLiteral
-    :    CONST? typeArguments?
-         LBRACE (mapLiteralEntry (',' mapLiteralEntry)* ','?)? RBRACE
+elements
+    : element (',' element)* ','?
     ;
 
-mapLiteralEntry
-    :    expression ':' expression
+element
+    : expressionElement
+    | mapEntry
+    | spreadElement
+    | ifElement
+    | forElement
+    ;
+
+expressionElement
+    : expression
+    ;
+
+mapEntry
+    : expression ':' expression
+    ;
+
+spreadElement
+    : ('...' | '...?') expression
+    ;
+
+ifElement
+    : IF '(' expression ')' element ('else' element)?
+    ;
+
+forElement
+    : AWAIT? FOR '(' forLoopParts ')' element
     ;
 
 throwExpression
@@ -810,7 +852,9 @@ identifierNotFUNCTION
     |    GET // Built-in identifier.
     |    IMPLEMENTS // Built-in identifier.
     |    IMPORT // Built-in identifier.
+    |    INTERFACE // Built-in identifier.
     |    LIBRARY // Built-in identifier.
+    |    MIXIN // Built-in identifier.
     |    OPERATOR // Built-in identifier.
     |    PART // Built-in identifier.
     |    SET // Built-in identifier.
@@ -1344,8 +1388,16 @@ IMPORT
     :    'import'
     ;
 
+INTERFACE
+    :    'interface'
+    ;
+
 LIBRARY
     :    'library'
+    ;
+
+MIXIN
+    :    'mixin'
     ;
 
 PART

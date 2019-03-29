@@ -137,15 +137,6 @@ truncdiv_test: RuntimeError # Issue 29920
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError # Issue 30895
-type_promotion_functions_test/03: CompileTimeError # Issue 30895
-type_promotion_functions_test/04: CompileTimeError # Issue 30895
-type_promotion_functions_test/09: CompileTimeError # Issue 30895
-type_promotion_functions_test/11: CompileTimeError # Issue 30895
-type_promotion_functions_test/12: CompileTimeError # Issue 30895
-type_promotion_functions_test/13: CompileTimeError # Issue 30895
-type_promotion_functions_test/14: CompileTimeError # Issue 30895
-type_promotion_functions_test/none: CompileTimeError # Issue 30895
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
@@ -283,15 +274,6 @@ switch_case_test/02: MissingCompileTimeError
 syncstar_yield_test/capturing: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 try_catch_test/01: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError # Issue 31537
-type_promotion_functions_test/03: CompileTimeError # Issue 31537
-type_promotion_functions_test/04: CompileTimeError # Issue 31537
-type_promotion_functions_test/09: CompileTimeError # Issue 31537
-type_promotion_functions_test/11: CompileTimeError # Issue 31537
-type_promotion_functions_test/12: CompileTimeError # Issue 31537
-type_promotion_functions_test/13: CompileTimeError # Issue 31537
-type_promotion_functions_test/14: CompileTimeError # Issue 31537
-type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 
