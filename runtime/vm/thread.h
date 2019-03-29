@@ -127,8 +127,7 @@ class Zone;
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
-  V(RawObjectPool*, global_object_pool_, ObjectPool::null(), NULL)
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
@@ -567,6 +566,10 @@ class Thread : public ThreadState {
   RawGrowableObjectArray* pending_functions();
   void clear_pending_functions();
 
+  static intptr_t global_object_pool_offset() {
+    return OFFSET_OF(Thread, global_object_pool_);
+  }
+
   RawObject* active_exception() const { return active_exception_; }
   void set_active_exception(const Object& value);
   static intptr_t active_exception_offset() {
@@ -830,6 +833,7 @@ class Thread : public ThreadState {
   // JumpToExceptionHandler state:
   RawObject* active_exception_;
   RawObject* active_stacktrace_;
+  RawObjectPool* global_object_pool_;
   uword resume_pc_;
 
   // ---- End accessed from generated code. ----

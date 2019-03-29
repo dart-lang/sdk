@@ -362,6 +362,12 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ StoreToOffset(kWord, R2, THR,
                    target::Thread::top_exit_frame_info_offset());
 
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
+
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -455,6 +461,12 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, THR,
                    target::Thread::top_exit_frame_info_offset());
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
 
   __ LeaveStubFrame();
   __ Ret();

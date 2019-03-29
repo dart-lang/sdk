@@ -369,6 +369,12 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
+
   __ LeaveStubFrame();
   __ ret();
 }
@@ -454,6 +460,12 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
 
   __ LeaveStubFrame();
   __ ret();
