@@ -1476,20 +1476,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _getTypedefNode(typedef);
   }
 
-  // TODO(johnniwinther): Cache this for later use.
-  @override
-  bool isNativeClass(ir.Class node) {
-    for (ir.Expression annotation in node.annotations) {
-      if (annotation is ir.ConstructorInvocation) {
-        FunctionEntity target = getConstructor(annotation.target);
-        if (target.enclosingClass == commonElements.nativeAnnotationClass) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {

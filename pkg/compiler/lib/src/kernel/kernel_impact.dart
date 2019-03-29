@@ -149,7 +149,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerFieldNode(ir.Field field) {
     if (field.isInstanceMember &&
-        elementMap.isNativeClass(field.enclosingClass)) {
+        _nativeBasicData
+            .isNativeClass(elementMap.getClass(field.enclosingClass))) {
       MemberEntity member = elementMap.getMember(field);
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
       // at this point. Use that instead.

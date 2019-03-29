@@ -56,7 +56,7 @@ testNativeMethodReturns() native;
 
 @Native("NativeClass")
 class NativeClass {
-  /*strong.element: NativeClass.field:
+  /*element: NativeClass.field:
    type=[
     inst:JSBool,
     inst:JSNull,
@@ -68,10 +68,6 @@ class NativeClass {
     native:int,
     param:Object]
   */
-  // TODO(johnniwinther): The metadata is defined in dart:html_common and
-  // therefore derived from platform.dill which doesn't currently include IR
-  // constants.
-  /*strongConst.element: NativeClass.field:type=[inst:JSBool,inst:JSNull,param:Object]*/
   @annotation_Creates_SerializedScriptValue
   final Object field;
 
