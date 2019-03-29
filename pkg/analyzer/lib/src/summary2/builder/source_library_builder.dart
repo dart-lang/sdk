@@ -254,9 +254,7 @@ class SourceLibraryBuilder {
   }
 
   void performTopLevelInference() {
-    for (var unit in units) {
-      TopLevelInference(linker, reference, unit).infer();
-    }
+    TopLevelInference(linker, reference).infer();
   }
 
   void resolveConstructors() {

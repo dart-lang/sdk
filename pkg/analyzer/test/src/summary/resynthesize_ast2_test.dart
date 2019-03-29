@@ -271,12 +271,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_reference_type_typeParameter() async {
-    await super.test_const_reference_type_typeParameter();
-  }
-
-  @override
-  @failingTest
   test_const_topLevel_typedList_typedefArgument() async {
     await super.test_const_topLevel_typedList_typedefArgument();
   }
@@ -285,12 +279,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_constExpr_pushReference_field_simpleIdentifier() async {
     await super.test_constExpr_pushReference_field_simpleIdentifier();
-  }
-
-  @override
-  @failingTest
-  test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
-    await super.test_constExpr_pushReference_staticMethod_simpleIdentifier();
   }
 
   @override
@@ -695,12 +683,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_syntheticFunctionType_genericClosure() async {
     await super.test_syntheticFunctionType_genericClosure();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_inGenericClass() async {
-    await super.test_syntheticFunctionType_inGenericClass();
   }
 
   @override

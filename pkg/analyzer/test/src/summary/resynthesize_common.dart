@@ -3733,7 +3733,16 @@ class C {
   static m() {}
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  static const () → dynamic a =
+        m/*location: test.dart;C;m*/;
+  static dynamic m() {}
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   static const () → dynamic a =
         C/*location: test.dart;C*/.
@@ -3741,6 +3750,7 @@ class C {
   static dynamic m() {}
 }
 ''');
+    }
   }
 
   test_constructor_documented() async {
