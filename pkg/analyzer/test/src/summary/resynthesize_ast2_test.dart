@@ -191,20 +191,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_constructor_field_formal_functionTyped_noReturnType() async {
-    await super
-        .test_class_constructor_field_formal_functionTyped_noReturnType();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_functionTyped_withReturnType() async {
-    await super
-        .test_class_constructor_field_formal_functionTyped_withReturnType();
-  }
-
-  @override
-  @failingTest
   test_class_type_parameters_f_bound_complex() async {
     await super.test_class_type_parameters_f_bound_complex();
   }
@@ -459,42 +445,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_function_parameter_parameters() async {
-    await super.test_function_parameter_parameters();
-  }
-
-  @override
-  @failingTest
-  test_function_parameter_return_type() async {
-    await super.test_function_parameter_return_type();
-  }
-
-  @override
-  @failingTest
-  test_function_parameter_return_type_void() async {
-    await super.test_function_parameter_return_type_void();
-  }
-
-  @override
-  @failingTest
-  test_function_type_parameter_with_function_typed_parameter() async {
-    await super.test_function_type_parameter_with_function_typed_parameter();
-  }
-
-  @override
-  @failingTest
-  test_function_typed_parameter_implicit() async {
-    await super.test_function_typed_parameter_implicit();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_asFunctionTypedParameterReturnType() async {
-    await super.test_genericFunction_asFunctionTypedParameterReturnType();
-  }
-
-  @override
-  @failingTest
   test_getter_inferred_type_nonStatic_implicit_return() async {
     await super.test_getter_inferred_type_nonStatic_implicit_return();
   }
@@ -509,12 +459,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_import_deferred() async {
     await super.test_import_deferred();
-  }
-
-  @override
-  @failingTest
-  test_import_export() async {
-    await super.test_import_export();
   }
 
   @override
@@ -581,12 +525,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_inferred_type_refers_to_function_typed_param_of_typedef() async {
-    await super.test_inferred_type_refers_to_function_typed_param_of_typedef();
-  }
-
-  @override
-  @failingTest
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
     await super
         .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
@@ -608,19 +546,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param() async {
-    await super.test_inferred_type_refers_to_nested_function_typed_param();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param_named() async {
-    await super
-        .test_inferred_type_refers_to_nested_function_typed_param_named();
-  }
-
-  @override
-  @failingTest
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
     await super
         .test_inferred_type_refers_to_setter_function_typed_parameter_type();
@@ -636,13 +561,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_inferredType_implicitCreation() async {
     await super.test_inferredType_implicitCreation();
-  }
-
-  @override
-  @failingTest
-  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    await super
-        .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
   }
 
   @override
@@ -719,30 +637,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_metadata_fieldFormalParameter() async {
-    await super.test_metadata_fieldFormalParameter();
-  }
-
-  @override
-  @failingTest
-  test_metadata_fieldFormalParameter_withDefault() async {
-    await super.test_metadata_fieldFormalParameter_withDefault();
-  }
-
-  @override
-  @failingTest
-  test_metadata_functionTypedFormalParameter() async {
-    await super.test_metadata_functionTypedFormalParameter();
-  }
-
-  @override
-  @failingTest
-  test_metadata_functionTypedFormalParameter_withDefault() async {
-    await super.test_metadata_functionTypedFormalParameter_withDefault();
-  }
-
-  @override
-  @failingTest
   test_metadata_importDirective() async {
     await super.test_metadata_importDirective();
   }
@@ -761,12 +655,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_metadata_simpleFormalParameter_withDefault() async {
-    await super.test_metadata_simpleFormalParameter_withDefault();
-  }
-
-  @override
-  @failingTest
   test_method_inferred_type_nonStatic_implicit_param() async {
     await super.test_method_inferred_type_nonStatic_implicit_param();
   }
@@ -775,12 +663,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_method_inferred_type_nonStatic_implicit_return() async {
     await super.test_method_inferred_type_nonStatic_implicit_return();
-  }
-
-  @override
-  @failingTest
-  test_method_type_parameter_with_function_typed_parameter() async {
-    await super.test_method_type_parameter_with_function_typed_parameter();
   }
 
   @override
@@ -795,30 +677,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
-  }
-
-  @override
-  @failingTest
-  test_parameter_parameters() async {
-    await super.test_parameter_parameters();
-  }
-
-  @override
-  @failingTest
-  test_parameter_parameters_in_generic_class() async {
-    await super.test_parameter_parameters_in_generic_class();
-  }
-
-  @override
-  @failingTest
-  test_parameter_return_type() async {
-    await super.test_parameter_return_type();
-  }
-
-  @override
-  @failingTest
-  test_parameter_return_type_void() async {
-    await super.test_parameter_return_type_void();
   }
 
   @override
@@ -885,24 +743,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameter_parameters() async {
-    await super.test_typedef_parameter_parameters();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameter_parameters_in_generic_class() async {
-    await super.test_typedef_parameter_parameters_in_generic_class();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameter_return_type() async {
-    await super.test_typedef_parameter_return_type();
   }
 
   @override

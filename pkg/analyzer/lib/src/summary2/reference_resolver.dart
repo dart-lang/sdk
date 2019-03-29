@@ -116,13 +116,15 @@ class ReferenceResolver {
     var typeNode = node.fieldFormalParameter_type;
     if (typeNode != null) {
       _node(typeNode);
-      typesToBuild.declarations.add(node);
     }
 
     var formalParameters = node.fieldFormalParameter_formalParameters;
     if (formalParameters != null) {
-      _node(formalParameters);
-      throw 'incomplete';
+      _formalParameters(formalParameters);
+    }
+
+    if (typeNode != null || formalParameters != null) {
+      typesToBuild.declarations.add(node);
     }
   }
 
@@ -180,6 +182,19 @@ class ReferenceResolver {
     reference = reference.parent.parent;
   }
 
+  void _functionTypedFormalParameter(LinkedNodeBuilder node) {
+    var typeParameters = node.functionTypedFormalParameter_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      var typeNode = node.functionTypedFormalParameter_returnType;
+      if (typeNode != null) {
+        _node(typeNode);
+      }
+
+      _formalParameters(node.functionTypedFormalParameter_formalParameters);
+      typesToBuild.declarations.add(node);
+    });
+  }
+
   void _genericFunctionType(LinkedNodeBuilder node) {
     reference = reference.getChild('@function');
 
@@ -194,7 +209,7 @@ class ReferenceResolver {
         typesToBuild.declarations.add(node);
       }
 
-      _node(node.genericFunctionType_formalParameters);
+      _formalParameters(node.genericFunctionType_formalParameters);
 
       typesToBuild.typeAnnotations.add(node);
     });
@@ -289,6 +304,8 @@ class ReferenceResolver {
       _functionExpression(node);
     } else if (node.kind == LinkedNodeKind.functionTypeAlias) {
       _functionTypeAlias(node);
+    } else if (node.kind == LinkedNodeKind.functionTypedFormalParameter) {
+      _functionTypedFormalParameter(node);
     } else if (node.kind == LinkedNodeKind.genericFunctionType) {
       _genericFunctionType(node);
     } else if (node.kind == LinkedNodeKind.genericTypeAlias) {

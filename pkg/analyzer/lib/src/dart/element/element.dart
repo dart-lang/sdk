@@ -4953,11 +4953,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   DartType get type {
-    if (linkedNode != null) {
-      if (_type != null) return _type;
-      var context = enclosingUnit.linkedContext;
-      return _type = context.getFormalParameterType(linkedNode);
-    }
     if (unlinkedParam != null &&
         unlinkedParam.type == null &&
         !unlinkedParam.isFunctionTyped &&
@@ -7823,7 +7818,8 @@ class ParameterElementImpl extends VariableElementImpl
         reference,
         linkedNode,
       );
-    } else if (kind == LinkedNodeKind.simpleFormalParameter) {
+    } else if (kind == LinkedNodeKind.functionTypedFormalParameter ||
+        kind == LinkedNodeKind.simpleFormalParameter) {
       return ParameterElementImpl.forLinkedNode(
         enclosing,
         reference,

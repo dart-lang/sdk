@@ -1555,6 +1555,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_returnType;
 
+  @VariantId(24, variant: LinkedNodeKind.functionTypedFormalParameter)
+  LinkedNodeType get functionTypedFormalParameter_type2;
+
   @VariantId(8, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_typeParameters;
 

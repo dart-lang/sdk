@@ -638,7 +638,7 @@ class AstBinaryReader {
 
   FunctionTypedFormalParameter _read_functionTypedFormalParameter(
       LinkedNode data) {
-    return astFactory.functionTypedFormalParameter2(
+    var node = astFactory.functionTypedFormalParameter2(
       identifier: _readNode(data.normalFormalParameter_identifier),
       parameters: _readNode(data.functionTypedFormalParameter_formalParameters),
       returnType: _readNode(data.functionTypedFormalParameter_returnType),
@@ -648,6 +648,19 @@ class AstBinaryReader {
       typeParameters:
           _readNode(data.functionTypedFormalParameter_typeParameters),
     );
+
+    if (_localRef != null) {
+      var name = node.identifier.name;
+      var element = ParameterElementImpl.forLinkedNodeFactory(
+        _enclosingElement,
+        _localRef.getChild('${_localRefNextId++}').getChild(name),
+        data,
+      );
+      _localParameters.add(element);
+      node.identifier.staticElement = element;
+    }
+
+    return node;
   }
 
   GenericFunctionType _read_genericFunctionType(LinkedNode data) {

@@ -37,28 +37,32 @@ class TypeBuilder {
     }
   }
 
-  void _buildGenericFunctionType(LinkedNodeBuilder node) {
-    // TODO(scheglov) Type parameters?
-    LinkedNodeTypeBuilder returnType;
-    if (node.genericFunctionType_returnType != null) {
-      returnType = _getType(node.genericFunctionType_returnType);
-    } else {
-      returnType = _dynamicType;
-    }
+  LinkedNodeTypeBuilder _buildFunctionType(
+    LinkedNode returnTypeNode,
+    LinkedNode parameterList,
+  ) {
+    var returnType = _getType(returnTypeNode);
 
     var formalParameters = <LinkedNodeTypeFormalParameterBuilder>[];
-    for (var parameter in node
-        .genericFunctionType_formalParameters.formalParameterList_parameters) {
+    for (var parameter in parameterList.formalParameterList_parameters) {
       formalParameters.add(LinkedNodeTypeFormalParameterBuilder(
         kind: parameter.formalParameter_kind,
-        type: _getType(parameter.simpleFormalParameter_type),
+        type: _getFormalParameterType(parameter),
       ));
     }
 
-    node.genericFunctionType_type = LinkedNodeTypeBuilder(
+    return LinkedNodeTypeBuilder(
       kind: LinkedNodeTypeKind.function,
       functionFormalParameters: formalParameters,
       functionReturnType: returnType,
+    );
+  }
+
+  void _buildGenericFunctionType(LinkedNodeBuilder node) {
+    // TODO(scheglov) Type parameters?
+    node.genericFunctionType_type = _buildFunctionType(
+      node.genericFunctionType_returnType,
+      node.genericFunctionType_formalParameters,
     );
   }
 
@@ -123,12 +127,57 @@ class TypeBuilder {
     }
   }
 
+  void _fieldFormalParameter(LinkedNodeBuilder node) {
+    var parameterList = node.fieldFormalParameter_formalParameters;
+    if (parameterList != null) {
+      node.fieldFormalParameter_type2 = _buildFunctionType(
+        node.fieldFormalParameter_type,
+        parameterList,
+      );
+    } else {
+      var type = _getType(node.fieldFormalParameter_type);
+      node.fieldFormalParameter_type2 = type;
+    }
+  }
+
+  void _functionTypedFormalParameter(LinkedNodeBuilder node) {
+    node.functionTypedFormalParameter_type2 = _buildFunctionType(
+      node.functionTypedFormalParameter_returnType,
+      node.functionTypedFormalParameter_formalParameters,
+    );
+  }
+
+  LinkedNodeTypeBuilder _getFormalParameterType(LinkedNode node) {
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return _getFormalParameterType(node.defaultFormalParameter_parameter);
+    }
+    if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+      return node.functionTypedFormalParameter_type2;
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return _getType(node.simpleFormalParameter_type);
+    }
+    throw UnimplementedError('$kind');
+  }
+
+  LinkedNodeTypeBuilder _getType(LinkedNodeBuilder node) {
+    if (node == null) return _dynamicType;
+
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.genericFunctionType) {
+      return node.genericFunctionType_type;
+    } else if (kind == LinkedNodeKind.typeName) {
+      return node.typeName_type;
+    } else {
+      throw UnimplementedError('$kind');
+    }
+  }
+
   void _setTypesForDeclaration(LinkedNodeBuilder node) {
     var kind = node.kind;
     if (kind == LinkedNodeKind.fieldFormalParameter) {
-      node.fieldFormalParameter_type2 = _getType(
-        node.fieldFormalParameter_type,
-      );
+      _fieldFormalParameter(node);
     } else if (kind == LinkedNodeKind.functionDeclaration) {
       node.functionDeclaration_returnType2 = _getType(
         node.functionDeclaration_returnType,
@@ -137,6 +186,8 @@ class TypeBuilder {
       node.functionTypeAlias_returnType2 = _getType(
         node.functionTypeAlias_returnType,
       );
+    } else if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+      _functionTypedFormalParameter(node);
     } else if (kind == LinkedNodeKind.genericFunctionType) {
       node.genericFunctionType_returnType2 = _getType(
         node.genericFunctionType_returnType,
@@ -162,17 +213,6 @@ class TypeBuilder {
   int _typeParametersLength(Reference reference) {
     var node = bundleContext.elementFactory.nodeOfReference(reference);
     return LinkedUnitContext.getTypeParameters(node)?.length ?? 0;
-  }
-
-  static LinkedNodeTypeBuilder _getType(LinkedNodeBuilder node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.genericFunctionType) {
-      return node.genericFunctionType_type;
-    } else if (kind == LinkedNodeKind.typeName) {
-      return node.typeName_type;
-    } else {
-      throw UnimplementedError('$kind');
-    }
   }
 
   static int _typeNameElementIndex(LinkedNode name) {

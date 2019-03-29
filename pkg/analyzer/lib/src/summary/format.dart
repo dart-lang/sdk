@@ -8993,6 +8993,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeTypeBuilder get functionTypedFormalParameter_type2 {
+    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
+    return _variantField_24;
+  }
+
+  @override
   LinkedNodeTypeBuilder get genericFunctionType_returnType2 {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     return _variantField_24;
@@ -9047,6 +9053,11 @@ class LinkedNodeBuilder extends Object
 
   void set functionTypeAlias_returnType2(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypeAlias);
+    _variantField_24 = value;
+  }
+
+  void set functionTypedFormalParameter_type2(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
     _variantField_24 = value;
   }
 
@@ -10441,6 +10452,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionTypedFormalParameter_returnType,
     LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
     int normalFormalParameter_covariantKeyword,
+    LinkedNodeTypeBuilder functionTypedFormalParameter_type2,
     bool normalFormalParameter_isCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
     int codeLength,
@@ -10453,6 +10465,7 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = functionTypedFormalParameter_returnType,
         _variantField_8 = functionTypedFormalParameter_typeParameters,
         _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_24 = functionTypedFormalParameter_type2,
         _variantField_27 = normalFormalParameter_isCovariant,
         _variantField_12 = normalFormalParameter_identifier,
         _variantField_34 = codeLength,
@@ -14726,6 +14739,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.LinkedNodeType get functionTypedFormalParameter_type2 {
+    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
   idl.LinkedNodeType get genericFunctionType_returnType2 {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_24 ??=
@@ -16053,6 +16074,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
+      if (functionTypedFormalParameter_type2 != null)
+        _result["functionTypedFormalParameter_type2"] =
+            functionTypedFormalParameter_type2.toJson();
       if (normalFormalParameter_isCovariant != false)
         _result["normalFormalParameter_isCovariant"] =
             normalFormalParameter_isCovariant;
@@ -17515,6 +17539,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             functionTypedFormalParameter_typeParameters,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
+        "functionTypedFormalParameter_type2":
+            functionTypedFormalParameter_type2,
         "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
         "codeLength": codeLength,

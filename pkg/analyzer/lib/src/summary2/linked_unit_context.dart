@@ -77,6 +77,9 @@ class LinkedUnitContext {
     if (kind == LinkedNodeKind.fieldFormalParameter) {
       return getType(node.fieldFormalParameter_type2);
     }
+    if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+      return getType(node.functionTypedFormalParameter_type2);
+    }
     if (kind == LinkedNodeKind.simpleFormalParameter) {
       return getType(node.simpleFormalParameter_type2);
     }
@@ -127,6 +130,9 @@ class LinkedUnitContext {
         kind == LinkedNodeKind.partOfDirective ||
         kind == LinkedNodeKind.variableDeclaration) {
       return node.annotatedNode_metadata;
+    }
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return getMetadataOrEmpty(node.defaultFormalParameter_parameter);
     }
     if (kind == LinkedNodeKind.fieldFormalParameter ||
         kind == LinkedNodeKind.functionTypedFormalParameter ||
@@ -261,6 +267,9 @@ class LinkedUnitContext {
     }
     if (kind == LinkedNodeKind.fieldFormalParameter) {
       return isFinalKeyword(node.fieldFormalParameter_keyword);
+    }
+    if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+      return false;
     }
     if (kind == LinkedNodeKind.simpleFormalParameter) {
       return isFinalKeyword(node.simpleFormalParameter_keyword);

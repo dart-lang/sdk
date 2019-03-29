@@ -68,7 +68,12 @@ class MetadataResolver {
       if (_isAnnotatedNode(kind)) {
         _annotatedNode(unit, classMember);
       }
-      if (kind == LinkedNodeKind.fieldDeclaration) {
+      if (kind == LinkedNodeKind.constructorDeclaration) {
+        _formalParameterList(
+          unit,
+          classMember.constructorDeclaration_parameters,
+        );
+      } else if (kind == LinkedNodeKind.fieldDeclaration) {
         _variables(
           unit,
           classMember,
