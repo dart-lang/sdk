@@ -65,7 +65,18 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
 
-import 'collections.dart' show SpreadElement, SpreadMapEntry;
+import 'collections.dart'
+    show
+        ControlFlowElement,
+        ControlFlowMapEntry,
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement,
+        SpreadMapEntry;
 
 import 'constness.dart' show Constness;
 
@@ -2540,6 +2551,40 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(forest.literalNull(token));
   }
 
+  MapEntry convertToMapEntry(Expression element) {
+    if (element is SpreadElement) {
+      return new SpreadMapEntry(element.expression, element.isNullAware)
+        ..fileOffset = element.fileOffset;
+    }
+    if (element is IfElement) {
+      return new IfMapEntry(
+          element.condition,
+          convertToMapEntry(element.then),
+          element.otherwise == null
+              ? null
+              : convertToMapEntry(element.otherwise))
+        ..fileOffset = element.fileOffset;
+    }
+    if (element is ForElement) {
+      return new ForMapEntry(element.variables, element.condition,
+          element.updates, convertToMapEntry(element.body))
+        ..fileOffset = element.fileOffset;
+    }
+    if (element is ForInElement) {
+      return new ForInMapEntry(element.variable, element.iterable,
+          element.prologue, convertToMapEntry(element.body), element.problem)
+        ..fileOffset = element.fileOffset;
+    }
+    return new MapEntry(
+        desugarSyntheticExpression(buildProblem(
+          fasta.templateExpectedAfterButGot.withArguments(':'),
+          element.fileOffset,
+          // TODO(danrubel): what is the length of the expression?
+          1,
+        )),
+        new NullLiteral());
+  }
+
   void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
       Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
     DartType keyType;
@@ -2567,15 +2612,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       for (var entry in setOrMapEntries) {
         if (entry is MapEntry) {
           entries.add(entry);
-        } else if (entry is SpreadElement) {
-          entries.add(new SpreadMapEntry(entry.expression, entry.isNullAware));
         } else {
-          addProblem(
-            fasta.templateExpectedAfterButGot.withArguments(':'),
-            (entry as Expression).fileOffset,
-            // TODO(danrubel): what is the length of the expression?
-            1,
-          );
+          entries.add(convertToMapEntry(entry));
         }
       }
     }

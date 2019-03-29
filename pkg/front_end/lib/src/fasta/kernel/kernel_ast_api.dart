@@ -53,6 +53,7 @@ export 'package:kernel/ast.dart'
         NamedExpression,
         NamedType,
         Node,
+        NullLiteral,
         Procedure,
         ProcedureKind,
         PropertyGet,
