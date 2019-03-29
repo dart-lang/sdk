@@ -265,6 +265,14 @@ class Parser {
     }
   }
 
+  /// Enables or disables parsing of the triple shift operators.
+  void set enableTripleShift(bool value) {
+    if (value) {
+      throw new UnimplementedError('triple_shift experiment'
+          ' not supported by analyzer parser');
+    }
+  }
+
   /// Return `true` if the parser is to allow URI's in part-of directives.
   @deprecated
   bool get enableUriInPartOf => true;

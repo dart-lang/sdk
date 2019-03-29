@@ -1456,6 +1456,8 @@ class FastaParserTestCase
     if (enableControlFlowCollections != null) {
       astBuilder.enableControlFlowCollections = enableControlFlowCollections;
     }
+    astBuilder.enableTripleShift =
+        enableGtGtGt == true || enableGtGtGtEq == true;
     parser.parseUnit(_fastaTokens);
     CompilationUnitImpl unit = astBuilder.pop();
     unit.localDeclarations = astBuilder.localDeclarations;

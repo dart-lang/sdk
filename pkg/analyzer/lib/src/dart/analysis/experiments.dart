@@ -52,6 +52,9 @@ class EnableString {
   /// String to enable the experiment "spread-collections"
   static const String spread_collections = 'spread-collections';
 
+  /// String to enable the experiment "triple-shift"
+  static const String triple_shift = 'triple-shift';
+
   /// String to enable the experiment "bogus-disabled"
   static const String bogus_disabled = 'bogus-disabled';
 
@@ -94,6 +97,12 @@ class ExperimentStatus {
         IsEnabledByDefault.set_literals,
         IsExpired.set_literals,
         'Set Literals'),
+    EnableString.triple_shift: const ExperimentalFeature(
+        4,
+        EnableString.triple_shift,
+        IsEnabledByDefault.triple_shift,
+        IsExpired.triple_shift,
+        'Triple-shift operator'),
     EnableString.bogus_disabled: const ExperimentalFeature(
         null,
         EnableString.bogus_disabled,
@@ -117,13 +126,15 @@ class ExperimentStatus {
       bool control_flow_collections,
       bool non_nullable,
       bool set_literals,
-      bool spread_collections})
+      bool spread_collections,
+      bool triple_shift})
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
           non_nullable ?? IsEnabledByDefault.non_nullable,
           control_flow_collections ??
               IsEnabledByDefault.control_flow_collections,
           spread_collections ?? IsEnabledByDefault.spread_collections,
+          triple_shift ?? IsEnabledByDefault.triple_shift,
         ];
 
   /// Decodes the strings given in [flags] into a representation of the set of
@@ -157,6 +168,9 @@ class ExperimentStatus {
   /// Current state for the flag "spread_collections"
   bool get spread_collections => _enableFlags[3];
 
+  /// Current state for the flag "triple_shift"
+  bool get triple_shift => _enableFlags[4];
+
   /// Queries whether the given [feature] is enabled or disabled.
   bool isEnabled(ExperimentalFeature feature) => feature.isExpired
       ? feature.isEnabledByDefault
@@ -185,6 +199,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = false;
 
+  /// Default state of the experiment "triple-shift"
+  static const bool triple_shift = false;
+
   /// Default state of the experiment "bogus-disabled"
   static const bool bogus_disabled = false;
 
@@ -210,6 +227,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = false;
+
+  /// Expiration status of the experiment "triple-shift"
+  static const bool triple_shift = false;
 
   /// Expiration status of the experiment "bogus-disabled"
   static const bool bogus_disabled = true;

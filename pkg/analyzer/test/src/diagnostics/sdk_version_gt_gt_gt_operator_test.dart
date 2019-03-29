@@ -18,12 +18,12 @@ main() {
 @reflectiveTest
 class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
   @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.triple_shift];
 
   test_const_equals() {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when constant update is enabled by default.
+    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     verifyVersion('2.2.2', '''
 const a = 42 >>> 3;
 ''', errorCodes: [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
@@ -31,7 +31,7 @@ const a = 42 >>> 3;
 
   test_const_lessThan() {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
-    //  UNDEFINED_OPERATOR when constant update is enabled by default.
+    //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     verifyVersion('2.2.0', '''
 const a = 42 >>> 3;
 ''', errorCodes: [

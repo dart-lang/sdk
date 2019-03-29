@@ -39,6 +39,7 @@ class ParseBase with ResourceProviderMixin {
     parser.enableSpreadCollections = experimentStatus.spread_collections;
     parser.enableControlFlowCollections =
         experimentStatus.control_flow_collections;
+    parser.enableTripleShift = experimentStatus.triple_shift;
 
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);

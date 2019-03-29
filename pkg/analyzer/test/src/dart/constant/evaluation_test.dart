@@ -211,7 +211,10 @@ class ConstantVisitorWithConstantUpdate2018Test
     extends ConstantVisitorTestSupport {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..enabledExperiments = [
+      EnableString.constant_update_2018,
+      EnableString.triple_shift
+    ];
 
   test_visitAsExpression_instanceOfSameClass() async {
     await _resolveTestCode('''

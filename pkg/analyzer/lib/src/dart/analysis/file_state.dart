@@ -697,7 +697,7 @@ class FileState {
     ExperimentStatus experimentStatus = analysisOptions.experimentStatus;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.enableGtGtGt = experimentStatus.constant_update_2018;
+    scanner.enableGtGtGt = experimentStatus.triple_shift;
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -710,6 +710,7 @@ class FileState {
     parser.enableSpreadCollections = experimentStatus.spread_collections;
     parser.enableControlFlowCollections =
         experimentStatus.control_flow_collections;
+    parser.enableTripleShift = experimentStatus.triple_shift;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 

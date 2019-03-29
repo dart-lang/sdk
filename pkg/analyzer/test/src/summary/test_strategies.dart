@@ -48,7 +48,8 @@ CompilationUnit parseText(
       NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
     ..enableNonNullable = experimentStatus.non_nullable
     ..enableSpreadCollections = experimentStatus.spread_collections
-    ..enableControlFlowCollections = experimentStatus.control_flow_collections;
+    ..enableControlFlowCollections = experimentStatus.control_flow_collections
+    ..enableTripleShift = experimentStatus.triple_shift;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;

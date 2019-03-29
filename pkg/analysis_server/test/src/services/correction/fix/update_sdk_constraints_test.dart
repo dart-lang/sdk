@@ -66,7 +66,7 @@ const c = a == null;
   }
 
   test_gtGtGtOperator() async {
-    createAnalysisOptionsFile(experiments: [EnableString.constant_update_2018]);
+    createAnalysisOptionsFile(experiments: [EnableString.triple_shift]);
     await testUpdate(content: '''
 class C {
   C operator >>>(C other) => this;

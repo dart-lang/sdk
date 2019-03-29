@@ -37,6 +37,16 @@ abstract class ParserAdapter implements Parser {
     astBuilder.allowNativeClause = value;
   }
 
+  @override
+  void set enableControlFlowCollections(bool value) {
+    if (IsExpired.control_flow_collections &&
+        value != IsEnabledByDefault.control_flow_collections) {
+      throw new StateError('control_flow_collections may only be set'
+          ' to ${IsEnabledByDefault.control_flow_collections}');
+    }
+    astBuilder.enableControlFlowCollections = value;
+  }
+
   /// Enables or disables non-nullable by default.
   void set enableNonNullable(bool value) {
     if (IsExpired.non_nullable && value != IsEnabledByDefault.non_nullable) {
@@ -69,13 +79,12 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
-  void set enableControlFlowCollections(bool value) {
-    if (IsExpired.control_flow_collections &&
-        value != IsEnabledByDefault.control_flow_collections) {
-      throw new StateError('control_flow_collections may only be set'
-          ' to ${IsEnabledByDefault.control_flow_collections}');
+  void set enableTripleShift(bool value) {
+    if (IsExpired.triple_shift && value != IsEnabledByDefault.triple_shift) {
+      throw new StateError('triple_shift may only be set'
+          ' to ${IsEnabledByDefault.triple_shift}');
     }
-    astBuilder.enableControlFlowCollections = value;
+    astBuilder.enableTripleShift = value;
   }
 
   @override

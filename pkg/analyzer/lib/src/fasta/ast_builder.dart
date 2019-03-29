@@ -113,6 +113,9 @@ class AstBuilder extends StackListener {
   /// `true` if control-flow-collections behavior is enabled
   bool enableControlFlowCollections = false;
 
+  /// `true` if triple-shift behavior is enabled
+  bool enableTripleShift = false;
+
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
@@ -397,6 +400,13 @@ class AstBuilder extends StackListener {
       Expression left = pop();
       reportErrorIfSuper(right);
       push(ast.binaryExpression(left, operatorToken, right));
+      if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
+        handleRecoverableError(
+            templateExperimentNotEnabled
+                .withArguments(EnableString.triple_shift),
+            operatorToken,
+            operatorToken);
+      }
     }
   }
 
@@ -1924,6 +1934,12 @@ class AstBuilder extends StackListener {
           messageMissingAssignableSelector, lhs.beginToken, lhs.endToken);
     }
     push(ast.assignmentExpression(lhs, token, rhs));
+    if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(EnableString.triple_shift),
+          token,
+          token);
+    }
   }
 
   void handleAsyncModifier(Token asyncToken, Token starToken) {
