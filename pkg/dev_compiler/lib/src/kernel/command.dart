@@ -35,9 +35,12 @@ const _binaryName = 'dartdevc -k';
 ///
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
-    {fe.InitializedCompilerState compilerState}) async {
+    {fe.InitializedCompilerState compilerState,
+    bool useIncrementalCompiler: false}) async {
   try {
-    return await _compile(args, compilerState: compilerState);
+    return await _compile(args,
+        compilerState: compilerState,
+        useIncrementalCompiler: useIncrementalCompiler);
   } catch (error, stackTrace) {
     print('''
 We're sorry, you've found a bug in our compiler.
@@ -63,7 +66,8 @@ String _usageMessage(ArgParser ddcArgParser) =>
     '${ddcArgParser.usage}';
 
 Future<CompilerResult> _compile(List<String> args,
-    {fe.InitializedCompilerState compilerState}) async {
+    {fe.InitializedCompilerState compilerState,
+    bool useIncrementalCompiler: false}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
@@ -194,15 +198,37 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var oldCompilerState = compilerState;
-  compilerState = await fe.initializeCompiler(
-      oldCompilerState,
-      sourcePathToUri(sdkSummaryPath),
-      sourcePathToUri(packageFile),
-      sourcePathToUri(librarySpecPath),
-      summaryModules.keys.toList(),
-      DevCompilerTarget(),
-      fileSystem: fileSystem,
-      experiments: experiments);
+  List<Component> doneInputSummaries;
+  fe.IncrementalCompiler incrementalCompiler;
+  fe.WorkerInputComponent cachedSdkInput;
+  if (useAnalyzer || !useIncrementalCompiler) {
+    compilerState = await fe.initializeCompiler(
+        oldCompilerState,
+        sourcePathToUri(sdkSummaryPath),
+        sourcePathToUri(packageFile),
+        sourcePathToUri(librarySpecPath),
+        summaryModules.keys.toList(),
+        DevCompilerTarget(),
+        fileSystem: fileSystem,
+        experiments: experiments);
+  } else {
+    doneInputSummaries = new List<Component>(summaryModules.length);
+    compilerState = await fe.initializeIncrementalCompiler(
+        oldCompilerState,
+        doneInputSummaries,
+        sourcePathToUri(sdkSummaryPath),
+        sourcePathToUri(packageFile),
+        sourcePathToUri(librarySpecPath),
+        summaryModules.keys.toList(),
+        DevCompilerTarget(),
+        fileSystem: fileSystem,
+        experiments: experiments);
+    incrementalCompiler = compilerState.incrementalCompiler;
+    cachedSdkInput =
+        compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
+  }
+
+  List<Uri> inputSummaries = compilerState.options.inputSummaries;
 
   var output = argResults['out'] as String;
   // TODO(jmesserly): is there a cleaner way to do this?
@@ -219,8 +245,26 @@ Future<CompilerResult> _compile(List<String> args,
     converter.dispose();
   }
 
-  fe.DdcResult result =
-      await fe.compile(compilerState, inputs, diagnosticMessageHandler);
+  var hierarchy;
+  fe.DdcResult result;
+  if (useAnalyzer || !useIncrementalCompiler) {
+    result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
+  } else {
+    Component incrementalComponent = await incrementalCompiler.computeDelta(
+        entryPoints: inputs, fullComponent: true);
+    hierarchy = incrementalCompiler.userCode.loader.hierarchy;
+    result = new fe.DdcResult(incrementalComponent, doneInputSummaries);
+
+    // Workaround for DDC relying on isExternal being set to true.
+    for (var lib in cachedSdkInput.component.libraries) {
+      lib.isExternal = true;
+    }
+    for (Component c in doneInputSummaries) {
+      for (Library lib in c.libraries) {
+        lib.isExternal = true;
+      }
+    }
+  }
   if (result == null || !succeeded) {
     return CompilerResult(1, kernelState: compilerState);
   }
@@ -256,8 +300,10 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.Printer(sb, showExternal: false).writeComponentFile(component);
     outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
   }
-  var target = compilerState.options.target as DevCompilerTarget;
-  var hierarchy = target.hierarchy;
+  if (hierarchy == null) {
+    var target = compilerState.options.target as DevCompilerTarget;
+    hierarchy = target.hierarchy;
+  }
 
   // TODO(jmesserly): remove this hack once Flutter SDK has a `dartdevc` with
   // support for the widget inspector.
@@ -268,8 +314,8 @@ Future<CompilerResult> _compile(List<String> args,
   var compiler =
       ProgramCompiler(component, hierarchy, options, declaredVariables);
 
-  var jsModule = compiler.emitModule(component, result.inputSummaries,
-      compilerState.options.inputSummaries, summaryModules);
+  var jsModule = compiler.emitModule(
+      component, result.inputSummaries, inputSummaries, summaryModules);
 
   // TODO(jmesserly): support for multiple output formats?
   //

@@ -399,7 +399,8 @@ Future<CompilerResult> compile(ParsedArguments args,
   }
   if (args.isKernel) {
     return kernel_compiler.compile(args.rest,
-        compilerState: previousResult?.kernelState);
+        compilerState: previousResult?.kernelState,
+        useIncrementalCompiler: args.useIncrementalCompiler);
   } else {
     var result = analyzer_compiler.compile(args.rest,
         compilerState: previousResult?.analyzerState);
@@ -492,11 +493,17 @@ class ParsedArguments {
   /// e.g. in a debugger REPL.
   final bool reuseResult;
 
+  /// Whether to use the incremental compiler for compiling.
+  ///
+  /// Note that this only makes sense when also reusing results.
+  final bool useIncrementalCompiler;
+
   ParsedArguments._(this.rest,
       {this.isBatch = false,
       this.isWorker = false,
       this.isKernel = false,
-      this.reuseResult = false});
+      this.reuseResult = false,
+      this.useIncrementalCompiler = false});
 
   /// Preprocess arguments to determine whether DDK is used in batch mode or as a
   /// persistent worker.
@@ -515,6 +522,7 @@ class ParsedArguments {
     bool isBatch = false;
     bool isKernel = false;
     bool reuseResult = false;
+    bool useIncrementalCompiler = false;
     var len = args.length;
     for (int i = 0; i < len; i++) {
       var arg = args[i];
@@ -533,6 +541,8 @@ class ParsedArguments {
         isKernel = true;
       } else if (arg == '--reuse-compiler-result') {
         reuseResult = true;
+      } else if (arg == '--use-incremental-compiler') {
+        useIncrementalCompiler = true;
       } else {
         newArgs.add(arg);
       }
@@ -541,7 +551,8 @@ class ParsedArguments {
         isWorker: isWorker,
         isBatch: isBatch,
         isKernel: isKernel,
-        reuseResult: reuseResult);
+        reuseResult: reuseResult,
+        useIncrementalCompiler: useIncrementalCompiler);
   }
 
   /// Whether the compiler is running in [isBatch] or [isWorker] mode.
@@ -567,7 +578,9 @@ class ParsedArguments {
         isWorker: isWorker,
         isBatch: isBatch,
         isKernel: isKernel || newArgs.isKernel,
-        reuseResult: reuseResult);
+        reuseResult: reuseResult || newArgs.reuseResult,
+        useIncrementalCompiler:
+            useIncrementalCompiler || newArgs.useIncrementalCompiler);
   }
 }
 
