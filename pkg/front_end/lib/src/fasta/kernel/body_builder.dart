@@ -2456,7 +2456,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (entry is MapEntry) {
           // TODO(danrubel): report the error on the colon
           addProblem(fasta.templateExpectedButGot.withArguments(','),
-              entry.value.fileOffset - 1, 1);
+              entry.fileOffset, 1);
         } else {
           // TODO(danrubel): Revise once control flow and spread
           //  collection entries are supported.
@@ -2518,6 +2518,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     final typeArgCount = typeArguments?.length;
     bool isSet = typeArgCount == 1 ? true : typeArgCount != null ? false : null;
 
+    for (int i = 0; i < setOrMapEntries.length; ++i) {
+      if (setOrMapEntries[i] is! MapEntry &&
+          !isConvertibleToMapEntry(setOrMapEntries[i])) {
+        hasSetEntry = true;
+      }
+    }
+
     // TODO(danrubel): If the type arguments are not known (null) then
     // defer set/map determination until after type resolution as per the
     // unified collection spec: https://github.com/dart-lang/language/pull/200
@@ -2527,7 +2534,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (isSet) {
       buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
     } else {
-      buildLiteralMap(typeArguments, constKeyword, leftBrace, setOrMapEntries);
+      List<MapEntry> mapEntries = new List<MapEntry>(setOrMapEntries.length);
+      for (int i = 0; i < setOrMapEntries.length; ++i) {
+        if (setOrMapEntries[i] is MapEntry) {
+          mapEntries[i] = setOrMapEntries[i];
+        } else {
+          mapEntries[i] = convertToMapEntry(setOrMapEntries[i]);
+        }
+      }
+      buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);
     }
   }
 
@@ -2551,10 +2566,26 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(forest.literalNull(token));
   }
 
+  bool isConvertibleToMapEntry(Expression element) {
+    if (element is SpreadElement) return true;
+    if (element is IfElement) {
+      return isConvertibleToMapEntry(element.then) &&
+          (element.otherwise == null ||
+              isConvertibleToMapEntry(element.otherwise));
+    }
+    if (element is ForElement) {
+      return isConvertibleToMapEntry(element.body);
+    }
+    if (element is ForInElement) {
+      return isConvertibleToMapEntry(element.body);
+    }
+    return false;
+  }
+
   MapEntry convertToMapEntry(Expression element) {
     if (element is SpreadElement) {
       return new SpreadMapEntry(element.expression, element.isNullAware)
-        ..fileOffset = element.fileOffset;
+        ..fileOffset = element.expression.fileOffset;
     }
     if (element is IfElement) {
       return new IfMapEntry(
@@ -2586,7 +2617,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
-      Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
+      Token constKeyword, Token leftBrace, List<MapEntry> entries) {
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
@@ -2605,17 +2636,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       DartType implicitTypeArgument = this.implicitTypeArgument;
       keyType = implicitTypeArgument;
       valueType = implicitTypeArgument;
-    }
-
-    List<MapEntry> entries = <MapEntry>[];
-    if (setOrMapEntries != null) {
-      for (var entry in setOrMapEntries) {
-        if (entry is MapEntry) {
-          entries.add(entry);
-        } else {
-          entries.add(convertToMapEntry(entry));
-        }
-      }
     }
 
     Expression node = forest.literalMap(
