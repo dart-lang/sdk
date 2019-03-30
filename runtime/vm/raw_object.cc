@@ -358,6 +358,22 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
     return Type::InstanceSize();                                               \
   }
 
+// It calls the from() and to() methods on the raw object to get the first and
+// last cells that need visiting.
+//
+// Though as opposed to Similar to [REGULAR_VISITOR] this visitor will call the
+// specializd VisitTypedDataViewPointers
+#define TYPED_DATA_VIEW_VISITOR(Type)                                          \
+  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
+                                            ObjectPointerVisitor* visitor) {   \
+    /* Make sure that we got here with the tagged pointer as this. */          \
+    ASSERT(raw_obj->IsHeapObject());                                           \
+    ASSERT_UNCOMPRESSED(Type);                                                 \
+    visitor->VisitTypedDataViewPointers(raw_obj, raw_obj->from(),              \
+                                        raw_obj->to());                        \
+    return Type::InstanceSize();                                               \
+  }
+
 // For variable length objects. get_length is a code snippet that gets the
 // length of the object, which is passed to InstanceSize and the to() method.
 #define VARIABLE_VISITOR(Type, get_length)                                     \
@@ -434,7 +450,7 @@ REGULAR_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
 COMPRESSED_VISITOR(LinkedHashMap)
 COMPRESSED_VISITOR(ExternalTypedData)
-REGULAR_VISITOR(TypedDataView)
+TYPED_DATA_VIEW_VISITOR(TypedDataView)
 REGULAR_VISITOR(ReceivePort)
 REGULAR_VISITOR(StackTrace)
 REGULAR_VISITOR(RegExp)
@@ -471,6 +487,7 @@ VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->ptr()->length_))
 // Abstract types don't have their visitor called.
 UNREACHABLE_VISITOR(AbstractType)
+UNREACHABLE_VISITOR(TypedDataBase)
 UNREACHABLE_VISITOR(Error)
 UNREACHABLE_VISITOR(Number)
 UNREACHABLE_VISITOR(Integer)

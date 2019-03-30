@@ -26,6 +26,7 @@ class ClassTable;
 class Closure;
 class Code;
 class ExternalTypedData;
+class TypedDataBase;
 class GrowableObjectArray;
 class Heap;
 class Instance;
@@ -310,6 +311,7 @@ class SnapshotReader : public BaseReader {
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   GrowableObjectArray* TokensHandle() { return &tokens_; }
   ExternalTypedData* DataHandle() { return &data_; }
+  TypedDataBase* TypedDataBaseHandle() { return &typed_data_base_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   TypedDataView* TypedDataViewHandle() { return &typed_data_view_; }
   Function* FunctionHandle() { return &function_; }
@@ -403,6 +405,7 @@ class SnapshotReader : public BaseReader {
   TypeArguments& type_arguments_;  // Temporary type argument handle.
   GrowableObjectArray& tokens_;    // Temporary tokens handle.
   ExternalTypedData& data_;        // Temporary stream data handle.
+  TypedDataBase& typed_data_base_;  // Temporary typed data base handle.
   TypedData& typed_data_;          // Temporary typed data handle.
   TypedDataView& typed_data_view_;  // Temporary typed data view handle.
   Function& function_;             // Temporary function handle.

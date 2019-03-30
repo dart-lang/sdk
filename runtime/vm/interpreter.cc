@@ -2069,10 +2069,12 @@ SwitchDispatch:
         SP[0] = reinterpret_cast<RawObject**>(
             instance->ptr())[Array::length_offset() / kWordSize];
       } break;
-      case MethodRecognizer::kTypedDataLength: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+      case MethodRecognizer::kTypedListLength:
+      case MethodRecognizer::kTypedListViewLength:
+      case MethodRecognizer::kByteDataViewLength: {
+        RawInstance* instance = reinterpret_cast<RawTypedDataBase*>(SP[0]);
         SP[0] = reinterpret_cast<RawObject**>(
-            instance->ptr())[TypedData::length_offset() / kWordSize];
+            instance->ptr())[TypedDataBase::length_offset() / kWordSize];
       } break;
       case MethodRecognizer::kClassIDgetID: {
         SP[0] = InterpreterHelpers::GetClassIdAsSmi(SP[0]);

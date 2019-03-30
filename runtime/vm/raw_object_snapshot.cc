@@ -1721,6 +1721,22 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
   writer->Write<double>(ptr()->value_[1]);
 }
 
+RawTypedDataBase* TypedDataBase::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          intptr_t tags,
+                                          Snapshot::Kind kind,
+                                          bool as_reference) {
+  UNREACHABLE();  // TypedDataBase is an abstract class.
+  return NULL;
+}
+
+void RawTypedDataBase::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               Snapshot::Kind kind,
+                               bool as_reference) {
+  UNREACHABLE();  // TypedDataBase is an abstract class.
+}
+
 RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
@@ -1968,6 +1984,9 @@ void RawTypedDataView::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind,
                                bool as_reference) {
+  // Views have always a backing store.
+  ASSERT(ptr()->typed_data_ != Object::null());
+
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
 
@@ -1986,7 +2005,7 @@ RawTypedDataView* TypedDataView::ReadFrom(SnapshotReader* reader,
                                           intptr_t tags,
                                           Snapshot::Kind kind,
                                           bool as_reference) {
-  auto& typed_data = *reader->InstanceHandle();
+  auto& typed_data = *reader->TypedDataBaseHandle();
   const classid_t cid = RawObject::ClassIdTag::decode(tags);
 
   auto& view = *reader->TypedDataViewHandle();
@@ -1996,9 +2015,7 @@ RawTypedDataView* TypedDataView::ReadFrom(SnapshotReader* reader,
   const intptr_t offset_in_bytes = reader->ReadSmiValue();
   const intptr_t length = reader->ReadSmiValue();
   typed_data ^= reader->ReadObjectImpl(as_reference);
-  view.set_offset_in_bytes(offset_in_bytes);
-  view.set_length(length);
-  view.set_typed_data(typed_data);
+  view.InitializeWith(typed_data, offset_in_bytes, length);
 
   return view.raw();
 }

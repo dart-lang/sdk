@@ -64,6 +64,7 @@ namespace dart {
   V(Float32x4)                                                                 \
   V(Int32x4)                                                                   \
   V(Float64x2)                                                                 \
+  V(TypedDataBase)                                                             \
   V(TypedData)                                                                 \
   V(ExternalTypedData)                                                         \
   V(TypedDataView)                                                             \

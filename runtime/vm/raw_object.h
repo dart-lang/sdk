@@ -124,7 +124,7 @@ class RawObject {
     kReservedTagPos = 6,
     kReservedTagSize = 2,
 
-    kSizeTagPos = kReservedTagPos + kReservedTagSize, // = 8
+    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
@@ -702,9 +702,10 @@ class RawObject {
   friend class Deserializer;
   friend class SnapshotWriter;
   friend class String;
-  friend class Type;  // GetClassId
-  friend class TypedData;
-  friend class TypedDataView;
+  friend class Type;                    // GetClassId
+  friend class TypedDataBase;           // GetClassId
+  friend class TypedData;               // GetClassId
+  friend class TypedDataView;           // GetClassId
   friend class WeakProperty;            // StorePointer
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
@@ -2065,22 +2066,126 @@ class RawTwoByteString : public RawString {
   friend class String;
 };
 
-// All _*ArrayView/_ByteDataView classes share the same layout.
-class RawTypedDataView : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataView);
+// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
+class RawTypedDataBase : public RawInstance {
+ protected:
+  // The contents of [data_] depends on what concrete subclass is used:
+  //
+  //  - RawTypedData: Start of the payload.
+  //  - RawExternalTypedData: Start of the C-heap payload.
+  //  - RawTypedDataView: The [data_] field of the backing store for the view
+  //    plus the [offset_in_bytes_] the view has.
+  //
+  // During allocation or snapshot reading the [data_] can be temporarily
+  // nullptr (which is the case for views which just got created but haven't
+  // gotten the backing store set).
+  uint8_t* data_;
+
+  // The length of the view in element sizes (obtainable via
+  // [TypedDataBase::ElementSizeInBytes]).
+  RawSmi* length_;
+
+ private:
+  friend class RawTypedDataView;
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
+};
+
+class RawTypedData : public RawTypedDataBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedData);
+
+ public:
+  static intptr_t payload_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawTypedData, internal_data);
+  }
+
+  // Recompute [data_] pointer to internal data.
+  void RecomputeDataField() { ptr()->data_ = ptr()->internal_data(); }
 
  protected:
-  VISIT_FROM(RawObject*, typed_data_)
-  RawInstance* typed_data_;
+  VISIT_FROM(RawCompressed, length_)
+  VISIT_TO_LENGTH(RawCompressed, &ptr()->length_)
+
+  // Variable length data follows here.
+
+  uint8_t* internal_data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* internal_data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  uint8_t* data() {
+    ASSERT(data_ == internal_data());
+    return data_;
+  }
+  const uint8_t* data() const {
+    ASSERT(data_ == internal_data());
+    return data_;
+  }
+
+  friend class Api;
+  friend class Instance;
+  friend class NativeEntryData;
+  friend class Object;
+  friend class ObjectPool;
+  friend class ObjectPoolDeserializationCluster;
+  friend class ObjectPoolSerializationCluster;
+  friend class RawObjectPool;
+  friend class SnapshotReader;
+};
+
+// All _*ArrayView/_ByteDataView classes share the same layout.
+class RawTypedDataView : public RawTypedDataBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataView);
+
+ public:
+  // Recompute [data_] based on internal/external [typed_data_].
+  void RecomputeDataField() {
+    const intptr_t offset_in_bytes = ValueFromRawSmi(ptr()->offset_in_bytes_);
+    uint8_t* payload = ptr()->typed_data_->ptr()->data_;
+    ptr()->data_ = payload + offset_in_bytes;
+  }
+
+  // Recopute [data_] based on internal [typed_data_] - needs to be called by GC
+  // whenever the backing store moved.
+  //
+  // NOTICE: This method assumes [this] is the forwarded object and the
+  // [typed_data_] pointer points to the new backing store. The backing store's
+  // fields don't need to be valid - only it's address.
+  void RecomputeDataFieldForInternalTypedData() {
+    const intptr_t offset_in_bytes = ValueFromRawSmi(ptr()->offset_in_bytes_);
+    uint8_t* payload = reinterpret_cast<uint8_t*>(
+        RawObject::ToAddr(ptr()->typed_data_) + RawTypedData::payload_offset());
+    ptr()->data_ = payload + offset_in_bytes;
+  }
+
+  void ValidateInnerPointer() {
+    if (ptr()->typed_data_->GetClassId() == kNullCid) {
+      // The view object must have gotten just initialized.
+      if (ptr()->data_ != nullptr ||
+          ValueFromRawSmi(ptr()->offset_in_bytes_) != 0 ||
+          ValueFromRawSmi(ptr()->length_) != 0) {
+        FATAL("RawTypedDataView has invalid inner pointer.");
+      }
+    } else {
+      const intptr_t offset_in_bytes = ValueFromRawSmi(ptr()->offset_in_bytes_);
+      uint8_t* payload = ptr()->typed_data_->ptr()->data_;
+      if ((payload + offset_in_bytes) != ptr()->data_) {
+        FATAL("RawTypedDataView has invalid inner pointer.");
+      }
+    }
+  }
+
+ protected:
+  VISIT_FROM(RawObject*, length_)
+  RawTypedDataBase* typed_data_;
   RawSmi* offset_in_bytes_;
-  RawSmi* length_;
-  VISIT_TO(RawObject*, length_)
+  VISIT_TO(RawObject*, offset_in_bytes_)
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Api;
   friend class Object;
   friend class ObjectPoolDeserializationCluster;
   friend class ObjectPoolSerializationCluster;
   friend class RawObjectPool;
+  friend class GCCompactor;
+  friend class ScavengerVisitor;
   friend class SnapshotReader;
 };
 
@@ -2228,37 +2333,12 @@ COMPILE_ASSERT(sizeof(RawFloat64x2) == 24);
 #error Architecture is not 32-bit or 64-bit.
 #endif  // ARCH_IS_32_BIT
 
-class RawTypedData : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedData);
-
- protected:
-  VISIT_FROM(RawCompressed, length_)
-  RawSmi* length_;
-  VISIT_TO_LENGTH(RawCompressed, &ptr()->length_)
-  // Variable length data follows here.
-  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
-  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
-
-  friend class Api;
-  friend class Instance;
-  friend class NativeEntryData;
-  friend class Object;
-  friend class ObjectPool;
-  friend class ObjectPoolDeserializationCluster;
-  friend class ObjectPoolSerializationCluster;
-  friend class RawObjectPool;
-  friend class SnapshotReader;
-};
-
-class RawExternalTypedData : public RawInstance {
+class RawExternalTypedData : public RawTypedDataBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
 
  protected:
   VISIT_FROM(RawCompressed, length_)
-  RawSmi* length_;
   VISIT_TO(RawCompressed, length_)
-
-  uint8_t* data_;
 
   friend class RawBytecode;
 };

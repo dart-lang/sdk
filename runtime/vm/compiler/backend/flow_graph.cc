@@ -1727,8 +1727,8 @@ void FlowGraph::InsertConversion(Representation from,
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
                                   : DeoptId::kNone;
-    converted = new (Z)
-        UnboxedIntConverterInstr(from, to, use->CopyWithType(), deopt_id);
+    converted =
+        new (Z) IntConverterInstr(from, to, use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
   } else if ((from == kUnboxedInt64) && (to == kUnboxedDouble) &&

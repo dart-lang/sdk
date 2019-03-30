@@ -270,6 +270,8 @@ void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
+void ConstantPropagator::VisitStoreUntagged(StoreUntaggedInstr* instr) {}
+
 void ConstantPropagator::VisitStoreIndexedUnsafe(
     StoreIndexedUnsafeInstr* instr) {}
 
@@ -1315,8 +1317,7 @@ void ConstantPropagator::VisitUnboxInt32(UnboxInt32Instr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitUnboxedIntConverter(
-    UnboxedIntConverterInstr* instr) {
+void ConstantPropagator::VisitIntConverter(IntConverterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
