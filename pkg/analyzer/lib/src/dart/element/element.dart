@@ -5847,6 +5847,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   bool get isDeferred {
+    if (linkedNode != null) {
+      return linkedNode.importDirective_deferredKeyword != 0;
+    }
     if (_unlinkedImport != null) {
       return _unlinkedImport.isDeferred;
     }

@@ -439,12 +439,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_import_deferred() async {
-    await super.test_import_deferred();
-  }
-
-  @override
-  @failingTest
   test_import_hide() async {
     await super.test_import_hide();
   }
