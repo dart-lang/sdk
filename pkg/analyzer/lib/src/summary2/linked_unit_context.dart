@@ -170,7 +170,7 @@ class LinkedUnitContext {
   }
 
   int getSimpleOffset(LinkedNode node) {
-    return tokensContext.offset(node.simpleIdentifier_token);
+    return getTokenOffset(node.simpleIdentifier_token);
   }
 
   String getStringContent(LinkedNode node) {
@@ -179,6 +179,10 @@ class LinkedUnitContext {
 
   String getTokenLexeme(int token) {
     return tokensContext.lexeme(token);
+  }
+
+  int getTokenOffset(int token) {
+    return tokensContext.offset(token);
   }
 
   DartType getType(LinkedNodeType linkedType) {

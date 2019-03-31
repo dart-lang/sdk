@@ -4636,12 +4636,20 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_combinators == null) {
-      if (_unlinkedExportPublic != null) {
-        _combinators = ImportElementImpl._buildCombinators(
-            _unlinkedExportPublic.combinators);
-      }
+    if (_combinators != null) return _combinators;
+
+    if (linkedNode != null) {
+      return _combinators = ImportElementImpl._buildCombinators2(
+        enclosingUnit.linkedContext,
+        linkedNode,
+      );
     }
+
+    if (_unlinkedExportPublic != null) {
+      return _combinators = ImportElementImpl._buildCombinators(
+          _unlinkedExportPublic.combinators);
+    }
+
     return _combinators ?? const <NamespaceCombinator>[];
   }
 
@@ -5697,20 +5705,40 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   /// The unlinked representation of the combinator in the summary.
   final UnlinkedCombinator _unlinkedCombinator;
 
+  final LinkedUnitContext linkedContext;
+  final LinkedNode linkedNode;
+
   /// The names that are not to be made visible in the importing library even if
   /// they are defined in the imported library.
   List<String> _hiddenNames;
 
-  HideElementCombinatorImpl() : _unlinkedCombinator = null;
+  HideElementCombinatorImpl()
+      : _unlinkedCombinator = null,
+        linkedContext = null,
+        linkedNode = null;
+
+  HideElementCombinatorImpl.forLinkedNode(this.linkedContext, this.linkedNode)
+      : _unlinkedCombinator = null;
 
   /// Initialize using the given serialized information.
-  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : linkedContext = null,
+        linkedNode = null;
 
   @override
   List<String> get hiddenNames {
-    if (_unlinkedCombinator != null) {
-      _hiddenNames ??= _unlinkedCombinator.hides.toList(growable: false);
+    if (_hiddenNames != null) return _hiddenNames;
+
+    if (linkedNode != null) {
+      return _hiddenNames = linkedNode.hideCombinator_hiddenNames
+          .map((node) => linkedContext.getSimpleName(node))
+          .toList();
     }
+
+    if (_unlinkedCombinator != null) {
+      return _hiddenNames = _unlinkedCombinator.hides.toList(growable: false);
+    }
+
     return _hiddenNames ?? const <String>[];
   }
 
@@ -5784,11 +5812,19 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_combinators == null) {
-      if (_unlinkedImport != null) {
-        _combinators = _buildCombinators(_unlinkedImport.combinators);
-      }
+    if (_combinators != null) return _combinators;
+
+    if (linkedNode != null) {
+      return _combinators = _buildCombinators2(
+        enclosingUnit.linkedContext,
+        linkedNode,
+      );
     }
+
+    if (_unlinkedImport != null) {
+      return _combinators = _buildCombinators(_unlinkedImport.combinators);
+    }
+
     return _combinators ?? const <NamespaceCombinator>[];
   }
 
@@ -6030,6 +6066,20 @@ class ImportElementImpl extends UriReferencedElementImpl
     } else {
       return const <NamespaceCombinator>[];
     }
+  }
+
+  static List<NamespaceCombinator> _buildCombinators2(
+      LinkedUnitContext context, LinkedNode linkedNode) {
+    return linkedNode.namespaceDirective_combinators.map((node) {
+      var kind = node.kind;
+      if (kind == LinkedNodeKind.hideCombinator) {
+        return HideElementCombinatorImpl.forLinkedNode(context, node);
+      }
+      if (kind == LinkedNodeKind.showCombinator) {
+        return ShowElementCombinatorImpl.forLinkedNode(context, node);
+      }
+      throw UnimplementedError('$kind');
+    }).toList();
   }
 }
 
@@ -8863,6 +8913,9 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   /// The unlinked representation of the combinator in the summary.
   final UnlinkedCombinator _unlinkedCombinator;
 
+  final LinkedUnitContext linkedContext;
+  final LinkedNode linkedNode;
+
   /// The names that are to be made visible in the importing library if they are
   /// defined in the imported library.
   List<String> _shownNames;
@@ -8874,10 +8927,18 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   /// The offset of the 'show' keyword of this element.
   int _offset = 0;
 
-  ShowElementCombinatorImpl() : _unlinkedCombinator = null;
+  ShowElementCombinatorImpl()
+      : _unlinkedCombinator = null,
+        linkedContext = null,
+        linkedNode = null;
+
+  ShowElementCombinatorImpl.forLinkedNode(this.linkedContext, this.linkedNode)
+      : _unlinkedCombinator = null;
 
   /// Initialize using the given serialized information.
-  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator)
+      : linkedContext = null,
+        linkedNode = null;
 
   @override
   int get end {
@@ -8894,6 +8955,9 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   int get offset {
+    if (linkedNode != null) {
+      return linkedContext.getTokenOffset(linkedNode.combinator_keyword);
+    }
     if (_unlinkedCombinator != null) {
       return _unlinkedCombinator.offset;
     }
@@ -8907,9 +8971,18 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   List<String> get shownNames {
-    if (_unlinkedCombinator != null) {
-      _shownNames ??= _unlinkedCombinator.shows.toList(growable: false);
+    if (_shownNames != null) return _shownNames;
+
+    if (linkedNode != null) {
+      return _shownNames = linkedNode.showCombinator_shownNames
+          .map((node) => linkedContext.getSimpleName(node))
+          .toList();
     }
+
+    if (_unlinkedCombinator != null) {
+      return _shownNames = _unlinkedCombinator.shows.toList(growable: false);
+    }
+
     return _shownNames ?? const <String>[];
   }
 

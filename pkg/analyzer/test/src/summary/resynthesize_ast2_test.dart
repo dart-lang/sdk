@@ -373,24 +373,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_export_hide() async {
-    await super.test_export_hide();
-  }
-
-  @override
-  @failingTest
-  test_export_multiple_combinators() async {
-    await super.test_export_multiple_combinators();
-  }
-
-  @override
-  @failingTest
-  test_export_show() async {
-    await super.test_export_show();
-  }
-
-  @override
-  @failingTest
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
   }
@@ -421,12 +403,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_function_entry_point_in_export_hidden() async {
-    await super.test_function_entry_point_in_export_hidden();
-  }
-
-  @override
-  @failingTest
   test_getter_inferred_type_nonStatic_implicit_return() async {
     await super.test_getter_inferred_type_nonStatic_implicit_return();
   }
@@ -439,20 +415,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_import_hide() async {
-    await super.test_import_hide();
-  }
-
-  @override
-  @failingTest
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @override
-  @failingTest
-  test_import_multiple_combinators() async {
-    await super.test_import_multiple_combinators();
   }
 
   @override
@@ -461,12 +425,6 @@ T max<T extends num>(T a, T b) => null;
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
 //    await super.test_import_short_absolute();
-  }
-
-  @override
-  @failingTest
-  test_import_show() async {
-    await super.test_import_show();
   }
 
   @override
