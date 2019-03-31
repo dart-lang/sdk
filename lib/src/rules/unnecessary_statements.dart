@@ -58,7 +58,7 @@ class UnnecessaryStatements extends LintRule implements NodeLintRule {
       [LinterContext context]) {
     final visitor = new _Visitor(new _ReportNoClearEffectVisitor(this));
     registry.addExpressionStatement(this, visitor);
-    registry.addForStatement2(this, visitor);
+    registry.addForStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
   }
 }
@@ -213,7 +213,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement2(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForPartsWithExpression) {
       loopParts.initialization?.accept(reportNoClearEffect);

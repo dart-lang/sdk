@@ -136,7 +136,7 @@ class _AssistCollector extends GeneralizingAstVisitor<void> {
   void visitNamedExpression(NamedExpression node) {
     if (node.name.toString() == 'associatedErrorCodes:') {
       ListLiteral list = node.expression;
-      for (var element in list.elements2) {
+      for (var element in list.elements) {
         var name =
             element.toString().substring(1, element.toString().length - 1);
         lintNames.add(name);

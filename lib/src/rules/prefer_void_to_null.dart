@@ -90,9 +90,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // <Null>[] or <Null, Null>{}
       if (parent is TypeArgumentList) {
         final literal = parent.parent;
-        if (literal is ListLiteral && literal.elements2.isEmpty) {
+        if (literal is ListLiteral && literal.elements.isEmpty) {
           return;
-        } else if (literal is SetOrMapLiteral && literal.elements2.isEmpty) {
+        } else if (literal is SetOrMapLiteral && literal.elements.isEmpty) {
           return;
         }
       }

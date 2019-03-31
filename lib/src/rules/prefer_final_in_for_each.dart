@@ -54,7 +54,7 @@ class PreferFinalInForEach extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
     final visitor = new _Visitor(this);
-    registry.addForStatement2(this, visitor);
+    registry.addForStatement(this, visitor);
   }
 }
 
@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement2(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     // If the following `if` test fails, then either the statement is not a
     // for-each loop, or it is something like `for(a in b) { ... }`.  In the
