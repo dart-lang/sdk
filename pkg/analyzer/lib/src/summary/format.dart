@@ -19497,6 +19497,7 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
     implements idl.LinkedNodeVariablesDeclaration {
   LinkedNodeBuilder _comment;
   bool _isConst;
+  bool _isCovariant;
   bool _isFinal;
   bool _isStatic;
 
@@ -19515,6 +19516,13 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
   }
 
   @override
+  bool get isCovariant => _isCovariant ??= false;
+
+  void set isCovariant(bool value) {
+    this._isCovariant = value;
+  }
+
+  @override
   bool get isFinal => _isFinal ??= false;
 
   void set isFinal(bool value) {
@@ -19529,9 +19537,14 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
   }
 
   LinkedNodeVariablesDeclarationBuilder(
-      {LinkedNodeBuilder comment, bool isConst, bool isFinal, bool isStatic})
+      {LinkedNodeBuilder comment,
+      bool isConst,
+      bool isCovariant,
+      bool isFinal,
+      bool isStatic})
       : _comment = comment,
         _isConst = isConst,
+        _isCovariant = isCovariant,
         _isFinal = isFinal,
         _isStatic = isStatic;
 
@@ -19546,11 +19559,12 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addBool(this._isConst == true);
-    signature.addBool(this._isFinal == true);
-    signature.addBool(this._isStatic == true);
     signature.addBool(this._comment != null);
     this._comment?.collectApiSignature(signature);
+    signature.addBool(this._isConst == true);
+    signature.addBool(this._isCovariant == true);
+    signature.addBool(this._isFinal == true);
+    signature.addBool(this._isStatic == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -19560,16 +19574,19 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
     }
     fbBuilder.startTable();
     if (offset_comment != null) {
-      fbBuilder.addOffset(3, offset_comment);
+      fbBuilder.addOffset(0, offset_comment);
     }
     if (_isConst == true) {
-      fbBuilder.addBool(0, true);
-    }
-    if (_isFinal == true) {
       fbBuilder.addBool(1, true);
     }
-    if (_isStatic == true) {
+    if (_isCovariant == true) {
       fbBuilder.addBool(2, true);
+    }
+    if (_isFinal == true) {
+      fbBuilder.addBool(3, true);
+    }
+    if (_isStatic == true) {
+      fbBuilder.addBool(4, true);
     }
     return fbBuilder.endTable();
   }
@@ -19595,30 +19612,37 @@ class _LinkedNodeVariablesDeclarationImpl extends Object
 
   idl.LinkedNode _comment;
   bool _isConst;
+  bool _isCovariant;
   bool _isFinal;
   bool _isStatic;
 
   @override
   idl.LinkedNode get comment {
-    _comment ??= const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 3, null);
+    _comment ??= const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 0, null);
     return _comment;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 0, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 1, false);
     return _isConst;
   }
 
   @override
+  bool get isCovariant {
+    _isCovariant ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    return _isCovariant;
+  }
+
+  @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 1, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _isFinal;
   }
 
   @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
     return _isStatic;
   }
 }
@@ -19630,6 +19654,7 @@ abstract class _LinkedNodeVariablesDeclarationMixin
     Map<String, Object> _result = <String, Object>{};
     if (comment != null) _result["comment"] = comment.toJson();
     if (isConst != false) _result["isConst"] = isConst;
+    if (isCovariant != false) _result["isCovariant"] = isCovariant;
     if (isFinal != false) _result["isFinal"] = isFinal;
     if (isStatic != false) _result["isStatic"] = isStatic;
     return _result;
@@ -19639,6 +19664,7 @@ abstract class _LinkedNodeVariablesDeclarationMixin
   Map<String, Object> toMap() => {
         "comment": comment,
         "isConst": isConst,
+        "isCovariant": isCovariant,
         "isFinal": isFinal,
         "isStatic": isStatic,
       };

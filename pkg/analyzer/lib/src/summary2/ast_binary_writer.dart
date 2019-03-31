@@ -445,6 +445,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
     _variablesDeclaration = LinkedNodeVariablesDeclarationBuilder(
+      isCovariant: node.covariantKeyword != null,
       isStatic: node.isStatic,
     );
 

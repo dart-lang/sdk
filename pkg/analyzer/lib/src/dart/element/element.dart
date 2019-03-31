@@ -4841,6 +4841,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isCovariant {
+    if (linkedNode != null) {
+      if (linkedNode.kind == LinkedNodeKind.variableDeclaration) {
+        return linkedNode.variableDeclaration_declaration.isCovariant;
+      }
+      return false;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isCovariant;
     }

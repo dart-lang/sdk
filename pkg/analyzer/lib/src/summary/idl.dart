@@ -2550,16 +2550,19 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
 /// Information about a top-level declaration, or a field declaration that
 /// contributes information to [LinkedNodeKind.variableDeclaration].
 abstract class LinkedNodeVariablesDeclaration extends base.SummaryClass {
-  @Id(3)
+  @Id(0)
   LinkedNode get comment;
 
-  @Id(0)
+  @Id(1)
   bool get isConst;
 
-  @Id(1)
+  @Id(2)
+  bool get isCovariant;
+
+  @Id(3)
   bool get isFinal;
 
-  @Id(2)
+  @Id(4)
   bool get isStatic;
 }
 

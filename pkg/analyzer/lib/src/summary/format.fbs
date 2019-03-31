@@ -1973,13 +1973,15 @@ table LinkedNodeUnit {
 /// Information about a top-level declaration, or a field declaration that
 /// contributes information to [LinkedNodeKind.variableDeclaration].
 table LinkedNodeVariablesDeclaration {
-  comment:LinkedNode (id: 3);
+  comment:LinkedNode (id: 0);
 
-  isConst:bool (id: 0);
+  isConst:bool (id: 1);
 
-  isFinal:bool (id: 1);
+  isCovariant:bool (id: 2);
 
-  isStatic:bool (id: 2);
+  isFinal:bool (id: 3);
+
+  isStatic:bool (id: 4);
 }
 
 /// Information about the resolution of an [UnlinkedReference].
