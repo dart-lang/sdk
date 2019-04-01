@@ -2186,7 +2186,6 @@ class EvaluationEnvironment {
   }
 
   void addVariableValue(VariableDeclaration variable, Constant value) {
-    assert(!_variables.containsKey(variable));
     _variables[variable] = value;
   }
 
