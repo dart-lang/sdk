@@ -503,10 +503,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
 #else
     const Class& null_class =
         Class::Handle(zone(), isolate()->object_store()->null_class());
-    const Function& target = Function::Handle(
-        zone(),
-        Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name));
-    if (!target.IsNull()) {
+    if (Resolver::HasDefinition(zone(), null_class, method_name)) {
       return ToCheck::kCheckCid;
     }
 #endif

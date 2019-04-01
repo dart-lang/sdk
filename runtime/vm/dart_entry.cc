@@ -267,7 +267,14 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
   }
 
   // No compatible method or getter so invoke noSuchMethod.
-  return InvokeNoSuchMethod(instance, Symbols::Call(), arguments,
+  String& function_name = String::Handle(zone);
+  if (instance.IsClosure()) {
+    function_name = Function::Handle(zone, Closure::Cast(instance).function())
+                        .QualifiedUserVisibleName();
+  } else {
+    function_name = Symbols::Call().raw();
+  }
+  return InvokeNoSuchMethod(instance, function_name, arguments,
                             arguments_descriptor);
 }
 
