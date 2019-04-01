@@ -545,6 +545,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// Produce an unevaluated constant node for an expression.
   Constant unevaluated(Expression original, Expression replacement) {
     replacement.fileOffset = original.fileOffset;
+    // TODO(askesc,johnniwinther): Preserve fileUri on [replacement].
     return new UnevaluatedConstant(replacement);
   }
 
@@ -1024,8 +1025,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       Constant key = _evaluateSubexpression(element.key);
       Constant value = _evaluateSubexpression(element.value);
       if (shouldBeUnevaluated) {
-        parts.add(unevaluated(element.key,
-            new MapLiteral([new MapEntry(extract(key), extract(value))])));
+        parts.add(unevaluated(
+            element.key,
+            new MapLiteral([new MapEntry(extract(key), extract(value))],
+                isConst: true)));
       } else {
         List<ConstantMapEntry> entries;
         if (parts.last is List<ConstantMapEntry>) {
@@ -1378,6 +1381,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                           message.getType(typeEnvironment)));
                 }
               } else {
+                // TODO(askesc,johnniwinther): Handle unevaluated assert
+                // conditions.
                 return report(
                     init.statement.condition,
                     templateConstEvalInvalidType.withArguments(

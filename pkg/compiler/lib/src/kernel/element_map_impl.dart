@@ -4,7 +4,7 @@
 
 library dart2js.kernel.element_map;
 
-import 'package:front_end/src/api_unstable/dart2js.dart' show Link, LinkBuilder;
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -308,8 +308,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         }
 
         InterfaceType supertype;
-        LinkBuilder<InterfaceType> linkBuilder =
-            new LinkBuilder<InterfaceType>();
+        ir.LinkBuilder<InterfaceType> linkBuilder =
+            new ir.LinkBuilder<InterfaceType>();
         if (node.isMixinDeclaration) {
           // A mixin declaration
           //
@@ -351,12 +351,12 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         node.implementedTypes.forEach((ir.Supertype supertype) {
           linkBuilder.addLast(processSupertype(supertype));
         });
-        Link<InterfaceType> interfaces =
-            linkBuilder.toLink(const Link<InterfaceType>());
+        ir.Link<InterfaceType> interfaces =
+            linkBuilder.toLink(const ir.Link<InterfaceType>());
         OrderedTypeSetBuilder setBuilder =
             new KernelOrderedTypeSetBuilder(this, cls);
         data.orderedTypeSet = setBuilder.createOrderedTypeSet(
-            data.supertype, interfaces.reverse(const Link<InterfaceType>()));
+            data.supertype, interfaces.reverse(const ir.Link<InterfaceType>()));
         data.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
@@ -756,6 +756,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   Dart2jsConstantEvaluator get constantEvaluator {
     return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
+        (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+      reportLocatedMessage(reporter, message, context);
+    },
         enableAsserts: options.enableUserAssertions,
         environment: _environment.toMap());
   }
@@ -2210,4 +2213,23 @@ class KernelClassQueries extends ClassQueries {
   ClassEntity getAppliedMixin(ClassEntity cls) {
     return elementMap.getAppliedMixin(cls);
   }
+}
+
+DiagnosticMessage _createDiagnosticMessage(
+    DiagnosticReporter reporter, ir.LocatedMessage message) {
+  SourceSpan sourceSpan = new SourceSpan(
+      message.uri, message.charOffset, message.charOffset + message.length);
+  return reporter.createMessage(
+      sourceSpan, MessageKind.GENERIC, {'text': message.message});
+}
+
+void reportLocatedMessage(DiagnosticReporter reporter,
+    ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+  DiagnosticMessage diagnosticMessage =
+      _createDiagnosticMessage(reporter, message);
+  List<DiagnosticMessage> infos = [];
+  for (ir.LocatedMessage message in context) {
+    infos.add(_createDiagnosticMessage(reporter, message));
+  }
+  reporter.reportError(diagnosticMessage, infos);
 }

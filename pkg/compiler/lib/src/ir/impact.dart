@@ -709,8 +709,8 @@ class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
 
   @override
   void visitUnevaluatedConstant(ir.UnevaluatedConstant node) {
-    throw new UnsupportedError(
-        "Unexpected constant ${node} (${node.runtimeType}).");
+    // Do nothing. This occurs when the constant couldn't be evaluated because
+    // of a compile-time error.
   }
 
   @override

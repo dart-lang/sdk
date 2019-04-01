@@ -9,18 +9,37 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
 import '../kernel/dart2js_target.dart';
 
+typedef ReportErrorFunction = void Function(
+    ir.LocatedMessage message, List<ir.LocatedMessage> context);
+
 class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
-  Dart2jsConstantEvaluator(ir.TypeEnvironment typeEnvironment,
-      {bool enableAsserts, Map<String, String> environment: const {}})
-      : super(const Dart2jsConstantsBackend(), environment, typeEnvironment,
-            enableAsserts, const DevNullErrorReporter());
+  final bool _supportReevaluationForTesting;
+
+  bool requiresConstant;
+
+  Dart2jsConstantEvaluator(
+      ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
+      {bool enableAsserts,
+      Map<String, String> environment: const {},
+      bool supportReevaluationForTesting: false})
+      : _supportReevaluationForTesting = supportReevaluationForTesting,
+        super(const Dart2jsConstantsBackend(), environment, typeEnvironment,
+            enableAsserts, new ErrorReporter(reportError));
+
+  @override
+  ErrorReporter get errorReporter => super.errorReporter;
 
   @override
   ir.Constant evaluate(ir.Expression node, {bool requireConstant: true}) {
+    errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
       if (constant is ir.UnevaluatedConstant) {
-        return node.constant = super.evaluate(constant.expression);
+        ir.Constant result = super.evaluate(constant.expression);
+        if (!_supportReevaluationForTesting) {
+          node.constant = result;
+        }
+        return result;
       }
       return constant;
     }
@@ -38,8 +57,11 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   }
 }
 
-class DevNullErrorReporter implements ir.ErrorReporter {
-  const DevNullErrorReporter();
+class ErrorReporter implements ir.ErrorReporter {
+  final ReportErrorFunction _reportError;
+  bool requiresConstant;
+
+  ErrorReporter(this._reportError);
 
   @override
   void reportInvalidExpression(ir.InvalidExpression node) {
@@ -48,7 +70,8 @@ class DevNullErrorReporter implements ir.ErrorReporter {
 
   @override
   void report(ir.LocatedMessage message, List<ir.LocatedMessage> context) {
-    // TODO(johnniwinther): Handle reporting of compile-time constant
-    // evaluation errors.
+    if (requiresConstant) {
+      _reportError(message, context);
+    }
   }
 }
