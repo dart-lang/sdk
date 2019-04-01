@@ -24,9 +24,12 @@ import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'division_optimization_test.dart' as division_optimization;
+import 'duplicate_import_test.dart' as duplicate_import;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'expression_in_map_test.dart' as expression_in_map;
+import 'import_deferred_library_with_load_function_test.dart'
+    as import_deferred_library_with_load_function;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
@@ -69,6 +72,20 @@ import 'non_constant_spread_expression_from_deferred_library_test.dart'
     as non_constant_spread_expression_from_deferred_library;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
+import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
+import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
+import 'null_aware_in_logical_operator_test.dart'
+    as null_aware_in_logical_operator;
+import 'override_equals_but_not_hashcode_test.dart'
+    as override_equals_but_not_hashcode;
+import 'override_on_non_overriding_field_test.dart'
+    as override_on_non_overriding_field;
+import 'override_on_non_overriding_getter_test.dart'
+    as override_on_non_overriding_getter;
+import 'override_on_non_overriding_method_test.dart'
+    as override_on_non_overriding_method;
+import 'override_on_non_overriding_setter_test.dart'
+    as override_on_non_overriding_setter;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
 import 'sdk_version_async_exported_from_core_test.dart'
@@ -129,9 +146,11 @@ main() {
     dead_code.main();
     deprecated_member_use.main();
     division_optimization.main();
+    duplicate_import.main();
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
     expression_in_map.main();
+    import_deferred_library_with_load_function.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_immutable_annotation.main();
@@ -163,6 +182,14 @@ main() {
     non_constant_spread_expression_from_deferred_library.main();
     not_iterable_spread.main();
     not_map_spread.main();
+    null_aware_before_operator.main();
+    null_aware_in_condition.main();
+    null_aware_in_logical_operator.main();
+    override_equals_but_not_hashcode.main();
+    override_on_non_overriding_field.main();
+    override_on_non_overriding_getter.main();
+    override_on_non_overriding_method.main();
+    override_on_non_overriding_setter.main();
     sdk_version_as_expression_in_const_context.main();
     sdk_version_async_exported_from_core.main();
     sdk_version_bool_operator.main();
