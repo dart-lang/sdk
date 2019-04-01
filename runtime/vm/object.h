@@ -8348,14 +8348,18 @@ class TypedDataBase : public Instance {
     if (cid == kByteDataViewCid) {
       return kUint8ArrayElement;
     } else if (RawObject::IsTypedDataClassId(cid)) {
-      return static_cast<TypedDataElementType>(cid - kTypedDataInt8ArrayCid);
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 3;
+      return static_cast<TypedDataElementType>(index);
     } else if (RawObject::IsTypedDataViewClassId(cid)) {
-      return static_cast<TypedDataElementType>(cid -
-                                               kTypedDataInt8ArrayViewCid);
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 3;
+      return static_cast<TypedDataElementType>(index);
     } else {
       ASSERT(RawObject::IsExternalTypedDataClassId(cid));
-      return static_cast<TypedDataElementType>(cid -
-                                               kExternalTypedDataInt8ArrayCid);
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 3;
+      return static_cast<TypedDataElementType>(index);
     }
   }
 
@@ -8375,7 +8379,7 @@ class TypedDataBase : public Instance {
     return size;
   }
   static const intptr_t kNumElementSizes =
-      kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid + 1;
+      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 3 + 1;
   static const intptr_t element_size_table[kNumElementSizes];
 
   HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, Instance);

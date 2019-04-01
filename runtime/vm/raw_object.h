@@ -2563,73 +2563,35 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
 
 inline bool RawObject::IsTypedDataClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataUint8ArrayCid == kTypedDataInt8ArrayCid + 1 &&
-                 kTypedDataUint8ClampedArrayCid == kTypedDataInt8ArrayCid + 2 &&
-                 kTypedDataInt16ArrayCid == kTypedDataInt8ArrayCid + 3 &&
-                 kTypedDataUint16ArrayCid == kTypedDataInt8ArrayCid + 4 &&
-                 kTypedDataInt32ArrayCid == kTypedDataInt8ArrayCid + 5 &&
-                 kTypedDataUint32ArrayCid == kTypedDataInt8ArrayCid + 6 &&
-                 kTypedDataInt64ArrayCid == kTypedDataInt8ArrayCid + 7 &&
-                 kTypedDataUint64ArrayCid == kTypedDataInt8ArrayCid + 8 &&
-                 kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
-                 kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
-                 kTypedDataFloat32x4ArrayCid == kTypedDataInt8ArrayCid + 11 &&
-                 kTypedDataInt32x4ArrayCid == kTypedDataInt8ArrayCid + 12 &&
-                 kTypedDataFloat64x2ArrayCid == kTypedDataInt8ArrayCid + 13 &&
-                 kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
-  return (index >= kTypedDataInt8ArrayCid &&
-          index <= kTypedDataFloat64x2ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
+
+  const bool is_typed_data_base =
+      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
+  return is_typed_data_base && ((index - kTypedDataInt8ArrayCid) % 3) ==
+                                   kTypedDataCidRemainderInternal;
 }
 
 inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(
-      kTypedDataUint8ArrayViewCid == kTypedDataInt8ArrayViewCid + 1 &&
-      kTypedDataUint8ClampedArrayViewCid == kTypedDataInt8ArrayViewCid + 2 &&
-      kTypedDataInt16ArrayViewCid == kTypedDataInt8ArrayViewCid + 3 &&
-      kTypedDataUint16ArrayViewCid == kTypedDataInt8ArrayViewCid + 4 &&
-      kTypedDataInt32ArrayViewCid == kTypedDataInt8ArrayViewCid + 5 &&
-      kTypedDataUint32ArrayViewCid == kTypedDataInt8ArrayViewCid + 6 &&
-      kTypedDataInt64ArrayViewCid == kTypedDataInt8ArrayViewCid + 7 &&
-      kTypedDataUint64ArrayViewCid == kTypedDataInt8ArrayViewCid + 8 &&
-      kTypedDataFloat32ArrayViewCid == kTypedDataInt8ArrayViewCid + 9 &&
-      kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
-      kTypedDataFloat32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 11 &&
-      kTypedDataInt32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 12 &&
-      kTypedDataFloat64x2ArrayViewCid == kTypedDataInt8ArrayViewCid + 13 &&
-      kByteDataViewCid == kTypedDataInt8ArrayViewCid + 14 &&
-      kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 15);
-  return (index >= kTypedDataInt8ArrayViewCid && index <= kByteDataViewCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayViewCid + 3 == kTypedDataUint8ArrayViewCid);
+
+  const bool is_typed_data_base =
+      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
+  const bool is_byte_data_view = index == kByteDataViewCid;
+  return is_byte_data_view ||
+         (is_typed_data_base &&
+          ((index - kTypedDataInt8ArrayCid) % 3) == kTypedDataCidRemainderView);
 }
 
 inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
-  // Make sure this is updated when new ExternalTypedData types are added.
-  COMPILE_ASSERT(
-      (kExternalTypedDataUint8ArrayCid == kExternalTypedDataInt8ArrayCid + 1) &&
-      (kExternalTypedDataUint8ClampedArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 2) &&
-      (kExternalTypedDataInt16ArrayCid == kExternalTypedDataInt8ArrayCid + 3) &&
-      (kExternalTypedDataUint16ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 4) &&
-      (kExternalTypedDataInt32ArrayCid == kExternalTypedDataInt8ArrayCid + 5) &&
-      (kExternalTypedDataUint32ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 6) &&
-      (kExternalTypedDataInt64ArrayCid == kExternalTypedDataInt8ArrayCid + 7) &&
-      (kExternalTypedDataUint64ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 8) &&
-      (kExternalTypedDataFloat32ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 9) &&
-      (kExternalTypedDataFloat64ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 10) &&
-      (kExternalTypedDataFloat32x4ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 11) &&
-      (kExternalTypedDataInt32x4ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 12) &&
-      (kExternalTypedDataFloat64x2ArrayCid ==
-       kExternalTypedDataInt8ArrayCid + 13) &&
-      (kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14));
-  return (index >= kExternalTypedDataInt8ArrayCid &&
-          index <= kExternalTypedDataFloat64x2ArrayCid);
+  // Make sure this is updated when new TypedData types are added.
+  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 3 ==
+                 kExternalTypedDataUint8ArrayCid);
+
+  const bool is_typed_data_base =
+      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
+  return is_typed_data_base && ((index - kTypedDataInt8ArrayCid) % 3) ==
+                                   kTypedDataCidRemainderExternal;
 }
 
 inline bool RawObject::IsFfiNativeTypeTypeClassId(intptr_t index) {
@@ -2710,11 +2672,31 @@ inline bool RawObject::IsImplicitFieldClassId(intptr_t index) {
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
-  COMPILE_ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
-  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid ==
-                 kTypedDataInt8ArrayViewCid + 15);
-  COMPILE_ASSERT(kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14);
-  COMPILE_ASSERT(kNullCid == kByteBufferCid + 1);
+
+  // Ensure that each typed data type comes in internal/view/external variants
+  // next to each other.
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 == kTypedDataInt8ArrayViewCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 == kExternalTypedDataInt8ArrayCid);
+
+  // Ensure the order of the typed data members in 3-step.
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 1 * 3 == kTypedDataUint8ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 2 * 3 ==
+                 kTypedDataUint8ClampedArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 * 3 == kTypedDataInt16ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 4 * 3 == kTypedDataUint16ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 5 * 3 == kTypedDataInt32ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 6 * 3 == kTypedDataUint32ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 7 * 3 == kTypedDataInt64ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 8 * 3 == kTypedDataUint64ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 9 * 3 == kTypedDataFloat32ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 10 * 3 == kTypedDataFloat64ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 11 * 3 ==
+                 kTypedDataFloat32x4ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 12 * 3 == kTypedDataInt32x4ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 13 * 3 ==
+                 kTypedDataFloat64x2ArrayCid);
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 14 * 3 == kByteDataViewCid);
+  COMPILE_ASSERT(kByteBufferCid + 1 == kNullCid);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 
