@@ -141,6 +141,10 @@ AnalysisError newAnalysisError_fromEngine(
   String correction = error.correction;
   bool fix = hasFix(error.errorCode);
   String url = errorCode.url;
+  if (url == null && errorCode is engine.LintCode) {
+    String lintName = errorCode.name.toLowerCase();
+    url = 'https://dart-lang.github.io/linter/lints/$lintName.html';
+  }
   return new AnalysisError(severity, type, location, message, code,
       correction: correction, hasFix: fix, url: url);
 }

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -88,6 +89,31 @@ class AnalysisErrorTest {
       MESSAGE: 'my message',
       CODE: 'test_error',
       URL: 'http://codes.dartlang.org/TEST_ERROR',
+      HAS_FIX: false
+    });
+  }
+
+  void test_fromEngine_lint() {
+    engineError = new MockAnalysisError(
+        source,
+        new LintCode('my_lint', 'my message', correction: 'correction'),
+        10,
+        20,
+        'my message');
+    AnalysisError error = newAnalysisError_fromEngine(lineInfo, engineError);
+    expect(error.toJson(), {
+      SEVERITY: 'INFO',
+      TYPE: 'LINT',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2
+      },
+      MESSAGE: 'my message',
+      CODE: 'my_lint',
+      URL: 'https://dart-lang.github.io/linter/lints/my_lint.html',
       HAS_FIX: false
     });
   }
