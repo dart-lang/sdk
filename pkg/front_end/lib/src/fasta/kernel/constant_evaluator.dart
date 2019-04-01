@@ -1689,12 +1689,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is StringConstant && node.name.name == 'length') {
       return canonicalize(new IntConstant(receiver.value.length));
-    } else if (receiver is InstanceConstant) {
-      for (final Reference fieldRef in receiver.fieldValues.keys) {
-        if (fieldRef.asField.name == node.name) {
-          return receiver.fieldValues[fieldRef];
-        }
-      }
     } else if (shouldBeUnevaluated) {
       return unevaluated(node,
           new PropertyGet(extract(receiver), node.name, node.interfaceTarget));
