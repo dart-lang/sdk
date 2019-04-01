@@ -1019,6 +1019,78 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
 #endif
 }
 
+// An instance call of the form o.f(...) could not be resolved.  Check if
+// there is a getter with the same name.  If so, invoke it.  If the value is
+// a closure, invoke it with the given arguments.  If the value is a
+// non-closure, attempt to invoke "call" on it.
+static bool ResolveCallThroughGetter(const Instance& receiver,
+                                     const Class& receiver_class,
+                                     const String& target_name,
+                                     const Array& arguments_descriptor,
+                                     Function* result) {
+  // 1. Check if there is a getter with the same name.
+  const String& getter_name = String::Handle(Field::GetterName(target_name));
+  const int kTypeArgsLen = 0;
+  const int kNumArguments = 1;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  const Function& getter =
+      Function::Handle(Resolver::ResolveDynamicForReceiverClass(
+          receiver_class, getter_name, args_desc));
+  if (getter.IsNull() || getter.IsMethodExtractor()) {
+    return false;
+  }
+  const Function& target_function =
+      Function::Handle(receiver_class.GetInvocationDispatcher(
+          target_name, arguments_descriptor,
+          RawFunction::kInvokeFieldDispatcher, FLAG_lazy_dispatchers));
+  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
+  if (FLAG_trace_ic) {
+    OS::PrintErr(
+        "InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
+        Class::Handle(receiver.clazz()).ToCString(), receiver.GetClassId(),
+        target_function.IsNull() ? "null" : target_function.ToCString());
+  }
+  *result = target_function.raw();
+  return true;
+}
+
+// Handle other invocations (implicit closures, noSuchMethod).
+RawFunction* InlineCacheMissHelper(const Instance& receiver,
+                                   const Array& args_descriptor,
+                                   const String& target_name) {
+  const Class& receiver_class = Class::Handle(receiver.clazz());
+
+  // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
+  // (or a call-through getter for methodName).
+  if (Function::IsDynamicInvocationForwarderName(target_name)) {
+    const String& demangled = String::Handle(
+        Function::DemangleDynamicInvocationForwarderName(target_name));
+    return InlineCacheMissHelper(receiver, args_descriptor, demangled);
+  }
+
+  Function& result = Function::Handle();
+  if (!ResolveCallThroughGetter(receiver, receiver_class, target_name,
+                                args_descriptor, &result)) {
+    ArgumentsDescriptor desc(args_descriptor);
+    const Function& target_function =
+        Function::Handle(receiver_class.GetInvocationDispatcher(
+            target_name, args_descriptor, RawFunction::kNoSuchMethodDispatcher,
+            FLAG_lazy_dispatchers));
+    if (FLAG_trace_ic) {
+      OS::PrintErr(
+          "NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
+          Class::Handle(receiver.clazz()).ToCString(), receiver.GetClassId(),
+          target_function.IsNull() ? "null" : target_function.ToCString());
+    }
+    result = target_function.raw();
+  }
+  // May be null if --no-lazy-dispatchers, in which case dispatch will be
+  // handled by InvokeNoSuchMethodDispatcher.
+  ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
+  return result.raw();
+}
+
 // Perform the subtype and return constant function based on the result.
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
@@ -1059,6 +1131,11 @@ static RawFunction* InlineCacheMissHandler(
                    String::Handle(ic_data.target_name()).ToCString(),
                    receiver.ToCString());
     }
+    const Array& args_descriptor =
+        Array::Handle(ic_data.arguments_descriptor());
+    const String& target_name = String::Handle(ic_data.target_name());
+    target_function =
+        InlineCacheMissHelper(receiver, args_descriptor, target_name);
   }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
@@ -1208,8 +1285,7 @@ static bool IsSingleTarget(Isolate* isolate,
                            intptr_t lower_cid,
                            intptr_t upper_cid,
                            const Function& target,
-                           const String& name,
-                           const ArgumentsDescriptor& args_desc) {
+                           const String& name) {
   Class& cls = Class::Handle(zone);
   ClassTable* table = isolate->class_table();
   Function& other_target = Function::Handle(zone);
@@ -1218,8 +1294,8 @@ static bool IsSingleTarget(Isolate* isolate,
     cls = table->At(cid);
     if (cls.is_abstract()) continue;
     if (!cls.is_allocated()) continue;
-    other_target = Resolver::ResolveDynamicForReceiverClass(
-        cls, name, args_desc, false /* allow_add */);
+    other_target =
+        Resolver::ResolveDynamicAnyArgs(zone, cls, name, false /* allow_add */);
     if (other_target.raw() != target.raw()) {
       return false;
     }
@@ -1272,6 +1348,9 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+  }
+  if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
   } else {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
@@ -1292,7 +1371,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
     }
 
     if (IsSingleTarget(isolate, zone, unchecked_lower, unchecked_upper,
-                       target_function, name, args_desc)) {
+                       target_function, name)) {
       cache.set_lower_limit(lower);
       cache.set_upper_limit(upper);
       // Return the ICData. The single target stub will jump to continue in the
@@ -1342,6 +1421,9 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   ArgumentsDescriptor args_desc(descriptor);
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
+  if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+  }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
   } else {
@@ -1423,6 +1505,9 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+  }
+  if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
   } else {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
@@ -1438,8 +1523,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
       upper = old_expected_cid.Value();
     }
 
-    if (IsSingleTarget(isolate, zone, lower, upper, target_function, name,
-                       args_desc)) {
+    if (IsSingleTarget(isolate, zone, lower, upper, target_function, name)) {
       const SingleTargetCache& cache =
           SingleTargetCache::Handle(SingleTargetCache::New());
       const Code& code = Code::Handle(target_function.CurrentCode());
@@ -1500,6 +1584,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
     if (target_function.IsNull()) {
       ASSERT(!FLAG_lazy_dispatchers);
       arguments.SetReturn(target_function);
@@ -1591,7 +1676,10 @@ DEFINE_RUNTIME_ENTRY(InterpretedInterfaceCallMissHandler, 3) {
   // TODO(regis): In order to substitute 'simple_instance_of_function', the 2nd
   // arg to the call, the type, is needed.
 
-  ASSERT(!target_function.IsNull() && FLAG_lazy_dispatchers);
+  if (target_function.IsNull()) {
+    target_function = InlineCacheMissHelper(receiver, arg_desc, target_name);
+  }
+  ASSERT(!target_function.IsNull());
   arguments.SetReturn(target_function);
 #endif
 }
