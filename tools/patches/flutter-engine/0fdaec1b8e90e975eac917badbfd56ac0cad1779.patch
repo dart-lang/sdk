@@ -13,3 +13,16 @@ index 2766d1b98..828196f8d 100644
        ]
      }
    }
+diff --git a/shell/platform/BUILD.gn b/shell/platform/BUILD.gn
+index c3bd7569c..30abe167a 100644
+--- a/shell/platform/BUILD.gn
++++ b/shell/platform/BUILD.gn
+@@ -13,7 +13,7 @@ group("platform") {
+     ]
+   } else if (is_linux) {
+     deps = [
+-      "linux",
++#      "linux",
+     ]
+   } else if (is_win) {
+     deps = [
