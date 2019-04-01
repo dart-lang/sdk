@@ -2887,11 +2887,20 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
 class AvailableFileBuilder extends Object
     with _AvailableFileMixin
     implements idl.AvailableFile {
+  DirectiveInfoBuilder _directiveInfo;
   List<AvailableDeclarationBuilder> _declarations;
   List<AvailableFileExportBuilder> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
+
+  @override
+  DirectiveInfoBuilder get directiveInfo => _directiveInfo;
+
+  /// The Dartdoc directives in the file.
+  void set directiveInfo(DirectiveInfoBuilder value) {
+    this._directiveInfo = value;
+  }
 
   @override
   List<AvailableDeclarationBuilder> get declarations =>
@@ -2936,12 +2945,14 @@ class AvailableFileBuilder extends Object
   }
 
   AvailableFileBuilder(
-      {List<AvailableDeclarationBuilder> declarations,
+      {DirectiveInfoBuilder directiveInfo,
+      List<AvailableDeclarationBuilder> declarations,
       List<AvailableFileExportBuilder> exports,
       bool isLibrary,
       bool isLibraryDeprecated,
       List<String> parts})
-      : _declarations = declarations,
+      : _directiveInfo = directiveInfo,
+        _declarations = declarations,
         _exports = exports,
         _isLibrary = isLibrary,
         _isLibraryDeprecated = isLibraryDeprecated,
@@ -2951,6 +2962,7 @@ class AvailableFileBuilder extends Object
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+    _directiveInfo?.flushInformative();
     _declarations?.forEach((b) => b.flushInformative());
     _exports?.forEach((b) => b.flushInformative());
   }
@@ -2985,6 +2997,8 @@ class AvailableFileBuilder extends Object
         signature.addString(x);
       }
     }
+    signature.addBool(this._directiveInfo != null);
+    this._directiveInfo?.collectApiSignature(signature);
   }
 
   List<int> toBuffer() {
@@ -2993,9 +3007,13 @@ class AvailableFileBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_directiveInfo;
     fb.Offset offset_declarations;
     fb.Offset offset_exports;
     fb.Offset offset_parts;
+    if (_directiveInfo != null) {
+      offset_directiveInfo = _directiveInfo.finish(fbBuilder);
+    }
     if (!(_declarations == null || _declarations.isEmpty)) {
       offset_declarations = fbBuilder
           .writeList(_declarations.map((b) => b.finish(fbBuilder)).toList());
@@ -3009,6 +3027,9 @@ class AvailableFileBuilder extends Object
           .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
+    if (offset_directiveInfo != null) {
+      fbBuilder.addOffset(5, offset_directiveInfo);
+    }
     if (offset_declarations != null) {
       fbBuilder.addOffset(0, offset_declarations);
     }
@@ -3049,11 +3070,19 @@ class _AvailableFileImpl extends Object
 
   _AvailableFileImpl(this._bc, this._bcOffset);
 
+  idl.DirectiveInfo _directiveInfo;
   List<idl.AvailableDeclaration> _declarations;
   List<idl.AvailableFileExport> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
+
+  @override
+  idl.DirectiveInfo get directiveInfo {
+    _directiveInfo ??=
+        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 5, null);
+    return _directiveInfo;
+  }
 
   @override
   List<idl.AvailableDeclaration> get declarations {
@@ -3096,6 +3125,8 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (directiveInfo != null)
+      _result["directiveInfo"] = directiveInfo.toJson();
     if (declarations.isNotEmpty)
       _result["declarations"] =
           declarations.map((_value) => _value.toJson()).toList();
@@ -3110,6 +3141,7 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
 
   @override
   Map<String, Object> toMap() => {
+        "directiveInfo": directiveInfo,
         "declarations": declarations,
         "exports": exports,
         "isLibrary": isLibrary,
@@ -3478,6 +3510,135 @@ abstract class _CodeRangeMixin implements idl.CodeRange {
   Map<String, Object> toMap() => {
         "length": length,
         "offset": offset,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class DirectiveInfoBuilder extends Object
+    with _DirectiveInfoMixin
+    implements idl.DirectiveInfo {
+  List<String> _templateNames;
+  List<String> _templateValues;
+
+  @override
+  List<String> get templateNames => _templateNames ??= <String>[];
+
+  /// The names of the defined templates.
+  void set templateNames(List<String> value) {
+    this._templateNames = value;
+  }
+
+  @override
+  List<String> get templateValues => _templateValues ??= <String>[];
+
+  /// The values of the defined templates.
+  void set templateValues(List<String> value) {
+    this._templateValues = value;
+  }
+
+  DirectiveInfoBuilder(
+      {List<String> templateNames, List<String> templateValues})
+      : _templateNames = templateNames,
+        _templateValues = templateValues;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {}
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._templateNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._templateNames.length);
+      for (var x in this._templateNames) {
+        signature.addString(x);
+      }
+    }
+    if (this._templateValues == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._templateValues.length);
+      for (var x in this._templateValues) {
+        signature.addString(x);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_templateNames;
+    fb.Offset offset_templateValues;
+    if (!(_templateNames == null || _templateNames.isEmpty)) {
+      offset_templateNames = fbBuilder.writeList(
+          _templateNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_templateValues == null || _templateValues.isEmpty)) {
+      offset_templateValues = fbBuilder.writeList(
+          _templateValues.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_templateNames != null) {
+      fbBuilder.addOffset(0, offset_templateNames);
+    }
+    if (offset_templateValues != null) {
+      fbBuilder.addOffset(1, offset_templateValues);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _DirectiveInfoReader extends fb.TableReader<_DirectiveInfoImpl> {
+  const _DirectiveInfoReader();
+
+  @override
+  _DirectiveInfoImpl createObject(fb.BufferContext bc, int offset) =>
+      new _DirectiveInfoImpl(bc, offset);
+}
+
+class _DirectiveInfoImpl extends Object
+    with _DirectiveInfoMixin
+    implements idl.DirectiveInfo {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _DirectiveInfoImpl(this._bc, this._bcOffset);
+
+  List<String> _templateNames;
+  List<String> _templateValues;
+
+  @override
+  List<String> get templateNames {
+    _templateNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _templateNames;
+  }
+
+  @override
+  List<String> get templateValues {
+    _templateValues ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _templateValues;
+  }
+}
+
+abstract class _DirectiveInfoMixin implements idl.DirectiveInfo {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (templateNames.isNotEmpty) _result["templateNames"] = templateNames;
+    if (templateValues.isNotEmpty) _result["templateValues"] = templateValues;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "templateNames": templateNames,
+        "templateValues": templateValues,
       };
 
   @override

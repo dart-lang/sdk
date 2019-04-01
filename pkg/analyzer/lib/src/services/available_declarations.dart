@@ -12,7 +12,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -135,6 +134,10 @@ class DeclarationsContext {
   /// The list of paths of all SDK libraries.
   final List<String> _sdkLibraryPathList = [];
 
+  /// The combined information about all of the dartdoc directives in this
+  /// context.
+  final DartdocDirectiveInfo _dartdocDirectiveInfo = new DartdocDirectiveInfo();
+
   /// Map of path prefixes to lists of paths of files from dependencies
   /// (both libraries and parts, we don't know at the time when we fill this
   /// map) that libraries with paths starting with these prefixes can access.
@@ -143,6 +146,10 @@ class DeclarationsContext {
   final Map<String, List<String>> _pathPrefixToDependencyPathList = {};
 
   DeclarationsContext(this._tracker, this._analysisContext);
+
+  /// Return the combined information about all of the dartdoc directives in
+  /// this context.
+  DartdocDirectiveInfo get dartdocDirectiveInfo => _dartdocDirectiveInfo;
 
   /// Return libraries that are available to the file with the given [path].
   ///
@@ -981,6 +988,9 @@ class _File {
   List<Declaration> libraryDeclarations = [];
   List<Declaration> exportedDeclarations;
 
+  List<String> templateNames = [];
+  List<String> templateValues = [];
+
   /// If `true`, then this library has already been sent to the client.
   bool isSent = false;
 
@@ -1037,10 +1047,14 @@ class _File {
 
       CompilationUnit unit = _parse(content);
       _buildFileDeclarations(unit);
-      _extractDartdocInfoFromUnit(context, unit);
+      _extractDartdocInfoFromUnit(unit);
       _putFileDeclarationsToByteStore(contentKey);
+      context.dartdocDirectiveInfo
+          .addTemplateNamesAndValues(templateNames, templateValues);
     } else {
       _readFileDeclarationsFromBytes(bytes);
+      context.dartdocDirectiveInfo
+          .addTemplateNamesAndValues(templateNames, templateValues);
     }
 
     // Resolve exports and parts.
@@ -1328,38 +1342,39 @@ class _File {
     }
   }
 
-  void _extractDartdocInfoFromUnit(
-      DeclarationsContext context, CompilationUnit unit) {
-    AnalysisContext analysisContext = context._analysisContext;
-    if (analysisContext is DriverBasedAnalysisContext) {
-      DartdocDirectiveInfo info = analysisContext.driver.dartdocInfo;
-      for (Directive directive in unit.directives) {
-        Comment comment = directive.documentationComment;
-        if (comment != null) {
-          info.extractTemplate(getCommentNodeRawText(comment));
-        }
+  void _extractDartdocInfoFromUnit(CompilationUnit unit) {
+    DartdocDirectiveInfo info = new DartdocDirectiveInfo();
+    for (Directive directive in unit.directives) {
+      Comment comment = directive.documentationComment;
+      if (comment != null) {
+        info.extractTemplate(getCommentNodeRawText(comment));
       }
-      for (CompilationUnitMember declaration in unit.declarations) {
-        Comment comment = declaration.documentationComment;
-        if (comment != null) {
-          info.extractTemplate(getCommentNodeRawText(comment));
-        }
-        if (declaration is ClassOrMixinDeclaration) {
-          for (ClassMember member in declaration.members) {
-            Comment comment = member.documentationComment;
-            if (comment != null) {
-              info.extractTemplate(getCommentNodeRawText(comment));
-            }
+    }
+    for (CompilationUnitMember declaration in unit.declarations) {
+      Comment comment = declaration.documentationComment;
+      if (comment != null) {
+        info.extractTemplate(getCommentNodeRawText(comment));
+      }
+      if (declaration is ClassOrMixinDeclaration) {
+        for (ClassMember member in declaration.members) {
+          Comment comment = member.documentationComment;
+          if (comment != null) {
+            info.extractTemplate(getCommentNodeRawText(comment));
           }
-        } else if (declaration is EnumDeclaration) {
-          for (EnumConstantDeclaration constant in declaration.constants) {
-            Comment comment = constant.documentationComment;
-            if (comment != null) {
-              info.extractTemplate(getCommentNodeRawText(comment));
-            }
+        }
+      } else if (declaration is EnumDeclaration) {
+        for (EnumConstantDeclaration constant in declaration.constants) {
+          Comment comment = constant.documentationComment;
+          if (comment != null) {
+            info.extractTemplate(getCommentNodeRawText(comment));
           }
         }
       }
+    }
+    Map<String, String> templateMap = info.templateMap;
+    for (String name in templateMap.keys) {
+      templateNames.add(name);
+      templateValues.add(templateMap[name]);
     }
   }
 
@@ -1386,6 +1401,8 @@ class _File {
       declarations: fileDeclarations.map((d) {
         return _DeclarationStorage.toIdl(d);
       }).toList(),
+      directiveInfo: idl.DirectiveInfoBuilder(
+          templateNames: templateNames, templateValues: templateValues),
     );
     var bytes = builder.toBuffer();
     tracker._byteStore.put(contentKey, bytes);
@@ -1414,6 +1431,9 @@ class _File {
     fileDeclarations = idlFile.declarations.map((e) {
       return _DeclarationStorage.fromIdl(path, e);
     }).toList();
+
+    templateNames = idlFile.directiveInfo.templateNames;
+    templateValues = idlFile.directiveInfo.templateValues;
   }
 
   static _DefaultArguments _computeDefaultArguments(

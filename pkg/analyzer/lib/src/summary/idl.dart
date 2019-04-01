@@ -384,6 +384,10 @@ abstract class AvailableFile extends base.SummaryClass {
   factory AvailableFile.fromBuffer(List<int> buffer) =>
       generated.readAvailableFile(buffer);
 
+  /// The Dartdoc directives in the file.
+  @Id(5)
+  DirectiveInfo get directiveInfo;
+
   /// Declarations of the file.
   @Id(0)
   List<AvailableDeclaration> get declarations;
@@ -436,6 +440,17 @@ abstract class CodeRange extends base.SummaryClass {
   /// Offset of the element code relative to the beginning of the file.
   @Id(0)
   int get offset;
+}
+
+/// Information about the Dartdoc directives in an [AvailableFile].
+abstract class DirectiveInfo extends base.SummaryClass {
+  /// The names of the defined templates.
+  @Id(0)
+  List<String> get templateNames;
+
+  /// The values of the defined templates.
+  @Id(1)
+  List<String> get templateValues;
 }
 
 /// Summary information about a reference to an entity such as a type, top level

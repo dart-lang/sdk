@@ -20,10 +20,20 @@ class DartdocDirectiveInfo {
 
   /// A table mapping the names of templates to the unprocessed bodies of the
   /// templates.
-  final Map<String, List<String>> _templates = {};
+  final Map<String, String> templateMap = {};
 
   /// Initialize a newly created set of information about Dartdoc directives.
   DartdocDirectiveInfo();
+
+  /// Add corresponding pairs from the [names] and [values] to the set of
+  /// defined templates.
+  void addTemplateNamesAndValues(List<String> names, List<String> values) {
+    int length = names.length;
+    assert(length == values.length);
+    for (int i = 0; i < length; i++) {
+      templateMap[names[i]] = values[i];
+    }
+  }
 
   /// Process the given Dartdoc [comment], extracting the template directive if
   /// there is one.
@@ -31,7 +41,7 @@ class DartdocDirectiveInfo {
     for (Match match in templateRegExp.allMatches(comment)) {
       String name = match.group(1).trim();
       String body = match.group(2).trim();
-      _templates[name] = _stripDelimiters(body);
+      templateMap[name] = _stripDelimiters(body).join('\n');
     }
   }
 
@@ -44,9 +54,9 @@ class DartdocDirectiveInfo {
       Match match = macroRegExp.firstMatch(line);
       if (match != null) {
         String name = match.group(1);
-        List<String> body = _templates[name];
-        if (body != null) {
-          lines.replaceRange(i, i + 1, body);
+        String value = templateMap[name];
+        if (value != null) {
+          lines[i] = value;
         }
       }
     }

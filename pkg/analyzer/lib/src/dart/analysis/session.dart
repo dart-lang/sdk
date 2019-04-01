@@ -14,7 +14,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -54,12 +53,6 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   AnalysisContext get analysisContext => _driver.analysisContext;
-
-  /// Return the information being maintained about the dartdoc directives in
-  /// this context.
-  // TODO(brianwilkerson) Decide whether this is something that should be part
-  //  of the public API.
-  DartdocDirectiveInfo get dartdocInfo => _driver.dartdocInfo;
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;

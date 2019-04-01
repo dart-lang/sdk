@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -831,12 +830,6 @@ class FileSystemState {
    */
   _FileContentCache _fileContentCache;
 
-  /**
-   * The information being maintained about the dartdoc directives in this
-   * context.
-   */
-  DartdocDirectiveInfo _dartdocInfo = new DartdocDirectiveInfo();
-
   FileSystemStateTestView _testView;
 
   FileSystemState(
@@ -856,12 +849,6 @@ class FileSystemState {
     );
     _testView = new FileSystemStateTestView(this);
   }
-
-  /**
-   * Return the information being maintained about the dartdoc directives in
-   * this context.
-   */
-  DartdocDirectiveInfo get dartdocInfo => _dartdocInfo;
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;

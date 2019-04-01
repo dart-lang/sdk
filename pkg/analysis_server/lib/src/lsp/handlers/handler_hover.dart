@@ -14,7 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   HoverHandler(LspAnalysisServer server) : super(server);
@@ -84,7 +84,12 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
 
   ErrorOr<Hover> _getHover(ResolvedUnitResult unit, int offset) {
     final hover = new DartUnitHoverComputer(
-            (unit.session as AnalysisSessionImpl).dartdocInfo,
+            // TODO(brianwilkerson) Add declarationsTracker to server in order to
+            //  enable dartdoc processing.
+//            server.declarationsTracker
+//                .getContext(unit.session.analysisContext)
+//                .dartdocDirectiveInfo,
+            new DartdocDirectiveInfo(),
             unit.unit,
             offset)
         .compute();

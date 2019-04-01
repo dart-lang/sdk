@@ -1603,6 +1603,9 @@ table AvailableDeclaration {
 
 /// Information about an available, even if not yet imported file.
 table AvailableFile {
+  /// The Dartdoc directives in the file.
+  directiveInfo:DirectiveInfo (id: 5);
+
   /// Declarations of the file.
   declarations:[AvailableDeclaration] (id: 0);
 
@@ -1644,6 +1647,15 @@ table CodeRange {
 
   /// Offset of the element code relative to the beginning of the file.
   offset:uint (id: 0);
+}
+
+/// Information about the Dartdoc directives in an [AvailableFile].
+table DirectiveInfo {
+  /// The names of the defined templates.
+  templateNames:[string] (id: 0);
+
+  /// The values of the defined templates.
+  templateValues:[string] (id: 1);
 }
 
 /// Summary information about a reference to an entity such as a type, top level

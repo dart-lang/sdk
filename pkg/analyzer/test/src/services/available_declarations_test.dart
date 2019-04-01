@@ -810,7 +810,8 @@ class A {}
     tracker.addContext(context);
     await _doAllTrackerWork();
 
-    String result = context.driver.dartdocInfo.processDartdoc('''
+    String result =
+        tracker.getContext(context).dartdocDirectiveInfo.processDartdoc('''
 /// Before macro.
 /// {@macro foo}
 /// After macro.''');
