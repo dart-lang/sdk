@@ -126,6 +126,7 @@ BytecodeFlowGraphBuilder::Constant BytecodeFlowGraphBuilder::PopConstant() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   } else {
+    ASSERT(!IsStackEmpty());
     const Object& value = B->stack_->definition()->AsConstant()->value();
     code_ += B->Drop();
     return Constant(Z, value);
@@ -133,14 +134,11 @@ BytecodeFlowGraphBuilder::Constant BytecodeFlowGraphBuilder::PopConstant() {
 }
 
 void BytecodeFlowGraphBuilder::LoadStackSlots(intptr_t num_slots) {
-  if (B->stack_ != nullptr) {
-    intptr_t stack_depth = B->stack_->definition()->temp_index() + 1;
-    ASSERT(stack_depth >= num_slots);
-    return;
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  ASSERT(is_generating_interpreter());
-  UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  ASSERT(GetStackDepth() >= num_slots);
 }
 
 void BytecodeFlowGraphBuilder::AllocateLocalVariables(
@@ -288,11 +286,22 @@ Value* BytecodeFlowGraphBuilder::Pop() {
   return B->Pop();
 }
 
+intptr_t BytecodeFlowGraphBuilder::GetStackDepth() const {
+  ASSERT(!is_generating_interpreter());
+  return B->stack_ == nullptr ? 0 : B->stack_->definition()->temp_index() + 1;
+}
+
+bool BytecodeFlowGraphBuilder::IsStackEmpty() const {
+  ASSERT(!is_generating_interpreter());
+  return B->stack_ == nullptr;
+}
+
 ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
   ArgumentArray arguments =
       new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, count);
   arguments->SetLength(count);
   for (intptr_t i = count - 1; i >= 0; --i) {
+    ASSERT(!IsStackEmpty());
     Definition* arg_def = B->stack_->definition();
     ASSERT(!arg_def->HasSSATemp());
     ASSERT(arg_def->temp_index() >= i);
@@ -314,7 +323,7 @@ ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
 }
 
 void BytecodeFlowGraphBuilder::PropagateStackState(intptr_t target_pc) {
-  if (is_generating_interpreter() || (B->stack_ == nullptr)) {
+  if (is_generating_interpreter() || IsStackEmpty()) {
     return;
   }
 
@@ -333,6 +342,32 @@ void BytecodeFlowGraphBuilder::PropagateStackState(intptr_t target_pc) {
     RELEASE_ASSERT(target_stack == current_stack);
   } else {
     stack_states_.Insert(target_pc, current_stack);
+  }
+}
+
+// Drop values from the stack unless they are used in control flow joins
+// which are not generated yet (dartbug.com/36374).
+void BytecodeFlowGraphBuilder::DropUnusedValuesFromStack() {
+  intptr_t drop_depth = GetStackDepth();
+  auto it = stack_states_.GetIterator();
+  for (const auto* current = it.Next(); current != nullptr;
+       current = it.Next()) {
+    if (current->key > pc_) {
+      Value* used_value = current->value;
+      Value* value = B->stack_;
+      // Find if a value on the expression stack is used in a propagated
+      // stack state, and adjust [drop_depth] to preserve it.
+      for (intptr_t i = 0; i < drop_depth; ++i) {
+        if (value == used_value) {
+          drop_depth = i;
+          break;
+        }
+        value = value->next_use();
+      }
+    }
+  }
+  for (intptr_t i = 0; i < drop_depth; ++i) {
+    B->Pop();
   }
 }
 
@@ -391,7 +426,7 @@ void BytecodeFlowGraphBuilder::BuildEntryFixed() {
   Fragment(fail1) + B->Goto(throw_no_such_method_);
   Fragment(fail2) + B->Goto(throw_no_such_method_);
 
-  ASSERT(B->stack_ == nullptr);
+  ASSERT(IsStackEmpty());
 
   if (!B->IsInlining() && !B->IsCompiledForOsr()) {
     code_ += check_args;
@@ -527,7 +562,7 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
   // Skip LoadConstant and Frame instructions.
   pc_ += num_load_const + 1;
 
-  ASSERT(B->stack_ == nullptr);
+  ASSERT(IsStackEmpty());
 }
 
 void BytecodeFlowGraphBuilder::BuildLoadConstant() {
@@ -613,7 +648,7 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
   }
 
   setup_type_args = Fragment(setup_type_args.entry, done);
-  ASSERT(B->stack_ == nullptr);
+  ASSERT(IsStackEmpty());
 
   if (expected_num_type_args != 0) {
     parsed_function()->set_function_type_arguments(type_args_var);
@@ -635,7 +670,7 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
   } else {
     code_ += B->CheckStackOverflow(position_, loop_depth);
   }
-  ASSERT(B->stack_ == nullptr);
+  ASSERT(IsStackEmpty());
 }
 
 void BytecodeFlowGraphBuilder::BuildPushConstant() {
@@ -1318,7 +1353,7 @@ void BytecodeFlowGraphBuilder::BuildJump() {
 }
 
 void BytecodeFlowGraphBuilder::BuildJumpIfNoAsserts() {
-  ASSERT(B->stack_ == nullptr);
+  ASSERT(IsStackEmpty());
   if (!isolate()->asserts()) {
     BuildJump();
     // Skip all instructions up to the target PC, as they are all unreachable.
@@ -1422,7 +1457,7 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   LoadStackSlots(1);
   ASSERT(code_.is_open());
   code_ += B->Return(position_);
-  ASSERT(B->stack_ == nullptr);
+  ASSERT(IsStackEmpty());
 }
 
 void BytecodeFlowGraphBuilder::BuildTrap() {
@@ -1450,9 +1485,9 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
 
   ASSERT(code_.is_closed());
 
-  // Empty stack as closed fragment should not leave any values on the stack.
-  while (B->stack_ != nullptr) {
-    B->Pop();
+  if (!IsStackEmpty()) {
+    DropUnusedValuesFromStack();
+    B->stack_ = nullptr;
   }
 }
 
@@ -1486,7 +1521,7 @@ void BytecodeFlowGraphBuilder::BuildSetFrame() {
   }
 
   // No-op in compiled code.
-  ASSERT(B->stack_ == nullptr);
+  ASSERT(IsStackEmpty());
 }
 
 void BytecodeFlowGraphBuilder::BuildEqualsNull() {
@@ -1792,7 +1827,7 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
         ASSERT((stack_state == nullptr) || (stack_state == B->stack_));
         code_ += B->Goto(join);
       } else {
-        ASSERT(B->stack_ == nullptr);
+        ASSERT(IsStackEmpty());
         B->stack_ = stack_state;
       }
       code_ = Fragment(join);
@@ -1811,7 +1846,7 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
 
     if (code_.is_closed()) {
-      ASSERT(B->stack_ == nullptr);
+      ASSERT(IsStackEmpty());
     }
   }
 
