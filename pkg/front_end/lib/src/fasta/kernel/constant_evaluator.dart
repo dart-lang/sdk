@@ -694,11 +694,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   visitConstantExpression(ConstantExpression node) {
+    Constant constant = node.constant;
+    Constant result = constant;
+    if (constant is UnevaluatedConstant) {
+      result = runInsideContext(constant.expression, () {
+        return _evaluateSubexpression(constant.expression);
+      });
+    }
     // If there were already constants in the AST then we make sure we
     // re-canonicalize them.  After running the transformer we will therefore
     // have a fully-canonicalized constant DAG with roots coming from the
     // [ConstantExpression] nodes in the AST.
-    return canonicalize(node.constant);
+    return canonicalize(result);
   }
 
   /// Add an element (which is possibly a spread or an if element) to a
@@ -1389,8 +1396,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                           message.getType(typeEnvironment)));
                 }
               } else {
-                // TODO(askesc,johnniwinther): Handle unevaluated assert
-                // conditions.
                 return report(
                     init.statement.condition,
                     templateConstEvalInvalidType.withArguments(

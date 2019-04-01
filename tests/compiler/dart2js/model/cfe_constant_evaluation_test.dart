@@ -361,20 +361,18 @@ class B extends A {
         expectedErrors: 'ConstEvalInvalidMethodInvocation'),
     const ConstantData('not_string.length', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidPropertyGet'),
-    // TODO(johnniwinther): Enable these when CFE handles unevaluated assert
-    // initializers.
-    //const ConstantData('const Class1()', 'NonConstant',
-    //    expectedErrors: 'ConstEvalInvalidPropertyGet'),
-    //const ConstantData('const Class2()', 'NonConstant',
-    //    expectedErrors: 'ConstEvalInvalidType'),
-    //const ConstantData('const Class2.redirect()', 'NonConstant',
-    //    expectedErrors: 'ConstEvalInvalidType'),
-    //const ConstantData('const Class3()', 'NonConstant',
-    //    expectedErrors: 'ConstEvalInvalidType'),
-    //const ConstantData('const Class3.fact()', 'NonConstant',
-    //    expectedErrors: 'ConstEvalInvalidType'),
-    //const ConstantData('const Class4()', 'NonConstant',
-    //    expectedErrors: 'ConstEvalInvalidType'),
+    const ConstantData('const Class1()', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidPropertyGet'),
+    const ConstantData('const Class2()', 'NonConstant',
+        expectedErrors: 'ConstEvalFailedAssertion'),
+    const ConstantData('const Class2.redirect()', 'NonConstant',
+        expectedErrors: 'ConstEvalFailedAssertion'),
+    const ConstantData('const Class3()', 'NonConstant',
+        expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
+    const ConstantData('const Class3.fact()', 'NonConstant',
+        expectedErrors: 'ConstEvalFailedAssertion'),
+    const ConstantData('const Class4()', 'NonConstant',
+        expectedErrors: 'ConstEvalFailedAssertion'),
     const ConstantData('const Class5(0)', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
     const ConstantData('const Class5(1)', 'ConstructedConstant(Class5())'),
@@ -418,9 +416,7 @@ class B extends A {
     const ConstantData(r'const B()', 'ConstructedConstant(B())'),
     const ConstantData(r'const D(0)',
         'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))'),
-    // TODO(johnniwinther): Enable when CFE handles unevaluated assert
-    // initializers.
-    //const ConstantData(r'const E()', 'ConstructedConstant(E())'),
+    const ConstantData(r'const E()', 'ConstructedConstant(E())'),
   ]),
   const TestData('instantiations', '''
 T identity<T>(T t) => t;
@@ -453,7 +449,17 @@ class C<T> {
         'const C<int>.generative()', 'ConstructedConstant(C<int>())'),
     const ConstantData(
         'const C<int>.redirect()', 'ConstructedConstant(C<int>())'),
-  ])
+  ]),
+  const TestData('instance', '''
+const dynamic zero_ = const bool.fromEnvironment("x") ? null : 0;
+class Class9 {
+  final field = zero_;
+  const Class9();
+}
+''', const <ConstantData>[
+    const ConstantData(
+        'const Class9()', 'ConstructedConstant(Class9(field=IntConstant(0)))'),
+  ]),
 ];
 
 main(List<String> args) {

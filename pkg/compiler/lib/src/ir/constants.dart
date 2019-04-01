@@ -36,6 +36,10 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       ir.Constant constant = node.constant;
       if (constant is ir.UnevaluatedConstant) {
         ir.Constant result = super.evaluate(constant.expression);
+        assert(
+            result is ir.UnevaluatedConstant ||
+                !result.accept(const UnevaluatedConstantFinder()),
+            "Invalid constant result $result from ${constant.expression}.");
         if (!_supportReevaluationForTesting) {
           node.constant = result;
         }
@@ -73,5 +77,65 @@ class ErrorReporter implements ir.ErrorReporter {
     if (requiresConstant) {
       _reportError(message, context);
     }
+  }
+}
+
+/// [ir.Constant] visitor that returns `true` if the visitor constant contains
+/// an [ir.UnevaluatedConstant].
+class UnevaluatedConstantFinder extends ir.ConstantVisitor<bool> {
+  const UnevaluatedConstantFinder();
+
+  @override
+  bool defaultConstant(ir.Constant node) => false;
+
+  @override
+  bool visitUnevaluatedConstant(ir.UnevaluatedConstant node) => true;
+
+  @override
+  bool visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
+    return node.tearOffConstant.accept(this);
+  }
+
+  @override
+  bool visitInstanceConstant(ir.InstanceConstant node) {
+    for (ir.Constant value in node.fieldValues.values) {
+      if (value.accept(this)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool visitSetConstant(ir.SetConstant node) {
+    for (ir.Constant value in node.entries) {
+      if (value.accept(this)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool visitListConstant(ir.ListConstant node) {
+    for (ir.Constant value in node.entries) {
+      if (value.accept(this)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool visitMapConstant(ir.MapConstant node) {
+    for (ir.ConstantMapEntry entry in node.entries) {
+      if (entry.key.accept(this)) {
+        return true;
+      }
+      if (entry.value.accept(this)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
