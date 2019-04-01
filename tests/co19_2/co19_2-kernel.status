@@ -159,7 +159,9 @@ LibTest/io/RawDatagramSocket/where_A01_t01: Pass, Fail # Issue https://github.co
 Language/Classes/Constructors/Generative_Constructors/initializers_t15: CompileTimeError
 Language/Classes/Getters/type_object_t01: CompileTimeError
 Language/Classes/Getters/type_object_t02: CompileTimeError
-Language/Classes/Instance_Methods/Operators/allowed_names_t01: CompileTimeError
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # triple-shift flag
+Language/Classes/Instance_Methods/Operators/allowed_names_t23: Skip # triple-shift flag
+Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # triple-shift flag
 Language/Classes/Instance_Methods/Operators/return_type_t01: MissingCompileTimeError
 Language/Classes/Setters/return_type_not_void_t01: MissingCompileTimeError
 Language/Classes/Setters/same_name_getter_different_type_t01: MissingCompileTimeError
@@ -172,6 +174,12 @@ Language/Classes/method_definition_t06: MissingCompileTimeError # Legal
 Language/Enums/syntax_t08: CompileTimeError
 Language/Enums/syntax_t09: CompileTimeError
 Language/Expressions/Assignable_Expressions/syntax_t01: CompileTimeError
+Language/Expressions/Assignment/Compound_Assignment/expression_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/indexed_expression_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_static_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/setter_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/variable_assignment_t12: Skip # triple-shift flag
 Language/Expressions/Assignment/expression_assignment_failed_t02: CompileTimeError
 Language/Expressions/Assignment/static_type_t02: CompileTimeError
 Language/Expressions/Assignment/static_type_t03: CompileTimeError
@@ -180,13 +188,15 @@ Language/Expressions/Assignment/super_assignment_static_warning_t02: CompileTime
 Language/Expressions/Assignment/super_assignment_static_warning_t03: CompileTimeError
 Language/Expressions/Assignment/super_assignment_t06: CompileTimeError
 Language/Expressions/Assignment/super_assignment_value_t02: CompileTimeError
-Language/Expressions/Bitwise_Expressions/syntax_t01: CompileTimeError
-Language/Expressions/Constants/bitwise_operators_t01: CompileTimeError
+Language/Expressions/Bitwise_Expressions/syntax_t01: Skip # triple-shift flag
+Language/Expressions/Constants/bitwise_operators_t01: Skip # triple-shift flag
+Language/Expressions/Constants/bitwise_operators_t07: Skip # triple-shift flag
+Language/Expressions/Constants/bitwise_operators_t08: Skip # triple-shift flag
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Legal because of implicit const
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Legal because of implicit const
 Language/Expressions/Constants/depending_on_itself_t03: MissingCompileTimeError # Issue 34189
 Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError # Issue 34192
-Language/Expressions/Equality/syntax_t01: CompileTimeError
+Language/Expressions/Equality/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Function_Expressions/syntax_t05: CompileTimeError
 Language/Expressions/Function_Invocation/async_cleanup_t01: CompileTimeError
 Language/Expressions/Function_Invocation/async_cleanup_t02: CompileTimeError
@@ -203,13 +213,13 @@ Language/Expressions/Instance_Creation/New/syntax_t04: MissingCompileTimeError #
 Language/Expressions/Instance_Creation/New/type_t08: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t09: CompileTimeError
 Language/Expressions/Lists/constant_list_t01: CompileTimeError
-Language/Expressions/Lists/syntax_t01: CompileTimeError
+Language/Expressions/Lists/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/constant_map_type_t01: CompileTimeError
 Language/Expressions/Maps/equal_keys_t01/01: MissingCompileTimeError
 Language/Expressions/Maps/equal_keys_t01/02: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError # Issue 32557
-Language/Expressions/Maps/syntax_t01: CompileTimeError
+Language/Expressions/Maps/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t04: CompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: CompileTimeError
 Language/Expressions/Multiplicative_Expressions/syntax_t01: CompileTimeError
@@ -221,11 +231,11 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/ins
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: CompileTimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t02: CompileTimeError
 Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/static_type_t03: CompileTimeError
-Language/Expressions/Relational_Expressions/syntax_t01: CompileTimeError
-Language/Expressions/Shift/allowed_characters_t02: CompileTimeError
-Language/Expressions/Shift/equivalent_super_t02: CompileTimeError
-Language/Expressions/Shift/equivalent_t02: CompileTimeError
-Language/Expressions/Shift/integer_t03: CompileTimeError
+Language/Expressions/Relational_Expressions/syntax_t01: Skip # triple-shift experiment flag
+Language/Expressions/Shift/allowed_characters_t02: Skip # triple-shift flag
+Language/Expressions/Shift/equivalent_super_t02: Skip # triple-shift flag
+Language/Expressions/Shift/equivalent_t02: Skip # triple-shift flag
+Language/Expressions/Shift/integer_t03: Skip # triple-shift flag
 Language/Expressions/Shift/syntax_t01: Skip # triple-shift experiment flag
 Language/Expressions/Shift/syntax_t15: Skip # triple-shift experiment flag
 Language/Expressions/Shift/syntax_t17: Skip # triple-shift experiment flag
@@ -317,7 +327,8 @@ LanguageFeatures/Constant-update-2018/NewOperators_A01_t01: CompileTimeError
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t02: CompileTimeError
 LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t01: Crash
 LanguageFeatures/Constant-update-2018/ShortCircuitOperators_A03_t02: Crash
-LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: CompileTimeError
+LanguageFeatures/Control-flow-collections/dynamic_semantics_map_A04_t01: MissingCompileTimeError
+LanguageFeatures/Control-flow-collections/scoping_A01_t01: CompileTimeError # co19 test error.
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t01: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
