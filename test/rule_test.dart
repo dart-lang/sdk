@@ -43,18 +43,16 @@ defineRuleTests() {
       // Rule tests run with default analysis options.
       testRules(ruleDir, analysisOptions: null);
 
-// todo (pq): enable when experimental feature implementations are far enough along
-// see: https://github.com/dart-lang/linter/issues/1438
-//      // Rule tests run against specific configurations.
-//      for (var entry in new Directory(testConfigDir).listSync()) {
-//        if (entry is! Directory) continue;
-//        group('(config: ${p.basename(entry.path)})', () {
-//          var analysisOptionsFile =
-//              new File(p.join(entry.path, 'analysis_options.yaml'));
-//          var analysisOptions = analysisOptionsFile.readAsStringSync();
-//          testRules(ruleDir, analysisOptions: analysisOptions);
-//        });
-//      }
+      // Rule tests run against specific configurations.
+      for (var entry in new Directory(testConfigDir).listSync()) {
+        if (entry is! Directory) continue;
+        group('(config: ${p.basename(entry.path)})', () {
+          var analysisOptionsFile =
+              new File(p.join(entry.path, 'analysis_options.yaml'));
+          var analysisOptions = analysisOptionsFile.readAsStringSync();
+          testRules(ruleDir, analysisOptions: analysisOptions);
+        });
+      }
     });
     group('pub', () {
       for (var entry in new Directory(p.join(ruleDir, 'pub')).listSync()) {
