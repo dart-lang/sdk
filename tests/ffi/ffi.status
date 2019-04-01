@@ -8,8 +8,11 @@
 [ $builder_tag == asan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 
-[ $arch == ia32 ]
-function_structs_test: Skip # dartbug.com/35768: Struct alignment rules are broken on 32-bit.
+# dartbug.com/35768: Structs not supported on 32-bit.
+[ $arch == ia32 || $arch == arm ]
+function_structs_test: Skip
+function_callbacks_test: Skip
+structs_test: Skip
 
 # dartbug.com/35934
 [ $compiler == app_jitk ]
@@ -18,6 +21,9 @@ function_callbacks_test: Skip
 function_structs_test: Skip
 function_test: Skip
 negative_function_test: Skip
+
+[ $arch == x64 || $arch == arm64 ]
+enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
 
 [ $runtime == dart_precompiled ]
 *: Skip # AOT is not yet supported: dartbug.com/35765
