@@ -222,30 +222,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_invokeConstructor_named() async {
-    await super.test_const_invokeConstructor_named();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_named_unresolved() async {
-    await super.test_const_invokeConstructor_named_unresolved();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_named_unresolved3() async {
-    await super.test_const_invokeConstructor_named_unresolved3();
-  }
-
-  @override
-  @failingTest
-  test_const_invokeConstructor_named_unresolved6() async {
-    await super.test_const_invokeConstructor_named_unresolved6();
-  }
-
-  @override
-  @failingTest
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     await super
         .test_const_parameterDefaultValue_initializingFormal_functionTyped();
@@ -573,12 +549,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_metadata_importDirective() async {
     await super.test_metadata_importDirective();
-  }
-
-  @override
-  @failingTest
-  test_metadata_invalid_classDeclaration() async {
-    await super.test_metadata_invalid_classDeclaration();
   }
 
   @override

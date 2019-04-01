@@ -2248,7 +2248,19 @@ class C {
 }
 const V = const C.named(true, 1, 2, d: 'ccc', e: 3.4);
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  const C.named(bool a, int b, int c, {String d}, {double e});
+}
+const C V = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(true, 1, 2,
+        d/*location: test.dart;C;named;d*/: 'ccc',
+        e/*location: test.dart;C;named;e*/: 3.4);
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   const C.named(bool a, int b, int c, {String d}, {double e});
 }
@@ -2258,6 +2270,7 @@ const C V = const
         d/*location: null*/: 'ccc',
         e/*location: null*/: 3.4);
 ''');
+    }
   }
 
   test_const_invokeConstructor_named_imported() async {
@@ -2311,13 +2324,23 @@ const C V = const
 class C {}
 const V = const C.named();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+}
+const C V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
 }
 const dynamic V = const
         C/*location: test.dart;C*/.
         named/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved2() async {
@@ -2340,13 +2363,23 @@ class C {
 import 'a.dart' as p;
 const V = const p.C.named();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'a.dart' as p;
+const C V = const
+        p/*location: test.dart;p*/.
+        C/*location: a.dart;C*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(library, r'''
 import 'a.dart' as p;
 const dynamic V = const
         p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         named/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_named_unresolved4() async {
@@ -2381,13 +2414,23 @@ const dynamic V = const
 class C<T> {}
 const V = const C.named();
 ''', allowErrors: true);
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C<T> {
+}
+const C<dynamic> V = const
+        C/*location: test.dart;C*/.
+        named/*location: null*/();
+''');
+    } else {
+      checkElementText(library, r'''
 class C<T> {
 }
 const dynamic V = const
         C/*location: test.dart;C*/.
         named/*location: null*/();
 ''');
+    }
   }
 
   test_const_invokeConstructor_unnamed() async {
@@ -7289,13 +7332,23 @@ const dynamic a =
 
   test_metadata_invalid_classDeclaration() async {
     var library = await checkLibrary('f(_) {} @f(42) class C {}');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+@
+        f/*location: test.dart;f*/(42)
+class C {
+}
+dynamic f(dynamic _) {}
+''');
+    } else {
+      checkElementText(library, r'''
 @
         __unresolved__/*location: null*/
 class C {
 }
 dynamic f(dynamic _) {}
 ''');
+    }
   }
 
   test_metadata_libraryDirective() async {
