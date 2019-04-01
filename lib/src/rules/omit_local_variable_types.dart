@@ -55,7 +55,7 @@ class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
     final visitor = new _Visitor(this);
-    registry.addForStatement2(this, visitor);
+    registry.addForStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
 }
@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement2(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForPartsWithDeclarations) {
       _visitVariableDeclarationList(loopParts.variables);

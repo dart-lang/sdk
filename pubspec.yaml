@@ -13,7 +13,7 @@ environment:
   sdk: '>=2.2.0 <3.0.0'
 
 dependencies:
-  analyzer: ^0.35.3
+  analyzer: ^0.36.0
   args: '>=1.4.0 <2.0.0'
   glob: ^1.0.3
   meta: ^1.0.2
@@ -22,7 +22,7 @@ dependencies:
 
 dev_dependencies:
   cli_util: ^0.1.2
-  dart_style: ^1.1.0
+  dart_style: ^1.2.5
   github: ^4.0.1
   grinder: ^0.8.0
   markdown: ^2.0.0

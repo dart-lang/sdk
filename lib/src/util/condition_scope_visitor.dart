@@ -93,10 +93,10 @@ class ConditionScope {
 /// When add a new local scope:
 /// - Visiting a non-empty function body: [BlockFunctionBody] [ExpressionFunctionBody].
 /// - Visiting a flow-control statement: [IfStatement] ElseStatement.
-/// - Visiting loop statements: [DoStatement] [WhileStatement] [ForStatement] [ForStatement2].
+/// - Visiting loop statements: [DoStatement] [WhileStatement] [ForStatement].
 ///
 /// When call the abstract method visitCondition(node.condition):
-/// - After visiting a conditional statements: [IfStatement] [DoStatement] [WhileStatement] [ForStatement2].
+/// - After visiting a conditional statements: [IfStatement] [DoStatement] [WhileStatement].
 ///
 /// When undefine an element:
 /// - Visiting reassignments of variables: [AssignmentExpression] [PrefixExpression] [PostfixExpression].
@@ -108,7 +108,7 @@ class ConditionScope {
 ///
 /// When propagate undefined elements:
 /// - After visiting a flow-control statement: [IfStatement] ElseStatement.
-/// - After visiting loop statements: [DoStatement] [WhileStatement] [ForStatement] [ForStatement2].
+/// - After visiting loop statements: [DoStatement] [WhileStatement] [ForStatement].
 ///
 /// When add a Condition as true condition:
 /// - Inside an if body and after an else body with exit clause.
@@ -180,7 +180,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitForStatement2(ForStatement2 node) {
+  visitForStatement(ForStatement node) {
     _addScope();
     final loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
@@ -332,7 +332,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   /// If any of the variables is declared inside the for statement then it does
   /// not mean anything afterwards.
-  bool _isRelevantOutsideOfForStatement(ForStatement2 node) {
+  bool _isRelevantOutsideOfForStatement(ForStatement node) {
     if (breakScope.hasBreak(node)) {
       return false;
     }
