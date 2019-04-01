@@ -109,7 +109,6 @@ var tests = <VMTest>[
     var resumesIssued = 0;
     var isolateList = vm.isolates.toList();
     for (var isolate in isolateList) {
-      print(isolate.name);
       if (isolate.name.endsWith('main')) {
         continue;
       }
