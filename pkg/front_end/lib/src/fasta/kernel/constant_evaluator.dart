@@ -295,7 +295,7 @@ class ConstantsTransformer extends Transformer {
             // So the value of the variable is still available for debugging
             // purposes we convert the constant variable to be a final variable
             // initialized to the evaluated constant expression.
-            node.initializer = new ConstantExpression(constant)..parent = node;
+            node.initializer = makeConstantExpression(constant)..parent = node;
             node.isFinal = true;
             node.isConst = false;
           } else {
@@ -341,7 +341,7 @@ class ConstantsTransformer extends Transformer {
   // Handle use-sites of constants (and "inline" constant expressions):
 
   visitSymbolLiteral(SymbolLiteral node) {
-    return new ConstantExpression(constantEvaluator.evaluate(node));
+    return makeConstantExpression(constantEvaluator.evaluate(node));
   }
 
   visitStaticGet(StaticGet node) {
@@ -349,7 +349,7 @@ class ConstantsTransformer extends Transformer {
     if (target is Field && target.isConst) {
       final Constant constant =
           tryEvaluateWithContext(node, target.initializer);
-      return constant != null ? new ConstantExpression(constant) : node;
+      return constant != null ? makeConstantExpression(constant) : node;
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
       return tryEvaluateAndTransformWithContext(node, node);
     }
@@ -416,7 +416,7 @@ class ConstantsTransformer extends Transformer {
 
   tryEvaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
     final Constant constant = tryEvaluateWithContext(treeContext, node);
-    return constant != null ? new ConstantExpression(constant) : node;
+    return constant != null ? makeConstantExpression(constant) : node;
   }
 
   tryEvaluateWithContext(TreeNode treeContext, Expression node) {
@@ -427,6 +427,14 @@ class ConstantsTransformer extends Transformer {
     return constantEvaluator.runInsideContext(treeContext, () {
       return constantEvaluator.evaluate(node);
     });
+  }
+
+  Expression makeConstantExpression(Constant constant) {
+    if (constant is UnevaluatedConstant &&
+        constant.expression is InvalidExpression) {
+      return constant.expression;
+    }
+    return new ConstantExpression(constant);
   }
 }
 
