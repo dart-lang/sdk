@@ -1488,7 +1488,8 @@ static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_stack_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new BoolParameter("_full", false), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetStack(Thread* thread, JSONStream* js) {
@@ -1503,7 +1504,6 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   DebuggerStackTrace* awaiter_stack = isolate->debugger()->AwaiterStackTrace();
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
-  const bool full = BoolParameter::Parse(js->LookupParam("_full"), false);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Stack");
   {
@@ -1513,7 +1513,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
-      frame->PrintToJSONObject(&jsobj, full);
+      frame->PrintToJSONObject(&jsobj);
       jsobj.AddProperty("index", i);
     }
   }
@@ -1524,7 +1524,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = async_causal_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
-      frame->PrintToJSONObject(&jsobj, full);
+      frame->PrintToJSONObject(&jsobj);
       jsobj.AddProperty("index", i);
     }
   }
@@ -1535,7 +1535,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = awaiter_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
-      frame->PrintToJSONObject(&jsobj, full);
+      frame->PrintToJSONObject(&jsobj);
       jsobj.AddProperty("index", i);
     }
   }
@@ -1588,20 +1588,6 @@ static bool TriggerEchoEvent(Thread* thread, JSONStream* js) {
   }
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
-}
-
-static bool DumpIdZone(Thread* thread, JSONStream* js) {
-  // TODO(johnmccutchan): Respect _idZone parameter passed to RPC. For now,
-  // always send the ObjectIdRing.
-  //
-  ObjectIdRing* ring = thread->isolate()->object_id_ring();
-  ASSERT(ring != NULL);
-  // When printing the ObjectIdRing, force object id reuse policy.
-  RingServiceIdZone reuse_zone;
-  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
-  js->set_id_zone(&reuse_zone);
-  ring->PrintJSON(js);
-  return true;
 }
 
 static bool Echo(Thread* thread, JSONStream* js) {
@@ -4841,7 +4827,6 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
 
 // clang-format off
 static const ServiceMethodDescriptor service_methods_[] = {
-  { "_dumpIdZone", DumpIdZone, NULL },
   { "_echo", Echo,
     NULL },
   { "_respondWithMalformedJson", RespondWithMalformedJson,
