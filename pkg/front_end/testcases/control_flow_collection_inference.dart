@@ -184,6 +184,9 @@ testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int
   List<int> list120 = [for (var i in dynVar) i];
   Set<int> set120 = {for (var i in dynVar) i, null};
   Map<String, int> map120 = {for (var i in dynVar) "bar": i, "baz": null};
+  List<int> list130 = [for (var i = 1; i < 2; i++) i];
+  Set<int> set130 = {for (var i = 1; i < 2; i++) i};
+  Map<int, int> map130 = {for (var i = 1; i < 2; i++) i: i};
 }
 
 testForElementErrors(Map<int, int> map, List<int> list) async {

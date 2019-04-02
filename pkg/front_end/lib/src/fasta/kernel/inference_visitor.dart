@@ -755,10 +755,14 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
               .getStandardUpperBound(thenType, otherwiseType);
     } else if (element is ForElement) {
       for (VariableDeclaration declaration in element.variables) {
-        if (declaration.initializer != null) {
-          inferrer.inferExpression(declaration.initializer, declaration.type,
-              inferenceNeeded || typeChecksNeeded,
-              isVoidAllowed: true);
+        if (declaration.name == null) {
+          if (declaration.initializer != null) {
+            declaration.type = inferrer.inferExpression(declaration.initializer,
+                declaration.type, inferenceNeeded || typeChecksNeeded,
+                isVoidAllowed: true);
+          }
+        } else {
+          inferrer.inferStatement(declaration);
         }
       }
       if (element.condition != null) {
@@ -1143,10 +1147,14 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       return;
     } else if (entry is ForMapEntry) {
       for (VariableDeclaration declaration in entry.variables) {
-        if (declaration.initializer != null) {
-          inferrer.inferExpression(declaration.initializer, declaration.type,
-              inferenceNeeded || typeChecksNeeded,
-              isVoidAllowed: true);
+        if (declaration.name == null) {
+          if (declaration.initializer != null) {
+            declaration.type = inferrer.inferExpression(declaration.initializer,
+                declaration.type, inferenceNeeded || typeChecksNeeded,
+                isVoidAllowed: true);
+          }
+        } else {
+          inferrer.inferStatement(declaration);
         }
       }
       if (entry.condition != null) {

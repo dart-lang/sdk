@@ -232,57 +232,66 @@ pkg/front_end/testcases/control_flow_collection_inference.dart:180:54: Context: 
 pkg/front_end/testcases/control_flow_collection_inference.dart:180:79: Context: Write to index@5992
   Map<String, int> map100 = <String, int>{for (index = 0; oracle("foo"); index++) "bar": 42};
                                                                               ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:190:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:187:48: Context: Write to i@6094
+  List<int> list130 = [for (var i = 1; i < 2; i++) i];
+                                               ^^
+pkg/front_end/testcases/control_flow_collection_inference.dart:188:46: Context: Write to i@6094
+  Set<int> set130 = {for (var i = 1; i < 2; i++) i};
+                                             ^^
+pkg/front_end/testcases/control_flow_collection_inference.dart:189:51: Context: Write to i@6094
+  Map<int, int> map130 = {for (var i = 1; i < 2; i++) i: i};
+                                                  ^^
+pkg/front_end/testcases/control_flow_collection_inference.dart:193:41: Context: Write to i@12865
   <int>[for (int i = 0; oracle("foo"); i++) "bar"];
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:191:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:194:41: Context: Write to i@12865
   <int>{for (int i = 0; oracle("foo"); i++) "bar", null};
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:192:46: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:195:46: Context: Write to i@12865
   <int, int>{for (int i = 0; oracle("foo"); i++) "bar": "bar", "baz": null};
                                              ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:193:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:196:41: Context: Write to i@12865
   <int>[for (int i = 0; oracle("foo"); i++) ...["bar"]];
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:194:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:197:41: Context: Write to i@12865
   <int>{for (int i = 0; oracle("foo"); i++) ...["bar"], null};
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:195:46: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:198:46: Context: Write to i@12865
   <int, int>{for (int i = 0; oracle("foo"); i++) ...{"bar": "bar"}, "baz": null};
                                              ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:196:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:199:41: Context: Write to i@12865
   <int>[for (int i = 0; oracle("foo"); i++) ...map];
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:197:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:200:41: Context: Write to i@12865
   <int>{for (int i = 0; oracle("foo"); i++) ...map, null};
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:198:46: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:201:46: Context: Write to i@12865
   <int, int>{for (int i = 0; oracle("foo"); i++) ...list, 42: null};
                                              ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:199:44: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:202:44: Context: Write to i@12865
   <String>[for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else 3.14];
                                            ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:200:44: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:203:44: Context: Write to i@12865
   <String>{for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else 3.14, null};
                                            ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:201:52: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:204:52: Context: Write to i@12865
   <String, String>{for (int i = 0; oracle("foo"); i++) if (oracle()) "bar": 42 else "bar": 3.14, "baz": null};
                                                    ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:202:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:205:41: Context: Write to i@12865
   <int>[for (int i = 0; oracle("foo"); i++) if (oracle()) ...map else 42];
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:203:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:206:41: Context: Write to i@12865
   <int>{for (int i = 0; oracle("foo"); i++) if (oracle()) ...map else 42, null};
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:204:49: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:207:49: Context: Write to i@12865
   <String, int>{for (int i = 0; oracle("foo"); i++) if (oracle()) ...list else "bar": 42, "baz": null};
                                                 ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:205:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:208:41: Context: Write to i@12865
   <int>[for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else ...map];
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:206:41: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:209:41: Context: Write to i@12865
   <int>{for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else ...map, null};
                                         ^^
-pkg/front_end/testcases/control_flow_collection_inference.dart:207:49: Context: Write to i@12696
+pkg/front_end/testcases/control_flow_collection_inference.dart:210:49: Context: Write to i@12865
   <String, int>{for (int i = 0; oracle("foo"); i++) if (oracle()) "bar": 42 else ...list, "baz": null};
                                                 ^^
