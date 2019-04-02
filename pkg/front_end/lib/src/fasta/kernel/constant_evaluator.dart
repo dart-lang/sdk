@@ -245,7 +245,7 @@ class ConstantsTransformer extends Transformer {
   void transformExpressions(List<Expression> nodes, TreeNode parent) {
     constantEvaluator.withNewEnvironment(() {
       for (int i = 0; i < nodes.length; ++i) {
-        nodes[i] = tryEvaluateAndTransformWithContext(parent, nodes[i])
+        nodes[i] = evaluateAndTransformWithContext(parent, nodes[i])
           ..parent = parent;
       }
     });
@@ -260,7 +260,7 @@ class ConstantsTransformer extends Transformer {
       transformAnnotations(variable.annotations, variable);
       if (variable.initializer != null) {
         variable.initializer =
-            tryEvaluateAndTransformWithContext(variable, variable.initializer)
+            evaluateAndTransformWithContext(variable, variable.initializer)
               ..parent = variable;
       }
     }
@@ -268,7 +268,7 @@ class ConstantsTransformer extends Transformer {
       transformAnnotations(variable.annotations, variable);
       if (variable.initializer != null) {
         variable.initializer =
-            tryEvaluateAndTransformWithContext(variable, variable.initializer)
+            evaluateAndTransformWithContext(variable, variable.initializer)
               ..parent = variable;
       }
     }
@@ -283,26 +283,20 @@ class ConstantsTransformer extends Transformer {
 
     if (node.initializer != null) {
       if (node.isConst) {
-        final Constant constant =
-            tryEvaluateWithContext(node, node.initializer);
+        final Constant constant = evaluateWithContext(node, node.initializer);
+        constantEvaluator.env.addVariableValue(node, constant);
 
-        // If there was a constant evaluation error we will not continue and
-        // simply keep the old [node].
-        if (constant != null) {
-          constantEvaluator.env.addVariableValue(node, constant);
-
-          if (keepVariables) {
-            // So the value of the variable is still available for debugging
-            // purposes we convert the constant variable to be a final variable
-            // initialized to the evaluated constant expression.
-            node.initializer = makeConstantExpression(constant)..parent = node;
-            node.isFinal = true;
-            node.isConst = false;
-          } else {
-            // Since we convert all use-sites of constants, the constant
-            // [VariableDeclaration] is unused and we'll therefore remove it.
-            return null;
-          }
+        if (keepVariables) {
+          // So the value of the variable is still available for debugging
+          // purposes we convert the constant variable to be a final variable
+          // initialized to the evaluated constant expression.
+          node.initializer = makeConstantExpression(constant)..parent = node;
+          node.isFinal = true;
+          node.isConst = false;
+        } else {
+          // Since we convert all use-sites of constants, the constant
+          // [VariableDeclaration] is unused and we'll therefore remove it.
+          return null;
         }
       } else {
         node.initializer = node.initializer.accept(this)..parent = node;
@@ -325,7 +319,7 @@ class ConstantsTransformer extends Transformer {
         transformAnnotations(node.annotations, node);
         if (node.initializer != null) {
           node.initializer =
-              tryEvaluateAndTransformWithContext(node, node.initializer)
+              evaluateAndTransformWithContext(node, node.initializer)
                 ..parent = node;
         }
       } else {
@@ -347,11 +341,9 @@ class ConstantsTransformer extends Transformer {
   visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
-      final Constant constant =
-          tryEvaluateWithContext(node, target.initializer);
-      return constant != null ? makeConstantExpression(constant) : node;
+      return evaluateAndTransformWithContext(node, target.initializer);
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
-      return tryEvaluateAndTransformWithContext(node, node);
+      return evaluateAndTransformWithContext(node, node);
     }
     return super.visitStaticGet(node);
   }
@@ -363,42 +355,42 @@ class ConstantsTransformer extends Transformer {
 
   visitVariableGet(VariableGet node) {
     if (node.variable.isConst) {
-      return tryEvaluateAndTransformWithContext(node, node);
+      return evaluateAndTransformWithContext(node, node);
     }
     return super.visitVariableGet(node);
   }
 
   visitListLiteral(ListLiteral node) {
     if (node.isConst) {
-      return tryEvaluateAndTransformWithContext(node, node);
+      return evaluateAndTransformWithContext(node, node);
     }
     return super.visitListLiteral(node);
   }
 
   visitSetLiteral(SetLiteral node) {
     if (node.isConst) {
-      return tryEvaluateAndTransformWithContext(node, node);
+      return evaluateAndTransformWithContext(node, node);
     }
     return super.visitSetLiteral(node);
   }
 
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
-      return tryEvaluateAndTransformWithContext(node, node);
+      return evaluateAndTransformWithContext(node, node);
     }
     return super.visitMapLiteral(node);
   }
 
   visitConstructorInvocation(ConstructorInvocation node) {
     if (node.isConst) {
-      return tryEvaluateAndTransformWithContext(node, node);
+      return evaluateAndTransformWithContext(node, node);
     }
     return super.visitConstructorInvocation(node);
   }
 
   visitStaticInvocation(StaticInvocation node) {
     if (node.isConst) {
-      return tryEvaluateAndTransformWithContext(node, node);
+      return evaluateAndTransformWithContext(node, node);
     }
     return super.visitStaticInvocation(node);
   }
@@ -407,19 +399,18 @@ class ConstantsTransformer extends Transformer {
     Constant constant = node.constant;
     if (constant is UnevaluatedConstant) {
       Expression expression = constant.expression;
-      return tryEvaluateAndTransformWithContext(expression, expression);
+      return evaluateAndTransformWithContext(expression, expression);
     } else {
       node.constant = constantEvaluator.canonicalize(constant);
       return node;
     }
   }
 
-  tryEvaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
-    final Constant constant = tryEvaluateWithContext(treeContext, node);
-    return constant != null ? makeConstantExpression(constant) : node;
+  evaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
+    return makeConstantExpression(evaluateWithContext(treeContext, node));
   }
 
-  tryEvaluateWithContext(TreeNode treeContext, Expression node) {
+  evaluateWithContext(TreeNode treeContext, Expression node) {
     if (treeContext == node) {
       return constantEvaluator.evaluate(node);
     }
