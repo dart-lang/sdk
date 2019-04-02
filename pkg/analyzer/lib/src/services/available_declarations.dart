@@ -961,7 +961,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 9;
+  static const int DATA_VERSION = 10;
 
   /// The next value for [id].
   static int _nextId = 0;
