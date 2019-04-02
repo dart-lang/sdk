@@ -914,10 +914,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   void resolveRedirectingFactoryTargets() {
     for (StaticInvocation invocation in redirectingFactoryInvocations) {
-      // If the invocation was invalid, it has already been desugared into
-      // an exception throwing expression. There is nothing to resolve anymore.
-      if (invocation.parent == null) {
-        continue;
+      // If the invocation was invalid, it or its parent has already been
+      // desugared into an exception throwing expression.  There is nothing to
+      // resolve anymore.  Note that in the case where the invocation's parent
+      // was invalid, type inference won't reach the invocation node and won't
+      // set its inferredType field.  If type inference is disabled, reach to
+      // the outtermost parent to check if the node is a dead code.
+      if (invocation.parent == null) continue;
+      if (_typeInferrer != null) {
+        if (invocation is FactoryConstructorInvocationJudgment &&
+            invocation.inferredType == null) {
+          continue;
+        }
+      } else {
+        TreeNode parent = invocation.parent;
+        while (parent is! Component && parent != null) parent = parent.parent;
+        if (parent == null) continue;
       }
 
       Procedure initialTarget = invocation.target;
