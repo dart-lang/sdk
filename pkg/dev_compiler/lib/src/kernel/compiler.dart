@@ -4675,19 +4675,73 @@ class ProgramCompiler extends Object
   @override
   visitListConcatenation(ListConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw new UnsupportedError("List concatenation");
+    List<JS.Expression> entries = [];
+    _concatenate(Expression node) {
+      if (node is ListConcatenation)
+        node.lists.forEach(_concatenate);
+      else {
+        node.accept(this);
+        if (node is ConstantExpression) {
+          var list = node.constant as ListConstant;
+          entries.addAll(list.entries.map(visitConstant));
+        } else if (node is ListLiteral) {
+          entries.addAll(node.expressions.map(_visitExpression));
+        }
+      }
+    }
+
+    node.lists.forEach(_concatenate);
+    return _emitConstList(node.typeArgument, entries);
   }
 
   @override
   visitSetConcatenation(SetConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw new UnsupportedError("Set concatenation");
+    List<JS.Expression> entries = [];
+    _concatenate(Expression node) {
+      if (node is SetConcatenation)
+        node.sets.forEach(_concatenate);
+      else {
+        node.accept(this);
+        if (node is ConstantExpression) {
+          var set = node.constant as SetConstant;
+          entries.addAll(set.entries.map(visitConstant));
+        } else if (node is SetLiteral) {
+          entries.addAll(node.expressions.map(_visitExpression));
+        }
+      }
+    }
+
+    node.sets.forEach(_concatenate);
+    return _emitConstSet(node.typeArgument, entries);
   }
 
   @override
   visitMapConcatenation(MapConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw new UnsupportedError("Map concatenation");
+    List<JS.Expression> entries = [];
+    _concatenate(Expression node) {
+      if (node is MapConcatenation)
+        node.maps.forEach(_concatenate);
+      else {
+        node.accept(this);
+        if (node is ConstantExpression) {
+          var map = node.constant as MapConstant;
+          for (var entry in map.entries) {
+            entries.add(visitConstant(entry.key));
+            entries.add(visitConstant(entry.value));
+          }
+        } else if (node is MapLiteral) {
+          for (var entry in node.entries) {
+            entries.add(_visitExpression(entry.key));
+            entries.add(_visitExpression(entry.value));
+          }
+        }
+      }
+    }
+
+    node.maps.forEach(_concatenate);
+    return _emitConstMap(node.keyType, node.valueType, entries);
   }
 
   @override
@@ -4796,6 +4850,27 @@ class ProgramCompiler extends Object
     return _emitConstList(elementType, elements);
   }
 
+  JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
+    var list = JS.ArrayInitializer(items);
+
+    // TODO(jmesserly): analyzer will usually infer `List<Object>` because
+    // that is the least upper bound of the element types. So we rarely
+    // generate a plain `List<dynamic>` anymore.
+    if (itemType == const DynamicType()) return list;
+
+    // Call `new JSArray<E>.of(list)`
+    var arrayType = InterfaceType(_jsArrayClass, [itemType]);
+    return js.call('#.of(#)', [_emitType(arrayType), list]);
+  }
+
+  JS.Expression _emitConstList(
+      DartType elementType, List<JS.Expression> elements) {
+    // dart.constList helper internally depends on _interceptors.JSArray.
+    _declareBeforeUse(_jsArrayClass);
+    return cacheConst(
+        runtimeCall('constList([#], #)', [elements, _emitType(elementType)]));
+  }
+
   @override
   visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
@@ -4808,31 +4883,14 @@ class ProgramCompiler extends Object
       return js.call(
           '#.from([#])', [setType, _visitExpressionList(node.expressions)]);
     }
-    return cacheConst(runtimeCall('constSet(#, [#])', [
-      _emitType(node.typeArgument),
-      _visitExpressionList(node.expressions)
-    ]));
+    return _emitConstSet(
+        node.typeArgument, _visitExpressionList(node.expressions));
   }
 
-  JS.Expression _emitConstList(
+  JS.Expression _emitConstSet(
       DartType elementType, List<JS.Expression> elements) {
-    // dart.constList helper internally depends on _interceptors.JSArray.
-    _declareBeforeUse(_jsArrayClass);
     return cacheConst(
-        runtimeCall('constList([#], #)', [elements, _emitType(elementType)]));
-  }
-
-  JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
-    var list = JS.ArrayInitializer(items);
-
-    // TODO(jmesserly): analyzer will usually infer `List<Object>` because
-    // that is the least upper bound of the element types. So we rarely
-    // generate a plain `List<dynamic>` anymore.
-    if (itemType == const DynamicType()) return list;
-
-    // Call `new JSArray<E>.of(list)`
-    var arrayType = InterfaceType(_jsArrayClass, [itemType]);
-    return js.call('#.of(#)', [_emitType(arrayType), list]);
+        runtimeCall('constSet(#, [#])', [_emitType(elementType), elements]));
   }
 
   @override
@@ -4852,8 +4910,13 @@ class ProgramCompiler extends Object
       }
       return js.call('new #.from([#])', [mapType, entries]);
     }
+    return _emitConstMap(node.keyType, node.valueType, entries);
+  }
+
+  JS.Expression _emitConstMap(
+      DartType keyType, DartType valueType, List<JS.Expression> entries) {
     return cacheConst(runtimeCall('constMap(#, #, [#])',
-        [_emitType(node.keyType), _emitType(node.valueType), entries]));
+        [_emitType(keyType), _emitType(valueType), entries]));
   }
 
   @override
@@ -5043,8 +5106,7 @@ class ProgramCompiler extends Object
       entries.add(visitConstant(e.value));
     }
 
-    return cacheConst(runtimeCall('constMap(#, #, [#])',
-        [_emitType(node.keyType), _emitType(node.valueType), entries]));
+    return _emitConstMap(node.keyType, node.valueType, entries);
   }
 
   @override
@@ -5053,13 +5115,8 @@ class ProgramCompiler extends Object
 
   @override
   visitSetConstant(node) {
-    // Set literals are currently desugared in the frontend.
-    // Implement this method before flipping the supportsSetLiterals flag
-    // in DevCompilerTarget to true.
-    return cacheConst(runtimeCall('constSet(#, [#])', [
-      _emitType(node.typeArgument),
-      node.entries.map(visitConstant).toList()
-    ]));
+    return _emitConstSet(
+        node.typeArgument, node.entries.map(visitConstant).toList());
   }
 
   @override
