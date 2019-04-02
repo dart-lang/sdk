@@ -117,6 +117,23 @@ class A {
 ''');
   }
 
+  test_default_annotation() async {
+    await resolveTestUnit('''
+@A(boot: 2)
+f() => null;
+class A {
+  const A({int boat});
+}
+''');
+    await assertHasFix('''
+@A(boat: 2)
+f() => null;
+class A {
+  const A({int boat});
+}
+''');
+  }
+
   test_default_constructor() async {
     await resolveTestUnit('''
 f() => new A(boot: 2);
@@ -162,6 +179,40 @@ f(A a) {
 }
 class A {
   void m({int boat}) {}
+}
+''');
+  }
+
+  test_default_redirectingConstructor() async {
+    await resolveTestUnit('''
+class A {
+  A.one() : this.two(boot: 3);
+  A.two({int boat});
+}
+''');
+    await assertHasFix('''
+class A {
+  A.one() : this.two(boat: 3);
+  A.two({int boat});
+}
+''');
+  }
+
+  test_default_superConstructor() async {
+    await resolveTestUnit('''
+class A {
+  A.a({int boat});
+}
+class B extends A {
+  B.b() : super.a(boot: 3);
+}
+''');
+    await assertHasFix('''
+class A {
+  A.a({int boat});
+}
+class B extends A {
+  B.b() : super.a(boat: 3);
 }
 ''');
   }

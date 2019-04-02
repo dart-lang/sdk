@@ -1146,7 +1146,7 @@ class FixProcessor {
           sessionHelper,
           namedExpression.parent.parent,
         );
-        return parameters.namedNames;
+        return parameters?.namedNames;
       }
       return null;
     }
@@ -4541,11 +4541,15 @@ class _ExecutableParameters {
   factory _ExecutableParameters(
       AnalysisSessionHelper sessionHelper, AstNode invocation) {
     Element element;
-    if (invocation is InstanceCreationExpression) {
+    // This doesn't handle FunctionExpressionInvocation.
+    if (invocation is Annotation) {
+      element = invocation.element;
+    } else if (invocation is InstanceCreationExpression) {
       element = invocation.staticElement;
-    }
-    if (invocation is MethodInvocation) {
+    } else if (invocation is MethodInvocation) {
       element = invocation.methodName.staticElement;
+    } else if (invocation is ConstructorReferenceNode) {
+      element = invocation.staticElement;
     }
     if (element is ExecutableElement && !element.isSynthetic) {
       return new _ExecutableParameters._(sessionHelper, element);
