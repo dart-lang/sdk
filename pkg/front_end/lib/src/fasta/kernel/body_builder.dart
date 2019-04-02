@@ -3738,13 +3738,25 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         token.next, token.offset, Constness.explicitConst);
   }
 
+  @override
   void beginIfControlFlow(Token ifToken) {
     // TODO(danrubel): consider removing this when control flow support is added
     // if the ifToken is not needed for error reporting
     push(ifToken);
   }
 
-  void handleElseControlFlow(Token elseToken) {}
+  @override
+  void beginThenControlFlow(Token token) {
+    Expression condition = popForValue();
+    enterThenForTypePromotion(condition);
+    push(condition);
+    super.beginThenControlFlow(token);
+  }
+
+  @override
+  void handleElseControlFlow(Token elseToken) {
+    typePromoter?.enterElse();
+  }
 
   @override
   void endIfControlFlow(Token token) {
@@ -3752,6 +3764,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     var entry = pop();
     var condition = pop(); // parenthesized expression
     Token ifToken = pop();
+    typePromoter?.enterElse();
+    typePromoter?.exitConditional();
     if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled
@@ -3781,6 +3795,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     var thenEntry = pop(); // then entry
     var condition = pop(); // parenthesized expression
     Token ifToken = pop();
+    typePromoter?.exitConditional();
     if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled

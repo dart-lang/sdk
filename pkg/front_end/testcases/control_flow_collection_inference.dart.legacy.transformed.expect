@@ -1692,10 +1692,34 @@ library;
 //   <String, int>{await for (int i in stream) "bar": i};
 //                       ^^^
 //
+// pkg/front_end/testcases/control_flow_collection_inference.dart:250:23: Error: Unexpected token 'if'.
+//   List<int> list10 = [if (a is B) a.foo];
+//                       ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:251:21: Error: Unexpected token 'if'.
+//   Set<int> set10 = {if (a is B) a.foo};
+//                     ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:252:26: Error: Unexpected token 'if'.
+//   Map<int, int> map10 = {if (a is B) a.foo: a.foo};
+//                          ^^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  get foo() → core::int
+    return 42;
+}
 static method oracle<T extends core::Object = dynamic>([self::oracle::T t = null]) → dynamic
   return true;
 static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core::List<core::double> listDouble, core::Map<core::String, core::int> mapToInt, core::Map<core::String, core::double> mapToDouble) → dynamic {
@@ -1946,5 +1970,10 @@ static method testForElementErrorsNotAsync(asy::Stream<core::int> stream) → dy
   <core::int>[];
   <core::int>{};
   <core::String, core::int>{};
+}
+static method testPromotion(self::A a) → dynamic {
+  core::List<core::int> list10 = <dynamic>[];
+  core::Set<core::int> set10 = <dynamic, dynamic>{};
+  core::Map<core::int, core::int> map10 = <dynamic, dynamic>{};
 }
 static method main() → dynamic {}

@@ -125,7 +125,6 @@ LanguageFeatures/Control-flow-collections/const_collections_A02_t02/03: MissingC
 LanguageFeatures/Control-flow-collections/const_collections_A02_t02/04: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/type_promotion_A01_t01: CompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A06_t01/03: MissingCompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A06_t01/06: MissingCompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A06_t01/07: MissingCompileTimeError

@@ -393,6 +393,18 @@ import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:async" as asy;
 
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  get foo() → core::int
+    return 42;
+}
 static method oracle<T extends core::Object = dynamic>([self::oracle::T t = null]) → dynamic
   return true;
 static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core::List<core::double> listDouble, core::Map<core::String, core::int> mapToInt, core::Map<core::String, core::double> mapToDouble) → dynamic {
@@ -1995,5 +2007,22 @@ static method testForElementErrorsNotAsync(asy::Stream<core::int> stream) → dy
     await for (core::int i in stream)
       #t383.{core::Map::[]=}("bar", i);
   } =>#t383;
+}
+static method testPromotion(self::A a) → dynamic {
+  core::List<core::int> list10 = block {
+    final core::List<core::int> #t384 = <core::int>[];
+    if(a is self::B)
+      #t384.{core::List::add}(a{self::B}.{self::B::foo});
+  } =>#t384;
+  core::Set<core::int> set10 = block {
+    final core::Set<core::int> #t385 = col::LinkedHashSet::•<core::int>();
+    if(a is self::B)
+      #t385.{core::Set::add}(a{self::B}.{self::B::foo});
+  } =>#t385;
+  core::Map<core::int, core::int> map10 = block {
+    final core::Map<core::int, core::int> #t386 = <core::int, core::int>{};
+    if(a is self::B)
+      #t386.{core::Map::[]=}(a{self::B}.{self::B::foo}, a{self::B}.{self::B::foo});
+  } =>#t386;
 }
 static method main() → dynamic {}

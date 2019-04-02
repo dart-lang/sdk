@@ -240,4 +240,16 @@ testForElementErrorsNotAsync(Stream<int> stream) {
   <String, int>{await for (int i in stream) "bar": i};
 }
 
+class A {}
+
+class B extends A {
+  int get foo => 42;
+}
+
+testPromotion(A a) {
+  List<int> list10 = [if (a is B) a.foo];
+  Set<int> set10 = {if (a is B) a.foo};
+  Map<int, int> map10 = {if (a is B) a.foo: a.foo};
+}
+
 main() {}
