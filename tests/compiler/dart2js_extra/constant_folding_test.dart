@@ -4,6 +4,8 @@
 
 import "package:expect/expect.dart";
 
+// SharedOptions=--enable-experiment=constant-update-2018
+
 void main() {
   const BitNot(42, 4294967253).check();
   const BitNot(4294967253, 42).check();
@@ -12,6 +14,8 @@ void main() {
   const BitNot(0, 0xFFFFFFFF).check();
   const BitNot(4294967295, 0).check();
   const BitNot(0x12121212121212, 0xEDEDEDED).check();
+  const BitNot(0x7fffffff00000000, 0xffffffff).check();
+  const BitNot(0x8000000000000000, 0xffffffff).check();
 
   const Negate(0, -0).check();
   const Negate(-0, 0).check();
@@ -50,6 +54,10 @@ void main() {
   const Negate(double.minPositive, -double.minPositive).check();
   const Negate(-double.minPositive, double.minPositive).check();
   const Negate(double.nan, double.nan).check();
+  const Negate(0x7fffffff00000000, -0x7fffffff00000000).check();
+  const Negate(-0x7fffffff00000000, 0x7fffffff00000000).check();
+  const Negate(0x8000000000000000, -0x8000000000000000).check();
+  const Negate(-0x8000000000000000, 0x8000000000000000).check();
 
   const Not(true, false).check();
   const Not(false, true).check();
@@ -65,6 +73,12 @@ void main() {
   const BitAnd(0xFFFFFFFF, 0, 0).check();
   const BitAnd(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF).check();
   const BitAnd(0x123456789ABC, 0xEEEEEEEEEEEE, 0x46688AAC).check();
+  const BitAnd(0x7fffffff00008000, 0x8000000000008000, 0x8000).check();
+  const BitAnd(0x8000000000008000, 0x7fffffff00008000, 0x8000).check();
+  const BitAnd(true, true, true).check();
+  const BitAnd(true, false, false).check();
+  const BitAnd(false, true, false).check();
+  const BitAnd(false, false, false).check();
 
   const BitOr(314159, 271828, 323583).check();
   const BitOr(271828, 314159, 323583).check();
@@ -77,6 +91,12 @@ void main() {
   const BitOr(0xFFFFFFFF, 0, 0xFFFFFFFF).check();
   const BitOr(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF).check();
   const BitOr(0x123456789ABC, 0x111111111111, 0x57799BBD).check();
+  const BitOr(0x7000000080000000, 0x8000000000008000, 0x80008000).check();
+  const BitOr(0x8000000000008000, 0x7000000080000000, 0x80008000).check();
+  const BitOr(true, true, true).check();
+  const BitOr(true, false, true).check();
+  const BitOr(false, true, true).check();
+  const BitOr(false, false, false).check();
 
   const BitXor(314159, 271828, 61179).check();
   const BitXor(271828, 314159, 61179).check();
@@ -88,6 +108,12 @@ void main() {
   const BitXor(0xFFFFFFFF, 0, 0xFFFFFFFF).check();
   const BitXor(0xFFFFFFFF, 0xFFFFFFFF, 0).check();
   const BitXor(0x123456789ABC, 0x111111111111, 0x47698BAD).check();
+  const BitXor(0x7000000012340000, 0x8000000011110000, 0x03250000).check();
+  const BitXor(0x8000000011110000, 0x7000000012340000, 0x03250000).check();
+  const BitXor(true, true, false).check();
+  const BitXor(true, false, true).check();
+  const BitXor(false, true, true).check();
+  const BitXor(false, false, false).check();
 
   const ShiftLeft(42, 0, 42).check();
   const ShiftLeft(42, 5, 1344).check();
@@ -104,6 +130,14 @@ void main() {
   const ShiftLeft(-1, 31, 0x80000000).check();
   const ShiftLeft(-1, 32, 0).check();
   const ShiftLeft(-1, 100, 0).check();
+  const ShiftLeft(0x7000000000008000, 0, 0x8000).check();
+  const ShiftLeft(0x7000000000008000, 1, 0x10000).check();
+  const ShiftLeft(0x7000000000008000, 16, 0x80000000).check();
+  const ShiftLeft(0x7000000000008000, 17, 0x0).check();
+  const ShiftLeft(0x8000000000008000, 0, 0x8000).check();
+  const ShiftLeft(0x8000000000008000, 1, 0x10000).check();
+  const ShiftLeft(0x8000000000008000, 16, 0x80000000).check();
+  const ShiftLeft(0x8000000000008000, 17, 0x0).check();
 
   const ShiftRight(8675309, 0, 8675309).check();
   const ShiftRight(8675309, 5, 271103).check();
@@ -127,6 +161,14 @@ void main() {
   const ShiftRight(-1073741824, 31, 0xFFFFFFFF).check();
   const ShiftRight(-1073741824, 32, 0xFFFFFFFF).check();
   const ShiftRight(-1073741824, 100, 0xFFFFFFFF).check();
+  const ShiftRight(0x7000000000008000, 0, 0x8000).check();
+  const ShiftRight(0x7000000000008000, 1, 0x4000).check();
+  const ShiftRight(0x7000000000008000, 15, 0x1).check();
+  const ShiftRight(0x7000000000008000, 16, 0).check();
+  const ShiftRight(0x8000000000008000, 0, 0x8000).check();
+  const ShiftRight(0x8000000000008000, 1, 0x4000).check();
+  const ShiftRight(0x8000000000008000, 15, 0x1).check();
+  const ShiftRight(0x8000000000008000, 16, 0).check();
 
   const BooleanAnd(true, true, true).check();
   const BooleanAnd(true, false, false).check();
@@ -346,9 +388,7 @@ void main() {
   const TruncatingDivide(9007199254740991, -0.5, -18014398509481982).check();
   const TruncatingDivide(-9007199254740991, 0.5, -18014398509481982).check();
   const TruncatingDivide(-9007199254740991, -0.5, 18014398509481982).check();
-  const TruncatingDivide(
-          0x80000000 * 0x100000000, -1, -0x80000000 * 0x100000000)
-      .check();
+  const TruncatingDivide(0x8000000000000000, -1, -0x8000000000000000).check();
   const TruncatingDivide(2.71828, 3.14159, 0).check();
   const TruncatingDivide(2.71828, 1, 2).check();
   const TruncatingDivide(2.71828, -1, -2).check();
@@ -837,6 +877,8 @@ void main() {
   const Equals(double.infinity, double.negativeInfinity, false).check();
   const Equals(double.negativeInfinity, double.infinity, false).check();
   const Equals(double.negativeInfinity, double.negativeInfinity, true).check();
+  const Equals(0x8000000000000000, 0x8000000000000000, true).check();
+  const Equals(0x8000000000000000, -9223372036854775808, false).check();
 
   const Identity(null, null, true).check();
   const Identity(null, "", false).check();
@@ -848,7 +890,7 @@ void main() {
   const Identity(false, true, false).check();
   const Identity(0, false, false).check();
   const Identity(true, 1, false).check();
-  // TODO(36194)
+  // TODO(fishythefish, 36194)
   //const Identity(double.nan, double.nan, false).check();
   const Identity(0, 0, true).check();
   const Identity(0.0, 0.0, true).check();
@@ -868,6 +910,8 @@ void main() {
   const Identity(double.negativeInfinity, double.infinity, false).check();
   const Identity(double.negativeInfinity, double.negativeInfinity, true)
       .check();
+  const Identity(0x8000000000000000, 0x8000000000000000, true).check();
+  const Identity(0x8000000000000000, -9223372036854775808, false).check();
 
   const IfNull(null, null, null).check();
   const IfNull(null, 1, 1).check();

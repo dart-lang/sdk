@@ -1127,9 +1127,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   int _findLength(ir.Arguments arguments) {
     ir.Expression firstArgument = arguments.positional.first;
     if (firstArgument is ir.ConstantExpression &&
-        firstArgument.constant is ir.IntConstant) {
-      ir.IntConstant constant = firstArgument.constant;
-      return constant.value;
+        firstArgument.constant is ir.DoubleConstant) {
+      ir.DoubleConstant constant = firstArgument.constant;
+      double doubleValue = constant.value;
+      int truncatedValue = doubleValue.truncate();
+      if (doubleValue == truncatedValue) {
+        return truncatedValue;
+      }
     } else if (firstArgument is ir.IntLiteral) {
       return firstArgument.value;
     } else if (firstArgument is ir.StaticGet) {
