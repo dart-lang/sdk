@@ -292,6 +292,7 @@ NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
 NotAType/example: Fail
 NotAnLvalue/example: Fail
+NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail

@@ -45,7 +45,8 @@ import '../quote.dart'
 
 import '../scanner.dart' show Token;
 
-import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
+import '../scanner/token.dart'
+    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 
 import '../scope.dart' show ProblemBuilder;
 
@@ -1383,8 +1384,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       negate = true;
     }
     if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
-      return buildProblem(fasta.templateInvalidOperator.withArguments(token),
-          token.charOffset, token.length);
+      if (isUserDefinableOperator(operator)) {
+        return buildProblem(
+            fasta.templateNotBinaryOperator.withArguments(token),
+            token.charOffset,
+            token.length);
+      } else {
+        return buildProblem(fasta.templateInvalidOperator.withArguments(token),
+            token.charOffset, token.length);
+      }
     } else {
       Expression result = buildMethodInvocation(a, new Name(operator),
           forest.arguments(<Expression>[b], noLocation), token.charOffset,

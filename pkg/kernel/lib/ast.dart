@@ -6116,7 +6116,7 @@ Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
 /// This function will return "S with M1" and "S with M1, M2", respectively.
 String demangleMixinApplicationName(String name) {
   List<String> nameParts = name.split('&');
-  if (nameParts.length < 2) return name;
+  if (nameParts.length < 2 || name == "&") return name;
   String demangledName = nameParts[1];
   for (int i = 2; i < nameParts.length; i++) {
     demangledName += (i == 2 ? " with " : ", ") + nameParts[i];

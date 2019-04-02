@@ -2476,6 +2476,16 @@ InvalidOperator:
   script:
     - "class C { void operator %=(x) {} }"
 
+NotBinaryOperator:
+  template: "'#lexeme' isn't a binary operator."
+  script: >
+    class C { operator~() { return null; } }
+
+    main() {
+      C c = new C();
+      print(c ~ 2);
+    }
+
 OperatorParameterMismatch0:
   template: "Operator '#name' shouldn't have any parameters."
 

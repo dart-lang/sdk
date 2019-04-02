@@ -7208,6 +7208,27 @@ const MessageCode messageNotAnLvalue = const MessageCode("NotAnLvalue",
     message: r"""Can't assign to this.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateNotBinaryOperator =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""'#lexeme' isn't a binary operator.""",
+        withArguments: _withArgumentsNotBinaryOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeNotBinaryOperator =
+    const Code<Message Function(Token token)>(
+  "NotBinaryOperator",
+  templateNotBinaryOperator,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNotBinaryOperator(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeNotBinaryOperator,
+      message: """'${lexeme}' isn't a binary operator.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateNotConstantExpression =
     const Template<Message Function(String string)>(
         messageTemplate: r"""#string is not a constant expression.""",

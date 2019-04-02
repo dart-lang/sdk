@@ -722,6 +722,7 @@ no_such_method_forwarders/subst_on_forwarder: TextSerializationFailure # Was: Pa
 no_such_method_private_setter: TextSerializationFailure # Was: Pass
 no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
 null_aware: TextSerializationFailure # Was: Pass
+operator_method_not_found: TextSerializationFailure
 operators: TextSerializationFailure # Was: Pass
 optional: TypeCheckError
 override: TextSerializationFailure # Was: Pass

@@ -36,6 +36,7 @@ invocations: Fail
 micro: Fail # External method marked abstract.
 minimum_int: Crash # Min int literal not supported in non-strong mode.
 named_parameters: Fail # Missing types and unnecessary default values.
+operator_method_not_found: RuntimeError # Expected
 optional: Fail # Unnecessary default values.
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
