@@ -267,6 +267,7 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 # Tests that use functionality not supported in Dart 2.
 [ ($compiler == dartk || $compiler == dartkb) || $compiler == dartkp ]
 cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
+cc/CompileFunctionOnHelperThread: SkipByDesign
 cc/CompileFunction: SkipByDesign
 cc/InvokeDynamic_CompileError: SkipByDesign
 cc/InvokeStatic_CompileError: SkipByDesign

@@ -866,7 +866,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       heap_(NULL),
       isolate_flags_(0),
       background_compiler_(NULL),
-      optimizing_background_compiler_(NULL),
 #if !defined(PRODUCT)
       debugger_(NULL),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
@@ -952,11 +951,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
         "         See dartbug.com/30524 for more information.\n");
   }
 
-  if (FLAG_enable_interpreter) {
-    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
-  }
-  NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
-                         new BackgroundCompiler(this));
+  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -971,13 +966,8 @@ Isolate::~Isolate() {
   delete reverse_pc_lookup_cache_;
   reverse_pc_lookup_cache_ = nullptr;
 
-  if (FLAG_enable_interpreter) {
-    delete background_compiler_;
-    background_compiler_ = NULL;
-  }
-
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = NULL;
+  delete background_compiler_;
+  background_compiler_ = NULL;
 
 #if !defined(PRODUCT)
   delete debugger_;
@@ -1872,12 +1862,8 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   BackgroundCompiler::Stop(this);
-  if (FLAG_enable_interpreter) {
-    delete background_compiler_;
-    background_compiler_ = NULL;
-  }
-  delete optimizing_background_compiler_;
-  optimizing_background_compiler_ = NULL;
+  delete background_compiler_;
+  background_compiler_ = NULL;
 
 #if defined(DEBUG)
   if (heap_ != NULL && FLAG_verify_on_transition) {

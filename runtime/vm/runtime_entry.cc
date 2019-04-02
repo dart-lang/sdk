@@ -2144,9 +2144,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   if ((!optimizing_compilation) ||
       Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
-      if (FLAG_enable_inlining_annotations) {
-        FATAL("Cannot enable inlining annotations and background compilation");
-      }
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {
         if (FLAG_trace_optimization || FLAG_trace_field_guards) {
@@ -2157,21 +2154,25 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // Get next field.
         field = isolate->GetDeoptimizingBoxedField();
       }
-      if (!BackgroundCompiler::IsDisabled(isolate, optimizing_compilation) &&
+    }
+    // TODO(srdjan): Fix background compilation of regular expressions.
+    if (FLAG_background_compilation) {
+      if (FLAG_enable_inlining_annotations) {
+        FATAL("Cannot enable inlining annotations and background compilation");
+      }
+      if (!BackgroundCompiler::IsDisabled(isolate) &&
           function.is_background_optimizable()) {
-        // Ensure background compiler is running, if not start it.
-        BackgroundCompiler::Start(isolate);
-        // Reduce the chance of triggering a compilation while the function is
-        // being compiled in the background. INT_MIN should ensure that it
-        // takes long time to trigger a compilation.
+        if (FLAG_background_compilation_stop_alot) {
+          BackgroundCompiler::Stop(isolate);
+        }
+        // Reduce the chance of triggering optimization while the function is
+        // being optimized in the background. INT_MIN should ensure that it
+        // takes long time to trigger optimization.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT_MIN);
-        if (optimizing_compilation) {
-          isolate->optimizing_background_compiler()->Compile(function);
-        } else {
-          ASSERT(FLAG_enable_interpreter);
-          isolate->background_compiler()->Compile(function);
-        }
+        BackgroundCompiler::Start(isolate);
+        isolate->background_compiler()->CompileOptimized(function);
+
         // Continue in the same code.
         arguments.SetReturn(function);
         return;

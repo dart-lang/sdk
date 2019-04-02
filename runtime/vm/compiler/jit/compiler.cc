@@ -361,7 +361,7 @@ class CompileParsedFunctionHelper : public ValueObject {
   RawCode* FinalizeCompilation(Assembler* assembler,
                                FlowGraphCompiler* graph_compiler,
                                FlowGraph* flow_graph);
-  void CheckIfBackgroundCompilerIsBeingStopped(bool optimizing_compiler);
+  void CheckIfBackgroundCompilerIsBeingStopped();
 
   ParsedFunction* parsed_function_;
   const bool optimized_;
@@ -556,22 +556,12 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   return code.raw();
 }
 
-void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
-    bool optimizing_compiler) {
+void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped() {
   ASSERT(Compiler::IsBackgroundCompilation());
-  if (optimizing_compiler) {
-    if (!isolate()->optimizing_background_compiler()->is_running()) {
-      // The background compiler is being stopped.
-      Compiler::AbortBackgroundCompilation(
-          DeoptId::kNone, "Optimizing Background compilation is being stopped");
-    }
-  } else {
-    if (FLAG_enable_interpreter &&
-        !isolate()->background_compiler()->is_running()) {
-      // The background compiler is being stopped.
-      Compiler::AbortBackgroundCompilation(
-          DeoptId::kNone, "Background compilation is being stopped");
-    }
+  if (!isolate()->background_compiler()->is_running()) {
+    // The background compiler is being stopped.
+    Compiler::AbortBackgroundCompilation(
+        DeoptId::kNone, "Background compilation is being stopped");
   }
 }
 
@@ -718,12 +708,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // changes code page access permissions (makes them temporary not
           // executable).
           {
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
+            CheckIfBackgroundCompilerIsBeingStopped();
             SafepointOperationScope safepoint_scope(thread());
             // Do not Garbage collect during this stage and instead allow the
             // heap to grow.
             NoHeapGrowthControlScope no_growth_control;
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
+            CheckIfBackgroundCompilerIsBeingStopped();
             *result =
                 FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
@@ -1484,7 +1474,7 @@ void BackgroundCompiler::Run() {
   }
 }
 
-void BackgroundCompiler::Compile(const Function& function) {
+void BackgroundCompiler::CompileOptimized(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
   // TODO(srdjan): Checking different strategy for collecting garbage
   // accumulated by background compiler.
@@ -1525,6 +1515,18 @@ void BackgroundCompiler::Start() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint());
+
+  // Finalize NoSuchMethodError, _Mint; occasionally needed in optimized
+  // compilation.
+  Class& cls = Class::Handle(
+      thread->zone(), Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+  ASSERT(!cls.IsNull());
+  Error& error = Error::Handle(thread->zone(), cls.EnsureIsFinalized(thread));
+  ASSERT(error.IsNull());
+  cls = Library::LookupCoreClass(Symbols::_Mint());
+  ASSERT(!cls.IsNull());
+  error = cls.EnsureIsFinalized(thread);
+  ASSERT(error.IsNull());
 
   MonitorLocker ml(done_monitor_);
   if (running_ || !done_) return;
@@ -1651,7 +1653,7 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   UNREACHABLE();
 }
 
-void BackgroundCompiler::Compile(const Function& function) {
+void BackgroundCompiler::CompileOptimized(const Function& function) {
   UNREACHABLE();
 }
 

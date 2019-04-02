@@ -479,10 +479,6 @@ class Isolate : public BaseIsolate {
     return background_compiler_;
   }
 
-  BackgroundCompiler* optimizing_background_compiler() const {
-    return optimizing_background_compiler_;
-  }
-
 #if !defined(PRODUCT)
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
@@ -913,11 +909,8 @@ class Isolate : public BaseIsolate {
 
   uint32_t isolate_flags_;
 
-  // Unoptimized background compilation.
+  // Background compilation.
   BackgroundCompiler* background_compiler_;
-
-  // Optimized background compilation.
-  BackgroundCompiler* optimizing_background_compiler_;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
