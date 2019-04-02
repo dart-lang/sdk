@@ -1626,6 +1626,10 @@ static method testForElementErrors(core::Map<core::int, core::int> map, core::Li
   dynamic :async_op_error;
   dynamic :await_jump_var = 0;
   dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  dynamic :exception0;
+  dynamic :stack_trace0;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L1:
@@ -1870,110 +1874,234 @@ Try changing the type of the left hand side, or casting the right hand side to '
             #t351.{core::Map::[]=}("bar", i);
           #t351.{core::Map::[]=}("baz", null);
         } =>#t351;
-        core::List<dynamic> list30 = block {
-          final core::List<dynamic> #t354 = <dynamic>[];
-          await for (dynamic i in let final<BottomType> #t355 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:220:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+        final core::List<dynamic> #t354 = <dynamic>[];
+        {
+          dynamic :stream = let final<BottomType> #t355 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:220:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var list30 = [await for (var i in \"not stream\") i];
-                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>)
-            #t354.{core::List::add}(i);
-        } =>#t354;
-        core::Set<dynamic> set30 = block {
-          final core::Set<dynamic> #t356 = col::LinkedHashSet::•<dynamic>();
-          await for (dynamic i in let final<BottomType> #t357 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:221:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L2:
+            while (true) {
+              dynamic #t356 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t357 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                dynamic i = :for-iterator.{asy::_StreamIterator::current};
+                #t354.{core::List::add}(i);
+              }
+              else
+                break #L2;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t358 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::List<dynamic> list30 = block {} =>#t354;
+        final core::Set<dynamic> #t359 = col::LinkedHashSet::•<dynamic>();
+        {
+          dynamic :stream = let final<BottomType> #t360 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:221:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var set30 = {await for (var i in \"not stream\") i, null};
-                                   ^" in "not stream" as{TypeError} asy::Stream<dynamic>)
-            #t356.{core::Set::add}(i);
-          #t356.{core::Set::add}(null);
-        } =>#t356;
-        core::Map<core::String, dynamic> map30 = block {
-          final core::Map<core::String, dynamic> #t358 = <core::String, dynamic>{};
-          await for (dynamic i in let final<BottomType> #t359 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:222:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+                                   ^" in "not stream" as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L3:
+            while (true) {
+              dynamic #t361 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t362 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                dynamic i = :for-iterator.{asy::_StreamIterator::current};
+                #t359.{core::Set::add}(i);
+              }
+              else
+                break #L3;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t363 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::Set<dynamic> set30 = block {
+          #t359.{core::Set::add}(null);
+        } =>#t359;
+        final core::Map<core::String, dynamic> #t364 = <core::String, dynamic>{};
+        {
+          dynamic :stream = let final<BottomType> #t365 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:222:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   var map30 = {await for (var i in \"not stream\") \"bar\": i, \"baz\": null};
-                                   ^" in "not stream" as{TypeError} asy::Stream<dynamic>)
-            #t358.{core::Map::[]=}("bar", i);
-          #t358.{core::Map::[]=}("baz", null);
-        } =>#t358;
-        core::List<core::int> list40 = block {
-          final core::List<core::int> #t360 = <core::int>[];
-          await for (core::int i in asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t361 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:223:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                   ^" in "not stream" as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L4:
+            while (true) {
+              dynamic #t366 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t367 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                dynamic i = :for-iterator.{asy::_StreamIterator::current};
+                #t364.{core::Map::[]=}("bar", i);
+              }
+              else
+                break #L4;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t368 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::Map<core::String, dynamic> map30 = block {
+          #t364.{core::Map::[]=}("baz", null);
+        } =>#t364;
+        final core::List<core::int> #t369 = <core::int>[];
+        {
+          dynamic :stream = asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t370 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:223:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
-                                                         ^" in "not" as{TypeError} core::int, let final<BottomType> #t362 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:223:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                                         ^" in "not" as{TypeError} core::int, let final<BottomType> #t371 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:223:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
-                                                                ^" in "int" as{TypeError} core::int]))
-            #t360.{core::List::add}(i);
-        } =>#t360;
+                                                                ^" in "int" as{TypeError} core::int]);
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<core::int> :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L5:
+            while (true) {
+              dynamic #t372 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t373 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                core::int i = :for-iterator.{asy::_StreamIterator::current};
+                #t369.{core::List::add}(i);
+              }
+              else
+                break #L5;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t374 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::List<core::int> list40 = block {} =>#t369;
+        final core::Set<core::int> #t375 = col::LinkedHashSet::•<core::int>();
+        {
+          dynamic :stream = asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t376 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:224:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
+                                                        ^" in "not" as{TypeError} core::int, let final<BottomType> #t377 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:224:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
+                                                               ^" in "int" as{TypeError} core::int]);
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<core::int> :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L6:
+            while (true) {
+              dynamic #t378 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t379 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                core::int i = :for-iterator.{asy::_StreamIterator::current};
+                #t375.{core::Set::add}(i);
+              }
+              else
+                break #L6;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t380 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
         core::Set<core::int> set40 = block {
-          final core::Set<core::int> #t363 = col::LinkedHashSet::•<core::int>();
-          await for (core::int i in asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t364 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:224:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+          #t375.{core::Set::add}(null);
+        } =>#t375;
+        final core::Map<core::String, core::int> #t381 = <core::String, core::int>{};
+        {
+          dynamic :stream = asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t382 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:225:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
-                                                        ^" in "not" as{TypeError} core::int, let final<BottomType> #t365 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:224:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
+                                                        ^" in "not" as{TypeError} core::int, let final<BottomType> #t383 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:225:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
-                                                               ^" in "int" as{TypeError} core::int]))
-            #t363.{core::Set::add}(i);
-          #t363.{core::Set::add}(null);
-        } =>#t363;
+  var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
+                                                               ^" in "int" as{TypeError} core::int]);
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<core::int> :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L7:
+            while (true) {
+              dynamic #t384 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t385 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                core::int i = :for-iterator.{asy::_StreamIterator::current};
+                #t381.{core::Map::[]=}("bar", i);
+              }
+              else
+                break #L7;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t386 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
         core::Map<core::String, core::int> map40 = block {
-          final core::Map<core::String, core::int> #t366 = <core::String, core::int>{};
-          await for (core::int i in asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t367 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:225:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
-                                                        ^" in "not" as{TypeError} core::int, let final<BottomType> #t368 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:225:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
-                                                               ^" in "int" as{TypeError} core::int]))
-            #t366.{core::Map::[]=}("bar", i);
-          #t366.{core::Map::[]=}("baz", null);
-        } =>#t366;
+          #t381.{core::Map::[]=}("baz", null);
+        } =>#t381;
         core::List<core::int> list50 = block {
-          final core::List<core::int> #t369 = <core::int>[];
+          final core::List<core::int> #t387 = <core::int>[];
           for (; ; )
-            #t369.{core::List::add}(42);
-        } =>#t369;
+            #t387.{core::List::add}(42);
+        } =>#t387;
         core::Set<core::int> set50 = block {
-          final core::Set<core::int> #t370 = col::LinkedHashSet::•<core::int>();
+          final core::Set<core::int> #t388 = col::LinkedHashSet::•<core::int>();
           for (; ; )
-            #t370.{core::Set::add}(42);
-          #t370.{core::Set::add}(null);
-        } =>#t370;
+            #t388.{core::Set::add}(42);
+          #t388.{core::Set::add}(null);
+        } =>#t388;
         core::Map<core::String, core::int> map50 = block {
-          final core::Map<core::String, core::int> #t371 = <core::String, core::int>{};
+          final core::Map<core::String, core::int> #t389 = <core::String, core::int>{};
           for (; ; )
-            #t371.{core::Map::[]=}("bar", 42);
-          #t371.{core::Map::[]=}("baz", null);
-        } =>#t371;
+            #t389.{core::Map::[]=}("bar", 42);
+          #t389.{core::Map::[]=}("baz", null);
+        } =>#t389;
         core::List<core::int> list60 = block {
-          final core::List<core::int> #t372 = <core::int>[];
-          for (; let final<BottomType> #t373 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:229:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+          final core::List<core::int> #t390 = <core::int>[];
+          for (; let final<BottomType> #t391 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:229:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
 Try changing the type of the left hand side, or casting the right hand side to 'bool'.
   var list60 = [for (; \"not bool\";) 42];
                        ^" in "not bool" as{TypeError} core::bool; )
-            #t372.{core::List::add}(42);
-        } =>#t372;
+            #t390.{core::List::add}(42);
+        } =>#t390;
         core::Set<core::int> set60 = block {
-          final core::Set<core::int> #t374 = col::LinkedHashSet::•<core::int>();
-          for (; let final<BottomType> #t375 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:230:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+          final core::Set<core::int> #t392 = col::LinkedHashSet::•<core::int>();
+          for (; let final<BottomType> #t393 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:230:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
 Try changing the type of the left hand side, or casting the right hand side to 'bool'.
   var set60 = {for (; \"not bool\";) 42, null};
                       ^" in "not bool" as{TypeError} core::bool; )
-            #t374.{core::Set::add}(42);
-          #t374.{core::Set::add}(null);
-        } =>#t374;
+            #t392.{core::Set::add}(42);
+          #t392.{core::Set::add}(null);
+        } =>#t392;
         core::Map<core::String, core::int> map60 = block {
-          final core::Map<core::String, core::int> #t376 = <core::String, core::int>{};
-          for (; let final<BottomType> #t377 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:231:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+          final core::Map<core::String, core::int> #t394 = <core::String, core::int>{};
+          for (; let final<BottomType> #t395 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:231:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
 Try changing the type of the left hand side, or casting the right hand side to 'bool'.
   var map60 = {for (; \"not bool\";) \"bar\": 42, \"baz\": null};
                       ^" in "not bool" as{TypeError} core::bool; )
-            #t376.{core::Map::[]=}("bar", 42);
-          #t376.{core::Map::[]=}("baz", null);
-        } =>#t376;
+            #t394.{core::Map::[]=}("bar", 42);
+          #t394.{core::Map::[]=}("baz", null);
+        } =>#t394;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
@@ -1989,19 +2117,19 @@ Try changing the type of the left hand side, or casting the right hand side to '
 }
 static method testForElementErrorsNotAsync(asy::Stream<core::int> stream) → dynamic {
   block {
-    final core::List<core::int> #t378 = <core::int>[];
+    final core::List<core::int> #t396 = <core::int>[];
     await for (core::int i in stream)
-      #t378.{core::List::add}(i);
-  } =>#t378;
+      #t396.{core::List::add}(i);
+  } =>#t396;
   block {
-    final core::Set<core::int> #t379 = col::LinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t397 = col::LinkedHashSet::•<core::int>();
     await for (core::int i in stream)
-      #t379.{core::Set::add}(i);
-  } =>#t379;
+      #t397.{core::Set::add}(i);
+  } =>#t397;
   block {
-    final core::Map<core::String, core::int> #t380 = <core::String, core::int>{};
+    final core::Map<core::String, core::int> #t398 = <core::String, core::int>{};
     await for (core::int i in stream)
-      #t380.{core::Map::[]=}("bar", i);
-  } =>#t380;
+      #t398.{core::Map::[]=}("bar", i);
+  } =>#t398;
 }
 static method main() → dynamic {}
