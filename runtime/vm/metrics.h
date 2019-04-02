@@ -182,7 +182,7 @@ class MetricHeapUsed : public Metric {
 
 #if !defined(PRODUCT)
 #define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
-  static type vm_metric_##variable##_;
+  extern type vm_metric_##variable;
 VM_METRIC_LIST(VM_METRIC_VARIABLE);
 #undef VM_METRIC_VARIABLE
 #endif  // !defined(PRODUCT)

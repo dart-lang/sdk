@@ -1045,7 +1045,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 #if !defined(PRODUCT)
 #define VM_METRIC_API(type, variable, name, unit)                              \
   DART_EXPORT int64_t Dart_VM##variable##Metric() {                            \
-    return vm_metric_##variable##_.value();                                    \
+    return vm_metric_##variable.value();                                       \
   }
 VM_METRIC_LIST(VM_METRIC_API);
 #undef VM_METRIC_API
