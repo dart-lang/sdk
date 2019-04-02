@@ -335,6 +335,8 @@ class RawObject : public AllStatic {
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
+
+  static bool IsTypedDataClassId(intptr_t cid);
 };
 
 class RawAbstractType : public AllStatic {
@@ -456,10 +458,15 @@ class GrowableObjectArray : public AllStatic {
   static word length_offset();
 };
 
+class TypedDataBase : public AllStatic {
+ public:
+  static word data_field_offset();
+  static word length_offset();
+};
+
 class TypedData : public AllStatic {
  public:
   static word data_offset();
-  static word length_offset();
   static word InstanceSize();
 };
 

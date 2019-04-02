@@ -743,6 +743,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   bool omit_result_type_check = true;
   switch (kind) {
+    // On simdbc we fall back to natives.
+#if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
       break;
@@ -802,6 +804,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += BuildTypedDataViewFactoryConstructor(
           function, kTypedDataFloat64x2ArrayViewCid);
       break;
+#endif  // !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kObjectEquals:
       body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
@@ -825,14 +828,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::Array_length());
       break;
-    case MethodRecognizer::kTypedDataLength:
-      body += LoadLocal(parsed_function_->receiver_var());
-      body += LoadNativeField(Slot::TypedData_length());
-      break;
+    case MethodRecognizer::kTypedListLength:
+    case MethodRecognizer::kTypedListViewLength:
     case MethodRecognizer::kByteDataViewLength:
-    case MethodRecognizer::kTypedDataViewLength:
       body += LoadLocal(parsed_function_->receiver_var());
-      body += LoadNativeField(Slot::TypedDataView_length());
+      body += LoadNativeField(Slot::TypedDataBase_length());
       break;
     case MethodRecognizer::kByteDataViewOffsetInBytes:
     case MethodRecognizer::kTypedDataViewOffsetInBytes:
@@ -1027,7 +1027,21 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
 
   body += LoadLocal(view_object);
   body += LoadLocal(length);
-  body += StoreInstanceField(token_pos, Slot::TypedDataView_length());
+  body += StoreInstanceField(token_pos, Slot::TypedDataBase_length());
+
+  // Update the inner pointer.
+  //
+  // WARNING: Notice that we assume here no GC happens between those 4
+  // instructions!
+  body += LoadLocal(view_object);
+  body += LoadLocal(typed_data);
+  body += LoadUntagged(TypedDataBase::data_field_offset());
+  body += ConvertUntaggedToIntptr();
+  body += LoadLocal(offset_in_bytes);
+  body += UnboxSmiToIntptr();
+  body += AddIntptrIntegers();
+  body += ConvertIntptrToUntagged();
+  body += StoreUntagged(TypedDataView::data_field_offset());
 
   return body;
 }
@@ -2521,7 +2535,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
 
     if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
       body += LoadAddressFromFfiPointer();
-      body += UnboxTruncate(kUnboxedIntPtr);
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
     } else {
       Representation rep = arg_reps[pos - 1];
       body += UnboxTruncate(rep);
@@ -2537,12 +2551,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
       thread_, *MakeImplicitClosureScope(
                     Z, Class::Handle(I->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
-  body += UnboxTruncate(kUnboxedIntPtr);
+  body += UnboxTruncate(kUnboxedFfiIntPtr);
   body += FfiCall(signature, arg_reps, arg_locs);
 
   ffi_type = signature.result_type();
   if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
-    body += Box(kUnboxedIntPtr);
+    body += Box(kUnboxedFfiIntPtr);
     body += FfiPointerFromAddress(Type::Cast(ffi_type));
   } else if (compiler::ffi::NativeTypeIsVoid(ffi_type)) {
     body += Drop();

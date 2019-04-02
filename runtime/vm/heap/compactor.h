@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_HEAP_COMPACTOR_H_
 #define RUNTIME_VM_HEAP_COMPACTOR_H_
 
+#include "platform/growable_array.h"
+
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
 #include "vm/globals.h"
@@ -32,9 +34,14 @@ class GCCompactor : public ValueObject,
   void Compact(HeapPage* pages, FreeList* freelist, Mutex* mutex);
 
  private:
+  friend class CompactorTask;
+
   void SetupImagePageBoundaries();
   void ForwardStackPointers();
   void ForwardPointer(RawObject** ptr);
+  void VisitTypedDataViewPointers(RawTypedDataView* view,
+                                  RawObject** first,
+                                  RawObject** last);
   void VisitPointers(RawObject** first, RawObject** last);
   void VisitHandle(uword addr);
 
@@ -48,6 +55,11 @@ class GCCompactor : public ValueObject,
   // {instructions, data} x {vm isolate, current isolate, shared}
   static const intptr_t kMaxImagePages = 6;
   ImagePageRange image_page_ranges_[kMaxImagePages];
+
+  // The typed data views whose inner pointer must be updated after sliding is
+  // complete.
+  Mutex typed_data_view_mutex_;
+  MallocGrowableArray<RawTypedDataView*> typed_data_views_;
 };
 
 }  // namespace dart

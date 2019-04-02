@@ -68,7 +68,7 @@ Representation TypeRepresentation(const AbstractType& result_type) {
     case kFfiIntPtrCid:
     case kFfiPointerCid:
     default:  // Subtypes of Pointer.
-      return kUnboxedIntPtr;
+      return kUnboxedFfiIntPtr;
   }
 }
 

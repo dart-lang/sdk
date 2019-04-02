@@ -14,6 +14,8 @@
 
 namespace dart {
 
+class RawSmi;
+
 // Dart VM aligns all objects by 2 words in in the old space and misaligns them
 // in new space. This allows to distinguish new and old pointers by their bits.
 //
@@ -62,6 +64,12 @@ enum {
   kSmiTagMask = 1,
   kSmiTagShift = 1,
 };
+
+inline intptr_t ValueFromRawSmi(const RawSmi* raw_value) {
+  const intptr_t value = reinterpret_cast<intptr_t>(raw_value);
+  ASSERT((value & kSmiTagMask) == kSmiTag);
+  return (value >> kSmiTagShift);
+}
 
 }  // namespace dart
 
