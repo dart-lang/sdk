@@ -383,8 +383,8 @@ abstract class IrDataExtractor<T> extends ir.Visitor with DataRegistry<T> {
 
   @override
   defaultMember(ir.Member node) {
-    computeForMember(node);
     super.defaultMember(node);
+    computeForMember(node);
   }
 
   @override

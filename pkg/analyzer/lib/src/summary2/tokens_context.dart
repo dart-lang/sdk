@@ -56,6 +56,21 @@ class TokensContext {
     return _tokens.lexeme[index];
   }
 
+  void linkTokens(Token from, Token to) {
+    var fromIndex = _tokenToIndex[from];
+    var toIndex = _tokenToIndex[to];
+    Token prevToken = null;
+    for (var index = fromIndex; index <= toIndex && index != 0;) {
+      var token = _indexToToken[index];
+      token ??= tokenOfIndex(index);
+
+      prevToken?.next = token;
+
+      prevToken = token;
+      index = _tokens.next[index];
+    }
+  }
+
   int offset(int index) {
     return _tokens.offset[index];
   }
@@ -70,33 +85,39 @@ class TokensContext {
         case UnlinkedTokenKind.nothing:
           return null;
         case UnlinkedTokenKind.comment:
-          return CommentToken(
+          token = CommentToken(
             _binaryToAstTokenType(_tokens.type[index]),
             _tokens.lexeme[index],
             _tokens.offset[index],
           );
+          break;
         case UnlinkedTokenKind.keyword:
-          return KeywordToken(
+          token = KeywordToken(
             _binaryToAstTokenType(_tokens.type[index]),
             _tokens.offset[index],
             _getCommentToken(_tokens.precedingComment[index]),
           );
+          break;
         case UnlinkedTokenKind.simple:
-          return SimpleToken(
+          token = SimpleToken(
             _binaryToAstTokenType(_tokens.type[index]),
             _tokens.offset[index],
             _getCommentToken(_tokens.precedingComment[index]),
           );
+          break;
         case UnlinkedTokenKind.string:
-          return StringToken(
+          token = StringToken(
             _binaryToAstTokenType(_tokens.type[index]),
             _tokens.lexeme[index],
             _tokens.offset[index],
             _getCommentToken(_tokens.precedingComment[index]),
           );
+          break;
         default:
           throw UnimplementedError('Token kind: $kind');
       }
+      _indexToToken[index] = token;
+      _tokenToIndex[token] = index;
     }
     return token;
   }

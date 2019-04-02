@@ -1279,7 +1279,6 @@ class JsKernelToElementMap
     return node.arguments.positional[index].accept(new Stringifier());
   }
 
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
@@ -1312,8 +1311,6 @@ class JsKernelToElementMap
         commonElements);
   }
 
-  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
-  /// function.
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
@@ -1341,8 +1338,6 @@ class JsKernelToElementMap
         commonElements);
   }
 
-  /// Computes the [NativeBehavior] for a call to the
-  /// [JS_EMBEDDED_GLOBAL] function.
   // TODO(johnniwinther): Cache this for later use.
   @override
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(

@@ -367,7 +367,7 @@ class JsonDecoder {
 /// The sink only creates one object, but its input can be chunked.
 // TODO(floitsch): don't accumulate everything before starting to decode.
 class _JsonDecoderSink extends _StringSinkConversionSink {
-  final _Reviver _reviver;
+  final Function(Object key, Object value) _reviver;
   final Sink<Object> _sink;
 
   _JsonDecoderSink(this._reviver, this._sink) : super(new StringBuffer(''));

@@ -7,9 +7,9 @@ class M {}
 
 typedef dynamic FF({M b});
 
-/*element: table:OutputUnit(1, {lib})*/
+/*strong.element: table:OutputUnit(1, {lib})*/
 const table =
-/*OutputUnit(1, {lib})*/
+/*strong.OutputUnit(1, {lib})*/
     const <int, FF>{1: f1, 2: f2};
 
 /*element: f1:OutputUnit(1, {lib})*/

@@ -229,7 +229,6 @@ class JsClosedWorld implements JClosedWorld {
   @override
   DartTypes get dartTypes => elementMap.types;
 
-  /// Returns `true` if [cls] is implemented by an instantiated class.
   @override
   bool isImplemented(ClassEntity cls) {
     return implementedClasses.contains(cls);
@@ -255,13 +254,11 @@ class JsClosedWorld implements JClosedWorld {
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
-  /// Returns `true` if [cls] is mixed into a live class.
   @override
   bool isUsedAsMixin(ClassEntity cls) {
     return !mixinUsesOf(cls).isEmpty;
   }
 
-  /// Returns `true` if any live class that mixes in [cls] implements [type].
   @override
   bool hasAnySubclassOfMixinUseThatImplements(
       ClassEntity cls, ClassEntity type) {
@@ -269,8 +266,6 @@ class JsClosedWorld implements JClosedWorld {
         .any((use) => hasAnySubclassThatImplements(use, type));
   }
 
-  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
-  /// of a mixin application of [y].
   @override
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
     Map<ClassEntity, bool> secondMap =
@@ -281,7 +276,6 @@ class JsClosedWorld implements JClosedWorld {
             isSubclassOfMixinUseOf(cls, y));
   }
 
-  /// Returns `true` if any subclass of [superclass] implements [type].
   @override
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
     Set<ClassEntity> subclasses = typesImplementedBySubclasses[superclass];
@@ -340,7 +334,6 @@ class JsClosedWorld implements JClosedWorld {
     }
   }
 
-  /// Returns an iterable over the common supertypes of the [classes].
   @override
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes) {
     Iterator<ClassEntity> iterator = classes.iterator;
@@ -381,7 +374,6 @@ class JsClosedWorld implements JClosedWorld {
     return commonSupertypes;
   }
 
-  /// Returns an iterable over the live mixin applications that mixin [cls].
   @override
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
@@ -410,8 +402,6 @@ class JsClosedWorld implements JClosedWorld {
     return uses != null ? uses : const <ClassEntity>[];
   }
 
-  /// Returns `true` if any live class that mixes in [mixin] is also a subclass
-  /// of [superclass].
   @override
   bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin) {
     return mixinUsesOf(mixin).any((ClassEntity each) {
@@ -419,7 +409,6 @@ class JsClosedWorld implements JClosedWorld {
     });
   }
 
-  /// Returns `true` if [cls] or any superclass mixes in [mixin].
   @override
   bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin) {
     if (isUsedAsMixin(mixin)) {
@@ -441,12 +430,6 @@ class JsClosedWorld implements JClosedWorld {
     }
   }
 
-  /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
-  /// subclass of `Closure`.
-  ///
-  /// Every implementation of `Closure` has a 'call' method with its own
-  /// signature so it cannot be modelled by a [FunctionEntity]. Also,
-  /// call-methods for tear-off are not part of the element model.
   @override
   bool includesClosureCall(Selector selector, AbstractValue receiver) {
     return selector.name == Identifiers.call &&

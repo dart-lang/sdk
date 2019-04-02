@@ -44,7 +44,8 @@ export '../api_prototype/diagnostic_message.dart'
         getMessageRelatedInformation,
         getMessageUri;
 
-export '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+export '../api_prototype/experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag;
 
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -55,6 +56,8 @@ export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+
+export '../fasta/fasta_codes.dart' show LocatedMessage;
 
 export '../fasta/kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody;
@@ -107,9 +110,11 @@ InitializedCompilerState initializeCompiler(
     InitializedCompilerState oldState,
     Target target,
     Uri librariesSpecificationUri,
-    Uri sdkPlatformUri,
+    List<Uri> linkedDependencies,
     Uri packagesFileUri,
-    {Map<ExperimentalFlag, bool> experimentalFlags}) {
+    {List<Uri> dependencies,
+    Map<ExperimentalFlag, bool> experimentalFlags,
+    bool verify: false}) {
   bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
     if (a == null || b == null) return a == b;
     if (a.length != b.length) return false;
@@ -119,10 +124,20 @@ InitializedCompilerState initializeCompiler(
     return true;
   }
 
+  bool listEqual(List<Uri> a, List<Uri> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; ++i) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  linkedDependencies.sort((a, b) => a.toString().compareTo(b.toString()));
+
   if (oldState != null &&
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      oldState.options.linkedDependencies[0] == sdkPlatformUri &&
+      listEqual(oldState.options.linkedDependencies, linkedDependencies) &&
       mapEqual(oldState.options.experimentalFlags, experimentalFlags)) {
     return oldState;
   }
@@ -130,10 +145,11 @@ InitializedCompilerState initializeCompiler(
   CompilerOptions options = new CompilerOptions()
     ..target = target
     ..legacyMode = target.legacyMode
-    ..linkedDependencies = [sdkPlatformUri]
+    ..linkedDependencies = linkedDependencies
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
-    ..experimentalFlags = experimentalFlags;
+    ..experimentalFlags = experimentalFlags
+    ..verify = verify;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

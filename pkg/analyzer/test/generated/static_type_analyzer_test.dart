@@ -52,9 +52,6 @@ void _fail(String message) {
 
 @reflectiveTest
 class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_emptySetLiteral_parameter_typed() async {
     String code = r'''
 main() {
@@ -73,9 +70,6 @@ void useSet(Set<int> s) {
  */
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_FunctionExpressionInvocation_block() async {
     String code = r'''
 main() {
@@ -210,8 +204,6 @@ main() {
  */
 @reflectiveTest
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
-  bool get enableNewAnalysisDriver => true;
-
   test_emptyMapLiteral_initializer_var() async {
     String code = r'''
 main() {
@@ -1182,8 +1174,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitMapLiteral_empty() {
     // {}
-    // ignore: deprecated_member_use_from_same_package
-    Expression node = AstTestFactory.mapLiteral2();
+    Expression node = AstTestFactory.setOrMapLiteral(null, null);
     DartType resultType = _analyze(node);
     _assertType2(
         _typeProvider.mapType.instantiate(
@@ -1194,9 +1185,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitMapLiteral_nonEmpty() {
     // {"k" : 0}
-    // ignore: deprecated_member_use_from_same_package
-    Expression node = AstTestFactory.mapLiteral2(
-        [AstTestFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
+    Expression node = AstTestFactory.setOrMapLiteral(
+        null, null, [AstTestFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);
     _assertType2(
         _typeProvider.mapType.instantiate(
@@ -1667,9 +1657,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 @reflectiveTest
 class StaticTypeAnalyzerWithSetLiteralsTest
     extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_emptySetLiteral_inferredFromLinkedHashSet() async {
     String code = r'''
 import 'dart:collection';
@@ -1696,9 +1683,6 @@ Set<Set<int>> ints = {{}};
 @reflectiveTest
 class StaticTypeAnalyzerWithStrictInferenceTest
     extends StaticTypeAnalyzer2TestShared {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   void setUp() {
     super.setUp();

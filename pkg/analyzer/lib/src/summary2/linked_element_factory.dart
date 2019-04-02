@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -26,6 +27,18 @@ class LinkedElementFactory {
     for (var library in bundle.libraries) {
       libraryMap[library.uriStr] = _Library(context, library);
     }
+  }
+
+  Namespace buildExportNamespace(Uri uri) {
+    var exportedNames = <String, Element>{};
+
+    var exportedReferences = exportsOfLibrary('$uri');
+    for (var exportedReference in exportedReferences) {
+      var element = elementOfReference(exportedReference);
+      exportedNames[element.name] = element;
+    }
+
+    return Namespace(exportedNames);
   }
 
   Element elementOfReference(Reference reference) {
@@ -54,6 +67,33 @@ class LinkedElementFactory {
   LibraryElementImpl libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference);
+  }
+
+  LinkedNode nodeOfReference(Reference reference) {
+    if (reference.node != null) {
+      return reference.node;
+    }
+
+    var unitRef = reference.parent?.parent;
+    var unitContainer = unitRef?.parent;
+    if (unitContainer?.name == '@unit') {
+      var libraryUriStr = unitContainer.parent.name;
+      var libraryData = libraryMap[libraryUriStr];
+      for (var unitData in libraryData.node.units) {
+        var definingUnitContext = LinkedUnitContext(
+          libraryData.context,
+          TokensContext(unitData.tokens),
+        );
+        _ElementRequest._indexUnitDeclarations(
+          definingUnitContext,
+          unitRef,
+          unitData.node,
+        );
+        return reference.node;
+      }
+    }
+
+    throw UnimplementedError('$reference');
   }
 }
 
@@ -85,14 +125,19 @@ class _ElementRequest {
       return _constructor(class_, reference);
     }
 
+    if (parentName == '@enum') {
+      var unit = elementOfReference(parent2);
+      return _enum(unit, reference);
+    }
+
     if (parentName == '@function') {
       CompilationUnitElementImpl enclosing = elementOfReference(parent2);
       return _function(enclosing, reference);
     }
 
-    if (parentName == '@getter') {
+    if (parentName == '@getter' || parentName == '@setter') {
       var enclosing = elementOfReference(parent2);
-      return _getter(enclosing, reference);
+      return _accessor(enclosing, reference);
     }
 
     if (parentName == '@method') {
@@ -126,10 +171,28 @@ class _ElementRequest {
     throw StateError('Not found: $input');
   }
 
+  PropertyAccessorElementImpl _accessor(
+      ElementImpl enclosing, Reference reference) {
+    if (enclosing is ClassElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and fields.
+      assert(reference.element != null);
+      return reference.element;
+    }
+    if (enclosing is CompilationUnitElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and variables.
+      assert(reference.element != null);
+      return reference.element;
+    }
+    // Only classes and units have accessors.
+    throw StateError('${enclosing.runtimeType}');
+  }
+
   ClassElementImpl _class(
       CompilationUnitElementImpl unit, Reference reference) {
     if (reference.node == null) {
-      _indexUnitDeclarations(unit);
+      _indexUnitElementDeclarations(unit);
       assert(reference.node != 0, '$reference');
     }
     return reference.element = ClassElementImpl.forLinkedNode(
@@ -197,63 +260,29 @@ class _ElementRequest {
     return reference.element = libraryElement;
   }
 
+  EnumElementImpl _enum(CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node == null) {
+      _indexUnitElementDeclarations(unit);
+      assert(reference.node != 0, '$reference');
+    }
+    return reference.element = EnumElementImpl.forLinkedNode(
+      unit,
+      reference,
+      reference.node,
+    );
+  }
+
   Element _function(CompilationUnitElementImpl enclosing, Reference reference) {
     enclosing.functions;
     assert(reference.element != null);
     return reference.element;
   }
 
-  PropertyAccessorElementImpl _getter(
-      ElementImpl enclosing, Reference reference) {
-    if (enclosing is ClassElementImpl) {
-      enclosing.accessors;
-      // Requesting accessors sets elements for accessors and fields.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is CompilationUnitElementImpl) {
-      enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    // Only classes and units have accessors.
-    throw StateError('${enclosing.runtimeType}');
-  }
-
-  void _indexUnitDeclarations(CompilationUnitElementImpl unit) {
-    var context = unit.linkedContext;
+  void _indexUnitElementDeclarations(CompilationUnitElementImpl unit) {
+    var unitContext = unit.linkedContext;
     var unitRef = unit.reference;
-    var classRef = unitRef.getChild('@class');
-    var enumRef = unitRef.getChild('@class');
-    var functionRef = unitRef.getChild('@function');
-    var typeAliasRef = unitRef.getChild('@typeAlias');
-    var variableRef = unitRef.getChild('@variable');
-    for (var declaration in unit.linkedNode.compilationUnit_declarations) {
-      var kind = declaration.kind;
-      if (kind == LinkedNodeKind.classDeclaration ||
-          kind == LinkedNodeKind.classTypeAlias) {
-        var name = context.getUnitMemberName(declaration);
-        classRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.enumDeclaration) {
-        var name = context.getUnitMemberName(declaration);
-        enumRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.functionDeclaration) {
-        var name = context.getUnitMemberName(declaration);
-        functionRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.functionTypeAlias) {
-        var name = context.getUnitMemberName(declaration);
-        typeAliasRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
-        var variables = declaration.topLevelVariableDeclaration_variableList;
-        for (var variable in variables.variableDeclarationList_variables) {
-          var name = context.getSimpleName(variable.variableDeclaration_name);
-          variableRef.getChild(name).node = variable;
-        }
-      } else {
-        throw UnimplementedError('$kind');
-      }
-    }
+    var unitNode = unit.linkedNode;
+    _indexUnitDeclarations(unitContext, unitRef, unitNode);
   }
 
   MethodElementImpl _method(ClassElementImpl enclosing, Reference reference) {
@@ -272,7 +301,7 @@ class _ElementRequest {
   GenericTypeAliasElementImpl _typeAlias(
       CompilationUnitElementImpl unit, Reference reference) {
     if (reference.node == null) {
-      _indexUnitDeclarations(unit);
+      _indexUnitElementDeclarations(unit);
       assert(reference.node != 0, '$reference');
     }
     return reference.element = GenericTypeAliasElementImpl.forLinkedNode(
@@ -288,6 +317,44 @@ class _ElementRequest {
     // Requesting type parameters sets elements for all their references.
     assert(reference.element != null);
     return reference.element;
+  }
+
+  static void _indexUnitDeclarations(
+    LinkedUnitContext unitContext,
+    Reference unitRef,
+    LinkedNode unitNode,
+  ) {
+    var classRef = unitRef.getChild('@class');
+    var enumRef = unitRef.getChild('@enum');
+    var functionRef = unitRef.getChild('@function');
+    var typeAliasRef = unitRef.getChild('@typeAlias');
+    var variableRef = unitRef.getChild('@variable');
+    for (var declaration in unitNode.compilationUnit_declarations) {
+      var kind = declaration.kind;
+      if (kind == LinkedNodeKind.classDeclaration ||
+          kind == LinkedNodeKind.classTypeAlias) {
+        var name = unitContext.getUnitMemberName(declaration);
+        classRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.enumDeclaration) {
+        var name = unitContext.getUnitMemberName(declaration);
+        enumRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.functionDeclaration) {
+        var name = unitContext.getUnitMemberName(declaration);
+        functionRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.functionTypeAlias) {
+        var name = unitContext.getUnitMemberName(declaration);
+        typeAliasRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
+        var variables = declaration.topLevelVariableDeclaration_variableList;
+        for (var variable in variables.variableDeclarationList_variables) {
+          var name =
+              unitContext.getSimpleName(variable.variableDeclaration_name);
+          variableRef.getChild(name).node = variable;
+        }
+      } else {
+        throw UnimplementedError('$kind');
+      }
+    }
   }
 }
 

@@ -35,19 +35,18 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
         messageCantDisambiguateAmbiguousInformation,
         messageCantDisambiguateNotEnoughInformation,
         messageNonNullAwareSpreadIsNull,
-        messageSpreadElement,
-        messageSpreadMapElement,
         messageSwitchExpressionNotAssignableCause,
         messageVoidExpression,
         noLength,
         templateCantInferTypeDueToCircularity,
+        templateExpectedButGot,
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
+        templateInvalidAssignment,
         templateSpreadElementTypeMismatch,
         templateSpreadMapEntryElementKeyTypeMismatch,
         templateSpreadMapEntryElementValueTypeMismatch,
@@ -83,7 +82,16 @@ import '../type_inference/type_schema_environment.dart'
 import 'body_builder.dart' show combineStatements;
 
 import 'collections.dart'
-    show IfElement, SpreadElement, IfMapEntry, SpreadMapEntry;
+    show
+        ControlFlowMapEntry,
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement,
+        SpreadMapEntry;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
@@ -301,7 +309,6 @@ class ShadowClass extends Class {
         this, _inferenceInfo.gettersAndMethods, _inferenceInfo.builder.library);
     interfaceResolver.finalizeCovariance(
         this, _inferenceInfo.setters, _inferenceInfo.builder.library);
-    interfaceResolver.recordInstrumentation(this);
   }
 
   /// Creates API members for this class.

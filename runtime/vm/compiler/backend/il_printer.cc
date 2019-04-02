@@ -985,9 +985,15 @@ void UnboxIntegerInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
+void IntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s->%s%s, ", RepresentationToCString(from()),
            RepresentationToCString(to()), is_truncating() ? "[tr]" : "");
+  Definition::PrintOperandsTo(f);
+}
+
+void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%" Pd " -> 4 (%s), ", from_width_bytes_,
+           RepresentationToCString(representation()));
   Definition::PrintOperandsTo(f);
 }
 

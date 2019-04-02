@@ -5,13 +5,12 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=Map<int, String>*/ a = <int, String>{0: 'aaa', 1: 'bbb'};
-var /*@topType=Map<double, int>*/ b = <double, int>{1.1: 1, 2.2: 2};
-var /*@topType=Map<List<int>, Map<String, double>>*/ c =
-    <List<int>, Map<String, double>>{};
-var /*@topType=Map<int, dynamic>*/ d = <int, dynamic>{};
-var /*@topType=Map<dynamic, int>*/ e = <dynamic, int>{};
-var /*@topType=Map<dynamic, dynamic>*/ f = <dynamic, dynamic>{};
+var a = <int, String>{0: 'aaa', 1: 'bbb'};
+var b = <double, int>{1.1: 1, 2.2: 2};
+var c = <List<int>, Map<String, double>>{};
+var d = <int, dynamic>{};
+var e = <dynamic, int>{};
+var f = <dynamic, dynamic>{};
 
 main() {
   a;

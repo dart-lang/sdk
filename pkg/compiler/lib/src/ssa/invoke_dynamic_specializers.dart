@@ -197,13 +197,14 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       JCommonElements commonElements,
       JClosedWorld closedWorld,
       OptimizationTestLog log) {
+    var abstractValueDomain = closedWorld.abstractValueDomain;
     if (instruction.inputs[1]
-        .isIndexablePrimitive(closedWorld.abstractValueDomain)
+        .isIndexablePrimitive(abstractValueDomain)
         .isPotentiallyFalse) {
       return null;
     }
     if (instruction.inputs[2]
-            .isInteger(closedWorld.abstractValueDomain)
+            .isInteger(abstractValueDomain)
             .isPotentiallyFalse &&
         options.parameterCheckPolicy.isEmitted) {
       // We want the right checked mode error.
@@ -211,10 +212,13 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     }
     AbstractValue receiverType =
         instruction.getDartReceiver(closedWorld).instructionType;
-    AbstractValue type = AbstractValueFactory.inferredTypeForSelector(
+    AbstractValue elementType = AbstractValueFactory.inferredTypeForSelector(
         instruction.selector, receiverType, results);
+    if (abstractValueDomain.isTypedArray(receiverType).isDefinitelyTrue) {
+      elementType = abstractValueDomain.excludeNull(elementType);
+    }
     HIndex converted = new HIndex(instruction.inputs[1], instruction.inputs[2],
-        instruction.selector, type);
+        instruction.selector, elementType);
     log?.registerIndex(instruction, converted);
     return converted;
   }

@@ -394,22 +394,25 @@ class Profile : public ValueObject {
   ProfileTrieNode* GetTrieRoot(TrieKind trie_kind);
 
   void PrintProfileJSON(JSONStream* stream);
-  void PrintTimelineJSON(JSONStream* stream);
+  void PrintTimelineJSON(JSONStream* stream, bool code_trie);
 
   // Serializes sample backtraces into arguments on Instant events and adds them
   // directly to the timeline.
-  void AddToTimeline();
+  void AddToTimeline(bool code_trie);
 
   ProfileFunction* FindFunction(const Function& function);
 
  private:
-  void AddParentTriePointers(ProfileTrieNode* current, ProfileTrieNode* parent);
+  void AddParentTriePointers(ProfileTrieNode* current,
+                             ProfileTrieNode* parent,
+                             bool code_trie);
   void PrintBacktrace(ProfileTrieNode* node, TextBuffer* buf);
   void PrintHeaderJSON(JSONObject* obj);
   void PrintTimelineFrameJSON(JSONObject* frames,
                               ProfileTrieNode* current,
                               ProfileTrieNode* parent,
-                              intptr_t* next_id);
+                              intptr_t* next_id,
+                              bool code_trie);
 
   Isolate* isolate_;
   Zone* zone_;
@@ -497,9 +500,13 @@ class ProfilerService : public AllStatic {
   static void PrintTimelineJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,
                                 int64_t time_origin_micros,
-                                int64_t time_extent_micros);
+                                int64_t time_extent_micros,
+                                bool code_trie);
 
-  static void AddToTimeline();
+  static void AddToTimeline(Profile::TagOrder tag_order,
+                            int64_t time_origin_micros,
+                            int64_t time_extent_micros,
+                            bool code_trie);
 
   static void ClearSamples();
 
@@ -516,7 +523,8 @@ class ProfilerService : public AllStatic {
                             intptr_t extra_tags,
                             SampleFilter* filter,
                             SampleBuffer* sample_buffer,
-                            PrintKind kind);
+                            PrintKind kind,
+                            bool code_trie);
 };
 
 }  // namespace dart

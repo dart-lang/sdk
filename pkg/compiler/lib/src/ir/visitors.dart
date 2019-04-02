@@ -434,6 +434,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     return defaultExpression(node);
   }
 
+  @override
+  ConstantExpression visitBlockExpression(ir.BlockExpression node) {
+    return defaultExpression(node);
+  }
+
   /// Compute the [ConstantConstructor] corresponding to the const constructor
   /// [node].
   ConstantConstructor computeConstantConstructor(ir.Constructor node) {
@@ -690,7 +695,7 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
     for (ir.DartType type in node.types) {
       typeArguments.add(elementMap.getDartType(type));
     }
-    FunctionConstantValue function = node.accept(this);
+    FunctionConstantValue function = node.tearOffConstant.accept(this);
     return new InstantiationConstantValue(typeArguments, function);
   }
 
@@ -719,8 +724,13 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitSetConstant(ir.SetConstant node) {
-    // TODO(johnniwinther, fishythefish): Create a set constant value.
-    throw new UnsupportedError("Set literal constants not implemented.");
+    List<ConstantValue> elements = [];
+    for (ir.Constant element in node.entries) {
+      elements.add(element.accept(this));
+    }
+    DartType type = elementMap.commonElements
+        .setType(elementMap.getDartType(node.typeArgument));
+    return constant_system.createSet(elementMap.commonElements, type, elements);
   }
 
   @override

@@ -432,7 +432,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   // Methods required by ListMixin
 
-  E operator [](index) {
+  E operator [](dynamic index) {
     // TODO(justinfagnani): fix the semantics for non-ints
     // dartbug.com/14605
     if (index is num && index == index.toInt()) {
@@ -441,7 +441,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     return super[index];
   }
 
-  void operator []=(index, E value) {
+  void operator []=(dynamic index, E value) {
     // TODO(justinfagnani): fix the semantics for non-ints
     // dartbug.com/14605
     if (index is num && index == index.toInt()) {

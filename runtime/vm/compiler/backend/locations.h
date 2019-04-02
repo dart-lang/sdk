@@ -34,6 +34,17 @@ enum Representation {
   kNumRepresentations
 };
 
+// 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
+// On a 32-bit platform, it's an unsigned 32-bit int because it should be
+// zero-extended to 64-bits, not sign-extended (pointers are inherently
+// unsigned).
+//
+// Issue(36370): Use [kUnboxedIntPtr] instead.
+static constexpr Representation kUnboxedFfiIntPtr =
+    compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
+
+// The representation which can be used for native pointers. We use signed 32/64
+// bit representation to be able to do arithmetic on pointers.
 static constexpr Representation kUnboxedIntPtr =
     compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
 
@@ -342,8 +353,8 @@ class Location : public ValueObject {
 
   bool IsStackSlot() const { return kind() == kStackSlot; }
 
-  static Location DoubleStackSlot(intptr_t stack_index) {
-    uword payload = StackSlotBaseField::encode(FPREG) |
+  static Location DoubleStackSlot(intptr_t stack_index, Register base = FPREG) {
+    uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
@@ -642,8 +653,16 @@ class LocationSummary : public ZoneAllocated {
     ASSERT(index < num_inputs_);
     // See FlowGraphAllocator::ProcessOneInstruction for explanation of this
     // restriction.
-    ASSERT(!always_calls() || loc.IsMachineRegister() ||
-           (loc.IsUnallocated() && loc.policy() == Location::kAny));
+    if (always_calls()) {
+      if (loc.IsUnallocated()) {
+        ASSERT(loc.policy() == Location::kAny);
+      } else if (loc.IsPairLocation()) {
+        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+               loc.AsPairLocation()->At(0).policy() == Location::kAny);
+        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+               loc.AsPairLocation()->At(0).policy() == Location::kAny);
+      }
+    }
     input_locations_[index] = loc;
   }
 

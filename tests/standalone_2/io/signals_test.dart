@@ -16,11 +16,16 @@ void testSignals(int usr1Expect, int usr2Expect,
   if (usr1Send == null) usr1Send = usr1Expect;
   if (usr2Send == null) usr2Send = usr2Expect;
   asyncStart();
-  Process.start(Platform.executable, [
-    Platform.script.resolve('signals_test_script.dart').toFilePath(),
-    usr1Expect.toString(),
-    usr2Expect.toString()
-  ]).then((process) {
+  Process.start(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..addAll([
+              Platform.script.resolve('signals_test_script.dart').toFilePath(),
+              usr1Expect.toString(),
+              usr2Expect.toString()
+            ]))
+      .then((process) {
     process.stdin.close();
     process.stderr.drain();
     int v = 0;
@@ -45,10 +50,15 @@ void testSignals(int usr1Expect, int usr2Expect,
 
 void testSignal(ProcessSignal signal) {
   asyncStart();
-  Process.start(Platform.executable, [
-    Platform.script.resolve('signal_test_script.dart').toFilePath(),
-    signal.toString()
-  ]).then((process) {
+  Process.start(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..addAll([
+              Platform.script.resolve('signal_test_script.dart').toFilePath(),
+              signal.toString()
+            ]))
+      .then((process) {
     process.stdin.close();
     process.stderr.drain();
 
@@ -71,10 +81,13 @@ void testSignal(ProcessSignal signal) {
 void testMultipleSignals(List<ProcessSignal> signals) {
   for (var signal in signals) {
     asyncStart();
-    Process
-        .start(
+    Process.start(
             Platform.executable,
-            [Platform.script.resolve('signal_test_script.dart').toFilePath()]
+            []
+              ..addAll(Platform.executableArguments)
+              ..add(Platform.script
+                  .resolve('signal_test_script.dart')
+                  .toFilePath())
               ..addAll(signals.map((s) => s.toString())))
         .then((process) {
       process.stdin.close();

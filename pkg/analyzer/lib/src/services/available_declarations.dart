@@ -7,12 +7,16 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -100,6 +104,7 @@ class Declaration {
 enum DeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
   FUNCTION,
@@ -129,6 +134,10 @@ class DeclarationsContext {
   /// The list of paths of all SDK libraries.
   final List<String> _sdkLibraryPathList = [];
 
+  /// The combined information about all of the dartdoc directives in this
+  /// context.
+  final DartdocDirectiveInfo _dartdocDirectiveInfo = new DartdocDirectiveInfo();
+
   /// Map of path prefixes to lists of paths of files from dependencies
   /// (both libraries and parts, we don't know at the time when we fill this
   /// map) that libraries with paths starting with these prefixes can access.
@@ -137,6 +146,10 @@ class DeclarationsContext {
   final Map<String, List<String>> _pathPrefixToDependencyPathList = {};
 
   DeclarationsContext(this._tracker, this._analysisContext);
+
+  /// Return the combined information about all of the dartdoc directives in
+  /// this context.
+  DartdocDirectiveInfo get dartdocDirectiveInfo => _dartdocDirectiveInfo;
 
   /// Return libraries that are available to the file with the given [path].
   ///
@@ -810,6 +823,8 @@ class _DeclarationStorage {
         return DeclarationKind.CLASS;
       case idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS:
         return DeclarationKind.CLASS_TYPE_ALIAS;
+      case idl.AvailableDeclarationKind.CONSTRUCTOR:
+        return DeclarationKind.CONSTRUCTOR;
       case idl.AvailableDeclarationKind.ENUM:
         return DeclarationKind.ENUM;
       case idl.AvailableDeclarationKind.ENUM_CONSTANT:
@@ -837,6 +852,8 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.CLASS;
       case DeclarationKind.CLASS_TYPE_ALIAS:
         return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
+      case DeclarationKind.CONSTRUCTOR:
+        return idl.AvailableDeclarationKind.CONSTRUCTOR;
       case DeclarationKind.ENUM:
         return idl.AvailableDeclarationKind.ENUM;
       case DeclarationKind.ENUM_CONSTANT:
@@ -944,7 +961,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 8;
+  static const int DATA_VERSION = 9;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -970,6 +987,9 @@ class _File {
   List<Declaration> fileDeclarations = [];
   List<Declaration> libraryDeclarations = [];
   List<Declaration> exportedDeclarations;
+
+  List<String> templateNames = [];
+  List<String> templateValues = [];
 
   /// If `true`, then this library has already been sent to the client.
   bool isSent = false;
@@ -1027,9 +1047,14 @@ class _File {
 
       CompilationUnit unit = _parse(content);
       _buildFileDeclarations(unit);
+      _extractDartdocInfoFromUnit(unit);
       _putFileDeclarationsToByteStore(contentKey);
+      context.dartdocDirectiveInfo
+          .addTemplateNamesAndValues(templateNames, templateValues);
     } else {
       _readFileDeclarationsFromBytes(bytes);
+      context.dartdocDirectiveInfo
+          .addTemplateNamesAndValues(templateNames, templateValues);
     }
 
     // Resolve exports and parts.
@@ -1180,6 +1205,38 @@ class _File {
           kind: DeclarationKind.CLASS,
           name: node.name,
         );
+        for (var classMember in node.members) {
+          if (classMember is ConstructorDeclaration) {
+            setDartDoc(classMember);
+            isDeprecated = _hasDeprecatedAnnotation(classMember);
+
+            var parameters = classMember.parameters;
+            var defaultArguments = _computeDefaultArguments(parameters);
+
+            var constructorName = classMember.name;
+            constructorName ??= SimpleIdentifierImpl(
+              StringToken(
+                TokenType.IDENTIFIER,
+                '',
+                classMember.returnType.offset,
+              ),
+            );
+
+            addDeclaration(
+              defaultArgumentListString: defaultArguments?.text,
+              defaultArgumentListTextRanges: defaultArguments?.ranges,
+              isDeprecated: isDeprecated,
+              kind: DeclarationKind.CONSTRUCTOR,
+              name: constructorName,
+              name2: node.name,
+              parameters: parameters.toSource(),
+              parameterNames: _getFormalParameterNames(parameters),
+              parameterTypes: _getFormalParameterTypes(parameters),
+              requiredParameterCount:
+                  _getFormalParameterRequiredCount(parameters),
+            );
+          }
+        }
       } else if (node is ClassTypeAlias) {
         addDeclaration(
           isDeprecated: isDeprecated,
@@ -1285,6 +1342,42 @@ class _File {
     }
   }
 
+  void _extractDartdocInfoFromUnit(CompilationUnit unit) {
+    DartdocDirectiveInfo info = new DartdocDirectiveInfo();
+    for (Directive directive in unit.directives) {
+      Comment comment = directive.documentationComment;
+      if (comment != null) {
+        info.extractTemplate(getCommentNodeRawText(comment));
+      }
+    }
+    for (CompilationUnitMember declaration in unit.declarations) {
+      Comment comment = declaration.documentationComment;
+      if (comment != null) {
+        info.extractTemplate(getCommentNodeRawText(comment));
+      }
+      if (declaration is ClassOrMixinDeclaration) {
+        for (ClassMember member in declaration.members) {
+          Comment comment = member.documentationComment;
+          if (comment != null) {
+            info.extractTemplate(getCommentNodeRawText(comment));
+          }
+        }
+      } else if (declaration is EnumDeclaration) {
+        for (EnumConstantDeclaration constant in declaration.constants) {
+          Comment comment = constant.documentationComment;
+          if (comment != null) {
+            info.extractTemplate(getCommentNodeRawText(comment));
+          }
+        }
+      }
+    }
+    Map<String, String> templateMap = info.templateMap;
+    for (String name in templateMap.keys) {
+      templateNames.add(name);
+      templateValues.add(templateMap[name]);
+    }
+  }
+
   /// Return the [_File] for the given [relative] URI, maybe `null`.
   _File _fileForRelativeUri(DeclarationsContext context, Uri relative) {
     var absoluteUri = resolveRelativeUri(uri, relative);
@@ -1308,6 +1401,8 @@ class _File {
       declarations: fileDeclarations.map((d) {
         return _DeclarationStorage.toIdl(d);
       }).toList(),
+      directiveInfo: idl.DirectiveInfoBuilder(
+          templateNames: templateNames, templateValues: templateValues),
     );
     var bytes = builder.toBuffer();
     tracker._byteStore.put(contentKey, bytes);
@@ -1336,6 +1431,9 @@ class _File {
     fileDeclarations = idlFile.declarations.map((e) {
       return _DeclarationStorage.fromIdl(path, e);
     }).toList();
+
+    templateNames = idlFile.directiveInfo.templateNames;
+    templateValues = idlFile.directiveInfo.templateValues;
   }
 
   static _DefaultArguments _computeDefaultArguments(

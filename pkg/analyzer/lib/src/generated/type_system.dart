@@ -1918,41 +1918,25 @@ abstract class TypeSystem implements public.TypeSystem {
    * Searches the superinterfaces of [type] for implementations of [genericType]
    * and returns the most specific type argument used for that generic type.
    *
+   * For a more general/robust solution, use [InterfaceTypeImpl.asInstanceOf].
+   *
    * For example, given [type] `List<int>` and [genericType] `Iterable<T>`,
    * returns [int].
    *
    * Returns `null` if [type] does not implement [genericType].
    */
-  // TODO(jmesserly): this is very similar to code used for flattening futures.
-  // The only difference is, because of a lack of TypeProvider, the other method
-  // has to match the Future type by its name and library. Here was are passed
-  // in the correct type.
   DartType mostSpecificTypeArgument(DartType type, DartType genericType) {
     if (type is! InterfaceType) return null;
+    if (genericType is! InterfaceType) return null;
 
-    // Walk the superinterface hierarchy looking for [genericType].
-    List<DartType> candidates = <DartType>[];
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    void recurse(InterfaceType interface) {
-      if (interface.element == genericType.element &&
-          interface.typeArguments.isNotEmpty) {
-        candidates.add(interface.typeArguments[0]);
-      }
-      if (visitedClasses.add(interface.element)) {
-        if (interface.superclass != null) {
-          recurse(interface.superclass);
-        }
-        interface.mixins.forEach(recurse);
-        interface.interfaces.forEach(recurse);
-        visitedClasses.remove(interface.element);
-      }
+    var asInstanceOf = (type as InterfaceTypeImpl)
+        .asInstanceOf((genericType as InterfaceType).element);
+
+    if (asInstanceOf != null) {
+      return asInstanceOf.typeArguments[0];
     }
 
-    recurse(type);
-
-    // Since the interface may be implemented multiple times with different
-    // type arguments, choose the best one.
-    return InterfaceTypeImpl.findMostSpecificType(candidates, this);
+    return null;
   }
 
   /**

@@ -102,6 +102,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _MISSING_CATCH_OR_FINALLY,
   _EXPERIMENT_NOT_ENABLED,
   _EXPECTED_ELSE_OR_COMMA,
+  _INVALID_SUPER_IN_INITIALIZER,
+  _INVALID_THIS_IN_INITIALIZER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -385,6 +387,14 @@ const ParserErrorCode _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER =
     const ParserErrorCode('INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
         r"The operator '?.' cannot be used with 'super' because 'super' cannot be null.",
         correction: "Try replacing '?.' with '.'");
+
+const ParserErrorCode _INVALID_SUPER_IN_INITIALIZER = const ParserErrorCode(
+    'INVALID_SUPER_IN_INITIALIZER',
+    r"Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')");
+
+const ParserErrorCode _INVALID_THIS_IN_INITIALIZER = const ParserErrorCode(
+    'INVALID_THIS_IN_INITIALIZER',
+    r"Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())");
 
 const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
     'INVALID_UNICODE_ESCAPE',

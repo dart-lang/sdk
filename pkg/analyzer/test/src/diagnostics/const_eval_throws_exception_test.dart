@@ -141,7 +141,7 @@ class ConstEvalThrowsExceptionWithUIAsCodeTest
     ];
 
   test_ifElement_false_thenNotEvaluated() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 const dynamic nil = null;
 const c = [if (1 < 0) nil + 1];
 ''');
@@ -169,7 +169,7 @@ const c = const {if (nonBool) 3};
   }
 
   test_ifElement_true_elseNotEvaluated() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 const dynamic nil = null;
 const c = [if (0 < 1) 3 else nil + 1];
 ''');

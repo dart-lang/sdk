@@ -26,8 +26,6 @@ class LinterContextImplTest extends ResolverTestCase {
   CompilationUnitImpl testUnit;
   LinterContextImpl context;
 
-  bool get enableNewAnalysisDriver => true;
-
   void assertCanBeConst(String snippet, bool expectedResult) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);

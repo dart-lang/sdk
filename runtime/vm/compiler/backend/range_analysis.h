@@ -436,6 +436,12 @@ class Range : public ZoneAllocated {
                   const Range* right_range,
                   RangeBoundary* min,
                   RangeBoundary* max);
+
+  static void TruncDiv(const Range* left_range,
+                       const Range* right_range,
+                       RangeBoundary* min,
+                       RangeBoundary* max);
+
   static void Shr(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,

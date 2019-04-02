@@ -15,6 +15,7 @@ import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
+import '../inferrer/builder_kernel.dart';
 import '../ir/static_type_base.dart';
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';

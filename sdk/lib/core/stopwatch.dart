@@ -96,7 +96,7 @@ class Stopwatch {
    * The [elapsedTicks] counter converted to a [Duration].
    */
   Duration get elapsed {
-    return new Duration(microseconds: elapsedMicroseconds);
+    return Duration(microseconds: elapsedMicroseconds);
   }
 
   /**

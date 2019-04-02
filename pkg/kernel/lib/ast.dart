@@ -5951,9 +5951,13 @@ class Source {
 
   final List<int> source;
 
+  final Uri importUri;
+
+  final Uri fileUri;
+
   String cachedText;
 
-  Source(this.lineStarts, this.source);
+  Source(this.lineStarts, this.source, this.importUri, this.fileUri);
 
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.
@@ -6112,7 +6116,7 @@ Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
 /// This function will return "S with M1" and "S with M1, M2", respectively.
 String demangleMixinApplicationName(String name) {
   List<String> nameParts = name.split('&');
-  if (nameParts.length < 2) return name;
+  if (nameParts.length < 2 || name == "&") return name;
   String demangledName = nameParts[1];
   for (int i = 2; i < nameParts.length; i++) {
     demangledName += (i == 2 ? " with " : ", ") + nameParts[i];

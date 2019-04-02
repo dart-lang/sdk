@@ -628,10 +628,13 @@ abstract class _StringBase implements String {
   String replaceAll(Pattern pattern, String replacement) {
     if (pattern == null) throw new ArgumentError.notNull("pattern");
     if (replacement == null) throw new ArgumentError.notNull("replacement");
-    List matches = [];
-    int length = 0;
-    int replacementLength = replacement.length;
+
     int startIndex = 0;
+    // String fragments that replace the the prefix [this] up to [startIndex].
+    List matches = [];
+    int length = 0; // Length of all fragments.
+    int replacementLength = replacement.length;
+
     if (replacementLength == 0) {
       for (Match match in pattern.allMatches(this)) {
         length += _addReplaceSlice(matches, startIndex, match.start);
@@ -645,6 +648,8 @@ abstract class _StringBase implements String {
         startIndex = match.end;
       }
     }
+    // No match, or a zero-length match at start with zero-length replacement.
+    if (startIndex == 0 && length == 0) return this;
     length += _addReplaceSlice(matches, startIndex, this.length);
     bool replacementIsOneByte = replacement._isOneByte;
     if (replacementIsOneByte &&

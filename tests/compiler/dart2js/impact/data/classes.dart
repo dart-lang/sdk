@@ -137,7 +137,7 @@ class ForwardingConstructorClass = ForwardingConstructorSuperClass
 testForwardingConstructor() => new ForwardingConstructorClass(null);
 
 class ForwardingConstructorTypedSuperClass {
-  /*strong.element: ForwardingConstructorTypedSuperClass.:
+  /*element: ForwardingConstructorTypedSuperClass.:
    static=[Object.(0)],
    type=[inst:JSBool,param:int]
   */
@@ -154,7 +154,7 @@ class ForwardingConstructorTypedClass = ForwardingConstructorTypedSuperClass
 testForwardingConstructorTyped() => new ForwardingConstructorTypedClass(null);
 
 class ForwardingConstructorGenericSuperClass<T> {
-  /*strong.element: ForwardingConstructorGenericSuperClass.:
+  /*element: ForwardingConstructorGenericSuperClass.:
    static=[
     Object.(0),
     checkSubtype(4),
@@ -206,10 +206,11 @@ enum Enum {
   A
 }
 
-/*element: testEnum:static=[Enum.A]*/
+/*strong.element: testEnum:static=[Enum.A]*/
+/*strongConst.element: testEnum:static=[init:Enum._name,init:Enum.index],type=[const:Enum,inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32]*/
 testEnum() => Enum.A;
 
-/*strong.element: staticGenericMethod:
+/*element: staticGenericMethod:
  static=[
   checkSubtype(4),
   checkSubtypeOfRuntimeType(2),
@@ -231,7 +232,7 @@ testEnum() => Enum.A;
 */
 List<T> staticGenericMethod<T>(T arg) => [arg];
 
-/*strong.element: testStaticGenericMethod:
+/*element: testStaticGenericMethod:
   static=[staticGenericMethod<bool>(1)],
   type=[inst:JSBool]
 */
@@ -239,7 +240,7 @@ testStaticGenericMethod() {
   staticGenericMethod<bool>(true);
 }
 
-/*strong.element: testInstanceGenericMethod:
+/*element: testInstanceGenericMethod:
  dynamic=[exact:GenericClass.genericMethod<bool>(1)],
  static=[
   GenericClass.generative(0),
@@ -255,7 +256,7 @@ abstract class AbstractClass {
   // ignore: UNUSED_FIELD
   final _field;
 
-  /*strong.element: AbstractClass.:type=[inst:JSNull]*/
+  /*element: AbstractClass.:type=[inst:JSNull]*/
   factory AbstractClass() => null;
 }
 
@@ -292,7 +293,7 @@ class Class {
 class GenericClass<X, Y> {
   const GenericClass.generative();
 
-  /*strong.element: GenericClass.genericMethod:
+  /*element: GenericClass.genericMethod:
    static=[
     checkSubtype(4),
     checkSubtypeOfRuntimeType(2),

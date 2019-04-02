@@ -402,9 +402,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 RawFunction* StackFrame::LookupDartFunction() const {
   if (is_interpreted()) {
-    const Bytecode& bytecode = Bytecode::Handle(LookupDartBytecode());
-    ASSERT(!bytecode.IsNull());
-    return bytecode.function();
+    RawObject* result = *(reinterpret_cast<RawFunction**>(
+        fp() + kKBCFunctionSlotFromFp * kWordSize));
+    ASSERT((result == Object::null()) ||
+           (result->GetClassId() == kFunctionCid));
+    return reinterpret_cast<RawFunction*>(result);
   }
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {

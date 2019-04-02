@@ -20,17 +20,26 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory libDirectory =
+        new Directory.fromUri(Platform.script.resolve('libs'));
     print('Testing direct computation of ResolutionImpact');
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+        libDirectory: libDirectory,
+        args: args,
+        testOmit: false,
+        testFrontend: true);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+        libDirectory: libDirectory,
+        args: args,
+        testOmit: false,
+        testFrontend: true,
+        testCFEConstants: true);
   });
 }
 

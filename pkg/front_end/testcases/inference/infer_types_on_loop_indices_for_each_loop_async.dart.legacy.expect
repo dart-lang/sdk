@@ -15,7 +15,7 @@ class Bar<T extends asy::Stream<core::String> = dynamic> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T>
     : super core::Object::•()
     ;
-  method foo(self::Bar::T t) → dynamic async {
+  method foo(generic-covariant-impl self::Bar::T t) → dynamic async {
     await for (dynamic i in t) {
       core::int x = i;
     }
@@ -25,7 +25,7 @@ class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> 
   synthetic constructor •() → self::Baz<self::Baz::T, self::Baz::E, self::Baz::S>
     : super core::Object::•()
     ;
-  method foo(self::Baz::S t) → dynamic async {
+  method foo(generic-covariant-impl self::Baz::S t) → dynamic async {
     await for (dynamic i in t) {
       core::int x = i;
       self::Baz::T y = i;

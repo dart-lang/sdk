@@ -131,7 +131,7 @@ abstract class TargetImplementation extends Target {
   }
 
   void addSourceInformation(
-      Uri uri, List<int> lineStarts, List<int> sourceCode);
+      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode);
 
   void readPatchFiles(covariant LibraryBuilder library) {}
 

@@ -51,7 +51,6 @@ class KClosedWorldImpl implements KClosedWorld {
   @override
   final Iterable<MemberEntity> liveInstanceMembers;
 
-  /// Members that are written either directly or through a setter selector.
   @override
   final Iterable<MemberEntity> assignedInstanceMembers;
   @override
@@ -100,7 +99,6 @@ class KClosedWorldImpl implements KClosedWorld {
   @override
   RuntimeTypesNeed get rtiNeed => _rtiNeed;
 
-  /// Returns `true` if [cls] is implemented by an instantiated class.
   @override
   bool isImplemented(ClassEntity cls) {
     return _implementedClasses.contains(cls);

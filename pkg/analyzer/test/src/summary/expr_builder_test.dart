@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -23,6 +24,7 @@ import 'test_strategies.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExprBuilderTest);
+    defineReflectiveTests(ExprBuilderWithConstantUpdateTest);
     defineReflectiveTests(TokensToStringTest);
   });
 }
@@ -293,6 +295,178 @@ class C {
     checkSimpleExpression('0 <= 1');
   }
 
+  void test_list_for() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_each_with_declaration_typed() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (int i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForEachPartsWithDeclaration;
+    var iElement = loopParts.loopVariable.identifier.staticElement;
+    var iRef = forElement.body as SimpleIdentifier;
+    expect(iRef.staticElement, same(iElement));
+  }
+
+  void test_list_for_each_with_declaration_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForEachPartsWithDeclaration;
+    var iElement = loopParts.loopVariable.identifier.staticElement;
+    var iRef = forElement.body as SimpleIdentifier;
+    expect(iRef.staticElement, same(iElement));
+  }
+
+  void test_list_for_each_with_identifier() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_each_with_identifier_await() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[await for (i in const []) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_empty_condition() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0;; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_empty_initializer() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
+  void test_list_for_two_updaters() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0; i < 10; i++, j++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i; int j;');
+  }
+
+  void test_list_for_with_one_declaration_typed() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (int i = 0; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var iRef2 = updater.operand as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+    var iRef3 = forElement.body as SimpleIdentifier;
+    expect(iRef3.staticElement, same(iElement));
+  }
+
+  void test_list_for_with_one_declaration_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i = 0; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var iRef2 = updater.operand as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+    var iRef3 = forElement.body as SimpleIdentifier;
+    expect(iRef3.staticElement, same(iElement));
+  }
+
+  void test_list_for_with_two_declarations_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i = 0, j = 0; i < 10; j++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var jElement = loopParts.variables.variables[1].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var jRef = updater.operand as SimpleIdentifier;
+    expect(jRef.staticElement, same(jElement));
+    var iRef2 = forElement.body as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+  }
+
+  void test_list_for_with_uninitialized_declaration_untyped() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (var i; i < 10; i++) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    var list = checkSimpleExpression(sourceText, expectedText: expectedText)
+        as ListLiteral;
+    var forElement = list.elements[0] as ForElement;
+    var loopParts = forElement.forLoopParts as ForPartsWithDeclarations;
+    var iElement = loopParts.variables.variables[0].name.staticElement;
+    var condition = loopParts.condition as BinaryExpression;
+    var iRef1 = condition.leftOperand as SimpleIdentifier;
+    expect(iRef1.staticElement, same(iElement));
+    var updater = loopParts.updaters[0] as PostfixExpression;
+    var iRef2 = updater.operand as SimpleIdentifier;
+    expect(iRef2.staticElement, same(iElement));
+    var iRef3 = forElement.body as SimpleIdentifier;
+    expect(iRef3.staticElement, same(iElement));
+  }
+
+  void test_list_for_zero_updaters() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '[for (i = 0; i < 10;) i]';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
   void test_makeSymbol() {
     checkSimpleExpression('#foo');
   }
@@ -311,6 +485,15 @@ class C {
 
   void test_makeUntypedMap_const() {
     checkSimpleExpression('const {0 : false}');
+  }
+
+  void test_map_for() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '{1 : 2, for (i = 0; i < 10; i++) i : i}';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
   }
 
   void test_modulo() {
@@ -462,6 +645,15 @@ class B {
     checkSimpleExpression('true');
   }
 
+  void test_set_for() {
+    experimentStatus = ExperimentStatus(control_flow_collections: true);
+    var sourceText = '{1, for (i = 0; i < 10; i++) i}';
+    // Resynthesis inserts synthetic "const" tokens; work around that.
+    var expectedText = 'const $sourceText';
+    checkSimpleExpression(sourceText,
+        expectedText: expectedText, extraDeclarations: 'int i;');
+  }
+
   void test_subtract() {
     checkSimpleExpression('0 - 1');
   }
@@ -573,6 +765,18 @@ mixin ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
   TestSummaryResynthesizer encodeSource(String text) {
     var source = addTestSource(text);
     return encodeLibrary(source);
+  }
+}
+
+@reflectiveTest
+class ExprBuilderWithConstantUpdateTest extends ResynthesizeTestStrategyTwoPhase
+    with ExprBuilderTestHelpers {
+  @override
+  ExperimentStatus get experimentStatus =>
+      new ExperimentStatus.fromStrings([EnableString.constant_update_2018]);
+
+  void test_bitShiftRightLogical() {
+    checkSimpleExpression('0 >>> 1');
   }
 }
 

@@ -142,9 +142,6 @@ abstract class KernelToElementMap {
   ConstructorEntity getSuperConstructor(
       ir.Constructor constructor, ir.Member target);
 
-  /// Returns `true` is [node] has a `@Native(...)` annotation.
-  bool isNativeClass(ir.Class node);
-
   /// Computes the native behavior for reading the native [field].
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,

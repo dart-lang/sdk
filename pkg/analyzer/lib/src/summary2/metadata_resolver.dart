@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
@@ -17,18 +18,22 @@ class MetadataResolver {
   AstResolver _astResolver;
 
   MetadataResolver(Linker linker, Reference libraryRef) {
-    _astResolver = AstResolver(linker, libraryRef);
+    var libraryElement = linker.elementFactory.elementOfReference(libraryRef);
+    var libraryScope = LibraryScope(libraryElement);
+    _astResolver = AstResolver(linker, libraryElement, libraryScope);
   }
 
   void resolve(UnitBuilder unit) {
+    var unitDirectives = unit.node.compilationUnit_directives;
+    for (var directive in unitDirectives) {
+      _annotatedNode(unit, directive);
+    }
+
     var unitDeclarations = unit.node.compilationUnit_declarations;
     for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
       var kind = unitDeclaration.kind;
       if (_isAnnotatedNode(kind)) {
-        _annotatedNode(
-          unit,
-          unitDeclaration,
-        );
+        _annotatedNode(unit, unitDeclaration);
       }
       if (kind == LinkedNodeKind.classDeclaration) {
         _class(unit, unitDeclaration);
@@ -63,7 +68,12 @@ class MetadataResolver {
       if (_isAnnotatedNode(kind)) {
         _annotatedNode(unit, classMember);
       }
-      if (kind == LinkedNodeKind.fieldDeclaration) {
+      if (kind == LinkedNodeKind.constructorDeclaration) {
+        _formalParameterList(
+          unit,
+          classMember.constructorDeclaration_parameters,
+        );
+      } else if (kind == LinkedNodeKind.fieldDeclaration) {
         _variables(
           unit,
           classMember,
@@ -116,7 +126,7 @@ class MetadataResolver {
       // Set some parent, so that resolver does not bail out.
       astFactory.libraryDirective(null, [ast], null, null, null);
 
-      var resolvedNode = _astResolver.resolve(unit, ast);
+      var resolvedNode = _astResolver.resolve(unit.context, ast);
       resolved[i] = resolvedNode;
     }
     return resolved;

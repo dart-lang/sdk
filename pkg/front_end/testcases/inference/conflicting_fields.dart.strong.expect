@@ -2,28 +2,28 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/conflicting_fields.dart:18:27: Error: Can't infer a type for 'field1' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/conflicting_fields.dart:18:7: Error: Can't infer a type for 'field1' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   get /*@topType=dynamic*/field1 => null;
-//                           ^
+//   get field1 => null;
+//       ^
 //
-// pkg/front_end/testcases/inference/conflicting_fields.dart:19:27: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
+// pkg/front_end/testcases/inference/conflicting_fields.dart:19:7: Error: Can't infer a type for 'field2' as some of the inherited members have different types.
 // Try adding an explicit type.
-//   get /*@topType=dynamic*/field2 => null;
-//                           ^
+//   get field2 => null;
+//       ^
 //
-// pkg/front_end/testcases/inference/conflicting_fields.dart:19:27: Error: The return type of the method 'B.field2' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.field2'.
+// pkg/front_end/testcases/inference/conflicting_fields.dart:19:7: Error: The return type of the method 'B.field2' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.field2'.
 // Change to a subtype of 'int'.
-//   get /*@topType=dynamic*/field2 => null;
-//                           ^
+//   get field2 => null;
+//       ^
 // pkg/front_end/testcases/inference/conflicting_fields.dart:9:7: Context: This is the overridden method ('field2').
 //   int field2;
 //       ^
 //
-// pkg/front_end/testcases/inference/conflicting_fields.dart:18:27: Error: The return type of the method 'B.field1' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'I.field1'.
+// pkg/front_end/testcases/inference/conflicting_fields.dart:18:7: Error: The return type of the method 'B.field1' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'I.field1'.
 // Change to a subtype of 'int'.
-//   get /*@topType=dynamic*/field1 => null;
-//                           ^
+//   get field1 => null;
+//       ^
 // pkg/front_end/testcases/inference/conflicting_fields.dart:13:7: Context: This is the overridden method ('field1').
 //   int field1;
 //       ^

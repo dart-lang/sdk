@@ -7,6 +7,7 @@ library dart2js.src.options;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'commandline_options.dart' show Flags;
+import 'util/util.dart';
 
 /// Options used for controlling diagnostic messages.
 abstract class DiagnosticOptions {
@@ -51,6 +52,19 @@ class CompilerOptions implements DiagnosticOptions {
   /// If not null then [packageRoot] should be null.
   Uri packageConfig;
 
+  /// List of kernel files to load.
+  ///
+  /// When compiling modularly, this contains kernel files that are needed
+  /// to compile a single module.
+  ///
+  /// When linking, this contains all kernel files that form part of the final
+  /// program.
+  ///
+  /// At this time, this list points to full kernel files. In the future, we may
+  /// use a list of outline files for modular compiles, and only use full kernel
+  /// files for linking.
+  List<Uri> dillDependencies;
+
   /// Location from which serialized inference data is read.
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
@@ -81,6 +95,10 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Flags enabling language experiments.
   Map<fe.ExperimentalFlag, bool> languageExperiments = {};
+
+  /// `true` if CFE performs constant evaluation.
+  bool get useCFEConstants =>
+      languageExperiments[fe.ExperimentalFlag.constantUpdate2018];
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
@@ -180,10 +198,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is only included so that tests can pass the --assert-message flag
   /// without causing dart2js to crash. The flag has no effect.
   bool enableAssertMessage = true;
-
-  /// Whether the user specified a flag to allow the use of dart:mirrors. This
-  /// silences a warning produced by the compiler.
-  bool enableExperimentalMirrors = false;
 
   /// Whether to enable minification
   // TODO(sigmund): rename to minify
@@ -311,6 +325,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
       {Uri librariesSpecificationUri, Uri platformBinaries}) {
+    Map<fe.ExperimentalFlag, bool> languageExperiments =
+        _extractExperiments(options);
+    if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
+      platformBinaries ??= fe.computePlatformBinariesLocation();
+    }
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -329,7 +348,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
-      ..languageExperiments = _extractExperiments(options)
+      ..languageExperiments = languageExperiments
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
@@ -340,8 +359,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
-      ..enableExperimentalMirrors =
-          _hasOption(options, Flags.enableExperimentalMirrors)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
@@ -380,6 +397,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
+      ..dillDependencies =
+          _extractUriListOption(options, '${Flags.dillDependencies}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
@@ -404,7 +423,8 @@ class CompilerOptions implements DiagnosticOptions {
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("[packageRoot] must end with a /");
     }
-    if (platformBinaries == null) {
+    if (platformBinaries == null &&
+        equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
   }
@@ -530,6 +550,15 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
     }
   }
   return null;
+}
+
+/// Extract list of comma separated Uris provided for [flag]. Returns an
+/// empty list if [option] contain [flag] without arguments. Returns `null` if
+/// [option] doesn't contain [flag] with or without arguments.
+List<Uri> _extractUriListOption(List<String> options, String flag) {
+  List<String> stringUris = _extractOptionalCsvOption(options, flag);
+  if (stringUris == null) return null;
+  return stringUris.map(Uri.parse).toList();
 }
 
 Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {

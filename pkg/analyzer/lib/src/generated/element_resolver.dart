@@ -847,7 +847,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // in-lining _resolveArgumentsToFunction below).
     ClassDeclaration declaration =
         node.thisOrAncestorOfType<ClassDeclaration>();
-    Identifier superclassName = declaration.extendsClause?.superclass?.name;
+    Identifier superclassName = declaration?.extendsClause?.superclass?.name;
     if (superclassName != null &&
         _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
       return;
@@ -953,10 +953,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /**
    * Return the name of the method invoked by the given postfix [expression].
    */
-  String _getPostfixOperator(PostfixExpression expression) =>
-      (expression.operator.type == TokenType.PLUS_PLUS)
-          ? TokenType.PLUS.lexeme
-          : TokenType.MINUS.lexeme;
+  String _getPostfixOperator(PostfixExpression expression) {
+    if (expression.operator.type == TokenType.PLUS_PLUS) {
+      return TokenType.PLUS.lexeme;
+    } else if (expression.operator.type == TokenType.MINUS_MINUS) {
+      return TokenType.MINUS.lexeme;
+    } else {
+      throw new UnsupportedError(
+          'Unsupported postfix operator ${expression.operator.lexeme}');
+    }
+  }
 
   /**
    * Return the name of the method invoked by the given postfix [expression].
@@ -1877,13 +1883,8 @@ class SyntheticIdentifier extends IdentifierImpl {
   @override
   int get offset => targetIdentifier.offset;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 
   @deprecated
   @override

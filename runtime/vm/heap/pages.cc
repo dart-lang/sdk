@@ -57,8 +57,14 @@ DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
                              PageType type,
                              const char* name) {
+#if defined(TARGET_ARCH_DBC)
+  bool executable = false;
+#else
+  bool executable = type == kExecutable;
+#endif
+
   VirtualMemory* memory = VirtualMemory::AllocateAligned(
-      size_in_words << kWordSizeLog2, kPageSize, type == kExecutable, name);
+      size_in_words << kWordSizeLog2, kPageSize, executable, name);
   if (memory == NULL) {
     return NULL;
   }
@@ -1363,6 +1369,18 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   MutexLocker ml(pages_lock_);
   page->next_ = image_pages_;
   image_pages_ = page;
+}
+
+bool PageSpace::IsObjectFromImagePages(dart::RawObject* object) {
+  uword object_addr = RawObject::ToAddr(object);
+  HeapPage* image_page = image_pages_;
+  while (image_page != nullptr) {
+    if (image_page->Contains(object_addr)) {
+      return true;
+    }
+    image_page = image_page->next();
+  }
+  return false;
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,

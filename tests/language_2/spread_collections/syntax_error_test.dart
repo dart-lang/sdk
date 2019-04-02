@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=spread-collections
+// SharedOptions=--enable-experiment=spread-collections,constant-update-2018
 
 void main() {
   // Spread nothing.
-  var _ = [...]; //# 00: compile-time error
-  var _ = [...?]; //# 01: compile-time error
-  var _ = [...,]; //# 02: compile-time error
+  var _ = [...]; //# 00: syntax error
+  var _ = [...?]; //# 01: syntax error
+  var _ = [...,]; //# 02: syntax error
 
   // Use `...` in map entry.
-  var _ = {"a": ...{}}; //# 03: compile-time error
-  var _ = {...{}: "b"}; //# 04: compile-time error
-  var _ = {"a": ...?{}}; //# 05: compile-time error
-  var _ = {...?{}: "b"}; //# 06: compile-time error
+  var _ = {"a": ...{}}; //# 03: syntax error
+  var _ = {...{}: "b"}; //# 04: syntax error
+  var _ = {"a": ...?{}}; //# 05: syntax error
+  var _ = {...?{}: "b"}; //# 06: syntax error
 
   // Treats `...?` as single token.
-  var _ = [... ?null]; //# 07: compile-time error
-  var _ = {1: 2, ... ?null}; //# 08: compile-time error
+  var _ = [... ?null]; //# 07: syntax error
+  var _ = {1: 2, ... ?null}; //# 08: syntax error
 }

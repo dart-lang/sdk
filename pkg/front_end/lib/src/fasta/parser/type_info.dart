@@ -34,26 +34,26 @@ abstract class TypeInfo {
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type, inserting a synthetic type reference if
   /// necessary. This may modify the token stream when parsing `>>` or `>>>`
-  /// in valid code or during recovery.
+  /// or `>>>=` in valid code or during recovery.
   Token ensureTypeNotVoid(Token token, Parser parser);
 
   /// Call this function when the token after [token] must be a type or void.
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type, inserting a synthetic type reference if
   /// necessary. This may modify the token stream when parsing `>>` or `>>>`
-  /// in valid code or during recovery.
+  /// or `>>>=` in valid code or during recovery.
   Token ensureTypeOrVoid(Token token, Parser parser);
 
   /// Call this function to parse an optional type (not void) after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type. This may modify the token stream
-  /// when parsing `>>` or `>>>` in valid code or during recovery.
+  /// when parsing `>>` or `>>>` or `>>>=`  in valid code or during recovery.
   Token parseTypeNotVoid(Token token, Parser parser);
 
   /// Call this function to parse an optional type or void after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type. This may modify the token stream
-  /// when parsing `>>` or `>>>` in valid code or during recovery.
+  /// when parsing `>>` or `>>>` or `>>>=` in valid code or during recovery.
   Token parseType(Token token, Parser parser);
 
   /// Call this function with the [token] before the type to obtain
@@ -83,14 +83,14 @@ abstract class TypeParamOrArgInfo {
   /// Call this function to parse optional type arguments after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the arguments. This may modify the token stream
-  /// when parsing `>>` or `>>>` in valid code or during recovery.
+  /// when parsing `>>` or `>>>` or `>>>=` in valid code or during recovery.
   Token parseArguments(Token token, Parser parser);
 
   /// Call this function to parse optional type parameters
   /// (also known as type variables) after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the parameters. This may modify the token stream
-  /// when parsing `>>` or `>>>` in valid code or during recovery.
+  /// when parsing `>>` or `>>>` or `>>>=` in valid code or during recovery.
   Token parseVariables(Token token, Parser parser);
 
   /// Call this function with the [token] before the type var to obtain

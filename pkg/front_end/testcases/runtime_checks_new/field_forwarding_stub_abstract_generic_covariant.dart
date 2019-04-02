@@ -6,7 +6,7 @@
 library test;
 
 class B<T> {
-  T /*@covariance=genericImpl*/ x;
+  T x;
 }
 
 class C extends B<num> {}

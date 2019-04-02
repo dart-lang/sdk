@@ -6,7 +6,7 @@ class A<X extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X>
     : super core::Object::•()
     ;
-  method bar<Y extends self::A::X = dynamic>() → dynamic
+  method bar<generic-covariant-impl Y extends self::A::X = dynamic>() → dynamic
     return null;
 }
 class B extends core::Object {

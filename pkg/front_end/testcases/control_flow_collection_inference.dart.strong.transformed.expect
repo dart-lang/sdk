@@ -1,0 +1,2135 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:39:34: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+//   Map<String, List<int>> map40 = {if (oracle("foo")) ...{"bar", []}, "baz": null};
+//                                  ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:71:38: Error: Unexpected type 'Map<String, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   var map82 = {if (oracle("foo")) ...mapToInt else ...dynVar, null};
+//                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:84:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>[if (oracle("foo")) "bar"];
+//                            ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:85:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>{if (oracle("foo")) "bar", null};
+//                            ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:86:43: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <String, int>{if (oracle("foo")) "bar": "bar", "baz": null};
+//                                           ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:86:41: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <String, int>{if (oracle("foo")) "bar": "bar", "baz": null};
+//                                         ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:87:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>[if (oracle("foo")) ...["bar"]];
+//                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:88:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>{if (oracle("foo")) ...["bar"], null};
+//                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:89:47: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <String, int>{if (oracle("foo")) ...{"bar": "bar"}, "baz": null};
+//                                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:90:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>[if (oracle("foo")) ...map];
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:91:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>{if (oracle("foo")) ...map, null};
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:92:39: Error: Unexpected type 'List<String>' of a map spread entry.  Expected 'dynamic' or a Map.
+//  - 'List' is from 'dart:core'.
+//   <String, int>{if (oracle("foo")) ...["bar"], "baz": null};
+//                                       ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:93:12: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String>[if (oracle("foo")) 42 else 3.14];
+//            ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:94:12: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String>{if (oracle("foo")) 42 else 3.14, null};
+//            ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:95:46: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String, String>{if (oracle("foo")) "bar": 42 else "baz": 3.14, "baz": null};
+//                                              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:95:61: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String, String>{if (oracle("foo")) "bar": 42 else "baz": 3.14, "baz": null};
+//                                                             ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:95:20: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String, String>{if (oracle("foo")) "bar": 42 else "baz": 3.14, "baz": null};
+//                    ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:96:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>[if (oracle("foo")) ...map else 42];
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:97:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>{if (oracle("foo")) ...map else 42, null};
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:98:39: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+//  - 'List' is from 'dart:core'.
+//   <String, int>{if (oracle("foo")) ...[42] else "bar": 42, "baz": null};
+//                                       ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:99:39: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>[if (oracle("foo")) 42 else ...map];
+//                                       ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:100:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>{if (oracle("foo")) ...map else 42, null};
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:101:54: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+//  - 'List' is from 'dart:core'.
+//   <String, int>{if (oracle("foo")) "bar": 42 else ...[42], "baz": null};
+//                                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:210:14: Error: Setter not found: 'i'.
+//   <int>[for (i in <int>[1]) i];
+//              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:211:14: Error: Setter not found: 'i'.
+//   <int>{for (i in <int>[1]) i, null};
+//              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:212:21: Error: Setter not found: 'i'.
+// 	<String, int>{for (i in <int>[1]) "bar": i, "baz": null};
+// 	                   ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:226:17: Error: The keyword 'await' isn't allowed for a normal 'for' statement.
+// Try removing the keyword, or use a for-each statement.
+//   var list50 = [await for (;;) 42];
+//                 ^^^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:227:16: Error: The keyword 'await' isn't allowed for a normal 'for' statement.
+// Try removing the keyword, or use a for-each statement.
+//   var set50 = {await for (;;) 42, null};
+//                ^^^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:228:16: Error: The keyword 'await' isn't allowed for a normal 'for' statement.
+// Try removing the keyword, or use a for-each statement.
+//   var map50 = {await for (;;) "bar": 42, "baz": null};
+//                ^^^^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:190:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>[for (int i = 0; oracle("foo"); i++) "bar"];
+//                                             ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:191:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>{for (int i = 0; oracle("foo"); i++) "bar", null};
+//                                             ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:192:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) "bar": "bar", "baz": null};
+//                                                  ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:192:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) "bar": "bar", "baz": null};
+//                                                         ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:192:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) "bar": "bar", "baz": null};
+//                                                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:192:14: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) "bar": "bar", "baz": null};
+//              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:193:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>[for (int i = 0; oracle("foo"); i++) ...["bar"]];
+//                                                 ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:194:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int>{for (int i = 0; oracle("foo"); i++) ...["bar"], null};
+//                                                 ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:195:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) ...{"bar": "bar"}, "baz": null};
+//                                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:195:61: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) ...{"bar": "bar"}, "baz": null};
+//                                                             ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:195:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) ...{"bar": "bar"}, "baz": null};
+//                                                                     ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:196:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>[for (int i = 0; oracle("foo"); i++) ...map];
+//                                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:197:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>{for (int i = 0; oracle("foo"); i++) ...map, null};
+//                                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:198:53: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+//  - 'List' is from 'dart:core'.
+//   <int, int>{for (int i = 0; oracle("foo"); i++) ...list, 42: null};
+//                                                     ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:199:48: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String>[for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else 3.14];
+//                                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:200:48: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String>{for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else 3.14, null};
+//                                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:201:77: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String, String>{for (int i = 0; oracle("foo"); i++) if (oracle()) "bar": 42 else "bar": 3.14, "baz": null};
+//                                                                             ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:201:92: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String, String>{for (int i = 0; oracle("foo"); i++) if (oracle()) "bar": 42 else "bar": 3.14, "baz": null};
+//                                                                                            ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:201:20: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+// Try changing the type of the left hand side, or casting the right hand side to 'String'.
+//   <String, String>{for (int i = 0; oracle("foo"); i++) if (oracle()) "bar": 42 else "bar": 3.14, "baz": null};
+//                    ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:202:62: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>[for (int i = 0; oracle("foo"); i++) if (oracle()) ...map else 42];
+//                                                              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:203:62: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>{for (int i = 0; oracle("foo"); i++) if (oracle()) ...map else 42, null};
+//                                                              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:204:70: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+//  - 'List' is from 'dart:core'.
+//   <String, int>{for (int i = 0; oracle("foo"); i++) if (oracle()) ...list else "bar": 42, "baz": null};
+//                                                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:205:70: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>[for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else ...map];
+//                                                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:206:70: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+//   <int>{for (int i = 0; oracle("foo"); i++) if (oracle()) 42 else ...map, null};
+//                                                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:207:85: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+//  - 'List' is from 'dart:core'.
+//   <String, int>{for (int i = 0; oracle("foo"); i++) if (oracle()) "bar": 42 else ...list, "baz": null};
+//                                                                                     ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:214:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Iterable' is from 'dart:core'.
+//   var list10 = [for (var i in "not iterable") i];
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:215:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Iterable' is from 'dart:core'.
+//   var set10 = {for (var i in "not iterable") i, null};
+//                              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:216:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Iterable' is from 'dart:core'.
+//   var map10 = {for (var i in "not iterable") "bar": i, "baz": null};
+//                              ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:217:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var list20 = [for (int i in ["not", "int"]) i];
+//                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:217:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var list20 = [for (int i in ["not", "int"]) i];
+//                                       ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:218:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var set20 = {for (int i in ["not", "int"]) i, null};
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:218:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var set20 = {for (int i in ["not", "int"]) i, null};
+//                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:219:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var map20 = {for (int i in ["not", "int"]) "bar": i, "baz": null};
+//                               ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:219:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var map20 = {for (int i in ["not", "int"]) "bar": i, "baz": null};
+//                                      ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:220:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+//  - 'Stream' is from 'dart:async'.
+//   var list30 = [await for (var i in "not stream") i];
+//                                     ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:221:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+//  - 'Stream' is from 'dart:async'.
+//   var set30 = {await for (var i in "not stream") i, null};
+//                                    ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:222:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+//  - 'Stream' is from 'dart:async'.
+//   var map30 = {await for (var i in "not stream") "bar": i, "baz": null};
+//                                    ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:223:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var list40 = [await for (int i in Stream.fromIterable(["not", "int"])) i];
+//                                                          ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:223:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var list40 = [await for (int i in Stream.fromIterable(["not", "int"])) i];
+//                                                                 ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:224:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var set40 = {await for (int i in Stream.fromIterable(["not", "int"])) i, null};
+//                                                         ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:224:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var set40 = {await for (int i in Stream.fromIterable(["not", "int"])) i, null};
+//                                                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:225:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var map40 = {await for (int i in Stream.fromIterable(["not", "int"])) "bar": i, "baz": null};
+//                                                         ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:225:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   var map40 = {await for (int i in Stream.fromIterable(["not", "int"])) "bar": i, "baz": null};
+//                                                                ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:229:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+// Try changing the type of the left hand side, or casting the right hand side to 'bool'.
+//   var list60 = [for (; "not bool";) 42];
+//                        ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:230:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+// Try changing the type of the left hand side, or casting the right hand side to 'bool'.
+//   var set60 = {for (; "not bool";) 42, null};
+//                       ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:231:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+// Try changing the type of the left hand side, or casting the right hand side to 'bool'.
+//   var map60 = {for (; "not bool";) "bar": 42, "baz": null};
+//                       ^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:235:26: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+// Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.
+//   <int>[await for (int i in stream) i];
+//                          ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:236:26: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+// Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.
+//   <int>{await for (int i in stream) i};
+//                          ^^
+//
+// pkg/front_end/testcases/control_flow_collection_inference.dart:237:34: Error: The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+// Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.
+//   <String, int>{await for (int i in stream) "bar": i};
+//                                  ^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+import "dart:async" as asy;
+
+static method oracle<T extends core::Object = dynamic>([self::oracle::T t = null]) → dynamic
+  return true;
+static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core::List<core::double> listDouble, core::Map<core::String, core::int> mapToInt, core::Map<core::String, core::double> mapToDouble) → dynamic {
+  core::List<core::int> list10 = block {
+    final core::List<core::int> #t1 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      #t1.{core::List::add}(42);
+  } =>#t1;
+  core::Set<core::int> set10 = block {
+    final core::Set<core::int> #t2 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      #t2.{core::Set::add}(42);
+    #t2.{core::Set::add}(null);
+  } =>#t2;
+  core::Map<core::String, core::int> map10 = block {
+    final core::Map<core::String, core::int> #t3 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      #t3.{core::Map::[]=}("bar", 42);
+    #t3.{core::Map::[]=}("baz", null);
+  } =>#t3;
+  core::List<dynamic> list11 = block {
+    final core::List<dynamic> #t4 = <dynamic>[];
+    if(self::oracle<core::String>("foo"))
+      #t4.{core::List::add}(dynVar);
+  } =>#t4;
+  core::Set<dynamic> set11 = block {
+    final core::Set<dynamic> #t5 = col::LinkedHashSet::•<dynamic>();
+    if(self::oracle<core::String>("foo"))
+      #t5.{core::Set::add}(dynVar);
+    #t5.{core::Set::add}(null);
+  } =>#t5;
+  core::Map<core::String, dynamic> map11 = block {
+    final core::Map<core::String, dynamic> #t6 = <core::String, dynamic>{};
+    if(self::oracle<core::String>("foo"))
+      #t6.{core::Map::[]=}("bar", dynVar);
+    #t6.{core::Map::[]=}("baz", null);
+  } =>#t6;
+  core::List<core::List<core::int>> list12 = block {
+    final core::List<core::List<core::int>> #t7 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      #t7.{core::List::add}(<core::int>[42]);
+  } =>#t7;
+  core::Set<core::List<core::int>> set12 = block {
+    final core::Set<core::List<core::int>> #t8 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      #t8.{core::Set::add}(<core::int>[42]);
+    #t8.{core::Set::add}(null);
+  } =>#t8;
+  core::Map<core::String, core::List<core::int>> map12 = block {
+    final core::Map<core::String, core::List<core::int>> #t9 = <core::String, core::List<core::int>>{};
+    if(self::oracle<core::String>("foo"))
+      #t9.{core::Map::[]=}("bar", <core::int>[42]);
+    #t9.{core::Map::[]=}("baz", null);
+  } =>#t9;
+  core::List<core::int> list20 = block {
+    final core::List<core::int> #t10 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t11 in <core::int>[42])
+        #t10.{core::List::add}(#t11);
+  } =>#t10;
+  core::Set<core::int> set20 = block {
+    final core::Set<core::int> #t12 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t13 in <core::int>[42])
+        #t12.{core::Set::add}(#t13);
+    #t12.{core::Set::add}(null);
+  } =>#t12;
+  core::Map<core::String, core::int> map20 = block {
+    final core::Map<core::String, core::int> #t14 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, core::int> #t15 in <core::String, core::int>{"bar": 42}.{core::Map::entries})
+        #t14.{core::Map::[]=}(#t15.{core::MapEntry::key}, #t15.{core::MapEntry::value});
+    #t14.{core::Map::[]=}("baz", null);
+  } =>#t14;
+  core::List<dynamic> list21 = block {
+    final core::List<dynamic> #t16 = <dynamic>[];
+    if(self::oracle<core::String>("foo"))
+      for (final dynamic #t17 in <dynamic>[dynVar])
+        #t16.{core::List::add}(#t17);
+  } =>#t16;
+  core::Set<dynamic> set21 = block {
+    final core::Set<dynamic> #t18 = col::LinkedHashSet::•<dynamic>();
+    if(self::oracle<core::String>("foo"))
+      for (final dynamic #t19 in <dynamic>[dynVar])
+        #t18.{core::Set::add}(#t19);
+    #t18.{core::Set::add}(null);
+  } =>#t18;
+  core::Map<core::String, dynamic> map21 = block {
+    final core::Map<core::String, dynamic> #t20 = <core::String, dynamic>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, dynamic> #t21 in <core::String, dynamic>{"bar": dynVar}.{core::Map::entries})
+        #t20.{core::Map::[]=}(#t21.{core::MapEntry::key}, #t21.{core::MapEntry::value});
+    #t20.{core::Map::[]=}("baz", null);
+  } =>#t20;
+  core::List<core::List<core::int>> list22 = block {
+    final core::List<core::List<core::int>> #t22 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t23 in <core::List<core::int>>[<core::int>[42]])
+        #t22.{core::List::add}(#t23);
+  } =>#t22;
+  core::Set<core::List<core::int>> set22 = block {
+    final core::Set<core::List<core::int>> #t24 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t25 in <core::List<core::int>>[<core::int>[42]])
+        #t24.{core::Set::add}(#t25);
+    #t24.{core::Set::add}(null);
+  } =>#t24;
+  core::Map<core::String, core::List<core::int>> map22 = block {
+    final core::Map<core::String, core::List<core::int>> #t26 = <core::String, core::List<core::int>>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, core::List<core::int>> #t27 in <core::String, core::List<core::int>>{"bar": <core::int>[42]}.{core::Map::entries})
+        #t26.{core::Map::[]=}(#t27.{core::MapEntry::key}, #t27.{core::MapEntry::value});
+    #t26.{core::Map::[]=}("baz", null);
+  } =>#t26;
+  core::List<core::int> list30 = block {
+    final core::List<core::int> #t28 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::int #t29 in <core::int>[42])
+          #t28.{core::List::add}(#t29);
+  } =>#t28;
+  core::Set<core::int> set30 = block {
+    final core::Set<core::int> #t30 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::int #t31 in <core::int>[42])
+          #t30.{core::Set::add}(#t31);
+    #t30.{core::Set::add}(null);
+  } =>#t30;
+  core::Map<core::String, core::int> map30 = block {
+    final core::Map<core::String, core::int> #t32 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::int> #t33 in <core::String, core::int>{"bar": 42}.{core::Map::entries})
+          #t32.{core::Map::[]=}(#t33.{core::MapEntry::key}, #t33.{core::MapEntry::value});
+    #t32.{core::Map::[]=}("baz", null);
+  } =>#t32;
+  core::List<dynamic> list31 = block {
+    final core::List<dynamic> #t34 = <dynamic>[];
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final dynamic #t35 in <dynamic>[dynVar])
+          #t34.{core::List::add}(#t35);
+  } =>#t34;
+  core::Set<dynamic> set31 = block {
+    final core::Set<dynamic> #t36 = col::LinkedHashSet::•<dynamic>();
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final dynamic #t37 in <dynamic>[dynVar])
+          #t36.{core::Set::add}(#t37);
+    #t36.{core::Set::add}(null);
+  } =>#t36;
+  core::Map<core::String, dynamic> map31 = block {
+    final core::Map<core::String, dynamic> #t38 = <core::String, dynamic>{};
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, dynamic> #t39 in <core::String, dynamic>{"bar": dynVar}.{core::Map::entries})
+          #t38.{core::Map::[]=}(#t39.{core::MapEntry::key}, #t39.{core::MapEntry::value});
+    #t38.{core::Map::[]=}("baz", null);
+  } =>#t38;
+  core::List<core::List<core::int>> list33 = block {
+    final core::List<core::List<core::int>> #t40 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t41 in <core::List<core::int>>[<core::int>[42]])
+          #t40.{core::List::add}(#t41);
+  } =>#t40;
+  core::Set<core::List<core::int>> set33 = block {
+    final core::Set<core::List<core::int>> #t42 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t43 in <core::List<core::int>>[<core::int>[42]])
+          #t42.{core::Set::add}(#t43);
+    #t42.{core::Set::add}(null);
+  } =>#t42;
+  core::Map<core::String, core::List<core::int>> map33 = block {
+    final core::Map<core::String, core::List<core::int>> #t44 = <core::String, core::List<core::int>>{};
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::List<core::int>> #t45 in <core::String, core::List<core::int>>{"bar": <core::int>[42]}.{core::Map::entries})
+          #t44.{core::Map::[]=}(#t45.{core::MapEntry::key}, #t45.{core::MapEntry::value});
+    #t44.{core::Map::[]=}("baz", null);
+  } =>#t44;
+  core::List<core::List<core::int>> list40 = block {
+    final core::List<core::List<core::int>> #t46 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t47 in <core::List<core::int>>[<core::int>[]])
+        #t46.{core::List::add}(#t47);
+  } =>#t46;
+  core::Set<core::List<core::int>> set40 = block {
+    final core::Set<core::List<core::int>> #t48 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t49 in <core::List<core::int>>[<core::int>[]])
+        #t48.{core::Set::add}(#t49);
+    #t48.{core::Set::add}(null);
+  } =>#t48;
+  core::Map<core::String, core::List<core::int>> map40 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:39:34: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+  Map<String, List<int>> map40 = {if (oracle(\"foo\")) ...{\"bar\", []}, \"baz\": null};
+                                 ^";
+  core::List<core::List<core::int>> list41 = block {
+    final core::List<core::List<core::int>> #t50 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t51 in let final core::Set<core::List<core::int>> #t52 = col::LinkedHashSet::•<core::List<core::int>>() in let final core::bool #t53 = #t52.{core::Set::add}(<core::int>[]) in #t52)
+        #t50.{core::List::add}(#t51);
+  } =>#t50;
+  core::Set<core::List<core::int>> set41 = block {
+    final core::Set<core::List<core::int>> #t54 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t55 in let final core::Set<core::List<core::int>> #t56 = col::LinkedHashSet::•<core::List<core::int>>() in let final core::bool #t57 = #t56.{core::Set::add}(<core::int>[]) in #t56)
+        #t54.{core::Set::add}(#t55);
+    #t54.{core::Set::add}(null);
+  } =>#t54;
+  core::List<core::List<core::int>> list42 = block {
+    final core::List<core::List<core::int>> #t58 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t59 in <core::List<core::int>>[<core::int>[]])
+          #t58.{core::List::add}(#t59);
+  } =>#t58;
+  core::Set<core::List<core::int>> set42 = block {
+    final core::Set<core::List<core::int>> #t60 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t61 in <core::List<core::int>>[<core::int>[]])
+          #t60.{core::Set::add}(#t61);
+    #t60.{core::Set::add}(null);
+  } =>#t60;
+  core::Map<core::String, core::List<core::int>> map42 = block {
+    final core::Map<core::String, core::List<core::int>> #t62 = <core::String, core::List<core::int>>{};
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::List<core::int>> #t63 in <core::String, core::List<core::int>>{"bar": <core::int>[]}.{core::Map::entries})
+          #t62.{core::Map::[]=}(#t63.{core::MapEntry::key}, #t63.{core::MapEntry::value});
+    #t62.{core::Map::[]=}("baz", null);
+  } =>#t62;
+  core::List<core::int> list50 = block {
+    final core::List<core::int> #t64 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t65 in <core::int>[])
+        #t64.{core::List::add}(#t65);
+  } =>#t64;
+  core::Set<core::int> set50 = block {
+    final core::Set<core::int> #t66 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t67 in <core::int>[])
+        #t66.{core::Set::add}(#t67);
+    #t66.{core::Set::add}(null);
+  } =>#t66;
+  core::Map<core::String, core::int> map50 = block {
+    final core::Map<core::String, core::int> #t68 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, core::int> #t69 in <core::String, core::int>{}.{core::Map::entries})
+        #t68.{core::Map::[]=}(#t69.{core::MapEntry::key}, #t69.{core::MapEntry::value});
+    #t68.{core::Map::[]=}("baz", null);
+  } =>#t68;
+  core::List<core::int> list51 = block {
+    final core::List<core::int> #t70 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t71 in let final core::Set<core::int> #t72 = col::LinkedHashSet::•<core::int>() in #t72)
+        #t70.{core::List::add}(#t71);
+  } =>#t70;
+  core::Set<core::int> set51 = block {
+    final core::Set<core::int> #t73 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t74 in let final core::Set<core::int> #t75 = col::LinkedHashSet::•<core::int>() in #t75)
+        #t73.{core::Set::add}(#t74);
+    #t73.{core::Set::add}(null);
+  } =>#t73;
+  core::List<core::int> list52 = block {
+    final core::List<core::int> #t76 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::int #t77 in <core::int>[])
+          #t76.{core::List::add}(#t77);
+  } =>#t76;
+  core::Set<core::int> set52 = block {
+    final core::Set<core::int> #t78 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::int #t79 in <core::int>[])
+          #t78.{core::Set::add}(#t79);
+    #t78.{core::Set::add}(null);
+  } =>#t78;
+  core::Map<core::String, core::int> map52 = block {
+    final core::Map<core::String, core::int> #t80 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::int> #t81 in <core::String, core::int>{}.{core::Map::entries})
+          #t80.{core::Map::[]=}(#t81.{core::MapEntry::key}, #t81.{core::MapEntry::value});
+    #t80.{core::Map::[]=}("baz", null);
+  } =>#t80;
+  core::List<core::List<core::int>> list60 = block {
+    final core::List<core::List<core::int>> #t82 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t83 in <core::List<core::int>>[<core::int>[]])
+        #t82.{core::List::add}(#t83);
+  } =>#t82;
+  core::Set<core::List<core::int>> set60 = block {
+    final core::Set<core::List<core::int>> #t84 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::List<core::int> #t85 in <core::List<core::int>>[<core::int>[]])
+        #t84.{core::Set::add}(#t85);
+    #t84.{core::Set::add}(null);
+  } =>#t84;
+  core::Map<core::String, core::List<core::int>> map60 = block {
+    final core::Map<core::String, core::List<core::int>> #t86 = <core::String, core::List<core::int>>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, core::List<core::int>> #t87 in <core::String, core::List<core::int>>{"bar": <core::int>[]}.{core::Map::entries})
+        #t86.{core::Map::[]=}(#t87.{core::MapEntry::key}, #t87.{core::MapEntry::value});
+    #t86.{core::Map::[]=}("baz", null);
+  } =>#t86;
+  core::List<core::List<core::int>> list61 = block {
+    final core::List<core::List<core::int>> #t88 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t89 in <core::List<core::int>>[<core::int>[]])
+          #t88.{core::List::add}(#t89);
+  } =>#t88;
+  core::Set<core::List<core::int>> set61 = block {
+    final core::Set<core::List<core::int>> #t90 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t91 in <core::List<core::int>>[<core::int>[]])
+          #t90.{core::Set::add}(#t91);
+    #t90.{core::Set::add}(null);
+  } =>#t90;
+  core::Map<core::String, core::List<core::int>> map61 = block {
+    final core::Map<core::String, core::List<core::int>> #t92 = <core::String, core::List<core::int>>{};
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::List<core::int>> #t93 in <core::String, core::List<core::int>>{"bar": <core::int>[]}.{core::Map::entries})
+          #t92.{core::Map::[]=}(#t93.{core::MapEntry::key}, #t93.{core::MapEntry::value});
+    #t92.{core::Map::[]=}("baz", null);
+  } =>#t92;
+  core::List<core::List<core::int>> list70 = block {
+    final core::List<core::List<core::int>> #t94 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      #t94.{core::List::add}(<core::int>[]);
+  } =>#t94;
+  core::Set<core::List<core::int>> set70 = block {
+    final core::Set<core::List<core::int>> #t95 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      #t95.{core::Set::add}(<core::int>[]);
+    #t95.{core::Set::add}(null);
+  } =>#t95;
+  core::List<core::List<core::int>> list71 = block {
+    final core::List<core::List<core::int>> #t96 = <core::List<core::int>>[];
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        #t96.{core::List::add}(<core::int>[]);
+  } =>#t96;
+  core::Set<core::List<core::int>> set71 = block {
+    final core::Set<core::List<core::int>> #t97 = col::LinkedHashSet::•<core::List<core::int>>();
+    if(self::oracle<core::String>("foo"))
+      if(self::oracle<dynamic>())
+        #t97.{core::Set::add}(<core::int>[]);
+    #t97.{core::Set::add}(null);
+  } =>#t97;
+  core::List<core::num> list80 = block {
+    final core::List<core::num> #t98 = <core::num>[];
+    if(self::oracle<core::String>("foo"))
+      #t98.{core::List::add}(42);
+    else
+      #t98.{core::List::add}(3.14);
+  } =>#t98;
+  core::Set<core::num> set80 = block {
+    final core::Set<core::num> #t99 = col::LinkedHashSet::•<core::num>();
+    if(self::oracle<core::String>("foo"))
+      #t99.{core::Set::add}(42);
+    else
+      #t99.{core::Set::add}(3.14);
+    #t99.{core::Set::add}(null);
+  } =>#t99;
+  core::Map<core::String, core::num> map80 = block {
+    final core::Map<core::String, core::num> #t100 = <core::String, core::num>{};
+    if(self::oracle<core::String>("foo"))
+      #t100.{core::Map::[]=}("bar", 42);
+    else
+      #t100.{core::Map::[]=}("bar", 3.14);
+    #t100.{core::Map::[]=}("baz", null);
+  } =>#t100;
+  core::List<core::num> list81 = block {
+    final core::List<core::num> #t101 = <core::num>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::num #t102 in listInt)
+        #t101.{core::List::add}(#t102);
+    else
+      for (final core::num #t103 in listDouble)
+        #t101.{core::List::add}(#t103);
+  } =>#t101;
+  core::Set<core::num> set81 = block {
+    final core::Set<core::num> #t104 = col::LinkedHashSet::•<core::num>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::num #t105 in listInt)
+        #t104.{core::Set::add}(#t105);
+    else
+      for (final core::num #t106 in listDouble)
+        #t104.{core::Set::add}(#t106);
+    #t104.{core::Set::add}(null);
+  } =>#t104;
+  core::Map<core::String, core::num> map81 = block {
+    final core::Map<core::String, core::num> #t107 = <core::String, core::num>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, core::num> #t108 in mapToInt.{core::Map::entries})
+        #t107.{core::Map::[]=}(#t108.{core::MapEntry::key}, #t108.{core::MapEntry::value});
+    else
+      for (final core::MapEntry<core::String, core::num> #t109 in mapToDouble.{core::Map::entries})
+        #t107.{core::Map::[]=}(#t109.{core::MapEntry::key}, #t109.{core::MapEntry::value});
+    #t107.{core::Map::[]=}("baz", null);
+  } =>#t107;
+  core::List<dynamic> list82 = block {
+    final core::List<dynamic> #t110 = <dynamic>[];
+    if(self::oracle<core::String>("foo"))
+      for (final dynamic #t111 in listInt)
+        #t110.{core::List::add}(#t111);
+    else
+      for (final dynamic #t112 in dynVar as{TypeError} core::Iterable<dynamic>)
+        #t110.{core::List::add}(#t112);
+  } =>#t110;
+  core::Set<dynamic> set82 = block {
+    final core::Set<dynamic> #t113 = col::LinkedHashSet::•<dynamic>();
+    if(self::oracle<core::String>("foo"))
+      for (final dynamic #t114 in listInt)
+        #t113.{core::Set::add}(#t114);
+    else
+      for (final dynamic #t115 in dynVar as{TypeError} core::Iterable<dynamic>)
+        #t113.{core::Set::add}(#t115);
+    #t113.{core::Set::add}(null);
+  } =>#t113;
+  core::Set<dynamic> map82 = block {
+    final core::Set<dynamic> #t116 = col::LinkedHashSet::•<dynamic>();
+    if(self::oracle<core::String>("foo"))
+      #t116.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:71:38: Error: Unexpected type 'Map<String, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  var map82 = {if (oracle(\"foo\")) ...mapToInt else ...dynVar, null};
+                                     ^");
+    else
+      for (final dynamic #t117 in dynVar as{TypeError} core::Iterable<dynamic>)
+        #t116.{core::Set::add}(#t117);
+    #t116.{core::Set::add}(null);
+  } =>#t116;
+  core::List<core::num> list83 = block {
+    final core::List<core::num> #t118 = <core::num>[];
+    if(self::oracle<core::String>("foo"))
+      #t118.{core::List::add}(42);
+    else
+      for (final core::num #t119 in listDouble)
+        #t118.{core::List::add}(#t119);
+  } =>#t118;
+  core::Set<core::num> set83 = block {
+    final core::Set<core::num> #t120 = col::LinkedHashSet::•<core::num>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::num #t121 in listInt)
+        #t120.{core::Set::add}(#t121);
+    else
+      #t120.{core::Set::add}(3.14);
+    #t120.{core::Set::add}(null);
+  } =>#t120;
+  core::Map<core::String, core::num> map83 = block {
+    final core::Map<core::String, core::num> #t122 = <core::String, core::num>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, core::num> #t123 in mapToInt.{core::Map::entries})
+        #t122.{core::Map::[]=}(#t123.{core::MapEntry::key}, #t123.{core::MapEntry::value});
+    else
+      #t122.{core::Map::[]=}("bar", 3.14);
+    #t122.{core::Map::[]=}("baz", null);
+  } =>#t122;
+  core::List<core::int> list90 = block {
+    final core::List<core::int> #t124 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      #t124.{core::List::add}(dynVar as{TypeError} core::int);
+  } =>#t124;
+  core::Set<core::int> set90 = block {
+    final core::Set<core::int> #t125 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      #t125.{core::Set::add}(dynVar as{TypeError} core::int);
+    #t125.{core::Set::add}(null);
+  } =>#t125;
+  core::Map<core::String, core::int> map90 = block {
+    final core::Map<core::String, core::int> #t126 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      #t126.{core::Map::[]=}("bar", dynVar as{TypeError} core::int);
+    #t126.{core::Map::[]=}("baz", null);
+  } =>#t126;
+  core::List<core::int> list91 = block {
+    final core::List<core::int> #t127 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      for (final dynamic #t128 in dynVar as{TypeError} core::Iterable<dynamic>) {
+        final core::int #t129 = #t128 as{TypeError} core::int;
+        #t127.{core::List::add}(#t129);
+      }
+  } =>#t127;
+  core::Set<core::int> set91 = block {
+    final core::Set<core::int> #t130 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      for (final dynamic #t131 in dynVar as{TypeError} core::Iterable<dynamic>) {
+        final core::int #t132 = #t131 as{TypeError} core::int;
+        #t130.{core::Set::add}(#t132);
+      }
+    #t130.{core::Set::add}(null);
+  } =>#t130;
+  core::Map<core::String, core::int> map91 = block {
+    final core::Map<core::String, core::int> #t133 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<dynamic, dynamic> #t134 in (dynVar as{TypeError} core::Map<dynamic, dynamic>).{core::Map::entries}) {
+        final core::String #t135 = #t134.{core::MapEntry::key} as{TypeError} core::String;
+        final core::int #t136 = #t134.{core::MapEntry::value} as{TypeError} core::int;
+        #t133.{core::Map::[]=}(#t135, #t136);
+      }
+    #t133.{core::Map::[]=}("baz", null);
+  } =>#t133;
+}
+static method testIfElementErrors(core::Map<core::int, core::int> map) → dynamic {
+  <core::int>[invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:84:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>[if (oracle(\"foo\")) \"bar\"];
+                           ^"];
+  let final core::Set<core::int> #t137 = col::LinkedHashSet::•<core::int>() in let final core::bool #t138 = #t137.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:85:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>{if (oracle(\"foo\")) \"bar\", null};
+                           ^") in let final core::bool #t139 = #t137.{core::Set::add}(null) in #t137;
+  <core::String, core::int>{null: invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:86:41: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <String, int>{if (oracle(\"foo\")) \"bar\": \"bar\", \"baz\": null};
+                                        ^", "baz": null};
+  block {
+    final core::List<core::int> #t140 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t141 in <core::int>[let final<BottomType> #t142 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:87:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>[if (oracle(\"foo\")) ...[\"bar\"]];
+                               ^" in "bar" as{TypeError} core::int])
+        #t140.{core::List::add}(#t141);
+  } =>#t140;
+  block {
+    final core::Set<core::int> #t143 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      for (final core::int #t144 in <core::int>[let final<BottomType> #t145 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:88:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>{if (oracle(\"foo\")) ...[\"bar\"], null};
+                               ^" in "bar" as{TypeError} core::int])
+        #t143.{core::Set::add}(#t144);
+    #t143.{core::Set::add}(null);
+  } =>#t143;
+  block {
+    final core::Map<core::String, core::int> #t146 = <core::String, core::int>{};
+    if(self::oracle<core::String>("foo"))
+      for (final core::MapEntry<core::String, core::int> #t147 in <core::String, core::int>{"bar": let final<BottomType> #t148 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:89:47: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <String, int>{if (oracle(\"foo\")) ...{\"bar\": \"bar\"}, \"baz\": null};
+                                              ^" in "bar" as{TypeError} core::int}.{core::Map::entries})
+        #t146.{core::Map::[]=}(#t147.{core::MapEntry::key}, #t147.{core::MapEntry::value});
+    #t146.{core::Map::[]=}("baz", null);
+  } =>#t146;
+  block {
+    final core::List<core::int> #t149 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      #t149.{core::List::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:90:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>[if (oracle(\"foo\")) ...map];
+                              ^" as{TypeError} core::int);
+  } =>#t149;
+  block {
+    final core::Set<core::int> #t150 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      #t150.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:91:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>{if (oracle(\"foo\")) ...map, null};
+                              ^" as{TypeError} core::int);
+    #t150.{core::Set::add}(null);
+  } =>#t150;
+  <core::String, core::int>{invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:92:39: Error: Unexpected type 'List<String>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{if (oracle(\"foo\")) ...[\"bar\"], \"baz\": null};
+                                      ^": null, invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:92:39: Error: Unexpected type 'List<String>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{if (oracle(\"foo\")) ...[\"bar\"], \"baz\": null};
+                                      ^": null};
+  <core::String>[invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:93:12: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+Try changing the type of the left hand side, or casting the right hand side to 'String'.
+  <String>[if (oracle(\"foo\")) 42 else 3.14];
+           ^"];
+  let final core::Set<core::String> #t151 = col::LinkedHashSet::•<core::String>() in let final core::bool #t152 = #t151.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:94:12: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+Try changing the type of the left hand side, or casting the right hand side to 'String'.
+  <String>{if (oracle(\"foo\")) 42 else 3.14, null};
+           ^") in let final core::bool #t153 = #t151.{core::Set::add}(null) in #t151;
+  <core::String, core::String>{null: invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:95:20: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+Try changing the type of the left hand side, or casting the right hand side to 'String'.
+  <String, String>{if (oracle(\"foo\")) \"bar\": 42 else \"baz\": 3.14, \"baz\": null};
+                   ^", "baz": null};
+  block {
+    final core::List<core::int> #t154 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      #t154.{core::List::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:96:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>[if (oracle(\"foo\")) ...map else 42];
+                              ^" as{TypeError} core::int);
+    else
+      #t154.{core::List::add}(42 as{TypeError} core::int);
+  } =>#t154;
+  block {
+    final core::Set<core::int> #t155 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      #t155.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:97:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>{if (oracle(\"foo\")) ...map else 42, null};
+                              ^" as{TypeError} core::int);
+    else
+      #t155.{core::Set::add}(42 as{TypeError} core::int);
+    #t155.{core::Set::add}(null);
+  } =>#t155;
+  <core::String, core::int>{invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:98:39: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{if (oracle(\"foo\")) ...[42] else \"bar\": 42, \"baz\": null};
+                                      ^": null, invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:98:39: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{if (oracle(\"foo\")) ...[42] else \"bar\": 42, \"baz\": null};
+                                      ^": null};
+  block {
+    final core::List<core::int> #t156 = <core::int>[];
+    if(self::oracle<core::String>("foo"))
+      #t156.{core::List::add}(42 as{TypeError} core::int);
+    else
+      #t156.{core::List::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:99:39: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>[if (oracle(\"foo\")) 42 else ...map];
+                                      ^" as{TypeError} core::int);
+  } =>#t156;
+  block {
+    final core::Set<core::int> #t157 = col::LinkedHashSet::•<core::int>();
+    if(self::oracle<core::String>("foo"))
+      #t157.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:100:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>{if (oracle(\"foo\")) ...map else 42, null};
+                              ^" as{TypeError} core::int);
+    else
+      #t157.{core::Set::add}(42 as{TypeError} core::int);
+    #t157.{core::Set::add}(null);
+  } =>#t157;
+  <core::String, core::int>{invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:101:54: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{if (oracle(\"foo\")) \"bar\": 42 else ...[42], \"baz\": null};
+                                                     ^": null, invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:101:54: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{if (oracle(\"foo\")) \"bar\": 42 else ...[42], \"baz\": null};
+                                                     ^": null};
+}
+static method testForElement(dynamic dynVar, core::List<core::int> listInt, core::List<core::double> listDouble, core::int index, core::Map<core::String, core::int> mapStringInt, core::Map<core::String, core::double> mapStringDouble) → dynamic {
+  core::List<core::int> list10 = block {
+    final core::List<core::int> #t158 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t158.{core::List::add}(42);
+  } =>#t158;
+  core::Set<core::int> set10 = block {
+    final core::Set<core::int> #t159 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t159.{core::Set::add}(42);
+    #t159.{core::Set::add}(null);
+  } =>#t159;
+  core::Map<core::String, core::int> map10 = block {
+    final core::Map<core::String, core::int> #t160 = <core::String, core::int>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t160.{core::Map::[]=}("bar", 42);
+    #t160.{core::Map::[]=}("baz", null);
+  } =>#t160;
+  core::List<dynamic> list11 = block {
+    final core::List<dynamic> #t161 = <dynamic>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t161.{core::List::add}(dynVar);
+  } =>#t161;
+  core::Set<dynamic> set11 = block {
+    final core::Set<dynamic> #t162 = col::LinkedHashSet::•<dynamic>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t162.{core::Set::add}(dynVar);
+    #t162.{core::Set::add}(null);
+  } =>#t162;
+  core::Map<core::String, dynamic> map11 = block {
+    final core::Map<core::String, dynamic> #t163 = <core::String, dynamic>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t163.{core::Map::[]=}("bar", dynVar);
+    #t163.{core::Map::[]=}("baz", null);
+  } =>#t163;
+  core::List<core::List<core::int>> list12 = block {
+    final core::List<core::List<core::int>> #t164 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t164.{core::List::add}(<core::int>[42]);
+  } =>#t164;
+  core::Set<core::List<core::int>> set12 = block {
+    final core::Set<core::List<core::int>> #t165 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t165.{core::Set::add}(<core::int>[42]);
+    #t165.{core::Set::add}(null);
+  } =>#t165;
+  core::Map<core::String, core::List<core::int>> map12 = block {
+    final core::Map<core::String, core::List<core::int>> #t166 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t166.{core::Map::[]=}("bar", <core::int>[42]);
+    #t166.{core::Map::[]=}("baz", null);
+  } =>#t166;
+  core::List<core::int> list20 = block {
+    final core::List<core::int> #t167 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::int #t168 in <core::int>[42])
+        #t167.{core::List::add}(#t168);
+  } =>#t167;
+  core::Set<core::int> set20 = block {
+    final core::Set<core::int> #t169 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::int #t170 in <core::int>[42])
+        #t169.{core::Set::add}(#t170);
+    #t169.{core::Set::add}(null);
+  } =>#t169;
+  core::Map<core::String, core::int> map20 = block {
+    final core::Map<core::String, core::int> #t171 = <core::String, core::int>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::MapEntry<core::String, core::int> #t172 in <core::String, core::int>{"bar": 42}.{core::Map::entries})
+        #t171.{core::Map::[]=}(#t172.{core::MapEntry::key}, #t172.{core::MapEntry::value});
+    #t171.{core::Map::[]=}("baz", null);
+  } =>#t171;
+  core::List<dynamic> list21 = block {
+    final core::List<dynamic> #t173 = <dynamic>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final dynamic #t174 in <dynamic>[dynVar])
+        #t173.{core::List::add}(#t174);
+  } =>#t173;
+  core::Set<dynamic> set21 = block {
+    final core::Set<dynamic> #t175 = col::LinkedHashSet::•<dynamic>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final dynamic #t176 in <dynamic>[dynVar])
+        #t175.{core::Set::add}(#t176);
+    #t175.{core::Set::add}(null);
+  } =>#t175;
+  core::Map<core::String, dynamic> map21 = block {
+    final core::Map<core::String, dynamic> #t177 = <core::String, dynamic>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::MapEntry<core::String, dynamic> #t178 in <core::String, dynamic>{"bar": dynVar}.{core::Map::entries})
+        #t177.{core::Map::[]=}(#t178.{core::MapEntry::key}, #t178.{core::MapEntry::value});
+    #t177.{core::Map::[]=}("baz", null);
+  } =>#t177;
+  core::List<core::List<core::int>> list22 = block {
+    final core::List<core::List<core::int>> #t179 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t180 in <core::List<core::int>>[<core::int>[42]])
+        #t179.{core::List::add}(#t180);
+  } =>#t179;
+  core::Set<core::List<core::int>> set22 = block {
+    final core::Set<core::List<core::int>> #t181 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t182 in <core::List<core::int>>[<core::int>[42]])
+        #t181.{core::Set::add}(#t182);
+    #t181.{core::Set::add}(null);
+  } =>#t181;
+  core::Map<core::String, core::List<core::int>> map22 = block {
+    final core::Map<core::String, core::List<core::int>> #t183 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::MapEntry<core::String, core::List<core::int>> #t184 in <core::String, core::List<core::int>>{"bar": <core::int>[42]}.{core::Map::entries})
+        #t183.{core::Map::[]=}(#t184.{core::MapEntry::key}, #t184.{core::MapEntry::value});
+    #t183.{core::Map::[]=}("baz", null);
+  } =>#t183;
+  core::List<core::int> list30 = block {
+    final core::List<core::int> #t185 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::int #t186 in <core::int>[42])
+          #t185.{core::List::add}(#t186);
+  } =>#t185;
+  core::Set<core::int> set30 = block {
+    final core::Set<core::int> #t187 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::int #t188 in <core::int>[42])
+          #t187.{core::Set::add}(#t188);
+    #t187.{core::Set::add}(null);
+  } =>#t187;
+  core::Map<core::String, core::int> map30 = block {
+    final core::Map<core::String, core::int> #t189 = <core::String, core::int>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::int> #t190 in <core::String, core::int>{"bar": 42}.{core::Map::entries})
+          #t189.{core::Map::[]=}(#t190.{core::MapEntry::key}, #t190.{core::MapEntry::value});
+    #t189.{core::Map::[]=}("baz", null);
+  } =>#t189;
+  core::List<dynamic> list31 = block {
+    final core::List<dynamic> #t191 = <dynamic>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final dynamic #t192 in <dynamic>[dynVar])
+          #t191.{core::List::add}(#t192);
+  } =>#t191;
+  core::Set<dynamic> set31 = block {
+    final core::Set<dynamic> #t193 = col::LinkedHashSet::•<dynamic>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final dynamic #t194 in <dynamic>[dynVar])
+          #t193.{core::Set::add}(#t194);
+    #t193.{core::Set::add}(null);
+  } =>#t193;
+  core::Map<core::String, dynamic> map31 = block {
+    final core::Map<core::String, dynamic> #t195 = <core::String, dynamic>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, dynamic> #t196 in <core::String, dynamic>{"bar": dynVar}.{core::Map::entries})
+          #t195.{core::Map::[]=}(#t196.{core::MapEntry::key}, #t196.{core::MapEntry::value});
+    #t195.{core::Map::[]=}("baz", null);
+  } =>#t195;
+  core::List<core::List<core::int>> list33 = block {
+    final core::List<core::List<core::int>> #t197 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t198 in <core::List<core::int>>[<core::int>[42]])
+          #t197.{core::List::add}(#t198);
+  } =>#t197;
+  core::Set<core::List<core::int>> set33 = block {
+    final core::Set<core::List<core::int>> #t199 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t200 in <core::List<core::int>>[<core::int>[42]])
+          #t199.{core::Set::add}(#t200);
+    #t199.{core::Set::add}(null);
+  } =>#t199;
+  core::Map<core::String, core::List<core::int>> map33 = block {
+    final core::Map<core::String, core::List<core::int>> #t201 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::List<core::int>> #t202 in <core::String, core::List<core::int>>{"bar": <core::int>[42]}.{core::Map::entries})
+          #t201.{core::Map::[]=}(#t202.{core::MapEntry::key}, #t202.{core::MapEntry::value});
+    #t201.{core::Map::[]=}("baz", null);
+  } =>#t201;
+  core::List<core::List<core::int>> list40 = block {
+    final core::List<core::List<core::int>> #t203 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t204 in <core::List<core::int>>[<core::int>[]])
+        #t203.{core::List::add}(#t204);
+  } =>#t203;
+  core::Set<core::List<core::int>> set40 = block {
+    final core::Set<core::List<core::int>> #t205 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t206 in <core::List<core::int>>[<core::int>[]])
+        #t205.{core::Set::add}(#t206);
+    #t205.{core::Set::add}(null);
+  } =>#t205;
+  core::Map<core::String, core::List<core::int>> map40 = block {
+    final core::Map<core::String, core::List<core::int>> #t207 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::MapEntry<core::String, core::List<core::int>> #t208 in <core::String, core::List<core::int>>{"bar": <core::int>[]}.{core::Map::entries})
+        #t207.{core::Map::[]=}(#t208.{core::MapEntry::key}, #t208.{core::MapEntry::value});
+    #t207.{core::Map::[]=}("baz", null);
+  } =>#t207;
+  core::List<core::List<core::int>> list41 = block {
+    final core::List<core::List<core::int>> #t209 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t210 in let final core::Set<core::List<core::int>> #t211 = col::LinkedHashSet::•<core::List<core::int>>() in let final core::bool #t212 = #t211.{core::Set::add}(<core::int>[]) in #t211)
+        #t209.{core::List::add}(#t210);
+  } =>#t209;
+  core::Set<core::List<core::int>> set41 = block {
+    final core::Set<core::List<core::int>> #t213 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t214 in let final core::Set<core::List<core::int>> #t215 = col::LinkedHashSet::•<core::List<core::int>>() in let final core::bool #t216 = #t215.{core::Set::add}(<core::int>[]) in #t215)
+        #t213.{core::Set::add}(#t214);
+    #t213.{core::Set::add}(null);
+  } =>#t213;
+  core::List<core::List<core::int>> list42 = block {
+    final core::List<core::List<core::int>> #t217 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t218 in <core::List<core::int>>[<core::int>[]])
+          #t217.{core::List::add}(#t218);
+  } =>#t217;
+  core::Set<core::List<core::int>> set42 = block {
+    final core::Set<core::List<core::int>> #t219 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t220 in <core::List<core::int>>[<core::int>[]])
+          #t219.{core::Set::add}(#t220);
+    #t219.{core::Set::add}(null);
+  } =>#t219;
+  core::Map<core::String, core::List<core::int>> map42 = block {
+    final core::Map<core::String, core::List<core::int>> #t221 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::List<core::int>> #t222 in <core::String, core::List<core::int>>{"bar": <core::int>[]}.{core::Map::entries})
+          #t221.{core::Map::[]=}(#t222.{core::MapEntry::key}, #t222.{core::MapEntry::value});
+    #t221.{core::Map::[]=}("baz", null);
+  } =>#t221;
+  core::List<core::int> list50 = block {
+    final core::List<core::int> #t223 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::int #t224 in <core::int>[])
+        #t223.{core::List::add}(#t224);
+  } =>#t223;
+  core::Set<core::int> set50 = block {
+    final core::Set<core::int> #t225 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::int #t226 in <core::int>[])
+        #t225.{core::Set::add}(#t226);
+    #t225.{core::Set::add}(null);
+  } =>#t225;
+  core::Map<core::String, core::int> map50 = block {
+    final core::Map<core::String, core::int> #t227 = <core::String, core::int>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::MapEntry<core::String, core::int> #t228 in <core::String, core::int>{}.{core::Map::entries})
+        #t227.{core::Map::[]=}(#t228.{core::MapEntry::key}, #t228.{core::MapEntry::value});
+    #t227.{core::Map::[]=}("baz", null);
+  } =>#t227;
+  core::List<core::int> list51 = block {
+    final core::List<core::int> #t229 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::int #t230 in let final core::Set<core::int> #t231 = col::LinkedHashSet::•<core::int>() in #t231)
+        #t229.{core::List::add}(#t230);
+  } =>#t229;
+  core::Set<core::int> set51 = block {
+    final core::Set<core::int> #t232 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::int #t233 in let final core::Set<core::int> #t234 = col::LinkedHashSet::•<core::int>() in #t234)
+        #t232.{core::Set::add}(#t233);
+    #t232.{core::Set::add}(null);
+  } =>#t232;
+  core::List<core::int> list52 = block {
+    final core::List<core::int> #t235 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::int #t236 in <core::int>[])
+          #t235.{core::List::add}(#t236);
+  } =>#t235;
+  core::Set<core::int> set52 = block {
+    final core::Set<core::int> #t237 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::int #t238 in <core::int>[])
+          #t237.{core::Set::add}(#t238);
+    #t237.{core::Set::add}(null);
+  } =>#t237;
+  core::List<core::List<core::int>> list60 = block {
+    final core::List<core::List<core::int>> #t239 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t240 in <core::List<core::int>>[<core::int>[]])
+        #t239.{core::List::add}(#t240);
+  } =>#t239;
+  core::Set<core::List<core::int>> set60 = block {
+    final core::Set<core::List<core::int>> #t241 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::List<core::int> #t242 in <core::List<core::int>>[<core::int>[]])
+        #t241.{core::Set::add}(#t242);
+    #t241.{core::Set::add}(null);
+  } =>#t241;
+  core::Map<core::String, core::List<core::int>> map60 = block {
+    final core::Map<core::String, core::List<core::int>> #t243 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::MapEntry<core::String, core::List<core::int>> #t244 in <core::String, core::List<core::int>>{"bar": <core::int>[]}.{core::Map::entries})
+        #t243.{core::Map::[]=}(#t244.{core::MapEntry::key}, #t244.{core::MapEntry::value});
+    #t243.{core::Map::[]=}("baz", null);
+  } =>#t243;
+  core::List<core::List<core::int>> list61 = block {
+    final core::List<core::List<core::int>> #t245 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t246 in <core::List<core::int>>[<core::int>[]])
+          #t245.{core::List::add}(#t246);
+  } =>#t245;
+  core::Set<core::List<core::int>> set61 = block {
+    final core::Set<core::List<core::int>> #t247 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::List<core::int> #t248 in <core::List<core::int>>[<core::int>[]])
+          #t247.{core::Set::add}(#t248);
+    #t247.{core::Set::add}(null);
+  } =>#t247;
+  core::Map<core::String, core::List<core::int>> map61 = block {
+    final core::Map<core::String, core::List<core::int>> #t249 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::List<core::int>> #t250 in <core::String, core::List<core::int>>{"bar": <core::int>[]}.{core::Map::entries})
+          #t249.{core::Map::[]=}(#t250.{core::MapEntry::key}, #t250.{core::MapEntry::value});
+    #t249.{core::Map::[]=}("baz", null);
+  } =>#t249;
+  core::List<core::List<core::int>> list70 = block {
+    final core::List<core::List<core::int>> #t251 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t251.{core::List::add}(<core::int>[]);
+  } =>#t251;
+  core::Set<core::List<core::int>> set70 = block {
+    final core::Set<core::List<core::int>> #t252 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t252.{core::Set::add}(<core::int>[]);
+    #t252.{core::Set::add}(null);
+  } =>#t252;
+  core::Map<core::String, core::List<core::int>> map70 = block {
+    final core::Map<core::String, core::List<core::int>> #t253 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t253.{core::Map::[]=}("bar", <core::int>[]);
+    #t253.{core::Map::[]=}("baz", null);
+  } =>#t253;
+  core::List<core::List<core::int>> list71 = block {
+    final core::List<core::List<core::int>> #t254 = <core::List<core::int>>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        #t254.{core::List::add}(<core::int>[]);
+  } =>#t254;
+  core::Set<core::List<core::int>> set71 = block {
+    final core::Set<core::List<core::int>> #t255 = col::LinkedHashSet::•<core::List<core::int>>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        #t255.{core::Set::add}(<core::int>[]);
+    #t255.{core::Set::add}(null);
+  } =>#t255;
+  core::Map<core::String, core::List<core::int>> map71 = block {
+    final core::Map<core::String, core::List<core::int>> #t256 = <core::String, core::List<core::int>>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        #t256.{core::Map::[]=}("bar", <core::int>[]);
+    #t256.{core::Map::[]=}("baz", null);
+  } =>#t256;
+  core::List<core::num> list80 = block {
+    final core::List<core::num> #t257 = <core::num>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        #t257.{core::List::add}(42);
+      else
+        #t257.{core::List::add}(3.14);
+  } =>#t257;
+  core::Set<core::num> set80 = block {
+    final core::Set<core::num> #t258 = col::LinkedHashSet::•<core::num>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        #t258.{core::Set::add}(42);
+      else
+        #t258.{core::Set::add}(3.14);
+    #t258.{core::Set::add}(null);
+  } =>#t258;
+  core::Map<core::String, core::num> map80 = block {
+    final core::Map<core::String, core::num> #t259 = <core::String, core::num>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        #t259.{core::Map::[]=}("bar", 42);
+      else
+        #t259.{core::Map::[]=}("bar", 3.14);
+    #t259.{core::Map::[]=}("baz", null);
+  } =>#t259;
+  core::List<core::num> list81 = block {
+    final core::List<core::num> #t260 = <core::num>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::num #t261 in listInt)
+          #t260.{core::List::add}(#t261);
+      else
+        for (final core::num #t262 in listDouble)
+          #t260.{core::List::add}(#t262);
+  } =>#t260;
+  core::Set<core::num> set81 = block {
+    final core::Set<core::num> #t263 = col::LinkedHashSet::•<core::num>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::num #t264 in listInt)
+          #t263.{core::Set::add}(#t264);
+      else
+        for (final core::num #t265 in listDouble)
+          #t263.{core::Set::add}(#t265);
+    #t263.{core::Set::add}(null);
+  } =>#t263;
+  core::Map<core::String, core::num> map81 = block {
+    final core::Map<core::String, core::num> #t266 = <core::String, core::num>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::num> #t267 in mapStringInt.{core::Map::entries})
+          #t266.{core::Map::[]=}(#t267.{core::MapEntry::key}, #t267.{core::MapEntry::value});
+      else
+        for (final core::MapEntry<core::String, core::num> #t268 in mapStringDouble.{core::Map::entries})
+          #t266.{core::Map::[]=}(#t268.{core::MapEntry::key}, #t268.{core::MapEntry::value});
+    #t266.{core::Map::[]=}("baz", null);
+  } =>#t266;
+  core::List<dynamic> list82 = block {
+    final core::List<dynamic> #t269 = <dynamic>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final dynamic #t270 in listInt)
+          #t269.{core::List::add}(#t270);
+      else
+        for (final dynamic #t271 in dynVar as{TypeError} core::Iterable<dynamic>)
+          #t269.{core::List::add}(#t271);
+  } =>#t269;
+  core::Set<dynamic> set82 = block {
+    final core::Set<dynamic> #t272 = col::LinkedHashSet::•<dynamic>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final dynamic #t273 in listInt)
+          #t272.{core::Set::add}(#t273);
+      else
+        for (final dynamic #t274 in dynVar as{TypeError} core::Iterable<dynamic>)
+          #t272.{core::Set::add}(#t274);
+    #t272.{core::Set::add}(null);
+  } =>#t272;
+  core::Map<dynamic, dynamic> map82 = block {
+    final core::Map<dynamic, dynamic> #t275 = <dynamic, dynamic>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<dynamic, dynamic> #t276 in mapStringInt.{core::Map::entries})
+          #t275.{core::Map::[]=}(#t276.{core::MapEntry::key}, #t276.{core::MapEntry::value});
+      else
+        for (final core::MapEntry<dynamic, dynamic> #t277 in (dynVar as{TypeError} core::Map<dynamic, dynamic>).{core::Map::entries})
+          #t275.{core::Map::[]=}(#t277.{core::MapEntry::key}, #t277.{core::MapEntry::value});
+    #t275.{core::Map::[]=}("baz", null);
+  } =>#t275;
+  core::List<core::num> list83 = block {
+    final core::List<core::num> #t278 = <core::num>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        #t278.{core::List::add}(42);
+      else
+        for (final core::num #t279 in listDouble)
+          #t278.{core::List::add}(#t279);
+  } =>#t278;
+  core::Set<core::num> set83 = block {
+    final core::Set<core::num> #t280 = col::LinkedHashSet::•<core::num>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::num #t281 in listInt)
+          #t280.{core::Set::add}(#t281);
+      else
+        #t280.{core::Set::add}(3.14);
+    #t280.{core::Set::add}(null);
+  } =>#t280;
+  core::Map<core::String, core::num> map83 = block {
+    final core::Map<core::String, core::num> #t282 = <core::String, core::num>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      if(self::oracle<dynamic>())
+        for (final core::MapEntry<core::String, core::num> #t283 in mapStringInt.{core::Map::entries})
+          #t282.{core::Map::[]=}(#t283.{core::MapEntry::key}, #t283.{core::MapEntry::value});
+      else
+        #t282.{core::Map::[]=}("bar", 3.14);
+    #t282.{core::Map::[]=}("baz", null);
+  } =>#t282;
+  core::List<core::int> list90 = block {
+    final core::List<core::int> #t284 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t284.{core::List::add}(dynVar as{TypeError} core::int);
+  } =>#t284;
+  core::Set<core::int> set90 = block {
+    final core::Set<core::int> #t285 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t285.{core::Set::add}(dynVar as{TypeError} core::int);
+    #t285.{core::Set::add}(null);
+  } =>#t285;
+  core::Map<core::String, core::int> map90 = block {
+    final core::Map<core::String, core::int> #t286 = <core::String, core::int>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      #t286.{core::Map::[]=}("bar", dynVar as{TypeError} core::int);
+    #t286.{core::Map::[]=}("baz", null);
+  } =>#t286;
+  core::List<core::int> list91 = block {
+    final core::List<core::int> #t287 = <core::int>[];
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final dynamic #t288 in dynVar as{TypeError} core::Iterable<dynamic>) {
+        final core::int #t289 = #t288 as{TypeError} core::int;
+        #t287.{core::List::add}(#t289);
+      }
+  } =>#t287;
+  core::Set<core::int> set91 = block {
+    final core::Set<core::int> #t290 = col::LinkedHashSet::•<core::int>();
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final dynamic #t291 in dynVar as{TypeError} core::Iterable<dynamic>) {
+        final core::int #t292 = #t291 as{TypeError} core::int;
+        #t290.{core::Set::add}(#t292);
+      }
+    #t290.{core::Set::add}(null);
+  } =>#t290;
+  core::Map<core::String, core::int> map91 = block {
+    final core::Map<core::String, core::int> #t293 = <core::String, core::int>{};
+    for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+      for (final core::MapEntry<dynamic, dynamic> #t294 in (dynVar as{TypeError} core::Map<dynamic, dynamic>).{core::Map::entries}) {
+        final core::String #t295 = #t294.{core::MapEntry::key} as{TypeError} core::String;
+        final core::int #t296 = #t294.{core::MapEntry::value} as{TypeError} core::int;
+        #t293.{core::Map::[]=}(#t295, #t296);
+      }
+    #t293.{core::Map::[]=}("baz", null);
+  } =>#t293;
+  core::List<core::int> list100 = block {
+    final core::List<core::int> #t297 = <core::int>[];
+    for (final dynamic #t298 = index = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; index = index.{core::num::+}(1))
+      #t297.{core::List::add}(42);
+  } =>#t297;
+  core::Set<core::int> set100 = block {
+    final core::Set<core::int> #t299 = col::LinkedHashSet::•<core::int>();
+    for (final dynamic #t300 = index = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; index = index.{core::num::+}(1))
+      #t299.{core::Set::add}(42);
+  } =>#t299;
+  core::Map<core::String, core::int> map100 = block {
+    final core::Map<core::String, core::int> #t301 = <core::String, core::int>{};
+    for (final dynamic #t302 = index = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; index = index.{core::num::+}(1))
+      #t301.{core::Map::[]=}("bar", 42);
+  } =>#t301;
+  core::List<core::int> list110 = block {
+    final core::List<core::int> #t303 = <core::int>[];
+    for (core::int i in <core::int>[1, 2, 3])
+      #t303.{core::List::add}(i);
+  } =>#t303;
+  core::Set<core::int> set110 = block {
+    final core::Set<core::int> #t304 = col::LinkedHashSet::•<core::int>();
+    for (core::int i in <core::int>[1, 2, 3])
+      #t304.{core::Set::add}(i);
+    #t304.{core::Set::add}(null);
+  } =>#t304;
+  core::Map<core::String, core::int> map110 = block {
+    final core::Map<core::String, core::int> #t305 = <core::String, core::int>{};
+    for (core::int i in <core::int>[1, 2, 3])
+      #t305.{core::Map::[]=}("bar", i);
+    #t305.{core::Map::[]=}("baz", null);
+  } =>#t305;
+  core::List<core::int> list120 = block {
+    final core::List<core::int> #t306 = <core::int>[];
+    for (dynamic i in dynVar as{TypeError} core::Iterable<dynamic>)
+      #t306.{core::List::add}(i as{TypeError} core::int);
+  } =>#t306;
+  core::Set<core::int> set120 = block {
+    final core::Set<core::int> #t307 = col::LinkedHashSet::•<core::int>();
+    for (dynamic i in dynVar as{TypeError} core::Iterable<dynamic>)
+      #t307.{core::Set::add}(i as{TypeError} core::int);
+    #t307.{core::Set::add}(null);
+  } =>#t307;
+  core::Map<core::String, core::int> map120 = block {
+    final core::Map<core::String, core::int> #t308 = <core::String, core::int>{};
+    for (dynamic i in dynVar as{TypeError} core::Iterable<dynamic>)
+      #t308.{core::Map::[]=}("bar", i as{TypeError} core::int);
+    #t308.{core::Map::[]=}("baz", null);
+  } =>#t308;
+}
+static method testForElementErrors(core::Map<core::int, core::int> map, core::List<core::int> list) → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  asy::FutureOr<dynamic> :return_value;
+  dynamic :async_stack_trace;
+  dynamic :async_op_then;
+  dynamic :async_op_error;
+  dynamic :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  dynamic :exception0;
+  dynamic :stack_trace0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        <core::int>[invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:190:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>[for (int i = 0; oracle(\"foo\"); i++) \"bar\"];
+                                            ^"];
+        let final core::Set<core::int> #t309 = col::LinkedHashSet::•<core::int>() in let final core::bool #t310 = #t309.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:191:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\", null};
+                                            ^") in let final core::bool #t311 = #t309.{core::Set::add}(null) in #t309;
+        <core::int, core::int>{invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:192:14: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
+             ^": invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:192:14: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
+             ^", let final<BottomType> #t312 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:192:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
+                                                               ^" in "baz" as{TypeError} core::int: null};
+        block {
+          final core::List<core::int> #t313 = <core::int>[];
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            for (final core::int #t314 in <core::int>[let final<BottomType> #t315 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:193:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>[for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"]];
+                                                ^" in "bar" as{TypeError} core::int])
+              #t313.{core::List::add}(#t314);
+        } =>#t313;
+        block {
+          final core::Set<core::int> #t316 = col::LinkedHashSet::•<core::int>();
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            for (final core::int #t317 in <core::int>[let final<BottomType> #t318 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:194:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int>{for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"], null};
+                                                ^" in "bar" as{TypeError} core::int])
+              #t316.{core::Set::add}(#t317);
+          #t316.{core::Set::add}(null);
+        } =>#t316;
+        block {
+          final core::Map<core::int, core::int> #t319 = <core::int, core::int>{};
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            for (final core::MapEntry<core::int, core::int> #t320 in <core::int, core::int>{let final<BottomType> #t321 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:195:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
+                                                     ^" in "bar" as{TypeError} core::int: let final<BottomType> #t322 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:195:61: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
+                                                            ^" in "bar" as{TypeError} core::int}.{core::Map::entries})
+              #t319.{core::Map::[]=}(#t320.{core::MapEntry::key}, #t320.{core::MapEntry::value});
+          #t319.{core::Map::[]=}(let final<BottomType> #t323 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:195:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
+                                                                    ^" in "baz" as{TypeError} core::int, null);
+        } =>#t319;
+        block {
+          final core::List<core::int> #t324 = <core::int>[];
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            #t324.{core::List::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:196:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>[for (int i = 0; oracle(\"foo\"); i++) ...map];
+                                               ^" as{TypeError} core::int);
+        } =>#t324;
+        block {
+          final core::Set<core::int> #t325 = col::LinkedHashSet::•<core::int>();
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            #t325.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:197:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>{for (int i = 0; oracle(\"foo\"); i++) ...map, null};
+                                               ^" as{TypeError} core::int);
+          #t325.{core::Set::add}(null);
+        } =>#t325;
+        <core::int, core::int>{invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:198:53: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...list, 42: null};
+                                                    ^": null, invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:198:53: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...list, 42: null};
+                                                    ^": null};
+        <core::String>[invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:199:48: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+Try changing the type of the left hand side, or casting the right hand side to 'String'.
+  <String>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14];
+                                               ^"];
+        let final core::Set<core::String> #t326 = col::LinkedHashSet::•<core::String>() in let final core::bool #t327 = #t326.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:200:48: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+Try changing the type of the left hand side, or casting the right hand side to 'String'.
+  <String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14, null};
+                                               ^") in let final core::bool #t328 = #t326.{core::Set::add}(null) in #t326;
+        <core::String, core::String>{null: invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:201:20: Error: A value of type 'num' can't be assigned to a variable of type 'String'.
+Try changing the type of the left hand side, or casting the right hand side to 'String'.
+  <String, String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else \"bar\": 3.14, \"baz\": null};
+                   ^", "baz": null};
+        block {
+          final core::List<core::int> #t329 = <core::int>[];
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            if(self::oracle<dynamic>())
+              #t329.{core::List::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:202:62: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...map else 42];
+                                                             ^" as{TypeError} core::int);
+            else
+              #t329.{core::List::add}(42 as{TypeError} core::int);
+        } =>#t329;
+        block {
+          final core::Set<core::int> #t330 = col::LinkedHashSet::•<core::int>();
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            if(self::oracle<dynamic>())
+              #t330.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:203:62: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...map else 42, null};
+                                                             ^" as{TypeError} core::int);
+            else
+              #t330.{core::Set::add}(42 as{TypeError} core::int);
+          #t330.{core::Set::add}(null);
+        } =>#t330;
+        <core::String, core::int>{invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:204:70: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...list else \"bar\": 42, \"baz\": null};
+                                                                     ^": null, invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:204:70: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...list else \"bar\": 42, \"baz\": null};
+                                                                     ^": null};
+        block {
+          final core::List<core::int> #t331 = <core::int>[];
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            if(self::oracle<dynamic>())
+              #t331.{core::List::add}(42 as{TypeError} core::int);
+            else
+              #t331.{core::List::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:205:70: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else ...map];
+                                                                     ^" as{TypeError} core::int);
+        } =>#t331;
+        block {
+          final core::Set<core::int> #t332 = col::LinkedHashSet::•<core::int>();
+          for (core::int i = 0; self::oracle<core::String>("foo") as{TypeError} core::bool; i = i.{core::num::+}(1))
+            if(self::oracle<dynamic>())
+              #t332.{core::Set::add}(42 as{TypeError} core::int);
+            else
+              #t332.{core::Set::add}(invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:206:70: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
+ - 'Map' is from 'dart:core'.
+  <int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else ...map, null};
+                                                                     ^" as{TypeError} core::int);
+          #t332.{core::Set::add}(null);
+        } =>#t332;
+        <core::String, core::int>{invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:207:85: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else ...list, \"baz\": null};
+                                                                                    ^": null, invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:207:85: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
+ - 'List' is from 'dart:core'.
+  <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else ...list, \"baz\": null};
+                                                                                    ^": null};
+        final core::int i = 0;
+        block {
+          final core::List<core::int> #t333 = <core::int>[];
+          for (final core::int #t334 in <core::int>[1]) {
+            invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:210:14: Error: Setter not found: 'i'.
+  <int>[for (i in <int>[1]) i];
+             ^";
+            #t333.{core::List::add}(i);
+          }
+        } =>#t333;
+        block {
+          final core::Set<core::int> #t335 = col::LinkedHashSet::•<core::int>();
+          for (final core::int #t336 in <core::int>[1]) {
+            invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:211:14: Error: Setter not found: 'i'.
+  <int>{for (i in <int>[1]) i, null};
+             ^";
+            #t335.{core::Set::add}(i);
+          }
+          #t335.{core::Set::add}(null);
+        } =>#t335;
+        block {
+          final core::Map<core::String, core::int> #t337 = <core::String, core::int>{};
+          for (final core::int #t338 in <core::int>[1]) {
+            invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:212:21: Error: Setter not found: 'i'.
+\t<String, int>{for (i in <int>[1]) \"bar\": i, \"baz\": null};
+\t                   ^";
+            #t337.{core::Map::[]=}("bar", i);
+          }
+          #t337.{core::Map::[]=}("baz", null);
+        } =>#t337;
+        core::List<dynamic> list10 = block {
+          final core::List<dynamic> #t339 = <dynamic>[];
+          for (dynamic i in let final<BottomType> #t340 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:214:31: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
+  var list10 = [for (var i in \"not iterable\") i];
+                              ^" in "not iterable" as{TypeError} core::Iterable<dynamic>)
+            #t339.{core::List::add}(i);
+        } =>#t339;
+        core::Set<dynamic> set10 = block {
+          final core::Set<dynamic> #t341 = col::LinkedHashSet::•<dynamic>();
+          for (dynamic i in let final<BottomType> #t342 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:215:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
+  var set10 = {for (var i in \"not iterable\") i, null};
+                             ^" in "not iterable" as{TypeError} core::Iterable<dynamic>)
+            #t341.{core::Set::add}(i);
+          #t341.{core::Set::add}(null);
+        } =>#t341;
+        core::Map<core::String, dynamic> map10 = block {
+          final core::Map<core::String, dynamic> #t343 = <core::String, dynamic>{};
+          for (dynamic i in let final<BottomType> #t344 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:216:30: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
+  var map10 = {for (var i in \"not iterable\") \"bar\": i, \"baz\": null};
+                             ^" in "not iterable" as{TypeError} core::Iterable<dynamic>)
+            #t343.{core::Map::[]=}("bar", i);
+          #t343.{core::Map::[]=}("baz", null);
+        } =>#t343;
+        core::List<core::int> list20 = block {
+          final core::List<core::int> #t345 = <core::int>[];
+          for (core::int i in <core::int>[let final<BottomType> #t346 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:217:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var list20 = [for (int i in [\"not\", \"int\"]) i];
+                               ^" in "not" as{TypeError} core::int, let final<BottomType> #t347 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:217:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var list20 = [for (int i in [\"not\", \"int\"]) i];
+                                      ^" in "int" as{TypeError} core::int])
+            #t345.{core::List::add}(i);
+        } =>#t345;
+        core::Set<core::int> set20 = block {
+          final core::Set<core::int> #t348 = col::LinkedHashSet::•<core::int>();
+          for (core::int i in <core::int>[let final<BottomType> #t349 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:218:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var set20 = {for (int i in [\"not\", \"int\"]) i, null};
+                              ^" in "not" as{TypeError} core::int, let final<BottomType> #t350 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:218:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var set20 = {for (int i in [\"not\", \"int\"]) i, null};
+                                     ^" in "int" as{TypeError} core::int])
+            #t348.{core::Set::add}(i);
+          #t348.{core::Set::add}(null);
+        } =>#t348;
+        core::Map<core::String, core::int> map20 = block {
+          final core::Map<core::String, core::int> #t351 = <core::String, core::int>{};
+          for (core::int i in <core::int>[let final<BottomType> #t352 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:219:31: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
+                              ^" in "not" as{TypeError} core::int, let final<BottomType> #t353 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:219:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var map20 = {for (int i in [\"not\", \"int\"]) \"bar\": i, \"baz\": null};
+                                     ^" in "int" as{TypeError} core::int])
+            #t351.{core::Map::[]=}("bar", i);
+          #t351.{core::Map::[]=}("baz", null);
+        } =>#t351;
+        final core::List<dynamic> #t354 = <dynamic>[];
+        {
+          dynamic :stream = let final<BottomType> #t355 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:220:37: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'Stream' is from 'dart:async'.
+  var list30 = [await for (var i in \"not stream\") i];
+                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L2:
+            while (true) {
+              dynamic #t356 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t357 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                dynamic i = :for-iterator.{asy::_StreamIterator::current};
+                #t354.{core::List::add}(i);
+              }
+              else
+                break #L2;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t358 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::List<dynamic> list30 = block {} =>#t354;
+        final core::Set<dynamic> #t359 = col::LinkedHashSet::•<dynamic>();
+        {
+          dynamic :stream = let final<BottomType> #t360 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:221:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'Stream' is from 'dart:async'.
+  var set30 = {await for (var i in \"not stream\") i, null};
+                                   ^" in "not stream" as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L3:
+            while (true) {
+              dynamic #t361 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t362 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                dynamic i = :for-iterator.{asy::_StreamIterator::current};
+                #t359.{core::Set::add}(i);
+              }
+              else
+                break #L3;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t363 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::Set<dynamic> set30 = block {
+          #t359.{core::Set::add}(null);
+        } =>#t359;
+        final core::Map<core::String, dynamic> #t364 = <core::String, dynamic>{};
+        {
+          dynamic :stream = let final<BottomType> #t365 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:222:36: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+ - 'Stream' is from 'dart:async'.
+  var map30 = {await for (var i in \"not stream\") \"bar\": i, \"baz\": null};
+                                   ^" in "not stream" as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L4:
+            while (true) {
+              dynamic #t366 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t367 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                dynamic i = :for-iterator.{asy::_StreamIterator::current};
+                #t364.{core::Map::[]=}("bar", i);
+              }
+              else
+                break #L4;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t368 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::Map<core::String, dynamic> map30 = block {
+          #t364.{core::Map::[]=}("baz", null);
+        } =>#t364;
+        final core::List<core::int> #t369 = <core::int>[];
+        {
+          dynamic :stream = asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t370 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:223:58: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
+                                                         ^" in "not" as{TypeError} core::int, let final<BottomType> #t371 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:223:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
+                                                                ^" in "int" as{TypeError} core::int]);
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<core::int> :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L5:
+            while (true) {
+              dynamic #t372 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t373 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                core::int i = :for-iterator.{asy::_StreamIterator::current};
+                #t369.{core::List::add}(i);
+              }
+              else
+                break #L5;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t374 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::List<core::int> list40 = block {} =>#t369;
+        final core::Set<core::int> #t375 = col::LinkedHashSet::•<core::int>();
+        {
+          dynamic :stream = asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t376 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:224:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
+                                                        ^" in "not" as{TypeError} core::int, let final<BottomType> #t377 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:224:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
+                                                               ^" in "int" as{TypeError} core::int]);
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<core::int> :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L6:
+            while (true) {
+              dynamic #t378 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t379 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                core::int i = :for-iterator.{asy::_StreamIterator::current};
+                #t375.{core::Set::add}(i);
+              }
+              else
+                break #L6;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t380 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::Set<core::int> set40 = block {
+          #t375.{core::Set::add}(null);
+        } =>#t375;
+        final core::Map<core::String, core::int> #t381 = <core::String, core::int>{};
+        {
+          dynamic :stream = asy::Stream::fromIterable<core::int>(<core::int>[let final<BottomType> #t382 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:225:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
+                                                        ^" in "not" as{TypeError} core::int, let final<BottomType> #t383 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:225:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+Try changing the type of the left hand side, or casting the right hand side to 'int'.
+  var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
+                                                               ^" in "int" as{TypeError} core::int]);
+          asy::_asyncStarListenHelper(:stream, :async_op);
+          asy::_StreamIterator<core::int> :for-iterator = new asy::_StreamIterator::•<core::int>(:stream);
+          const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
+          try
+            #L7:
+            while (true) {
+              dynamic #t384 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t385 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              if(:result) {
+                core::int i = :for-iterator.{asy::_StreamIterator::current};
+                #t381.{core::Map::[]=}("bar", i);
+              }
+              else
+                break #L7;
+            }
+          finally
+            if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
+              [yield] let dynamic #t386 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              :result;
+            }
+        }
+        core::Map<core::String, core::int> map40 = block {
+          #t381.{core::Map::[]=}("baz", null);
+        } =>#t381;
+        core::List<core::int> list50 = block {
+          final core::List<core::int> #t387 = <core::int>[];
+          for (; ; )
+            #t387.{core::List::add}(42);
+        } =>#t387;
+        core::Set<core::int> set50 = block {
+          final core::Set<core::int> #t388 = col::LinkedHashSet::•<core::int>();
+          for (; ; )
+            #t388.{core::Set::add}(42);
+          #t388.{core::Set::add}(null);
+        } =>#t388;
+        core::Map<core::String, core::int> map50 = block {
+          final core::Map<core::String, core::int> #t389 = <core::String, core::int>{};
+          for (; ; )
+            #t389.{core::Map::[]=}("bar", 42);
+          #t389.{core::Map::[]=}("baz", null);
+        } =>#t389;
+        core::List<core::int> list60 = block {
+          final core::List<core::int> #t390 = <core::int>[];
+          for (; let final<BottomType> #t391 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:229:24: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+Try changing the type of the left hand side, or casting the right hand side to 'bool'.
+  var list60 = [for (; \"not bool\";) 42];
+                       ^" in "not bool" as{TypeError} core::bool; )
+            #t390.{core::List::add}(42);
+        } =>#t390;
+        core::Set<core::int> set60 = block {
+          final core::Set<core::int> #t392 = col::LinkedHashSet::•<core::int>();
+          for (; let final<BottomType> #t393 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:230:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+Try changing the type of the left hand side, or casting the right hand side to 'bool'.
+  var set60 = {for (; \"not bool\";) 42, null};
+                      ^" in "not bool" as{TypeError} core::bool; )
+            #t392.{core::Set::add}(42);
+          #t392.{core::Set::add}(null);
+        } =>#t392;
+        core::Map<core::String, core::int> map60 = block {
+          final core::Map<core::String, core::int> #t394 = <core::String, core::int>{};
+          for (; let final<BottomType> #t395 = invalid-expression "pkg/front_end/testcases/control_flow_collection_inference.dart:231:23: Error: A value of type 'String' can't be assigned to a variable of type 'bool'.
+Try changing the type of the left hand side, or casting the right hand side to 'bool'.
+  var map60 = {for (; \"not bool\";) \"bar\": 42, \"baz\": null};
+                      ^" in "not bool" as{TypeError} core::bool; )
+            #t394.{core::Map::[]=}("bar", 42);
+          #t394.{core::Map::[]=}("baz", null);
+        } =>#t394;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.start(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method testForElementErrorsNotAsync(asy::Stream<core::int> stream) → dynamic {
+  block {
+    final core::List<core::int> #t396 = <core::int>[];
+    await for (core::int i in stream)
+      #t396.{core::List::add}(i);
+  } =>#t396;
+  block {
+    final core::Set<core::int> #t397 = col::LinkedHashSet::•<core::int>();
+    await for (core::int i in stream)
+      #t397.{core::Set::add}(i);
+  } =>#t397;
+  block {
+    final core::Map<core::String, core::int> #t398 = <core::String, core::int>{};
+    await for (core::int i in stream)
+      #t398.{core::Map::[]=}("bar", i);
+  } =>#t398;
+}
+static method main() → dynamic {}

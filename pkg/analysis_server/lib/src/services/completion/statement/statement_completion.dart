@@ -393,7 +393,7 @@ class StatementCompletionProcessor {
     }
     AstNode outer = node.parent.parent;
     if (!(outer is DoStatement ||
-        outer is ForStatement2 ||
+        outer is ForStatement ||
         outer is IfStatement ||
         outer is WhileStatement)) {
       return false;
@@ -521,7 +521,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_forEachStatement(
-      ForStatement2 forNode, ForEachParts forEachParts) {
+      ForStatement forNode, ForEachParts forEachParts) {
     AstNode name;
     if (forEachParts is ForEachPartsWithIdentifier) {
       name = forEachParts.identifier;
@@ -586,7 +586,7 @@ class StatementCompletionProcessor {
     return true;
   }
 
-  bool _complete_forStatement(ForStatement2 forNode, ForParts forParts) {
+  bool _complete_forStatement(ForStatement forNode, ForParts forParts) {
     SourceBuilder sb;
     int replacementLength = 0;
     if (forNode.leftParenthesis.isSynthetic) {
@@ -689,7 +689,7 @@ class StatementCompletionProcessor {
 
   bool _complete_forStatement2() {
     var node = this.node;
-    if (node is ForStatement2) {
+    if (node is ForStatement) {
       var forLoopParts = node.forLoopParts;
       if (forLoopParts is ForParts) {
         return _complete_forStatement(node, forLoopParts);

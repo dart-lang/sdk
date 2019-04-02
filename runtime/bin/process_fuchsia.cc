@@ -664,12 +664,10 @@ class ProcessStarter {
 
   zx_status_t AddPipe(int target_fd, int* local_fd,
                       fdio_spawn_action_t* action) {
-    zx_status_t status = fdio_pipe_half(&action->h.handle, &action->h.id);
-    if (status < 0)
-      return status;
-    *local_fd = status;
+    zx_status_t status = fdio_pipe_half2(local_fd, &action->h.handle);
+    if (status != ZX_OK) return status;
     action->action = FDIO_SPAWN_ACTION_ADD_HANDLE;
-    action->h.id = PA_HND(PA_HND_TYPE(action->h.id), target_fd);
+    action->h.id = PA_HND(PA_HND_TYPE(PA_FD), target_fd);
     return ZX_OK;
   }
 
@@ -677,11 +675,12 @@ class ProcessStarter {
   intptr_t BuildSpawnActions(fdio_ns_t* ns, fdio_spawn_action_t** actions_out) {
     const intptr_t fixed_actions_cnt = 4;
     intptr_t ns_cnt = 0;
+    zx_status_t status;
 
     // First, figure out how many namespace actions are needed.
     fdio_flat_namespace_t* flat_ns = nullptr;
     if (ns != nullptr) {
-      zx_status_t status = fdio_ns_export(ns, &flat_ns);
+      status = fdio_ns_export(ns, &flat_ns);
       if (status != ZX_OK) {
         LOG_ERR("ProcessStarter: BuildSpawnActions: fdio_ns_export: %s\n",
                 zx_status_get_string(status));
@@ -696,9 +695,33 @@ class ProcessStarter {
 
     // Fill in the entries for passing stdin/out/err handles, and the program
     // name.
-    AddPipe(0, &write_out_, &actions[0]);
-    AddPipe(1, &read_in_, &actions[1]);
-    AddPipe(2, &read_err_, &actions[2]);
+    status = AddPipe(0, &write_out_, &actions[0]);
+    if (status != ZX_OK) {
+      LOG_ERR("ProcessStarter: BuildSpawnActions: stdout AddPipe failed: %s\n",
+              zx_status_get_string(status));
+      if (flat_ns != nullptr) {
+        fdio_ns_free_flat_ns(flat_ns);
+      }
+      return -1;
+    }
+    status = AddPipe(1, &read_in_, &actions[1]);
+    if (status != ZX_OK) {
+      LOG_ERR("ProcessStarter: BuildSpawnActions: stdin AddPipe failed: %s\n",
+              zx_status_get_string(status));
+      if (flat_ns != nullptr) {
+        fdio_ns_free_flat_ns(flat_ns);
+      }
+      return -1;
+    }
+    status = AddPipe(2, &read_err_, &actions[2]);
+    if (status != ZX_OK) {
+      LOG_ERR("ProcessStarter: BuildSpawnActions: stderr AddPipe failed: %s\n",
+              zx_status_get_string(status));
+      if (flat_ns != nullptr) {
+        fdio_ns_free_flat_ns(flat_ns);
+      }
+      return -1;
+    }
     actions[3] = {
       .action = FDIO_SPAWN_ACTION_SET_NAME,
       .name.data = program_arguments_[0],

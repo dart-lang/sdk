@@ -8,11 +8,11 @@ library test;
 class A<T> {}
 
 class B<T> extends A<T> {
-  /*@topType=dynamic*/ foo() {}
+  foo() {}
 }
 
 A<num> a = new B<int>();
-var /*@topType=B<int>*/ b = (a as B<int>);
+var b = (a as B<int>);
 
 main() {
   A<num> a = new B<int>();

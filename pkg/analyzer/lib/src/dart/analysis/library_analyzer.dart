@@ -345,6 +345,7 @@ class LibraryAnalyzer {
     CodeChecker checker = new CodeChecker(
       _typeProvider,
       _context.typeSystem,
+      _inheritance,
       errorListener,
       _analysisOptions,
     );

@@ -379,10 +379,16 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'async*' isn't allowed for an expression function body.",
       correction: "Try converting the body to a block.");
 
+  static const ParserErrorCode INVALID_SUPER_IN_INITIALIZER =
+      _INVALID_SUPER_IN_INITIALIZER;
+
   static const ParserErrorCode INVALID_SYNC = const ParserErrorCode(
       'INVALID_SYNC',
       "The modifier 'sync' isn't allowed for an expression function body.",
       correction: "Try converting the body to a block.");
+
+  static const ParserErrorCode INVALID_THIS_IN_INITIALIZER =
+      _INVALID_THIS_IN_INITIALIZER;
 
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = _INVALID_UNICODE_ESCAPE;
 

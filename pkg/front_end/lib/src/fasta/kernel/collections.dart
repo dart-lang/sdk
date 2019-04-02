@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Expression,
         MapEntry,
         setParents,
+        Statement,
         transformList,
         TreeNode,
         VariableDeclaration,
@@ -28,10 +29,13 @@ import 'package:kernel/visitor.dart'
 
 import '../problems.dart' show getFileUri, unsupported;
 
+/// Mixin for spread and control-flow elements.
+///
 /// Spread and control-flow elements are not truly expressions and they cannot
 /// appear in arbitrary expression contexts in the Kernel program.  They can
-/// only appear as elements in list or set literals.
-mixin _FakeExpressionMixin on Expression {
+/// only appear as elements in list or set literals.  They are translated into
+/// a lower-level representation and never serialized to .dill files.
+mixin ControlFlowElement on Expression {
   /// Spread and contol-flow elements are not expressions and do not have a
   /// static type.
   @override
@@ -48,9 +52,10 @@ mixin _FakeExpressionMixin on Expression {
 }
 
 /// A spread element in a list or set literal.
-class SpreadElement extends Expression with _FakeExpressionMixin {
+class SpreadElement extends Expression with ControlFlowElement {
   Expression expression;
   bool isNullAware;
+  DartType elementType;
 
   SpreadElement(this.expression, this.isNullAware) {
     expression?.parent = this;
@@ -71,7 +76,7 @@ class SpreadElement extends Expression with _FakeExpressionMixin {
 }
 
 /// An 'if' element in a list or set literal.
-class IfElement extends Expression with _FakeExpressionMixin {
+class IfElement extends Expression with ControlFlowElement {
   Expression condition;
   Expression then;
   Expression otherwise;
@@ -107,7 +112,7 @@ class IfElement extends Expression with _FakeExpressionMixin {
 }
 
 /// A 'for' element in a list or set literal.
-class ForElement extends Expression with _FakeExpressionMixin {
+class ForElement extends Expression with ControlFlowElement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -144,22 +149,30 @@ class ForElement extends Expression with _FakeExpressionMixin {
 }
 
 /// A 'for-in' element in a list or set literal.
-class ForInElement extends Expression with _FakeExpressionMixin {
+class ForInElement extends Expression with ControlFlowElement {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
+  Statement prologue; // May be null.
   Expression body;
+  Expression problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
-  ForInElement(this.variable, this.iterable, this.body, {this.isAsync: false}) {
+  ForInElement(
+      this.variable, this.iterable, this.prologue, this.body, this.problem,
+      {this.isAsync: false}) {
     variable?.parent = this;
     iterable?.parent = this;
+    prologue?.parent = this;
     body?.parent = this;
+    problem?.parent = this;
   }
 
   visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
+    prologue?.accept(v);
     body?.accept(v);
+    problem?.accept(v);
   }
 
   transformChildren(Transformer v) {
@@ -171,46 +184,55 @@ class ForInElement extends Expression with _FakeExpressionMixin {
       iterable = iterable.accept(v);
       iterable?.parent = this;
     }
+    if (prologue != null) {
+      prologue = prologue.accept(v);
+      prologue?.parent = this;
+    }
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
     }
+    if (problem != null) {
+      problem = problem.accept(v);
+      problem?.parent = this;
+    }
   }
 }
 
-mixin _FakeMapEntryMixin implements MapEntry {
+mixin ControlFlowMapEntry implements MapEntry {
   @override
-  Expression get key => throw UnsupportedError('SpreadMapEntry.key getter');
+  Expression get key {
+    throw UnsupportedError('ControlFlowMapEntry.key getter');
+  }
 
   @override
   void set key(Expression expr) {
-    throw UnsupportedError('SpreadMapEntry.key setter');
+    throw UnsupportedError('ControlFlowMapEntry.key setter');
   }
 
   @override
-  Expression get value => throw UnsupportedError('SpreadMapEntry.value getter');
+  Expression get value {
+    throw UnsupportedError('ControlFlowMapEntry.value getter');
+  }
 
   @override
   void set value(Expression expr) {
-    throw UnsupportedError('SpreadMapEntry.value setter');
+    throw UnsupportedError('ControlFlowMapEntry.value setter');
   }
 
   @override
-  accept(TreeVisitor<Object> v) {
-    throw UnsupportedError('SpreadMapEntry.accept');
-  }
+  accept(TreeVisitor<Object> v) => v.defaultTreeNode(this);
 }
 
 /// A spread element in a map literal.
-class SpreadMapEntry extends TreeNode with _FakeMapEntryMixin {
+class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression expression;
   bool isNullAware;
+  DartType entryType;
 
   SpreadMapEntry(this.expression, this.isNullAware) {
     expression?.parent = this;
   }
-
-  accept(TreeVisitor<Object> v) => v.defaultTreeNode(this);
 
   @override
   visitChildren(Visitor<Object> v) {
@@ -227,7 +249,7 @@ class SpreadMapEntry extends TreeNode with _FakeMapEntryMixin {
 }
 
 /// An 'if' element in a map literal.
-class IfMapEntry extends TreeNode with _FakeMapEntryMixin {
+class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression condition;
   MapEntry then;
   MapEntry otherwise;
@@ -263,7 +285,7 @@ class IfMapEntry extends TreeNode with _FakeMapEntryMixin {
 }
 
 /// A 'for' element in a map literal.
-class ForMapEntry extends TreeNode with _FakeMapEntryMixin {
+class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -300,23 +322,30 @@ class ForMapEntry extends TreeNode with _FakeMapEntryMixin {
 }
 
 /// A 'for-in' element in a map literal.
-class ForInMapEntry extends TreeNode with _FakeMapEntryMixin {
+class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
+  Statement prologue; // May be null.
   MapEntry body;
+  Expression problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
-  ForInMapEntry(this.variable, this.iterable, this.body,
+  ForInMapEntry(
+      this.variable, this.iterable, this.prologue, this.body, this.problem,
       {this.isAsync: false}) {
     variable?.parent = this;
     iterable?.parent = this;
+    prologue?.parent = this;
     body?.parent = this;
+    problem?.parent = this;
   }
 
   visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
+    prologue?.accept(v);
     body?.accept(v);
+    problem?.accept(v);
   }
 
   transformChildren(Transformer v) {
@@ -328,9 +357,17 @@ class ForInMapEntry extends TreeNode with _FakeMapEntryMixin {
       iterable = iterable.accept(v);
       iterable?.parent = this;
     }
+    if (prologue != null) {
+      prologue = prologue.accept(v);
+      prologue?.parent = this;
+    }
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
+    }
+    if (problem != null) {
+      problem = problem.accept(v);
+      problem?.parent = this;
     }
   }
 }

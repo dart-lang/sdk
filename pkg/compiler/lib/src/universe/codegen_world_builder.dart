@@ -18,13 +18,7 @@ import '../world.dart' show JClosedWorld;
 import 'member_usage.dart';
 import 'selector.dart' show Selector;
 import 'use.dart'
-    show
-        ConstantUse,
-        ConstantUseKind,
-        DynamicUse,
-        DynamicUseKind,
-        StaticUse,
-        StaticUseKind;
+    show ConstantUse, DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 import 'world_builder.dart';
 
 /// World builder specific to codegen.
@@ -89,7 +83,6 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Invariant: Elements are declaration elements.
   Iterable<FieldEntity> get allReferencedStaticFields;
 
-  /// Set of methods in instantiated classes that are potentially closurized.
   @override
   Iterable<FunctionEntity> get closurizedMembers;
 
@@ -134,15 +127,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// Classes implemented by directly instantiated classes.
   final Set<ClassEntity> _implementedClasses = new Set<ClassEntity>();
 
-  /// The set of all referenced static fields.
-  ///
-  /// Invariant: Elements are declaration elements.
   @override
   final Set<FieldEntity> allReferencedStaticFields = new Set<FieldEntity>();
 
-  /// Documentation wanted -- johnniwinther
-  ///
-  /// Invariant: Elements are declaration elements.
   @override
   final Set<FunctionEntity> staticFunctionsNeedingGetter =
       new Set<FunctionEntity>();
@@ -210,26 +197,17 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   Iterable<ClassEntity> get instantiatedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
 
-  /// All directly instantiated classes, that is, classes with a generative
-  /// constructor that has been called directly and not only through a
-  /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses {
     return _directlyInstantiatedClasses;
   }
 
-  /// All directly instantiated types, that is, the types of the directly
-  /// instantiated classes.
-  ///
-  /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   @override
   Iterable<InterfaceType> get instantiatedTypes => _instantiatedTypes;
 
   /// Register [type] as (directly) instantiated.
-  ///
-  /// If [byMirrors] is `true`, the instantiation is through mirrors.
   // TODO(johnniwinther): Fully enforce the separation between exact, through
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
@@ -500,29 +478,33 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     closurizedMembers.add(element);
   }
 
-  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed) {
+  void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
-      _processInstantiatedClassMember(cls, member, memberUsed);
+      _processInstantiatedClassMember(cls, member, memberUsed, dryRun: dryRun);
     });
   }
 
   void _processInstantiatedClassMember(ClassEntity cls,
-      covariant MemberEntity member, MemberUsedCallback memberUsed) {
+      covariant MemberEntity member, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     if (!member.isInstanceMember) return;
     _getMemberUsage(member, memberUsed);
   }
 
   MemberUsage _getMemberUsage(
-      covariant MemberEntity member, MemberUsedCallback memberUsed) {
+      covariant MemberEntity member, MemberUsedCallback memberUsed,
+      {bool dryRun: false}) {
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
     // [StrongModeConstraint].
-    return _instanceMemberUsage.putIfAbsent(member, () {
+    MemberUsage usage = _instanceMemberUsage[member];
+    if (usage == null) {
       String memberName = member.name;
       ClassEntity cls = member.enclosingClass;
       bool isNative = _nativeBasicData.isNativeClass(cls);
-      MemberUsage usage = new MemberUsage(member, isNative: isNative);
+      usage = new MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
       if (!usage.hasRead && hasInvokedGetter(member)) {
@@ -537,23 +519,30 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.invoke(null));
       }
 
-      if (usage.hasPendingClosurizationUse) {
-        // Store the member in [instanceFunctionsByName] to catch
-        // getters on the function.
-        _instanceFunctionsByName
-            .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
-            .add(usage);
-      }
-      if (usage.hasPendingNormalUse) {
-        // The element is not yet used. Add it to the list of instance
-        // members to still be processed.
-        _instanceMembersByName
-            .putIfAbsent(memberName, () => new Set<MemberUsage>())
-            .add(usage);
+      if (!dryRun) {
+        if (usage.hasPendingClosurizationUse) {
+          // Store the member in [instanceFunctionsByName] to catch
+          // getters on the function.
+          _instanceFunctionsByName
+              .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
+              .add(usage);
+        }
+        if (usage.hasPendingNormalUse) {
+          // The element is not yet used. Add it to the list of instance
+          // members to still be processed.
+          _instanceMembersByName
+              .putIfAbsent(memberName, () => new Set<MemberUsage>())
+              .add(usage);
+        }
+        _instanceMemberUsage[member] = usage;
       }
       memberUsed(member, useSet);
-      return usage;
-    });
+    } else {
+      if (dryRun) {
+        usage = usage.clone();
+      }
+    }
+    return usage;
   }
 
   void _processSet(Map<String, Set<MemberUsage>> map, String memberName,
@@ -629,9 +618,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// Register the constant [use] with this world builder. Returns `true` if
   /// the constant use was new to the world.
   bool registerConstantUse(ConstantUse use) {
-    if (use.kind == ConstantUseKind.DIRECT) {
-      addCompileTimeConstantForEmission(use.value);
-    }
+    addCompileTimeConstantForEmission(use.value);
     return _constantValues.add(use.value);
   }
 

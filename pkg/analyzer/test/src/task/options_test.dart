@@ -36,9 +36,6 @@ main() {
   });
 }
 
-final isGenerateOptionsErrorsTask =
-    new TypeMatcher<GenerateOptionsErrorsTask>();
-
 @reflectiveTest
 class ContextConfigurationTest {
   final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
@@ -201,7 +198,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
         removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
         removeCode(StrongModeCode.DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.INVALID_FIELD_OVERRIDE);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE);
@@ -212,14 +208,12 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_METHOD);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.NO_DEFAULT_BOUNDS);
         removeCode(StrongModeCode.NOT_INSTANTIATED_BOUND);
         removeCode(StrongModeCode.TOP_LEVEL_CYCLE);
         removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK);
         removeCode(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
-        removeCode(StrongModeCode.TOP_LEVEL_UNSUPPORTED);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
       }

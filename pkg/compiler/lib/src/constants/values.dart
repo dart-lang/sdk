@@ -668,7 +668,7 @@ abstract class SetConstantValue extends ObjectConstantValue {
     _unparseTypeArguments(sb);
     sb.write('{');
     sb.writeAll(values.map((v) => v.toStructuredText()), ', ');
-    sb.write('}');
+    sb.write('})');
     return sb.toString();
   }
 

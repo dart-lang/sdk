@@ -23,8 +23,7 @@ abstract class Invocation {
   factory Invocation.method(
           Symbol memberName, Iterable<Object> positionalArguments,
           [Map<Symbol, Object> namedArguments]) =>
-      new _Invocation.method(
-          memberName, null, positionalArguments, namedArguments);
+      _Invocation.method(memberName, null, positionalArguments, namedArguments);
 
   /**
    * Creates an invocation corresponding to a generic method invocation.
@@ -38,7 +37,7 @@ abstract class Invocation {
   factory Invocation.genericMethod(Symbol memberName,
           Iterable<Type> typeArguments, Iterable<Object> positionalArguments,
           [Map<Symbol, Object> namedArguments]) =>
-      new _Invocation.method(
+      _Invocation.method(
           memberName, typeArguments, positionalArguments, namedArguments);
 
   /**
@@ -123,7 +122,7 @@ class _Invocation implements Invocation {
         _positional = _makeUnmodifiable<Object>(positional) ?? const <Object>[],
         _named = (named == null || named.isEmpty)
             ? const <Symbol, Object>{}
-            : new Map<Symbol, Object>.unmodifiable(named);
+            : Map<Symbol, Object>.unmodifiable(named);
 
   _Invocation.getter(this.memberName)
       : typeArguments = const <Type>[],
@@ -132,7 +131,7 @@ class _Invocation implements Invocation {
 
   _Invocation.setter(this.memberName, Object argument)
       : typeArguments = const <Type>[],
-        _positional = new List<Object>.unmodifiable([argument]),
+        _positional = List<Object>.unmodifiable([argument]),
         _named = null;
 
   List<dynamic> get positionalArguments => _positional ?? const <Object>[];
@@ -149,7 +148,7 @@ class _Invocation implements Invocation {
     if (types == null) return const <Type>[];
     for (int i = 0; i < types.length; i++) {
       if (types[i] == null) {
-        throw new ArgumentError(
+        throw ArgumentError(
             "Type arguments must be non-null, was null at index $i.");
       }
     }
@@ -158,6 +157,6 @@ class _Invocation implements Invocation {
 
   static List<T> _makeUnmodifiable<T>(Iterable<T> elements) {
     if (elements == null) return null;
-    return new List<T>.unmodifiable(elements);
+    return List<T>.unmodifiable(elements);
   }
 }

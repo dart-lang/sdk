@@ -56,42 +56,12 @@ typedef analyzer.Token ParseFunction(analyzer.Token token);
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
   void test_parseClassMember_operator_gtgtgt() {
-    final sourceText = 'class C { bool operator >>>(other) => false; }';
-
-    // ---------------------------------------------------
-    // TODO(danrubel): Replace this section with a call to parseCompilationUnit
-    // once '>>>' token support is enabled permanently.
-
-    var source = new StringSource(sourceText, 'parser_test_StringSource.dart');
-    GatheringErrorListener errorListener =
-        new GatheringErrorListener(checkRanges: true);
-
-    // Scan tokens
-    StringScanner scanner = new StringScanner(sourceText, includeComments: true)
-      ..enableGtGtGt = true;
-    Token tokens = scanner.tokenize();
-    expect(scanner.hasErrors, isFalse);
-
-    // Run parser
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-    fasta.Parser parser = new fasta.Parser(null);
-    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
-    parser.listener = astBuilder;
-    astBuilder.parser = parser;
-    parser.parseUnit(tokens);
-
-    CompilationUnitImpl unit = astBuilder.pop();
-    expect(unit, isNotNull);
-    unit.localDeclarations = astBuilder.localDeclarations;
-    errorListener.assertNoErrors();
-
-    // ---------------------------------------------------
-
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { bool operator >>>(other) => false; }',
+        enableGtGtGt: true);
     ClassDeclaration declaration = unit.declarations[0];
-    ClassMember member = declaration.members[0];
-    expect(member, isNotNull);
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
+    MethodDeclaration method = declaration.members[0];
+
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
@@ -102,6 +72,24 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_operator_gtgtgteq() {
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { foo(int value) { x >>>= value; } }',
+        enableGtGtGtEq: true);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+    BlockFunctionBody blockFunctionBody = method.body;
+    NodeList<Statement> statements = blockFunctionBody.block.statements;
+    expect(statements, hasLength(1));
+    ExpressionStatement statement = statements[0];
+    AssignmentExpression assignment = statement.expression;
+    SimpleIdentifier leftHandSide = assignment.leftHandSide;
+    expect(leftHandSide.name, 'x');
+    expect(assignment.operator.lexeme, '>>>=');
+    SimpleIdentifier rightHandSide = assignment.rightHandSide;
+    expect(rightHandSide.name, 'value');
   }
 }
 
@@ -129,11 +117,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
       '[1, await for (var x in list) 2]',
       inAsync: true,
     );
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    ForElement second = list.elements2[1];
+    ForElement second = list.elements[1];
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -151,11 +139,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
       '[1, await for (var x in list) if (c) 2]',
       inAsync: true,
     );
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    ForElement second = list.elements2[1];
+    ForElement second = list.elements[1];
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -177,11 +165,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_listLiteral_forSpread() {
     ListLiteral list =
         parseCollectionLiteral('[1, for (int x = 0; x < 10; ++x) ...[2]]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    ForElement second = list.elements2[1];
+    ForElement second = list.elements[1];
     expect(second.awaitKeyword, isNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -199,11 +187,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 
   void test_listLiteral_if() {
     ListLiteral list = parseCollectionLiteral('[1, if (true) 2]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    IfElement second = list.elements2[1];
+    IfElement second = list.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     IntegerLiteral thenElement = second.thenElement;
@@ -213,11 +201,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 
   void test_listLiteral_ifElse() {
     ListLiteral list = parseCollectionLiteral('[1, if (true) 2 else 5]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    IfElement second = list.elements2[1];
+    IfElement second = list.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     IntegerLiteral thenElement = second.thenElement;
@@ -229,11 +217,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_listLiteral_ifElseFor() {
     ListLiteral list =
         parseCollectionLiteral('[1, if (true) 2 else for (a in b) 5]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    IfElement second = list.elements2[1];
+    IfElement second = list.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     IntegerLiteral thenElement = second.thenElement;
@@ -250,11 +238,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_listLiteral_ifElseSpread() {
     ListLiteral list =
         parseCollectionLiteral('[1, if (true) ...[2] else ...?[5]]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    IfElement second = list.elements2[1];
+    IfElement second = list.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
@@ -265,11 +253,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 
   void test_listLiteral_ifFor() {
     ListLiteral list = parseCollectionLiteral('[1, if (true) for (a in b) 2]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    IfElement second = list.elements2[1];
+    IfElement second = list.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
 
@@ -284,11 +272,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 
   void test_listLiteral_ifSpread() {
     ListLiteral list = parseCollectionLiteral('[1, if (true) ...[2]]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    IfElement second = list.elements2[1];
+    IfElement second = list.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
@@ -298,38 +286,38 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 
   void test_listLiteral_spread() {
     ListLiteral list = parseCollectionLiteral('[1, ...[2]]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    SpreadElement element = list.elements2[1];
+    SpreadElement element = list.elements[1];
     expect(element.spreadOperator.lexeme, '...');
     ListLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_listLiteral_spreadQ() {
     ListLiteral list = parseCollectionLiteral('[1, ...?[2]]');
-    expect(list.elements2, hasLength(2));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(2));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
 
-    SpreadElement element = list.elements2[1];
+    SpreadElement element = list.elements[1];
     expect(element.spreadOperator.lexeme, '...?');
     ListLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_for() {
     SetOrMapLiteral map = parseCollectionLiteral(
         '{1:7, await for (y in list) 2:3}',
         inAsync: true);
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    ForElement second = map.elements2[1];
+    ForElement second = map.elements[1];
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -346,12 +334,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     SetOrMapLiteral map = parseCollectionLiteral(
         '{1:7, await for (y in list) if (c) 2:3}',
         inAsync: true);
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    ForElement second = map.elements2[1];
+    ForElement second = map.elements[1];
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -374,12 +362,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_mapLiteral_forSpread() {
     SetOrMapLiteral map =
         parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}');
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    ForElement second = map.elements2[1];
+    ForElement second = map.elements[1];
     expect(second.awaitKeyword, isNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
@@ -398,12 +386,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 
   void test_mapLiteral_if() {
     SetOrMapLiteral map = parseCollectionLiteral('{1:1, if (true) 2:4}');
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements2[1];
+    IfElement second = map.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     MapLiteralEntry thenElement = second.thenElement;
@@ -415,12 +403,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_mapLiteral_ifElse() {
     SetOrMapLiteral map =
         parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}');
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements2[1];
+    IfElement second = map.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     MapLiteralEntry thenElement = second.thenElement;
@@ -434,12 +422,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_mapLiteral_ifElseFor() {
     SetOrMapLiteral map =
         parseCollectionLiteral('{1:1, if (true) 2:4 else for (c in d) 5:6}');
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements2[1];
+    IfElement second = map.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     MapLiteralEntry thenElement = second.thenElement;
@@ -458,12 +446,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_mapLiteral_ifElseSpread() {
     SetOrMapLiteral map =
         parseCollectionLiteral('{1:7, if (true) ...{2:4} else ...?{5:6}}');
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 7);
 
-    IfElement second = map.elements2[1];
+    IfElement second = map.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
@@ -471,8 +459,8 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     SpreadElement elseElement = second.elseElement;
     expect(elseElement.spreadOperator.lexeme, '...?');
     SetOrMapLiteral elseElementExpression = elseElement.expression;
-    expect(elseElementExpression.elements2, hasLength(1));
-    MapLiteralEntry entry = elseElementExpression.elements2[0];
+    expect(elseElementExpression.elements, hasLength(1));
+    MapLiteralEntry entry = elseElementExpression.elements[0];
     IntegerLiteral entryValue = entry.value;
     expect(entryValue.value, 6);
   }
@@ -480,12 +468,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_mapLiteral_ifFor() {
     SetOrMapLiteral map =
         parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}');
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements2[1];
+    IfElement second = map.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
 
@@ -501,12 +489,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 
   void test_mapLiteral_ifSpread() {
     SetOrMapLiteral map = parseCollectionLiteral('{1:1, if (true) ...{2:4}}');
-    expect(map.elements2, hasLength(2));
-    MapLiteralEntry first = map.elements2[0];
+    expect(map.elements, hasLength(2));
+    MapLiteralEntry first = map.elements[0];
     IntegerLiteral firstValue = first.value;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements2[1];
+    IfElement second = map.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
@@ -518,48 +506,48 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     SetOrMapLiteral map = parseCollectionLiteral('{1: 2, ...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(2));
+    expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements2[1];
+    SpreadElement element = map.elements[1];
     expect(element.spreadOperator.lexeme, '...');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spread2_typed() {
     SetOrMapLiteral map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(2));
+    expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements2[1];
+    SpreadElement element = map.elements[1];
     expect(element.spreadOperator.lexeme, '...');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spread_typed() {
     SetOrMapLiteral map = parseCollectionLiteral('<int, int>{...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements2[0];
+    SpreadElement element = map.elements[0];
     expect(element.spreadOperator.lexeme, '...');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ() {
     SetOrMapLiteral map = parseCollectionLiteral('{1: 2, ...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(2));
+    expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements2[1];
+    SpreadElement element = map.elements[1];
     expect(element.spreadOperator.lexeme, '...?');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ2_typed() {
@@ -567,33 +555,33 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
         parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(2));
+    expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements2[1];
+    SpreadElement element = map.elements[1];
     expect(element.spreadOperator.lexeme, '...?');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ_typed() {
     SetOrMapLiteral map = parseCollectionLiteral('<int, int>{...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements2[0];
+    SpreadElement element = map.elements[0];
     expect(element.spreadOperator.lexeme, '...?');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_if() {
     SetOrMapLiteral setLiteral = parseCollectionLiteral('{1, if (true) 2}');
-    expect(setLiteral.elements2, hasLength(2));
-    IntegerLiteral first = setLiteral.elements2[0];
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements2[1];
+    IfElement second = setLiteral.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     IntegerLiteral thenElement = second.thenElement;
@@ -604,11 +592,11 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_setLiteral_ifElse() {
     SetOrMapLiteral setLiteral =
         parseCollectionLiteral('{1, if (true) 2 else 5}');
-    expect(setLiteral.elements2, hasLength(2));
-    IntegerLiteral first = setLiteral.elements2[0];
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements2[1];
+    IfElement second = setLiteral.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     IntegerLiteral thenElement = second.thenElement;
@@ -620,31 +608,31 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_setLiteral_ifElseSpread() {
     SetOrMapLiteral setLiteral =
         parseCollectionLiteral('{1, if (true) ...{2} else ...?[5]}');
-    expect(setLiteral.elements2, hasLength(2));
-    IntegerLiteral first = setLiteral.elements2[0];
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements2[1];
+    IfElement second = setLiteral.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
     expect(thenElement.spreadOperator.lexeme, '...');
     SetOrMapLiteral theExpression = thenElement.expression;
-    expect(theExpression.elements2, hasLength(1));
+    expect(theExpression.elements, hasLength(1));
     SpreadElement elseElement = second.elseElement;
     expect(elseElement.spreadOperator.lexeme, '...?');
     ListLiteral elseExpression = elseElement.expression;
-    expect(elseExpression.elements2, hasLength(1));
+    expect(elseExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_ifSpread() {
     SetOrMapLiteral setLiteral =
         parseCollectionLiteral('{1, if (true) ...[2]}');
-    expect(setLiteral.elements2, hasLength(2));
-    IntegerLiteral first = setLiteral.elements2[0];
+    expect(setLiteral.elements, hasLength(2));
+    IntegerLiteral first = setLiteral.elements[0];
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements2[1];
+    IfElement second = setLiteral.elements[1];
     BooleanLiteral condition = second.condition;
     expect(condition.value, isTrue);
     SpreadElement thenElement = second.thenElement;
@@ -656,76 +644,76 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     SetOrMapLiteral set = parseCollectionLiteral('{3, ...[4]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements2, hasLength(2));
-    IntegerLiteral value = set.elements2[0];
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
 
-    SpreadElement element = set.elements2[1];
+    SpreadElement element = set.elements[1];
     expect(element.spreadOperator.lexeme, '...');
     ListLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spread2Q() {
     SetOrMapLiteral set = parseCollectionLiteral('{3, ...?[4]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements2, hasLength(2));
-    IntegerLiteral value = set.elements2[0];
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
 
-    SpreadElement element = set.elements2[1];
+    SpreadElement element = set.elements[1];
     expect(element.spreadOperator.lexeme, '...?');
     ListLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spread_typed() {
     SetOrMapLiteral set = parseCollectionLiteral('<int>{...[3]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements2, hasLength(1));
+    expect(set.elements, hasLength(1));
 
-    SpreadElement element = set.elements2[0];
+    SpreadElement element = set.elements[0];
     expect(element.spreadOperator.lexeme, '...');
     ListLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spreadQ_typed() {
     SetOrMapLiteral set = parseCollectionLiteral('<int>{...?[3]}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements2, hasLength(1));
+    expect(set.elements, hasLength(1));
 
-    SpreadElement element = set.elements2[0];
+    SpreadElement element = set.elements[0];
     expect(element.spreadOperator.lexeme, '...?');
     ListLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setOrMapLiteral_spread() {
     SetOrMapLiteral map = parseCollectionLiteral('{...{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements2[0];
+    SpreadElement element = map.elements[0];
     expect(element.spreadOperator.lexeme, '...');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setOrMapLiteral_spreadQ() {
     SetOrMapLiteral map = parseCollectionLiteral('{...?{3: 4}}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements2[0];
+    SpreadElement element = map.elements[0];
     expect(element.spreadOperator.lexeme, '...?');
     SetOrMapLiteral spreadExpression = element.expression;
-    expect(spreadExpression.elements2, hasLength(1));
+    expect(spreadExpression.elements, hasLength(1));
   }
 }
 
@@ -803,16 +791,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
-  void test_await_missing_async_issue36048() {
-    parseCompilationUnit('''
-main() { // missing async
-  await foo();
-}
-''', errors: [
-      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 28, 5)
-    ]);
-  }
-
   void test_await_missing_async2_issue36048() {
     parseCompilationUnit('''
 main() { // missing async
@@ -840,6 +818,49 @@ main() { // missing async
 }
 ''', errors: [
       expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 29, 5)
+    ]);
+  }
+
+  void test_await_missing_async_issue36048() {
+    parseCompilationUnit('''
+main() { // missing async
+  await foo();
+}
+''', errors: [
+      expectedError(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 28, 5)
+    ]);
+  }
+
+  void test_constructor_super_field() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): super().foo {} }', errors: [
+      expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
+    ]);
+  }
+
+  void test_constructor_super_method() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): super().foo() {} }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
+        ]);
+  }
+
+  void test_constructor_this_field() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): this().foo; }', errors: [
+      expectedError(ParserErrorCode.INVALID_THIS_IN_INITIALIZER, 25, 4),
+    ]);
+  }
+
+  void test_constructor_this_method() {
+    // https://github.com/dart-lang/sdk/issues/36262
+    // https://github.com/dart-lang/sdk/issues/31198
+    parseCompilationUnit('class B extends A { B(): this().foo(); }', errors: [
+      expectedError(ParserErrorCode.INVALID_THIS_IN_INITIALIZER, 25, 4),
     ]);
   }
 
@@ -907,13 +928,28 @@ main() { // missing async
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
+  void test_binaryExpression_allOperators() {
+    // https://github.com/dart-lang/sdk/issues/36255
+    for (TokenType type in TokenType.all) {
+      if (type.precedence > 0) {
+        var source = 'a ${type.lexeme} b';
+        try {
+          parseExpression(source);
+        } on TestFailure {
+          // Ensure that there are no infinite loops or exceptions thrown
+          // by the parser. Test failures are fine.
+        }
+      }
+    }
+  }
+
   void test_listLiteral_spread() {
     // TODO(danrubel): Remove this once spread_collections is enabled by default
     ListLiteral list = parseExpression('[1, ...[2]]', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 3),
     ]);
-    expect(list.elements2, hasLength(1));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(1));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
   }
 
@@ -922,8 +958,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ListLiteral list = parseExpression('[1, ...?[2]]', errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 4),
     ]);
-    expect(list.elements2, hasLength(1));
-    IntegerLiteral first = list.elements2[0];
+    expect(list.elements, hasLength(1));
+    IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
   }
 
@@ -931,8 +967,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     SetOrMapLiteral map = parseExpression('{3: 6}');
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(1));
-    MapLiteralEntry entry = map.elements2[0];
+    expect(map.elements, hasLength(1));
+    MapLiteralEntry entry = map.elements[0];
     IntegerLiteral key = entry.key;
     expect(key.value, 3);
     IntegerLiteral value = entry.value;
@@ -943,8 +979,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     SetOrMapLiteral map = parseExpression('const {3: 6}');
     expect(map.constKeyword, isNotNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(1));
-    MapLiteralEntry entry = map.elements2[0];
+    expect(map.elements, hasLength(1));
+    MapLiteralEntry entry = map.elements[0];
     IntegerLiteral key = entry.key;
     expect(key.value, 3);
     IntegerLiteral value = entry.value;
@@ -958,7 +994,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
   }
 
   @failingTest
@@ -973,7 +1009,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
           3),
     ]);
     expect(map.constKeyword, isNull);
-    expect(map.elements2, hasLength(0));
+    expect(map.elements, hasLength(0));
   }
 
   @failingTest
@@ -988,7 +1024,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
           3),
     ]);
     expect(map.constKeyword, isNull);
-    expect(map.elements2, hasLength(0));
+    expect(map.elements, hasLength(0));
   }
 
   void test_mapLiteral_spread() {
@@ -998,7 +1034,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
   }
 
   void test_mapLiteral_spread2_typed() {
@@ -1009,7 +1045,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
   }
 
   void test_mapLiteral_spread_typed() {
@@ -1019,7 +1055,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(0));
+    expect(map.elements, hasLength(0));
   }
 
   void test_mapLiteral_spreadQ() {
@@ -1029,7 +1065,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ2_typed() {
@@ -1040,7 +1076,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(1));
+    expect(map.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ_typed() {
@@ -1050,7 +1086,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
-    expect(map.elements2, hasLength(0));
+    expect(map.elements, hasLength(0));
   }
 
   @override
@@ -1075,8 +1111,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     SetOrMapLiteral set = parseExpression('{3}');
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements2, hasLength(1));
-    IntegerLiteral value = set.elements2[0];
+    expect(set.elements, hasLength(1));
+    IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
   }
 
@@ -1084,10 +1120,10 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     SetOrMapLiteral set = parseExpression('const {3, 6}');
     expect(set.constKeyword, isNotNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements2, hasLength(2));
-    IntegerLiteral value1 = set.elements2[0];
+    expect(set.elements, hasLength(2));
+    IntegerLiteral value1 = set.elements[0];
     expect(value1.value, 3);
-    IntegerLiteral value2 = set.elements2[1];
+    IntegerLiteral value2 = set.elements[1];
     expect(value2.value, 6);
   }
 
@@ -1097,8 +1133,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg = set.typeArguments.arguments[0];
     expect(typeArg.name.name, 'int');
-    expect(set.elements2.length, 1);
-    IntegerLiteral value = set.elements2[0];
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
   }
 
@@ -1110,7 +1146,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg = set.typeArguments.arguments[0];
     expect(typeArg.name.name, 'int');
-    expect(set.elements2.length, 1);
+    expect(set.elements.length, 1);
   }
 
   void test_setLiteral_nested_typeArgument() {
@@ -1122,10 +1158,10 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(typeArg1.typeArguments.arguments, hasLength(1));
     NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
     expect(typeArg2.name.name, 'int');
-    expect(set.elements2.length, 1);
-    SetOrMapLiteral intSet = set.elements2[0];
-    expect(intSet.elements2, hasLength(1));
-    IntegerLiteral value = intSet.elements2[0];
+    expect(set.elements.length, 1);
+    SetOrMapLiteral intSet = set.elements[0];
+    expect(intSet.elements, hasLength(1));
+    IntegerLiteral value = intSet.elements[0];
     expect(value.value, 3);
   }
 
@@ -1135,8 +1171,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements2, hasLength(1));
-    IntegerLiteral value = set.elements2[0];
+    expect(set.elements, hasLength(1));
+    IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
   }
 
@@ -1146,8 +1182,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
-    expect(set.elements2, hasLength(1));
-    IntegerLiteral value = set.elements2[0];
+    expect(set.elements, hasLength(1));
+    IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
   }
 
@@ -1157,7 +1193,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements2, hasLength(0));
+    expect(set.elements, hasLength(0));
   }
 
   void test_setLiteral_spreadQ_typed() {
@@ -1166,7 +1202,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
-    expect(set.elements2, hasLength(0));
+    expect(set.elements, hasLength(0));
   }
 
   void test_setLiteral_typed() {
@@ -1175,8 +1211,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(set.typeArguments.arguments, hasLength(1));
     NamedType typeArg = set.typeArguments.arguments[0];
     expect(typeArg.name.name, 'int');
-    expect(set.elements2.length, 1);
-    IntegerLiteral value = set.elements2[0];
+    expect(set.elements.length, 1);
+    IntegerLiteral value = set.elements[0];
     expect(value.value, 3);
   }
 
@@ -1186,7 +1222,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 3)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(0));
+    expect(map.elements, hasLength(0));
   }
 
   void test_setOrMapLiteral_spreadQ() {
@@ -1195,7 +1231,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 4)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
-    expect(map.elements2, hasLength(0));
+    expect(map.elements, hasLength(0));
   }
 }
 
@@ -1358,12 +1394,16 @@ class FastaParserTestCase
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      bool enableControlFlowCollections}) {
+      bool enableControlFlowCollections,
+      bool enableGtGtGt,
+      bool enableGtGtGtEq}) {
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
 
     CompilationUnit unit = parseCompilationUnit2(content, listener,
-        enableControlFlowCollections: enableControlFlowCollections);
+        enableControlFlowCollections: enableControlFlowCollections,
+        enableGtGtGt: enableGtGtGt,
+        enableGtGtGtEq: enableGtGtGtEq);
 
     // Assert and return result
     if (codes != null) {
@@ -1379,7 +1419,9 @@ class FastaParserTestCase
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener,
-      {bool enableControlFlowCollections}) {
+      {bool enableControlFlowCollections,
+      bool enableGtGtGt,
+      bool enableGtGtGtEq}) {
     var source = new StringSource(content, 'parser_test_StringSource.dart');
 
     void reportError(
@@ -1389,7 +1431,10 @@ class FastaParserTestCase
     }
 
     // Scan tokens
-    ScannerResult result = scanString(content, includeComments: true);
+    ScannerResult result = scanString(content,
+        includeComments: true,
+        enableGtGtGt: enableGtGtGt ?? enableGtGtGtEq ?? false,
+        enableGtGtGtEq: enableGtGtGtEq ?? false);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -1411,6 +1456,8 @@ class FastaParserTestCase
     if (enableControlFlowCollections != null) {
       astBuilder.enableControlFlowCollections = enableControlFlowCollections;
     }
+    astBuilder.enableTripleShift =
+        enableGtGtGt == true || enableGtGtGtEq == true;
     parser.parseUnit(_fastaTokens);
     CompilationUnitImpl unit = astBuilder.pop();
     unit.localDeclarations = astBuilder.localDeclarations;
@@ -1479,7 +1526,7 @@ class FastaParserTestCase
   @override
   List<Expression> parseExpressionList(String code) {
     return (_parseExpression('[$code]') as ListLiteral)
-        .elements2
+        .elements
         .toList()
         .cast<Expression>();
   }
@@ -1587,7 +1634,7 @@ class FastaParserTestCase
   @override
   MapLiteralEntry parseMapLiteralEntry(String code) {
     var mapLiteral = parseMapLiteral(null, null, '{ $code }');
-    return mapLiteral.elements2.single;
+    return mapLiteral.elements.single;
   }
 
   @override
@@ -2223,7 +2270,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_incompleteForEach2() {
-    ForStatement2 statement = parseStatement('for (String item i) {}',
+    ForStatement statement = parseStatement('for (String item i) {}',
         parseControlFlowCollections: true);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
@@ -2341,7 +2388,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_each_await2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'await for (element in list) {}',
       inAsync: true,
       parseControlFlowCollections: true,
@@ -2359,7 +2406,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_each_genericFunctionType2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (void Function<T>(T) element in list) {}',
       parseControlFlowCollections: true,
     );
@@ -2376,7 +2423,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_each_identifier2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (element in list) {}',
       parseControlFlowCollections: true,
     );
@@ -2393,7 +2440,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_each_noType_metadata2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (@A var element in list) {}',
       parseControlFlowCollections: true,
     );
@@ -2411,7 +2458,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_each_type2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (A element in list) {}',
       parseControlFlowCollections: true,
     );
@@ -2428,7 +2475,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_each_var2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (var element in list) {}',
       parseControlFlowCollections: true,
     );
@@ -2445,7 +2492,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_c2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (; i < count;) {}',
       parseControlFlowCollections: true,
     );
@@ -2463,7 +2510,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_cu2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (; i < count; i++) {}',
       parseControlFlowCollections: true,
     );
@@ -2481,7 +2528,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_ecu2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (i--; i < count; i++) {}',
       parseSpreadCollections: true,
     );
@@ -2499,7 +2546,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_i2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (var i = 0;;) {}',
       parseSpreadCollections: true,
     );
@@ -2520,7 +2567,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_i_withMetadata2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (@A var i = 0;;) {}',
       parseSpreadCollections: true,
     );
@@ -2541,7 +2588,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_ic2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (var i = 0; i < count;) {}',
       parseSpreadCollections: true,
     );
@@ -2561,7 +2608,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_icu2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (var i = 0; i < count; i++) {}',
       parseSpreadCollections: true,
     );
@@ -2581,7 +2628,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_iicuu2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (int i = 0, j = count; i < j; i++, j--) {}',
       parseSpreadCollections: true,
     );
@@ -2601,7 +2648,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_iu2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (var i = 0;; i++) {}',
       parseSpreadCollections: true,
     );
@@ -2621,7 +2668,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseForStatement_loop_u2() {
-    ForStatement2 forStatement = parseStatement(
+    ForStatement forStatement = parseStatement(
       'for (;; i++) {}',
       parseSpreadCollections: true,
     );

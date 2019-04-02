@@ -20,9 +20,9 @@ void main() {
       = const {Duration(seconds: 0)} // Overrides ==. //# 08: compile-time error
       = const {4.2} // Overrides ==. //# 09: compile-time error
       = const {d} // Overrides ==. //# 10: compile-time error
-      = {,} //# 11: compile-time error
-      = {1,,} //# 12: compile-time error
-      = {1,,1} //# 13: compile-time error
+      = {,} //# 11: syntax error
+      = {1,,} //# 12: syntax error
+      = {1,,1} //# 13: syntax error
       ;
   Expect.isNull(o); // Should be unreachable with a value.
 

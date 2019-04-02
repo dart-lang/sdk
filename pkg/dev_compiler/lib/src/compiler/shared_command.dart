@@ -56,6 +56,10 @@ class SharedCompilerOptions {
   /// code.
   final bool sourceMap;
 
+  /// Whether to emit the source mapping file in the program text, so the
+  /// runtime can enable synchronous stack trace deobsfuscation.
+  final bool inlineSourceMap;
+
   /// Whether to emit a summary file containing API signatures.
   ///
   /// This is required for a modular build process.
@@ -95,6 +99,7 @@ class SharedCompilerOptions {
 
   SharedCompilerOptions(
       {this.sourceMap = true,
+      this.inlineSourceMap = false,
       this.summarizeApi = true,
       this.emitMetadata = false,
       this.enableAsserts = true,
@@ -109,6 +114,7 @@ class SharedCompilerOptions {
       [String moduleRoot, String summaryExtension])
       : this(
             sourceMap: args['source-map'] as bool,
+            inlineSourceMap: args['inline-source-map'] as bool,
             summarizeApi: args['summarize'] as bool,
             emitMetadata: args['emit-metadata'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
@@ -119,7 +125,8 @@ class SharedCompilerOptions {
             summaryModules: _parseCustomSummaryModules(
                 args['summary'] as List<String>, moduleRoot, summaryExtension),
             moduleFormats: parseModuleFormatOption(args),
-            moduleName: _getModuleName(args, moduleRoot));
+            moduleName: _getModuleName(args, moduleRoot),
+            replCompile: args['repl-compile'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addModuleFormatOptions(parser, hide: hide);
@@ -136,6 +143,8 @@ class SharedCompilerOptions {
           help: 'emit an API summary file', defaultsTo: true, hide: hide)
       ..addFlag('source-map',
           help: 'emit source mapping', defaultsTo: true, hide: hide)
+      ..addFlag('inline-source-map',
+          help: 'emit source mapping inline', defaultsTo: false, hide: hide)
       ..addFlag('emit-metadata',
           help: 'emit metadata annotations queriable via mirrors', hide: hide)
       ..addFlag('enable-asserts',
@@ -152,6 +161,12 @@ class SharedCompilerOptions {
       ..addOption('library-root',
           help: '(deprecated) used to name libraries inside the module, '
               'ignored with -k.',
+          hide: hide)
+      ..addFlag('repl-compile',
+          help: 'compile in a more permissive REPL mode, allowing access'
+              ' to private members across library boundaries. This should'
+              ' only be used by debugging tools.',
+          defaultsTo: false,
           hide: hide);
   }
 
@@ -384,7 +399,8 @@ Future<CompilerResult> compile(ParsedArguments args,
   }
   if (args.isKernel) {
     return kernel_compiler.compile(args.rest,
-        compilerState: previousResult?.kernelState);
+        compilerState: previousResult?.kernelState,
+        useIncrementalCompiler: args.useIncrementalCompiler);
   } else {
     var result = analyzer_compiler.compile(args.rest,
         compilerState: previousResult?.analyzerState);
@@ -477,11 +493,17 @@ class ParsedArguments {
   /// e.g. in a debugger REPL.
   final bool reuseResult;
 
+  /// Whether to use the incremental compiler for compiling.
+  ///
+  /// Note that this only makes sense when also reusing results.
+  final bool useIncrementalCompiler;
+
   ParsedArguments._(this.rest,
       {this.isBatch = false,
       this.isWorker = false,
       this.isKernel = false,
-      this.reuseResult = false});
+      this.reuseResult = false,
+      this.useIncrementalCompiler = false});
 
   /// Preprocess arguments to determine whether DDK is used in batch mode or as a
   /// persistent worker.
@@ -500,6 +522,7 @@ class ParsedArguments {
     bool isBatch = false;
     bool isKernel = false;
     bool reuseResult = false;
+    bool useIncrementalCompiler = false;
     var len = args.length;
     for (int i = 0; i < len; i++) {
       var arg = args[i];
@@ -518,6 +541,8 @@ class ParsedArguments {
         isKernel = true;
       } else if (arg == '--reuse-compiler-result') {
         reuseResult = true;
+      } else if (arg == '--use-incremental-compiler') {
+        useIncrementalCompiler = true;
       } else {
         newArgs.add(arg);
       }
@@ -526,7 +551,8 @@ class ParsedArguments {
         isWorker: isWorker,
         isBatch: isBatch,
         isKernel: isKernel,
-        reuseResult: reuseResult);
+        reuseResult: reuseResult,
+        useIncrementalCompiler: useIncrementalCompiler);
   }
 
   /// Whether the compiler is running in [isBatch] or [isWorker] mode.
@@ -552,7 +578,9 @@ class ParsedArguments {
         isWorker: isWorker,
         isBatch: isBatch,
         isKernel: isKernel || newArgs.isKernel,
-        reuseResult: reuseResult);
+        reuseResult: reuseResult || newArgs.reuseResult,
+        useIncrementalCompiler:
+            useIncrementalCompiler || newArgs.useIncrementalCompiler);
   }
 }
 

@@ -24,7 +24,7 @@ class SourcePositions {
     }
   }
 
-  void writeContents(BufferedWriter writer) {
+  void write(BufferedWriter writer) {
     writer.writePackedUInt30(mapping.length);
     final encodePC = new PackedUInt30DeltaEncoder();
     final encodeOffset = new SLEB128DeltaEncoder();
@@ -34,18 +34,7 @@ class SourcePositions {
     });
   }
 
-  void write(BufferedWriter writer) {
-    // TODO(alexmarkov): write source positions in a separate section
-    BufferedWriter contentsWriter = new BufferedWriter.fromWriter(writer);
-    writeContents(contentsWriter);
-
-    final contents = contentsWriter.takeBytes();
-    writer.writePackedUInt30(contents.length);
-    writer.writeBytes(contents);
-  }
-
   SourcePositions.read(BufferedReader reader) {
-    reader.readPackedUInt30(); // Contents length in bytes.
     final int length = reader.readPackedUInt30();
     final decodePC = new PackedUInt30DeltaDecoder();
     final decodeOffset = new SLEB128DeltaDecoder();

@@ -27,6 +27,7 @@ import 'package:kernel/kernel.dart'
         Procedure,
         ProcedureKind,
         ReturnStatement,
+        Source,
         TreeNode,
         TypeParameter;
 
@@ -210,6 +211,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
 
+      invalidateNotKeptUserBuilders(invalidatedUris);
+
       ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
       Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
       List<LibraryBuilder> reusedLibraries = computeReusedLibraries(
@@ -219,14 +222,36 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
         ..removeAll(reusedLibraryUris)) {
-        dillLoadedData.loader.builders.remove(uri);
+        LibraryBuilder builder = dillLoadedData.loader.builders.remove(uri);
         userBuilders?.remove(uri);
+        CompilerContext.current.uriToSource.remove(builder.fileUri);
       }
 
-      // Remove component problems for libraries we don't reuse.
-      if (remainingComponentProblems.isNotEmpty) {
-        for (LibraryBuilder builder in notReusedLibraries) {
-          Library lib = builder.target;
+      if (hasToCheckPackageUris) {
+        // The package file was changed.
+        // Make sure the dill loader is on the same page.
+        DillTarget oldDillLoadedData = dillLoadedData;
+        dillLoadedData =
+            new DillTarget(ticker, uriTranslator, c.options.target);
+        for (DillLibraryBuilder library
+            in oldDillLoadedData.loader.builders.values) {
+          library.loader = dillLoadedData.loader;
+          dillLoadedData.loader.builders[library.uri] = library;
+          if (library.uri.scheme == "dart" && library.uri.path == "core") {
+            dillLoadedData.loader.coreLibrary = library;
+          }
+        }
+        dillLoadedData.loader.first = oldDillLoadedData.loader.first;
+        dillLoadedData.loader.libraries
+            .addAll(oldDillLoadedData.loader.libraries);
+      }
+
+      for (LibraryBuilder builder in notReusedLibraries) {
+        Library lib = builder.target;
+        CompilerContext.current.uriToSource.remove(builder.fileUri);
+
+        // Remove component problems for libraries we don't reuse.
+        if (remainingComponentProblems.isNotEmpty) {
           removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
         }
       }
@@ -245,6 +270,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ticker.logMs("Decided to reuse ${reusedLibraries.length}"
             " of ${userCode.loader.builders.length} libraries");
       }
+
+      await loadEnsureLoadedComponents(reusedLibraryUris, reusedLibraries);
 
       KernelTarget userCodeOld = userCode;
       userCode = new KernelTarget(
@@ -269,12 +296,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           userCode.loader.builders[entryPoints.first] != null) {
         userCode.loader.first = userCode.loader.builders[entryPoints.first];
       }
-      await userCode.buildOutlines();
+      Component componentWithDill = await userCode.buildOutlines();
 
-      // This is not the full component. It is the component including all
-      // libraries loaded from .dill files.
-      Component componentWithDill =
-          await userCode.buildComponent(verify: c.options.verify);
+      // This is not the full component. It is the component consisting of all
+      // newly compiled libraries and all libraries loaded from .dill files or
+      // directly from components.
+      // Technically, it's the combination of userCode.loader.libraries and
+      // dillLoadedData.loader.libraries.
+      if (!outlineOnly) {
+        componentWithDill =
+            await userCode.buildComponent(verify: c.options.verify);
+      }
+
+      recordNonFullComponentForTesting(componentWithDill);
+
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
         hasToCheckPackageUris = false;
@@ -291,9 +326,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Library> outputLibraries;
       Set<Library> allLibraries;
+      Map<Uri, Source> uriToSource = componentWithDill?.uriToSource;
       if (data.component != null || fullComponent) {
-        outputLibraries = computeTransitiveClosure(compiledLibraries,
-            entryPoints, reusedLibraries, hierarchy, uriTranslator);
+        outputLibraries = computeTransitiveClosure(
+            compiledLibraries,
+            entryPoints,
+            reusedLibraries,
+            hierarchy,
+            uriTranslator,
+            uriToSource);
         allLibraries = outputLibraries.toSet();
         if (!c.options.omitPlatform) {
           for (int i = 0; i < platformBuilders.length; i++) {
@@ -303,8 +344,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       } else {
         outputLibraries = new List<Library>();
-        allLibraries = computeTransitiveClosure(compiledLibraries, entryPoints,
-                reusedLibraries, hierarchy, uriTranslator, outputLibraries)
+        allLibraries = computeTransitiveClosure(
+                compiledLibraries,
+                entryPoints,
+                reusedLibraries,
+                hierarchy,
+                uriTranslator,
+                uriToSource,
+                outputLibraries)
             .toSet();
       }
 
@@ -317,9 +364,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       // This is the incremental component.
-      return context.options.target.configureComponent(new Component(
-          libraries: outputLibraries,
-          uriToSource: componentWithDill?.uriToSource))
+      return context.options.target.configureComponent(
+          new Component(libraries: outputLibraries, uriToSource: uriToSource))
         ..mainMethod = mainMethod
         ..problemsAsJson = problemsAsJson;
     });
@@ -327,13 +373,57 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void invalidateNotKeptUserBuilders(Set<Uri> invalidatedUris) {
-    throw UnimplementedError("Not implemented yet.");
+    if (modulesToLoad != null && userBuilders != null) {
+      Set<Library> loadedNotKept = new Set<Library>();
+      for (LibraryBuilder builder in userBuilders.values) {
+        loadedNotKept.add(builder.target);
+      }
+      for (Component module in modulesToLoad) {
+        loadedNotKept.removeAll(module.libraries);
+      }
+      for (Library lib in loadedNotKept) {
+        invalidatedUris.add(lib.importUri);
+      }
+    }
   }
 
   /// Internal method.
   Future loadEnsureLoadedComponents(
       Set<Uri> reusedLibraryUris, List<LibraryBuilder> reusedLibraries) async {
-    throw UnimplementedError("Not implemented yet.");
+    if (modulesToLoad != null) {
+      bool loadedAnything = false;
+      for (Component module in modulesToLoad) {
+        bool usedComponent = false;
+        for (Library lib in module.libraries) {
+          if (!reusedLibraryUris.contains(lib.importUri)) {
+            dillLoadedData.loader.libraries.add(lib);
+            dillLoadedData.addLibrary(lib);
+            reusedLibraries.add(dillLoadedData.loader.read(lib.importUri, -1));
+            usedComponent = true;
+          }
+        }
+        if (usedComponent) {
+          dillLoadedData.uriToSource.addAll(module.uriToSource);
+          loadedAnything = true;
+        }
+      }
+      if (loadedAnything) {
+        await dillLoadedData.buildOutlines();
+        userBuilders = <Uri, LibraryBuilder>{};
+        platformBuilders = <LibraryBuilder>[];
+        dillLoadedData.loader.builders.forEach((uri, builder) {
+          if (builder.uri.scheme == "dart") {
+            platformBuilders.add(builder);
+          } else {
+            userBuilders[uri] = builder;
+          }
+        });
+        if (userBuilders.isEmpty) {
+          userBuilders = null;
+        }
+      }
+      modulesToLoad = null;
+    }
   }
 
   /// Internal method.
@@ -415,6 +505,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries,
       ClassHierarchy hierarchy,
       UriTranslator uriTranslator,
+      Map<Uri, Source> uriToSource,
       [List<Library> inputLibrariesFiltered]) {
     List<Library> result = new List<Library>();
     Map<Uri, Library> libraryMap = <Uri, Library>{};
@@ -468,6 +559,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library lib = builder.target;
         removedLibraries.add(lib);
         dillLoadedData.loader.builders.remove(uri);
+        CompilerContext.current.uriToSource.remove(uri);
+        uriToSource.remove(uri);
         userBuilders?.remove(uri);
         removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
       }
@@ -831,13 +924,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   void invalidateAllSources() {
-    throw UnimplementedError("Not implemented yet.");
+    if (userCode != null) {
+      Set<Uri> uris = new Set<Uri>.from(userCode.loader.builders.keys);
+      uris.removeAll(dillLoadedData.loader.builders.keys);
+      invalidatedUris.addAll(uris);
+    }
   }
 
   @override
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
-    throw UnimplementedError("Not implemented yet.");
+    modulesToLoad = components.toList();
   }
+
+  /// Internal method.
+  void recordNonFullComponentForTesting(Component component) {}
 
   /// Internal method.
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {}

@@ -13,6 +13,11 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
+// TODO(askesc): We should not need to call the constant evaluator
+// explicitly once constant-update-2018 is shipped.
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constants;
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -30,7 +35,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         printDiagnosticMessage;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart'
     show Component, Field, Library, Reference, StaticGet;
@@ -39,7 +43,6 @@ import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
 import 'bytecode/ast_remover.dart' show ASTRemover;
@@ -105,6 +108,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addFlag('emit-bytecode-source-positions',
       help: 'Emit source positions in bytecode', defaultsTo: false);
+  args.addFlag('emit-bytecode-annotations',
+      help: 'Emit Dart annotations in bytecode', defaultsTo: false);
   args.addFlag('drop-ast',
       help: 'Drop AST for members with bytecode', defaultsTo: false);
   args.addFlag('show-bytecode-size-stat',
@@ -149,6 +154,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool emitBytecodeSourcePositions =
       options['emit-bytecode-source-positions'];
+  final bool emitBytecodeAnnotations = options['emit-bytecode-annotations'];
   final bool dropAST = options['drop-ast'];
   final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
@@ -207,6 +213,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST && !splitOutputByPackages,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,
@@ -244,6 +251,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST,
       showBytecodeSizeStat: showBytecodeSizeStat,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -264,6 +272,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool emitBytecodeSourcePositions: false,
+    bool emitBytecodeAnnotations: false,
     bool dropAST: false,
     bool useFutureBytecodeFormat: false,
     bool enableAsserts: false,
@@ -309,6 +318,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
           emitSourcePositions: emitBytecodeSourcePositions,
+          emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
     });
@@ -401,16 +411,14 @@ Future _performConstantEvaluation(
   final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
-    final hierarchy = new ClassHierarchy(component);
-    final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
-
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).
     constants.transformComponent(component, vmConstants, environmentDefines,
-        new ForwardConstantEvaluationErrors(typeEnvironment),
+        new ForwardConstantEvaluationErrors(),
         keepFields: true,
         evaluateAnnotations: true,
-        enableAsserts: enableAsserts);
+        enableAsserts: enableAsserts,
+        desugarSets: !compilerOptions.target.supportsSetLiterals);
   });
 }
 
@@ -602,6 +610,7 @@ Future writeOutputSplitByPackages(
   Map<String, String> environmentDefines,
   bool genBytecode: false,
   bool emitBytecodeSourcePositions: false,
+  bool emitBytecodeAnnotations: false,
   bool dropAST: false,
   bool showBytecodeSizeStat: false,
   bool useFutureBytecodeFormat: false,
@@ -653,6 +662,7 @@ Future writeOutputSplitByPackages(
         generateBytecode(component,
             libraries: libraries,
             emitSourcePositions: emitBytecodeSourcePositions,
+            emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,
             environmentDefines: environmentDefines);
 
@@ -667,11 +677,12 @@ Future writeOutputSplitByPackages(
       final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(component);
-      component.mainMethod = main;
-      component.problemsAsJson = problems;
+
       if (genBytecode && dropAST) {
         astRemover.restoreAST();
       }
+      component.mainMethod = main;
+      component.problemsAsJson = problems;
 
       await sink.close();
     }

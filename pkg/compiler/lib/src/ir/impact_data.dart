@@ -188,6 +188,14 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
+  void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
+      ir.LibraryDependency import) {
+    _data._constInstantiations ??= [];
+    _data._constInstantiations
+        .add(new _ConstInstantiation(cls, typeArguments, import));
+  }
+
+  @override
   void registerLazyField() {
     _registerFeature(_Feature.lazyField);
   }
@@ -216,7 +224,7 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerFieldInitializer(ir.Field node) {
+  void registerFieldInitialization(ir.Field node) {
     _data._fieldInitializers ??= [];
     _data._fieldInitializers.add(node);
   }
@@ -405,12 +413,6 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerConstant(ir.ConstantExpression node) {
-    _data._constants ??= [];
-    _data._constants.add(node);
-  }
-
-  @override
   void registerConstructorNode(ir.Constructor node) {
     _data._constructorNodes ??= [];
     _data._constructorNodes.add(node);
@@ -475,6 +477,7 @@ class ImpactDataImpl implements ImpactData {
   List<_LocalFunctionInvocation> _localFunctionInvocations;
   List<_StaticInvocation> _staticInvocations;
   List<_ConstructorInvocation> _constructorInvocations;
+  List<_ConstInstantiation> _constInstantiations;
   EnumSet<_Feature> _features;
   List<_TypeUse> _typeUses;
   List<_RedirectingInitializer> _redirectingInitializers;
@@ -494,7 +497,6 @@ class ImpactDataImpl implements ImpactData {
   List<double> _doubleLiterals;
   List<int> _intLiterals;
   List<_RuntimeTypeUse> _runtimeTypeUses;
-  List<ir.ConstantExpression> _constants;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
   List<ir.Constructor> _constructorNodes;
@@ -802,6 +804,12 @@ class ImpactDataImpl implements ImpactData {
             isConst: data.isConst);
       }
     }
+    if (_constInstantiations != null) {
+      for (_ConstInstantiation data in _constInstantiations) {
+        registry.registerConstInstantiation(
+            data.cls, data.typeArguments, data.import);
+      }
+    }
     if (_features != null) {
       for (_Feature data in _features.iterable(_Feature.values)) {
         switch (data) {
@@ -885,7 +893,7 @@ class ImpactDataImpl implements ImpactData {
     }
     if (_fieldInitializers != null) {
       for (ir.Field data in _fieldInitializers) {
-        registry.registerFieldInitializer(data);
+        registry.registerFieldInitialization(data);
       }
     }
     if (_typeLiterals != null) {
@@ -1315,6 +1323,33 @@ class _ConstructorInvocation {
     callStructure.toDataSink(sink);
     sink.writeLibraryDependencyNodeOrNull(import);
     sink.writeBool(isConst);
+    sink.end(tag);
+  }
+}
+
+class _ConstInstantiation {
+  static const String tag = '_ConstInstantiation';
+
+  final ir.Class cls;
+  final List<ir.DartType> typeArguments;
+  final ir.LibraryDependency import;
+
+  _ConstInstantiation(this.cls, this.typeArguments, this.import);
+
+  factory _ConstInstantiation.fromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.Class cls = source.readClassNode();
+    List<ir.DartType> typeArguments = source.readDartTypeNodes();
+    ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
+    source.end(tag);
+    return new _ConstInstantiation(cls, typeArguments, import);
+  }
+
+  void toDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeClassNode(cls);
+    sink.writeDartTypeNodes(typeArguments);
+    sink.writeLibraryDependencyNodeOrNull(import);
     sink.end(tag);
   }
 }

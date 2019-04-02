@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error,warning,context*/
-
 class T {}
 
 class V {}
@@ -25,64 +23,51 @@ test() {
     T t;
     // This doesn't cause a scope error as the named function expression has
     // its own scope.
-    var x = /*@error=NamedFunctionExpression*/ T() {};
+    var x = T() {};
   }
   {
-    /*@context=DuplicatedNamePreviouslyUsedCause*/ V  v;
+    V v;
     // This causes an error, V is already used in this scope.
-    var /*@error=DuplicatedNamePreviouslyUsed*/ V;
+    var V;
   }
   {
-    /*@context=DuplicatedNamePreviouslyUsedCause*/ V  v;
+    V v;
     // This causes an error, V is already used in this scope.
-    var /*@error=DuplicatedNamePreviouslyUsed*/ V = null;
+    var V = null;
   }
   {
     // This causes a scope error as T is already used in the function-type
     // scope (the return type).
-    var x =
-        /*@context=DuplicatedNamePreviouslyUsedCause*/
-        T
-        /*@error=NamedFunctionExpression*/
-        /*@error=DuplicatedNamePreviouslyUsed*/
-        T() {};
+    var x = T T() {};
   }
   {
     // This causes a scope error: using the outer definition of `V` as a type
     // when defining `V`.
-    /*@context=DuplicatedNamePreviouslyUsedCause*/
-    V /*@error=DuplicatedNamePreviouslyUsed*/ V;
+
+    V V;
   }
   {
     // This causes a scope error as T is already defined as a type variable in
     // the function-type scope.
-    var x =
-        /*@error=NamedFunctionExpression*/
-        /*@error=DuplicatedDeclaration*/
-        T< /*@context=DuplicatedDeclarationCause*/ T>() {};
+    var x = T<T>() {};
   }
   {
-    /*@context=DuplicatedNamePreviouslyUsedCause*/
     T t;
-    T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
+    T T() {}
   }
   {
-    /*@context=DuplicatedNamePreviouslyUsedCause*/
-    T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
+    T T() {}
   }
   {
-    /*@context=DuplicatedNamePreviouslyUsedCause*/
     T t;
-    T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
+    T T(T t) {}
   }
   {
-    /*@context=DuplicatedNamePreviouslyUsedCause*/
-    T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
+    T T(T t) {}
   }
   {
-    void T(/*@error=NotAType*/ T t) {}
+    void T(T t) {}
   }
 }
 
-void main() {
-}
+void main() {}

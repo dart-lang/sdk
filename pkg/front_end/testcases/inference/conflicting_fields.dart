@@ -15,8 +15,8 @@ class I {
 }
 
 class B extends A implements I {
-  get /*@topType=dynamic*/field1 => null;
-  get /*@topType=dynamic*/field2 => null;
+  get field1 => null;
+  get field2 => null;
 }
 
 main() {}

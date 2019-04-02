@@ -8,7 +8,7 @@ library test;
 class B {}
 
 class C extends B {
-  var /*@topType=dynamic*/ z;
+  var z;
 }
 
 void test(B x) {

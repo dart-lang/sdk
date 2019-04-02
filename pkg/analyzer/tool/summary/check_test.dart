@@ -13,7 +13,10 @@ import 'generate.dart';
  * user to run generate.dart.
  */
 main() async {
-  String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
-  await GeneratedContent.checkAll(
-      pkgPath, 'tool/summary/generate.dart', allTargets);
+  var idlFolderPath = normalize(
+      join(package_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'));
+  var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
+  await GeneratedContent.checkAll(idlFolderPath,
+      'pkg/analyzer/tool/summary/generate.dart', getAllTargets(idlPath),
+      args: [idlPath]);
 }

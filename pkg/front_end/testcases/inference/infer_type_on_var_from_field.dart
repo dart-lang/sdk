@@ -8,7 +8,7 @@ library test;
 class A {
   int x = 0;
 
-  /*@topType=dynamic*/ test1() {
+  test1() {
     var /*@type=int*/ a = /*@target=A::x*/ x;
     a = /*error:INVALID_ASSIGNMENT*/ "hi";
     a = 3;
@@ -21,7 +21,7 @@ class A {
   }
 
   int y; // field def after use
-  final /*@topType=int*/ z = 42; // should infer `int`
+  final z = 42; // should infer `int`
 }
 
 main() {}

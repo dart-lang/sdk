@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -464,7 +464,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitForStatement2(ForStatement2 node) {
+  void _visitForStatement(ForStatement node) {
     _localScopes.enter();
 
     _visitForLoopParts(node.forLoopParts);
@@ -535,7 +535,7 @@ class ReferenceCollector {
 
   void _visitListLiteral(ListLiteral node) {
     _visitTypeArguments(node.typeArguments);
-    var elements = node.elements2;
+    var elements = node.elements;
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       _visitCollectionElement(element);
@@ -619,7 +619,7 @@ class ReferenceCollector {
 
   void _visitSetOrMapLiteral(SetOrMapLiteral node) {
     _visitTypeArguments(node.typeArguments);
-    var elements = node.elements2;
+    var elements = node.elements;
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       _visitCollectionElement(element);
@@ -662,8 +662,8 @@ class ReferenceCollector {
       // nothing
     } else if (node is ExpressionStatement) {
       _visitExpression(node.expression);
-    } else if (node is ForStatement2) {
-      _visitForStatement2(node);
+    } else if (node is ForStatement) {
+      _visitForStatement(node);
     } else if (node is FunctionDeclarationStatement) {
       _visitFunctionDeclarationStatement(node);
     } else if (node is IfStatement) {

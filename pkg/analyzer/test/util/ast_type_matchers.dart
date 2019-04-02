@@ -114,7 +114,7 @@ const isFieldFormalParameter = const TypeMatcher<FieldFormalParameter>();
 /// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
 /// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
 final Matcher isForEachStatement = predicate(
-    (Object o) => o is ForStatement2 && o.forLoopParts is ForEachParts);
+    (Object o) => o is ForStatement && o.forLoopParts is ForEachParts);
 
 const isFormalParameter = const TypeMatcher<FormalParameter>();
 
@@ -123,7 +123,7 @@ const isFormalParameterList = const TypeMatcher<FormalParameterList>();
 /// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
 /// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
 final Matcher isForStatement =
-    predicate((Object o) => o is ForStatement2 && o.forLoopParts is ForParts);
+    predicate((Object o) => o is ForStatement && o.forLoopParts is ForParts);
 
 const isFunctionBody = const TypeMatcher<FunctionBody>();
 

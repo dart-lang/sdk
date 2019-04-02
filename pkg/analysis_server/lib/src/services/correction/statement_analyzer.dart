@@ -105,8 +105,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
   }
 
   @override
-  Object visitForStatement2(ForStatement2 node) {
-    super.visitForStatement2(node);
+  Object visitForStatement(ForStatement node) {
+    super.visitForStatement(node);
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
       List<AstNode> selectedNodes = this.selectedNodes;

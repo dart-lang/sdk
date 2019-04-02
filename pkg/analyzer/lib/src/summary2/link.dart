@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,6 +19,8 @@ import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/reference_resolver.dart';
+import 'package:analyzer/src/summary2/type_builder.dart';
 
 LinkResult link(
   AnalysisOptions analysisOptions,
@@ -74,6 +76,7 @@ class Linker {
       elementFactory,
       linkingBundle.references,
     );
+    bundleContext.linking = linkingBundleContext;
   }
 
   void link(List<LinkedNodeBundle> inputs,
@@ -92,6 +95,12 @@ class Linker {
     _buildOutlines();
   }
 
+  void _addExporters() {
+    for (var library in builders.values) {
+      library.addExporters();
+    }
+  }
+
   void _addSyntheticConstructors() {
     for (var library in builders.values) {
       library.addSyntheticConstructors();
@@ -99,21 +108,56 @@ class Linker {
   }
 
   void _buildOutlines() {
+    _addExporters();
     _computeLibraryScopes();
     _addSyntheticConstructors();
     _createTypeSystem();
     _resolveTypes();
     _performTopLevelInference();
+    _resolveConstructors();
     _resolveMetadata();
   }
 
   void _computeLibraryScopes() {
+    var exporters = new Set<SourceLibraryBuilder>();
+    var exportees = new Set<SourceLibraryBuilder>();
+
     for (var library in builders.values) {
       library.addLocalDeclarations();
+      if (library.exporters.isNotEmpty) {
+        exportees.add(library);
+        for (var exporter in library.exporters) {
+          exporters.add(exporter.exporter);
+        }
+      }
     }
 
     for (var library in builders.values) {
       library.buildInitialExportScope();
+    }
+
+    var both = new Set<SourceLibraryBuilder>();
+    for (var exported in exportees) {
+      if (exporters.contains(exported)) {
+        both.add(exported);
+      }
+      for (var export in exported.exporters) {
+        exported.exportScope.forEach(export.addToExportScope);
+      }
+    }
+
+    while (true) {
+      var hasChanges = false;
+      for (var exported in both) {
+        for (var export in exported.exporters) {
+          exported.exportScope.forEach((name, member) {
+            if (export.addToExportScope(name, member)) {
+              hasChanges = true;
+            }
+          });
+        }
+      }
+      if (!hasChanges) break;
     }
 
     for (var library in builders.values) {
@@ -123,14 +167,18 @@ class Linker {
     for (var library in builders.values) {
       library.storeExportScope();
     }
-
-    // TODO(scheglov) process imports and exports
   }
 
   void _createTypeSystem() {
     var coreRef = rootReference.getChild('dart:core');
     var coreLib = elementFactory.elementOfReference(coreRef);
-    typeProvider = SummaryTypeProvider()..initializeCore(coreLib);
+
+    var asyncRef = rootReference.getChild('dart:async');
+    var asyncLib = elementFactory.elementOfReference(asyncRef);
+
+    typeProvider = SummaryTypeProvider()
+      ..initializeCore(coreLib)
+      ..initializeAsync(asyncLib);
     analysisContext.typeProvider = typeProvider;
 
     typeSystem = Dart2TypeSystem(typeProvider);
@@ -145,6 +193,12 @@ class Linker {
     }
   }
 
+  void _resolveConstructors() {
+    for (var library in builders.values) {
+      library.resolveConstructors();
+    }
+  }
+
   void _resolveMetadata() {
     for (var library in builders.values) {
       library.resolveMetadata();
@@ -152,9 +206,11 @@ class Linker {
   }
 
   void _resolveTypes() {
+    var typesToBuild = TypesToBuild();
     for (var library in builders.values) {
-      library.resolveTypes();
+      library.resolveTypes(typesToBuild);
     }
+    TypeBuilder(bundleContext).build(typesToBuild);
   }
 }
 

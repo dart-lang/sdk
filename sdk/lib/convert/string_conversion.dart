@@ -63,12 +63,10 @@ abstract class ClosableStringSink extends StringSink {
   void close();
 }
 
-typedef void _StringSinkCloseCallback();
-
 /// This class wraps an existing [StringSink] and invokes a
 /// closure when [close] is invoked.
 class _ClosableStringSink implements ClosableStringSink {
-  final _StringSinkCloseCallback _callback;
+  final void Function() _callback;
   final StringSink _sink;
 
   _ClosableStringSink(this._sink, this._callback);
@@ -210,7 +208,7 @@ class _StringSinkConversionSink<TStringSink extends StringSink>
 ///
 /// This class can be used to terminate a chunked conversion.
 class _StringCallbackSink extends _StringSinkConversionSink<StringBuffer> {
-  final _ChunkedConversionCallback<String> _callback;
+  final void Function(String) _callback;
   _StringCallbackSink(this._callback) : super(StringBuffer());
 
   void close() {

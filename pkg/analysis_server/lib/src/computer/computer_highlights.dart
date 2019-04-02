@@ -494,10 +494,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
-    super.visitForStatement2(node);
+    super.visitForStatement(node);
   }
 
   @override

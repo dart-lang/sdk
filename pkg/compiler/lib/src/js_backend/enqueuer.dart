@@ -121,12 +121,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   @override
   void checkClass(ClassEntity cls) {
-    _worldBuilder.processClassMembers(cls, (MemberEntity member, useSet) {
+    _worldBuilder.processClassMembers(cls,
+        (MemberEntity member, EnumSet<MemberUse> useSet) {
       if (useSet.isNotEmpty) {
         failedAt(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    });
+    }, dryRun: true);
   }
 
   /// Callback for applying the use of a [cls].
@@ -222,6 +223,8 @@ class CodegenEnqueuer extends EnqueuerImpl {
       case TypeUseKind.TYPE_ARGUMENT:
         _worldBuilder.registerTypeArgument(type);
         break;
+      case TypeUseKind.CONST_INSTANTIATION:
+        failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
     }
   }
 

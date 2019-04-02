@@ -34,7 +34,6 @@ static method main() → dynamic {
        ^^^";
       dynamic x;
       dynamic y;
-      {}
     }
   }
   #L1:

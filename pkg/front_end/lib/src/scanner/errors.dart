@@ -174,22 +174,6 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   }
 }
 
-void translateScanError(
-    Code errorCode, int charOffset, int length, ReportError reportError) {
-  switch (errorCode.analyzerCodes?.first) {
-    case "UNTERMINATED_STRING_LITERAL":
-      // TODO(paulberry,ahe): Fasta reports the error location as the entire
-      // string; analyzer expects the end of the string.
-      reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          charOffset + length - 1, null);
-      break;
-
-    default:
-      throw new UnimplementedError(
-          '$errorCode "${errorCode.analyzerCodes?.first}"');
-  }
-}
-
 /**
  * Determines whether the given [charOffset], which came from the non-EOF token
  * [token], represents the end of the input.

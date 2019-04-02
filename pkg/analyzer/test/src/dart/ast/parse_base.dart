@@ -39,19 +39,27 @@ class ParseBase with ResourceProviderMixin {
     parser.enableSpreadCollections = experimentStatus.spread_collections;
     parser.enableControlFlowCollections =
         experimentStatus.control_flow_collections;
+    parser.enableTripleShift = experimentStatus.triple_shift;
 
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);
 
-    return ParseResult(path, content, unit, errorListener.errors);
+    return ParseResult(
+      path,
+      content,
+      unit.lineInfo,
+      unit,
+      errorListener.errors,
+    );
   }
 }
 
 class ParseResult {
   final String path;
   final String content;
+  final LineInfo lineInfo;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
 
-  ParseResult(this.path, this.content, this.unit, this.errors);
+  ParseResult(this.path, this.content, this.lineInfo, this.unit, this.errors);
 }

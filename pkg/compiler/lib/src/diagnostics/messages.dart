@@ -88,6 +88,7 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE,
   MISSING_EXPRESSION_IN_THROW,
+  NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,
   NO_SUCH_SUPER_MEMBER,
   NON_NATIVE_EXTERNAL,
   NOT_A_COMPILE_TIME_CONSTANT,
@@ -676,6 +677,10 @@ become a compile-time error in the future."""),
           howToFix:
               "Try removing 'external' keyword or annotating the function "
               "as a js-interop function."),
+
+      MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS: const MessageTemplate(
+          MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,
+          "Native non-instance members are only allowed in native classes."),
 
       // TODO(32557): Remove these when issue 32557 is fixed.
       MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS: const MessageTemplate(

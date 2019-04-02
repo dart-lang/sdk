@@ -373,7 +373,7 @@ class JsonDecoder {
  */
 // TODO(floitsch): don't accumulate everything before starting to decode.
 class _JsonDecoderSink extends _StringSinkConversionSink {
-  final _Reviver _reviver;
+  final Function(Object key, Object value) _reviver;
   final Sink<Object> _sink;
 
   _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));

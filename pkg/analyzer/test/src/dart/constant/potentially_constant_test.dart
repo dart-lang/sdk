@@ -139,6 +139,12 @@ void x;
 
 @reflectiveTest
 class PotentiallyConstantTest extends DriverResolutionTest {
+  test_adjacentStrings() async {
+    await _assertConst(r'''
+var x = 'a' 'b';
+''', () => _xInitializer());
+  }
+
   test_asExpression() async {
     await _assertConst(r'''
 const a = 0;
@@ -385,6 +391,14 @@ var x = a.foo();
 ''', () => _xInitializer(), () => [findNode.methodInvocation('a.foo()')]);
   }
 
+  test_namedExpression() async {
+    await _assertConst(r'''
+void f({a}) {}
+
+var x = f(a: 0);
+''', () => findNode.namedExpression('a: 0'));
+  }
+
   test_parenthesizedExpression_const() async {
     await _assertConst(r'''
 const a = 0;
@@ -406,16 +420,6 @@ var x = a++;
 ''', () => _xInitializer(), () => [findNode.postfix('a++')]);
   }
 
-  test_prefixedIdentifier_importPrefix() async {
-    newFile('/test/lib/a.dart', content: r'''
-const a = 0;
-''');
-    await _assertConst(r'''
-import 'a.dart' as p;
-var x = p.a + 1;
-''', () => _xInitializer());
-  }
-
   test_prefixedIdentifier_importPrefix_deferred() async {
     newFile('/test/lib/a.dart', content: r'''
 const a = 0;
@@ -424,6 +428,26 @@ const a = 0;
 import 'a.dart' deferred as p;
 var x = p.a + 1;
 ''', () => _xInitializer(), () => [findNode.prefixed('p.a')]);
+  }
+
+  test_prefixedIdentifier_importPrefix_function() async {
+    newFile('/test/lib/a.dart', content: r'''
+void f() {}
+''');
+    await _assertConst(r'''
+import 'a.dart' as p;
+var x = p.f;
+''', () => _xInitializer());
+  }
+
+  test_prefixedIdentifier_importPrefix_topVar() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = 0;
+''');
+    await _assertConst(r'''
+import 'a.dart' as p;
+var x = p.a + 1;
+''', () => _xInitializer());
   }
 
   test_prefixedIdentifier_length_const() async {
@@ -688,6 +712,41 @@ main() {
     );
   }
 
+  test_simpleIdentifier_method_static() async {
+    await _assertConst(r'''
+class A {
+  static m() {};
+
+  final Object f;
+
+  const A() : f = m; // ref
+}
+''', () => findNode.simple('m; // ref'));
+  }
+
+  test_simpleIdentifier_parameterOfConstConstructor_inBody() async {
+    await _assertNotConst(
+      r'''
+class C {
+  const C(int a) {
+    var x = a + 1;
+  }
+}
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a +')],
+    );
+  }
+
+  test_simpleIdentifier_parameterOfConstConstructor_inInitializer() async {
+    await _assertConst(r'''
+class C {
+  final int f;
+  const C(int a) : f = a + 1;
+}
+''', () => findNode.constructorFieldInitializer('f =').expression);
+  }
+
   test_simpleIdentifier_topVar_const() async {
     await _assertConst(r'''
 const a = 0;
@@ -728,6 +787,12 @@ var x = 'a $a b';
       () => _xInitializer(),
       () => [findNode.simple('a b')],
     );
+  }
+
+  test_stringLiteral() async {
+    await _assertConst(r'''
+var x = 'a';
+''', () => _xInitializer());
   }
 
   _assertConst(String code, AstNode Function() getNode) async {

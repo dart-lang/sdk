@@ -73,6 +73,7 @@ class Program {
                                     const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
+  uint32_t binary_version() { return binary_version_; }
   NameIndex main_method() { return main_method_reference_; }
   intptr_t source_table_offset() const { return source_table_offset_; }
   intptr_t string_table_offset() const { return string_table_offset_; }
@@ -92,6 +93,7 @@ class Program {
   Program() : kernel_data_(NULL), kernel_data_size_(-1) {}
 
   bool single_program_;
+  uint32_t binary_version_;
   NameIndex main_method_reference_;  // Procedure.
   intptr_t library_count_;
 

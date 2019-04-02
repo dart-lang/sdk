@@ -1,14 +1,59 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-class A extends core::Object {
-  field core::int foo1;
-  field core::int foo2 = null;
-  field core::int foo3 = 42;
-  field core::int foo4;
-  field core::int foo5 = 43;
+Bytecode (version: stable)
+Main library: #lib
+
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
 [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'foo1', type = dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable
+    value = null
+
+Field 'foo2', type = dart:core::int, getter = 'get:foo2', setter = 'set:foo2', reflectable
+    value = null
+
+Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable
+    value = const 42
+
+Field 'foo4', type = dart:core::int, getter = 'get:foo4', setter = 'set:foo4', reflectable
+    value = null
+
+Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable
+    value = const 43
+
+Function '', constructor, reflectable, debuggable
+    parameters [dart:core::int 'foo4'] (required: 1)
+    return-type #lib::A
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -30,7 +75,7 @@ Bytecode {
   PushNull
   ReturnTOS
 }
-Nullable fields: [#lib::A::foo1 (field), #lib::A::foo2 (field)]}
+Nullable fields: [#lib::A::foo1 (field), #lib::A::foo2 (field)]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
@@ -41,10 +86,13 @@ ConstantPool {
   [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [7] = Reserved
 }
-]  constructor •(core::int foo4) → self::A
-    : self::A::foo1 = null, self::A::foo4 = foo4, self::A::foo5 = 44, super core::Object::•()
-    ;
-[@vm.bytecode=
+
+
+Function 'constr2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'x', dart:core::int 'y'] (required: 2)
+    return-type #lib::A
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -68,7 +116,7 @@ Bytecode {
   PushNull
   ReturnTOS
 }
-Nullable fields: [#lib::A::foo2 (field), #lib::A::foo4 (field)]}
+Nullable fields: [#lib::A::foo2 (field), #lib::A::foo4 (field)]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
@@ -79,10 +127,13 @@ ConstantPool {
   [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [7] = Reserved
 }
-]  constructor constr2(core::int x, core::int y) → self::A
-    : self::A::foo4 = null, self::A::foo1 = x, self::A::foo5 = y.{core::num::+}(1), super core::Object::•()
-    ;
-[@vm.bytecode=
+
+
+Function 'redirecting1', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::A
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -97,10 +148,13 @@ ConstantPool {
   [0] = DirectCall '#lib::A:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
   [1] = Reserved
 }
-]  constructor redirecting1() → self::A
-    : this self::A::•(45)
-    ;
-[@vm.bytecode=
+
+
+Function 'redirecting2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'a', dart:core::int 'b', dart:core::int 'c'] (required: 3)
+    return-type #lib::A
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -118,15 +172,47 @@ ConstantPool {
   [0] = DirectCall '#lib::A::constr2 (constructor)', ArgDesc num-args 3, num-type-args 0, names []
   [1] = Reserved
 }
-]  constructor redirecting2(core::int a, core::int b, core::int c) → self::A
-    : this self::A::constr2(a, b.{core::num::*}(c))
-    ;
+
 }
-class B extends self::A {
-  field core::int foo6 = 46;
-  static field core::int foo7 = 47;
-  static const field core::int foo8 = 48;
+
+}
+]  class A extends dart.core::Object {
+    field dart.core::int foo1;
+    field dart.core::int foo2 = null;
+    field dart.core::int foo3 = 42;
+    field dart.core::int foo4;
+    field dart.core::int foo5 = 43;
+    constructor •(dart.core::int foo4) → #lib::A
+      : #lib::A::foo1 = null, #lib::A::foo4 = foo4, #lib::A::foo5 = 44, super dart.core::Object::•()
+      ;
+    constructor constr2(dart.core::int x, dart.core::int y) → #lib::A
+      : #lib::A::foo4 = null, #lib::A::foo1 = x, #lib::A::foo5 = y.{dart.core::num::+}(1), super dart.core::Object::•()
+      ;
+    constructor redirecting1() → #lib::A
+      : this #lib::A::•(45)
+      ;
+    constructor redirecting2(dart.core::int a, dart.core::int b, dart.core::int c) → #lib::A
+      : this #lib::A::constr2(a, b.{dart.core::num::*}(c))
+      ;
+  }
 [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable
+    value = const 46
+
+Field 'foo7', type = dart:core::int, reflectable, static
+    value = const 47
+
+Field 'foo8', type = dart:core::int, reflectable, static, const, final
+    value = const 48
+
+Function '', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::B
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -146,10 +232,13 @@ ConstantPool {
   [2] = DirectCall '#lib::A:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
 }
-]  constructor •() → self::B
-    : super self::A::•(49)
-    ;
-[@vm.bytecode=
+
+
+Function 'c2', constructor, reflectable, debuggable
+    parameters [dart:core::int 'i', dart:core::int 'j'] (required: 2)
+    return-type #lib::B
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -174,17 +263,20 @@ ConstantPool {
   [2] = DirectCall '#lib::A::redirecting2 (constructor)', ArgDesc num-args 4, num-type-args 0, names []
   [3] = Reserved
 }
-]  constructor c2(core::int i, core::int j) → self::B
-    : self::B::foo6 = 50, super self::A::redirecting2(i, j, 51)
-    ;
+
 }
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushNull
-  ReturnTOS
+
 }
-ConstantPool {
+]  class B extends #lib::A {
+    field dart.core::int foo6 = 46;
+    static field dart.core::int foo7 = 47;
+    static const field dart.core::int foo8 = 48;
+    constructor •() → #lib::B
+      : super #lib::A::•(49)
+      ;
+    constructor c2(dart.core::int i, dart.core::int j) → #lib::B
+      : #lib::B::foo6 = 50, super #lib::A::redirecting2(i, j, 51)
+      ;
+  }
+  static method main() → dynamic {}
 }
-]static method main() → dynamic {}

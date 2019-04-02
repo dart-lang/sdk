@@ -1,9 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // This file has been automatically generated.  Please do not edit it manually.
-// To regenerate the file, use the script "pkg/analyzer/tool/generate_files".
+// To regenerate the file, use the SDK script
+// "pkg/analyzer/tool/summary/generate.dart $IDL_FILE_PATH",
+// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.
 
 
 /// Enum of declaration kinds in available files.
@@ -11,6 +13,8 @@ enum AvailableDeclarationKind : byte {
   CLASS,
 
   CLASS_TYPE_ALIAS,
+
+  CONSTRUCTOR,
 
   ENUM,
 
@@ -308,6 +312,10 @@ enum LinkedNodeKind : byte {
   mixinDeclaration,
 
   namedExpression,
+
+  nativeClause,
+
+  nativeFunctionBody,
 
   nullLiteral,
 
@@ -991,7 +999,76 @@ enum UnlinkedExprOperation : byte {
   /// other two are collection elements.  Push an "if" element having the given
   /// condition, with the two collection elements as its "then" and "else"
   /// clauses, respectively.
-  ifElseElement
+  ifElseElement,
+
+  /// Pop the top n+2 values from the stack, where n is obtained from
+  /// [UnlinkedExpr.ints].  The first two are the initialization and condition
+  /// of the for-loop; the remainder are the updaters.
+  forParts,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElement,
+
+  /// Push the empty expression (used for missing initializers and conditions in
+  /// `for` loops)
+  pushEmptyExpression,
+
+  /// Add a variable to the current scope whose name is obtained from
+  /// [UnlinkedExpr.strings].  This is separate from [variableDeclaration]
+  /// because the scope of the variable includes its own initializer.
+  variableDeclarationStart,
+
+  /// Pop the top value from the stack, and use it as the initializer for a
+  /// variable declaration; the variable being declared is obtained by looking
+  /// at the nth variable most recently added to the scope (where n counts from
+  /// zero and is obtained from [UnlinkedExpr.ints]).
+  variableDeclaration,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create an untyped for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].
+  forInitializerDeclarationsUntyped,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create a typed for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].  The
+  /// type is obtained from [UnlinkedExpr.references].
+  forInitializerDeclarationsTyped,
+
+  /// Pop from the stack `value` and get a string from [UnlinkedExpr.strings].
+  /// Use this string to look up a parameter.  Perform `parameter op= value`,
+  /// where `op` is the next assignment operator from
+  /// [UnlinkedExpr.assignmentOperators].  Push `value` back onto the stack.
+  ///
+  /// If the assignment operator is a prefix/postfix increment/decrement, then
+  /// `value` is not present in the stack, so it should not be popped and the
+  /// corresponding value of the parameter after/before update is pushed onto
+  /// the stack instead.
+  assignToParameter,
+
+  /// Pop from the stack an identifier and an expression, and create for-each
+  /// parts of the form `identifier in expression`.
+  forEachPartsWithIdentifier,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElementWithAwait,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `var name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings].
+  forEachPartsWithUntypedDeclaration,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `Type name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings], and `Type` is obtained from
+  /// [UnlinkedExpr.references].
+  forEachPartsWithTypedDeclaration,
+
+  /// Pop the top 2 values from the stack, compute `v1 >>> v2`, and push the
+  /// result back onto the stack.
+  bitShiftRightLogical
 }
 
 /// Enum used to indicate the kind of a parameter.
@@ -1526,6 +1603,9 @@ table AvailableDeclaration {
 
 /// Information about an available, even if not yet imported file.
 table AvailableFile {
+  /// The Dartdoc directives in the file.
+  directiveInfo:DirectiveInfo (id: 5);
+
   /// Declarations of the file.
   declarations:[AvailableDeclaration] (id: 0);
 
@@ -1567,6 +1647,15 @@ table CodeRange {
 
   /// Offset of the element code relative to the beginning of the file.
   offset:uint (id: 0);
+}
+
+/// Information about the Dartdoc directives in an [AvailableFile].
+table DirectiveInfo {
+  /// The names of the defined templates.
+  templateNames:[string] (id: 0);
+
+  /// The values of the defined templates.
+  templateValues:[string] (id: 1);
 }
 
 /// Summary information about a reference to an entity such as a type, top level
@@ -1783,6 +1872,10 @@ table LinkedNode {
 
   variantField_13:LinkedNode (id: 13);
 
+  variantField_34:uint (id: 34);
+
+  variantField_33:uint (id: 33);
+
   variantField_28:[uint] (id: 28);
 
   variantField_29:LinkedNodeCommentType (id: 29);
@@ -1849,13 +1942,16 @@ table LinkedNodeReferences {
 
 /// Information about a Dart type.
 table LinkedNodeType {
-  /// References to [LinkedNodeReferences].
-  functionFormalParameters:[uint] (id: 0);
+  functionFormalParameters:[LinkedNodeTypeFormalParameter] (id: 0);
 
   functionReturnType:LinkedNodeType (id: 1);
 
   /// References to [LinkedNodeReferences].
   functionTypeParameters:[uint] (id: 2);
+
+  genericTypeAliasReference:uint (id: 7);
+
+  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 8);
 
   /// Reference to a [LinkedNodeReferences].
   interfaceClass:uint (id: 3);
@@ -1866,6 +1962,15 @@ table LinkedNodeType {
 
   /// Reference to a [LinkedNodeReferences].
   typeParameterParameter:uint (id: 6);
+}
+
+/// Information about a formal parameter in a function type.
+table LinkedNodeTypeFormalParameter {
+  kind:LinkedNodeFormalParameterKind (id: 0);
+
+  name:string (id: 1);
+
+  type:LinkedNodeType (id: 2);
 }
 
 /// Information about a single library in a [LinkedNodeLibrary].
@@ -1880,13 +1985,15 @@ table LinkedNodeUnit {
 /// Information about a top-level declaration, or a field declaration that
 /// contributes information to [LinkedNodeKind.variableDeclaration].
 table LinkedNodeVariablesDeclaration {
-  comment:LinkedNode (id: 3);
+  comment:LinkedNode (id: 0);
 
-  isConst:bool (id: 0);
+  isConst:bool (id: 1);
 
-  isFinal:bool (id: 1);
+  isCovariant:bool (id: 2);
 
-  isStatic:bool (id: 2);
+  isFinal:bool (id: 3);
+
+  isStatic:bool (id: 4);
 }
 
 /// Information about the resolution of an [UnlinkedReference].

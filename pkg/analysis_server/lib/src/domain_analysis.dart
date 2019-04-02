@@ -21,6 +21,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -87,8 +88,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // Prepare the hovers.
     List<HoverInformation> hovers = <HoverInformation>[];
     if (unit != null) {
-      HoverInformation hoverInformation =
-          new DartUnitHoverComputer(unit, params.offset).compute();
+      HoverInformation hoverInformation = new DartUnitHoverComputer(
+              _getDartdocDirectiveInfoFor(result), unit, params.offset)
+          .compute();
       if (hoverInformation != null) {
         hovers.add(hoverInformation);
       }
@@ -276,7 +278,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
     // Ensure the offset provided is a valid location in the file.
     final unit = result.unit;
-    final computer = new DartUnitSignatureComputer(unit, params.offset);
+    final computer = new DartUnitSignatureComputer(
+        _getDartdocDirectiveInfoFor(result), unit, params.offset);
     if (!computer.offsetIsValid) {
       server.sendResponse(new Response.getSignatureInvalidOffset(request));
       return;
@@ -505,5 +508,13 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
+  }
+
+  DartdocDirectiveInfo _getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
+    // TODO(brianwilkerson) Consider moving this to AnalysisServer.
+    return server.declarationsTracker
+            ?.getContext(result.session.analysisContext)
+            ?.dartdocDirectiveInfo ??
+        new DartdocDirectiveInfo();
   }
 }

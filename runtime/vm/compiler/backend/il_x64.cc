@@ -894,8 +894,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // but have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
   __ set_constant_pool_allowed(false);
-  __ EnterDartFrame(
-      compiler::ffi::NumStackArguments(arg_locations_) * kWordSize, PP);
+  __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize,
+                    PP);
 
   // Save exit frame information to enable stack walking as we are about to
   // transition to Dart VM C++ code.
@@ -1067,6 +1067,10 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(object()->definition()->representation() == kTagged);
     __ movq(result, FieldAddress(obj, offset()));
   }
+}
+
+DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
+  __ movq(Address(obj, instr->offset_from_tagged()), value);
 }
 
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
@@ -3609,10 +3613,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       __ cqo();         // Sign extend RAX -> RDX:RAX.
       __ idivq(right);  //  RAX: quotient, RDX: remainder.
-      // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-      // case we cannot tag the result.
-      __ CompareImmediate(result, Immediate(0x4000000000000000));
-      __ j(EQUAL, deopt);
+      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+        // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+        // case we cannot tag the result.
+        __ CompareImmediate(result, Immediate(0x4000000000000000));
+        __ j(EQUAL, deopt);
+      }
       __ Bind(&done);
       __ SmiTag(result);
       break;
@@ -3819,7 +3825,7 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, needs_writable_input ? Location::WritableRegister()
                                           : Location::RequiresRegister());
-  if (representation() == kUnboxedInt64) {
+  if (representation() == kUnboxedInt64 || representation() == kUnboxedInt32) {
     summary->set_out(0, Location::SameAsFirstInput());
   } else {
     summary->set_out(0, Location::RequiresFpuRegister());
@@ -3886,6 +3892,17 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
+}
+
+void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  ASSERT(value == result);
+  Label done;
+  __ SmiUntag(value);
+  __ j(NOT_CARRY, &done, Assembler::kNearJump);
+  __ movsxw(result, Address(value, TIMES_2, Mint::value_offset()));
+  __ Bind(&done);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
@@ -6130,30 +6147,40 @@ DEFINE_BACKEND(UnaryUint32Op, (SameAsFirstInput, Register value)) {
 
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
 
-LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
-                                                               bool opt) const {
+LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (from() == kUnboxedInt64) {
-    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_out(0, Location::SameAsFirstInput());
+  if (from() == kUntagged || to() == kUntagged) {
+    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
+           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT(!CanDeoptimize());
+  } else if (from() == kUnboxedInt64) {
+    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
   } else if (to() == kUnboxedInt64) {
-    ASSERT((from() == kUnboxedInt32) || (from() == kUnboxedUint32));
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_out(0, Location::SameAsFirstInput());
+    ASSERT(from() == kUnboxedInt32 || from() == kUnboxedUint32);
   } else {
-    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
-    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_out(0, Location::SameAsFirstInput());
+    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
+    ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
   }
+
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+
   return summary;
 }
 
-void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const bool is_nop_conversion =
+      (from() == kUntagged && to() == kUnboxedIntPtr) ||
+      (from() == kUnboxedIntPtr && to() == kUntagged);
+  if (is_nop_conversion) {
+    ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
+    return;
+  }
+
   if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
@@ -6174,7 +6201,7 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(NEGATIVE, deopt);
     }
   } else if (from() == kUnboxedInt64) {
-    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
     if (!CanDeoptimize()) {
@@ -6204,6 +6231,49 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
+  }
+}
+
+LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, /*num_inputs=*/InputCount(),
+                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_out(0, Location::RegisterLocation(RAX));
+  return summary;
+}
+
+void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (representation_) {
+    case kUnboxedInt32:  // Sign extend operand.
+      switch (from_width_bytes_) {
+        case 1:
+          __ movsxb(RAX, RAX);
+          break;
+        case 2:
+          __ movsxw(RAX, RAX);
+          break;
+        default:
+          UNREACHABLE();
+      }
+      break;
+    case kUnboxedUint32:  // Zero extend operand.
+      switch (from_width_bytes_) {
+        case 1:
+          __ movzxb(RAX, RAX);
+          break;
+        case 2:
+          __ movzxw(RAX, RAX);
+          break;
+        default:
+          UNREACHABLE();
+      }
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

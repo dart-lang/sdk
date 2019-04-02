@@ -18,8 +18,8 @@ class C {}
 
 class D extends C {}
 
-var /*@topType=A*/ a = new A();
-var /*@topType=C*/ x = a. /*@target=A::b*/ b. /*@target=B::c*/ c;
-var /*@topType=C*/ y = a. /*@target=A::b*/ b. /*@target=B::c*/ c ??= new D();
+var a = new A();
+var x = a. /*@target=A::b*/ b. /*@target=B::c*/ c;
+var y = a. /*@target=A::b*/ b. /*@target=B::c*/ c ??= new D();
 
 main() {}

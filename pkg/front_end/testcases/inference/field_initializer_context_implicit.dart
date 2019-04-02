@@ -8,7 +8,7 @@ library test;
 T f<T>() => null;
 
 class C implements B {
-  final /*@topType=int*/ x;
+  final x;
   C() : x = /*@typeArgs=int*/ f();
 }
 

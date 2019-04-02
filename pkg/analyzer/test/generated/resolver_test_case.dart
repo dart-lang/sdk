@@ -313,11 +313,6 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
 class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
   /**
-   * The analysis context used to parse the compilation units being resolved.
-   */
-  InternalAnalysisContext analysisContext2;
-
-  /**
    * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
    * [HintCode.UNUSED_FIELD].
    */
@@ -334,10 +329,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
   FileContentOverlay fileContentOverlay = new FileContentOverlay();
   AnalysisDriver driver;
 
-  AnalysisContext get analysisContext => analysisContext2;
-
-  AnalysisOptions get analysisOptions =>
-      analysisContext?.analysisOptions ?? driver?.analysisOptions;
+  AnalysisOptions get analysisOptions => driver?.analysisOptions;
 
   /**
    * The default [AnalysisOptions] that should be used by [reset].
@@ -350,38 +342,27 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    */
   List<String> get enabledExperiments => null;
 
-  bool get enableNewAnalysisDriver => false;
-
   /**
    * Return a type provider that can be used to test the results of resolution.
    *
-   * @return a type provider
-   * @throws AnalysisException if dart:core cannot be resolved
+   * Throws an [AnalysisException] if `dart:core` cannot be resolved.
    */
   TypeProvider get typeProvider {
-    if (enableNewAnalysisDriver) {
-      if (analysisResults.isEmpty) {
-        fail('typeProvider called before computing an analysis result.');
-      }
-      return analysisResults
-          .values.first.unit.declaredElement.context.typeProvider;
-    } else {
-      return analysisContext2.typeProvider;
+    if (analysisResults.isEmpty) {
+      fail('typeProvider called before computing an analysis result.');
     }
+    return analysisResults
+        .values.first.unit.declaredElement.context.typeProvider;
   }
 
   /**
    * Return a type system that can be used to test the results of resolution.
    */
   TypeSystem get typeSystem {
-    if (enableNewAnalysisDriver) {
-      if (analysisResults.isEmpty) {
-        fail('typeSystem called before computing an analysis result.');
-      }
-      return analysisResults.values.first.typeSystem;
-    } else {
-      return analysisContext2.typeSystem;
+    if (analysisResults.isEmpty) {
+      fail('typeSystem called before computing an analysis result.');
     }
+    return analysisResults.values.first.typeSystem;
   }
 
   /**
@@ -393,14 +374,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     filePath = convertPath(filePath);
     File file = newFile(filePath, content: contents);
     Source source = file.createSource();
-    if (enableNewAnalysisDriver) {
-      driver.addFile(filePath);
-    } else {
-      analysisContext2.setContents(source, contents);
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(source);
-      analysisContext2.applyChanges(changeSet);
-    }
+    driver.addFile(filePath);
     return source;
   }
 
@@ -523,33 +497,11 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     expect(identifier.staticType, expectedStaticType);
   }
 
-  /**
-   * Change the contents of the given [source] to the given [contents].
-   */
-  void changeSource(Source source, String contents) {
-    analysisContext2.setContents(source, contents);
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changedSource(source);
-    analysisContext2.applyChanges(changeSet);
-  }
-
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
-    if (enableNewAnalysisDriver) {
-      ResolvedUnitResult result = await driver.getResult(source.fullName);
-      analysisResult = new TestAnalysisResult(
-          source, result.unit, result.errors, result.typeSystem);
-    } else {
-      analysisContext2.computeKindOf(source);
-      List<Source> libraries = analysisContext2.getLibrariesContaining(source);
-      if (libraries.length > 0) {
-        CompilationUnit unit =
-            analysisContext.resolveCompilationUnit2(source, libraries.first);
-        List<AnalysisError> errors = analysisContext.computeErrors(source);
-        analysisResult = new TestAnalysisResult(
-            source, unit, errors, analysisContext2.typeSystem);
-      }
-    }
+    ResolvedUnitResult result = await driver.getResult(source.fullName);
+    analysisResult = new TestAnalysisResult(
+        source, result.unit, result.errors, result.typeSystem);
     analysisResults[source] = analysisResult;
     return analysisResult;
   }
@@ -673,83 +625,38 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     if (experiments != null) {
       (options as AnalysisOptionsImpl).enabledExperiments = experiments;
     }
-    if (enableNewAnalysisDriver) {
-      DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
-        ..context.analysisOptions = options;
+    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
+      ..context.analysisOptions = options;
 
-      List<UriResolver> resolvers = <UriResolver>[
-        new DartUriResolver(sdk),
-        new ResourceUriResolver(resourceProvider)
-      ];
-      if (packages != null) {
-        var packageMap = <String, List<Folder>>{};
-        packages.forEach((args) {
-          String name = args[0];
-          String content = args[1];
-          File file = newFile('/packages/$name/$name.dart', content: content);
-          packageMap[name] = <Folder>[file.parent];
-        });
-        resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
-      }
-      SourceFactory sourceFactory = new SourceFactory(resolvers);
-
-      PerformanceLog log = new PerformanceLog(_logBuffer);
-      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-      driver = new AnalysisDriver(
-          scheduler,
-          log,
-          resourceProvider,
-          new MemoryByteStore(),
-          fileContentOverlay,
-          null,
-          sourceFactory,
-          options);
-      scheduler.start();
-    } else {
-      if (packages != null) {
-        var packageMap = <String, String>{};
-        packages.forEach((args) {
-          String name = args[0];
-          String content = args[1];
-          packageMap[name] = content;
-        });
-        analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages(
-            packageMap,
-            resourceProvider: resourceProvider);
-      } else if (options != null) {
-        analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(
-            options,
-            resourceProvider: resourceProvider);
-      } else {
-        analysisContext2 = AnalysisContextFactory.contextWithCore(
-            resourceProvider: resourceProvider);
-      }
+    List<UriResolver> resolvers = <UriResolver>[
+      new DartUriResolver(sdk),
+      new ResourceUriResolver(resourceProvider)
+    ];
+    if (packages != null) {
+      var packageMap = <String, List<Folder>>{};
+      packages.forEach((args) {
+        String name = args[0];
+        String content = args[1];
+        File file = newFile('/packages/$name/$name.dart', content: content);
+        packageMap[name] = <Folder>[file.parent];
+      });
+      resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
     }
+    SourceFactory sourceFactory = new SourceFactory(resolvers);
+
+    PerformanceLog log = new PerformanceLog(_logBuffer);
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    driver = new AnalysisDriver(
+        scheduler,
+        log,
+        resourceProvider,
+        new MemoryByteStore(),
+        fileContentOverlay,
+        null,
+        sourceFactory,
+        options);
+    scheduler.start();
   }
-
-  /**
-   * Given a library and all of its parts, resolve the contents of the library and the contents of
-   * the parts. This assumes that the sources for the library and its parts have already been added
-   * to the content provider using the method [addNamedSource].
-   *
-   * @param librarySource the source for the compilation unit that defines the library
-   * @return the element representing the resolved library
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  LibraryElement resolve2(Source librarySource) =>
-      analysisContext2.computeLibraryElement(librarySource);
-
-  /**
-   * Return the resolved compilation unit corresponding to the given source in the given library.
-   *
-   * @param source the source of the compilation unit to be returned
-   * @param library the library in which the compilation unit is to be resolved
-   * @return the resolved compilation unit
-   * @throws Exception if the compilation unit could not be resolved
-   */
-  CompilationUnit resolveCompilationUnit(
-          Source source, LibraryElement library) =>
-      analysisContext2.resolveCompilationUnit(source, library);
 
   Future<CompilationUnit> resolveSource(String sourceText) =>
       resolveSource2('/test.dart', sourceText);
@@ -811,7 +718,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
 
   @override
   void tearDown() {
-    analysisContext2 = null;
     AnalysisEngine.instance.clearCaches();
     super.tearDown();
   }

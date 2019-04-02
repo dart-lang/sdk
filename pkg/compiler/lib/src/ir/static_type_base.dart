@@ -212,6 +212,11 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
+  ir.DartType visitBlockExpression(ir.BlockExpression node) {
+    return visitNode(node.value);
+  }
+
+  @override
   ir.DartType visitInvalidExpression(ir.InvalidExpression node) =>
       const DoesNotCompleteType();
 

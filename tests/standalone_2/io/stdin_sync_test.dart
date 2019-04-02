@@ -13,8 +13,12 @@ import "package:expect/expect.dart";
 void testReadByte() {
   void test(String line, List<String> expected) {
     var script = Platform.script.resolve("stdin_sync_script.dart").toFilePath();
-    Process
-        .start(Platform.executable, [script]..addAll(expected.map(json.encode)))
+    Process.start(
+            Platform.executable,
+            []
+              ..addAll(Platform.executableArguments)
+              ..add(script)
+              ..addAll(expected.map(json.encode)))
         .then((process) {
       process.stdin.write(line);
       process.stdin.flush().then((_) => process.stdin.close());

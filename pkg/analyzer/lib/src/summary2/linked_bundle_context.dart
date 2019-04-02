@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,8 +6,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 /// The context of a linked bundle, with shared references.
@@ -15,6 +17,10 @@ class LinkedBundleContext {
   final LinkedElementFactory elementFactory;
   final LinkedNodeReferences referencesData;
   final List<Reference> _references;
+
+  /// If the bundle is being linked, the reference to the linking context.
+  /// Otherwise `null`, and we are not expected to access it.
+  LinkingBundleContext linking;
 
   LinkedBundleContext(this.elementFactory, this.referencesData)
       : _references = List<Reference>.filled(referencesData.name.length, null,
@@ -46,19 +52,21 @@ class LinkedBundleContext {
     var kind = linkedType.kind;
     if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
+    } else if (kind == LinkedNodeTypeKind.genericTypeAlias) {
+      var reference = referenceOfIndex(linkedType.genericTypeAliasReference);
+      return GenericTypeAliasElementImpl.typeAfterSubstitution(
+        elementFactory.elementOfReference(reference),
+        linkedType.genericTypeAliasTypeArguments.map(getType).toList(),
+      );
     } else if (kind == LinkedNodeTypeKind.function) {
       var returnType = getType(linkedType.functionReturnType);
-      var typeParameters = linkedType.functionTypeParameters
-          .map(referenceOfIndex)
-          .map(elementFactory.elementOfReference)
-          .cast<TypeParameterElement>()
-          .toList();
-      var formalParameters = linkedType.functionFormalParameters
-          .map(referenceOfIndex)
-          .map(elementFactory.elementOfReference)
-          .cast<ParameterElement>()
-          .toList();
-      // TODO(scheglov) Rework this to purely synthetic types.
+      var formalParameters = linkedType.functionFormalParameters.map((p) {
+        return ParameterElementImpl.synthetic(
+          p.name,
+          getType(p.type),
+          _formalParameterKind(p.kind),
+        );
+      }).toList();
       return FunctionElementImpl.synthetic(formalParameters, returnType).type;
     } else if (kind == LinkedNodeTypeKind.interface) {
       var reference = referenceOfIndex(linkedType.interfaceClass);
@@ -104,5 +112,15 @@ class LinkedBundleContext {
     _references[index] = reference;
 
     return reference;
+  }
+
+  ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
+    if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
+      return ParameterKind.NAMED;
+    }
+    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
+      return ParameterKind.POSITIONAL;
+    }
+    return ParameterKind.REQUIRED;
   }
 }

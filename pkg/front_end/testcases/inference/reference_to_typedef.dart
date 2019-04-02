@@ -6,6 +6,6 @@
 library test;
 
 typedef void F();
-final /*@topType=Type*/ x = F;
+final x = F;
 
 main() {}

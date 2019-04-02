@@ -5,22 +5,23 @@
 library fasta.kernel_field_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, Expression, Field, Name, NullLiteral;
-
-import '../../base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueForType;
+    show Class, DartType, DynamicType, Expression, Field, Name, NullLiteral;
 
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../problems.dart' show internalProblem, unsupported;
 
+import '../type_inference/type_inference_engine.dart'
+    show IncludesTypeParametersCovariantly;
+
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
     show
+        ClassBuilder,
         Declaration,
-        ImplicitFieldType,
         FieldBuilder,
+        ImplicitFieldType,
         KernelLibraryBuilder,
         KernelTypeBuilder,
         MetadataBuilder;
@@ -58,6 +59,22 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
+
+      if (!isFinal && !isConst) {
+        IncludesTypeParametersCovariantly needsCheckVisitor;
+        if (parent is ClassBuilder) {
+          Class enclosingClass = parent.target;
+          if (enclosingClass.typeParameters.isNotEmpty) {
+            needsCheckVisitor = new IncludesTypeParametersCovariantly(
+                enclosingClass.typeParameters);
+          }
+        }
+        if (needsCheckVisitor != null) {
+          if (field.type.accept(needsCheckVisitor)) {
+            field.isGenericCovariantImpl = true;
+          }
+        }
+      }
     }
     bool isInstanceMember = !isStatic && !isTopLevel;
     field
@@ -92,14 +109,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       field.type = const DynamicType();
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
           .parseFieldInitializer(type.initializerToken);
-    }
-  }
-
-  @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    if (isEligibleForInference) {
-      instrumentation.record(field.fileUri, field.fileOffset, 'topType',
-          new InstrumentationValueForType(field.type));
     }
   }
 

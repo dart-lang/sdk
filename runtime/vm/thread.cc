@@ -74,6 +74,7 @@ Thread::Thread(Isolate* isolate)
       unboxed_int64_runtime_arg_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
+      global_object_pool_(ObjectPool::null()),
       resume_pc_(0),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
@@ -663,6 +664,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   reusable_handles_.VisitObjectPointers(visitor);
 
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&pending_functions_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&global_object_pool_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
@@ -740,7 +742,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->IsReadOnly());                                                \
+  ASSERT((expr)->InVMIsolateHeap());                                           \
   if (object.raw() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }

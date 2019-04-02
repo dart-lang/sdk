@@ -62,4 +62,4 @@ esac
 
 shift
 
-exec "${DART_VM}" "${EXTRA_VM_ARGS[@]}" -c "${SCRIPT}" "$@"
+exec "${DART_VM}" "${EXTRA_VM_ARGS[@]}" --enable-asserts "${SCRIPT}" "$@"

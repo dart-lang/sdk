@@ -8,8 +8,9 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
-import 'package:analyzer/src/summary2/builder/prefix_builder.dart';
-import 'package:analyzer/src/summary2/declaration.dart';
+import 'package:analyzer/src/summary2/combinator.dart';
+import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -35,16 +36,47 @@ class SourceLibraryBuilder {
   /// The export scope of the library.
   final Scope exportScope = Scope.top();
 
+  final List<Export> exporters = [];
+
   SourceLibraryBuilder(Linker linker, Uri uri, Reference reference,
       LinkedNodeLibraryBuilder node)
       : this._(linker, uri, reference, node, Scope.top());
 
   SourceLibraryBuilder._(
       this.linker, this.uri, this.reference, this.node, this.importScope)
-      : scope = Scope(importScope, <String, Declaration>{});
+      : scope = Scope(importScope, <String, Reference>{});
+
+  void addExporters() {
+    var unitContext = units[0].context;
+    for (var directive in units[0].node.compilationUnit_directives) {
+      if (directive.kind == LinkedNodeKind.exportDirective) {
+        var relativeUriStr = unitContext.getStringContent(
+          directive.uriBasedDirective_uri,
+        );
+        var relativeUri = Uri.parse(relativeUriStr);
+        var uri = resolveRelativeUri(this.uri, relativeUri);
+        var exported = linker.builders[uri];
+        if (exported != null) {
+          var combinatorNodeList = directive.namespaceDirective_combinators;
+          var combinators = combinatorNodeList.map((node) {
+            if (node.kind == LinkedNodeKind.showCombinator) {
+              var nodeList = node.showCombinator_shownNames;
+              var nameList = unitContext.getSimpleNameList(nodeList);
+              return Combinator.show(nameList);
+            } else {
+              var nodeList = node.hideCombinator_hiddenNames;
+              var nameList = unitContext.getSimpleNameList(nodeList);
+              return Combinator.hide(nameList);
+            }
+          }).toList();
+
+          exported.exporters.add(new Export(this, exported, combinators));
+        }
+      }
+    }
+  }
 
   void addImportsToScope() {
-    // TODO
     var hasDartCore = false;
     var unitContext = units[0].context;
     for (var directive in units[0].node.compilationUnit_directives) {
@@ -55,15 +87,32 @@ class SourceLibraryBuilder {
         var relativeUri = Uri.parse(relativeUriStr);
         var uri = resolveRelativeUri(this.uri, relativeUri);
         var builder = linker.builders[uri];
+
+        Scope targetScope = importScope;
+
+        var prefixNode = directive.importDirective_prefix;
+        if (prefixNode != null) {
+          var prefixName = unitContext.getSimpleName(prefixNode);
+          var prefixContainer = reference.getChild('@prefix');
+          var prefixReference = prefixContainer[prefixName];
+
+          if (prefixReference == null) {
+            prefixReference = prefixContainer.getChild(prefixName);
+            prefixReference.prefixScope = Scope.top();
+            importScope.declare(prefixName, prefixReference);
+          }
+
+          targetScope = prefixReference.prefixScope;
+        }
+
         if (builder != null) {
-          builder.exportScope.forEach((name, declaration) {
-            importScope.declare(name, declaration);
+          builder.exportScope.forEach((name, reference) {
+            targetScope.declare(name, reference);
           });
         } else {
           var references = linker.elementFactory.exportsOfLibrary('$uri');
-          _importExportedReferences(references);
+          _declareReferences(targetScope, references);
         }
-        // TODO(scheglov) prefix
         // TODO(scheglov) combinators
       }
     }
@@ -77,7 +126,7 @@ class SourceLibraryBuilder {
 
       // TODO(scheglov) This works only when dart:core is linked
       var references = linker.elementFactory.exportsOfLibrary('dart:core');
-      _importExportedReferences(references);
+      _declareReferences(importScope, references);
     }
   }
 
@@ -94,18 +143,17 @@ class SourceLibraryBuilder {
       var variableRef = unitRef.getChild('@variable');
       for (var node in unit.node.compilationUnit_declarations) {
         if (node.kind == LinkedNodeKind.classDeclaration ||
-            node.kind == LinkedNodeKind.classTypeAlias) {
+            node.kind == LinkedNodeKind.classTypeAlias ||
+            node.kind == LinkedNodeKind.mixinDeclaration) {
           var name = unit.context.getUnitMemberName(node);
           var reference = classRef.getChild(name);
           reference.node = node;
-          var declaration = Declaration(name, reference);
-          scope.declare(name, declaration);
+          scope.declare(name, reference);
         } else if (node.kind == LinkedNodeKind.enumDeclaration) {
           var name = unit.context.getUnitMemberName(node);
           var reference = enumRef.getChild(name);
           reference.node = node;
-          var declaration = Declaration(name, reference);
-          scope.declare(name, declaration);
+          scope.declare(name, reference);
         } else if (node.kind == LinkedNodeKind.functionDeclaration) {
           var name = unit.context.getUnitMemberName(node);
 
@@ -121,22 +169,19 @@ class SourceLibraryBuilder {
           var reference = containerRef.getChild(name);
           reference.node = node;
 
-          var declaration = Declaration(name, reference);
-          scope.declare(name, declaration);
+          scope.declare(name, reference);
         } else if (node.kind == LinkedNodeKind.functionTypeAlias) {
           var name = unit.context.getUnitMemberName(node);
           var reference = typeAliasRef.getChild(name);
           reference.node = node;
 
-          var declaration = Declaration(name, reference);
-          scope.declare(name, declaration);
+          scope.declare(name, reference);
         } else if (node.kind == LinkedNodeKind.genericTypeAlias) {
           var name = unit.context.getUnitMemberName(node);
           var reference = typeAliasRef.getChild(name);
           reference.node = node;
 
-          var declaration = Declaration(name, reference);
-          scope.declare(name, declaration);
+          scope.declare(name, reference);
         } else if (node.kind == LinkedNodeKind.topLevelVariableDeclaration) {
           var variableList = node.topLevelVariableDeclaration_variableList;
           for (var variable in variableList.variableDeclarationList_variables) {
@@ -146,11 +191,12 @@ class SourceLibraryBuilder {
             reference.node = node;
 
             var getter = getterRef.getChild(name);
-            scope.declare(name, Declaration(name, getter));
+            scope.declare(name, getter);
 
-            if (!unit.context.isFinal(variable)) {
+            if (!unit.context.isConst(variable) &&
+                !unit.context.isFinal(variable)) {
               var setter = setterRef.getChild(name);
-              scope.declare('$name=', Declaration(name, setter));
+              scope.declare('$name=', setter);
             }
           }
         } else {
@@ -159,11 +205,13 @@ class SourceLibraryBuilder {
         }
       }
     }
+    if ('$uri' == 'dart:core') {
+      scope.declare('dynamic', reference.getChild('dynamic'));
+    }
   }
 
   void addSyntheticConstructors() {
-    for (var declaration in scope.map.values) {
-      var reference = declaration.reference;
+    for (var reference in scope.map.values) {
       var node = reference.node;
       if (node == null) continue;
       if (node.kind != LinkedNodeKind.classDeclaration) continue;
@@ -185,30 +233,32 @@ class SourceLibraryBuilder {
   }
 
   /// Return `true` if the export scope was modified.
-  bool addToExportScope(String name, Declaration declaration) {
+  bool addToExportScope(String name, Reference reference) {
     if (name.startsWith('_')) return false;
-    if (declaration is PrefixBuilder) return false;
+    if (reference.isPrefix) return false;
 
     var existing = exportScope.map[name];
-    if (existing == declaration) return false;
+    if (existing == reference) return false;
 
     // Ambiguous declaration detected.
     if (existing != null) return false;
 
-    exportScope.map[name] = declaration;
+    exportScope.map[name] = reference;
     return true;
   }
 
   void buildInitialExportScope() {
-    scope.forEach((name, declaration) {
-      addToExportScope(name, declaration);
+    scope.forEach((name, reference) {
+      addToExportScope(name, reference);
     });
   }
 
   void performTopLevelInference() {
-    for (var unit in units) {
-      TopLevelInference(linker, reference, unit).infer();
-    }
+    TopLevelInference(linker, reference).infer();
+  }
+
+  void resolveConstructors() {
+    ConstructorInitializerResolver(linker, reference).resolve();
   }
 
   void resolveMetadata() {
@@ -218,11 +268,12 @@ class SourceLibraryBuilder {
     }
   }
 
-  void resolveTypes() {
+  void resolveTypes(TypesToBuild typesToBuild) {
     for (var unit in units) {
       var unitReference = reference.getChild('@unit').getChild('${unit.uri}');
       ReferenceResolver(
         linker.linkingBundleContext,
+        typesToBuild,
         unit,
         scope,
         unitReference,
@@ -232,17 +283,9 @@ class SourceLibraryBuilder {
 
   void storeExportScope() {
     var linkingBundleContext = linker.linkingBundleContext;
-    for (var declaration in exportScope.map.values) {
-      var reference = declaration.reference;
+    for (var reference in exportScope.map.values) {
       var index = linkingBundleContext.indexOfReference(reference);
       node.exports.add(index);
-    }
-  }
-
-  void _importExportedReferences(List<Reference> exportedReferences) {
-    for (var reference in exportedReferences) {
-      var name = reference.name;
-      importScope.declare(name, Declaration(name, reference));
     }
   }
 
@@ -319,6 +362,13 @@ class SourceLibraryBuilder {
 
     linker.linkingLibraries.add(libraryNode);
     linker.builders[builder.uri] = builder;
+  }
+
+  static void _declareReferences(Scope target, List<Reference> references) {
+    for (var reference in references) {
+      var name = reference.name;
+      target.declare(name, reference);
+    }
   }
 }
 

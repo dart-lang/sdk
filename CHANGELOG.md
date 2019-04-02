@@ -1,11 +1,33 @@
-## 2.2.1-dev.2.1
+## 2.2.1-dev.3.0
 
-* Cherry-pick 611a53ee5eb091af491ed8fa74295ee779743a90 to dev
+### Core library changes
+
+#### `dart:isolate`
+
+* Added `debugName` property to `Isolate`.
+* Added `debugName` optional parameter to `Isolate.spawn` and
+  `Isolate.spawnUri`.
+
+### Tool Changes
 
 #### dartfmt
 
 * Tweak set literal formatting to follow other collection literals.
 * Add support for "UI as code" features.
+
+#### Linter
+
+The Linter was updated to `0.1.83` which includes the following changes:
+
+* updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
+* updated SDK constraint to `2.2.0`
+* miscellaneous rule documentation fixes
+* (internal) updated sources to use Set literals
+* fixed NPE in `avoid_shadowing_type_parameters`
+* added linter version numbering for use in analyzer summaries
+* fixed type utilities to handle inheritance cycles
+* (internal) changes to adopt new `package:analyzer` APIs
+* fixed `unnecessary_parenthesis` false positives
 
 ## 2.2.1-dev.2.0
 
@@ -16,7 +38,13 @@
 
 ## 2.2.1-dev.1.0
 
+* Support for deprecated flags '-c' and '--checked' has been removed
 * RegExp patterns can now use lookbehind assertions.
+* RegExp patterns can now use named capture groups and named backreferences.
+  Currently, named group matches can only be retrieved in Dart either by
+  the implicit index of the named group or by downcasting the returned Match
+  object to the type RegExpMatch. The RegExpMatch interface contains methods
+  for retrieving the available group names and retrieving a match by group name.
 
 ### Tool Changes
 
@@ -24,8 +52,10 @@
 
 * Added a CHANGELOG validator that complains if you `pub publish` without mentioning the current
   version.
+* Removed validation of library names when doing `pub publish`.
 * Added support for `pub global activate`ing package from a custom pub URL.
 * Added subcommand: `pub logout`. Logs you out of the current session.
+* Fix: Use default server for `pub uploader` command.
 
 #### dart2js
 

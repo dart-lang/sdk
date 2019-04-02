@@ -1049,6 +1049,34 @@ Message _withArgumentsConstEvalDeferredLibrary(String name) {
 const Template<
     Message Function(
         Constant
+            _constant)> templateConstEvalDuplicateElement = const Template<
+        Message Function(Constant _constant)>(
+    messageTemplate:
+        r"""The element '#constant' conflicts with another existing element in the set.""",
+    withArguments: _withArgumentsConstEvalDuplicateElement);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)> codeConstEvalDuplicateElement =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalDuplicateElement", templateConstEvalDuplicateElement,
+        analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalDuplicateElement(Constant _constant) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalDuplicateElement,
+      message:
+          """The element '${constant}' conflicts with another existing element in the set.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant
             _constant)> templateConstEvalDuplicateKey = const Template<
         Message Function(Constant _constant)>(
     messageTemplate:
@@ -1059,7 +1087,7 @@ const Template<
 const Code<Message Function(Constant _constant)> codeConstEvalDuplicateKey =
     const Code<Message Function(Constant _constant)>(
         "ConstEvalDuplicateKey", templateConstEvalDuplicateKey,
-        analyzerCodes: <String>["EQUAL_KEYS_IN_MAP"]);
+        analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalDuplicateKey(Constant _constant) {
@@ -1217,6 +1245,38 @@ Message _withArgumentsConstEvalInvalidMethodInvocation(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
+        Constant
+            _constant)> templateConstEvalInvalidPropertyGet = const Template<
+        Message Function(String string, Constant _constant)>(
+    messageTemplate:
+        r"""The property '#string' can't be accessed on '#constant' within a const context.""",
+    withArguments: _withArgumentsConstEvalInvalidPropertyGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, Constant _constant)>
+    codeConstEvalInvalidPropertyGet =
+    const Code<Message Function(String string, Constant _constant)>(
+        "ConstEvalInvalidPropertyGet", templateConstEvalInvalidPropertyGet,
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidPropertyGet(
+    String string, Constant _constant) {
+  if (string.isEmpty) throw 'No string provided';
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalInvalidPropertyGet,
+      message:
+          """The property '${string}' can't be accessed on '${constant}' within a const context.""" +
+              labeler.originMessages,
+      arguments: {'string': string, 'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String
             name)> templateConstEvalInvalidStaticInvocation = const Template<
         Message Function(String name)>(
@@ -1339,6 +1399,36 @@ Message _withArgumentsConstEvalInvalidType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalIterationInConstList =
+    messageConstEvalIterationInConstList;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalIterationInConstList = const MessageCode(
+    "ConstEvalIterationInConstList",
+    analyzerCodes: <String>["NON_CONSTANT_LIST_ELEMENT"],
+    message: r"""Iteration can't be used in a constant list.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalIterationInConstMap =
+    messageConstEvalIterationInConstMap;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalIterationInConstMap = const MessageCode(
+    "ConstEvalIterationInConstMap",
+    analyzerCodes: <String>["NON_CONSTANT_MAP_ELEMENT"],
+    message: r"""Iteration can't be used in a constant map.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalIterationInConstSet =
+    messageConstEvalIterationInConstSet;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalIterationInConstSet = const MessageCode(
+    "ConstEvalIterationInConstSet",
+    analyzerCodes: <String>["NON_CONSTANT_SET_ELEMENT"],
+    message: r"""Iteration can't be used in a constant set.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,
@@ -1421,6 +1511,35 @@ Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
           """The variable '${string}' is not a constant, only constant expressions are allowed.""",
       arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalNotListOrSetInSpread =
+    messageConstEvalNotListOrSetInSpread;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalNotListOrSetInSpread = const MessageCode(
+    "ConstEvalNotListOrSetInSpread",
+    analyzerCodes: <String>["CONST_SPREAD_EXPECTED_LIST_OR_SET"],
+    message:
+        r"""Only lists and sets can be used in spreads in constant lists and sets.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalNotMapInSpread = messageConstEvalNotMapInSpread;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalNotMapInSpread = const MessageCode(
+    "ConstEvalNotMapInSpread",
+    analyzerCodes: <String>["CONST_SPREAD_EXPECTED_MAP"],
+    message: r"""Only maps can be used in spreads in constant maps.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalNullValue = messageConstEvalNullValue;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalNullValue = const MessageCode(
+    "ConstEvalNullValue",
+    analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+    message: r"""Null value during constant evaluation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6107,6 +6226,17 @@ Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidSuperInInitializer =
+    messageInvalidSuperInInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidSuperInInitializer = const MessageCode(
+    "InvalidSuperInInitializer",
+    index: 95,
+    message:
+        r"""Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidSyncModifier = messageInvalidSyncModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6115,6 +6245,16 @@ const MessageCode messageInvalidSyncModifier = const MessageCode(
     analyzerCodes: <String>["MISSING_STAR_AFTER_SYNC"],
     message: r"""Invalid modifier 'sync'.""",
     tip: r"""Try replacing 'sync' with 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidThisInInitializer = messageInvalidThisInInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidThisInInitializer = const MessageCode(
+    "InvalidThisInInitializer",
+    index: 96,
+    message:
+        r"""Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
@@ -7066,6 +7206,27 @@ const Code<Null> codeNotAnLvalue = messageNotAnLvalue;
 const MessageCode messageNotAnLvalue = const MessageCode("NotAnLvalue",
     analyzerCodes: <String>["NOT_AN_LVALUE"],
     message: r"""Can't assign to this.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateNotBinaryOperator =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""'#lexeme' isn't a binary operator.""",
+        withArguments: _withArgumentsNotBinaryOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeNotBinaryOperator =
+    const Code<Message Function(Token token)>(
+  "NotBinaryOperator",
+  templateNotBinaryOperator,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNotBinaryOperator(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeNotBinaryOperator,
+      message: """'${lexeme}' isn't a binary operator.""",
+      arguments: {'token': token});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateNotConstantExpression =
@@ -8871,7 +9032,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
     const Code<Message Function(String name)>(
         "ThisAccessInFieldInitializer", templateThisAccessInFieldInitializer,
-        analyzerCodes: <String>["THIS_ACCESS_FROM_INITIALIZER"]);
+        analyzerCodes: <String>["THIS_ACCESS_FROM_FIELD_INITIALIZER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThisAccessInFieldInitializer(String name) {

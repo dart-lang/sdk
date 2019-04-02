@@ -8,6 +8,8 @@ class A {
   noSuchMethod(
           /*strong.[null|subclass=Object]*/
           /*omit.[null|exact=JSInvocationMirror]*/
+          /*strongConst.[null|subclass=Object]*/
+          /*omitConst.[null|exact=JSInvocationMirror]*/
           im) =>
       42;
 }

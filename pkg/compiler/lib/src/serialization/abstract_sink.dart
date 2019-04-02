@@ -232,6 +232,12 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     } else if (value is ir.TypeParameter) {
       _writeEnumInternal(_TreeNodeKind.typeParameter);
       _writeTypeParameter(value);
+    } else if (value is ConstantReference) {
+      _writeEnumInternal(_TreeNodeKind.constant);
+      _writeTreeNode(value.expression);
+      _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
+      value.expression.constant.accept(indexer);
+      _writeIntInternal(indexer.getIndex(value.constant));
     } else {
       _writeEnumInternal(_TreeNodeKind.node);
       ir.TreeNode member = value;

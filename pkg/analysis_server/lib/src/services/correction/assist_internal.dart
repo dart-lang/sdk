@@ -224,8 +224,8 @@ class AssistProcessor {
     DeclaredIdentifier declaredIdentifier =
         node.thisOrAncestorOfType<DeclaredIdentifier>();
     if (declaredIdentifier == null) {
-      ForStatement2 forEach = node.thisOrAncestorMatching(
-          (node) => node is ForStatement2 && node.forLoopParts is ForEachParts);
+      ForStatement forEach = node.thisOrAncestorMatching(
+          (node) => node is ForStatement && node.forLoopParts is ForEachParts);
       ForEachParts forEachParts = forEach?.forLoopParts;
       int offset = node.offset;
       if (forEach != null &&
@@ -457,7 +457,7 @@ class AssistProcessor {
     }
 
     bool isEmptyListLiteral(Expression expression) =>
-        expression is ListLiteral && expression.elements2.isEmpty;
+        expression is ListLiteral && expression.elements.isEmpty;
 
     ListLiteral list = target;
     Expression argument = invocation.argumentList.arguments[0];
@@ -484,7 +484,7 @@ class AssistProcessor {
     elementText ??= '...${utils.getNodeText(argument)}';
     DartChangeBuilder changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(list.elements2.last.end, ', $elementText');
+      builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
       builder.addDeletion(range.node(invocation));
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
@@ -1429,8 +1429,8 @@ class AssistProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // find enclosing ForEachStatement
-    ForStatement2 forEachStatement = node.thisOrAncestorMatching(
-        (node) => node is ForStatement2 && node.forLoopParts is ForEachParts);
+    ForStatement forEachStatement = node.thisOrAncestorMatching(
+        (node) => node is ForStatement && node.forLoopParts is ForEachParts);
     if (forEachStatement == null) {
       _coverageMarker();
       return;
@@ -2352,7 +2352,7 @@ class AssistProcessor {
 
     AstNode parentList = widget.parent;
     if (parentList is ListLiteral) {
-      List<CollectionElement> parentElements = parentList.elements2;
+      List<CollectionElement> parentElements = parentList.elements;
       int index = parentElements.indexOf(widget);
       if (index != parentElements.length - 1) {
         var changeBuilder = _newDartChangeBuilder();
@@ -2386,7 +2386,7 @@ class AssistProcessor {
 
     AstNode parentList = widget.parent;
     if (parentList is ListLiteral) {
-      List<CollectionElement> parentElements = parentList.elements2;
+      List<CollectionElement> parentElements = parentList.elements;
       int index = parentElements.indexOf(widget);
       if (index > 0) {
         var changeBuilder = _newDartChangeBuilder();
@@ -2423,8 +2423,8 @@ class AssistProcessor {
       var childrenArgument = flutter.findChildrenArgument(widgetCreation);
       var childrenExpression = childrenArgument?.expression;
       if (childrenExpression is ListLiteral &&
-          childrenExpression.elements2.isNotEmpty) {
-        childrenExpressions = childrenExpression.elements2;
+          childrenExpression.elements.isNotEmpty) {
+        childrenExpressions = childrenExpression.elements;
       } else {
         return;
       }
@@ -3234,7 +3234,7 @@ class AssistProcessor {
     if (node is! ListLiteral) {
       return;
     }
-    if ((node as ListLiteral).elements2.any((CollectionElement exp) =>
+    if ((node as ListLiteral).elements.any((CollectionElement exp) =>
         !(exp is InstanceCreationExpression &&
             flutter.isWidgetCreation(exp)))) {
       _coverageMarker();
@@ -4026,8 +4026,8 @@ class AssistProcessor {
   /// placed inside curly braces, would lexically make the resulting literal a
   /// set literal rather than a map literal.
   bool _listHasUnambiguousElement(AstNode node) {
-    if (node is ListLiteral && node.elements2.length > 0) {
-      for (CollectionElement element in node.elements2) {
+    if (node is ListLiteral && node.elements.length > 0) {
+      for (CollectionElement element in node.elements) {
         if (_isUnambiguousElement(element)) {
           return true;
         }

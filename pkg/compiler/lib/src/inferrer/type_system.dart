@@ -431,7 +431,7 @@ class TypeSystem {
   }
 
   TypeInformation allocateList(
-      TypeInformation type, ir.Node node, MemberEntity enclosing,
+      TypeInformation type, ir.TreeNode node, MemberEntity enclosing,
       [TypeInformation elementType, int length]) {
     assert(strategy.checkListNode(node));
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
@@ -472,7 +472,7 @@ class TypeSystem {
   }
 
   TypeInformation allocateSet(
-      TypeInformation type, ir.Node node, MemberEntity enclosing,
+      TypeInformation type, ir.TreeNode node, MemberEntity enclosing,
       [TypeInformation elementType]) {
     assert(strategy.checkSetNode(node));
     bool isConst = type.type == _abstractValueDomain.constSetType;
@@ -491,7 +491,7 @@ class TypeSystem {
   }
 
   TypeInformation allocateMap(
-      ConcreteTypeInformation type, ir.Node node, MemberEntity element,
+      ConcreteTypeInformation type, ir.TreeNode node, MemberEntity element,
       [List<TypeInformation> keyTypes, List<TypeInformation> valueTypes]) {
     assert(strategy.checkMapNode(node));
     assert(keyTypes.length == valueTypes.length);

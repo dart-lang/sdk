@@ -60,6 +60,8 @@ final Name plusName = new Name("+");
 
 final Name rightShiftName = new Name(">>");
 
+final Name tripleShiftName = new Name(">>>");
+
 final Name tildeName = new Name("~");
 
 final Name unaryMinusName = new Name("unary-");

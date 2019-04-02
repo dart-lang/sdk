@@ -842,7 +842,8 @@ class _RefactoringManager {
       result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
       _sendResultResponse();
     }, onError: (exception, stackTrace) {
-      if (exception is _ResetError) {
+      if (exception is _ResetError ||
+          exception is InconsistentAnalysisException) {
         cancel();
       } else {
         server.instrumentationService.logException(exception, stackTrace);

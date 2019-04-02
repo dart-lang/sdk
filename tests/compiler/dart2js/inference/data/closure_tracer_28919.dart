@@ -57,6 +57,8 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
         /*[null]*/ (int
             /*strong.[null|subclass=Object]*/
             /*omit.[null|subclass=JSInt]*/
+            /*strongConst.[null|subclass=Object]*/
+            /*omitConst.[null|subclass=JSInt]*/
             x) {
       res = x;
       sum = x /*invoke: [null|subclass=JSInt]*/ + i;

@@ -4,6 +4,9 @@
 
 #include "bin/dfe.h"
 
+#include <memory>
+
+#include "bin/abi_version.h"
 #include "bin/dartutils.h"
 #include "bin/directory.h"
 #include "bin/error_exit.h"
@@ -30,18 +33,6 @@ intptr_t kPlatformStrongDillSize = 0;
 
 namespace dart {
 namespace bin {
-
-#if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
-const uint8_t* kernel_service_dill = NULL;
-const intptr_t kernel_service_dill_size = 0;
-const uint8_t* platform_strong_dill = NULL;
-const intptr_t platform_strong_dill_size = 0;
-#else
-const uint8_t* kernel_service_dill = kKernelServiceDill;
-const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
-const uint8_t* platform_strong_dill = kPlatformStrongDill;
-const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
-#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE dfe;
@@ -76,7 +67,19 @@ DFE::DFE()
       use_incremental_compiler_(false),
       frontend_filename_(NULL),
       application_kernel_buffer_(NULL),
-      application_kernel_buffer_size_(0) {}
+      application_kernel_buffer_size_(0) {
+#if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
+  kernel_service_dill_ = NULL;
+  kernel_service_dill_size_ = 0;
+  platform_strong_dill_ = NULL;
+  platform_strong_dill_size_ = 0;
+#else
+  kernel_service_dill_ = kKernelServiceDill;
+  kernel_service_dill_size_ = kKernelServiceDillSize;
+  platform_strong_dill_ = kPlatformStrongDill;
+  platform_strong_dill_size_ = kPlatformStrongDillSize;
+#endif
+}
 
 DFE::~DFE() {
   if (frontend_filename_ != NULL) {
@@ -90,56 +93,108 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  if (platform_strong_dill == NULL) {
+  Init(AbiVersion::GetCurrent());
+}
+
+void DFE::Init(int target_abi_version) {
+  if (platform_strong_dill_ == NULL) {
     return;
   }
 
-  Dart_SetDartLibrarySourcesKernel(platform_strong_dill,
-                                   platform_strong_dill_size);
-
-  if (frontend_filename_ == NULL) {
-    // Look for the frontend snapshot next to the executable.
-    char* dir_prefix = GetDirectoryPrefixFromExeName();
-    // |dir_prefix| includes the last path seperator.
-    frontend_filename_ =
-        OS::SCreate(NULL, "%s%s", dir_prefix, kKernelServiceSnapshot);
-
-    if (!File::Exists(NULL, frontend_filename_)) {
-      // If the frontend snapshot is not found next to the executable,
-      // then look for it in the "snapshots" directory.
-      free(frontend_filename_);
-      // |dir_prefix| includes the last path seperator.
-      frontend_filename_ =
-          OS::SCreate(NULL, "%s%s%s%s", dir_prefix, kSnapshotsDirectory,
-                      File::PathSeparator(), kKernelServiceSnapshot);
-    }
-
-    free(dir_prefix);
-    if (!File::Exists(NULL, frontend_filename_)) {
-      free(frontend_filename_);
-      frontend_filename_ = NULL;
-    }
+  if (!InitKernelServiceAndPlatformDills(target_abi_version)) {
+    return;
   }
+
+  Dart_SetDartLibrarySourcesKernel(platform_strong_dill_,
+                                   platform_strong_dill_size_);
 }
 
-bool DFE::KernelServiceDillAvailable() {
-  return kernel_service_dill != NULL;
+bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
+  const char kAbiVersionsDir[] = "dart-sdk/lib/_internal/abiversions";
+  const char kKernelServiceDillFile[] = "kernel_service.dill";
+  const char kPlatformStrongDillFile[] = "vm_platform_strong.dill";
+
+  if (frontend_filename_ != NULL) {
+    return true;
+  }
+
+  // |dir_prefix| includes the last path seperator.
+  auto dir_prefix = std::unique_ptr<char, void (*)(void*)>(
+      GetDirectoryPrefixFromExeName(), free);
+
+  if (target_abi_version != AbiVersion::GetCurrent()) {
+    kernel_service_dill_ = NULL;
+    kernel_service_dill_size_ = 0;
+    platform_strong_dill_ = NULL;
+    platform_strong_dill_size_ = 0;
+
+    // Look in the old abi version directory.
+    char* script_uri =
+        OS::SCreate(NULL, "%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
+                    target_abi_version, kPlatformStrongDillFile);
+    if (!TryReadKernelFile(script_uri,
+                           const_cast<uint8_t**>(&platform_strong_dill_),
+                           &platform_strong_dill_size_)) {
+      Log::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
+      free(script_uri);
+      return false;
+    }
+    free(script_uri);
+    script_uri =
+        OS::SCreate(NULL, "%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
+                    target_abi_version, kKernelServiceDillFile);
+    if (!TryReadKernelFile(script_uri,
+                           const_cast<uint8_t**>(&kernel_service_dill_),
+                           &kernel_service_dill_size_)) {
+      Log::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
+      free(script_uri);
+      return false;
+    } else {
+      frontend_filename_ = script_uri;
+      return true;
+    }
+  }
+
+  // Look for the frontend snapshot next to the executable.
+  frontend_filename_ =
+      OS::SCreate(NULL, "%s%s", dir_prefix.get(), kKernelServiceSnapshot);
+  if (File::Exists(NULL, frontend_filename_)) {
+    return true;
+  }
+  free(frontend_filename_);
+  frontend_filename_ = NULL;
+
+  // If the frontend snapshot is not found next to the executable, then look for
+  // it in the "snapshots" directory.
+  frontend_filename_ =
+      OS::SCreate(NULL, "%s%s%s%s", dir_prefix.get(), kSnapshotsDirectory,
+                  File::PathSeparator(), kKernelServiceSnapshot);
+  if (File::Exists(NULL, frontend_filename_)) {
+    return true;
+  }
+  free(frontend_filename_);
+  frontend_filename_ = NULL;
+  return true;
+}
+
+bool DFE::KernelServiceDillAvailable() const {
+  return kernel_service_dill_ != NULL;
 }
 
 void DFE::LoadKernelService(const uint8_t** kernel_service_buffer,
                             intptr_t* kernel_service_buffer_size) {
-  *kernel_service_buffer = kernel_service_dill;
-  *kernel_service_buffer_size = kernel_service_dill_size;
+  *kernel_service_buffer = kernel_service_dill_;
+  *kernel_service_buffer_size = kernel_service_dill_size_;
 }
 
 void DFE::LoadPlatform(const uint8_t** kernel_buffer,
                        intptr_t* kernel_buffer_size) {
-  *kernel_buffer = platform_strong_dill;
-  *kernel_buffer_size = platform_strong_dill_size;
+  *kernel_buffer = platform_strong_dill_;
+  *kernel_buffer_size = platform_strong_dill_size_;
 }
 
 bool DFE::CanUseDartFrontend() const {
-  return (platform_strong_dill != NULL) &&
+  return (platform_strong_dill_ != NULL) &&
          (KernelServiceDillAvailable() || (frontend_filename() != NULL));
 }
 
@@ -191,8 +246,8 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
   const char* sanitized_uri = script_uri;
 #endif
 
-  return Dart_CompileToKernel(sanitized_uri, platform_strong_dill,
-                              platform_strong_dill_size, incremental,
+  return Dart_CompileToKernel(sanitized_uri, platform_strong_dill_,
+                              platform_strong_dill_size_, incremental,
                               package_config);
 }
 

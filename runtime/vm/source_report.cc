@@ -492,10 +492,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
 
 void SourceReport::VisitField(JSONArray* jsarr, const Field& field) {
   if (ShouldSkipField(field) || !field.HasInitializerFunction()) return;
-  Thread* const thread = Thread::Current();
-  const Function& func = Function::Handle(
-      zone(),
-      kernel::CreateFieldInitializerFunction(thread, thread->zone(), field));
+  const Function& func = Function::Handle(field.InitializerFunction());
   VisitFunction(jsarr, func);
 }
 

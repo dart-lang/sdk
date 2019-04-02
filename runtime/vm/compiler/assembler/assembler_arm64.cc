@@ -1093,6 +1093,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  tsti(TMP, Immediate(1 << target::RawObject::kOldAndNotRememberedBit));
+  b(&done, ZERO);
+
   Stop("Store buffer update is required");
   Bind(&done);
 #endif  // defined(DEBUG)
@@ -1129,6 +1134,12 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
     AddImmediate(TMP, object, offset - kHeapObjectTag);
     StoreIntoObjectNoBarrier(object, Address(TMP), value);
   }
+}
+
+void Assembler::StoreInternalPointer(Register object,
+                                     const Address& dest,
+                                     Register value) {
+  str(value, dest);
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
@@ -1566,9 +1577,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t index) const {
   const int64_t offset =
       index * index_scale +
-      ((is_external || RawObject::IsTypedDataClassId(cid))
-           ? 0
-           : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
@@ -1583,9 +1592,7 @@ void Assembler::LoadElementAddressForIntIndex(Register address,
                                               intptr_t index) {
   const int64_t offset =
       index * index_scale +
-      ((is_external || RawObject::IsTypedDataClassId(cid))
-           ? 0
-           : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   AddImmediate(address, array, offset);
 }
 
@@ -1597,9 +1604,8 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              Register index) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  const int32_t offset = (is_external || RawObject::IsTypedDataClassId(cid))
-                             ? 0
-                             : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
   ASSERT(array != TMP);
   ASSERT(index != TMP);
   const Register base = is_load ? TMP : index;
@@ -1625,9 +1631,8 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
                                               Register index) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  const int32_t offset = (is_external || RawObject::IsTypedDataClassId(cid))
-                             ? 0
-                             : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
   if (shift == 0) {
     add(address, array, Operand(index));
   } else if (shift < 0) {

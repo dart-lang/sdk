@@ -52,6 +52,8 @@ class RegExpBuilder : public ZoneAllocated {
 #endif
 };
 
+using RegExpCaptureName = ZoneGrowableArray<uint16_t>;
+
 class RegExpParser : public ValueObject {
  public:
   RegExpParser(const String& in, String* error, bool multiline_mode);
@@ -117,12 +119,14 @@ class RegExpParser : public ValueObject {
                       SubexpressionType group_type,
                       RegExpLookaround::Type lookaround_type,
                       intptr_t disjunction_capture_index,
+                      const RegExpCaptureName* capture_name,
                       Zone* zone)
         : previous_state_(previous_state),
           builder_(new (zone) RegExpBuilder()),
           group_type_(group_type),
           lookaround_type_(lookaround_type),
-          disjunction_capture_index_(disjunction_capture_index) {}
+          disjunction_capture_index_(disjunction_capture_index),
+          capture_name_(capture_name) {}
     // Parser state of containing expression, if any.
     RegExpParserState* previous_state() { return previous_state_; }
     bool IsSubexpression() { return previous_state_ != NULL; }
@@ -136,9 +140,14 @@ class RegExpParser : public ValueObject {
     // Also the capture index of this sub-expression itself, if group_type
     // is CAPTURE.
     intptr_t capture_index() { return disjunction_capture_index_; }
+    const RegExpCaptureName* capture_name() const { return capture_name_; }
+
+    bool IsNamedCapture() const { return capture_name_ != nullptr; }
 
     // Check whether the parser is inside a capture group with the given index.
     bool IsInsideCaptureGroup(intptr_t index);
+    // Check whether the parser is inside a capture group with the given name.
+    bool IsInsideCaptureGroup(const RegExpCaptureName* name);
 
    private:
     // Linked list implementation of stack of states.
@@ -151,12 +160,37 @@ class RegExpParser : public ValueObject {
     const RegExpLookaround::Type lookaround_type_;
     // Stored disjunction's capture index (if any).
     intptr_t disjunction_capture_index_;
+    // Stored capture name (if any).
+    const RegExpCaptureName* const capture_name_;
   };
 
   // Return the 1-indexed RegExpCapture object, allocate if necessary.
   RegExpCapture* GetCapture(intptr_t index);
 
+  // Creates a new named capture at the specified index. Must be called exactly
+  // once for each named capture. Fails if a capture with the same name is
+  // encountered.
+  void CreateNamedCaptureAtIndex(const RegExpCaptureName* name, intptr_t index);
+
+  // Parses the name of a capture group (?<name>pattern). The name must adhere
+  // to IdentifierName in the ECMAScript standard.
+  const RegExpCaptureName* ParseCaptureGroupName();
+
+  bool ParseNamedBackReference(RegExpBuilder* builder,
+                               RegExpParserState* state);
   RegExpParserState* ParseOpenParenthesis(RegExpParserState* state);
+  intptr_t GetNamedCaptureIndex(const RegExpCaptureName* name);
+
+  // After the initial parsing pass, patch corresponding RegExpCapture objects
+  // into all RegExpBackReferences. This is done after initial parsing in order
+  // to avoid complicating cases in which references come before the capture.
+  void PatchNamedBackReferences();
+
+  RawArray* CreateCaptureNameMap();
+
+  // Returns true iff the pattern contains named captures. May call
+  // ScanForCaptures to look ahead at the remaining pattern.
+  bool HasNamedCaptures();
 
   Zone* zone() { return zone_; }
 
@@ -169,6 +203,8 @@ class RegExpParser : public ValueObject {
 
   Zone* zone_;
   ZoneGrowableArray<RegExpCapture*>* captures_;
+  ZoneGrowableArray<RegExpCapture*>* named_captures_;
+  ZoneGrowableArray<RegExpBackReference*>* named_back_references_;
   const String& in_;
   uint32_t current_;
   intptr_t next_pos_;
@@ -180,6 +216,7 @@ class RegExpParser : public ValueObject {
   bool simple_;
   bool contains_anchor_;
   bool is_scanned_for_captures_;
+  bool has_named_captures_;
 };
 
 }  // namespace dart

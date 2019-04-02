@@ -261,7 +261,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
                                       bool use_subtype_test,
                                       bool include_abstract,
                                       bool exclude_null) {
-  if (dst_klass.IsReadOnly()) {
+  if (dst_klass.InVMIsolateHeap()) {
     BuildRangesFor(table, ranges, dst_klass, use_subtype_test, include_abstract,
                    exclude_null);
     return;
@@ -518,6 +518,20 @@ Definition* Definition::OriginalDefinition() {
     }
   }
   return defn;
+}
+
+Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
+  Definition* def = this;
+  while (true) {
+    Definition* orig;
+    if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
+      orig = def->InputAt(0)->definition();
+    } else {
+      orig = def->OriginalDefinition();
+    }
+    if (orig == def) return def;
+    def = orig;
+  }
 }
 
 const ICData* Instruction::GetICData(
@@ -1756,7 +1770,7 @@ void Instruction::Goto(JoinEntryInstr* entry) {
   LinkTo(new GotoInstr(entry, CompilerState::Current().GetNextDeoptId()));
 }
 
-bool UnboxedIntConverterInstr::ComputeCanDeoptimize() const {
+bool IntConverterInstr::ComputeCanDeoptimize() const {
   return (to() == kUnboxedInt32) && !is_truncating() &&
          !RangeUtils::Fits(value()->definition()->range(),
                            RangeBoundary::kRangeBoundaryInt32);
@@ -1838,6 +1852,14 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
 
     case Token::kMOD:
       return RangeUtils::CanBeZero(right_range());
+
+    case Token::kTRUNCDIV:
+#if defined(TARGET_ARCH_DBC)
+      return true;
+#else
+      return RangeUtils::CanBeZero(right_range()) ||
+             RangeUtils::Overlaps(right_range(), -1, -1);
+#endif
 
     default:
       return can_overflow();
@@ -2553,8 +2575,7 @@ Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
-    case Slot::Kind::kTypedData_length:
-    case Slot::Kind::kTypedDataView_length:
+    case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kString_length:
       return true;
     case Slot::Kind::kGrowableObjectArray_length:
@@ -2570,6 +2591,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kTypedDataBase_data_field:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kGrowableObjectArray_data:
@@ -2905,8 +2927,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-  UnboxedIntConverterInstr* conv =
-      value()->definition()->AsUnboxedIntConverter();
+  IntConverterInstr* conv = value()->definition()->AsIntConverter();
   if (conv != NULL) {
     Definition* replacement = this;
 
@@ -2976,7 +2997,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
       return box_defn->value()->definition();
     } else if (from_representation != kTagged) {
       // Only operate on explicit unboxed operands.
-      UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
+      IntConverterInstr* converter = new IntConverterInstr(
           from_representation, representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
@@ -3052,11 +3073,10 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
 
-  UnboxedIntConverterInstr* box_defn =
-      value()->definition()->AsUnboxedIntConverter();
+  IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
     if (box_defn->from() == to()) {
       // Do not erase truncating conversions from 64-bit value to 32-bit values
@@ -3067,7 +3087,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       return box_defn->value()->definition();
     }
 
-    UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
+    IntConverterInstr* converter = new IntConverterInstr(
         box_defn->from(), representation(), box_defn->value()->CopyWithType(),
         (to() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
@@ -3525,6 +3545,8 @@ UnboxInstr* UnboxInstr::Create(Representation to,
 bool UnboxInstr::CanConvertSmi() const {
   switch (representation()) {
     case kUnboxedDouble:
+    case kUnboxedFloat:
+    case kUnboxedInt32:
     case kUnboxedInt64:
       return true;
 
@@ -4646,6 +4668,10 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         EmitLoadFromBox(compiler);
         break;
 
+      case kUnboxedInt32:
+        EmitLoadInt32FromBoxOrSmi(compiler);
+        break;
+
       case kUnboxedInt64: {
         if (value()->Type()->ToCid() == kSmiCid) {
           // Smi -> int64 conversion is more efficient than
@@ -4656,7 +4682,6 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
         break;
       }
-
       default:
         UNREACHABLE();
         break;
@@ -4881,12 +4906,12 @@ Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
-  if (RawObject::IsExternalTypedDataClassId(class_id)) {
-    return ExternalTypedData::length_offset();
+  if (RawObject::IsTypedDataClassId(class_id) ||
+      RawObject::IsTypedDataViewClassId(class_id) ||
+      RawObject::IsExternalTypedDataClassId(class_id)) {
+    return TypedDataBase::length_offset();
   }
-  if (RawObject::IsTypedDataClassId(class_id)) {
-    return TypedData::length_offset();
-  }
+
   switch (class_id) {
     case kGrowableObjectArrayCid:
       return GrowableObjectArray::length_offset();
@@ -5192,13 +5217,14 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_IA32)
 
 #define Z zone_
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx == TargetAddressIndex()) {
-    return kUnboxedIntPtr;
+    return kUnboxedFfiIntPtr;
   } else {
     return arg_representations_[idx];
   }
@@ -5211,27 +5237,38 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/1, LocationSummary::kCall);
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32)
+  constexpr intptr_t kNumTemps = 2;
+#else
+  constexpr intptr_t kNumTemps = 1;
+#endif
+
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, /*num_inputs=*/InputCount(),
+                      /*num_temps=*/kNumTemps, LocationSummary::kCall);
 
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
   summary->set_temp(0, Location::RegisterLocation(
                            CallingConventions::kSecondNonArgumentRegister));
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM64)
+  summary->set_temp(1, Location::RegisterLocation(
+                           CallingConventions::kFirstCalleeSavedCpuReg));
+#endif
   summary->set_out(0, compiler::ffi::ResultLocation(
                           compiler::ffi::ResultRepresentation(signature_)));
 
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    Location target = arg_locations_[i];
-    if (target.IsMachineRegister()) {
-      summary->set_in(i, target);
-    } else {
-      // Since we have to push this input on the stack, there's no point in
-      // pinning it to any specific register.
-      summary->set_in(i, Location::Any());
-    }
+    // Floating point values are never split: they are either in a single "FPU"
+    // register or a contiguous 64-bit slot on the stack. Unboxed 64-bit integer
+    // values, in contrast, can be split between any two registers on a 32-bit
+    // system.
+    const bool is_atomic = arg_representations_[i] == kUnboxedFloat ||
+                           arg_representations_[i] == kUnboxedDouble;
+    // Since we have to move this input down to the stack, there's no point in
+    // pinning it to any specific register.
+    summary->set_in(i, UnallocateStackSlots(arg_locations_[i], is_atomic));
   }
 
   return summary;
@@ -5239,6 +5276,22 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
 
 Representation FfiCallInstr::representation() const {
   return compiler::ffi::ResultRepresentation(signature_);
+}
+
+Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
+  if (in.IsPairLocation()) {
+    ASSERT(!is_atomic);
+    return Location::Pair(UnallocateStackSlots(in.AsPairLocation()->At(0)),
+                          UnallocateStackSlots(in.AsPairLocation()->At(1)));
+  } else if (in.IsMachineRegister()) {
+    return in;
+  } else if (in.IsDoubleStackSlot()) {
+    return is_atomic ? Location::Any()
+                     : Location::Pair(Location::Any(), Location::Any());
+  } else {
+    ASSERT(in.IsStackSlot());
+    return Location::Any();
+  }
 }
 
 #undef Z

@@ -7,10 +7,10 @@ class A extends core::Object {
     ;
 }
 class C<T extends self::A = dynamic> extends core::Object {
-  field self::C::T _field;
+  generic-covariant-impl field self::C::T _field;
   synthetic constructor •() → self::C<self::C::T>
     ;
-  method foo(self::C::T x) → dynamic
+  method foo(generic-covariant-impl self::C::T x) → dynamic
     ;
 }
 class D extends self::C<self::B> {

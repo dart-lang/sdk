@@ -21,7 +21,7 @@ class B<E> extends A<E> implements M {
   const B();
   int get y => 0;
 
-  /*@topType=A<B::E>*/ m(/*@topType=dynamic*/ a, f(v, int e)) {}
+  m(a, f(v, int e)) {}
 }
 
 foo() {

@@ -51,7 +51,7 @@ class DartAssistKind {
       "Convert to line documentation comment",
       associatedErrorCodes: <String>['slash_for_doc_comments']);
   static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
-      'dart.assist.convert.bodyToAsync', 30, "Convert to async function body");
+      'dart.assist.convert.bodyToAsync', 29, "Convert to async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(

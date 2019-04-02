@@ -43,9 +43,6 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
-import 'package:kernel/transformations/constants.dart' as constants
-    show transformLibraries;
-
 import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../compiler_context.dart' show CompilerContext;
@@ -84,6 +81,8 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 
 import '../uri_translator.dart' show UriTranslator;
+
+import 'constant_evaluator.dart' as constants show transformLibraries;
 
 import 'kernel_builder.dart'
     show
@@ -156,8 +155,9 @@ class KernelTarget extends TargetImplementation {
       new SourceLoader(fileSystem, includeComments, this);
 
   void addSourceInformation(
-      Uri uri, List<int> lineStarts, List<int> sourceCode) {
-    uriToSource[uri] = new Source(lineStarts, sourceCode);
+      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
+    uriToSource[fileUri] =
+        new Source(lineStarts, sourceCode, importUri, fileUri);
   }
 
   /// Return list of same size as input with possibly translated uris.
@@ -329,8 +329,10 @@ class KernelTarget extends TargetImplementation {
 
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     void copySource(Uri uri, Source source) {
-      uriToSource[uri] =
-          excludeSource ? new Source(source.lineStarts, const <int>[]) : source;
+      uriToSource[uri] = excludeSource
+          ? new Source(source.lineStarts, const <int>[], source.importUri,
+              source.fileUri)
+          : source;
     }
 
     this.uriToSource.forEach(copySource);
@@ -559,6 +561,10 @@ class KernelTarget extends TargetImplementation {
     for (String platformLibrary in const [
       "dart:_internal",
       "dart:async",
+      // TODO(askesc): When all backends support set literals, we no longer
+      // need to index dart:collection, as it is only needed for desugaring of
+      // const sets. We can remove it from this list at that time.
+      "dart:collection",
       "dart:core",
       "dart:mirrors"
     ]) {
@@ -709,11 +715,21 @@ class KernelTarget extends TargetImplementation {
         field.initializer = new NullLiteral()..parent = field;
         if (field.isFinal &&
             (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
-          builder.library.addProblem(
-              templateFinalFieldNotInitialized.withArguments(field.name.name),
-              field.fileOffset,
-              field.name.name.length,
-              field.fileUri);
+          String uri = '${field.enclosingLibrary.importUri}';
+          String file = field.fileUri.pathSegments.last;
+          if (uri == 'dart:html' ||
+              uri == 'dart:svg' ||
+              uri == 'dart:_native_typed_data' ||
+              uri == 'dart:_interceptors' && file == 'js_string.dart') {
+            // TODO(johnniwinther): Use external getters instead of final
+            // fields. See https://github.com/dart-lang/sdk/issues/33762
+          } else {
+            builder.library.addProblem(
+                templateFinalFieldNotInitialized.withArguments(field.name.name),
+                field.fileOffset,
+                field.name.name.length,
+                field.fileUri);
+          }
         }
       }
     }
@@ -759,8 +775,9 @@ class KernelTarget extends TargetImplementation {
           backendTarget.constantsBackend(loader.coreTypes),
           environmentDefines,
           environment,
-          new KernelConstantErrorReporter(loader, environment),
-          enableAsserts: enableAsserts);
+          new KernelConstantErrorReporter(loader),
+          enableAsserts: enableAsserts,
+          desugarSets: !backendTarget.supportsSetLiterals);
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(

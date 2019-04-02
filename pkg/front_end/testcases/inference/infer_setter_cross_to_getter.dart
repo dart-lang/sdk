@@ -10,7 +10,7 @@ abstract class A {
 }
 
 abstract class B extends A {
-  void set x(/*@topType=double*/ value);
+  void set x(value);
 }
 
 main() {}

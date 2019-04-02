@@ -1,0 +1,35 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $runtime != dart_precompiled && $runtime != vm ]
+*: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
+
+[ $builder_tag == asan ]
+data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
+
+# dartbug.com/35768: Structs not supported on 32-bit.
+[ $arch == ia32 || $arch == arm ]
+function_structs_test: Skip
+function_callbacks_test: Skip
+structs_test: Skip
+
+# dartbug.com/35934
+[ $compiler == app_jitk ]
+dynamic_library_test: Skip
+function_callbacks_test: Skip
+function_structs_test: Skip
+function_test: Skip
+negative_function_test: Skip
+
+[ $arch == x64 || $arch == arm64 ]
+enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
+
+[ $runtime == dart_precompiled ]
+*: Skip # AOT is not yet supported: dartbug.com/35765
+
+[ $arch != arm64 && $arch != ia32 && $arch != x64 ]
+*: Skip # FFI not yet supported on other architectures.
+
+[ $system != android && $system != linux && $system != macos && $system != windows ]
+*: Skip # FFI not yet supported on other OSes.

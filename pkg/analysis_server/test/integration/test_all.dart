@@ -4,34 +4,32 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis/test_all.dart' as analysis_test_all;
-import 'analytics/test_all.dart' as analytics_test_all;
-import 'completion/test_all.dart' as completion_test_all;
+import 'analysis/test_all.dart' as analysis;
+import 'analytics/test_all.dart' as analytics;
+import 'completion/test_all.dart' as completion;
 import 'coverage_test.dart' as coverage_test;
-import 'diagnostic/test_all.dart' as diagnostic_test_all;
-import 'edit/test_all.dart' as edit_test_all;
-import 'execution/test_all.dart' as execution_test_all;
-import 'kythe/test_all.dart' as kythe_test_all;
-import 'linter/lint_names_test.dart' as lint_names_test;
-import 'search/test_all.dart' as search_test_all;
-import 'server/test_all.dart' as server_test_all;
+import 'diagnostic/test_all.dart' as diagnostic;
+import 'edit/test_all.dart' as edit;
+import 'execution/test_all.dart' as execution;
+import 'kythe/test_all.dart' as kythe;
+import 'linter/test_all.dart' as linter;
+import 'lsp_server/test_all.dart' as lsp_server;
+import 'search/test_all.dart' as search;
+import 'server/test_all.dart' as server;
 
-/**
- * Utility for manually running all integration tests.
- */
 main() {
   defineReflectiveSuite(() {
-    analysis_test_all.main();
-    analytics_test_all.main();
-    completion_test_all.main();
-    diagnostic_test_all.main();
-    edit_test_all.main();
-    execution_test_all.main();
-    kythe_test_all.main();
-    lint_names_test.main();
-    search_test_all.main();
-    server_test_all.main();
-
+    analysis.main();
+    analytics.main();
+    completion.main();
     coverage_test.main();
+    diagnostic.main();
+    edit.main();
+    execution.main();
+    kythe.main();
+    linter.main();
+    lsp_server.main();
+    search.main();
+    server.main();
   }, name: 'analysis_server_integration');
 }

@@ -1,11 +1,13 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -17,6 +19,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvailableDeclarationsTest);
     defineReflectiveTests(ChangeFileTest);
+    defineReflectiveTests(DartdocInfoTest);
     defineReflectiveTests(DeclarationTest);
     defineReflectiveTests(ExportTest);
     defineReflectiveTests(GetLibrariesTest);
@@ -790,6 +793,36 @@ class B2 {}
 }
 
 @reflectiveTest
+class DartdocInfoTest extends _Base {
+  test_samePackage() async {
+    File file = newFile('/home/aaa/lib/definition.dart', content: '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+class A {}
+''');
+
+    createAnalysisContexts();
+
+    DriverBasedAnalysisContext context =
+        analysisContextCollection.contextFor(file.path);
+
+    tracker.addContext(context);
+    await _doAllTrackerWork();
+
+    String result =
+        tracker.getContext(context).dartdocDirectiveInfo.processDartdoc('''
+/// Before macro.
+/// {@macro foo}
+/// After macro.''');
+    expect(result, '''
+Before macro.
+Body of the template.
+After macro.''');
+  }
+}
+
+@reflectiveTest
 class DeclarationTest extends _Base {
   test_CLASS() async {
     newFile('/home/test/lib/test.dart', content: r'''
@@ -881,6 +914,79 @@ class C = Object with M;
       docComplete: 'aaa\n\nbbb bbb',
       relevanceTags: ['package:test/test.dart::C'],
     );
+  }
+
+  test_CONSTRUCTOR() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+class C {
+  int f1;
+  int f2;
+
+  C() {}
+
+  C.a() {}
+
+  @deprecated
+  C.b() {}
+
+  /// aaa
+  ///
+  /// bbb bbb
+  C.c() {}
+
+  C.d(Map<String, int> p1, int p2, {double p3}) {}
+
+  C.e(this.f1, this.f2) {}
+}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(library, '', DeclarationKind.CONSTRUCTOR,
+        name2: 'C',
+        parameterNames: [],
+        parameters: '()',
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'a', DeclarationKind.CONSTRUCTOR,
+        name2: 'C',
+        parameterNames: [],
+        parameters: '()',
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'b', DeclarationKind.CONSTRUCTOR,
+        isDeprecated: true,
+        name2: 'C',
+        parameters: '()',
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'c', DeclarationKind.CONSTRUCTOR,
+        docSummary: 'aaa',
+        docComplete: 'aaa\n\nbbb bbb',
+        name2: 'C',
+        parameters: '()',
+        parameterNames: [],
+        parameterTypes: [],
+        requiredParameterCount: 0);
+    _assertDeclaration(library, 'd', DeclarationKind.CONSTRUCTOR,
+        defaultArgumentListString: 'p1, p2',
+        defaultArgumentListTextRanges: [0, 2, 4, 2],
+        name2: 'C',
+        parameters: '(Map<String, int> p1, int p2, {double p3})',
+        parameterNames: ['p1', 'p2', 'p3'],
+        parameterTypes: ['Map<String, int>', 'int', 'double'],
+        requiredParameterCount: 2);
+    _assertDeclaration(library, 'e', DeclarationKind.CONSTRUCTOR,
+        defaultArgumentListString: 'f1, f2',
+        defaultArgumentListTextRanges: [0, 2, 4, 2],
+        name2: 'C',
+        parameters: '(this.f1, this.f2)',
+        parameterNames: ['f1', 'f2'],
+        parameterTypes: ['', ''],
+        requiredParameterCount: 2);
   }
 
   test_ENUM() async {
@@ -2262,7 +2368,7 @@ class _Base extends AbstractContextTest {
     String returnType,
     String typeParameters,
   }) {
-    var declaration = _getDeclaration(library, name);
+    var declaration = _getDeclaration(library, name, name2);
     expect(declaration.defaultArgumentListString, defaultArgumentListString);
     expect(
       declaration.defaultArgumentListTextRanges,
@@ -2350,9 +2456,9 @@ class _Base extends AbstractContextTest {
     await pumpEventQueue();
   }
 
-  Declaration _getDeclaration(Library library, String name) {
-    return library.declarations
-        .singleWhere((declaration) => declaration.name == name);
+  Declaration _getDeclaration(Library library, String name, String name2) {
+    return library.declarations.singleWhere((declaration) =>
+        declaration.name == name && declaration.name2 == name2);
   }
 
   Library _getLibrary(String uriStr) {

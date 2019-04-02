@@ -1,3 +1,38 @@
+## 0.36.0
+* Changed the return type of `Expression.precendence` to `Precedence`.  Clients
+  that prepared for this change by switching to `Expression.precedence2` should
+  now return to using `Expression.precedence`.
+* AST cleanup related to the "UI as code" feature:
+  * Removed the following AST node types:
+    * `ForEachStatement` (use `ForStatement` instead)
+    * `MapLiteral` and `MapLiteral2` (use `SetOrMapLiteral` instead)
+    * `SetLiteral` and `SetLiteral2` (use `SetOrMapLiteral` instead)
+    * `ListLiteral2` (use `ListLiteral` instead)
+  * Deprecated `ForStatement2` (use `ForStatement` instead)
+  * Removed the following visit methods:
+    * `visitForEachStatement` (override `visitForStatement` instead)
+    * `visitMapLiteral` and `visitMapLiteral2` (override `visitSetOrMapLiteral`
+      instead)
+    * `visitSetLiteral` and `visitSetLiteral2` (override `visitSetOrMapLiteral`
+      instead)
+    * `visitListLiteral2` (override `visitListLiteral` instead)
+  * Deprecated the `visitForStatement2` visit method (use `VisitForStatement`
+    instead)
+  * Removed the following AstFactory methods:
+    * `mapLiteral` and `mapLiteral2` (use `setOrMapLiteral` instead)
+    * `setLiteral` and `setLiteral2` (use `setOrMapLiteral` instead)
+    * `listLiteral2` (use `listLiteral` instead)
+  * Deprecated `AstFactory.forStatement2`, and introduced
+    `AstFactory.forStatement` to replace it
+  * Changed the type of the getter `ListLiteral.elements` to
+    `NodeList<CollectionElement>`
+  * Deprecated `ListLiteral.elements2` (use `ListLiteral.elements` instead)
+  * Deprecated `SetOrMapLiteral.elements2`, and introduced
+    `SetOrMapLiteral.elements` to replace it
+  * Deprecated `NodeLintRegistry.addForStatement2` (use
+    `NodeLintRegistry.addForStatement` instead)
+* Bug fixes: #36158, #36212, #36255
+
 ## 0.35.4
 * Deprecated AST structures that will no longer be used after the
   control_flow_collections and spread_collections experiments are enabled.  The

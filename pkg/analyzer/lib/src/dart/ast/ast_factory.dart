@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -461,25 +461,33 @@ class AstFactoryImpl extends AstFactory {
           initialization, leftSeparator, condition, rightSeparator, updaters);
 
   @override
-  ForStatement2 forStatement2(
+  ForStatement forStatement(
       {Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,
       ForLoopParts forLoopParts,
       Token rightParenthesis,
       Statement body}) {
-    if (forLoopParts is ForEachParts) {
-      // ignore: deprecated_member_use_from_same_package
-      return ForEachStatementImpl.withParts(awaitKeyword, forKeyword,
-          leftParenthesis, forLoopParts, rightParenthesis, body);
-    } else if (forLoopParts is ForParts) {
-      // ignore: deprecated_member_use_from_same_package
-      return ForStatementImpl.withParts(awaitKeyword, forKeyword,
-          leftParenthesis, forLoopParts, rightParenthesis, body);
-    } else {
-      throw new StateError('Unrecognized for loop parts');
-    }
+    return ForStatementImpl(awaitKeyword, forKeyword, leftParenthesis,
+        forLoopParts, rightParenthesis, body);
   }
+
+  @override
+  @Deprecated('Replaced by forStatement')
+  ForStatement forStatement2(
+          {Token awaitKeyword,
+          Token forKeyword,
+          Token leftParenthesis,
+          ForLoopParts forLoopParts,
+          Token rightParenthesis,
+          Statement body}) =>
+      forStatement(
+          awaitKeyword: awaitKeyword,
+          forKeyword: forKeyword,
+          leftParenthesis: leftParenthesis,
+          forLoopParts: forLoopParts,
+          rightParenthesis: rightParenthesis,
+          body: body);
 
   @override
   FunctionDeclaration functionDeclaration(
@@ -693,39 +701,6 @@ class AstFactoryImpl extends AstFactory {
         constKeyword, typeArguments, leftBracket, elements, rightBracket);
   }
 
-  @Deprecated('Use listLiteral')
-  @override
-  ListLiteral2 listLiteral2(
-          {Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<CollectionElement> elements,
-          Token rightBracket}) =>
-      new ListLiteral2Impl(
-          constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  @Deprecated('Use setOrMapLiteral')
-  MapLiteral mapLiteral(
-          Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<MapLiteralEntry> entries,
-          Token rightBracket) =>
-      new MapLiteralImpl(
-          constKeyword, typeArguments, leftBracket, entries, rightBracket);
-
-  @deprecated
-  @override
-  MapLiteral2 mapLiteral2(
-      {Token constKeyword,
-      TypeArgumentList typeArguments,
-      Token leftBracket,
-      List<CollectionElement> entries,
-      Token rightBracket}) {
-    throw new UnsupportedError('Not supported');
-  }
-
   @override
   MapLiteralEntry mapLiteralEntry(
           Expression key, Token separator, Expression value) =>
@@ -876,24 +851,6 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ScriptTag scriptTag(Token scriptTag) => new ScriptTagImpl(scriptTag);
-
-  @override
-  @Deprecated('Use setOrMapLiteral')
-  SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
-          Token leftBracket, List<Expression> elements, Token rightBracket) =>
-      new SetLiteralImpl(
-          constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @deprecated
-  @override
-  SetLiteral2 setLiteral2(
-      {Token constKeyword,
-      TypeArgumentList typeArguments,
-      Token leftBracket,
-      List<CollectionElement> elements,
-      Token rightBracket}) {
-    throw new UnsupportedError('Not supported');
-  }
 
   @override
   SetOrMapLiteral setOrMapLiteral(

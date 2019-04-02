@@ -1,8 +1,21 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-[@vm.bytecode=
+Bytecode (version: stable)
+Main library: #lib
+
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function 'test1', static, reflectable, debuggable
+    parameters [dart:core::bool 'condition'] (required: 1)
+    return-type void
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -23,10 +36,13 @@ ConstantPool {
   [0] = DirectCall 'dart:core::_AssertionError::_throwNew', ArgDesc num-args 3, num-type-args 0, names []
   [1] = Reserved
 }
-]static method test1(core::bool condition) → void {
-  assert(condition);
-}
-[@vm.bytecode=
+
+
+Function 'test2', static, reflectable, debuggable
+    parameters [FunctionType () -> dart:core::bool 'condition', FunctionType () -> dart:core::String 'message'] (required: 2)
+    return-type void
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -52,10 +68,13 @@ ConstantPool {
   [3] = DirectCall 'dart:core::_AssertionError::_throwNew', ArgDesc num-args 3, num-type-args 0, names []
   [4] = Reserved
 }
-]static method test2(() → core::bool condition, () → core::String message) → void {
-  assert([@vm.call-site-attributes.metadata=receiverType:() → dart.core::bool] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() → dart.core::String] message.call());
-}
-[@vm.bytecode=
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -64,4 +83,17 @@ Bytecode {
 }
 ConstantPool {
 }
-]static method main() → dynamic {}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method test1(dart.core::bool condition) → void {
+    assert(condition);
+  }
+  static method test2(() → dart.core::bool condition, () → dart.core::String message) → void {
+    assert([@vm.call-site-attributes.metadata=receiverType:() → dart.core::bool] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() → dart.core::String] message.call());
+  }
+  static method main() → dynamic {}
+}

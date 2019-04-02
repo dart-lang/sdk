@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -918,6 +919,10 @@ class ConstantEvaluationEngine {
       // fixed.
       return true;
     }
+    // TODO(scheglov ) Switch to using this, but not now, dartbug.com/33441
+    if (typeSystem.isSubtypeOf(objType, type)) {
+      return true;
+    }
     return objType.isSubtypeOf(type);
   }
 
@@ -1213,8 +1218,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return conditionResult;
       }
       if (conditionResult.toBoolValue() == true) {
+        _reportNotPotentialConstants(node.elseExpression);
         return node.thenExpression.accept(this);
       } else if (conditionResult.toBoolValue() == false) {
+        _reportNotPotentialConstants(node.thenExpression);
         return node.elseExpression.accept(this);
       }
       // We used to return an object with a known type and an unknown value, but
@@ -1319,7 +1326,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     bool errorOccurred = false;
     List<DartObjectImpl> list = [];
-    for (CollectionElement element in node.elements2) {
+    for (CollectionElement element in node.elements) {
       errorOccurred = errorOccurred | _addElementsToList(list, element);
     }
     if (errorOccurred) {
@@ -1448,7 +1455,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
       bool errorOccurred = false;
       Map<DartObjectImpl, DartObjectImpl> map = {};
-      for (CollectionElement element in node.elements2) {
+      for (CollectionElement element in node.elements) {
         errorOccurred = errorOccurred | _addElementsToMap(map, element);
       }
       if (errorOccurred) {
@@ -1475,7 +1482,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
       bool errorOccurred = false;
       Set<DartObjectImpl> set = new Set<DartObjectImpl>();
-      for (CollectionElement element in node.elements2) {
+      for (CollectionElement element in node.elements) {
         errorOccurred = errorOccurred | _addElementsToSet(set, element);
       }
       if (errorOccurred) {
@@ -1755,6 +1762,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return false;
     }
     return identifier.name == 'length';
+  }
+
+  void _reportNotPotentialConstants(AstNode node) {
+    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    if (notPotentiallyConstants.isEmpty) return;
+
+    for (var notConst in notPotentiallyConstants) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_CONSTANT,
+        notConst,
+      );
+    }
   }
 
   /**

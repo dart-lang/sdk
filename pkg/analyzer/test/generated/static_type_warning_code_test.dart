@@ -18,9 +18,6 @@ main() {
 
 @reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_assert_message_suppresses_type_promotion() async {
     // If a variable is assigned to inside the expression for an assert
     // message, type promotion should be suppressed, just as it would be if the
@@ -1297,23 +1294,25 @@ main(A<V> p) {
   if (p is B) {
     p.b;
   }
-}''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+}
+''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  @failingTest
   test_undefinedEnumConstant() async {
-    // We need a way to set the parseEnum flag in the parser to true.
+    // We should be reporting UNDEFINED_ENUM_CONSTANT here.
     await assertErrorsInCode(r'''
 enum E { ONE }
 E e() {
   return E.TWO;
-}''', [StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT]);
+}
+''', [StaticTypeWarningCode.UNDEFINED_GETTER], verify: false);
   }
 
   test_undefinedGetter() async {
     await assertErrorsInUnverifiedCode(r'''
 class T {}
-f(T e) { return e.m; }''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+f(T e) { return e.m; }
+''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedGetter_generic_function_call() async {
@@ -1719,9 +1718,6 @@ Stream<int> f() sync* {
 
 @reflectiveTest
 class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();

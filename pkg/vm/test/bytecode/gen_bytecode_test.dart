@@ -28,13 +28,17 @@ runTestCase(Uri source) async {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 
+  final mainLibrary = component.mainMethod.enclosingLibrary;
+
   await runWithFrontEndCompilerContext(source, options, component, () {
     // Need to omit source positions from bytecode as they are different on
     // Linux and Windows (due to differences in newline characters).
-    generateBytecode(component, omitAssertSourcePositions: true);
+    generateBytecode(component,
+        omitAssertSourcePositions: true, libraries: [mainLibrary]);
   });
 
-  String actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  component.libraries.removeWhere((lib) => lib != mainLibrary);
+  String actual = kernelComponentToString(component);
 
   // Remove absolute library URIs.
   actual = actual.replaceAll(new Uri.file(pkgVmDir).toString(), '#pkg/vm');

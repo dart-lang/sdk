@@ -308,7 +308,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _reporter.internalError(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    });
+    }, dryRun: true);
   }
 
   /// Callback for applying the use of a [member].
@@ -387,6 +387,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
+      case TypeUseKind.CONST_INSTANTIATION:
         _registerInstantiatedType(type, globalDependency: false);
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:

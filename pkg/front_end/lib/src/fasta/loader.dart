@@ -170,6 +170,10 @@ abstract class Loader<L> {
   void ensureCoreLibrary() {
     if (coreLibrary == null) {
       read(Uri.parse("dart:core"), 0, accessor: first);
+      // TODO(askesc): When all backends support set literals, we no longer
+      // need to index dart:collection, as it is only needed for desugaring of
+      // const sets. We can remove it from this list at that time.
+      read(Uri.parse("dart:collection"), 0, accessor: first);
       assert(coreLibrary != null);
     }
   }
@@ -275,8 +279,6 @@ fileUri: ${contextMessage.uri}
     target.context.report(
         message.withLocation(fileUri, charOffset, length), severity,
         context: context);
-    recordMessage(severity, message, charOffset, length, fileUri,
-        context: context);
     if (severity == Severity.error) {
       (wasHandled ? handledErrors : unhandledErrors)
           .add(message.withLocation(fileUri, charOffset, length));
@@ -300,10 +302,6 @@ fileUri: ${contextMessage.uri}
   }
 
   Declaration getNativeAnnotation() => target.getNativeAnnotation(this);
-
-  void recordMessage(Severity severity, Message message, int charOffset,
-      int length, Uri fileUri,
-      {List<LocatedMessage> context}) {}
 
   ClassBuilder<TypeBuilder, Object> computeClassBuilderFromTargetClass(
       covariant Object cls);

@@ -267,27 +267,21 @@ abstract class AbstractSourceLocation extends SourceLocation {
   AbstractSourceLocation.fromOther(AbstractSourceLocation location)
       : this.fromLocation(location._location);
 
-  /// The absolute URI of the source file of this source location.
   @override
   Uri get sourceUri => _sourceFile.uri;
 
-  /// The character offset of the this source location into the source file.
   @override
   int get offset;
 
-  /// The 1-based line number of the [offset].
   @override
   int get line => (_location ??= _sourceFile.getLocation(offset)).line;
 
-  /// The 1-based column number of the [offset] with its line.
   @override
   int get column => (_location ??= _sourceFile.getLocation(offset)).column;
 
-  /// The name associated with this source location, if any.
   @override
   String get sourceName;
 
-  /// `true` if the offset within the length of the source file.
   @override
   bool get isValid => offset < _sourceFile.length;
 

@@ -25,7 +25,8 @@ const _defaultTestSelectors = const [
   'analyze_library',
   'service',
   'kernel',
-  'observatory_ui'
+  'observatory_ui',
+  'ffi'
 ];
 
 /// Specifies a single command line option.
@@ -150,7 +151,6 @@ simdbc, simdbc64''',
 test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
-    new _Option.bool('checked', 'Run tests in checked mode.'),
     new _Option.bool('strong', 'Deprecated, no-op.', hide: true),
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
     // matrix.
@@ -690,7 +690,6 @@ compiler.''',
                     useSdk: data["use_sdk"] as bool,
                     useHotReload: data["hot_reload"] as bool,
                     useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                    isChecked: data["checked"] as bool,
                     isHostChecked: data["host_checked"] as bool,
                     isCsp: data["csp"] as bool,
                     isMinified: data["minified"] as bool,
@@ -754,11 +753,6 @@ compiler.''',
           }
         }
       }
-    }
-
-    if (result.length > 1 && data["named_configuration"] != null) {
-      _fail("Named configuration cannot be used with multiple values for "
-          "arch, compiler, mode, or runtime");
     }
     return result;
   }

@@ -16,8 +16,8 @@ runEnvironmentProcess(
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
-  Process
-      .run(dartExecutable, [printEnv, name],
+  Process.run(dartExecutable,
+          []..addAll(Platform.executableArguments)..addAll([printEnv, name]),
           environment: environment, includeParentEnvironment: includeParent)
       .then((result) {
     if (result.exitCode != 0) {

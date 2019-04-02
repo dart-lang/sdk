@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 import 'closure.dart';
 import 'scope.dart';
@@ -13,6 +14,8 @@ import 'scope.dart';
 /// variable is being used at any point in the code.
 class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     with VariableCollectorMixin {
+  final ir.ConstantEvaluator _constantEvaluator;
+
   final ClosureScopeModel _model = new ClosureScopeModel();
 
   /// A map of each visited call node with the associated information about what
@@ -73,6 +76,8 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   /// type variable usage, such as type literals and is tests, and conditional
   /// type variable usage, such as type argument in method invocations.
   VariableUse _currentTypeUsage;
+
+  ScopeModelBuilder(this._constantEvaluator);
 
   ScopeModel computeModel(ir.Member node) {
     if (node.isAbstract && !node.isExternal) {
@@ -921,6 +926,13 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   }
 
   @override
+  InitializerComplexity visitBlockExpression(ir.BlockExpression node) {
+    visitNode(node.body);
+    visitNode(node.value);
+    return const InitializerComplexity.lazy();
+  }
+
+  @override
   InitializerComplexity visitCatch(ir.Catch node) {
     visitInContext(node.guard, VariableUse.explicit);
     visitNode(node.exception);
@@ -1064,6 +1076,9 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
 
   @override
   InitializerComplexity visitConstantExpression(ir.ConstantExpression node) {
+    if (node.constant is ir.UnevaluatedConstant) {
+      node.constant = _constantEvaluator.evaluate(node);
+    }
     return const InitializerComplexity.constant();
   }
 

@@ -16,7 +16,6 @@ void printRunning() {
   print("running");
 }
 
-var /*@topType=void*/ y = /*info:USE_OF_VOID_RESULT*/ /*@typeArgs=void*/ run(
-    printRunning);
+var y = /*info:USE_OF_VOID_RESULT*/ /*@typeArgs=void*/ run(printRunning);
 
 main() {}

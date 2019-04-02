@@ -136,15 +136,6 @@ super_test: RuntimeError
 type_alias_equality_test/03: RuntimeError # Issue 32783
 type_alias_equality_test/04: RuntimeError # Issue 32783
 type_error_test: RuntimeError
-type_promotion_functions_test/02: CompileTimeError
-type_promotion_functions_test/03: CompileTimeError
-type_promotion_functions_test/04: CompileTimeError
-type_promotion_functions_test/09: CompileTimeError
-type_promotion_functions_test/11: CompileTimeError
-type_promotion_functions_test/12: CompileTimeError
-type_promotion_functions_test/13: CompileTimeError
-type_promotion_functions_test/14: CompileTimeError
-type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
 vm/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
@@ -200,47 +191,24 @@ const_cast1_test/02: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 constructor5_test: CompileTimeError # Verification error
 constructor6_test: CompileTimeError # Verification error
-control_flow_collections/for_await_test: CompileTimeError
-control_flow_collections/for_inference_test: CompileTimeError
-control_flow_collections/for_test: CompileTimeError
-control_flow_collections/for_variable_test: CompileTimeError
-control_flow_collections/if_const_error_test/02: MissingCompileTimeError
-control_flow_collections/if_const_error_test/07: MissingCompileTimeError
-control_flow_collections/if_const_error_test/08: MissingCompileTimeError
-control_flow_collections/if_const_error_test/10: MissingCompileTimeError
-control_flow_collections/if_const_error_test/19: MissingCompileTimeError
-control_flow_collections/if_const_error_test/20: MissingCompileTimeError
+control_flow_collections/await_for_inference_test: CompileTimeError
+control_flow_collections/await_for_test: CompileTimeError
 control_flow_collections/if_const_error_test/21: MissingCompileTimeError
 control_flow_collections/if_const_error_test/22: MissingCompileTimeError
-control_flow_collections/if_const_error_test/26: MissingCompileTimeError
-control_flow_collections/if_const_error_test/28: MissingCompileTimeError
-control_flow_collections/if_const_error_test/33: MissingCompileTimeError
-control_flow_collections/if_const_error_test/34: MissingCompileTimeError
-control_flow_collections/if_const_error_test/38: MissingCompileTimeError
-control_flow_collections/if_const_error_test/39: MissingCompileTimeError
-control_flow_collections/if_const_test: CompileTimeError
-control_flow_collections/if_inference_test: CompileTimeError
-control_flow_collections/if_promotion_test/04: MissingCompileTimeError
-control_flow_collections/if_promotion_test/05: MissingCompileTimeError
-control_flow_collections/if_promotion_test/06: MissingCompileTimeError
-control_flow_collections/if_promotion_test/07: MissingCompileTimeError
-control_flow_collections/if_promotion_test/08: MissingCompileTimeError
-control_flow_collections/if_test: CompileTimeError
-control_flow_collections/map_set_ambiguity_test: CompileTimeError
-control_flow_collections/syntax_error_test/09: Crash
-control_flow_collections/syntax_error_test/10: Crash
-control_flow_collections/syntax_test: CompileTimeError
+control_flow_collections/if_const_error_test/23: MissingCompileTimeError
+control_flow_collections/if_const_error_test/24: MissingCompileTimeError
+control_flow_collections/if_const_error_test/35: MissingCompileTimeError
+control_flow_collections/if_const_error_test/36: MissingCompileTimeError
+control_flow_collections/if_const_error_test/37: MissingCompileTimeError
+control_flow_collections/if_promotion_test/none: CompileTimeError
 control_flow_collections/type_error_test/00: MissingCompileTimeError
 control_flow_collections/type_error_test/01: MissingCompileTimeError
 control_flow_collections/type_error_test/02: MissingCompileTimeError
-control_flow_collections/type_error_test/06: MissingCompileTimeError
-control_flow_collections/type_error_test/07: MissingCompileTimeError
-control_flow_collections/type_error_test/08: MissingCompileTimeError
-control_flow_collections/type_error_test/09: MissingCompileTimeError
 control_flow_collections/type_error_test/10: MissingCompileTimeError
-control_flow_collections/type_error_test/11: MissingCompileTimeError
-control_flow_collections/type_error_test/12: MissingCompileTimeError
 control_flow_collections/type_error_test/13: MissingCompileTimeError
+control_flow_collections/type_error_test/23: MissingCompileTimeError
+control_flow_collections/type_error_test/24: MissingCompileTimeError
+control_flow_collections/type_error_test/25: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e1: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e10: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e11: MissingCompileTimeError
@@ -262,20 +230,10 @@ implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
 mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
-spread_collections/await_test: Crash
-spread_collections/const_error_test/02: MissingCompileTimeError
-spread_collections/const_error_test/03: MissingCompileTimeError
-spread_collections/const_error_test/05: MissingCompileTimeError
-spread_collections/const_error_test/06: MissingCompileTimeError
-spread_collections/const_error_test/07: MissingCompileTimeError
-spread_collections/const_error_test/08: MissingCompileTimeError
-spread_collections/const_error_test/10: MissingCompileTimeError
-spread_collections/const_error_test/11: MissingCompileTimeError
 spread_collections/const_error_test/12: MissingCompileTimeError
 spread_collections/const_error_test/13: Crash
+spread_collections/const_error_test/13: MissingCompileTimeError
 spread_collections/const_error_test/14: MissingCompileTimeError
-spread_collections/const_error_test/15: MissingCompileTimeError
-spread_collections/const_error_test/16: MissingCompileTimeError
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
@@ -289,6 +247,12 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
+constants_2018/equals_test/01: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
+constants_2018/equals_test/02: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
+constants_2018/equals_test/03: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
+constants_2018/equals_test/04: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
+constants_2018/potential_const_dynamic_test/sh3: CompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
+constants_2018/potential_const_type_test/sh3: CompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -309,6 +273,7 @@ mixin_declaration/mixin_declaration_superinvocation_application_test/06: Missing
 mixin_declaration/mixin_declaration_superinvocation_application_test/07: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/08: MissingCompileTimeError
 mixin_method_override_test/G5: Crash # Issue 34354
+override_inheritance_field_test/42: MissingCompileTimeError
 regress_22976_test/*: CompileTimeError # Issue 31935
 set_literals/invalid_set_literal_test/08: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/09: MissingCompileTimeError # Requires constant evaluation
@@ -319,6 +284,156 @@ set_literals/invalid_set_literal_test/31: MissingCompileTimeError # Requires con
 set_literals/invalid_set_literal_test/32: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/33: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/34: MissingCompileTimeError # Requires constant evaluation
+superinterface_variance/abstract_class_error_test/01: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/02: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/04: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/05: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/06: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/07: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/08: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/10: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/11: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/12: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/13: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/14: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/16: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/17: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/18: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/19: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/20: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/22: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/23: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/24: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/26: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/27: Crash # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/29: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/30: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/31: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/32: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/34: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/35: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_class_error_test/36: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/01: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/02: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/04: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/05: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/06: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/07: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/08: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/10: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/11: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/12: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/13: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/14: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/16: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/17: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/18: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/19: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/20: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/22: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/23: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/24: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/25: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/26: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/28: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/29: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/30: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/31: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/32: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/34: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/35: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/abstract_mixin_application_error_test/36: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/01: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/02: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/04: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/05: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/06: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/07: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/08: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/10: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/11: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/12: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/13: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/14: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/16: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/17: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/18: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/19: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/20: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/22: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/23: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/24: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/26: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/27: Crash # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/29: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/30: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/31: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/32: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/34: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/35: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_class_error_test/36: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/01: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/02: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/04: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/05: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/06: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/07: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/08: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/10: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/11: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/12: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/13: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/14: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/16: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/17: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/18: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/19: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/20: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/22: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/23: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/24: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/25: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/26: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/28: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/29: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/30: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/31: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/32: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/34: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/35: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/concrete_mixin_application_error_test/36: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/covariance_test: CompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/01: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/02: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/04: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/05: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/06: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/13: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/14: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/16: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/17: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/18: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/19: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/20: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/22: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/23: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/24: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/27: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/31: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/32: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/34: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/35: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/36: MissingCompileTimeError # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/37: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/38: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/40: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/41: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/42: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/43: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/44: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/46: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/47: Crash # Issue dart-lang/language#113
+superinterface_variance/mixin_error_test/48: Crash # Issue dart-lang/language#113
 syntax_test/28: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/29: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/30: MissingCompileTimeError # Issue 29763 - low priority
@@ -467,8 +582,6 @@ spread_collections/type_error_test/00: DartkCrash
 spread_collections/type_error_test/02: DartkCrash
 spread_collections/type_error_test/03: DartkCrash
 spread_collections/type_error_test/05: DartkCrash
-spread_collections/type_error_test/06: DartkCrash
-spread_collections/type_error_test/09: DartkCrash
 vm/bool_check_stack_traces_test/02: Pass
 vm/causal_async_exception_stack2_test: RuntimeError # Please triage
 vm/causal_async_exception_stack_test: RuntimeError # Please triage
@@ -479,11 +592,6 @@ vm/symbols_test/03: MissingCompileTimeError
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 external_test/13: Crash
-type_promotion_functions_test/05: Pass
-type_promotion_functions_test/06: Pass
-type_promotion_functions_test/07: Pass
-type_promotion_functions_test/08: Pass
-type_promotion_functions_test/10: Pass
 vm/precompiled_static_initializer_test: Pass, Slow
 
 [ $compiler == dartkp && $mode == product && $runtime == dart_precompiled && $strong ]
@@ -655,9 +763,9 @@ function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
-generic_methods_recursive_bound_test/03: Crash, Pass
-generic_methods_recursive_bound_test/03: MissingRuntimeError
 generic_methods_recursive_bound_test/03: Pass
+generic_methods_recursive_bound_test/03: MissingRuntimeError
+generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
@@ -742,15 +850,6 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError # Issue 31537
-type_promotion_functions_test/03: CompileTimeError # Issue 31537
-type_promotion_functions_test/04: CompileTimeError # Issue 31537
-type_promotion_functions_test/09: CompileTimeError # Issue 31537
-type_promotion_functions_test/11: CompileTimeError # Issue 31537
-type_promotion_functions_test/12: CompileTimeError # Issue 31537
-type_promotion_functions_test/13: CompileTimeError # Issue 31537
-type_promotion_functions_test/14: CompileTimeError # Issue 31537
-type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/causal_async_exception_stack2_test: SkipByDesign
@@ -861,15 +960,6 @@ regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 try_catch_test/01: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError
-type_promotion_functions_test/03: CompileTimeError
-type_promotion_functions_test/04: CompileTimeError
-type_promotion_functions_test/09: CompileTimeError
-type_promotion_functions_test/11: CompileTimeError
-type_promotion_functions_test/12: CompileTimeError
-type_promotion_functions_test/13: CompileTimeError
-type_promotion_functions_test/14: CompileTimeError
-type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 
 [ $compiler == fasta && !$strong ]
@@ -1261,15 +1351,6 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test/01: MissingCompileTimeError
 super_test: Fail, OK
-type_promotion_functions_test/02: CompileTimeError # Issue 31537
-type_promotion_functions_test/03: CompileTimeError # Issue 31537
-type_promotion_functions_test/04: CompileTimeError # Issue 31537
-type_promotion_functions_test/09: CompileTimeError # Issue 31537
-type_promotion_functions_test/11: CompileTimeError # Issue 31537
-type_promotion_functions_test/12: CompileTimeError # Issue 31537
-type_promotion_functions_test/13: CompileTimeError # Issue 31537
-type_promotion_functions_test/14: CompileTimeError # Issue 31537
-type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
@@ -1996,12 +2077,6 @@ type_inference_accessor_ref_test/03: MissingCompileTimeError
 type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_promotion_functions_test/01: MissingCompileTimeError
-type_promotion_functions_test/05: MissingCompileTimeError
-type_promotion_functions_test/06: MissingCompileTimeError
-type_promotion_functions_test/07: MissingCompileTimeError
-type_promotion_functions_test/08: MissingCompileTimeError
-type_promotion_functions_test/10: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError

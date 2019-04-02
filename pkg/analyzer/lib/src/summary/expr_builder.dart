@@ -42,11 +42,11 @@ class ExprBuilder {
 
   // The stack of values. Note that they are usually [Expression]s, but may be
   // any [CollectionElement] to support map/set/list literals.
-  final List<CollectionElement> stack = <CollectionElement>[];
+  final List<AstNode> stack = <AstNode>[];
 
   final List<UnlinkedExecutable> localFunctions;
 
-  final Map<String, ParameterElement> parametersInScope;
+  final _VariablesInScope variablesInScope;
 
   ExprBuilder(
     this.resynthesizer,
@@ -54,10 +54,9 @@ class ExprBuilder {
     this._uc, {
     this.requireValidConst: true,
     this.localFunctions,
-    Map<String, ParameterElement> parametersInScope,
+    _VariablesInScope variablesInScope,
     this.becomeSetOrMap: true,
-  })  : this.parametersInScope =
-            parametersInScope ?? _parametersInScope(context),
+  })  : this.variablesInScope = variablesInScope ?? _parametersInScope(context),
         this.isSpreadOrControlFlowEnabled = _isSpreadOrControlFlowEnabled(
             (resynthesizer.library.context.analysisOptions
                     as AnalysisOptionsImpl)
@@ -69,6 +68,7 @@ class ExprBuilder {
     if (requireValidConst && !_uc.isValidConst) {
       return null;
     }
+    int startingVariableCount = variablesInScope.count;
     for (UnlinkedExprOperation operation in _uc.operations) {
       switch (operation) {
         case UnlinkedExprOperation.pushNull:
@@ -145,6 +145,9 @@ class ExprBuilder {
           break;
         case UnlinkedExprOperation.bitShiftRight:
           _pushBinary(TokenType.GT_GT);
+          break;
+        case UnlinkedExprOperation.bitShiftRightLogical:
+          _pushBinary(TokenType.GT_GT_GT);
           break;
         case UnlinkedExprOperation.add:
           _pushBinary(TokenType.PLUS);
@@ -260,7 +263,7 @@ class ExprBuilder {
         case UnlinkedExprOperation.pushParameter:
           String name = _uc.strings[stringPtr++];
           SimpleIdentifier identifier = AstTestFactory.identifier3(name);
-          identifier.staticElement = parametersInScope[name];
+          identifier.staticElement = variablesInScope[name];
           _push(identifier);
           break;
         case UnlinkedExprOperation.ifNull:
@@ -329,6 +332,45 @@ class ExprBuilder {
         case UnlinkedExprOperation.ifElseElement:
           _pushIfElement(true);
           break;
+        case UnlinkedExprOperation.forParts:
+          _pushForParts();
+          break;
+        case UnlinkedExprOperation.forElement:
+          _pushForElement(false);
+          break;
+        case UnlinkedExprOperation.forElementWithAwait:
+          _pushForElement(true);
+          break;
+        case UnlinkedExprOperation.pushEmptyExpression:
+          _push(null);
+          break;
+        case UnlinkedExprOperation.variableDeclarationStart:
+          _variableDeclarationStart();
+          break;
+        case UnlinkedExprOperation.variableDeclaration:
+          _variableDeclaration();
+          break;
+        case UnlinkedExprOperation.forInitializerDeclarationsUntyped:
+          _forInitializerDeclarations(false);
+          break;
+        case UnlinkedExprOperation.forInitializerDeclarationsTyped:
+          _forInitializerDeclarations(true);
+          break;
+        case UnlinkedExprOperation.assignToParameter:
+          String name = _uc.strings[stringPtr++];
+          SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+          identifier.staticElement = variablesInScope[name];
+          _push(_createAssignment(identifier));
+          break;
+        case UnlinkedExprOperation.forEachPartsWithIdentifier:
+          _forEachPartsWithIdentifier();
+          break;
+        case UnlinkedExprOperation.forEachPartsWithUntypedDeclaration:
+          _forEachPartsWithDeclaration(false);
+          break;
+        case UnlinkedExprOperation.forEachPartsWithTypedDeclaration:
+          _forEachPartsWithDeclaration(true);
+          break;
         case UnlinkedExprOperation.cascadeSectionBegin:
         case UnlinkedExprOperation.cascadeSectionEnd:
         case UnlinkedExprOperation.pushLocalFunctionReference:
@@ -339,6 +381,7 @@ class ExprBuilder {
               'Unexpected $operation in a constant expression.');
       }
     }
+    assert(startingVariableCount == variablesInScope.count);
     return stack.single;
   }
 
@@ -588,6 +631,39 @@ class ExprBuilder {
     return _buildIdentifierSequence(info);
   }
 
+  void _forEachPartsWithDeclaration(bool hasType) {
+    var iterable = _pop();
+    var name = _uc.strings[stringPtr++];
+    var element = LocalVariableElementImpl(name, -1);
+    var keyword = hasType ? null : Keyword.VAR;
+    var type = hasType ? _newTypeName() : null;
+    var loopVariable = AstTestFactory.declaredIdentifier2(keyword, type, name);
+    loopVariable.identifier.staticElement = element;
+    if (hasType) {
+      element.type = type.type;
+    }
+    _pushNode(
+        AstTestFactory.forEachPartsWithDeclaration(loopVariable, iterable));
+    variablesInScope.push(element);
+  }
+
+  void _forEachPartsWithIdentifier() {
+    var iterable = _pop();
+    SimpleIdentifier identifier = _pop();
+    _pushNode(AstTestFactory.forEachPartsWithIdentifier(identifier, iterable));
+  }
+
+  void _forInitializerDeclarations(bool hasType) {
+    var count = _uc.ints[intPtr++];
+    var variables = List<VariableDeclaration>.filled(count, null);
+    for (int i = 0; i < count; i++) {
+      variables[count - 1 - i] = _popNode();
+    }
+    var type = hasType ? _newTypeName() : null;
+    var keyword = hasType ? null : Keyword.VAR;
+    _pushNode(AstTestFactory.variableDeclarationList(keyword, type, variables));
+  }
+
   PropertyAccessorElement _getStringLengthElement() =>
       resynthesizer.typeProvider.stringType.getGetter('length');
 
@@ -629,9 +705,12 @@ class ExprBuilder {
 
   Expression _pop() => stack.removeLast() as Expression;
 
-  CollectionElement _popCollectionElement() => stack.removeLast();
+  CollectionElement _popCollectionElement() =>
+      stack.removeLast() as CollectionElement;
 
-  void _push(CollectionElement expr) {
+  AstNode _popNode() => stack.removeLast();
+
+  void _push(Expression expr) {
     stack.add(expr);
   }
 
@@ -656,11 +735,43 @@ class ExprBuilder {
     _push(AstTestFactory.propertyAccess(target, propertyNode));
   }
 
+  void _pushForElement(bool hasAwait) {
+    var body = _popCollectionElement();
+    var forLoopParts = _popNode() as ForLoopParts;
+    if (forLoopParts is ForPartsWithDeclarations) {
+      variablesInScope.pop(forLoopParts.variables.variables.length);
+    } else if (forLoopParts is ForEachPartsWithDeclaration) {
+      variablesInScope.pop(1);
+    }
+    _pushCollectionElement(
+        AstTestFactory.forElement(forLoopParts, body, hasAwait: hasAwait));
+  }
+
+  void _pushForParts() {
+    var updaterCount = _uc.ints[intPtr++];
+    var updaters = <Expression>[];
+    for (int i = 0; i < updaterCount; i++) {
+      updaters.insert(0, _pop());
+    }
+    Expression condition = _pop();
+    AstNode initialization = _popNode();
+    if (initialization is Expression || initialization == null) {
+      _pushNode(AstTestFactory.forPartsWithExpression(
+          initialization, condition, updaters));
+    } else if (initialization is VariableDeclarationList) {
+      _pushNode(AstTestFactory.forPartsWithDeclarations(
+          initialization, condition, updaters));
+    } else {
+      throw StateError('Unrecognized for parts');
+    }
+  }
+
   void _pushIfElement(bool hasElse) {
     CollectionElement elseElement = hasElse ? _popCollectionElement() : null;
     CollectionElement thenElement = _popCollectionElement();
     Expression condition = _pop();
-    _push(AstTestFactory.ifElement(condition, thenElement, elseElement));
+    _pushCollectionElement(
+        AstTestFactory.ifElement(condition, thenElement, elseElement));
   }
 
   void _pushInstanceCreation() {
@@ -794,12 +905,10 @@ class ExprBuilder {
     assert(popCount == 0);
     int functionIndex = _uc.ints[intPtr++];
     var localFunction = localFunctions[functionIndex];
-    var parametersInScope =
-        new Map<String, ParameterElement>.from(this.parametersInScope);
     var functionElement =
         new FunctionElementImpl.forSerialized(localFunction, context);
     for (ParameterElementImpl parameter in functionElement.parameters) {
-      parametersInScope[parameter.name] = parameter;
+      variablesInScope.push(parameter);
       if (parameter.unlinkedParam.type == null) {
         // Store a type of `dynamic` for the parameter; this prevents
         // resynthesis from trying to read a type out of the summary (which
@@ -823,12 +932,13 @@ class ExprBuilder {
       var bodyExpr = new ExprBuilder(
               resynthesizer, functionElement, localFunction.bodyExpr,
               requireValidConst: requireValidConst,
-              parametersInScope: parametersInScope,
+              variablesInScope: variablesInScope,
               localFunctions: localFunction.localFunctions)
           .build();
       functionBody = astFactory.expressionFunctionBody(asyncKeyword,
           TokenFactory.tokenFromType(TokenType.FUNCTION), bodyExpr, null);
     }
+    variablesInScope.pop(functionElement.parameters.length);
     FunctionExpressionImpl functionExpression = astFactory.functionExpression(
         null, AstTestFactory.formalParameterList(parameters), functionBody);
     functionExpression.declaredElement = functionElement;
@@ -851,21 +961,21 @@ class ExprBuilder {
         : typeArguments.arguments[1].type;
     var staticType =
         resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
-    if (isSpreadOrControlFlowEnabled) {
-      _push(
-          AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries)
-            ..staticType = staticType);
-    } else {
-      // ignore: deprecated_member_use_from_same_package
-      _push(AstTestFactory.mapLiteral(Keyword.CONST, typeArguments, entries)
-        ..staticType = staticType);
-    }
+    SetOrMapLiteralImpl literal =
+        AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries);
+    literal.becomeMap();
+    literal.staticType = staticType;
+    _push(literal);
   }
 
   void _pushMapLiteralEntry() {
     Expression value = _pop();
     Expression key = _pop();
     _pushCollectionElement(AstTestFactory.mapLiteralEntry2(key, value));
+  }
+
+  void _pushNode(AstNode node) {
+    stack.add(node);
   }
 
   void _pushPrefix(TokenType operator) {
@@ -883,8 +993,10 @@ class ExprBuilder {
     for (int i = 0; i < count; i++) {
       elements.insert(0, _pop());
     }
-    // ignore: deprecated_member_use_from_same_package
-    _push(AstTestFactory.setLiteral(Keyword.CONST, typeArguments, elements));
+    SetOrMapLiteralImpl literal =
+        AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, elements);
+    literal.becomeSet();
+    _push(literal);
   }
 
   void _pushSetOrMap(TypeArgumentList typeArguments) {
@@ -938,7 +1050,7 @@ class ExprBuilder {
 
   void _pushSpread(TokenType operator) {
     Expression operand = _pop();
-    _push(AstTestFactory.spreadElement(operator, operand));
+    _pushCollectionElement(AstTestFactory.spreadElement(operator, operand));
   }
 
   List<Expression> _removeTopExpressions(int count) {
@@ -949,20 +1061,69 @@ class ExprBuilder {
     return items;
   }
 
+  void _variableDeclaration() {
+    var index = _uc.ints[intPtr++];
+    var element = variablesInScope.recent(index);
+    var initializer = _pop();
+    var variableDeclaration =
+        AstTestFactory.variableDeclaration2(element.name, initializer);
+    variableDeclaration.name.staticElement = element;
+    _pushNode(variableDeclaration);
+  }
+
+  void _variableDeclarationStart() {
+    var name = _uc.strings[stringPtr++];
+    variablesInScope.push(LocalVariableElementImpl(name, -1));
+  }
+
   /// Figures out the default value of [parametersInScope] based on [context].
   ///
   /// If [context] is (or contains) a constructor, then its parameters are used.
   /// Otherwise, no parameters are considered to be in scope.
-  static Map<String, ParameterElement> _parametersInScope(Element context) {
-    var result = <String, ParameterElement>{};
+  static _VariablesInScope _parametersInScope(Element context) {
+    var result = _VariablesInScope();
     for (Element e = context; e != null; e = e.enclosingElement) {
       if (e is ConstructorElement) {
         for (var parameter in e.parameters) {
-          result[parameter.name] = parameter;
+          result.push(parameter);
         }
         return result;
       }
     }
     return result;
   }
+}
+
+/// Tracks the set of variables that are in scope while resynthesizing an
+/// expression from a summary.
+class _VariablesInScope {
+  final _variableElements = <VariableElement>[];
+
+  /// Returns the number of variables that have been pushed but not popped.
+  int get count => _variableElements.length;
+
+  /// Looks up the variable with the given [name].  Returns `null` if no
+  /// variable is found.
+  VariableElement operator [](String name) {
+    for (int i = _variableElements.length - 1; i >= 0; i--) {
+      if (_variableElements[i].name == name) return _variableElements[i];
+    }
+    return null;
+  }
+
+  /// Un-does the effect of the last [count] calls to `push`.
+  void pop(int count) {
+    _variableElements.length -= count;
+  }
+
+  /// Stores a new declaration based on the given [variableElement].  The
+  /// declaration shadows any previous declaration with the same name.
+  void push(VariableElement variableElement) {
+    _variableElements.add(variableElement);
+  }
+
+  /// Retrieves the [index]th most recently pushed element (that hasn't been
+  /// popped).  [index] counts from zero.
+  VariableElement recent(int index) =>
+      _variableElements[_variableElements.length - 1 - index];
 }

@@ -217,6 +217,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
   Fragment Box(Representation from);
 
+  // Sign- or zero-extends an integer parameter or return value for an FFI call
+  // as necessary.
+  Fragment FfiUnboxedExtend(Representation representation,
+                            const AbstractType& ffi_type);
+
   // Pops an 'ffi.Pointer' off the stack.
   // If it's null, pushes 0.
   // Otherwise pushes the address (in boxed representation).

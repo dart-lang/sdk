@@ -1034,14 +1034,14 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : ThreadStackResource(thread) {
-  if (FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(false);
   }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-  if (FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(true);
   }
 }

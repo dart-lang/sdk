@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -838,6 +839,32 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     _listener.assertNoErrors();
   }
 
+  @failingTest
+  test_visitPostfixExpression_bang() async {
+    InterfaceType numType = _typeProvider.numType;
+    SimpleIdentifier operand = AstTestFactory.identifier3("i");
+    operand.staticType = numType;
+    PostfixExpression expression =
+        AstTestFactory.postfixExpression(operand, TokenType.BANG);
+    // TODO(danrubel): fails with Unsupported operation
+    _resolveNode(expression);
+    _listener.assertErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+
+  @failingTest
+  test_visitPostfixExpression_bang_NNBD() async {
+    // TODO(danrubel): enable NNBD
+    InterfaceType numType = _typeProvider.numType;
+    SimpleIdentifier operand = AstTestFactory.identifier3("i");
+    operand.staticType = numType;
+    PostfixExpression expression =
+        AstTestFactory.postfixExpression(operand, TokenType.BANG);
+    _resolveNode(expression);
+    // TODO(danrubel): fails with Unsupported operation
+    expect(expression.staticElement, getMethod(numType, "!"));
+    _listener.assertNoErrors();
+  }
+
   test_visitPrefixedIdentifier_dynamic() async {
     DartType dynamicType = _typeProvider.dynamicType;
     SimpleIdentifier target = AstTestFactory.identifier3("a");
@@ -1256,9 +1283,6 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
 
 @reflectiveTest
 class PreviewDart2Test extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();

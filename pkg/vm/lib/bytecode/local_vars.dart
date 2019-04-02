@@ -300,7 +300,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _enterFrame(node);
 
     if (node is Field) {
-      node.initializer.accept(this);
+      node.initializer?.accept(this);
     } else {
       assert(node is Procedure ||
           node is Constructor ||
@@ -959,7 +959,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     if (node is Field) {
       _allocateSpecialVariables();
-      node.initializer.accept(this);
+      node.initializer?.accept(this);
     } else {
       assert(node is Procedure ||
           node is Constructor ||

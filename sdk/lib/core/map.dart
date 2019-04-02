@@ -170,7 +170,7 @@ abstract class Map<K, V> {
    * then the returned map can be used as a `Map<K2, V2>`.
    */
   static Map<K2, V2> castFrom<K, V, K2, V2>(Map<K, V> source) =>
-      new CastMap<K, V, K2, V2>(source);
+      CastMap<K, V, K2, V2>(source);
 
   /**
    * Creates a new map and adds all entries.

@@ -85,9 +85,13 @@ AsciiControlCharacter:
 ConstEvalContext:
   template: "While analyzing:"
 
+ConstEvalDuplicateElement:
+  template: "The element '#constant' conflicts with another existing element in the set."
+  analyzerCode: EQUAL_ELEMENTS_IN_CONST_SET
+
 ConstEvalDuplicateKey:
   template: "The key '#constant' conflicts with another existing key in the map."
-  analyzerCode: EQUAL_KEYS_IN_MAP
+  analyzerCode: EQUAL_KEYS_IN_CONST_MAP
 
 ConstEvalNonConstantLiteral:
   template: "Can't have a non-constant #string literal within a const context."
@@ -109,6 +113,10 @@ ConstEvalNegativeShift:
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' within a const context."
   analyzerCode: UNDEFINED_OPERATOR
+
+ConstEvalInvalidPropertyGet:
+  template: "The property '#string' can't be accessed on '#constant' within a const context."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalInvalidStringInterpolationOperand:
   template: "The '#constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used."
@@ -149,6 +157,30 @@ ConstEvalFreeTypeParameter:
 ConstEvalCircularity:
   template: "Constant expression depends on itself."
   analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
+
+ConstEvalNullValue:
+  template: "Null value during constant evaluation."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
+ConstEvalNotListOrSetInSpread:
+  template: "Only lists and sets can be used in spreads in constant lists and sets."
+  analyzerCode: CONST_SPREAD_EXPECTED_LIST_OR_SET
+
+ConstEvalNotMapInSpread:
+  template: "Only maps can be used in spreads in constant maps."
+  analyzerCode: CONST_SPREAD_EXPECTED_MAP
+
+ConstEvalIterationInConstList:
+  template: "Iteration can't be used in a constant list."
+  analyzerCode: NON_CONSTANT_LIST_ELEMENT
+
+ConstEvalIterationInConstSet:
+  template: "Iteration can't be used in a constant set."
+  analyzerCode: NON_CONSTANT_SET_ELEMENT
+
+ConstEvalIterationInConstMap:
+  template: "Iteration can't be used in a constant map."
+  analyzerCode: NON_CONSTANT_MAP_ELEMENT
 
 NotConstantExpression:
   template: "#string is not a constant expression."
@@ -2444,6 +2476,16 @@ InvalidOperator:
   script:
     - "class C { void operator %=(x) {} }"
 
+NotBinaryOperator:
+  template: "'#lexeme' isn't a binary operator."
+  script: >
+    class C { operator~() { return null; } }
+
+    main() {
+      C c = new C();
+      print(c ~ 2);
+    }
+
 OperatorParameterMismatch0:
   template: "Operator '#name' shouldn't have any parameters."
 
@@ -2506,9 +2548,19 @@ SdkSpecificationNotFound:
   template: "SDK libraries specification not found: #uri."
   tip: "Normally, the specification is a file named 'libraries.json' in the Dart SDK install location."
 
+InvalidSuperInInitializer:
+  index: 95
+  template: "Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')"
+  analyzerCode: ParserErrorCode.INVALID_SUPER_IN_INITIALIZER
+
+InvalidThisInInitializer:
+  index: 96
+  template: "Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())"
+  analyzerCode: ParserErrorCode.INVALID_THIS_IN_INITIALIZER
+
 ThisAccessInFieldInitializer:
   template: "Can't access 'this' in a field initializer to read '#name'."
-  analyzerCode: THIS_ACCESS_FROM_INITIALIZER
+  analyzerCode: THIS_ACCESS_FROM_FIELD_INITIALIZER
 
 ThisOrSuperAccessInFieldInitializer:
   template: "Can't access '#string' in a field initializer."

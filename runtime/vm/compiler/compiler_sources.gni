@@ -100,6 +100,8 @@ compiler_sources = [
   "frontend/bytecode_flow_graph_builder.h",
   "frontend/bytecode_reader.cc",
   "frontend/bytecode_reader.h",
+  "frontend/bytecode_scope_builder.cc",
+  "frontend/bytecode_scope_builder.h",
   "frontend/constant_evaluator.cc",
   "frontend/constant_evaluator.h",
   "frontend/flow_graph_builder.cc",
@@ -155,6 +157,7 @@ compiler_sources_tests = [
   "backend/locations_helpers_test.cc",
   "backend/loops_test.cc",
   "backend/range_analysis_test.cc",
+  "backend/redundancy_elimination_test.cc",
   "backend/slot_test.cc",
   "cha_test.cc",
 ]

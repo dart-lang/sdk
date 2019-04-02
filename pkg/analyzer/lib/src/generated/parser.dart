@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -262,6 +262,14 @@ class Parser {
     if (value) {
       throw new UnimplementedError(
           'spread_collections experiment not supported by analyzer parser');
+    }
+  }
+
+  /// Enables or disables parsing of the triple shift operators.
+  void set enableTripleShift(bool value) {
+    if (value) {
+      throw new UnimplementedError('triple_shift experiment'
+          ' not supported by analyzer parser');
     }
   }
 
@@ -2962,7 +2970,7 @@ class Parser {
                 inKeyword: inKeyword,
                 iterable: iterator);
           }
-          return astFactory.forStatement2(
+          return astFactory.forStatement(
               forKeyword: forKeyword,
               leftParenthesis: leftParenthesis,
               forLoopParts: forLoopParts,
@@ -3002,7 +3010,7 @@ class Parser {
       }
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
-      return astFactory.forStatement2(
+      return astFactory.forStatement(
           forKeyword: forKeyword,
           leftParenthesis: leftParenthesis,
           forLoopParts: forLoopParts,
@@ -3679,9 +3687,11 @@ class Parser {
       Token modifier, TypeArgumentList typeArguments) {
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-      // ignore: deprecated_member_use_from_same_package
-      return astFactory.mapLiteral(
-          modifier, typeArguments, leftBracket, null, getAndAdvance());
+      return astFactory.setOrMapLiteral(
+          constKeyword: modifier,
+          typeArguments: typeArguments,
+          leftBracket: leftBracket,
+          rightBracket: getAndAdvance());
     }
     bool wasInInitializer = _inInitializer;
     _inInitializer = false;
@@ -3689,16 +3699,22 @@ class Parser {
       List<MapLiteralEntry> entries = <MapLiteralEntry>[parseMapLiteralEntry()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-          // ignore: deprecated_member_use_from_same_package
-          return astFactory.mapLiteral(
-              modifier, typeArguments, leftBracket, entries, getAndAdvance());
+          return astFactory.setOrMapLiteral(
+              constKeyword: modifier,
+              typeArguments: typeArguments,
+              leftBracket: leftBracket,
+              elements: entries,
+              rightBracket: getAndAdvance());
         }
         entries.add(parseMapLiteralEntry());
       }
       Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-      // ignore: deprecated_member_use_from_same_package
-      return astFactory.mapLiteral(
-          modifier, typeArguments, leftBracket, entries, rightBracket);
+      return astFactory.setOrMapLiteral(
+          constKeyword: modifier,
+          typeArguments: typeArguments,
+          leftBracket: leftBracket,
+          elements: entries,
+          rightBracket: rightBracket);
     } finally {
       _inInitializer = wasInInitializer;
     }
@@ -4032,7 +4048,7 @@ class Parser {
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
       Token awaitToken = _currentToken;
       Statement statement = parseForStatement();
-      if (!(statement is ForStatement2 && statement.forLoopParts is ForParts)) {
+      if (!(statement is ForStatement && statement.forLoopParts is ForParts)) {
         _reportErrorForToken(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken);
       }

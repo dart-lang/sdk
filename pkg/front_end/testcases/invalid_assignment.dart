@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error*/
-
 class A {
   String operator +(int i) => '';
 }
 
 test(int i, String s, A a) {
   i = 1;
-  i = /*@error=InvalidAssignment*/ s;
+  i = s;
   i ??= 1;
-  i ??= /*@error=InvalidAssignment*/ s;
+  i ??= s;
   a = new A();
-  a /*@error=InvalidAssignment*/ += 1;
+  a += 1;
 }
 
 main() {}

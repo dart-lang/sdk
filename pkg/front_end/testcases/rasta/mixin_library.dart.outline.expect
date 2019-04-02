@@ -6,12 +6,12 @@ class Mixin<T extends core::Object = dynamic> extends core::Object {
   field dynamic x;
   field dynamic y;
   field dynamic z;
-  field self::Mixin::T t;
+  generic-covariant-impl field self::Mixin::T t;
   synthetic constructor •() → self::Mixin<self::Mixin::T>
     ;
   method foo() → dynamic
     ;
-  method g(self::Mixin::T a) → self::Mixin::T
+  method g(generic-covariant-impl self::Mixin::T a) → self::Mixin::T
     ;
   method h() → dynamic
     ;

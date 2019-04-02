@@ -2353,9 +2353,8 @@ SwitchDispatch:
   {
     BYTECODE(StoreIndexedFloat32, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
-    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
-    const uint32_t value32 = value;
-    *reinterpret_cast<uint32_t*>(data) = value32;
+    const float value = *reinterpret_cast<float*>(&FP[rC]);
+    *reinterpret_cast<float*>(data) = value;
     DISPATCH();
   }
 
@@ -2365,10 +2364,8 @@ SwitchDispatch:
     RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
-    const uint32_t value32 = value;
-    reinterpret_cast<uint32_t*>(array->ptr()->data())[Smi::Value(index)] =
-        value32;
+    const float value = *reinterpret_cast<float*>(&FP[rC]);
+    reinterpret_cast<float*>(array->ptr()->data())[Smi::Value(index)] = value;
     DISPATCH();
   }
 
@@ -2700,6 +2697,17 @@ SwitchDispatch:
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
         thread);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreUntagged, A_B_C);
+    const uint16_t offset_in_words = rB;
+    const uint16_t value_reg = rC;
+
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
+    word value = reinterpret_cast<word>(FP[value_reg]);
+    reinterpret_cast<word*>(instance->ptr())[offset_in_words] = value;
     DISPATCH();
   }
 
@@ -3699,11 +3707,38 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreIndexedExternalUint8, A_B_C);
+    BYTECODE(StoreIndexedUntaggedUint8, A_B_C);
     uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawSmi* value = RAW_CAST(Smi, FP[rC]);
     array[Smi::Value(index)] = Smi::Value(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUntaggedUint32, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const uint32_t value = *reinterpret_cast<uint32_t*>(&FP[rC]);
+    *reinterpret_cast<uint32_t*>(array + Smi::Value(index)) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUntaggedFloat32, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const float value = *reinterpret_cast<float*>(&FP[rC]);
+    *reinterpret_cast<float*>(array + Smi::Value(index)) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUntaggedFloat64, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const double value = *reinterpret_cast<double*>(&FP[rC]);
+    *reinterpret_cast<double*>(array + Smi::Value(index)) = value;
     DISPATCH();
   }
 
@@ -3837,7 +3872,7 @@ SwitchDispatch:
     BYTECODE(LoadIndexedUint32, A_B_C);
     const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
     const uint32_t value = *reinterpret_cast<const uint32_t*>(data);
-    FP[rA] = reinterpret_cast<RawObject*>(value);
+    *reinterpret_cast<uint32_t*>(&FP[rA]) = value;
     DISPATCH();
   }
 
@@ -3845,23 +3880,60 @@ SwitchDispatch:
     BYTECODE(LoadIndexedInt32, A_B_C);
     const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
     const int32_t value = *reinterpret_cast<const int32_t*>(data);
-    FP[rA] = reinterpret_cast<RawObject*>(value);
+    *reinterpret_cast<int32_t*>(&FP[rA]) = value;
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadIndexedExternalUint8, A_B_C);
+    BYTECODE(LoadIndexedUntaggedInt8, A_B_C);
     uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data + Smi::Value(index)));
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadIndexedExternalInt8, A_B_C);
-    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
+    BYTECODE(LoadIndexedUntaggedUint8, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    FP[rA] = Smi::New(*reinterpret_cast<uint8_t*>(data + Smi::Value(index)));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedInt32, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const int32_t value = *reinterpret_cast<int32_t*>(data + Smi::Value(index));
+    *reinterpret_cast<int32_t*>(&FP[rA]) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedUint32, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const uint32_t value =
+        *reinterpret_cast<uint32_t*>(data + Smi::Value(index));
+    *reinterpret_cast<uint32_t*>(&FP[rA]) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedFloat32, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const float value = *reinterpret_cast<float*>(data + Smi::Value(index));
+    *reinterpret_cast<float*>(&FP[rA]) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedFloat64, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const double value = *reinterpret_cast<double*>(data + Smi::Value(index));
+    *reinterpret_cast<double*>(&FP[rA]) = value;
     DISPATCH();
   }
 

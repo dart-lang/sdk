@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -41,13 +41,15 @@ CompilationUnit parseText(
   experimentStatus ??= ExperimentStatus();
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
-      new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
+      new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
+        ..enableGtGtGt = experimentStatus.constant_update_2018;
   Token token = scanner.tokenize();
   Parser parser = new Parser(
       NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
     ..enableNonNullable = experimentStatus.non_nullable
     ..enableSpreadCollections = experimentStatus.spread_collections
-    ..enableControlFlowCollections = experimentStatus.control_flow_collections;
+    ..enableControlFlowCollections = experimentStatus.control_flow_collections
+    ..enableTripleShift = experimentStatus.triple_shift;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;

@@ -687,7 +687,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitForStatement2(ForStatement2 node) {
+  void visitForStatement(ForStatement node) {
     var entity = this.entity;
     var entity2 = entity; // Work around limitations of type promotion
     if (entity2 is SyntacticEntity &&

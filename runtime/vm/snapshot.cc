@@ -220,6 +220,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       type_arguments_(TypeArguments::Handle(zone_)),
       tokens_(GrowableObjectArray::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
+      typed_data_base_(TypedDataBase::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
       typed_data_view_(TypedDataView::Handle(zone_)),
       function_(Function::Handle(zone_)),
@@ -1025,7 +1026,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Now check if it is an object from the VM isolate. These objects are shared
   // by all isolates.
-  if (rawobj->IsReadOnly() && HandleVMIsolateObject(rawobj)) {
+  if (rawobj->InVMIsolateHeap() && HandleVMIsolateObject(rawobj)) {
     return true;
   }
 

@@ -1,10 +1,21 @@
-library #lib;
-import self as self;
-import "./hello.dart" as hel;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-import "#pkg/vm/testcases/bytecode/hello.dart" deferred as lib;
+Bytecode (version: stable)
+Main library: #lib
 
-[@vm.bytecode=
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function 'callDeferred', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                1
   CheckStack           0
@@ -20,9 +31,13 @@ ConstantPool {
   [2] = DirectCall '#pkg/vm/testcases/bytecode/hello.dart::main', ArgDesc num-args 0, num-type-args 0, names []
   [3] = Reserved
 }
-]static method callDeferred() → dynamic
-  return let final dynamic #t1 = CheckLibraryIsLoaded(lib) in hel::main();
-[@vm.bytecode=
+
+
+Function 'testLoadLibrary', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -34,9 +49,13 @@ ConstantPool {
   [0] = DirectCall 'dart:async::Future::value (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
 }
-]static method testLoadLibrary() → dynamic
-  return LoadLibrary(lib);
-[@vm.bytecode=
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -45,4 +64,17 @@ Bytecode {
 }
 ConstantPool {
 }
-]static method main() → dynamic {}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  import "#pkg/vm/testcases/bytecode/hello.dart" deferred as lib;
+
+  static method callDeferred() → dynamic
+    return let final dynamic #t1 = CheckLibraryIsLoaded(lib) in #lib1::main();
+  static method testLoadLibrary() → dynamic
+    return LoadLibrary(lib);
+  static method main() → dynamic {}
+}

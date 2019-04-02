@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Instantiation,
         InterfaceType,
+        InvalidType,
         InvocationExpression,
         Let,
         ListLiteral,
@@ -677,21 +678,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
       // Error: not assignable.  Perform error recovery.
       var parent = expression.parent;
-      var errorNode = helper.wrapInProblem(
-          new AsExpression(
-              expression,
-              // TODO(ahe): The outline phase doesn't correctly remove invalid
-              // uses of type variables, for example, on static members. Once
-              // that has been fixed, we should always be able to use
-              // [expectedType] directly here.
-              hasAnyTypeVariables(expectedType)
-                  ? const BottomType()
-                  : expectedType)
-            ..isTypeError = true
-            ..fileOffset = expression.fileOffset,
-          (template ?? templateInvalidAssignment)
-              .withArguments(actualType, expectedType),
-          noLength);
+      Expression errorNode = new AsExpression(
+          expression,
+          // TODO(ahe): The outline phase doesn't correctly remove invalid
+          // uses of type variables, for example, on static members. Once
+          // that has been fixed, we should always be able to use
+          // [expectedType] directly here.
+          hasAnyTypeVariables(expectedType) ? const BottomType() : expectedType)
+        ..isTypeError = true
+        ..fileOffset = expression.fileOffset;
+      if (expectedType is! InvalidType && actualType is! InvalidType) {
+        errorNode = helper.wrapInProblem(
+            errorNode,
+            (template ?? templateInvalidAssignment)
+                .withArguments(actualType, expectedType),
+            noLength);
+      }
       parent?.replaceChild(expression, errorNode);
       return errorNode;
     } else {
@@ -759,6 +761,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (!isTopLevel &&
         interfaceMember == null &&
         receiverType is! DynamicType &&
+        receiverType is! InvalidType &&
         !(receiverType == coreTypes.functionClass.rawType &&
             name.name == 'call') &&
         errorTemplate != null) {

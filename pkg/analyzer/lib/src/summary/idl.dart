@@ -367,6 +367,7 @@ abstract class AvailableDeclaration extends base.SummaryClass {
 enum AvailableDeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
   FUNCTION,
@@ -382,6 +383,10 @@ enum AvailableDeclarationKind {
 abstract class AvailableFile extends base.SummaryClass {
   factory AvailableFile.fromBuffer(List<int> buffer) =>
       generated.readAvailableFile(buffer);
+
+  /// The Dartdoc directives in the file.
+  @Id(5)
+  DirectiveInfo get directiveInfo;
 
   /// Declarations of the file.
   @Id(0)
@@ -435,6 +440,17 @@ abstract class CodeRange extends base.SummaryClass {
   /// Offset of the element code relative to the beginning of the file.
   @Id(0)
   int get offset;
+}
+
+/// Information about the Dartdoc directives in an [AvailableFile].
+abstract class DirectiveInfo extends base.SummaryClass {
+  /// The names of the defined templates.
+  @Id(0)
+  List<String> get templateNames;
+
+  /// The values of the defined templates.
+  @Id(1)
+  List<String> get templateValues;
 }
 
 /// Summary information about a reference to an entity such as a type, top level
@@ -990,6 +1006,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(27, variant: LinkedNodeKind.classDeclaration)
   bool get classDeclaration_isDartObject;
 
+  @VariantId(8, variant: LinkedNodeKind.classDeclaration)
+  LinkedNode get classDeclaration_nativeClause;
+
   @VariantId(7, variant: LinkedNodeKind.classDeclaration)
   LinkedNode get classDeclaration_withClause;
 
@@ -1040,6 +1059,44 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(8, variant: LinkedNodeKind.classTypeAlias)
   LinkedNode get classTypeAlias_withClause;
+
+  @VariantId(34, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.defaultFormalParameter,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  int get codeLength;
+
+  @VariantId(33, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.defaultFormalParameter,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  int get codeOffset;
 
   @VariantId(19, variantList: [
     LinkedNodeKind.hideCombinator,
@@ -1194,7 +1251,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.defaultFormalParameter)
   int get defaultFormalParameter_separator;
 
-  @VariantId(17, variantList: [
+  @VariantId(18, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
     LinkedNodeKind.libraryDirective,
@@ -1202,6 +1259,15 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.partOfDirective,
   ])
   int get directive_keyword;
+
+  @VariantId(33, variantList: [
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.importDirective,
+    LinkedNodeKind.libraryDirective,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.partOfDirective,
+  ])
+  int get directive_semicolon;
 
   @VariantId(6, variant: LinkedNodeKind.doStatement)
   LinkedNode get doStatement_body;
@@ -1465,7 +1531,10 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionDeclaration)
   LinkedNode get functionDeclaration_returnType;
 
-  @VariantId(24, variant: LinkedNodeKind.functionDeclaration)
+  @VariantId(24, variantList: [
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionExpression,
+  ])
   LinkedNodeType get functionDeclaration_returnType2;
 
   @VariantId(6, variant: LinkedNodeKind.functionDeclarationStatement)
@@ -1501,6 +1570,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_returnType;
 
+  @VariantId(24, variant: LinkedNodeKind.functionTypedFormalParameter)
+  LinkedNodeType get functionTypedFormalParameter_type2;
+
   @VariantId(8, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_typeParameters;
 
@@ -1518,6 +1590,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(24, variant: LinkedNodeKind.genericFunctionType)
   LinkedNodeType get genericFunctionType_returnType2;
+
+  @VariantId(25, variant: LinkedNodeKind.genericFunctionType)
+  LinkedNodeType get genericFunctionType_type;
 
   @VariantId(6, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_typeParameters;
@@ -1597,10 +1672,13 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_index;
 
-  @VariantId(16, variant: LinkedNodeKind.indexExpression)
+  @VariantId(17, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_leftBracket;
 
-  @VariantId(17, variant: LinkedNodeKind.indexExpression)
+  @VariantId(16, variant: LinkedNodeKind.indexExpression)
+  int get indexExpression_period;
+
+  @VariantId(18, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_rightBracket;
 
   @VariantId(7, variant: LinkedNodeKind.indexExpression)
@@ -1796,13 +1874,20 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   String get namespaceDirective_selectedUriContent;
 
-  @VariantId(18, variantList: [
-    LinkedNodeKind.exportDirective,
-    LinkedNodeKind.importDirective,
-    LinkedNodeKind.libraryDirective,
-    LinkedNodeKind.partDirective,
-  ])
-  int get namespaceDirective_semicolon;
+  @VariantId(6, variant: LinkedNodeKind.nativeClause)
+  LinkedNode get nativeClause_name;
+
+  @VariantId(15, variant: LinkedNodeKind.nativeClause)
+  int get nativeClause_nativeKeyword;
+
+  @VariantId(15, variant: LinkedNodeKind.nativeFunctionBody)
+  int get nativeFunctionBody_nativeKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.nativeFunctionBody)
+  int get nativeFunctionBody_semicolon;
+
+  @VariantId(6, variant: LinkedNodeKind.nativeFunctionBody)
+  LinkedNode get nativeFunctionBody_stringLiteral;
 
   @VariantId(14, variantList: [
     LinkedNodeKind.fieldFormalParameter,
@@ -1862,9 +1947,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(16, variant: LinkedNodeKind.partOfDirective)
   int get partOfDirective_ofKeyword;
-
-  @VariantId(15, variant: LinkedNodeKind.partOfDirective)
-  int get partOfDirective_semicolon;
 
   @VariantId(7, variant: LinkedNodeKind.partOfDirective)
   LinkedNode get partOfDirective_uri;
@@ -2338,6 +2420,8 @@ enum LinkedNodeKind {
   methodInvocation,
   mixinDeclaration,
   namedExpression,
+  nativeClause,
+  nativeFunctionBody,
   nullLiteral,
   onClause,
   parenthesizedExpression,
@@ -2412,9 +2496,8 @@ abstract class LinkedNodeReferences extends base.SummaryClass {
 
 /// Information about a Dart type.
 abstract class LinkedNodeType extends base.SummaryClass {
-  /// References to [LinkedNodeReferences].
   @Id(0)
-  List<int> get functionFormalParameters;
+  List<LinkedNodeTypeFormalParameter> get functionFormalParameters;
 
   @Id(1)
   LinkedNodeType get functionReturnType;
@@ -2422,6 +2505,12 @@ abstract class LinkedNodeType extends base.SummaryClass {
   /// References to [LinkedNodeReferences].
   @Id(2)
   List<int> get functionTypeParameters;
+
+  @Id(7)
+  int get genericTypeAliasReference;
+
+  @Id(8)
+  List<LinkedNodeType> get genericTypeAliasTypeArguments;
 
   /// Reference to a [LinkedNodeReferences].
   @Id(3)
@@ -2436,6 +2525,18 @@ abstract class LinkedNodeType extends base.SummaryClass {
   /// Reference to a [LinkedNodeReferences].
   @Id(6)
   int get typeParameterParameter;
+}
+
+/// Information about a formal parameter in a function type.
+abstract class LinkedNodeTypeFormalParameter extends base.SummaryClass {
+  @Id(0)
+  LinkedNodeFormalParameterKind get kind;
+
+  @Id(1)
+  String get name;
+
+  @Id(2)
+  LinkedNodeType get type;
 }
 
 /// Kinds of [LinkedNodeType]s.
@@ -2464,16 +2565,19 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
 /// Information about a top-level declaration, or a field declaration that
 /// contributes information to [LinkedNodeKind.variableDeclaration].
 abstract class LinkedNodeVariablesDeclaration extends base.SummaryClass {
-  @Id(3)
+  @Id(0)
   LinkedNode get comment;
 
-  @Id(0)
+  @Id(1)
   bool get isConst;
 
-  @Id(1)
+  @Id(2)
+  bool get isCovariant;
+
+  @Id(3)
   bool get isFinal;
 
-  @Id(2)
+  @Id(4)
   bool get isStatic;
 }
 
@@ -3887,6 +3991,75 @@ enum UnlinkedExprOperation {
   /// condition, with the two collection elements as its "then" and "else"
   /// clauses, respectively.
   ifElseElement,
+
+  /// Pop the top n+2 values from the stack, where n is obtained from
+  /// [UnlinkedExpr.ints].  The first two are the initialization and condition
+  /// of the for-loop; the remainder are the updaters.
+  forParts,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElement,
+
+  /// Push the empty expression (used for missing initializers and conditions in
+  /// `for` loops)
+  pushEmptyExpression,
+
+  /// Add a variable to the current scope whose name is obtained from
+  /// [UnlinkedExpr.strings].  This is separate from [variableDeclaration]
+  /// because the scope of the variable includes its own initializer.
+  variableDeclarationStart,
+
+  /// Pop the top value from the stack, and use it as the initializer for a
+  /// variable declaration; the variable being declared is obtained by looking
+  /// at the nth variable most recently added to the scope (where n counts from
+  /// zero and is obtained from [UnlinkedExpr.ints]).
+  variableDeclaration,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create an untyped for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].
+  forInitializerDeclarationsUntyped,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create a typed for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].  The
+  /// type is obtained from [UnlinkedExpr.references].
+  forInitializerDeclarationsTyped,
+
+  /// Pop from the stack `value` and get a string from [UnlinkedExpr.strings].
+  /// Use this string to look up a parameter.  Perform `parameter op= value`,
+  /// where `op` is the next assignment operator from
+  /// [UnlinkedExpr.assignmentOperators].  Push `value` back onto the stack.
+  ///
+  /// If the assignment operator is a prefix/postfix increment/decrement, then
+  /// `value` is not present in the stack, so it should not be popped and the
+  /// corresponding value of the parameter after/before update is pushed onto
+  /// the stack instead.
+  assignToParameter,
+
+  /// Pop from the stack an identifier and an expression, and create for-each
+  /// parts of the form `identifier in expression`.
+  forEachPartsWithIdentifier,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElementWithAwait,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `var name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings].
+  forEachPartsWithUntypedDeclaration,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `Type name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings], and `Type` is obtained from
+  /// [UnlinkedExpr.references].
+  forEachPartsWithTypedDeclaration,
+
+  /// Pop the top 2 values from the stack, compute `v1 >>> v2`, and push the
+  /// result back onto the stack.
+  bitShiftRightLogical,
 }
 
 /// Unlinked summary information about an import declaration.

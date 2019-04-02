@@ -10,6 +10,8 @@ import '../fasta_codes.dart' show Message, templateExperimentNotEnabled;
 
 import '../quote.dart' show UnescapeErrorListener;
 
+import '../scanner/error_token.dart' show ErrorToken;
+
 import 'assert.dart' show Assert;
 
 import 'formal_parameter_kind.dart' show FormalParameterKind;
@@ -1115,7 +1117,9 @@ class Listener implements UnescapeErrorListener {
 
   /// Called before parsing the `else` portion of an `if` control flow list,
   /// set, or map entry.
-  void handleElseControlFlow(Token elseToken) {}
+  void handleElseControlFlow(Token elseToken) {
+    logEvent("ElseControlFlow");
+  }
 
   /// Called after parsing an `if` control flow list, set, or map entry.
   /// Substructures:
@@ -1370,6 +1374,14 @@ class Listener implements UnescapeErrorListener {
   /// highlighted. The [startToken] and [endToken] can be the same token.
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {}
+
+  /// The parser encountered an [ErrorToken] representing an error
+  /// from the scanner but recovered from it. By default, the error is reported
+  /// by calling [handleRecoverableError] with the message associated
+  /// with the error [token].
+  void handleErrorToken(ErrorToken token) {
+    handleRecoverableError(token.assertionMessage, token, token);
+  }
 
   @override
   void handleUnescapeError(

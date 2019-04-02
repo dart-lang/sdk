@@ -8,7 +8,7 @@ import "dart:async";
 class B<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::T>
     ;
-  operator []=(core::Map<core::int, self::B::T> x, core::List<self::B::T> y) → void
+  operator []=(generic-covariant-impl core::Map<core::int, self::B::T> x, generic-covariant-impl core::List<self::B::T> y) → void
     ;
 }
 class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U>> {

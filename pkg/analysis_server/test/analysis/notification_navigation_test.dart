@@ -855,6 +855,14 @@ part "test_unit.dart";
     assertHasFileTarget(unitFile, 0, 0);
   }
 
+  test_string_part_invalidUri() async {
+    addTestFile('''
+part ":[invalid]";
+''');
+    await prepareNavigation();
+    assertNoRegionString('":[invalid]"');
+  }
+
   Future<void> test_string_part_unresolvedUri() async {
     addTestFile('''
 library lib;

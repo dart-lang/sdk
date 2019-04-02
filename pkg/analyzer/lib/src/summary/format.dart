@@ -1,9 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // This file has been automatically generated.  Please do not edit it manually.
-// To regenerate the file, use the script "pkg/analyzer/tool/generate_files".
+// To regenerate the file, use the SDK script
+// "pkg/analyzer/tool/summary/generate.dart $IDL_FILE_PATH",
+// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.
 
 library analyzer.src.summary.format;
 
@@ -2885,11 +2887,20 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
 class AvailableFileBuilder extends Object
     with _AvailableFileMixin
     implements idl.AvailableFile {
+  DirectiveInfoBuilder _directiveInfo;
   List<AvailableDeclarationBuilder> _declarations;
   List<AvailableFileExportBuilder> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
+
+  @override
+  DirectiveInfoBuilder get directiveInfo => _directiveInfo;
+
+  /// The Dartdoc directives in the file.
+  void set directiveInfo(DirectiveInfoBuilder value) {
+    this._directiveInfo = value;
+  }
 
   @override
   List<AvailableDeclarationBuilder> get declarations =>
@@ -2934,12 +2945,14 @@ class AvailableFileBuilder extends Object
   }
 
   AvailableFileBuilder(
-      {List<AvailableDeclarationBuilder> declarations,
+      {DirectiveInfoBuilder directiveInfo,
+      List<AvailableDeclarationBuilder> declarations,
       List<AvailableFileExportBuilder> exports,
       bool isLibrary,
       bool isLibraryDeprecated,
       List<String> parts})
-      : _declarations = declarations,
+      : _directiveInfo = directiveInfo,
+        _declarations = declarations,
         _exports = exports,
         _isLibrary = isLibrary,
         _isLibraryDeprecated = isLibraryDeprecated,
@@ -2949,6 +2962,7 @@ class AvailableFileBuilder extends Object
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+    _directiveInfo?.flushInformative();
     _declarations?.forEach((b) => b.flushInformative());
     _exports?.forEach((b) => b.flushInformative());
   }
@@ -2983,6 +2997,8 @@ class AvailableFileBuilder extends Object
         signature.addString(x);
       }
     }
+    signature.addBool(this._directiveInfo != null);
+    this._directiveInfo?.collectApiSignature(signature);
   }
 
   List<int> toBuffer() {
@@ -2991,9 +3007,13 @@ class AvailableFileBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_directiveInfo;
     fb.Offset offset_declarations;
     fb.Offset offset_exports;
     fb.Offset offset_parts;
+    if (_directiveInfo != null) {
+      offset_directiveInfo = _directiveInfo.finish(fbBuilder);
+    }
     if (!(_declarations == null || _declarations.isEmpty)) {
       offset_declarations = fbBuilder
           .writeList(_declarations.map((b) => b.finish(fbBuilder)).toList());
@@ -3007,6 +3027,9 @@ class AvailableFileBuilder extends Object
           .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
+    if (offset_directiveInfo != null) {
+      fbBuilder.addOffset(5, offset_directiveInfo);
+    }
     if (offset_declarations != null) {
       fbBuilder.addOffset(0, offset_declarations);
     }
@@ -3047,11 +3070,19 @@ class _AvailableFileImpl extends Object
 
   _AvailableFileImpl(this._bc, this._bcOffset);
 
+  idl.DirectiveInfo _directiveInfo;
   List<idl.AvailableDeclaration> _declarations;
   List<idl.AvailableFileExport> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
+
+  @override
+  idl.DirectiveInfo get directiveInfo {
+    _directiveInfo ??=
+        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 5, null);
+    return _directiveInfo;
+  }
 
   @override
   List<idl.AvailableDeclaration> get declarations {
@@ -3094,6 +3125,8 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (directiveInfo != null)
+      _result["directiveInfo"] = directiveInfo.toJson();
     if (declarations.isNotEmpty)
       _result["declarations"] =
           declarations.map((_value) => _value.toJson()).toList();
@@ -3108,6 +3141,7 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
 
   @override
   Map<String, Object> toMap() => {
+        "directiveInfo": directiveInfo,
         "declarations": declarations,
         "exports": exports,
         "isLibrary": isLibrary,
@@ -3476,6 +3510,135 @@ abstract class _CodeRangeMixin implements idl.CodeRange {
   Map<String, Object> toMap() => {
         "length": length,
         "offset": offset,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class DirectiveInfoBuilder extends Object
+    with _DirectiveInfoMixin
+    implements idl.DirectiveInfo {
+  List<String> _templateNames;
+  List<String> _templateValues;
+
+  @override
+  List<String> get templateNames => _templateNames ??= <String>[];
+
+  /// The names of the defined templates.
+  void set templateNames(List<String> value) {
+    this._templateNames = value;
+  }
+
+  @override
+  List<String> get templateValues => _templateValues ??= <String>[];
+
+  /// The values of the defined templates.
+  void set templateValues(List<String> value) {
+    this._templateValues = value;
+  }
+
+  DirectiveInfoBuilder(
+      {List<String> templateNames, List<String> templateValues})
+      : _templateNames = templateNames,
+        _templateValues = templateValues;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {}
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._templateNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._templateNames.length);
+      for (var x in this._templateNames) {
+        signature.addString(x);
+      }
+    }
+    if (this._templateValues == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._templateValues.length);
+      for (var x in this._templateValues) {
+        signature.addString(x);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_templateNames;
+    fb.Offset offset_templateValues;
+    if (!(_templateNames == null || _templateNames.isEmpty)) {
+      offset_templateNames = fbBuilder.writeList(
+          _templateNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_templateValues == null || _templateValues.isEmpty)) {
+      offset_templateValues = fbBuilder.writeList(
+          _templateValues.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_templateNames != null) {
+      fbBuilder.addOffset(0, offset_templateNames);
+    }
+    if (offset_templateValues != null) {
+      fbBuilder.addOffset(1, offset_templateValues);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _DirectiveInfoReader extends fb.TableReader<_DirectiveInfoImpl> {
+  const _DirectiveInfoReader();
+
+  @override
+  _DirectiveInfoImpl createObject(fb.BufferContext bc, int offset) =>
+      new _DirectiveInfoImpl(bc, offset);
+}
+
+class _DirectiveInfoImpl extends Object
+    with _DirectiveInfoMixin
+    implements idl.DirectiveInfo {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _DirectiveInfoImpl(this._bc, this._bcOffset);
+
+  List<String> _templateNames;
+  List<String> _templateValues;
+
+  @override
+  List<String> get templateNames {
+    _templateNames ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _templateNames;
+  }
+
+  @override
+  List<String> get templateValues {
+    _templateValues ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _templateValues;
+  }
+}
+
+abstract class _DirectiveInfoMixin implements idl.DirectiveInfo {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (templateNames.isNotEmpty) _result["templateNames"] = templateNames;
+    if (templateValues.isNotEmpty) _result["templateValues"] = templateValues;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "templateNames": templateNames,
+        "templateValues": templateValues,
       };
 
   @override
@@ -4556,6 +4719,8 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder _variantField_12;
   List<LinkedNodeBuilder> _variantField_5;
   LinkedNodeBuilder _variantField_13;
+  int _variantField_34;
+  int _variantField_33;
   List<int> _variantField_28;
   idl.LinkedNodeCommentType _variantField_29;
   List<LinkedNodeBuilder> _variantField_3;
@@ -5309,6 +5474,18 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeBuilder get nativeClause_name {
+    assert(kind == idl.LinkedNodeKind.nativeClause);
+    return _variantField_6;
+  }
+
+  @override
+  LinkedNodeBuilder get nativeFunctionBody_stringLiteral {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
+    return _variantField_6;
+  }
+
+  @override
   LinkedNodeBuilder get parenthesizedExpression_expression {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
     return _variantField_6;
@@ -5713,6 +5890,16 @@ class LinkedNodeBuilder extends Object
 
   void set namedExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.namedExpression);
+    _variantField_6 = value;
+  }
+
+  void set nativeClause_name(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.nativeClause);
+    _variantField_6 = value;
+  }
+
+  void set nativeFunctionBody_stringLiteral(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
     _variantField_6 = value;
   }
 
@@ -6161,6 +6348,18 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  int get nativeClause_nativeKeyword {
+    assert(kind == idl.LinkedNodeKind.nativeClause);
+    return _variantField_15 ??= 0;
+  }
+
+  @override
+  int get nativeFunctionBody_nativeKeyword {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
+    return _variantField_15 ??= 0;
+  }
+
+  @override
   int get nullLiteral_literal {
     assert(kind == idl.LinkedNodeKind.nullLiteral);
     return _variantField_15 ??= 0;
@@ -6175,12 +6374,6 @@ class LinkedNodeBuilder extends Object
   @override
   int get parenthesizedExpression_leftParenthesis {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
-    return _variantField_15 ??= 0;
-  }
-
-  @override
-  int get partOfDirective_semicolon {
-    assert(kind == idl.LinkedNodeKind.partOfDirective);
     return _variantField_15 ??= 0;
   }
 
@@ -6711,6 +6904,18 @@ class LinkedNodeBuilder extends Object
     _variantField_15 = value;
   }
 
+  void set nativeClause_nativeKeyword(int value) {
+    assert(kind == idl.LinkedNodeKind.nativeClause);
+    assert(value == null || value >= 0);
+    _variantField_15 = value;
+  }
+
+  void set nativeFunctionBody_nativeKeyword(int value) {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
+    assert(value == null || value >= 0);
+    _variantField_15 = value;
+  }
+
   void set nullLiteral_literal(int value) {
     assert(kind == idl.LinkedNodeKind.nullLiteral);
     assert(value == null || value >= 0);
@@ -6725,12 +6930,6 @@ class LinkedNodeBuilder extends Object
 
   void set parenthesizedExpression_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
-    assert(value == null || value >= 0);
-    _variantField_15 = value;
-  }
-
-  void set partOfDirective_semicolon(int value) {
-    assert(kind == idl.LinkedNodeKind.partOfDirective);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
@@ -7481,6 +7680,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeBuilder get classDeclaration_nativeClause {
+    assert(kind == idl.LinkedNodeKind.classDeclaration);
+    return _variantField_8;
+  }
+
+  @override
   LinkedNodeBuilder get classTypeAlias_withClause {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     return _variantField_8;
@@ -7565,6 +7770,11 @@ class LinkedNodeBuilder extends Object
 
   void set catchClause_exceptionType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
+    _variantField_8 = value;
+  }
+
+  void set classDeclaration_nativeClause(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.classDeclaration);
     _variantField_8 = value;
   }
 
@@ -7830,7 +8040,7 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get indexExpression_leftBracket {
+  int get indexExpression_period {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     return _variantField_16 ??= 0;
   }
@@ -7862,6 +8072,12 @@ class LinkedNodeBuilder extends Object
   @override
   int get methodDeclaration_modifierKeyword {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
+    return _variantField_16 ??= 0;
+  }
+
+  @override
+  int get nativeFunctionBody_semicolon {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
     return _variantField_16 ??= 0;
   }
 
@@ -8157,7 +8373,7 @@ class LinkedNodeBuilder extends Object
     _variantField_16 = value;
   }
 
-  void set indexExpression_leftBracket(int value) {
+  void set indexExpression_period(int value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
@@ -8189,6 +8405,12 @@ class LinkedNodeBuilder extends Object
 
   void set methodDeclaration_modifierKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
+    assert(value == null || value >= 0);
+    _variantField_16 = value;
+  }
+
+  void set nativeFunctionBody_semicolon(int value) {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
@@ -8327,16 +8549,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get directive_keyword {
-    assert(kind == idl.LinkedNodeKind.exportDirective ||
-        kind == idl.LinkedNodeKind.importDirective ||
-        kind == idl.LinkedNodeKind.libraryDirective ||
-        kind == idl.LinkedNodeKind.partDirective ||
-        kind == idl.LinkedNodeKind.partOfDirective);
-    return _variantField_17 ??= 0;
-  }
-
-  @override
   int get doStatement_doKeyword {
     assert(kind == idl.LinkedNodeKind.doStatement);
     return _variantField_17 ??= 0;
@@ -8387,7 +8599,7 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get indexExpression_rightBracket {
+  int get indexExpression_leftBracket {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     return _variantField_17 ??= 0;
   }
@@ -8464,16 +8676,6 @@ class LinkedNodeBuilder extends Object
     _variantField_17 = value;
   }
 
-  void set directive_keyword(int value) {
-    assert(kind == idl.LinkedNodeKind.exportDirective ||
-        kind == idl.LinkedNodeKind.importDirective ||
-        kind == idl.LinkedNodeKind.libraryDirective ||
-        kind == idl.LinkedNodeKind.partDirective ||
-        kind == idl.LinkedNodeKind.partOfDirective);
-    assert(value == null || value >= 0);
-    _variantField_17 = value;
-  }
-
   void set doStatement_doKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     assert(value == null || value >= 0);
@@ -8524,7 +8726,7 @@ class LinkedNodeBuilder extends Object
     _variantField_17 = value;
   }
 
-  void set indexExpression_rightBracket(int value) {
+  void set indexExpression_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     assert(value == null || value >= 0);
     _variantField_17 = value;
@@ -8604,6 +8806,16 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  int get directive_keyword {
+    assert(kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.importDirective ||
+        kind == idl.LinkedNodeKind.libraryDirective ||
+        kind == idl.LinkedNodeKind.partDirective ||
+        kind == idl.LinkedNodeKind.partOfDirective);
+    return _variantField_18 ??= 0;
+  }
+
+  @override
   int get doStatement_semicolon {
     assert(kind == idl.LinkedNodeKind.doStatement);
     return _variantField_18 ??= 0;
@@ -8623,17 +8835,14 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get methodDeclaration_propertyKeyword {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
+  int get indexExpression_rightBracket {
+    assert(kind == idl.LinkedNodeKind.indexExpression);
     return _variantField_18 ??= 0;
   }
 
   @override
-  int get namespaceDirective_semicolon {
-    assert(kind == idl.LinkedNodeKind.exportDirective ||
-        kind == idl.LinkedNodeKind.importDirective ||
-        kind == idl.LinkedNodeKind.libraryDirective ||
-        kind == idl.LinkedNodeKind.partDirective);
+  int get methodDeclaration_propertyKeyword {
+    assert(kind == idl.LinkedNodeKind.methodDeclaration);
     return _variantField_18 ??= 0;
   }
 
@@ -8688,6 +8897,16 @@ class LinkedNodeBuilder extends Object
     _variantField_18 = value;
   }
 
+  void set directive_keyword(int value) {
+    assert(kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.importDirective ||
+        kind == idl.LinkedNodeKind.libraryDirective ||
+        kind == idl.LinkedNodeKind.partDirective ||
+        kind == idl.LinkedNodeKind.partOfDirective);
+    assert(value == null || value >= 0);
+    _variantField_18 = value;
+  }
+
   void set doStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     assert(value == null || value >= 0);
@@ -8707,17 +8926,14 @@ class LinkedNodeBuilder extends Object
     _variantField_18 = value;
   }
 
-  void set methodDeclaration_propertyKeyword(int value) {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
+  void set indexExpression_rightBracket(int value) {
+    assert(kind == idl.LinkedNodeKind.indexExpression);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set namespaceDirective_semicolon(int value) {
-    assert(kind == idl.LinkedNodeKind.exportDirective ||
-        kind == idl.LinkedNodeKind.importDirective ||
-        kind == idl.LinkedNodeKind.libraryDirective ||
-        kind == idl.LinkedNodeKind.partDirective);
+  void set methodDeclaration_propertyKeyword(int value) {
+    assert(kind == idl.LinkedNodeKind.methodDeclaration);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
@@ -8926,13 +9142,20 @@ class LinkedNodeBuilder extends Object
 
   @override
   LinkedNodeTypeBuilder get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration);
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression);
     return _variantField_24;
   }
 
   @override
   LinkedNodeTypeBuilder get functionTypeAlias_returnType2 {
     assert(kind == idl.LinkedNodeKind.functionTypeAlias);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get functionTypedFormalParameter_type2 {
+    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
     return _variantField_24;
   }
 
@@ -8984,12 +9207,18 @@ class LinkedNodeBuilder extends Object
   }
 
   void set functionDeclaration_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration);
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression);
     _variantField_24 = value;
   }
 
   void set functionTypeAlias_returnType2(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypeAlias);
+    _variantField_24 = value;
+  }
+
+  void set functionTypedFormalParameter_type2(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
     _variantField_24 = value;
   }
 
@@ -9220,6 +9449,106 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  int get codeLength {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.mixinDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.typeParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    return _variantField_34 ??= 0;
+  }
+
+  void set codeLength(int value) {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.mixinDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.typeParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    assert(value == null || value >= 0);
+    _variantField_34 = value;
+  }
+
+  @override
+  int get codeOffset {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.mixinDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.typeParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    return _variantField_33 ??= 0;
+  }
+
+  @override
+  int get directive_semicolon {
+    assert(kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.importDirective ||
+        kind == idl.LinkedNodeKind.libraryDirective ||
+        kind == idl.LinkedNodeKind.partDirective ||
+        kind == idl.LinkedNodeKind.partOfDirective);
+    return _variantField_33 ??= 0;
+  }
+
+  void set codeOffset(int value) {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.mixinDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.typeParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    assert(value == null || value >= 0);
+    _variantField_33 = value;
+  }
+
+  void set directive_semicolon(int value) {
+    assert(kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.importDirective ||
+        kind == idl.LinkedNodeKind.libraryDirective ||
+        kind == idl.LinkedNodeKind.partDirective ||
+        kind == idl.LinkedNodeKind.partOfDirective);
+    assert(value == null || value >= 0);
+    _variantField_33 = value;
+  }
+
+  @override
   List<int> get comment_tokens {
     assert(kind == idl.LinkedNodeKind.comment);
     return _variantField_28 ??= <int>[];
@@ -9361,6 +9690,12 @@ class LinkedNodeBuilder extends Object
     return _variantField_25;
   }
 
+  @override
+  LinkedNodeTypeBuilder get genericFunctionType_type {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
+    return _variantField_25;
+  }
+
   void set expression_type(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.adjacentStrings ||
         kind == idl.LinkedNodeKind.assignmentExpression ||
@@ -9394,6 +9729,11 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.symbolLiteral ||
         kind == idl.LinkedNodeKind.thisExpression ||
         kind == idl.LinkedNodeKind.throwExpression);
+    _variantField_25 = value;
+  }
+
+  void set genericFunctionType_type(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_25 = value;
   }
 
@@ -9642,6 +9982,8 @@ class LinkedNodeBuilder extends Object
     int constructorDeclaration_period,
     int constructorDeclaration_separator,
     LinkedNodeBuilder constructorDeclaration_redirectedConstructor,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder constructorDeclaration_returnType,
   })  : _kind = idl.LinkedNodeKind.constructorDeclaration,
         _variantField_2 = constructorDeclaration_initializers,
@@ -9656,6 +9998,8 @@ class LinkedNodeBuilder extends Object
         _variantField_18 = constructorDeclaration_period,
         _variantField_19 = constructorDeclaration_separator,
         _variantField_9 = constructorDeclaration_redirectedConstructor,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_10 = constructorDeclaration_returnType;
 
   LinkedNodeBuilder.dottedName({
@@ -9670,6 +10014,8 @@ class LinkedNodeBuilder extends Object
     int enumDeclaration_enumKeyword,
     int enumDeclaration_leftBracket,
     int enumDeclaration_rightBracket,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.enumDeclaration,
         _variantField_2 = enumDeclaration_constants,
@@ -9678,6 +10024,8 @@ class LinkedNodeBuilder extends Object
         _variantField_15 = enumDeclaration_enumKeyword,
         _variantField_16 = enumDeclaration_leftBracket,
         _variantField_17 = enumDeclaration_rightBracket,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.formalParameterList({
@@ -9739,8 +10087,8 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
     int directive_keyword,
-    int namespaceDirective_semicolon,
     int uriBasedDirective_uriElement,
+    int directive_semicolon,
     List<LinkedNodeBuilder> namespaceDirective_configurations,
     LinkedNodeBuilder uriBasedDirective_uri,
     String namespaceDirective_selectedUriContent,
@@ -9749,9 +10097,9 @@ class LinkedNodeBuilder extends Object
         _variantField_2 = namespaceDirective_combinators,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
-        _variantField_17 = directive_keyword,
-        _variantField_18 = namespaceDirective_semicolon,
+        _variantField_18 = directive_keyword,
         _variantField_19 = uriBasedDirective_uriElement,
+        _variantField_33 = directive_semicolon,
         _variantField_3 = namespaceDirective_configurations,
         _variantField_14 = uriBasedDirective_uri,
         _variantField_23 = namespaceDirective_selectedUriContent,
@@ -9765,8 +10113,8 @@ class LinkedNodeBuilder extends Object
     int importDirective_asKeyword,
     int importDirective_deferredKeyword,
     int directive_keyword,
-    int namespaceDirective_semicolon,
     int uriBasedDirective_uriElement,
+    int directive_semicolon,
     List<LinkedNodeBuilder> namespaceDirective_configurations,
     LinkedNodeBuilder uriBasedDirective_uri,
     String namespaceDirective_selectedUriContent,
@@ -9778,9 +10126,9 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = importDirective_prefix,
         _variantField_15 = importDirective_asKeyword,
         _variantField_16 = importDirective_deferredKeyword,
-        _variantField_17 = directive_keyword,
-        _variantField_18 = namespaceDirective_semicolon,
+        _variantField_18 = directive_keyword,
         _variantField_19 = uriBasedDirective_uriElement,
+        _variantField_33 = directive_semicolon,
         _variantField_3 = namespaceDirective_configurations,
         _variantField_14 = uriBasedDirective_uri,
         _variantField_23 = namespaceDirective_selectedUriContent,
@@ -9900,6 +10248,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder classDeclaration_extendsClause,
     int classDeclaration_abstractKeyword,
     LinkedNodeBuilder classDeclaration_withClause,
+    LinkedNodeBuilder classDeclaration_nativeClause,
     int classDeclaration_classKeyword,
     int classOrMixinDeclaration_rightBracket,
     int classOrMixinDeclaration_leftBracket,
@@ -9907,6 +10256,8 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder classOrMixinDeclaration_implementsClause,
     List<LinkedNodeBuilder> classOrMixinDeclaration_members,
     LinkedNodeBuilder classOrMixinDeclaration_typeParameters,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.classDeclaration,
         _variantField_11 = annotatedNode_comment,
@@ -9914,6 +10265,7 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = classDeclaration_extendsClause,
         _variantField_15 = classDeclaration_abstractKeyword,
         _variantField_7 = classDeclaration_withClause,
+        _variantField_8 = classDeclaration_nativeClause,
         _variantField_16 = classDeclaration_classKeyword,
         _variantField_18 = classOrMixinDeclaration_rightBracket,
         _variantField_19 = classOrMixinDeclaration_leftBracket,
@@ -9921,6 +10273,8 @@ class LinkedNodeBuilder extends Object
         _variantField_12 = classOrMixinDeclaration_implementsClause,
         _variantField_5 = classOrMixinDeclaration_members,
         _variantField_13 = classOrMixinDeclaration_typeParameters,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.classTypeAlias({
@@ -9934,6 +10288,8 @@ class LinkedNodeBuilder extends Object
     int typeAlias_typedefKeyword,
     int typeAlias_semicolon,
     LinkedNodeBuilder classTypeAlias_implementsClause,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.classTypeAlias,
         _variantField_11 = annotatedNode_comment,
@@ -9946,6 +10302,8 @@ class LinkedNodeBuilder extends Object
         _variantField_18 = typeAlias_typedefKeyword,
         _variantField_19 = typeAlias_semicolon,
         _variantField_9 = classTypeAlias_implementsClause,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.declaredIdentifier({
@@ -9993,6 +10351,8 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionDeclaration_returnType,
     int functionDeclaration_propertyKeyword,
     LinkedNodeTypeBuilder functionDeclaration_returnType2,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.functionDeclaration,
         _variantField_11 = annotatedNode_comment,
@@ -10002,6 +10362,8 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = functionDeclaration_returnType,
         _variantField_16 = functionDeclaration_propertyKeyword,
         _variantField_24 = functionDeclaration_returnType2,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.functionTypeAlias({
@@ -10013,6 +10375,8 @@ class LinkedNodeBuilder extends Object
     int typeAlias_typedefKeyword,
     int typeAlias_semicolon,
     LinkedNodeTypeBuilder functionTypeAlias_returnType2,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
         _variantField_11 = annotatedNode_comment,
@@ -10023,6 +10387,8 @@ class LinkedNodeBuilder extends Object
         _variantField_18 = typeAlias_typedefKeyword,
         _variantField_19 = typeAlias_semicolon,
         _variantField_24 = functionTypeAlias_returnType2,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.genericTypeAlias({
@@ -10033,6 +10399,8 @@ class LinkedNodeBuilder extends Object
     int genericTypeAlias_equals,
     int typeAlias_typedefKeyword,
     int typeAlias_semicolon,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.genericTypeAlias,
         _variantField_11 = annotatedNode_comment,
@@ -10042,6 +10410,8 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = genericTypeAlias_equals,
         _variantField_18 = typeAlias_typedefKeyword,
         _variantField_19 = typeAlias_semicolon,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.libraryDirective({
@@ -10049,13 +10419,13 @@ class LinkedNodeBuilder extends Object
     List<LinkedNodeBuilder> annotatedNode_metadata,
     LinkedNodeBuilder libraryDirective_name,
     int directive_keyword,
-    int namespaceDirective_semicolon,
+    int directive_semicolon,
   })  : _kind = idl.LinkedNodeKind.libraryDirective,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = libraryDirective_name,
-        _variantField_17 = directive_keyword,
-        _variantField_18 = namespaceDirective_semicolon;
+        _variantField_18 = directive_keyword,
+        _variantField_33 = directive_semicolon;
 
   LinkedNodeBuilder.methodDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10070,6 +10440,8 @@ class LinkedNodeBuilder extends Object
     int methodDeclaration_actualProperty,
     LinkedNodeTypeBuilder methodDeclaration_returnType2,
     LinkedNodeBuilder methodDeclaration_typeParameters,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder methodDeclaration_name,
   })  : _kind = idl.LinkedNodeKind.methodDeclaration,
         _variantField_11 = annotatedNode_comment,
@@ -10084,6 +10456,8 @@ class LinkedNodeBuilder extends Object
         _variantField_19 = methodDeclaration_actualProperty,
         _variantField_24 = methodDeclaration_returnType2,
         _variantField_9 = methodDeclaration_typeParameters,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_10 = methodDeclaration_name;
 
   LinkedNodeBuilder.mixinDeclaration({
@@ -10096,6 +10470,8 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder classOrMixinDeclaration_implementsClause,
     List<LinkedNodeBuilder> classOrMixinDeclaration_members,
     LinkedNodeBuilder classOrMixinDeclaration_typeParameters,
+    int codeLength,
+    int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
   })  : _kind = idl.LinkedNodeKind.mixinDeclaration,
         _variantField_11 = annotatedNode_comment,
@@ -10107,23 +10483,25 @@ class LinkedNodeBuilder extends Object
         _variantField_12 = classOrMixinDeclaration_implementsClause,
         _variantField_5 = classOrMixinDeclaration_members,
         _variantField_13 = classOrMixinDeclaration_typeParameters,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name;
 
   LinkedNodeBuilder.partDirective({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
     int directive_keyword,
-    int namespaceDirective_semicolon,
     int uriBasedDirective_uriElement,
+    int directive_semicolon,
     LinkedNodeBuilder uriBasedDirective_uri,
     String namespaceDirective_selectedUriContent,
     String uriBasedDirective_uriContent,
   })  : _kind = idl.LinkedNodeKind.partDirective,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
-        _variantField_17 = directive_keyword,
-        _variantField_18 = namespaceDirective_semicolon,
+        _variantField_18 = directive_keyword,
         _variantField_19 = uriBasedDirective_uriElement,
+        _variantField_33 = directive_semicolon,
         _variantField_14 = uriBasedDirective_uri,
         _variantField_23 = namespaceDirective_selectedUriContent,
         _variantField_22 = uriBasedDirective_uriContent;
@@ -10132,19 +10510,19 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
     LinkedNodeBuilder partOfDirective_libraryName,
-    int partOfDirective_semicolon,
     LinkedNodeBuilder partOfDirective_uri,
     int partOfDirective_ofKeyword,
     int directive_keyword,
+    int directive_semicolon,
     String namespaceDirective_selectedUriContent,
   })  : _kind = idl.LinkedNodeKind.partOfDirective,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = partOfDirective_libraryName,
-        _variantField_15 = partOfDirective_semicolon,
         _variantField_7 = partOfDirective_uri,
         _variantField_16 = partOfDirective_ofKeyword,
-        _variantField_17 = directive_keyword,
+        _variantField_18 = directive_keyword,
+        _variantField_33 = directive_semicolon,
         _variantField_23 = namespaceDirective_selectedUriContent;
 
   LinkedNodeBuilder.topLevelVariableDeclaration({
@@ -10164,12 +10542,16 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder typeParameter_bound,
     int typeParameter_extendsKeyword,
     LinkedNodeBuilder typeParameter_name,
+    int codeLength,
+    int codeOffset,
   })  : _kind = idl.LinkedNodeKind.typeParameter,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = typeParameter_bound,
         _variantField_15 = typeParameter_extendsKeyword,
-        _variantField_7 = typeParameter_name;
+        _variantField_7 = typeParameter_name,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset;
 
   LinkedNodeBuilder.variableDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10178,6 +10560,8 @@ class LinkedNodeBuilder extends Object
     int variableDeclaration_equals,
     LinkedNodeBuilder variableDeclaration_name,
     LinkedNodeTypeBuilder variableDeclaration_type2,
+    int codeLength,
+    int codeOffset,
     LinkedNodeVariablesDeclarationBuilder variableDeclaration_declaration,
   })  : _kind = idl.LinkedNodeKind.variableDeclaration,
         _variantField_11 = annotatedNode_comment,
@@ -10186,6 +10570,8 @@ class LinkedNodeBuilder extends Object
         _variantField_15 = variableDeclaration_equals,
         _variantField_7 = variableDeclaration_name,
         _variantField_24 = variableDeclaration_type2,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_32 = variableDeclaration_declaration;
 
   LinkedNodeBuilder.fieldFormalParameter({
@@ -10200,6 +10586,8 @@ class LinkedNodeBuilder extends Object
     LinkedNodeTypeBuilder fieldFormalParameter_type2,
     bool normalFormalParameter_isCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
     idl.LinkedNodeFormalParameterKind formalParameter_kind,
     LinkedNodeBuilder normalFormalParameter_comment,
   })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
@@ -10214,6 +10602,8 @@ class LinkedNodeBuilder extends Object
         _variantField_24 = fieldFormalParameter_type2,
         _variantField_27 = normalFormalParameter_isCovariant,
         _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_26 = formalParameter_kind,
         _variantField_14 = normalFormalParameter_comment;
 
@@ -10223,8 +10613,11 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionTypedFormalParameter_returnType,
     LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
     int normalFormalParameter_covariantKeyword,
+    LinkedNodeTypeBuilder functionTypedFormalParameter_type2,
     bool normalFormalParameter_isCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
     idl.LinkedNodeFormalParameterKind formalParameter_kind,
     LinkedNodeBuilder normalFormalParameter_comment,
   })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
@@ -10233,8 +10626,11 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = functionTypedFormalParameter_returnType,
         _variantField_8 = functionTypedFormalParameter_typeParameters,
         _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_24 = functionTypedFormalParameter_type2,
         _variantField_27 = normalFormalParameter_isCovariant,
         _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_26 = formalParameter_kind,
         _variantField_14 = normalFormalParameter_comment;
 
@@ -10246,6 +10642,8 @@ class LinkedNodeBuilder extends Object
     LinkedNodeTypeBuilder simpleFormalParameter_type2,
     bool normalFormalParameter_isCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
     idl.LinkedNodeFormalParameterKind formalParameter_kind,
     LinkedNodeBuilder normalFormalParameter_comment,
   })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
@@ -10256,6 +10654,8 @@ class LinkedNodeBuilder extends Object
         _variantField_24 = simpleFormalParameter_type2,
         _variantField_27 = normalFormalParameter_isCovariant,
         _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_26 = formalParameter_kind,
         _variantField_14 = normalFormalParameter_comment;
 
@@ -10485,11 +10885,15 @@ class LinkedNodeBuilder extends Object
     int defaultFormalParameter_separator,
     LinkedNodeBuilder defaultFormalParameter_parameter,
     bool defaultFormalParameter_isNamed,
+    int codeLength,
+    int codeOffset,
   })  : _kind = idl.LinkedNodeKind.defaultFormalParameter,
         _variantField_6 = defaultFormalParameter_defaultValue,
         _variantField_15 = defaultFormalParameter_separator,
         _variantField_7 = defaultFormalParameter_parameter,
-        _variantField_27 = defaultFormalParameter_isNamed;
+        _variantField_27 = defaultFormalParameter_isNamed,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset;
 
   LinkedNodeBuilder.doStatement({
     LinkedNodeBuilder doStatement_body,
@@ -10616,10 +11020,12 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionExpression_body,
     LinkedNodeBuilder functionExpression_formalParameters,
     LinkedNodeBuilder functionExpression_typeParameters,
+    LinkedNodeTypeBuilder functionDeclaration_returnType2,
   })  : _kind = idl.LinkedNodeKind.functionExpression,
         _variantField_6 = functionExpression_body,
         _variantField_7 = functionExpression_formalParameters,
-        _variantField_8 = functionExpression_typeParameters;
+        _variantField_8 = functionExpression_typeParameters,
+        _variantField_24 = functionDeclaration_returnType2;
 
   LinkedNodeBuilder.functionExpressionInvocation({
     LinkedNodeBuilder functionExpressionInvocation_function,
@@ -10641,13 +11047,15 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder genericFunctionType_formalParameters,
     int genericFunctionType_question,
     LinkedNodeTypeBuilder genericFunctionType_returnType2,
+    LinkedNodeTypeBuilder genericFunctionType_type,
   })  : _kind = idl.LinkedNodeKind.genericFunctionType,
         _variantField_6 = genericFunctionType_typeParameters,
         _variantField_15 = genericFunctionType_functionKeyword,
         _variantField_7 = genericFunctionType_returnType,
         _variantField_8 = genericFunctionType_formalParameters,
         _variantField_16 = genericFunctionType_question,
-        _variantField_24 = genericFunctionType_returnType2;
+        _variantField_24 = genericFunctionType_returnType2,
+        _variantField_25 = genericFunctionType_type;
 
   LinkedNodeBuilder.ifElement({
     LinkedNodeBuilder ifMixin_condition,
@@ -10687,6 +11095,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder indexExpression_index,
     int indexExpression_element,
     LinkedNodeBuilder indexExpression_target,
+    int indexExpression_period,
     int indexExpression_leftBracket,
     int indexExpression_rightBracket,
     LinkedNodeTypeBuilder expression_type,
@@ -10694,8 +11103,9 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = indexExpression_index,
         _variantField_15 = indexExpression_element,
         _variantField_7 = indexExpression_target,
-        _variantField_16 = indexExpression_leftBracket,
-        _variantField_17 = indexExpression_rightBracket,
+        _variantField_16 = indexExpression_period,
+        _variantField_17 = indexExpression_leftBracket,
+        _variantField_18 = indexExpression_rightBracket,
         _variantField_25 = expression_type;
 
   LinkedNodeBuilder.instanceCreationExpression({
@@ -10774,6 +11184,22 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = namedExpression_expression,
         _variantField_7 = namedExpression_name,
         _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.nativeClause({
+    LinkedNodeBuilder nativeClause_name,
+    int nativeClause_nativeKeyword,
+  })  : _kind = idl.LinkedNodeKind.nativeClause,
+        _variantField_6 = nativeClause_name,
+        _variantField_15 = nativeClause_nativeKeyword;
+
+  LinkedNodeBuilder.nativeFunctionBody({
+    LinkedNodeBuilder nativeFunctionBody_stringLiteral,
+    int nativeFunctionBody_nativeKeyword,
+    int nativeFunctionBody_semicolon,
+  })  : _kind = idl.LinkedNodeKind.nativeFunctionBody,
+        _variantField_6 = nativeFunctionBody_stringLiteral,
+        _variantField_15 = nativeFunctionBody_nativeKeyword,
+        _variantField_16 = nativeFunctionBody_semicolon;
 
   LinkedNodeBuilder.parenthesizedExpression({
     LinkedNodeBuilder parenthesizedExpression_expression,
@@ -11142,6 +11568,8 @@ class LinkedNodeBuilder extends Object
     signature.addBool(this._variantField_31 == true);
     signature.addBool(this._variantField_32 != null);
     this._variantField_32?.collectApiSignature(signature);
+    signature.addInt(this._variantField_33 ?? 0);
+    signature.addInt(this._variantField_34 ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -11285,6 +11713,12 @@ class LinkedNodeBuilder extends Object
     if (offset_variantField_13 != null) {
       fbBuilder.addOffset(13, offset_variantField_13);
     }
+    if (_variantField_34 != null && _variantField_34 != 0) {
+      fbBuilder.addUint32(34, _variantField_34);
+    }
+    if (_variantField_33 != null && _variantField_33 != 0) {
+      fbBuilder.addUint32(33, _variantField_33);
+    }
     if (offset_variantField_28 != null) {
       fbBuilder.addOffset(28, offset_variantField_28);
     }
@@ -11372,6 +11806,8 @@ class _LinkedNodeImpl extends Object
   idl.LinkedNode _variantField_12;
   List<idl.LinkedNode> _variantField_5;
   idl.LinkedNode _variantField_13;
+  int _variantField_34;
+  int _variantField_33;
   List<int> _variantField_28;
   idl.LinkedNodeCommentType _variantField_29;
   List<idl.LinkedNode> _variantField_3;
@@ -12130,6 +12566,22 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.LinkedNode get nativeClause_name {
+    assert(kind == idl.LinkedNodeKind.nativeClause);
+    _variantField_6 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 6, null);
+    return _variantField_6;
+  }
+
+  @override
+  idl.LinkedNode get nativeFunctionBody_stringLiteral {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
+    _variantField_6 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 6, null);
+    return _variantField_6;
+  }
+
+  @override
   idl.LinkedNode get parenthesizedExpression_expression {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
     _variantField_6 ??=
@@ -12750,6 +13202,22 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  int get nativeClause_nativeKeyword {
+    assert(kind == idl.LinkedNodeKind.nativeClause);
+    _variantField_15 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+    return _variantField_15;
+  }
+
+  @override
+  int get nativeFunctionBody_nativeKeyword {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
+    _variantField_15 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+    return _variantField_15;
+  }
+
+  @override
   int get nullLiteral_literal {
     assert(kind == idl.LinkedNodeKind.nullLiteral);
     _variantField_15 ??=
@@ -12768,14 +13236,6 @@ class _LinkedNodeImpl extends Object
   @override
   int get parenthesizedExpression_leftParenthesis {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
-    _variantField_15 ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
-    return _variantField_15;
-  }
-
-  @override
-  int get partOfDirective_semicolon {
-    assert(kind == idl.LinkedNodeKind.partOfDirective);
     _variantField_15 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
     return _variantField_15;
@@ -13447,6 +13907,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.LinkedNode get classDeclaration_nativeClause {
+    assert(kind == idl.LinkedNodeKind.classDeclaration);
+    _variantField_8 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 8, null);
+    return _variantField_8;
+  }
+
+  @override
   idl.LinkedNode get classTypeAlias_withClause {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     _variantField_8 ??=
@@ -13810,7 +14278,7 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get indexExpression_leftBracket {
+  int get indexExpression_period {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     _variantField_16 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
@@ -13852,6 +14320,14 @@ class _LinkedNodeImpl extends Object
   @override
   int get methodDeclaration_modifierKeyword {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_16 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
+    return _variantField_16;
+  }
+
+  @override
+  int get nativeFunctionBody_semicolon {
+    assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
     _variantField_16 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
     return _variantField_16;
@@ -14035,18 +14511,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get directive_keyword {
-    assert(kind == idl.LinkedNodeKind.exportDirective ||
-        kind == idl.LinkedNodeKind.importDirective ||
-        kind == idl.LinkedNodeKind.libraryDirective ||
-        kind == idl.LinkedNodeKind.partDirective ||
-        kind == idl.LinkedNodeKind.partOfDirective);
-    _variantField_17 ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 17, 0);
-    return _variantField_17;
-  }
-
-  @override
   int get doStatement_doKeyword {
     assert(kind == idl.LinkedNodeKind.doStatement);
     _variantField_17 ??=
@@ -14113,7 +14577,7 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get indexExpression_rightBracket {
+  int get indexExpression_leftBracket {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     _variantField_17 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 17, 0);
@@ -14218,6 +14682,18 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  int get directive_keyword {
+    assert(kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.importDirective ||
+        kind == idl.LinkedNodeKind.libraryDirective ||
+        kind == idl.LinkedNodeKind.partDirective ||
+        kind == idl.LinkedNodeKind.partOfDirective);
+    _variantField_18 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 18, 0);
+    return _variantField_18;
+  }
+
+  @override
   int get doStatement_semicolon {
     assert(kind == idl.LinkedNodeKind.doStatement);
     _variantField_18 ??=
@@ -14243,19 +14719,16 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get methodDeclaration_propertyKeyword {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
+  int get indexExpression_rightBracket {
+    assert(kind == idl.LinkedNodeKind.indexExpression);
     _variantField_18 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 18, 0);
     return _variantField_18;
   }
 
   @override
-  int get namespaceDirective_semicolon {
-    assert(kind == idl.LinkedNodeKind.exportDirective ||
-        kind == idl.LinkedNodeKind.importDirective ||
-        kind == idl.LinkedNodeKind.libraryDirective ||
-        kind == idl.LinkedNodeKind.partDirective);
+  int get methodDeclaration_propertyKeyword {
+    assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_18 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 18, 0);
     return _variantField_18;
@@ -14411,7 +14884,8 @@ class _LinkedNodeImpl extends Object
 
   @override
   idl.LinkedNodeType get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration);
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression);
     _variantField_24 ??=
         const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
     return _variantField_24;
@@ -14420,6 +14894,14 @@ class _LinkedNodeImpl extends Object
   @override
   idl.LinkedNodeType get functionTypeAlias_returnType2 {
     assert(kind == idl.LinkedNodeKind.functionTypeAlias);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get functionTypedFormalParameter_type2 {
+    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
     _variantField_24 ??=
         const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
     return _variantField_24;
@@ -14614,6 +15096,62 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  int get codeLength {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.mixinDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.typeParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_34 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 34, 0);
+    return _variantField_34;
+  }
+
+  @override
+  int get codeOffset {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.methodDeclaration ||
+        kind == idl.LinkedNodeKind.mixinDeclaration ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.typeParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_33 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 33, 0);
+    return _variantField_33;
+  }
+
+  @override
+  int get directive_semicolon {
+    assert(kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.importDirective ||
+        kind == idl.LinkedNodeKind.libraryDirective ||
+        kind == idl.LinkedNodeKind.partDirective ||
+        kind == idl.LinkedNodeKind.partOfDirective);
+    _variantField_33 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 33, 0);
+    return _variantField_33;
+  }
+
+  @override
   List<int> get comment_tokens {
     assert(kind == idl.LinkedNodeKind.comment);
     _variantField_28 ??= const fb.Uint32ListReader()
@@ -14724,6 +15262,14 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.symbolLiteral ||
         kind == idl.LinkedNodeKind.thisExpression ||
         kind == idl.LinkedNodeKind.throwExpression);
+    _variantField_25 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 25, null);
+    return _variantField_25;
+  }
+
+  @override
+  idl.LinkedNodeType get genericFunctionType_type {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_25 ??=
         const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 25, null);
     return _variantField_25;
@@ -14956,6 +15502,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (constructorDeclaration_redirectedConstructor != null)
         _result["constructorDeclaration_redirectedConstructor"] =
             constructorDeclaration_redirectedConstructor.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (constructorDeclaration_returnType != null)
         _result["constructorDeclaration_returnType"] =
             constructorDeclaration_returnType.toJson();
@@ -14980,6 +15528,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["enumDeclaration_leftBracket"] = enumDeclaration_leftBracket;
       if (enumDeclaration_rightBracket != 0)
         _result["enumDeclaration_rightBracket"] = enumDeclaration_rightBracket;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -15063,10 +15613,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
       if (directive_keyword != 0)
         _result["directive_keyword"] = directive_keyword;
-      if (namespaceDirective_semicolon != 0)
-        _result["namespaceDirective_semicolon"] = namespaceDirective_semicolon;
       if (uriBasedDirective_uriElement != 0)
         _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+      if (directive_semicolon != 0)
+        _result["directive_semicolon"] = directive_semicolon;
       if (namespaceDirective_configurations.isNotEmpty)
         _result["namespaceDirective_configurations"] =
             namespaceDirective_configurations
@@ -15100,10 +15650,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             importDirective_deferredKeyword;
       if (directive_keyword != 0)
         _result["directive_keyword"] = directive_keyword;
-      if (namespaceDirective_semicolon != 0)
-        _result["namespaceDirective_semicolon"] = namespaceDirective_semicolon;
       if (uriBasedDirective_uriElement != 0)
         _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+      if (directive_semicolon != 0)
+        _result["directive_semicolon"] = directive_semicolon;
       if (namespaceDirective_configurations.isNotEmpty)
         _result["namespaceDirective_configurations"] =
             namespaceDirective_configurations
@@ -15260,6 +15810,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (classDeclaration_withClause != null)
         _result["classDeclaration_withClause"] =
             classDeclaration_withClause.toJson();
+      if (classDeclaration_nativeClause != null)
+        _result["classDeclaration_nativeClause"] =
+            classDeclaration_nativeClause.toJson();
       if (classDeclaration_classKeyword != 0)
         _result["classDeclaration_classKeyword"] =
             classDeclaration_classKeyword;
@@ -15283,6 +15836,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (classOrMixinDeclaration_typeParameters != null)
         _result["classOrMixinDeclaration_typeParameters"] =
             classOrMixinDeclaration_typeParameters.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -15314,6 +15869,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (classTypeAlias_implementsClause != null)
         _result["classTypeAlias_implementsClause"] =
             classTypeAlias_implementsClause.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -15380,6 +15937,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (functionDeclaration_returnType2 != null)
         _result["functionDeclaration_returnType2"] =
             functionDeclaration_returnType2.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -15406,6 +15965,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (functionTypeAlias_returnType2 != null)
         _result["functionTypeAlias_returnType2"] =
             functionTypeAlias_returnType2.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -15428,6 +15989,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
       if (typeAlias_semicolon != 0)
         _result["typeAlias_semicolon"] = typeAlias_semicolon;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -15442,8 +16005,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["libraryDirective_name"] = libraryDirective_name.toJson();
       if (directive_keyword != 0)
         _result["directive_keyword"] = directive_keyword;
-      if (namespaceDirective_semicolon != 0)
-        _result["namespaceDirective_semicolon"] = namespaceDirective_semicolon;
+      if (directive_semicolon != 0)
+        _result["directive_semicolon"] = directive_semicolon;
     }
     if (kind == idl.LinkedNodeKind.methodDeclaration) {
       if (annotatedNode_comment != null)
@@ -15480,6 +16043,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (methodDeclaration_typeParameters != null)
         _result["methodDeclaration_typeParameters"] =
             methodDeclaration_typeParameters.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (methodDeclaration_name != null)
         _result["methodDeclaration_name"] = methodDeclaration_name.toJson();
     }
@@ -15512,6 +16077,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (classOrMixinDeclaration_typeParameters != null)
         _result["classOrMixinDeclaration_typeParameters"] =
             classOrMixinDeclaration_typeParameters.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
@@ -15524,10 +16091,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
       if (directive_keyword != 0)
         _result["directive_keyword"] = directive_keyword;
-      if (namespaceDirective_semicolon != 0)
-        _result["namespaceDirective_semicolon"] = namespaceDirective_semicolon;
       if (uriBasedDirective_uriElement != 0)
         _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+      if (directive_semicolon != 0)
+        _result["directive_semicolon"] = directive_semicolon;
       if (uriBasedDirective_uri != null)
         _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
       if (namespaceDirective_selectedUriContent != '')
@@ -15545,14 +16112,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (partOfDirective_libraryName != null)
         _result["partOfDirective_libraryName"] =
             partOfDirective_libraryName.toJson();
-      if (partOfDirective_semicolon != 0)
-        _result["partOfDirective_semicolon"] = partOfDirective_semicolon;
       if (partOfDirective_uri != null)
         _result["partOfDirective_uri"] = partOfDirective_uri.toJson();
       if (partOfDirective_ofKeyword != 0)
         _result["partOfDirective_ofKeyword"] = partOfDirective_ofKeyword;
       if (directive_keyword != 0)
         _result["directive_keyword"] = directive_keyword;
+      if (directive_semicolon != 0)
+        _result["directive_semicolon"] = directive_semicolon;
       if (namespaceDirective_selectedUriContent != '')
         _result["namespaceDirective_selectedUriContent"] =
             namespaceDirective_selectedUriContent;
@@ -15582,6 +16149,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeParameter_extendsKeyword"] = typeParameter_extendsKeyword;
       if (typeParameter_name != null)
         _result["typeParameter_name"] = typeParameter_name.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
     }
     if (kind == idl.LinkedNodeKind.variableDeclaration) {
       if (annotatedNode_comment != null)
@@ -15599,6 +16168,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (variableDeclaration_type2 != null)
         _result["variableDeclaration_type2"] =
             variableDeclaration_type2.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (variableDeclaration_declaration != null)
         _result["variableDeclaration_declaration"] =
             variableDeclaration_declaration.toJson();
@@ -15637,6 +16208,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_identifier != null)
         _result["normalFormalParameter_identifier"] =
             normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
         _result["formalParameter_kind"] =
             formalParameter_kind.toString().split('.')[1];
@@ -15662,12 +16235,17 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
+      if (functionTypedFormalParameter_type2 != null)
+        _result["functionTypedFormalParameter_type2"] =
+            functionTypedFormalParameter_type2.toJson();
       if (normalFormalParameter_isCovariant != false)
         _result["normalFormalParameter_isCovariant"] =
             normalFormalParameter_isCovariant;
       if (normalFormalParameter_identifier != null)
         _result["normalFormalParameter_identifier"] =
             normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
         _result["formalParameter_kind"] =
             formalParameter_kind.toString().split('.')[1];
@@ -15699,6 +16277,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_identifier != null)
         _result["normalFormalParameter_identifier"] =
             normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
         _result["formalParameter_kind"] =
             formalParameter_kind.toString().split('.')[1];
@@ -15959,6 +16539,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (defaultFormalParameter_isNamed != false)
         _result["defaultFormalParameter_isNamed"] =
             defaultFormalParameter_isNamed;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
     }
     if (kind == idl.LinkedNodeKind.doStatement) {
       if (doStatement_body != null)
@@ -16091,6 +16673,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (functionExpression_typeParameters != null)
         _result["functionExpression_typeParameters"] =
             functionExpression_typeParameters.toJson();
+      if (functionDeclaration_returnType2 != null)
+        _result["functionDeclaration_returnType2"] =
+            functionDeclaration_returnType2.toJson();
     }
     if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
       if (functionExpressionInvocation_function != null)
@@ -16126,6 +16711,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (genericFunctionType_returnType2 != null)
         _result["genericFunctionType_returnType2"] =
             genericFunctionType_returnType2.toJson();
+      if (genericFunctionType_type != null)
+        _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
     }
     if (kind == idl.LinkedNodeKind.ifElement) {
       if (ifMixin_condition != null)
@@ -16168,6 +16755,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["indexExpression_element"] = indexExpression_element;
       if (indexExpression_target != null)
         _result["indexExpression_target"] = indexExpression_target.toJson();
+      if (indexExpression_period != 0)
+        _result["indexExpression_period"] = indexExpression_period;
       if (indexExpression_leftBracket != 0)
         _result["indexExpression_leftBracket"] = indexExpression_leftBracket;
       if (indexExpression_rightBracket != 0)
@@ -16254,6 +16843,22 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["namedExpression_name"] = namedExpression_name.toJson();
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.nativeClause) {
+      if (nativeClause_name != null)
+        _result["nativeClause_name"] = nativeClause_name.toJson();
+      if (nativeClause_nativeKeyword != 0)
+        _result["nativeClause_nativeKeyword"] = nativeClause_nativeKeyword;
+    }
+    if (kind == idl.LinkedNodeKind.nativeFunctionBody) {
+      if (nativeFunctionBody_stringLiteral != null)
+        _result["nativeFunctionBody_stringLiteral"] =
+            nativeFunctionBody_stringLiteral.toJson();
+      if (nativeFunctionBody_nativeKeyword != 0)
+        _result["nativeFunctionBody_nativeKeyword"] =
+            nativeFunctionBody_nativeKeyword;
+      if (nativeFunctionBody_semicolon != 0)
+        _result["nativeFunctionBody_semicolon"] = nativeFunctionBody_semicolon;
     }
     if (kind == idl.LinkedNodeKind.parenthesizedExpression) {
       if (parenthesizedExpression_expression != null)
@@ -16582,6 +17187,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "constructorDeclaration_separator": constructorDeclaration_separator,
         "constructorDeclaration_redirectedConstructor":
             constructorDeclaration_redirectedConstructor,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "constructorDeclaration_returnType": constructorDeclaration_returnType,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16602,6 +17209,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "enumDeclaration_enumKeyword": enumDeclaration_enumKeyword,
         "enumDeclaration_leftBracket": enumDeclaration_leftBracket,
         "enumDeclaration_rightBracket": enumDeclaration_rightBracket,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16671,8 +17280,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "annotatedNode_comment": annotatedNode_comment,
         "annotatedNode_metadata": annotatedNode_metadata,
         "directive_keyword": directive_keyword,
-        "namespaceDirective_semicolon": namespaceDirective_semicolon,
         "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
+        "directive_semicolon": directive_semicolon,
         "namespaceDirective_configurations": namespaceDirective_configurations,
         "uriBasedDirective_uri": uriBasedDirective_uri,
         "isSynthetic": isSynthetic,
@@ -16691,8 +17300,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "importDirective_asKeyword": importDirective_asKeyword,
         "importDirective_deferredKeyword": importDirective_deferredKeyword,
         "directive_keyword": directive_keyword,
-        "namespaceDirective_semicolon": namespaceDirective_semicolon,
         "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
+        "directive_semicolon": directive_semicolon,
         "namespaceDirective_configurations": namespaceDirective_configurations,
         "uriBasedDirective_uri": uriBasedDirective_uri,
         "isSynthetic": isSynthetic,
@@ -16808,6 +17417,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "classDeclaration_extendsClause": classDeclaration_extendsClause,
         "classDeclaration_abstractKeyword": classDeclaration_abstractKeyword,
         "classDeclaration_withClause": classDeclaration_withClause,
+        "classDeclaration_nativeClause": classDeclaration_nativeClause,
         "classDeclaration_classKeyword": classDeclaration_classKeyword,
         "classOrMixinDeclaration_rightBracket":
             classOrMixinDeclaration_rightBracket,
@@ -16819,6 +17429,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "classOrMixinDeclaration_members": classOrMixinDeclaration_members,
         "classOrMixinDeclaration_typeParameters":
             classOrMixinDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16836,6 +17448,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
         "typeAlias_semicolon": typeAlias_semicolon,
         "classTypeAlias_implementsClause": classTypeAlias_implementsClause,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16885,6 +17499,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "functionDeclaration_propertyKeyword":
             functionDeclaration_propertyKeyword,
         "functionDeclaration_returnType2": functionDeclaration_returnType2,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16901,6 +17517,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
         "typeAlias_semicolon": typeAlias_semicolon,
         "functionTypeAlias_returnType2": functionTypeAlias_returnType2,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16915,6 +17533,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "genericTypeAlias_equals": genericTypeAlias_equals,
         "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
         "typeAlias_semicolon": typeAlias_semicolon,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16926,7 +17546,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "annotatedNode_metadata": annotatedNode_metadata,
         "libraryDirective_name": libraryDirective_name,
         "directive_keyword": directive_keyword,
-        "namespaceDirective_semicolon": namespaceDirective_semicolon,
+        "directive_semicolon": directive_semicolon,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -16946,6 +17566,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "methodDeclaration_actualProperty": methodDeclaration_actualProperty,
         "methodDeclaration_returnType2": methodDeclaration_returnType2,
         "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "methodDeclaration_name": methodDeclaration_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16966,6 +17588,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "classOrMixinDeclaration_members": classOrMixinDeclaration_members,
         "classOrMixinDeclaration_typeParameters":
             classOrMixinDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16976,8 +17600,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "annotatedNode_comment": annotatedNode_comment,
         "annotatedNode_metadata": annotatedNode_metadata,
         "directive_keyword": directive_keyword,
-        "namespaceDirective_semicolon": namespaceDirective_semicolon,
         "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
+        "directive_semicolon": directive_semicolon,
         "uriBasedDirective_uri": uriBasedDirective_uri,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -16991,10 +17615,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "annotatedNode_comment": annotatedNode_comment,
         "annotatedNode_metadata": annotatedNode_metadata,
         "partOfDirective_libraryName": partOfDirective_libraryName,
-        "partOfDirective_semicolon": partOfDirective_semicolon,
         "partOfDirective_uri": partOfDirective_uri,
         "partOfDirective_ofKeyword": partOfDirective_ofKeyword,
         "directive_keyword": directive_keyword,
+        "directive_semicolon": directive_semicolon,
         "isSynthetic": isSynthetic,
         "kind": kind,
         "namespaceDirective_selectedUriContent":
@@ -17020,6 +17644,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "typeParameter_bound": typeParameter_bound,
         "typeParameter_extendsKeyword": typeParameter_extendsKeyword,
         "typeParameter_name": typeParameter_name,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17032,6 +17658,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "variableDeclaration_equals": variableDeclaration_equals,
         "variableDeclaration_name": variableDeclaration_name,
         "variableDeclaration_type2": variableDeclaration_type2,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "isSynthetic": isSynthetic,
         "kind": kind,
         "variableDeclaration_declaration": variableDeclaration_declaration,
@@ -17053,6 +17681,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "fieldFormalParameter_type2": fieldFormalParameter_type2,
         "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "formalParameter_kind": formalParameter_kind,
         "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
@@ -17070,8 +17700,12 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             functionTypedFormalParameter_typeParameters,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
+        "functionTypedFormalParameter_type2":
+            functionTypedFormalParameter_type2,
         "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "formalParameter_kind": formalParameter_kind,
         "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
@@ -17088,6 +17722,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "simpleFormalParameter_type2": simpleFormalParameter_type2,
         "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "formalParameter_kind": formalParameter_kind,
         "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
@@ -17297,6 +17933,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "defaultFormalParameter_separator": defaultFormalParameter_separator,
         "defaultFormalParameter_parameter": defaultFormalParameter_parameter,
         "defaultFormalParameter_isNamed": defaultFormalParameter_isNamed,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17422,6 +18060,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "functionExpression_formalParameters":
             functionExpression_formalParameters,
         "functionExpression_typeParameters": functionExpression_typeParameters,
+        "functionDeclaration_returnType2": functionDeclaration_returnType2,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17450,6 +18089,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             genericFunctionType_formalParameters,
         "genericFunctionType_question": genericFunctionType_question,
         "genericFunctionType_returnType2": genericFunctionType_returnType2,
+        "genericFunctionType_type": genericFunctionType_type,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17485,6 +18125,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "indexExpression_index": indexExpression_index,
         "indexExpression_element": indexExpression_element,
         "indexExpression_target": indexExpression_target,
+        "indexExpression_period": indexExpression_period,
         "indexExpression_leftBracket": indexExpression_leftBracket,
         "indexExpression_rightBracket": indexExpression_rightBracket,
         "expression_type": expression_type,
@@ -17566,6 +18207,23 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedExpression_expression": namedExpression_expression,
         "namedExpression_name": namedExpression_name,
         "expression_type": expression_type,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.nativeClause) {
+      return {
+        "nativeClause_name": nativeClause_name,
+        "nativeClause_nativeKeyword": nativeClause_nativeKeyword,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.nativeFunctionBody) {
+      return {
+        "nativeFunctionBody_stringLiteral": nativeFunctionBody_stringLiteral,
+        "nativeFunctionBody_nativeKeyword": nativeFunctionBody_nativeKeyword,
+        "nativeFunctionBody_semicolon": nativeFunctionBody_semicolon,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -18354,21 +19012,22 @@ abstract class _LinkedNodeReferencesMixin implements idl.LinkedNodeReferences {
 class LinkedNodeTypeBuilder extends Object
     with _LinkedNodeTypeMixin
     implements idl.LinkedNodeType {
-  List<int> _functionFormalParameters;
+  List<LinkedNodeTypeFormalParameterBuilder> _functionFormalParameters;
   LinkedNodeTypeBuilder _functionReturnType;
   List<int> _functionTypeParameters;
+  int _genericTypeAliasReference;
+  List<LinkedNodeTypeBuilder> _genericTypeAliasTypeArguments;
   int _interfaceClass;
   List<LinkedNodeTypeBuilder> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
   int _typeParameterParameter;
 
   @override
-  List<int> get functionFormalParameters =>
-      _functionFormalParameters ??= <int>[];
+  List<LinkedNodeTypeFormalParameterBuilder> get functionFormalParameters =>
+      _functionFormalParameters ??= <LinkedNodeTypeFormalParameterBuilder>[];
 
-  /// References to [LinkedNodeReferences].
-  void set functionFormalParameters(List<int> value) {
-    assert(value == null || value.every((e) => e >= 0));
+  void set functionFormalParameters(
+      List<LinkedNodeTypeFormalParameterBuilder> value) {
     this._functionFormalParameters = value;
   }
 
@@ -18386,6 +19045,22 @@ class LinkedNodeTypeBuilder extends Object
   void set functionTypeParameters(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._functionTypeParameters = value;
+  }
+
+  @override
+  int get genericTypeAliasReference => _genericTypeAliasReference ??= 0;
+
+  void set genericTypeAliasReference(int value) {
+    assert(value == null || value >= 0);
+    this._genericTypeAliasReference = value;
+  }
+
+  @override
+  List<LinkedNodeTypeBuilder> get genericTypeAliasTypeArguments =>
+      _genericTypeAliasTypeArguments ??= <LinkedNodeTypeBuilder>[];
+
+  void set genericTypeAliasTypeArguments(List<LinkedNodeTypeBuilder> value) {
+    this._genericTypeAliasTypeArguments = value;
   }
 
   @override
@@ -18422,9 +19097,11 @@ class LinkedNodeTypeBuilder extends Object
   }
 
   LinkedNodeTypeBuilder(
-      {List<int> functionFormalParameters,
+      {List<LinkedNodeTypeFormalParameterBuilder> functionFormalParameters,
       LinkedNodeTypeBuilder functionReturnType,
       List<int> functionTypeParameters,
+      int genericTypeAliasReference,
+      List<LinkedNodeTypeBuilder> genericTypeAliasTypeArguments,
       int interfaceClass,
       List<LinkedNodeTypeBuilder> interfaceTypeArguments,
       idl.LinkedNodeTypeKind kind,
@@ -18432,6 +19109,8 @@ class LinkedNodeTypeBuilder extends Object
       : _functionFormalParameters = functionFormalParameters,
         _functionReturnType = functionReturnType,
         _functionTypeParameters = functionTypeParameters,
+        _genericTypeAliasReference = genericTypeAliasReference,
+        _genericTypeAliasTypeArguments = genericTypeAliasTypeArguments,
         _interfaceClass = interfaceClass,
         _interfaceTypeArguments = interfaceTypeArguments,
         _kind = kind,
@@ -18441,7 +19120,9 @@ class LinkedNodeTypeBuilder extends Object
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+    _functionFormalParameters?.forEach((b) => b.flushInformative());
     _functionReturnType?.flushInformative();
+    _genericTypeAliasTypeArguments?.forEach((b) => b.flushInformative());
     _interfaceTypeArguments?.forEach((b) => b.flushInformative());
   }
 
@@ -18454,7 +19135,7 @@ class LinkedNodeTypeBuilder extends Object
     } else {
       signature.addInt(this._functionFormalParameters.length);
       for (var x in this._functionFormalParameters) {
-        signature.addInt(x);
+        x?.collectApiSignature(signature);
       }
     }
     signature.addBool(this._functionReturnType != null);
@@ -18478,17 +19159,27 @@ class LinkedNodeTypeBuilder extends Object
     }
     signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addInt(this._typeParameterParameter ?? 0);
+    signature.addInt(this._genericTypeAliasReference ?? 0);
+    if (this._genericTypeAliasTypeArguments == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._genericTypeAliasTypeArguments.length);
+      for (var x in this._genericTypeAliasTypeArguments) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_functionFormalParameters;
     fb.Offset offset_functionReturnType;
     fb.Offset offset_functionTypeParameters;
+    fb.Offset offset_genericTypeAliasTypeArguments;
     fb.Offset offset_interfaceTypeArguments;
     if (!(_functionFormalParameters == null ||
         _functionFormalParameters.isEmpty)) {
-      offset_functionFormalParameters =
-          fbBuilder.writeListUint32(_functionFormalParameters);
+      offset_functionFormalParameters = fbBuilder.writeList(
+          _functionFormalParameters.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_functionReturnType != null) {
       offset_functionReturnType = _functionReturnType.finish(fbBuilder);
@@ -18496,6 +19187,13 @@ class LinkedNodeTypeBuilder extends Object
     if (!(_functionTypeParameters == null || _functionTypeParameters.isEmpty)) {
       offset_functionTypeParameters =
           fbBuilder.writeListUint32(_functionTypeParameters);
+    }
+    if (!(_genericTypeAliasTypeArguments == null ||
+        _genericTypeAliasTypeArguments.isEmpty)) {
+      offset_genericTypeAliasTypeArguments = fbBuilder.writeList(
+          _genericTypeAliasTypeArguments
+              .map((b) => b.finish(fbBuilder))
+              .toList());
     }
     if (!(_interfaceTypeArguments == null || _interfaceTypeArguments.isEmpty)) {
       offset_interfaceTypeArguments = fbBuilder.writeList(
@@ -18510,6 +19208,12 @@ class LinkedNodeTypeBuilder extends Object
     }
     if (offset_functionTypeParameters != null) {
       fbBuilder.addOffset(2, offset_functionTypeParameters);
+    }
+    if (_genericTypeAliasReference != null && _genericTypeAliasReference != 0) {
+      fbBuilder.addUint32(7, _genericTypeAliasReference);
+    }
+    if (offset_genericTypeAliasTypeArguments != null) {
+      fbBuilder.addOffset(8, offset_genericTypeAliasTypeArguments);
     }
     if (_interfaceClass != null && _interfaceClass != 0) {
       fbBuilder.addUint32(3, _interfaceClass);
@@ -18543,18 +19247,23 @@ class _LinkedNodeTypeImpl extends Object
 
   _LinkedNodeTypeImpl(this._bc, this._bcOffset);
 
-  List<int> _functionFormalParameters;
+  List<idl.LinkedNodeTypeFormalParameter> _functionFormalParameters;
   idl.LinkedNodeType _functionReturnType;
   List<int> _functionTypeParameters;
+  int _genericTypeAliasReference;
+  List<idl.LinkedNodeType> _genericTypeAliasTypeArguments;
   int _interfaceClass;
   List<idl.LinkedNodeType> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
   int _typeParameterParameter;
 
   @override
-  List<int> get functionFormalParameters {
+  List<idl.LinkedNodeTypeFormalParameter> get functionFormalParameters {
     _functionFormalParameters ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+        const fb.ListReader<idl.LinkedNodeTypeFormalParameter>(
+                const _LinkedNodeTypeFormalParameterReader())
+            .vTableGet(
+                _bc, _bcOffset, 0, const <idl.LinkedNodeTypeFormalParameter>[]);
     return _functionFormalParameters;
   }
 
@@ -18570,6 +19279,21 @@ class _LinkedNodeTypeImpl extends Object
     _functionTypeParameters ??=
         const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _functionTypeParameters;
+  }
+
+  @override
+  int get genericTypeAliasReference {
+    _genericTypeAliasReference ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
+    return _genericTypeAliasReference;
+  }
+
+  @override
+  List<idl.LinkedNodeType> get genericTypeAliasTypeArguments {
+    _genericTypeAliasTypeArguments ??=
+        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+            .vTableGet(_bc, _bcOffset, 8, const <idl.LinkedNodeType>[]);
+    return _genericTypeAliasTypeArguments;
   }
 
   @override
@@ -18606,11 +19330,18 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (functionFormalParameters.isNotEmpty)
-      _result["functionFormalParameters"] = functionFormalParameters;
+      _result["functionFormalParameters"] =
+          functionFormalParameters.map((_value) => _value.toJson()).toList();
     if (functionReturnType != null)
       _result["functionReturnType"] = functionReturnType.toJson();
     if (functionTypeParameters.isNotEmpty)
       _result["functionTypeParameters"] = functionTypeParameters;
+    if (genericTypeAliasReference != 0)
+      _result["genericTypeAliasReference"] = genericTypeAliasReference;
+    if (genericTypeAliasTypeArguments.isNotEmpty)
+      _result["genericTypeAliasTypeArguments"] = genericTypeAliasTypeArguments
+          .map((_value) => _value.toJson())
+          .toList();
     if (interfaceClass != 0) _result["interfaceClass"] = interfaceClass;
     if (interfaceTypeArguments.isNotEmpty)
       _result["interfaceTypeArguments"] =
@@ -18627,10 +19358,154 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
         "functionFormalParameters": functionFormalParameters,
         "functionReturnType": functionReturnType,
         "functionTypeParameters": functionTypeParameters,
+        "genericTypeAliasReference": genericTypeAliasReference,
+        "genericTypeAliasTypeArguments": genericTypeAliasTypeArguments,
         "interfaceClass": interfaceClass,
         "interfaceTypeArguments": interfaceTypeArguments,
         "kind": kind,
         "typeParameterParameter": typeParameterParameter,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class LinkedNodeTypeFormalParameterBuilder extends Object
+    with _LinkedNodeTypeFormalParameterMixin
+    implements idl.LinkedNodeTypeFormalParameter {
+  idl.LinkedNodeFormalParameterKind _kind;
+  String _name;
+  LinkedNodeTypeBuilder _type;
+
+  @override
+  idl.LinkedNodeFormalParameterKind get kind =>
+      _kind ??= idl.LinkedNodeFormalParameterKind.required;
+
+  void set kind(idl.LinkedNodeFormalParameterKind value) {
+    this._kind = value;
+  }
+
+  @override
+  String get name => _name ??= '';
+
+  void set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get type => _type;
+
+  void set type(LinkedNodeTypeBuilder value) {
+    this._type = value;
+  }
+
+  LinkedNodeTypeFormalParameterBuilder(
+      {idl.LinkedNodeFormalParameterKind kind,
+      String name,
+      LinkedNodeTypeBuilder type})
+      : _kind = kind,
+        _name = name,
+        _type = type;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _type?.flushInformative();
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._kind == null ? 0 : this._kind.index);
+    signature.addString(this._name ?? '');
+    signature.addBool(this._type != null);
+    this._type?.collectApiSignature(signature);
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_name;
+    fb.Offset offset_type;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (_type != null) {
+      offset_type = _type.finish(fbBuilder);
+    }
+    fbBuilder.startTable();
+    if (_kind != null && _kind != idl.LinkedNodeFormalParameterKind.required) {
+      fbBuilder.addUint8(0, _kind.index);
+    }
+    if (offset_name != null) {
+      fbBuilder.addOffset(1, offset_name);
+    }
+    if (offset_type != null) {
+      fbBuilder.addOffset(2, offset_type);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _LinkedNodeTypeFormalParameterReader
+    extends fb.TableReader<_LinkedNodeTypeFormalParameterImpl> {
+  const _LinkedNodeTypeFormalParameterReader();
+
+  @override
+  _LinkedNodeTypeFormalParameterImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _LinkedNodeTypeFormalParameterImpl(bc, offset);
+}
+
+class _LinkedNodeTypeFormalParameterImpl extends Object
+    with _LinkedNodeTypeFormalParameterMixin
+    implements idl.LinkedNodeTypeFormalParameter {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _LinkedNodeTypeFormalParameterImpl(this._bc, this._bcOffset);
+
+  idl.LinkedNodeFormalParameterKind _kind;
+  String _name;
+  idl.LinkedNodeType _type;
+
+  @override
+  idl.LinkedNodeFormalParameterKind get kind {
+    _kind ??= const _LinkedNodeFormalParameterKindReader().vTableGet(
+        _bc, _bcOffset, 0, idl.LinkedNodeFormalParameterKind.required);
+    return _kind;
+  }
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _name;
+  }
+
+  @override
+  idl.LinkedNodeType get type {
+    _type ??= const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 2, null);
+    return _type;
+  }
+}
+
+abstract class _LinkedNodeTypeFormalParameterMixin
+    implements idl.LinkedNodeTypeFormalParameter {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (kind != idl.LinkedNodeFormalParameterKind.required)
+      _result["kind"] = kind.toString().split('.')[1];
+    if (name != '') _result["name"] = name;
+    if (type != null) _result["type"] = type.toJson();
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "kind": kind,
+        "name": name,
+        "type": type,
       };
 
   @override
@@ -18783,6 +19658,7 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
     implements idl.LinkedNodeVariablesDeclaration {
   LinkedNodeBuilder _comment;
   bool _isConst;
+  bool _isCovariant;
   bool _isFinal;
   bool _isStatic;
 
@@ -18801,6 +19677,13 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
   }
 
   @override
+  bool get isCovariant => _isCovariant ??= false;
+
+  void set isCovariant(bool value) {
+    this._isCovariant = value;
+  }
+
+  @override
   bool get isFinal => _isFinal ??= false;
 
   void set isFinal(bool value) {
@@ -18815,9 +19698,14 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
   }
 
   LinkedNodeVariablesDeclarationBuilder(
-      {LinkedNodeBuilder comment, bool isConst, bool isFinal, bool isStatic})
+      {LinkedNodeBuilder comment,
+      bool isConst,
+      bool isCovariant,
+      bool isFinal,
+      bool isStatic})
       : _comment = comment,
         _isConst = isConst,
+        _isCovariant = isCovariant,
         _isFinal = isFinal,
         _isStatic = isStatic;
 
@@ -18832,11 +19720,12 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addBool(this._isConst == true);
-    signature.addBool(this._isFinal == true);
-    signature.addBool(this._isStatic == true);
     signature.addBool(this._comment != null);
     this._comment?.collectApiSignature(signature);
+    signature.addBool(this._isConst == true);
+    signature.addBool(this._isCovariant == true);
+    signature.addBool(this._isFinal == true);
+    signature.addBool(this._isStatic == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -18846,16 +19735,19 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
     }
     fbBuilder.startTable();
     if (offset_comment != null) {
-      fbBuilder.addOffset(3, offset_comment);
+      fbBuilder.addOffset(0, offset_comment);
     }
     if (_isConst == true) {
-      fbBuilder.addBool(0, true);
-    }
-    if (_isFinal == true) {
       fbBuilder.addBool(1, true);
     }
-    if (_isStatic == true) {
+    if (_isCovariant == true) {
       fbBuilder.addBool(2, true);
+    }
+    if (_isFinal == true) {
+      fbBuilder.addBool(3, true);
+    }
+    if (_isStatic == true) {
+      fbBuilder.addBool(4, true);
     }
     return fbBuilder.endTable();
   }
@@ -18881,30 +19773,37 @@ class _LinkedNodeVariablesDeclarationImpl extends Object
 
   idl.LinkedNode _comment;
   bool _isConst;
+  bool _isCovariant;
   bool _isFinal;
   bool _isStatic;
 
   @override
   idl.LinkedNode get comment {
-    _comment ??= const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 3, null);
+    _comment ??= const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 0, null);
     return _comment;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 0, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 1, false);
     return _isConst;
   }
 
   @override
+  bool get isCovariant {
+    _isCovariant ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    return _isCovariant;
+  }
+
+  @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 1, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _isFinal;
   }
 
   @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
     return _isStatic;
   }
 }
@@ -18916,6 +19815,7 @@ abstract class _LinkedNodeVariablesDeclarationMixin
     Map<String, Object> _result = <String, Object>{};
     if (comment != null) _result["comment"] = comment.toJson();
     if (isConst != false) _result["isConst"] = isConst;
+    if (isCovariant != false) _result["isCovariant"] = isCovariant;
     if (isFinal != false) _result["isFinal"] = isFinal;
     if (isStatic != false) _result["isStatic"] = isStatic;
     return _result;
@@ -18925,6 +19825,7 @@ abstract class _LinkedNodeVariablesDeclarationMixin
   Map<String, Object> toMap() => {
         "comment": comment,
         "isConst": isConst,
+        "isCovariant": isCovariant,
         "isFinal": isFinal,
         "isStatic": isStatic,
       };

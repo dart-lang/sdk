@@ -5,6 +5,7 @@
 #include "vm/kernel.h"
 
 #include "vm/bit_vector.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_evaluator.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/longjump.h"
@@ -605,6 +606,14 @@ void ReadParameterCovariance(const Function& function,
       ExternalTypedData::Handle(zone, function.KernelData()),
       function.KernelDataProgramOffset());
 
+  if (function.is_declared_in_bytecode()) {
+    BytecodeReaderHelper bytecode_reader_helper(&reader_helper, nullptr,
+                                                nullptr);
+    bytecode_reader_helper.ReadParameterCovariance(function, is_covariant,
+                                                   is_generic_covariant_impl);
+    return;
+  }
+
   reader_helper.SetOffset(function.kernel_offset());
   reader_helper.ReadUntilFunctionNode();
 
@@ -689,8 +698,7 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
 
 bool IsFieldInitializer(const Function& function, Zone* zone) {
   return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
-         String::Handle(zone, function.name())
-             .StartsWith(Symbols::InitPrefix());
+         Field::IsInitName(String::Handle(zone, function.name()));
 }
 
 static ProcedureAttributesMetadata ProcedureAttributesOf(

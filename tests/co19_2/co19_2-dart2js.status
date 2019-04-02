@@ -2,12 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js ]
-Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
-LanguageFeatures/Control-flow-collections/*: Skip
-LibTest/io/*: SkipByDesign # dart:io not supported.
-LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
-
 [ $compiler == dartdevk ]
 LanguageFeatures/Control-flow-collections/*: Skip
 
@@ -18,6 +12,11 @@ LayoutTests/fast/canvas/webgl*: Skip # Only run WebGL on special builders, issue
 LayoutTests/*: SkipByDesign # d8 is not a browser
 LibTest/html/*: SkipByDesign # d8 is not a browser
 WebPlatformTest/*: SkipByDesign # d8 is not a browser
+
+[ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
+LibTest/io/*: SkipByDesign # dart:io not supported.
+LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 Language/Classes/Constructors/Generative_Constructors/formal_parameter_t07: Skip # Times out

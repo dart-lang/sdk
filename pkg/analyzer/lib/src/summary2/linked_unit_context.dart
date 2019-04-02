@@ -1,9 +1,11 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -52,10 +54,13 @@ class LinkedUnitContext {
     if (kind == LinkedNodeKind.constructorDeclaration) {
       parameterList = node.constructorDeclaration_parameters;
     } else if (kind == LinkedNodeKind.functionDeclaration) {
-      parameterList = node.functionDeclaration_functionExpression
-          .functionExpression_formalParameters;
+      return getFormalParameters(node.functionDeclaration_functionExpression);
+    } else if (kind == LinkedNodeKind.functionExpression) {
+      parameterList = node.functionExpression_formalParameters;
     } else if (kind == LinkedNodeKind.functionTypeAlias) {
       parameterList = node.functionTypeAlias_formalParameters;
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      parameterList = node.genericFunctionType_formalParameters;
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       parameterList = node.methodDeclaration_formalParameters;
     } else {
@@ -64,12 +69,31 @@ class LinkedUnitContext {
     return parameterList?.formalParameterList_parameters;
   }
 
+  DartType getFormalParameterType(LinkedNode node) {
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return getFormalParameterType(node.defaultFormalParameter_parameter);
+    }
+    if (kind == LinkedNodeKind.fieldFormalParameter) {
+      return getType(node.fieldFormalParameter_type2);
+    }
+    if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+      return getType(node.functionTypedFormalParameter_type2);
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return getType(node.simpleFormalParameter_type2);
+    }
+    throw UnimplementedError('$kind');
+  }
+
   LinkedNode getImplementsClause(LinkedNode node) {
     var kind = node.kind;
     if (kind == LinkedNodeKind.classDeclaration) {
       return node.classOrMixinDeclaration_implementsClause;
     } else if (kind == LinkedNodeKind.classTypeAlias) {
       return node.classTypeAlias_implementsClause;
+    } else if (kind == LinkedNodeKind.mixinDeclaration) {
+      return node.classOrMixinDeclaration_implementsClause;
     } else {
       throw UnimplementedError('$kind');
     }
@@ -79,6 +103,15 @@ class LinkedUnitContext {
     return bundleContext.getInterfaceType(linkedType);
   }
 
+  List<LinkedNode> getLibraryMetadataOrEmpty(LinkedNode unit) {
+    for (var directive in unit.compilationUnit_directives) {
+      if (directive.kind == LinkedNodeKind.libraryDirective) {
+        return getMetadataOrEmpty(directive);
+      }
+    }
+    return const <LinkedNode>[];
+  }
+
   List<LinkedNode> getMetadataOrEmpty(LinkedNode node) {
     var kind = node.kind;
     if (kind == LinkedNodeKind.classDeclaration ||
@@ -86,12 +119,20 @@ class LinkedUnitContext {
         kind == LinkedNodeKind.constructorDeclaration ||
         kind == LinkedNodeKind.enumConstantDeclaration ||
         kind == LinkedNodeKind.enumDeclaration ||
+        kind == LinkedNodeKind.exportDirective ||
         kind == LinkedNodeKind.functionDeclaration ||
         kind == LinkedNodeKind.functionTypeAlias ||
+        kind == LinkedNodeKind.libraryDirective ||
+        kind == LinkedNodeKind.importDirective ||
         kind == LinkedNodeKind.methodDeclaration ||
         kind == LinkedNodeKind.mixinDeclaration ||
+        kind == LinkedNodeKind.partDirective ||
+        kind == LinkedNodeKind.partOfDirective ||
         kind == LinkedNodeKind.variableDeclaration) {
       return node.annotatedNode_metadata;
+    }
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return getMetadataOrEmpty(node.defaultFormalParameter_parameter);
     }
     if (kind == LinkedNodeKind.fieldFormalParameter ||
         kind == LinkedNodeKind.functionTypedFormalParameter ||
@@ -109,6 +150,10 @@ class LinkedUnitContext {
     var kind = node.kind;
     if (kind == LinkedNodeKind.functionDeclaration) {
       return getType(node.functionDeclaration_returnType2);
+    } else if (kind == LinkedNodeKind.functionTypeAlias) {
+      return getType(node.functionTypeAlias_returnType2);
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      return getType(node.genericFunctionType_returnType2);
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       return getType(node.methodDeclaration_returnType2);
     } else {
@@ -120,8 +165,12 @@ class LinkedUnitContext {
     return getTokenLexeme(node.simpleIdentifier_token);
   }
 
+  List<String> getSimpleNameList(List<LinkedNode> nodeList) {
+    return nodeList.map(getSimpleName).toList();
+  }
+
   int getSimpleOffset(LinkedNode node) {
-    return tokensContext.offset(node.simpleIdentifier_token);
+    return getTokenOffset(node.simpleIdentifier_token);
   }
 
   String getStringContent(LinkedNode node) {
@@ -130,6 +179,10 @@ class LinkedUnitContext {
 
   String getTokenLexeme(int token) {
     return tokensContext.lexeme(token);
+  }
+
+  int getTokenOffset(int token) {
+    return tokensContext.offset(token);
   }
 
   DartType getType(LinkedNodeType linkedType) {
@@ -143,30 +196,6 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('$kind');
     }
-  }
-
-  List<LinkedNode> getTypeParameters(LinkedNode node) {
-    LinkedNode typeParameterList;
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.classTypeAlias) {
-      typeParameterList = node.classTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.classDeclaration ||
-        kind == LinkedNodeKind.mixinDeclaration) {
-      typeParameterList = node.classOrMixinDeclaration_typeParameters;
-    } else if (kind == LinkedNodeKind.constructorDeclaration) {
-      return const [];
-    } else if (kind == LinkedNodeKind.functionDeclaration) {
-      return getTypeParameters(node.functionDeclaration_functionExpression);
-    } else if (kind == LinkedNodeKind.functionExpression) {
-      typeParameterList = node.functionExpression_typeParameters;
-    } else if (kind == LinkedNodeKind.functionTypeAlias) {
-      typeParameterList = node.functionTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.methodDeclaration) {
-      typeParameterList = node.methodDeclaration_typeParameters;
-    } else {
-      throw UnimplementedError('$kind');
-    }
-    return typeParameterList?.typeParameterList_typeParameters;
   }
 
   String getUnitMemberName(LinkedNode node) {
@@ -185,16 +214,26 @@ class LinkedUnitContext {
   bool isAsynchronous(LinkedNode node) {
     LinkedNode body = _getFunctionBody(node);
     if (body.kind == LinkedNodeKind.blockFunctionBody) {
-      return body.blockFunctionBody_keyword != 0;
+      return isAsyncKeyword(body.blockFunctionBody_keyword);
     } else if (body.kind == LinkedNodeKind.emptyFunctionBody) {
       return false;
     } else {
-      return body.expressionFunctionBody_keyword != 0;
+      return isAsyncKeyword(body.expressionFunctionBody_keyword);
     }
+  }
+
+  bool isAsyncKeyword(int token) {
+    return tokensContext.type(token) == UnlinkedTokenType.ASYNC;
   }
 
   bool isConst(LinkedNode node) {
     var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return isConst(node.defaultFormalParameter_parameter);
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return isConstKeyword(node.simpleFormalParameter_keyword);
+    }
     if (kind == LinkedNodeKind.variableDeclaration) {
       return node.variableDeclaration_declaration.isConst;
     }
@@ -224,8 +263,20 @@ class LinkedUnitContext {
 
   bool isFinal(LinkedNode node) {
     var kind = node.kind;
+    if (kind == LinkedNodeKind.defaultFormalParameter) {
+      return isFinal(node.defaultFormalParameter_parameter);
+    }
     if (kind == LinkedNodeKind.enumConstantDeclaration) {
       return false;
+    }
+    if (kind == LinkedNodeKind.fieldFormalParameter) {
+      return isFinalKeyword(node.fieldFormalParameter_keyword);
+    }
+    if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+      return false;
+    }
+    if (kind == LinkedNodeKind.simpleFormalParameter) {
+      return isFinalKeyword(node.simpleFormalParameter_keyword);
     }
     if (kind == LinkedNodeKind.variableDeclaration) {
       return node.variableDeclaration_declaration.isFinal;
@@ -301,6 +352,10 @@ class LinkedUnitContext {
     throw UnimplementedError('$kind');
   }
 
+  bool isSyncKeyword(int token) {
+    return tokensContext.type(token) == UnlinkedTokenType.SYNC;
+  }
+
   void loadClassMemberReferences(Reference reference) {
     var node = reference.node;
     if (node.kind != LinkedNodeKind.classDeclaration &&
@@ -337,16 +392,31 @@ class LinkedUnitContext {
     }
   }
 
-  Expression readInitializer(LinkedNode linkedNode) {
-    if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
-      return readNode(linkedNode.defaultFormalParameter_defaultValue);
-    }
-    return readNode(linkedNode.variableDeclaration_initializer);
+  Expression readInitializer(ElementImpl enclosing, LinkedNode linkedNode) {
+    var reader = AstBinaryReader(this);
+    return reader.withLocalScope(enclosing, () {
+      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
+        var data = linkedNode.defaultFormalParameter_defaultValue;
+        return reader.readNode(data);
+      }
+      var data = linkedNode.variableDeclaration_initializer;
+      return reader.readNode(data);
+    });
   }
 
   AstNode readNode(LinkedNode linkedNode) {
     var reader = AstBinaryReader(this);
     return reader.readNode(linkedNode);
+  }
+
+  void setReturnType(LinkedNodeBuilder node, DartType type) {
+    var typeData = bundleContext.linking.writeType(type);
+    node.functionDeclaration_returnType2 = typeData;
+  }
+
+  void setVariableType(LinkedNodeBuilder node, DartType type) {
+    var typeData = bundleContext.linking.writeType(type);
+    node.simpleFormalParameter_type2 = typeData;
   }
 
   Iterable<LinkedNode> topLevelVariables(LinkedNode unit) sync* {
@@ -365,8 +435,9 @@ class LinkedUnitContext {
     if (kind == LinkedNodeKind.constructorDeclaration) {
       return node.constructorDeclaration_body;
     } else if (kind == LinkedNodeKind.functionDeclaration) {
-      return node
-          .functionDeclaration_functionExpression.functionExpression_body;
+      return _getFunctionBody(node.functionDeclaration_functionExpression);
+    } else if (kind == LinkedNodeKind.functionExpression) {
+      return node.functionExpression_body;
     } else if (kind == LinkedNodeKind.methodDeclaration) {
       return node.methodDeclaration_body;
     } else {
@@ -380,5 +451,33 @@ class LinkedUnitContext {
 
   bool _isSetToken(int token) {
     return tokensContext.type(token) == UnlinkedTokenType.SET;
+  }
+
+  static List<LinkedNode> getTypeParameters(LinkedNode node) {
+    LinkedNode typeParameterList;
+    var kind = node.kind;
+    if (kind == LinkedNodeKind.classTypeAlias) {
+      typeParameterList = node.classTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.classDeclaration ||
+        kind == LinkedNodeKind.mixinDeclaration) {
+      typeParameterList = node.classOrMixinDeclaration_typeParameters;
+    } else if (kind == LinkedNodeKind.constructorDeclaration) {
+      return const [];
+    } else if (kind == LinkedNodeKind.functionDeclaration) {
+      return getTypeParameters(node.functionDeclaration_functionExpression);
+    } else if (kind == LinkedNodeKind.functionExpression) {
+      typeParameterList = node.functionExpression_typeParameters;
+    } else if (kind == LinkedNodeKind.functionTypeAlias) {
+      typeParameterList = node.functionTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.genericFunctionType) {
+      typeParameterList = node.genericFunctionType_typeParameters;
+    } else if (kind == LinkedNodeKind.genericTypeAlias) {
+      typeParameterList = node.genericTypeAlias_typeParameters;
+    } else if (kind == LinkedNodeKind.methodDeclaration) {
+      typeParameterList = node.methodDeclaration_typeParameters;
+    } else {
+      throw UnimplementedError('$kind');
+    }
+    return typeParameterList?.typeParameterList_typeParameters;
   }
 }

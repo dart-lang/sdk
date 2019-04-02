@@ -363,8 +363,9 @@ COMPILER_PASS(OptimizeBranches, {
   ConstantPropagator::OptimizeBranches(flow_graph);
 });
 
-COMPILER_PASS(TryCatchOptimization,
-              { TryCatchAnalyzer::Optimize(flow_graph); });
+COMPILER_PASS(TryCatchOptimization, {
+  OptimizeCatchEntryStates(flow_graph, /*is_aot=*/FLAG_precompiled_mode);
+});
 
 COMPILER_PASS(EliminateEnvironments, { flow_graph->EliminateEnvironments(); });
 

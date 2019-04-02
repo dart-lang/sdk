@@ -4,7 +4,7 @@
 
 // Prefix must be a valid identifier.
 import "library1.dart"
-    as lib1.invalid //# 01: compile-time error
+    as lib1.invalid //# 01: syntax error
     ;
 
 main() {}

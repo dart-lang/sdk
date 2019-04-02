@@ -14,7 +14,7 @@ abstract class Bar {
   Bar();
 
   @Foo(/*@typeArgs=String*/ const [])
-  var /*@topType=dynamic*/ x;
+  var x;
 
   @Foo(/*@typeArgs=String*/ const [])
   void f();

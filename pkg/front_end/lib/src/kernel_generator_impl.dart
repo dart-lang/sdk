@@ -117,7 +117,7 @@ Future<CompilerResult> generateKernelInternal(
             libraryFilter: kernelTarget.isSourceLibrary);
       }
 
-      // Copy the component to exclude the uriToSource map from the summary.
+      // Create the requested component ("truncating" or not).
       //
       // Note: we don't pass the library argument to the constructor to
       // preserve the the libraries parent pointer (it should continue to point
@@ -128,6 +128,7 @@ Future<CompilerResult> generateKernelInternal(
                 ? kernelTarget.loader.libraries
                 : summaryComponent.libraries);
       trimmedSummaryComponent.metadata.addAll(summaryComponent.metadata);
+      trimmedSummaryComponent.uriToSource.addAll(summaryComponent.uriToSource);
 
       // As documented, we only run outline transformations when we are building
       // summaries without building a full component (at this time, that's
@@ -136,7 +137,9 @@ Future<CompilerResult> generateKernelInternal(
         options.target.performOutlineTransformations(trimmedSummaryComponent);
         options.ticker.logMs("Transformed outline");
       }
-      summary = serializeComponent(trimmedSummaryComponent);
+      // Don't include source (but do add it above to include importUris).
+      summary =
+          serializeComponent(trimmedSummaryComponent, includeSources: false);
       options.ticker.logMs("Generated outline");
     }
 

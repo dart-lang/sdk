@@ -1318,12 +1318,14 @@ struct RegExpCompileData : public ZoneAllocated {
         node(NULL),
         simple(true),
         contains_anchor(false),
+        capture_name_map(Array::Handle(Array::null())),
         error(String::Handle(String::null())),
         capture_count(0) {}
   RegExpTree* tree;
   RegExpNode* node;
   bool simple;
   bool contains_anchor;
+  Array& capture_name_map;
   String& error;
   intptr_t capture_count;
 };

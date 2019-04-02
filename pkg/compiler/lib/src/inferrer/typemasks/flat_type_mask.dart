@@ -265,8 +265,6 @@ class FlatTypeMask implements TypeMask {
     return false;
   }
 
-  /// Returns the [Entity] if this type represents a single class, otherwise
-  /// returns `null`.  This method is conservative.
   @override
   ClassEntity singleClass(JClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
@@ -283,7 +281,6 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  /// Returns whether or not this type mask contains all types.
   @override
   bool containsAll(JClosedWorld closedWorld) {
     if (isEmptyOrNull || isExact) return false;
@@ -544,9 +541,6 @@ class FlatTypeMask implements TypeMask {
         : new TypeMask.nonNullEmpty();
   }
 
-  /// Returns whether [element] is a potential target when being
-  /// invoked on this type mask. [selector] is used to ensure library
-  /// privacy is taken into account.
   @override
   bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
     CommonElements commonElements = closedWorld.commonElements;

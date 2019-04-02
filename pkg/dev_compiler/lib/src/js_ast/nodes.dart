@@ -1189,27 +1189,6 @@ class This extends Expression {
   This _clone() => This();
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
-
-  static bool foundIn(Node node) {
-    var finder = _ThisFinder._instance;
-    finder.found = false;
-    node.accept(finder);
-    return finder.found;
-  }
-}
-
-class _ThisFinder extends BaseVisitor<void> {
-  bool found = false;
-
-  static final _instance = _ThisFinder();
-
-  visitThis(This node) {
-    found = true;
-  }
-
-  visitNode(Node node) {
-    if (!found) super.visitNode(node);
-  }
 }
 
 // `super` is more restricted in the ES6 spec, but for simplicity we accept

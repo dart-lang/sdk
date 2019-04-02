@@ -136,6 +136,14 @@ class BaseFlowGraphBuilder {
   Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
 
+  Fragment LoadUntagged(intptr_t offset);
+  Fragment StoreUntagged(intptr_t offset);
+  Fragment ConvertUntaggedToIntptr();
+  Fragment ConvertIntptrToUntagged();
+  Fragment UnboxSmiToIntptr();
+
+  Fragment AddIntptrIntegers();
+
   void SetTempIndex(Definition* definition);
 
   Fragment LoadLocal(LocalVariable* variable);
@@ -219,6 +227,7 @@ class BaseFlowGraphBuilder {
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(TokenPosition position);
   Fragment CheckStackOverflow(TokenPosition position, intptr_t loop_depth);
+  Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 

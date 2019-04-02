@@ -726,15 +726,18 @@ class ProcessedSample : public ZoneAllocated {
     first_frame_executing_ = first_frame_executing;
   }
 
-  ProfileTrieNode* timeline_trie() const { return timeline_trie_; }
-  void set_timeline_trie(ProfileTrieNode* trie) {
-    ASSERT(timeline_trie_ == NULL);
-    timeline_trie_ = trie;
-  }
-
   ProfileTrieNode* timeline_code_trie() const { return timeline_code_trie_; }
   void set_timeline_code_trie(ProfileTrieNode* trie) {
+    ASSERT(timeline_code_trie_ == NULL);
     timeline_code_trie_ = trie;
+  }
+
+  ProfileTrieNode* timeline_function_trie() const {
+    return timeline_function_trie_;
+  }
+  void set_timeline_function_trie(ProfileTrieNode* trie) {
+    ASSERT(timeline_function_trie_ == NULL);
+    timeline_function_trie_ = trie;
   }
 
  private:
@@ -757,8 +760,8 @@ class ProcessedSample : public ZoneAllocated {
   bool first_frame_executing_;
   uword native_allocation_address_;
   uintptr_t native_allocation_size_bytes_;
-  ProfileTrieNode* timeline_trie_;
   ProfileTrieNode* timeline_code_trie_;
+  ProfileTrieNode* timeline_function_trie_;
 
   friend class SampleBuffer;
   DISALLOW_COPY_AND_ASSIGN(ProcessedSample);

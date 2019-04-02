@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error*/
-
 class A {}
 
 class B extends A {}
@@ -23,10 +21,10 @@ class D extends C {
 }
 
 class E extends C {
-  void f1(B /*@error=OverrideTypeMismatchParameter*/ x) {}
-  void f2([B /*@error=OverrideTypeMismatchParameter*/ x]) {}
-  void f3({B /*@error=OverrideTypeMismatchParameter*/ x}) {}
-  Object /*@error=OverrideTypeMismatchReturnType*/ f4() {}
+  void f1(B x) {}
+  void f2([B x]) {}
+  void f3({B x}) {}
+  Object f4() {}
 }
 
 main() {}

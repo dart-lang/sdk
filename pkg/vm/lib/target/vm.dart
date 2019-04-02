@@ -11,7 +11,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
-import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 import 'package:kernel/vm/constants_native_effects.dart'

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -189,6 +189,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       classDeclaration_abstractKeyword: _getToken(node.abstractKeyword),
       classDeclaration_classKeyword: _getToken(node.classKeyword),
       classDeclaration_extendsClause: node.extendsClause?.accept(this),
+      classDeclaration_nativeClause: node.nativeClause?.accept(this),
       classDeclaration_withClause: node.withClause?.accept(this),
     );
     _storeClassOrMixinDeclaration(builder, node);
@@ -280,6 +281,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       constructorDeclaration_separator: _getToken(node.separator),
     );
     _storeClassMember(builder, node);
+    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -331,12 +333,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitDefaultFormalParameter(DefaultFormalParameter node) {
-    return LinkedNodeBuilder.defaultFormalParameter(
+    var builder = LinkedNodeBuilder.defaultFormalParameter(
       defaultFormalParameter_defaultValue: node.defaultValue?.accept(this),
       defaultFormalParameter_isNamed: node.isNamed,
       defaultFormalParameter_parameter: node.parameter.accept(this),
       defaultFormalParameter_separator: _getToken(node.separator),
     );
+    _storeCodeOffsetLength(builder, node);
+    return builder;
   }
 
   @override
@@ -347,7 +351,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       doStatement_doKeyword: _getToken(node.doKeyword),
       doStatement_leftParenthesis: _getToken(node.leftParenthesis),
       doStatement_rightParenthesis: _getToken(node.rightParenthesis),
-      doStatement_semicolon: _getToken(node.whileKeyword),
+      doStatement_semicolon: _getToken(node.semicolon),
       doStatement_whileKeyword: _getToken(node.whileKeyword),
     );
   }
@@ -441,6 +445,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
     _variablesDeclaration = LinkedNodeVariablesDeclarationBuilder(
+      isCovariant: node.covariantKeyword != null,
       isStatic: node.isStatic,
     );
 
@@ -532,11 +537,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
-  LinkedNodeBuilder visitForStatement2(ForStatement2 node) {
+  LinkedNodeBuilder visitForStatement(ForStatement node) {
     var builder = LinkedNodeBuilder.forStatement(
       forStatement_body: node.body.accept(this),
     );
-    _storeForMixin(builder, node as ForStatement2Impl);
+    _storeForMixin(builder, node as ForStatementImpl);
     return builder;
   }
 
@@ -687,6 +692,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       indexExpression_element: _getReferenceIndex(node.staticElement),
       indexExpression_index: node.index.accept(this),
       indexExpression_leftBracket: _getToken(node.leftBracket),
+      indexExpression_period: _getToken(node.period),
       indexExpression_rightBracket: _getToken(node.rightBracket),
       indexExpression_target: node.target?.accept(this),
       expression_type: _writeType(node.staticType),
@@ -765,6 +771,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitLibraryDirective(LibraryDirective node) {
     var builder = LinkedNodeBuilder.libraryDirective(
       libraryDirective_name: node.name.accept(this),
+      directive_semicolon: _getToken(node.semicolon),
     );
     _storeDirective(builder, node);
     return builder;
@@ -780,7 +787,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitListLiteral(ListLiteral node) {
     var builder = LinkedNodeBuilder.listLiteral(
-      listLiteral_elements: _writeNodeList(node.elements2),
+      listLiteral_elements: _writeNodeList(node.elements),
       listLiteral_leftBracket: _getToken(node.leftBracket),
       listLiteral_rightBracket: _getToken(node.rightBracket),
     );
@@ -811,6 +818,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       methodDeclaration_typeParameters: node.typeParameters?.accept(this),
     );
     _storeClassMember(builder, node);
+    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -840,6 +848,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return LinkedNodeBuilder.namedExpression(
       namedExpression_expression: node.expression.accept(this),
       namedExpression_name: node.name.accept(this),
+    );
+  }
+
+  @override
+  LinkedNodeBuilder visitNativeClause(NativeClause node) {
+    return LinkedNodeBuilder.nativeClause(
+      nativeClause_nativeKeyword: _getToken(node.nativeKeyword),
+      nativeClause_name: node.name.accept(this),
+    );
+  }
+
+  @override
+  LinkedNodeBuilder visitNativeFunctionBody(NativeFunctionBody node) {
+    return LinkedNodeBuilder.nativeFunctionBody(
+      nativeFunctionBody_nativeKeyword: _getToken(node.nativeKeyword),
+      nativeFunctionBody_semicolon: _getToken(node.semicolon),
+      nativeFunctionBody_stringLiteral: node.stringLiteral?.accept(this),
     );
   }
 
@@ -875,7 +900,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitPartDirective(PartDirective node) {
-    var builder = LinkedNodeBuilder.partDirective();
+    var builder = LinkedNodeBuilder.partDirective(
+      directive_semicolon: _getToken(node.semicolon),
+    );
     _storeUriBasedDirective(builder, node);
     return builder;
   }
@@ -885,7 +912,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.partOfDirective(
       partOfDirective_libraryName: node.libraryName?.accept(this),
       partOfDirective_ofKeyword: _getToken(node.ofKeyword),
-      partOfDirective_semicolon: _getToken(node.semicolon),
+      directive_semicolon: _getToken(node.semicolon),
       partOfDirective_uri: node.uri?.accept(this),
     );
     _storeDirective(builder, node);
@@ -978,7 +1005,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitSetOrMapLiteral(SetOrMapLiteral node) {
     var builder = LinkedNodeBuilder.setOrMapLiteral(
-      setOrMapLiteral_elements: _writeNodeList(node.elements2),
+      setOrMapLiteral_elements: _writeNodeList(node.elements),
       setOrMapLiteral_isMap: node.isMap,
       setOrMapLiteral_isSet: node.isSet,
       setOrMapLiteral_leftBracket: _getToken(node.leftBracket),
@@ -1186,6 +1213,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
         typeParameter_extendsKeyword: _getToken(node.extendsKeyword),
         typeParameter_name: node.name.accept(this));
     _storeDeclaration(builder, node);
+    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -1221,6 +1249,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       variableDeclarationList_variables: _writeNodeList(node.variables),
     );
     _storeAnnotatedNode(builder, node);
+    _storeCodeOffsetLengthVariables(builder, node);
     return builder;
   }
 
@@ -1319,6 +1348,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     _storeNamedCompilationUnitMember(builder, node);
   }
 
+  void _storeCodeOffsetLength(LinkedNodeBuilder builder, AstNode node) {
+    builder.codeOffset = node.offset;
+    builder.codeLength = node.length;
+  }
+
+  void _storeCodeOffsetLengthVariables(
+      LinkedNodeBuilder builder, VariableDeclarationList node) {
+    var builders = builder.variableDeclarationList_variables;
+    for (var i = 0; i < builders.length; ++i) {
+      var variableBuilder = builders[i];
+      var variableNode = node.variables[i];
+      var offset = (i == 0 ? node.parent : variableNode).offset;
+      variableBuilder.codeOffset = offset;
+      variableBuilder.codeLength = variableNode.end - offset;
+    }
+  }
+
   void _storeCombinator(LinkedNodeBuilder builder, Combinator node) {
     builder.combinator_keyword = _getToken(node.keyword);
   }
@@ -1360,8 +1406,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     } else if (node.isOptionalPositional) {
       kind = LinkedNodeFormalParameterKind.optionalPositional;
     }
-
     builder.formalParameter_kind = kind;
+
+    _storeCodeOffsetLength(builder, node);
   }
 
   void _storeForMixin(LinkedNodeBuilder builder, ForMixin node) {
@@ -1405,6 +1452,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   void _storeNamedCompilationUnitMember(
       LinkedNodeBuilder builder, NamedCompilationUnitMember node) {
     _storeCompilationUnitMember(builder, node);
+    _storeCodeOffsetLength(builder, node);
     builder..namedCompilationUnitMember_name = node.name.accept(this);
   }
 
@@ -1415,7 +1463,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..namespaceDirective_combinators = _writeNodeList(node.combinators)
       ..namespaceDirective_configurations = _writeNodeList(node.configurations)
       ..namespaceDirective_selectedUriContent = node.selectedUriContent
-      ..namespaceDirective_semicolon = _getToken(node.semicolon);
+      ..directive_semicolon = _getToken(node.semicolon);
   }
 
   void _storeNormalFormalParameter(

@@ -220,14 +220,26 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
 }
 
 static void EnsureNewOrRemembered(Thread* thread, const Object& result) {
-  // For write barrier elimination, we need to ensure that the allocation ends
-  // up in the new space if Heap::IsGuaranteedNewSpaceAllocation is true for
-  // this size or else the object needs to go into the store buffer.
+  // For generational write barrier elimination, we need to ensure that the
+  // allocation ends up in the new space if Heap::IsGuaranteedNewSpaceAllocation
+  // is true for this size or else the object needs to go into the store buffer.
   NoSafepointScope no_safepoint_scope;
 
   RawObject* object = result.raw();
   if (!object->IsNewObject()) {
     object->AddToRememberedSet(thread);
+  }
+}
+
+static void EnsureNewOrDeferredMarking(Thread* thread, const Object& result) {
+  // For incremental write barrier elimination, we need to ensure that the
+  // allocation ends up in the new space or else the object needs to added
+  // to deferred marking stack so it will be [re]scanned.
+  NoSafepointScope no_safepoint_scope;
+
+  RawObject* object = result.raw();
+  if (object->IsOldObject() && thread->is_marking()) {
+    thread->DeferredMarkingStackAddObject(object);
   }
 }
 
@@ -266,6 +278,8 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
       if (!array.raw()->IsCardRemembered()) {
         EnsureNewOrRemembered(thread, array);
       }
+      EnsureNewOrDeferredMarking(thread, array);
+
       return;
     }
   }
@@ -314,6 +328,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
 
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     EnsureNewOrRemembered(thread, instance);
+    EnsureNewOrDeferredMarking(thread, instance);
   }
 }
 
@@ -425,6 +440,7 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
       AllocateUninitializedContextInstr::WillAllocateNewOrRemembered(
           num_context_variables)) {
     EnsureNewOrRemembered(thread, context);
+    EnsureNewOrDeferredMarking(thread, context);
   }
 }
 
@@ -503,16 +519,22 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
 
 // Resolve 'call' function of receiver.
 // Arg0: receiver (not a closure).
+// Arg1: arguments descriptor
 // Return value: 'call' function'.
-DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 1) {
+DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
   ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  ArgumentsDescriptor args_desc(descriptor);
   ASSERT(!receiver.IsClosure());  // Interpreter tests for closure.
   Class& cls = Class::Handle(zone, receiver.clazz());
   Function& call_function = Function::Handle(zone);
   do {
     call_function = cls.LookupDynamicFunction(Symbols::Call());
     if (!call_function.IsNull()) {
+      if (!call_function.AreValidArguments(args_desc, NULL)) {
+        call_function = Function::null();
+      }
       break;
     }
     cls = cls.SuperClass();
@@ -1698,7 +1720,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
   const Object& result = Object::Handle(                                       \
       zone, DartEntry::InvokeNoSuchMethod(                                     \
                 receiver, target_name, orig_arguments, orig_arguments_desc));  \
-  ThrowIfError(result);                                                    \
+  ThrowIfError(result);                                                        \
   arguments.SetReturn(result);
 
 #define CLOSURIZE(some_function)                                               \
@@ -1797,6 +1819,26 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   arguments.SetReturn(result);
 }
 
+// Invoke appropriate noSuchMethod function.
+// Arg0: receiver
+// Arg1: arguments descriptor array.
+// Arg2: arguments array.
+// Arg3: function name.
+DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
+  ASSERT(FLAG_enable_interpreter);
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const String& original_function_name =
+      String::CheckedHandle(zone, arguments.ArgAt(3));
+
+  const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
+      receiver, original_function_name, orig_arguments, orig_arguments_desc));
+  ThrowIfError(result);
+  arguments.SetReturn(result);
+}
+
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 // The following code is used to stress test
 //  - deoptimization
@@ -1838,7 +1880,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
   }
   if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL) ||
-      FLAG_reload_every_optimized) {
+      FLAG_reload_every) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
@@ -2574,7 +2616,7 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
 
 DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
-  const Error& result = Error::Handle(zone, field.EvaluateInitializer());
+  const Error& result = Error::Handle(zone, field.Initialize());
   ThrowIfError(result);
 }
 

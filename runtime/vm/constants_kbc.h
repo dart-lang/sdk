@@ -411,7 +411,7 @@ namespace dart {
 //               instruction because PC is incremented immediately after fetch
 //               and before decoding.
 //
-#define KERNEL_BYTECODES_LIST(V)                                               \
+#define PUBLIC_KERNEL_BYTECODES_LIST(V)                                        \
   V(Trap,                                  0, ___, ___, ___)                   \
   V(Entry,                                 D, num, ___, ___)                   \
   V(EntryFixed,                          A_D, num, num, ___)                   \
@@ -484,7 +484,17 @@ namespace dart {
   V(CompareIntLt,                          0, ___, ___, ___)                   \
   V(CompareIntGe,                          0, ___, ___, ___)                   \
   V(CompareIntLe,                          0, ___, ___, ___)                   \
-  V(DirectCall,                          A_D, num, num, ___)
+  V(DirectCall,                          A_D, num, num, ___)                   \
+
+  // These bytecodes are only generated within the VM. Reassinging their
+  // opcodes is not a breaking change.
+#define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \
+  V(VMInternal_ImplicitGetter,             0, ___, ___, ___)                   \
+  V(VMInternal_ImplicitSetter,             0, ___, ___, ___)                   \
+
+#define KERNEL_BYTECODES_LIST(V)                                               \
+  PUBLIC_KERNEL_BYTECODES_LIST(V)                                              \
+  INTERNAL_KERNEL_BYTECODES_LIST(V)
 
 // clang-format on
 
@@ -492,11 +502,14 @@ typedef uint32_t KBCInstr;
 
 class KernelBytecode {
  public:
+  // Magic value of bytecode files.
+  static const intptr_t kMagicValue = 0x44424332;  // 'DBC2'
   // Minimum bytecode format version supported by VM.
   static const intptr_t kMinSupportedBytecodeFormatVersion = 1;
   // Maximum bytecode format version supported by VM.
-  // Should match futureBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart.
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 2;
+  // The range of supported versions should include version produced by bytecode
+  // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 3;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,

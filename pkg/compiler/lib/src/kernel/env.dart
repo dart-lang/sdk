@@ -253,13 +253,13 @@ abstract class KClassEnv {
   MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false});
 
-  /// Calls [f] for each member of the class.
+  /// Calls [f] for each member of [cls].
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
 
-  /// Return the [ConstructorEntity] for the constructor [name] in the class.
+  /// Return the [ConstructorEntity] for the constructor [name] in [cls].
   ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name);
 
-  /// Calls [f] for each constructor of the class.
+  /// Calls [f] for each constructor of [cls].
   void forEachConstructor(
       IrToElementMap elementMap, void f(ConstructorEntity constructor));
 
@@ -506,9 +506,6 @@ class KClassEnvImpl implements KClassEnv {
     _members = members;
   }
 
-  /// Return the [MemberEntity] for the member [name] in [cls]. If [setter] is
-  /// `true`, the setter or assignable field corresponding to [name] is
-  /// returned.
   @override
   MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false}) {
@@ -517,7 +514,6 @@ class KClassEnvImpl implements KClassEnv {
     return member != null ? elementMap.getMember(member) : null;
   }
 
-  /// Calls [f] for each member of [cls].
   @override
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
     _ensureMaps(elementMap);
@@ -526,7 +522,6 @@ class KClassEnvImpl implements KClassEnv {
     });
   }
 
-  /// Return the [ConstructorEntity] for the constructor [name] in [cls].
   @override
   ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name) {
     _ensureMaps(elementMap);
@@ -534,7 +529,6 @@ class KClassEnvImpl implements KClassEnv {
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
 
-  /// Calls [f] for each constructor of [cls].
   @override
   void forEachConstructor(
       IrToElementMap elementMap, void f(ConstructorEntity constructor)) {

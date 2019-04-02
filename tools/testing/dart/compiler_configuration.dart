@@ -81,7 +81,8 @@ abstract class CompilerConfiguration {
       case Compiler.dartk:
         if (configuration.architecture == Architecture.simdbc64 ||
             configuration.architecture == Architecture.simarm ||
-            configuration.architecture == Architecture.simarm64) {
+            configuration.architecture == Architecture.simarm64 ||
+            configuration.system == System.android) {
           return new VMKernelCompilerConfiguration(configuration);
         }
         return new NoneCompilerConfiguration(configuration);
@@ -143,6 +144,7 @@ abstract class CompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -156,6 +158,7 @@ abstract class CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [artifact.filename];
@@ -174,24 +177,14 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (previewDart2) {
-      if (_isDebug) {
-        // Temporarily disable background compilation to avoid flaky crashes
-        // (see http://dartbug.com/30016 for details).
-        args.add('--no-background-compilation');
-      }
-      if (_isChecked) {
-        args.add('--enable_asserts');
-      }
-    } else {
-      args.add('--no-preview-dart-2');
-      if (_isChecked) {
-        args.add('--enable_asserts');
-        args.add('--enable_type_checks');
-      }
+    if (_isDebug) {
+      // Temporarily disable background compilation to avoid flaky crashes
+      // (see http://dartbug.com/30016 for details).
+      args.add('--no-background-compilation');
     }
     if (_useEnableAsserts) {
       args.add('--enable_asserts');
@@ -205,7 +198,8 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments);
+      ..addAll(originalArguments)
+      ..addAll(dartOptions);
   }
 }
 
@@ -242,6 +236,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -256,10 +251,11 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (_isChecked || _useEnableAsserts) {
+    if (_useEnableAsserts) {
       args.add('--enable_asserts');
     }
     if (_configuration.hotReload) {
@@ -267,11 +263,18 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     } else if (_configuration.hotReloadRollback) {
       args.add('--hot-reload-rollback-test-mode');
     }
+    var filename = artifact.filename;
+    if (runtimeConfiguration is DartkAdbRuntimeConfiguration) {
+      // On Android the Dill file will be pushed to a different directory on the
+      // device. Use that one instead.
+      filename = "${DartkAdbRuntimeConfiguration.DeviceTestDir}/out.dill";
+    }
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
+      ..addAll(_replaceDartFiles(originalArguments, filename))
+      ..addAll(dartOptions);
   }
 }
 
@@ -355,7 +358,12 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dartOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
     return <String>[]
@@ -370,6 +378,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     CompilerConfiguration lastCompilerConfiguration =
@@ -379,6 +388,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
         info,
         vmOptions,
         sharedOptions,
+        dartOptions,
         originalArguments,
         artifact);
   }
@@ -454,6 +464,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -479,6 +490,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     Uri sdk = _useSdk
@@ -505,6 +517,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -621,7 +634,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   int get timeoutMultiplier {
     var multiplier = 2;
     if (_isDebug) multiplier *= 4;
-    if (_isChecked) multiplier *= 2;
+    if (_useEnableAsserts) multiplier *= 2;
     return multiplier;
   }
 
@@ -629,15 +642,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
 
-    if (previewDart2) {
-      commands.add(computeCompileToKernelCommand(
-          tempDir, arguments, environmentOverrides));
-    }
+    commands.add(computeCompileToKernelCommand(
+        tempDir, arguments, environmentOverrides));
 
     commands.add(
         computeDartBootstrapCommand(tempDir, arguments, environmentOverrides));
 
-    if (previewDart2 && !_configuration.keepGeneratedFiles) {
+    if (!_configuration.keepGeneratedFiles) {
       commands.add(computeRemoveKernelFileCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -709,12 +720,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--obfuscate');
     }
 
-    if (previewDart2) {
-      args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
-    } else {
-      args.add('--no-preview-dart-2');
-      args.addAll(arguments);
-    }
+    args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
 
     return Command.compilation('precompiler', tempDir, bootstrapDependencies(),
         exec, args, environmentOverrides,
@@ -812,13 +818,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> originalArguments) {
     List<String> args = [];
-    if (_isChecked) {
+    if (_useEnableAsserts) {
       args.add('--enable_asserts');
-      args.add('--enable_type_checks');
     }
     return args
       ..addAll(filterVmOptions(vmOptions))
@@ -832,20 +838,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (previewDart2) {
-      if (_isChecked) {
-        args.add('--enable_asserts');
-      }
-    } else {
-      args.add('--no-preview-dart-2');
-      if (_isChecked) {
-        args.add('--enable_asserts');
-        args.add('--enable_type_checks');
-      }
-    }
     if (_useEnableAsserts) {
       args.add('--enable_asserts');
     }
@@ -862,7 +858,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments);
+      ..addAll(originalArguments)
+      ..addAll(dartOptions);
   }
 }
 
@@ -876,7 +873,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier {
     var multiplier = 1;
     if (_isDebug) multiplier *= 2;
-    if (_isChecked) multiplier *= 2;
+    if (_useEnableAsserts) multiplier *= 2;
     return multiplier;
   }
 
@@ -894,9 +891,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var exec = "${_configuration.buildDirectory}/dart";
     var snapshot = "$tempDir/out.jitsnapshot";
     var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
-    if (!previewDart2) {
-      args.add("--no-preview-dart-2");
-    }
     args.addAll(arguments);
 
     return Command.compilation('app_jit', tempDir, bootstrapDependencies(),
@@ -905,17 +899,22 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dartOptions,
+      List<String> dart2jsOptions,
+      List<String> ddcOptions,
+      List<String> originalArguments) {
     var args = <String>[];
-    if (_isChecked) {
+    if (_useEnableAsserts) {
       args.add('--enable_asserts');
-      args.add('--enable_type_checks');
     }
     return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments);
+      ..addAll(originalArguments)
+      ..addAll(dartOptions);
   }
 
   List<String> computeRuntimeArguments(
@@ -923,29 +922,19 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (previewDart2) {
-      if (_isChecked) {
-        args.add('--enable_asserts');
-      }
-    } else {
-      args.add("--no-preview-dart-2");
-      if (_isChecked) {
-        args.add('--enable_asserts');
-        args.add('--enable_type_checks');
-      }
-    }
     if (_useEnableAsserts) {
       args.add('--enable_asserts');
     }
-    args
+    return args
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(_configuration.sharedOptions)
-      ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
-    return args;
+      ..addAll(_replaceDartFiles(originalArguments, artifact.filename))
+      ..addAll(dartOptions);
   }
 }
 
@@ -998,6 +987,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return <String>[];
@@ -1038,6 +1028,7 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return <String>[];
@@ -1066,6 +1057,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return <String>[];
@@ -1081,8 +1073,6 @@ abstract class VMKernelCompilerMixin {
   bool get _useSdk;
 
   bool get _isAot;
-
-  bool get _isChecked;
 
   bool get _useEnableAsserts;
 
@@ -1124,7 +1114,7 @@ abstract class VMKernelCompilerMixin {
         !arguments.any((String arg) => noCausalAsyncStacksRegExp.hasMatch(arg));
     args.add('-Ddart.developer.causal_async_stacks=$causalAsyncStacks');
 
-    if (_isChecked || _useEnableAsserts) {
+    if (_useEnableAsserts) {
       args.add('--enable_asserts');
     }
 
@@ -1215,6 +1205,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
@@ -1239,6 +1230,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       TestInformation info,
       List<String> vmOptions,
       List<String> sharedOptions,
+      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     if (runtimeConfiguration is! NoneRuntimeConfiguration) {

@@ -6,12 +6,12 @@
 library test;
 
 class A {
-  int operator +(/*@topType=dynamic*/ other) => 1;
-  double operator -(/*@topType=dynamic*/ other) => 2.0;
+  int operator +(other) => 1;
+  double operator -(other) => 2.0;
 }
 
-var /*@topType=int*/ v_add = new A() /*@target=A::+*/ + 'foo';
-var /*@topType=double*/ v_minus = new A() /*@target=A::-*/ - 'bar';
+var v_add = new A() /*@target=A::+*/ + 'foo';
+var v_minus = new A() /*@target=A::-*/ - 'bar';
 
 main() {
   v_add;

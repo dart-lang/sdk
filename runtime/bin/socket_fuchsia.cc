@@ -11,6 +11,7 @@
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
+#include "bin/log.h"
 #include "platform/signal_blocker.h"
 
 // #define SOCKET_LOG_INFO 1
@@ -19,6 +20,7 @@
 // define SOCKET_LOG_ERROR to get log messages only for errors.
 // define SOCKET_LOG_INFO to get log messages for both information and errors.
 #if defined(SOCKET_LOG_INFO) || defined(SOCKET_LOG_ERROR)
+
 #define LOG_ERR(msg, ...)                                                      \
   {                                                                            \
     int err = errno;                                                           \
@@ -204,7 +206,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(clientaddr);
-  LOG_INFO("ServerSocket::Accept: calling accept(%ld)\n", listen_fd);
+  LOG_INFO("ServerSocket::Accept: calling accept(%ld)\n", fd);
   socket = listen_handle->Accept(&clientaddr, &addrlen);
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
@@ -214,12 +216,11 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       ASSERT(kTemporaryFailure != -1);
       socket = kTemporaryFailure;
     } else {
-      LOG_ERR("ServerSocket::Accept: accept(%ld) failed\n", listen_fd);
+      LOG_ERR("ServerSocket::Accept: accept(%ld) failed\n", fd);
     }
   } else {
     IOHandle* io_handle = new IOHandle(socket);
-    LOG_INFO("ServerSocket::Accept: accept(%ld) -> socket %ld\n", listen_fd,
-             socket);
+    LOG_INFO("ServerSocket::Accept: accept(%ld) -> socket %ld\n", fd, socket);
     if (!FDUtils::SetCloseOnExec(socket)) {
       LOG_ERR("FDUtils::SetCloseOnExec(%ld) failed\n", socket);
       FDUtils::SaveErrorAndClose(socket);

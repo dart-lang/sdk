@@ -130,7 +130,7 @@ Fragment FlowGraphBuilder::PopContext() {
 Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   // TODO(27590): We could use `active_class_->IsGeneric()`.
   Fragment instructions;
-  if (scopes_->type_arguments_variable != NULL) {
+  if (scopes_ != nullptr && scopes_->type_arguments_variable != nullptr) {
 #ifdef DEBUG
     Function& function =
         Function::Handle(Z, parsed_function_->function().raw());
@@ -321,13 +321,8 @@ Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
 
 Fragment FlowGraphBuilder::CheckStackOverflowInPrologue(
     TokenPosition position) {
-  if (IsInlining()) {
-    // If we are inlining don't actually attach the stack check.  We must still
-    // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow(position, loop_depth_);
-    return Fragment();
-  }
-  return CheckStackOverflow(position, loop_depth_);
+  ASSERT(loop_depth_ == 0);
+  return BaseFlowGraphBuilder::CheckStackOverflowInPrologue(position);
 }
 
 Fragment FlowGraphBuilder::CloneContext(
@@ -748,6 +743,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   bool omit_result_type_check = true;
   switch (kind) {
+    // On simdbc we fall back to natives.
+#if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
       break;
@@ -807,6 +804,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += BuildTypedDataViewFactoryConstructor(
           function, kTypedDataFloat64x2ArrayViewCid);
       break;
+#endif  // !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kObjectEquals:
       body += LoadLocal(parsed_function_->receiver_var());
       body += LoadLocal(first_parameter);
@@ -830,14 +828,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
       body += LoadLocal(parsed_function_->receiver_var());
       body += LoadNativeField(Slot::Array_length());
       break;
-    case MethodRecognizer::kTypedDataLength:
-      body += LoadLocal(parsed_function_->receiver_var());
-      body += LoadNativeField(Slot::TypedData_length());
-      break;
+    case MethodRecognizer::kTypedListLength:
+    case MethodRecognizer::kTypedListViewLength:
     case MethodRecognizer::kByteDataViewLength:
-    case MethodRecognizer::kTypedDataViewLength:
       body += LoadLocal(parsed_function_->receiver_var());
-      body += LoadNativeField(Slot::TypedDataView_length());
+      body += LoadNativeField(Slot::TypedDataBase_length());
       break;
     case MethodRecognizer::kByteDataViewOffsetInBytes:
     case MethodRecognizer::kTypedDataViewOffsetInBytes:
@@ -1032,7 +1027,21 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
 
   body += LoadLocal(view_object);
   body += LoadLocal(length);
-  body += StoreInstanceField(token_pos, Slot::TypedDataView_length());
+  body += StoreInstanceField(token_pos, Slot::TypedDataBase_length());
+
+  // Update the inner pointer.
+  //
+  // WARNING: Notice that we assume here no GC happens between those 4
+  // instructions!
+  body += LoadLocal(view_object);
+  body += LoadLocal(typed_data);
+  body += LoadUntagged(TypedDataBase::data_field_offset());
+  body += ConvertUntaggedToIntptr();
+  body += LoadLocal(offset_in_bytes);
+  body += UnboxSmiToIntptr();
+  body += AddIntptrIntegers();
+  body += ConvertIntptrToUntagged();
+  body += StoreUntagged(TypedDataView::data_field_offset());
 
   return body;
 }
@@ -2419,6 +2428,18 @@ Fragment FlowGraphBuilder::Box(Representation from) {
   return Fragment(box);
 }
 
+Fragment FlowGraphBuilder::FfiUnboxedExtend(Representation representation,
+                                            const AbstractType& ffi_type) {
+  const intptr_t width =
+      compiler::ffi::ElementSizeInBytes(ffi_type.type_class_id());
+  if (width >= compiler::ffi::kMinimumArgumentWidth) return {};
+
+  auto* extend =
+      new (Z) UnboxedWidthExtenderInstr(Pop(), representation, width);
+  Push(extend);
+  return Fragment(extend);
+}
+
 Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   Fragment test;
   TargetEntryInstr* null_entry;
@@ -2473,7 +2494,8 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-#if !defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64) &&                \
+    !defined(TARGET_ARCH_IA32)
   UNREACHABLE();
 #else
   graph_entry_ =
@@ -2513,9 +2535,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
 
     if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
       body += LoadAddressFromFfiPointer();
-      body += UnboxTruncate(kUnboxedIntPtr);
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
     } else {
-      body += UnboxTruncate(arg_reps[pos - 1]);
+      Representation rep = arg_reps[pos - 1];
+      body += UnboxTruncate(rep);
+      body += FfiUnboxedExtend(rep, ffi_type);
     }
   }
 
@@ -2527,18 +2551,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
       thread_, *MakeImplicitClosureScope(
                     Z, Class::Handle(I->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
-  body += UnboxTruncate(kUnboxedIntPtr);
+  body += UnboxTruncate(kUnboxedFfiIntPtr);
   body += FfiCall(signature, arg_reps, arg_locs);
 
   ffi_type = signature.result_type();
   if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
-    body += Box(kUnboxedIntPtr);
+    body += Box(kUnboxedFfiIntPtr);
     body += FfiPointerFromAddress(Type::Cast(ffi_type));
   } else if (compiler::ffi::NativeTypeIsVoid(ffi_type)) {
     body += Drop();
     body += NullConstant();
   } else {
-    body += Box(compiler::ffi::ResultRepresentation(signature));
+    Representation rep = compiler::ffi::ResultRepresentation(signature);
+    body += FfiUnboxedExtend(rep, ffi_type);
+    body += Box(rep);
   }
 
   body += Return(TokenPosition::kNoSource);

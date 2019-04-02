@@ -2668,17 +2668,15 @@ main() {
 
   test_invalid_const_as() async {
     addTestFile(r'''
-class A {
-  final int a;
-  const A(num b) : a = b as int;
-}
+const num a = 1.2;
+const int b = a as int;
 ''');
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var bRef = findNode.simple('b as int');
-    assertElement(bRef, findElement.parameter('b'));
-    assertType(bRef, 'num');
+    var aRef = findNode.simple('a as int');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'num');
 
     assertTypeName(findNode.typeName('int;'), intElement, 'int');
   }
@@ -4940,7 +4938,7 @@ class C {
     BlockFunctionBody fooBody = fooDeclaration.body;
     List<Statement> statements = fooBody.block.statements;
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
@@ -4975,7 +4973,7 @@ void main() {
     LocalVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.numType);
 
-    ForStatement2 forEachStatement = statements[1];
+    ForStatement forEachStatement = statements[1];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
@@ -5010,7 +5008,7 @@ num v;
     TopLevelVariableElement vElement = vNode.declaredElement;
     expect(vElement.type, typeProvider.numType);
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithIdentifier;
@@ -5039,7 +5037,7 @@ void main() {
 
     List<Statement> statements = _getMainStatements(result);
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithDeclaration;
@@ -5071,7 +5069,7 @@ void main() {
 
     List<Statement> statements = _getMainStatements(result);
 
-    ForStatement2 forEachStatement = statements[0];
+    ForStatement forEachStatement = statements[0];
     Block forBlock = forEachStatement.body;
     var forEachParts =
         forEachStatement.forLoopParts as ForEachPartsWithDeclaration;

@@ -92,7 +92,7 @@ testSameHash(String tmpDirPath) {
 
   // actions to take
   runAddHash() {
-    var args = packageOptions();
+    var args = <String>[]..addAll(Platform.executableArguments);
     args.addAll([
       path.join(dartRootPath, "tools", "addlatexhash.dart"),
       tmpPar8timesPath,

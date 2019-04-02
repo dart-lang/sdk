@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'strong_test_helper.dart';
@@ -9,6 +10,7 @@ import 'strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckerTest);
+    defineReflectiveTests(CheckerWithUiAsCodeTest);
   });
 }
 
@@ -4509,5 +4511,633 @@ const Object checked = const _Checked();
 class _Virtual { const _Virtual(); }
 const Object virtual = const _Virtual();
     ''', name: '/meta.dart');
+  }
+}
+
+@reflectiveTest
+class CheckerWithUiAsCodeTest extends AbstractStrongTest {
+  @override
+  List<String> get enabledExperiments =>
+      [EnableString.spread_collections, EnableString.control_flow_collections];
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  test_list_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>[if (/*error:NON_BOOL_CONDITION*/c) 0];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_dynamicCondition_implicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>[if (/*info:DYNAMIC_CAST*/c) 0];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_falseBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) 0 else /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_falseBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) 0 else /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_falseBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) 0 else /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_falseBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>[if (/*error:NON_BOOL_CONDITION*/c) 0];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_objectCondition_implicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>[if (/*info:DOWN_CAST_IMPLICIT*/c) 0];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_trueBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_trueBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_trueBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_trueBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) /*info:DOWN_CAST_IMPLICIT*/someNum];
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int, int>{if (/*error:NON_BOOL_CONDITION*/c) 0: 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_dynamicCondition_implicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int, int>{if (/*info:DYNAMIC_CAST*/c) 0: 0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_dynamicKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/dyn:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_dynamicKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else /*info:DYNAMIC_CAST*/dyn:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_dynamicValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_dynamicValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_supertypeKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/someNum:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_supertypeKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else /*info:DOWN_CAST_IMPLICIT*/someNum:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_supertypeValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_supertypeValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*info:DOWN_CAST_IMPLICIT*/someNum};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int, int>{if (/*error:NON_BOOL_CONDITION*/c) 0: 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_objectCondition_implicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int, int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0: 0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_dynamicKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/dyn:0 else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_dynamicKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) /*info:DYNAMIC_CAST*/dyn:0 else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_dynamicValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/dyn else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_dynamicValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:/*info:DYNAMIC_CAST*/dyn else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_supertypeKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/someNum:0 else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_supertypeKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) /*info:DOWN_CAST_IMPLICIT*/someNum:0 else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_supertypeValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/someNum else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_supertypeValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:/*info:DOWN_CAST_IMPLICIT*/someNum else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>{if (/*error:NON_BOOL_CONDITION*/c) 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_dynamicCondition_implicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>{if (/*info:DYNAMIC_CAST*/c) 0};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_falseBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) 0 else /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_falseBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) 0 else /*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_falseBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) 0 else /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_falseBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>{if (/*error:NON_BOOL_CONDITION*/c) 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_objectCondition_implicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_trueBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_trueBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_trueBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_trueBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) /*info:DOWN_CAST_IMPLICIT*/someNum};
+}
+''');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInList_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    addFile(r'''
+dynamic dyn;
+void main() {
+  [.../*error:INVALID_ASSIGNMENT*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInList_implicitCasts() async {
+    addFile(r'''
+dynamic dyn;
+void main() {
+  [.../*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInMap_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic, dynamic>{.../*error:INVALID_ASSIGNMENT*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInMap_implicitCasts() async {
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic, dynamic>{.../*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInSet_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic>{.../*error:INVALID_ASSIGNMENT*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInSet_implicitCasts() async {
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic>{.../*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  test_spread_listElement_disableImplicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>[.../*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/i];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_listElement_implicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>[.../*info:DOWN_CAST_IMPLICIT*/i];
+}
+''');
+    await check();
+  }
+
+  test_spread_mapKey_disableImplicitCasts() async {
+    addFile(r'''
+Map<num, dynamic> map;
+void main() {
+  <int, dynamic>{1: 2, .../*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/map};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_mapKey_implicitCasts() async {
+    addFile(r'''
+Map<num, dynamic> map;
+void main() {
+  <int, dynamic>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map};
+}
+''');
+    await check();
+  }
+
+  test_spread_mapValue_disableImplicitCasts() async {
+    addFile(r'''
+Map<dynamic, num> map;
+void main() {
+  <dynamic, int>{1: 2, .../*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/map};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_mapValue_implicitCasts() async {
+    addFile(r'''
+Map<dynamic, num> map;
+void main() {
+  <dynamic, int>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map};
+}
+''');
+    await check();
+  }
+
+  test_spread_setElement_disableImplicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>{.../*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/i};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_setElement_implicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>{.../*info:DOWN_CAST_IMPLICIT*/i};
+}
+''');
+    await check();
   }
 }

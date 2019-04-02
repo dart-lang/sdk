@@ -136,7 +136,7 @@ template("build_gen_snapshot") {
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
-    deps = extra_deps
+    deps = [ ":generate_abi_version_cc_file" ] + extra_deps
 
     sources = [
       "address_sanitizer.cc",
@@ -152,6 +152,7 @@ template("build_gen_snapshot") {
       "snapshot_utils.h",
 
       # Very limited native resolver provided.
+      "$target_gen_dir/abi_version.cc",
       "builtin_common.cc",
       "builtin_gen_snapshot.cc",
       "dfe.cc",
@@ -647,8 +648,10 @@ source_set("dart_snapshot_cc") {
 source_set("dart_kernel_platform_cc") {
   visibility = [ ":*" ]
   deps = [
+    ":gen_kernel_bytecode_dill",
     ":kernel_service_dill_linkable",
     ":platform_strong_dill_linkable",
+    "../../utils/kernel-service:kernel_service_bytecode_dill",
   ]
   sources = get_target_outputs(":kernel_service_dill_linkable") +
             get_target_outputs(":platform_strong_dill_linkable")
@@ -878,10 +881,6 @@ action("generate_snapshot_test_dat_file") {
 }
 
 prebuilt_dart_action("gen_kernel_bytecode_dill") {
-  if (target_os == "fuchsia") {
-    testonly = true
-  }
-
   deps = [
     "../vm:vm_platform",
   ]
@@ -935,6 +934,7 @@ executable("run_vm_tests") {
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",
+    ":generate_abi_version_cc_file",
     ":generate_snapshot_test_dat_file",
     ":libdart_builtin",
     ":standalone_dart_io",
@@ -963,6 +963,7 @@ executable("run_vm_tests") {
   heap_tests = rebase_path(heap_sources_tests, ".", "../vm/heap")
 
   sources = [
+              "$target_gen_dir/abi_version.cc",
               "builtin.cc",
               "dfe.cc",
               "dfe.h",

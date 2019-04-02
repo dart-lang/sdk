@@ -100,6 +100,13 @@ class _Collector {
       return;
     }
 
+    if (node is AdjacentStrings) {
+      for (var string in node.strings) {
+        collect(string);
+      }
+      return;
+    }
+
     if (node is StringInterpolation) {
       for (var component in node.elements) {
         if (component is InterpolationExpression) {
@@ -131,6 +138,10 @@ class _Collector {
 
     if (node is MethodInvocation) {
       return _methodInvocation(node);
+    }
+
+    if (node is NamedExpression) {
+      return collect(node.expression);
     }
 
     if (node is BinaryExpression) {
@@ -214,10 +225,22 @@ class _Collector {
         return;
       }
       if (element is MethodElement && element.isStatic) {
-        if (_isConstantTypeName(node.prefix)) {
+        if (!_isConstantTypeName(node.prefix)) {
+          nodes.add(node);
+        }
+        return;
+      }
+    }
+
+    if (element is ParameterElement) {
+      var enclosing = element.enclosingElement;
+      if (enclosing is ConstructorElement && enclosing.isConst) {
+        if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
           return;
         }
       }
+      nodes.add(node);
+      return;
     }
 
     if (element is VariableElement) {
@@ -237,6 +260,9 @@ class _Collector {
       return;
     }
     if (element is FunctionElement) {
+      return;
+    }
+    if (element is MethodElement && element.isStatic) {
       return;
     }
     nodes.add(node);
@@ -296,7 +322,7 @@ class _Collector {
         }
       }
 
-      for (var element in node.elements2) {
+      for (var element in node.elements) {
         collect(element);
       }
       return;
@@ -322,7 +348,7 @@ class _Collector {
         }
       }
 
-      for (var element in node.elements2) {
+      for (var element in node.elements) {
         collect(element);
       }
     }

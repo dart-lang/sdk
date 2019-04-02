@@ -18,7 +18,10 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('kdata'));
     await checkTests(dataDir, const KAllocatorAnalysisDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+        args: args,
+        testOmit: false,
+        testFrontend: true,
+        testCFEConstants: true);
   });
 }
 

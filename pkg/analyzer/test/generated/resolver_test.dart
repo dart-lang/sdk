@@ -570,14 +570,11 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
 }
 
 /**
- * The class `StrictModeTest` contains tests to ensure that the correct errors and warnings
- * are reported when the analysis engine is run in strict mode.
+ * The class `StrictModeTest` contains tests to ensure that the correct errors
+ * and warnings are reported when the analysis engine is run in strict mode.
  */
 @reflectiveTest
 class StrictModeTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -731,9 +728,6 @@ int f() {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_assignment_null() async {
     String code = r'''
 main() {

@@ -1066,6 +1066,10 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
+  __ StoreToOffset(kWord, value, obj, instr->offset_from_tagged());
+}
+
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -1184,9 +1188,7 @@ static bool CanBeImmediateIndex(Value* value,
   const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
   const intptr_t scale = Instance::ElementSizeFor(cid);
   const intptr_t base_offset =
-      (is_external || RawObject::IsTypedDataClassId(cid)
-           ? 0
-           : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   const int64_t offset = index * scale + base_offset;
   if (!Utils::IsAbsoluteUint(12, offset)) {
     return false;
@@ -3089,7 +3091,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           : object_store->stack_overflow_stub_without_fpu_regs_stub());
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      using_shared_stub && !stub.IsReadOnly()) {
+      using_shared_stub && !stub.InVMIsolateHeap()) {
     compiler->AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall(LS);
 
@@ -3718,10 +3720,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(IP, right);
       __ IntegerDivide(result, temp, IP, dtemp, DTMP);
 
-      // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-      // case we cannot tag the result.
-      __ CompareImmediate(result, 0x40000000);
-      __ b(deopt, EQ);
+      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+        // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+        // case we cannot tag the result.
+        __ CompareImmediate(result, 0x40000000);
+        __ b(deopt, EQ);
+      }
       __ SmiTag(result);
       break;
     }
@@ -4084,6 +4088,8 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   if (representation() == kUnboxedInt64) {
     summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                        Location::RequiresRegister()));
+  } else if (representation() == kUnboxedInt32) {
+    summary->set_out(0, Location::RequiresRegister());
   } else {
     summary->set_out(0, Location::RequiresFpuRegister());
   }
@@ -4154,6 +4160,15 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
+}
+
+void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  Label done;
+  __ SmiUntag(result, value, &done);
+  __ LoadFieldFromOffset(kWord, result, value, Mint::value_offset());
+  __ Bind(&done);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
@@ -5796,7 +5811,7 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                     : object_store->null_error_stub_without_fpu_regs_stub());
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      using_shared_stub && !stub.IsReadOnly()) {
+      using_shared_stub && !stub.InVMIsolateHeap()) {
     compiler->AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall(EQUAL);
 
@@ -6513,32 +6528,48 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ mvn(out, Operand(left));
 }
 
-LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
-                                                               bool opt) const {
+LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (from() == kUnboxedInt64) {
-    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+  if (from() == kUntagged || to() == kUntagged) {
+    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
+           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT(!CanDeoptimize());
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else if (from() == kUnboxedInt64) {
+    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
     summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                       Location::RequiresRegister()));
     summary->set_out(0, Location::RequiresRegister());
   } else if (to() == kUnboxedInt64) {
-    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
+    ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                        Location::RequiresRegister()));
   } else {
-    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
-    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
+    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
+    ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::SameAsFirstInput());
   }
   return summary;
 }
 
-void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const bool is_nop_conversion =
+      (from() == kUntagged && to() == kUnboxedInt32) ||
+      (from() == kUntagged && to() == kUnboxedUint32) ||
+      (from() == kUnboxedInt32 && to() == kUntagged) ||
+      (from() == kUnboxedUint32 && to() == kUntagged);
+  if (is_nop_conversion) {
+    ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
+    return;
+  }
+
   if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
     const Register out = locs()->out(0).reg();
     // Representations are bitwise equivalent.
@@ -6584,6 +6615,36 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
+  }
+}
+
+LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, /*num_inputs=*/InputCount(),
+                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register reg = locs()->in(0).reg();
+  // There are no builtin sign- or zero-extension instructions, so we'll have to
+  // use shifts instead.
+  const intptr_t shift_length = (kWordSize - from_width_bytes_) * kBitsPerByte;
+  __ Lsl(reg, reg, Operand(shift_length));
+  switch (representation_) {
+    case kUnboxedInt32:  // Sign extend operand.
+      __ Asr(reg, reg, Operand(shift_length));
+      break;
+    case kUnboxedUint32:  // Zero extend operand.
+      __ Lsr(reg, reg, Operand(shift_length));
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

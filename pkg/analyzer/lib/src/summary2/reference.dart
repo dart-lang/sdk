@@ -1,9 +1,10 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/scope.dart';
 
 /// Indirection between a name and the corresponding [Element].
 ///
@@ -42,15 +43,22 @@ class Reference {
 
   Map<String, Reference> _children;
 
+  /// If this reference is an import prefix, the scope of this prefix.
+  Scope prefixScope;
+
   Reference.root() : this._(null, '');
 
   Reference._(this.parent, this.name);
 
   bool get isClass => parent != null && parent.name == '@class';
 
+  bool get isDynamic => name == 'dynamic' && parent?.name == 'dart:core';
+
   bool get isEnum => parent != null && parent.name == '@enum';
 
   bool get isGenericTypeAlias => parent != null && parent.name == '@typeAlias';
+
+  bool get isPrefix => parent != null && parent.name == '@prefix';
 
   bool get isTypeParameter => parent != null && parent.name == '@typeParameter';
 

@@ -288,6 +288,8 @@ class DartTypeVisitor1<R, T> {
 }
 
 class ConstantVisitor<R> {
+  const ConstantVisitor();
+
   R defaultConstant(Constant node) => null;
 
   R visitNullConstant(NullConstant node) => defaultConstant(node);

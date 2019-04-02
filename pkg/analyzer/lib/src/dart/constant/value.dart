@@ -2413,9 +2413,15 @@ class IntState extends NumState {
       if (rightValue >= 0) {
         // TODO(brianwilkerson) After the analyzer package has a minimum SDK
         // constraint that includes support for the real operator, consider
-        // changing this to the following line:
+        // changing the line below to
         //   return new IntState(value >>> rightValue);
-        return new IntState(value ~/ (1 << rightValue));
+        int divisor = 1 << rightValue;
+        if (divisor == 0) {
+          // The `rightValue` is large enough to cause all of the non-zero bits
+          // in the left operand to be shifted out of the value.
+          return new IntState(0);
+        }
+        return new IntState(value ~/ divisor);
       }
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;

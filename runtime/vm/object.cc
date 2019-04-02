@@ -89,6 +89,8 @@ static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* const kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
+static const char* const kInitPrefix = "init:";
+static const intptr_t kInitPrefixLength = strlen(kInitPrefix);
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
 RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
@@ -877,6 +879,28 @@ void Object::Init(Isolate* isolate) {
   // needs to be created earlier as VM isolate snapshot reader references it
   // before Object::FinalizeVMIsolate.
 
+  static const KBCInstr getter_instr[2] = {
+      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitGetter),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *implicit_getter_bytecode_ =
+      Bytecode::New(reinterpret_cast<uword>(getter_instr), sizeof(getter_instr),
+                    -1, Object::empty_object_pool());
+  implicit_getter_bytecode_->set_pc_descriptors(Object::empty_descriptors());
+  implicit_getter_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
+  static const KBCInstr setter_instr[2] = {
+      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitSetter),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *implicit_setter_bytecode_ =
+      Bytecode::New(reinterpret_cast<uword>(setter_instr), sizeof(setter_instr),
+                    -1, Object::empty_object_pool());
+  implicit_setter_bytecode_->set_pc_descriptors(Object::empty_descriptors());
+  implicit_setter_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -934,6 +958,10 @@ void Object::Init(Isolate* isolate) {
   ASSERT(extractor_parameter_types_->IsArray());
   ASSERT(!extractor_parameter_names_->IsSmi());
   ASSERT(extractor_parameter_names_->IsArray());
+  ASSERT(!implicit_getter_bytecode_->IsSmi());
+  ASSERT(implicit_getter_bytecode_->IsBytecode());
+  ASSERT(!implicit_setter_bytecode_->IsSmi());
+  ASSERT(implicit_setter_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(Isolate* isolate) {
@@ -1008,7 +1036,6 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
     ASSERT(!obj->IsForwardingCorpse());
     if (!obj->IsFreeListElement()) {
       obj->SetMarkBitUnsynchronized();
-      obj->SetReadOnlyUnsynchronized();
       Object::FinalizeReadOnlyObject(obj);
 #if defined(HASH_IN_OBJECT_HEADER)
       // These objects end up in the read-only VM isolate which is shared
@@ -1198,7 +1225,6 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::ReadOnlyBit::update(false, new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -1223,14 +1249,13 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
       raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
-      raw->ResetData();
+      raw->RecomputeDataField();
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
-      new_tags = RawObject::ReadOnlyBit::update(false, new_tags);
       const bool is_old = obj.raw()->IsOldObject();
       new_tags = RawObject::OldBit::update(is_old, new_tags);
       new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
@@ -2015,8 +2040,8 @@ RawError* Object::Init(Isolate* isolate,
 }
 
 #if defined(DEBUG)
-bool Object::IsReadOnly() const {
-  if (FLAG_verify_handles && raw()->IsReadOnly()) {
+bool Object::InVMIsolateHeap() const {
+  if (FLAG_verify_handles && raw()->InVMIsolateHeap()) {
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
     uword addr = RawObject::ToAddr(raw());
     if (!vm_isolate_heap->Contains(addr)) {
@@ -2025,7 +2050,7 @@ bool Object::IsReadOnly() const {
       ASSERT(vm_isolate_heap->Contains(addr));
     }
   }
-  return raw()->IsReadOnly();
+  return raw()->InVMIsolateHeap();
 }
 #endif  // DEBUG
 
@@ -2051,7 +2076,6 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   ASSERT(class_id != kIllegalCid);
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::ReadOnlyBit::update(false, tags);
   const bool is_old =
       (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   tags = RawObject::OldBit::update(is_old, tags);
@@ -2116,15 +2140,13 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     UNREACHABLE();
   }
 #ifndef PRODUCT
-  Isolate* isolate = thread->isolate();
-  ClassTable* class_table = isolate->class_table();
+  ClassTable* class_table = thread->isolate()->class_table();
   if (space == Heap::kNew) {
     class_table->UpdateAllocatedNew(cls_id, size);
   } else {
     class_table->UpdateAllocatedOld(cls_id, size);
   }
-  const Class& cls = Class::Handle(class_table->At(cls_id));
-  if (FLAG_profiler && cls.TraceAllocation(isolate)) {
+  if (class_table->TraceAllocationFor(cls_id)) {
     Profiler::SampleAllocation(thread, cls_id);
   }
 #endif  // !PRODUCT
@@ -2916,7 +2938,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
                     RawFunction::kMethodExtractor,
                     false,  // Not static.
                     false,  // Not const.
-                    false,  // Not abstract.
+                    is_abstract(),
                     false,  // Not external.
                     false,  // Not native.
                     owner, TokenPosition::kMethodExtractor));
@@ -2928,7 +2950,8 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_types(Object::extractor_parameter_types());
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
-  extractor.set_kernel_offset(kernel_offset());
+
+  extractor.InheritBinaryDeclarationFrom(*this);
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -3047,7 +3070,8 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   forwarder.set_optimized_instruction_count(0);
   forwarder.set_inlining_depth(0);
   forwarder.set_optimized_call_site_count(0);
-  forwarder.set_kernel_offset(kernel_offset());
+
+  forwarder.InheritBinaryDeclarationFrom(*this);
 
   return forwarder.raw();
 }
@@ -3082,6 +3106,17 @@ RawFunction* Function::GetDynamicInvocationForwarder(
 
   return result.raw();
 }
+
+RawFunction* Function::GetTargetOfDynamicInvocationForwarder() const {
+  ASSERT(IsDynamicInvocationForwarder());
+  auto& func_name = String::Handle(name());
+  func_name = DemangleDynamicInvocationForwarderName(func_name);
+  const auto& owner = Class::Handle(Owner());
+  RawFunction* target = owner.LookupDynamicFunction(func_name);
+  ASSERT(target != Function::null());
+  return target;
+}
+
 #endif
 
 bool AbstractType::InstantiateAndTestSubtype(
@@ -4822,7 +4857,7 @@ typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
 RawInstance* Class::LookupCanonicalInstance(Zone* zone,
                                             const Instance& value) const {
   ASSERT(this->raw() == value.clazz());
-  ASSERT(is_finalized());
+  ASSERT(is_finalized() || is_prefinalized());
   Instance& canonical_value = Instance::Handle(zone);
   if (this->constants() != Object::empty_array().raw()) {
     CanonicalInstancesSet constants(zone, this->constants());
@@ -5639,14 +5674,13 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     }
   }
   switch (kind()) {
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitSetter:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
     case RawFunction::kDynamicInvocationForwarder:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kIrregexpFunction:
+    case RawFunction::kFfiTrampoline:
       return false;
     case RawFunction::kImplicitStaticFinalGetter:
       return kernel::IsFieldInitializer(*this, zone) || is_const();
@@ -5658,8 +5692,11 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
 void Function::AttachBytecode(const Bytecode& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(FLAG_enable_interpreter || FLAG_use_bytecode_compiler);
+  ASSERT(!value.IsNull());
   // Finish setting up code before activating it.
-  value.set_function(*this);
+  if (!value.InVMIsolateHeap()) {
+    value.set_function(*this);
+  }
   StorePointer(&raw_ptr()->bytecode_, value.raw());
 
   // We should not have loaded the bytecode if the function had code.
@@ -6458,6 +6495,7 @@ bool Function::IsOptimizable() const {
   if (FLAG_precompiled_mode) {
     return true;
   }
+  if (ForceOptimize()) return true;
   if (is_native()) {
     // Native methods don't need to be optimized.
     return false;
@@ -7181,7 +7219,8 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
-  NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
+  NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
+  NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
@@ -7359,7 +7398,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
     param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
-  closure_function.set_kernel_offset(kernel_offset());
+  closure_function.InheritBinaryDeclarationFrom(*this);
 
   // Change covariant parameter types to Object in the implicit closure.
   if (!is_static()) {
@@ -7598,6 +7637,28 @@ RawClass* Function::origin() const {
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).origin_class();
+}
+
+void Function::InheritBinaryDeclarationFrom(const Function& src) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  StoreNonPointer(&raw_ptr()->binary_declaration_,
+                  src.raw_ptr()->binary_declaration_);
+#endif
+}
+
+void Function::InheritBinaryDeclarationFrom(const Field& src) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  if (src.is_declared_in_bytecode()) {
+    set_is_declared_in_bytecode(true);
+    set_bytecode_offset(src.bytecode_offset());
+  } else {
+    set_kernel_offset(src.kernel_offset());
+  }
+#endif
 }
 
 void Function::SetKernelDataAndScript(const Script& script,
@@ -7906,8 +7967,10 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  if (!Isolate::Current()->obfuscate() && (kernel_offset() <= 0) &&
-      (SourceFingerprint() != fp)) {
+  // TODO(alexmarkov): '(kernel_offset() <= 0)' looks like an impossible
+  // condition, fix this and re-enable fingerprints checking.
+  if (!Isolate::Current()->obfuscate() && !is_declared_in_bytecode() &&
+      (kernel_offset() <= 0) && (SourceFingerprint() != fp)) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
@@ -8194,12 +8257,21 @@ RawString* Field::NameFromSetter(const String& setter_name) {
                       setter_name.Length() - kSetterPrefixLength);
 }
 
+RawString* Field::NameFromInit(const String& init_name) {
+  return Symbols::New(Thread::Current(), init_name, kInitPrefixLength,
+                      init_name.Length() - kInitPrefixLength);
+}
+
 bool Field::IsGetterName(const String& function_name) {
   return function_name.StartsWith(Symbols::GetterPrefix());
 }
 
 bool Field::IsSetterName(const String& function_name) {
   return function_name.StartsWith(Symbols::SetterPrefix());
+}
+
+bool Field::IsInitName(const String& function_name) {
+  return function_name.StartsWith(Symbols::InitPrefix());
 }
 
 void Field::set_name(const String& value) const {
@@ -8268,6 +8340,15 @@ RawExternalTypedData* Field::KernelData() const {
   return PatchClass::Cast(obj).library_kernel_data();
 }
 
+void Field::InheritBinaryDeclarationFrom(const Field& src) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  StoreNonPointer(&raw_ptr()->binary_declaration_,
+                  src.raw_ptr()->binary_declaration_);
+#endif
+}
+
 intptr_t Field::KernelDataProgramOffset() const {
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   // During background JIT compilation field objects are copied
@@ -8324,7 +8405,8 @@ void Field::InitializeNew(const Field& result,
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(!is_final);
   result.set_initializer_changed_after_initialization(false);
-  result.set_kernel_offset(0);
+  NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
+  NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
@@ -8391,7 +8473,7 @@ RawField* Field::Clone(const Field& original) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
   clone.SetOriginal(original);
-  clone.set_kernel_offset(original.kernel_offset());
+  clone.InheritBinaryDeclarationFrom(original);
   return clone.raw();
 }
 
@@ -8568,6 +8650,22 @@ bool Field::IsUninitialized() const {
   return value.raw() == Object::sentinel().raw();
 }
 
+RawFunction* Field::EnsureInitializerFunction() const {
+  ASSERT(is_static() && has_initializer());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& initializer = Function::Handle(zone, InitializerFunction());
+  if (initializer.IsNull()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    initializer = kernel::CreateFieldInitializerFunction(thread, zone, *this);
+    SetInitializerFunction(initializer);
+#endif
+  }
+  return initializer.raw();
+}
+
 void Field::SetInitializerFunction(const Function& initializer) const {
   ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->initializer_function_, initializer.raw());
@@ -8577,13 +8675,12 @@ bool Field::HasInitializerFunction() const {
   return raw_ptr()->initializer_function_ != Function::null();
 }
 
-RawError* Field::EvaluateInitializer() const {
+RawError* Field::Initialize() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
     SetStaticValue(Object::transition_sentinel());
-    const Object& value =
-        Object::Handle(Compiler::EvaluateStaticInitializer(*this));
+    const Object& value = Object::Handle(EvaluateInitializer());
     if (!value.IsNull() && value.IsError()) {
       SetStaticValue(Object::null_instance());
       return Error::Cast(value).raw();
@@ -8602,39 +8699,37 @@ RawError* Field::EvaluateInitializer() const {
   return Error::null();
 }
 
+RawObject* Field::EvaluateInitializer() const {
+  Thread* const thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  NoOOBMessageScope no_msg_scope(thread);
+  NoReloadScope no_reload_scope(thread->isolate(), thread);
+  const Function& initializer = Function::Handle(EnsureInitializerFunction());
+  return DartEntry::InvokeFunction(initializer, Object::empty_array());
+}
+
 static intptr_t GetListLength(const Object& value) {
-  if (value.IsTypedData()) {
-    const TypedData& list = TypedData::Cast(value);
-    return list.Length();
+  if (value.IsTypedData() || value.IsTypedDataView() ||
+      value.IsExternalTypedData()) {
+    return TypedDataBase::Cast(value).Length();
   } else if (value.IsArray()) {
-    const Array& list = Array::Cast(value);
-    return list.Length();
+    return Array::Cast(value).Length();
   } else if (value.IsGrowableObjectArray()) {
     // List length is variable.
-    return Field::kNoFixedLength;
-  } else if (value.IsExternalTypedData()) {
-    // TODO(johnmccutchan): Enable for external typed data.
-    return Field::kNoFixedLength;
-  } else if (RawObject::IsTypedDataViewClassId(value.GetClassId())) {
-    // TODO(johnmccutchan): Enable for typed data views.
     return Field::kNoFixedLength;
   }
   return Field::kNoFixedLength;
 }
 
 static intptr_t GetListLengthOffset(intptr_t cid) {
-  if (RawObject::IsTypedDataClassId(cid)) {
+  if (RawObject::IsTypedDataClassId(cid) ||
+      RawObject::IsTypedDataViewClassId(cid) ||
+      RawObject::IsExternalTypedDataClassId(cid)) {
     return TypedData::length_offset();
   } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
     return Array::length_offset();
   } else if (cid == kGrowableObjectArrayCid) {
     // List length is variable.
-    return Field::kUnknownLengthOffset;
-  } else if (RawObject::IsExternalTypedDataClassId(cid)) {
-    // TODO(johnmccutchan): Enable for external typed data.
-    return Field::kUnknownLengthOffset;
-  } else if (RawObject::IsTypedDataViewClassId(cid)) {
-    // TODO(johnmccutchan): Enable for typed data views.
     return Field::kUnknownLengthOffset;
   }
   return Field::kUnknownLengthOffset;
@@ -9074,10 +9169,7 @@ bool Script::IsPartOfDartColonLibrary() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void Script::LoadSourceFromKernel(const uint8_t* kernel_buffer,
                                   intptr_t kernel_buffer_len) const {
-  const char* dart_prefix = "dart:";
-  const size_t dart_prefix_len = strlen(dart_prefix);
-  String& uri = String::Handle(url());
-  uri ^= String::SubString(uri, dart_prefix_len);
+  String& uri = String::Handle(resolved_url());
   String& source = String::Handle(kernel::KernelLoader::FindSourceForScript(
       kernel_buffer, kernel_buffer_len, uri));
   set_source(source);
@@ -9750,7 +9842,7 @@ static RawString* MakeFieldMetaName(Thread* thread,
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(field.name()));
+  pieces.Add(String::Handle(zone, field.name()));
   return Symbols::FromConcatAll(thread, pieces);
 }
 
@@ -9763,7 +9855,7 @@ static RawString* MakeFunctionMetaName(Thread* thread,
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(func.QualifiedScrubbedName()));
+  pieces.Add(String::Handle(zone, func.name()));
   return Symbols::FromConcatAll(thread, pieces);
 }
 
@@ -9777,14 +9869,18 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(param.name()));
+  pieces.Add(String::Handle(zone, param.name()));
   return Symbols::FromConcatAll(thread, pieces);
 }
 
 void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset) const {
+                          intptr_t kernel_offset,
+                          intptr_t bytecode_offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -9797,10 +9893,16 @@ void Library::AddMetadata(const Object& owner,
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
-  field.set_kernel_offset(kernel_offset);
+  if (bytecode_offset > 0) {
+    field.set_is_declared_in_bytecode(true);
+    field.set_bytecode_offset(bytecode_offset);
+  } else {
+    field.set_kernel_offset(kernel_offset);
+  }
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Library::AddClassMetadata(const Class& cls,
@@ -9813,27 +9915,29 @@ void Library::AddClassMetadata(const Class& cls,
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, 0);
 }
 
 void Library::AddFieldMetadata(const Field& field,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset) const {
+                               intptr_t kernel_offset,
+                               intptr_t bytecode_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, field.RawOwner()),
               String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, bytecode_offset);
 }
 
 void Library::AddFunctionMetadata(const Function& func,
                                   TokenPosition token_pos,
-                                  intptr_t kernel_offset) const {
+                                  intptr_t kernel_offset,
+                                  intptr_t bytecode_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, func.RawOwner()),
               String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos, kernel_offset);
+              token_pos, kernel_offset, bytecode_offset);
 }
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,
@@ -9843,13 +9947,13 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
   AddMetadata(
       Class::Handle(zone, param.parameterized_class()),
       String::Handle(zone, MakeTypeParameterMetaName(thread, zone, param)),
-      token_pos);
+      token_pos, 0, 0);
 }
 
 void Library::AddLibraryMetadata(const Object& tl_owner,
                                  TokenPosition token_pos,
                                  intptr_t kernel_offset) const {
-  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset);
+  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset, 0);
 }
 
 RawString* Library::MakeMetadataName(const Object& obj) const {
@@ -9893,8 +9997,13 @@ void Library::CloneMetadataFrom(const Library& from_library,
   const Field& from_field =
       Field::Handle(from_library.GetMetadataField(metaname));
   if (!from_field.IsNull()) {
-    AddFunctionMetadata(to_fun, from_field.token_pos(),
-                        from_field.kernel_offset());
+    if (from_field.is_declared_in_bytecode()) {
+      AddFunctionMetadata(to_fun, from_field.token_pos(), 0,
+                          from_field.bytecode_offset());
+    } else {
+      AddFunctionMetadata(to_fun, from_field.token_pos(),
+                          from_field.kernel_offset(), 0);
+    }
   }
 }
 
@@ -9915,11 +10024,12 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    if (field.kernel_offset() > 0) {
+    if (field.is_declared_in_bytecode()) {
+      metadata = kernel::BytecodeReader::ReadAnnotation(field);
+    } else {
+      ASSERT(field.kernel_offset() > 0);
       metadata = kernel::EvaluateMetadata(
           field, /* is_annotations_offset = */ obj.IsLibrary());
-    } else {
-      UNREACHABLE();
     }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
@@ -10337,10 +10447,12 @@ RawScript* Library::LookupScript(const String& url,
   const intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
     script ^= scripts.At(i);
-    if (!useResolvedUri) {
-      script_url = script.url();
-    } else {
+    if (useResolvedUri) {
+      // Use for urls with 'org-dartlang-sdk:' or 'file:' schemes
       script_url = script.resolved_url();
+    } else {
+      // Use for urls with 'dart:', 'package:', or 'file:' schemes
+      script_url = script.url();
     }
     const intptr_t start_idx = script_url.Length() - url_length;
     if ((start_idx == 0) && url.Equals(script_url)) {
@@ -11106,7 +11218,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
         String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
-  kernel::KernelLoader loader(kernel_pgm);
+  kernel::KernelLoader loader(kernel_pgm, /*uri_to_source_table=*/nullptr);
   const Object& result = Object::Handle(
       loader.LoadExpressionEvaluationFunction(library_url, klass));
 
@@ -14928,7 +15040,6 @@ void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 RawBytecode* Bytecode::New(uword instructions,
                            intptr_t instructions_size,
                            intptr_t instructions_offset,
@@ -14949,10 +15060,12 @@ RawBytecode* Bytecode::New(uword instructions,
   }
   return result.raw();
 }
-#endif
 
 RawExternalTypedData* Bytecode::GetBinary(Zone* zone) const {
   const Function& func = Function::Handle(zone, function());
+  if (func.IsNull()) {
+    return ExternalTypedData::null();
+  }
   const Script& script = Script::Handle(zone, func.script());
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(zone, script.kernel_program_info());
@@ -14988,6 +15101,12 @@ const char* Bytecode::ToCString() const {
 }
 
 const char* Bytecode::Name() const {
+  if (raw() == Object::implicit_getter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_ImplicitGetter";
+  } else if (raw() == Object::implicit_setter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSetter";
+  }
+
   Zone* zone = Thread::Current()->zone();
   const Function& fun = Function::Handle(zone, function());
   ASSERT(!fun.IsNull());
@@ -14997,6 +15116,12 @@ const char* Bytecode::Name() const {
 }
 
 const char* Bytecode::QualifiedName() const {
+  if (raw() == Object::implicit_getter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal__ImplicitGetter";
+  } else if (raw() == Object::implicit_setter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal__ImplicitSetter";
+  }
+
   Zone* zone = Thread::Current()->zone();
   const Function& fun = Function::Handle(zone, function());
   ASSERT(!fun.IsNull());
@@ -16060,7 +16185,7 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
       return result.raw();
     }
     if (IsNew()) {
-      ASSERT((isolate == Dart::vm_isolate()) || !IsReadOnly());
+      ASSERT((isolate == Dart::vm_isolate()) || !InVMIsolateHeap());
       // Create a canonical object in old space.
       result ^= Object::Clone(*this, Heap::kOld);
     } else {
@@ -16360,10 +16485,10 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
 }
 
 intptr_t Instance::ElementSizeFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
-    return ExternalTypedData::ElementSizeInBytes(cid);
-  } else if (RawObject::IsTypedDataClassId(cid)) {
-    return TypedData::ElementSizeInBytes(cid);
+  if (RawObject::IsExternalTypedDataClassId(cid) ||
+      RawObject::IsTypedDataClassId(cid) ||
+      RawObject::IsTypedDataViewClassId(cid)) {
+    return TypedDataBase::ElementSizeInBytes(cid);
   }
   switch (cid) {
     case kArrayCid:
@@ -16385,10 +16510,12 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
 
 intptr_t Instance::DataOffsetFor(intptr_t cid) {
   if (RawObject::IsExternalTypedDataClassId(cid) ||
-      RawObject::IsExternalStringClassId(cid) ||
-      RawObject::IsTypedDataClassId(cid)) {
-    // Elements start at offset 0 of the external and typed data.
+      RawObject::IsExternalStringClassId(cid)) {
+    // Elements start at offset 0 of the external data.
     return 0;
+  }
+  if (RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::data_offset();
   }
   switch (cid) {
     case kArrayCid:
@@ -17403,7 +17530,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     ASSERT(!IsFunctionType());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
-      ASSERT(!cls.raw()->IsReadOnly() || (isolate == Dart::vm_isolate()));
+      ASSERT(!cls.raw()->InVMIsolateHeap() || (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
       type_args = type_args.Canonicalize(trail);
@@ -20787,21 +20914,22 @@ const char* Float64x2::ToCString() const {
   return OS::SCreate(Thread::Current()->zone(), "[%f, %f]", _x, _y);
 }
 
-const intptr_t TypedData::element_size_table[TypedData::kNumElementSizes] = {
-    1,   // kTypedDataInt8ArrayCid.
-    1,   // kTypedDataUint8ArrayCid.
-    1,   // kTypedDataUint8ClampedArrayCid.
-    2,   // kTypedDataInt16ArrayCid.
-    2,   // kTypedDataUint16ArrayCid.
-    4,   // kTypedDataInt32ArrayCid.
-    4,   // kTypedDataUint32ArrayCid.
-    8,   // kTypedDataInt64ArrayCid.
-    8,   // kTypedDataUint64ArrayCid.
-    4,   // kTypedDataFloat32ArrayCid.
-    8,   // kTypedDataFloat64ArrayCid.
-    16,  // kTypedDataFloat32x4ArrayCid.
-    16,  // kTypedDataInt32x4ArrayCid.
-    16,  // kTypedDataFloat64x2ArrayCid,
+const intptr_t
+    TypedDataBase::element_size_table[TypedDataBase::kNumElementSizes] = {
+        1,   // kTypedDataInt8ArrayCid.
+        1,   // kTypedDataUint8ArrayCid.
+        1,   // kTypedDataUint8ClampedArrayCid.
+        2,   // kTypedDataInt16ArrayCid.
+        2,   // kTypedDataUint16ArrayCid.
+        4,   // kTypedDataInt32ArrayCid.
+        4,   // kTypedDataUint32ArrayCid.
+        8,   // kTypedDataInt64ArrayCid.
+        8,   // kTypedDataUint64ArrayCid.
+        4,   // kTypedDataFloat32ArrayCid.
+        8,   // kTypedDataFloat64ArrayCid.
+        16,  // kTypedDataFloat32x4ArrayCid.
+        16,  // kTypedDataInt32x4ArrayCid.
+        16,  // kTypedDataFloat64x2ArrayCid,
 };
 
 bool TypedData::CanonicalizeEquals(const Instance& other) const {
@@ -20849,17 +20977,16 @@ RawTypedData* TypedData::New(intptr_t class_id,
   }
   TypedData& result = TypedData::Handle();
   {
-    const intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
+    const intptr_t length_in_bytes = len * ElementSizeInBytes(class_id);
     RawObject* raw = Object::Allocate(
-        class_id, TypedData::InstanceSize(lengthInBytes), space);
+        class_id, TypedData::InstanceSize(length_in_bytes), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
-    result.ResetData();
+    result.RecomputeDataField();
     if (len > 0) {
-      memset(result.DataAddr(0), 0, lengthInBytes);
+      memset(result.DataAddr(0), 0, length_in_bytes);
     }
-    ASSERT(result.Length() == len);
   }
   return result.raw();
 }
@@ -20908,23 +21035,25 @@ RawTypedDataView* TypedDataView::New(intptr_t class_id, Heap::Space space) {
         Object::Allocate(class_id, TypedDataView::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.clear_typed_data();
-    result.set_offset_in_bytes(0);
-    result.set_length(0);
+    result.Clear();
   }
   return result.raw();
 }
 
 RawTypedDataView* TypedDataView::New(intptr_t class_id,
-                                     const Instance& typed_data,
+                                     const TypedDataBase& typed_data,
                                      intptr_t offset_in_bytes,
                                      intptr_t length,
                                      Heap::Space space) {
   auto& result = TypedDataView::Handle(TypedDataView::New(class_id, space));
-  result.set_typed_data(typed_data);
-  result.set_offset_in_bytes(offset_in_bytes);
-  result.set_length(length);
+  result.InitializeWith(typed_data, offset_in_bytes, length);
   return result.raw();
+}
+
+const char* TypedDataBase::ToCString() const {
+  // There are no instances of RawTypedDataBase.
+  UNREACHABLE();
+  return nullptr;
 }
 
 const char* TypedDataView::ToCString() const {
@@ -21510,6 +21639,10 @@ void RegExp::set_bytecode(bool is_one_byte,
 
 void RegExp::set_num_bracket_expressions(intptr_t value) const {
   StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
+}
+
+void RegExp::set_capture_name_map(const Array& array) const {
+  StorePointer(&raw_ptr()->capture_name_map_, array.raw());
 }
 
 RawRegExp* RegExp::New(Heap::Space space) {

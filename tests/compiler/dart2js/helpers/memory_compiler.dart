@@ -15,8 +15,6 @@ import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/options.dart' show CompilerOptions;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
 
 import 'memory_source_file_helper.dart';
 
@@ -111,7 +109,6 @@ CompilerImpl compilerFor(
     Uri packageConfig}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= Uri.base.resolve('sdk/lib/libraries.json');
-  Uri platformBinaries = computePlatformBinariesLocation();
 
   if (packageRoot == null && packageConfig == null) {
     if (Platform.packageConfig != null) {
@@ -134,8 +131,7 @@ CompilerImpl compilerFor(
   }
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
-      librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries)
+      librariesSpecificationUri: librariesSpecificationUri)
     ..entryPoint = entryPoint
     ..packageRoot = packageRoot
     ..environment = {}

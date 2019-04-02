@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=dynamic*/ h = null;
+var h = null;
 void foo(int f(Object _)) {}
 
 test() {

@@ -45,7 +45,7 @@ f(List<MyClass> list) {
     FunctionDeclaration f = declarations[1] as FunctionDeclaration;
     expect(f, isNotNull);
     BlockFunctionBody body = f.functionExpression.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ForStatement2;
+    var statement = body.block.statements[0] as ForStatement;
     expect(statement.forLoopParts, const TypeMatcher<ForEachParts>());
     statement.accept(new TestVisitor(statement.offset));
   }

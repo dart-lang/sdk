@@ -250,9 +250,6 @@ class NoSuchMethodDataImpl implements NoSuchMethodData {
     sink.end(tag);
   }
 
-  /// Now that type inference is complete, split category D into two
-  /// subcategories: D1, those that have no return type, and D2, those
-  /// that have a return type.
   @override
   void categorizeComplexImplementations(GlobalTypeInferenceResults results) {
     otherImpls.forEach((FunctionEntity element) {
@@ -264,7 +261,6 @@ class NoSuchMethodDataImpl implements NoSuchMethodData {
     });
   }
 
-  /// Emits a diagnostic
   @override
   void emitDiagnostic(DiagnosticReporter reporter) {
     throwingImpls.forEach((e) {
@@ -284,9 +280,6 @@ class NoSuchMethodDataImpl implements NoSuchMethodData {
     });
   }
 
-  /// Returns [true] if the given element is a complex [noSuchMethod]
-  /// implementation. An implementation is complex if it falls into
-  /// category D, as described above.
   @override
   bool isComplex(FunctionEntity element) {
     assert(element.name == Identifiers.noSuchMethod_);

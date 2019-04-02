@@ -149,7 +149,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerFieldNode(ir.Field field) {
     if (field.isInstanceMember &&
-        elementMap.isNativeClass(field.enclosingClass)) {
+        _nativeBasicData
+            .isNativeClass(elementMap.getClass(field.enclosingClass))) {
       MemberEntity member = elementMap.getMember(field);
       // TODO(johnniwinther): NativeDataBuilder already has the native behavior
       // at this point. Use that instead.
@@ -327,6 +328,15 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       // We need to register the external constructor as live below, so don't
       // return here.
     }
+  }
+
+  @override
+  void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
+      ir.LibraryDependency import) {
+    ImportEntity deferredImport = elementMap.getImport(import);
+    InterfaceType type = elementMap.createInterfaceType(cls, typeArguments);
+    impactBuilder
+        .registerTypeUse(new TypeUse.constInstantiation(type, deferredImport));
   }
 
   @override
@@ -765,7 +775,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerFieldInitializer(ir.Field node) {
+  void registerFieldInitialization(ir.Field node) {
     impactBuilder
         .registerStaticUse(new StaticUse.fieldInit(elementMap.getField(node)));
   }
@@ -781,12 +791,6 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         target,
         new CallStructure(positionalArguments + namedArguments.length,
             namedArguments, typeArguments.length)));
-  }
-
-  @override
-  void registerConstant(ir.ConstantExpression node) {
-    ConstantValue value = elementMap.getConstantValue(node);
-    impactBuilder.registerConstantUse(new ConstantUse.literal(value));
   }
 
   @override

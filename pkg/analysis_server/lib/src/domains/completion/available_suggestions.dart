@@ -102,6 +102,12 @@ String _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
 protocol.AvailableSuggestion _protocolAvailableSuggestion(
     Declaration declaration) {
   var label = declaration.name;
+  if (declaration.kind == DeclarationKind.CONSTRUCTOR) {
+    label = declaration.name2;
+    if (declaration.name.isNotEmpty) {
+      label += '.${declaration.name}';
+    }
+  }
   if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
     label = '${declaration.name2}.${declaration.name}';
   }
@@ -161,6 +167,8 @@ protocol.ElementKind _protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.CLASS;
     case DeclarationKind.CLASS_TYPE_ALIAS:
       return protocol.ElementKind.CLASS_TYPE_ALIAS;
+    case DeclarationKind.CONSTRUCTOR:
+      return protocol.ElementKind.CONSTRUCTOR;
     case DeclarationKind.ENUM:
       return protocol.ElementKind.ENUM;
     case DeclarationKind.ENUM_CONSTANT:

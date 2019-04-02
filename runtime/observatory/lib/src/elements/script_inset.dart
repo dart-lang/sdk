@@ -476,7 +476,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     var rootUri = Uri.parse(script.library.uri);
     if (rootUri.scheme == 'dart') {
       // The relative paths from dart:* libraries to their parts are not valid.
-      rootUri = new Uri.directory(script.library.uri);
+      rootUri = Uri.parse(script.library.uri + '/');
     }
     var targetUri = rootUri.resolve(relativeUri);
     for (M.Script s in script.library.scripts) {

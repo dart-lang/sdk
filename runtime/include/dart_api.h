@@ -836,9 +836,8 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   The VM will provide this URI to the Dart_IsolateCreateCallback when a child
  *   isolate is created by Isolate.spawn. The embedder should use a URI that
  *   allows it to load the same program into such a child isolate.
- * \param main The name of the main entry point this isolate will run. Provided
- *   only for advisory purposes to improve debugging messages. Typically either
- *   'main' or the name of the function passed to Isolate.spawn.
+ * \param name A short name for the isolate to improve debugging messages.
+ *   Typically of the format 'foo.dart:main()'.
  * \param isolate_snapshot_data
  * \param isolate_snapshot_instructions Buffers containing a snapshot of the
  *   isolate or NULL if no snapshot is provided. If provided, the buffers must
@@ -855,7 +854,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  */
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolate(const char* script_uri,
-                   const char* main,
+                   const char* name,
                    const uint8_t* isolate_snapshot_data,
                    const uint8_t* isolate_snapshot_instructions,
                    const uint8_t* shared_data,
@@ -876,9 +875,8 @@ Dart_CreateIsolate(const char* script_uri,
  *   The VM will provide this URI to the Dart_IsolateCreateCallback when a child
  *   isolate is created by Isolate.spawn. The embedder should use a URI that
  *   allows it to load the same program into such a child isolate.
- * \param main The name of the main entry point this isolate will run. Provided
- *   only for advisory purposes to improve debugging messages. Typically either
- *   'main' or the name of the function passed to Isolate.spawn.
+ * \param name A short name for the isolate to improve debugging messages.
+ *   Typically of the format 'foo.dart:main()'.
  * \param kernel_buffer
  * \param kernel_buffer_size A buffer which contains a kernel/DIL program. Must
  *   remain valid until isolate shutdown.
@@ -894,7 +892,7 @@ Dart_CreateIsolate(const char* script_uri,
  */
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolateFromKernel(const char* script_uri,
-                             const char* main,
+                             const char* name,
                              const uint8_t* kernel_buffer,
                              intptr_t kernel_buffer_size,
                              Dart_IsolateFlags* flags,

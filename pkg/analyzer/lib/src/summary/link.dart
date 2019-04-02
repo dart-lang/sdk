@@ -62,6 +62,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
@@ -1906,9 +1907,13 @@ abstract class ConstNode extends Node<ConstNode> {
         case UnlinkedExprOperation.makeUntypedMap:
         case UnlinkedExprOperation.makeUntypedSet:
         case UnlinkedExprOperation.makeUntypedSetOrMap:
+        case UnlinkedExprOperation.forParts:
+        case UnlinkedExprOperation.variableDeclaration:
+        case UnlinkedExprOperation.forInitializerDeclarationsUntyped:
           intPtr++;
           break;
         case UnlinkedExprOperation.assignToRef:
+        case UnlinkedExprOperation.forEachPartsWithTypedDeclaration:
           refPtr++;
           break;
         case UnlinkedExprOperation.invokeMethodRef:
@@ -1929,6 +1934,7 @@ abstract class ConstNode extends Node<ConstNode> {
           break;
         case UnlinkedExprOperation.makeTypedList:
         case UnlinkedExprOperation.makeTypedSet:
+        case UnlinkedExprOperation.forInitializerDeclarationsTyped:
           refPtr++;
           intPtr++;
           break;
@@ -2459,7 +2465,7 @@ class ExprTypeComputer {
         nameScope: nameScope);
     var variableResolverVisitor = new VariableResolverVisitor(
         library, source, typeProvider, errorListener,
-        nameScope: nameScope);
+        nameScope: nameScope, localVariableInfo: LocalVariableInfo());
     var partialResolverVisitor = new PartialResolverVisitor(
         inheritance, library, source, typeProvider, errorListener,
         nameScope: nameScope);
@@ -5206,10 +5212,14 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         case UnlinkedExprOperation.makeUntypedMap:
         case UnlinkedExprOperation.makeUntypedSet:
         case UnlinkedExprOperation.makeUntypedSetOrMap:
+        case UnlinkedExprOperation.forParts:
+        case UnlinkedExprOperation.variableDeclaration:
+        case UnlinkedExprOperation.forInitializerDeclarationsUntyped:
           intPtr++;
           break;
         case UnlinkedExprOperation.makeTypedList:
         case UnlinkedExprOperation.makeTypedSet:
+        case UnlinkedExprOperation.forInitializerDeclarationsTyped:
           refPtr++;
           intPtr++;
           break;
@@ -5246,6 +5256,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           break;
         case UnlinkedExprOperation.typeCast:
         case UnlinkedExprOperation.typeCheck:
+        case UnlinkedExprOperation.forEachPartsWithTypedDeclaration:
           refPtr++;
           break;
         case UnlinkedExprOperation.pushLocalFunctionReference:

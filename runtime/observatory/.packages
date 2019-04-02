@@ -32,3 +32,4 @@ string_scanner:../../third_party/pkg/string_scanner/lib
 term_glyph:../../third_party/pkg/term_glyph/lib
 test:../../third_party/pkg/test/lib
 typed_data:../../third_party/pkg/typed_data/lib
+observatory_test_package:tests/service/observatory_test_package

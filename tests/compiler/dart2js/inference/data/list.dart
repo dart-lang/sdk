@@ -108,7 +108,8 @@ newInt8List() => new Int8List(_field2);
 // Create a Uint16List using a const top-level field as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field3:[exact=JSUInt31]*/
+/*strong.element: _field3:[exact=JSUInt31]*/
+/*omit.element: _field3:[exact=JSUInt31]*/
 const _field3 = 12;
 
 /*element: newUint16List:Container([exact=NativeUint16List], element: [exact=JSUInt31], length: 12)*/
@@ -134,7 +135,8 @@ newUint8ClampedList() =>
 ////////////////////////////////////////////////////////////////////////////////
 
 abstract class Class1 {
-  /*element: Class1.field:[exact=JSUInt31]*/
+  /*strong.element: Class1.field:[exact=JSUInt31]*/
+  /*omit.element: Class1.field:[exact=JSUInt31]*/
   static const field = 15;
 }
 

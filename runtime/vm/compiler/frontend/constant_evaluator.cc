@@ -383,8 +383,7 @@ void ConstantEvaluator::EvaluateStaticGet() {
       H.ReportError(script_, position, "Not a constant expression.");
     } else if (field.StaticValue() == Object::sentinel().raw()) {
       field.SetStaticValue(Object::transition_sentinel());
-      const Object& value =
-          Object::Handle(Compiler::EvaluateStaticInitializer(field));
+      const Object& value = Object::Handle(Z, field.EvaluateInitializer());
       if (value.IsError()) {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(Error::Cast(value), script_, position,
@@ -1045,7 +1044,7 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   }
 
   bool is_present = false;
-  ASSERT(!script_.IsReadOnly());
+  ASSERT(!script_.InVMIsolateHeap());
   if (script_.compile_time_constants() == Array::null()) {
     return false;
   }
@@ -1075,7 +1074,7 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
     return;
   }
   const intptr_t kInitialConstMapSize = 16;
-  ASSERT(!script_.IsReadOnly());
+  ASSERT(!script_.InVMIsolateHeap());
   if (script_.compile_time_constants() == Array::null()) {
     const Array& array = Array::Handle(
         HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
@@ -1205,7 +1204,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_array_.SetTypeArguments(temp_type_arguments_);
         for (intptr_t j = 0; j < length; ++j) {
           const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < offset);  // We have a DAG!
+          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
           temp_object_ = constants.GetOrDie(entry_offset);
           temp_array_.SetAt(j, temp_object_);
         }
@@ -1249,7 +1248,7 @@ const Array& ConstantHelper::ReadConstantTable() {
           temp_field_ =
               H.LookupFieldByKernelField(helper_.ReadCanonicalNameReference());
           const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < offset);  // We have a DAG!
+          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
           temp_object_ = constants.GetOrDie(entry_offset);
           temp_instance_.SetField(temp_field_, temp_object_);
         }
@@ -1259,6 +1258,7 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kPartialInstantiationConstant: {
         const intptr_t entry_offset = helper_.ReadUInt();
+        ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
         temp_object_ = constants.GetOrDie(entry_offset);
 
         // Happens if the tearoff was in the vmservice library and we have

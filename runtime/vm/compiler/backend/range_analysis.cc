@@ -1321,11 +1321,12 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
 
     for (intptr_t i = 0; i < bounds_checks_.length(); i++) {
       // Is this a non-speculative check bound?
-      GenericCheckBoundInstr* aot_check =
-          bounds_checks_[i]->AsGenericCheckBound();
+      auto aot_check = bounds_checks_[i]->AsGenericCheckBound();
       if (aot_check != nullptr) {
-        RangeBoundary array_length =
-            RangeBoundary::FromDefinition(aot_check->length()->definition());
+        auto length = aot_check->length()
+                          ->definition()
+                          ->OriginalDefinitionIgnoreBoxingAndConstraints();
+        auto array_length = RangeBoundary::FromDefinition(length);
         if (aot_check->IsRedundant(array_length)) {
           aot_check->ReplaceUsesWith(aot_check->index()->definition());
           aot_check->RemoveFromGraph();
@@ -2328,6 +2329,31 @@ void Range::Mul(const Range* left_range,
   *result_max = RangeBoundary::PositiveInfinity();
 }
 
+void Range::TruncDiv(const Range* left_range,
+                     const Range* right_range,
+                     RangeBoundary* result_min,
+                     RangeBoundary* result_max) {
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
+
+  if (left_range->OnlyGreaterThanOrEqualTo(0) &&
+      right_range->OnlyGreaterThanOrEqualTo(1)) {
+    const int64_t left_max = ConstantAbsMax(left_range);
+    const int64_t left_min = ConstantAbsMin(left_range);
+    const int64_t right_max = ConstantAbsMax(right_range);
+    const int64_t right_min = ConstantAbsMin(right_range);
+
+    *result_max = RangeBoundary::FromConstant(left_max / right_min);
+    *result_min = RangeBoundary::FromConstant(left_min / right_max);
+    return;
+  }
+
+  *result_min = RangeBoundary::NegativeInfinity();
+  *result_max = RangeBoundary::PositiveInfinity();
+}
+
 // Both the a and b ranges are >= 0.
 bool Range::OnlyPositiveOrZero(const Range& a, const Range& b) {
   return a.OnlyGreaterThanOrEqualTo(0) && b.OnlyGreaterThanOrEqualTo(0);
@@ -2389,6 +2415,10 @@ void Range::BinaryOp(const Token::Kind op,
 
     case Token::kMUL:
       Range::Mul(left_range, right_range, &min, &max);
+      break;
+
+    case Token::kTRUNCDIV:
+      Range::TruncDiv(left_range, right_range, &min, &max);
       break;
 
     case Token::kSHL:
@@ -2604,8 +2634,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                      RangeBoundary::FromConstant(Array::kMaxElements));
       break;
 
-    case Slot::Kind::kTypedData_length:
-    case Slot::Kind::kTypedDataView_length:
+    case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
@@ -2632,6 +2661,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kPointer_c_memory_address:
+    case Slot::Kind::kTypedDataBase_data_field:
     case Slot::Kind::kTypedDataView_data:
       // Not an integer valued field.
       UNREACHABLE();
@@ -2870,12 +2900,17 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
-                                          Range* range) {
-  ASSERT((from() == kUnboxedInt32) || (from() == kUnboxedInt64) ||
-         (from() == kUnboxedUint32));
-  ASSERT((to() == kUnboxedInt32) || (to() == kUnboxedInt64) ||
-         (to() == kUnboxedUint32));
+void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  if (from() == kUntagged || to() == kUntagged) {
+    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
+           (from() == kUnboxedIntPtr && to() == kUntagged));
+  } else {
+    ASSERT(from() == kUnboxedInt32 || from() == kUnboxedInt64 ||
+           from() == kUnboxedUint32);
+    ASSERT(to() == kUnboxedInt32 || to() == kUnboxedInt64 ||
+           to() == kUnboxedUint32);
+  }
+
   const Range* value_range = value()->definition()->range();
   if (Range::IsUnknown(value_range)) {
     return;

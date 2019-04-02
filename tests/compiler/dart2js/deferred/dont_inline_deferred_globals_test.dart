@@ -6,46 +6,30 @@
 // Files when using deferred loading.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/compiler.dart';
-import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
-import '../helpers/output_collector.dart';
+import 'constant_emission_test_helper.dart';
 
 void main() {
-  runTest() async {
-    OutputCollector collector = new OutputCollector();
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
-    Compiler compiler = result.compiler;
-    var closedWorld = compiler.backendClosedWorldForTesting;
-    var elementEnvironment = closedWorld.elementEnvironment;
+  runTest({bool useCFEConstants: false}) async {
+    Map<String, Set<String>> expectedOutputUnits = {
+      // Test that the deferred globals are not inlined into the main file.
+      'ConstructedConstant(C(field=StringConstant("string1")))': {'lib1'},
+      'ConstructedConstant(C(field=StringConstant("string2")))': {'lib1'},
+      'DeferredGlobalConstant(ConstructedConstant(C(field=StringConstant("string1"))))':
+          {'lib1'},
+    };
 
-    lookupLibrary(name) {
-      return elementEnvironment.lookupLibrary(Uri.parse(name));
-    }
-
-    var outputUnitForMember = closedWorld.outputUnitData.outputUnitForMember;
-
-    dynamic lib1 = lookupLibrary("memory:lib1.dart");
-    var foo1 = elementEnvironment.lookupLibraryMember(lib1, "finalVar");
-    var ou_lib1 = outputUnitForMember(foo1);
-
-    String mainOutput = collector.getOutput("", OutputType.js);
-    String lib1Output =
-        collector.getOutput("out_${ou_lib1.name}", OutputType.jsPart);
-    // Test that the deferred globals are not inlined into the main file.
-    RegExp re1 = new RegExp(r"= .string1");
-    RegExp re2 = new RegExp(r"= .string2");
-    Expect.isTrue(re1.hasMatch(lib1Output));
-    Expect.isTrue(re2.hasMatch(lib1Output));
-    Expect.isFalse(re1.hasMatch(mainOutput));
-    Expect.isFalse(re2.hasMatch(mainOutput));
+    await run(
+        MEMORY_SOURCE_FILES,
+        const [OutputUnitDescriptor('memory:lib1.dart', 'finalVar', 'lib1')],
+        expectedOutputUnits,
+        useCFEConstants: useCFEConstants);
   }
 
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTest();
+    print('--test from kernel with CFE constants-----------------------------');
+    await runTest(useCFEConstants: true);
   });
 }
 
@@ -67,7 +51,13 @@ void main() {
 """,
   "lib1.dart": """
 import "main.dart" as main;
-final finalVar = "string1";
-var globalVar = "string2";
+
+class C {
+  final field;
+  const C(this.field);
+}
+
+final finalVar = const C("string1");
+dynamic globalVar = const C("string2");
 """
 };

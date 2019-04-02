@@ -67,6 +67,8 @@ constructor_function_types: TextSerializationFailure # Was: Pass
 constructor_initializer_invalid: TextSerializationFailure # Was: RuntimeError # Fails execution after recovery
 continue_inference_after_error: TextSerializationFailure # Was: Pass
 continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
+control_flow_collection: TextSerializationFailure
+control_flow_collection_inference: TextSerializationFailure
 covariant_generic: TextSerializationFailure # Was: RuntimeError
 cycles: TextSerializationFailure # Was: Pass
 default_values: TextSerializationFailure # Was: Pass
@@ -525,9 +527,11 @@ inference/unsafe_block_closure_inference_constructor_call_no_type_param: TextSer
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: InstrumentationMismatch # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: InstrumentationMismatch # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_explicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: InstrumentationMismatch # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: InstrumentationMismatch # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: TextSerializationFailure
 inference/unsafe_block_closure_inference_function_call_implicit_type_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_function_call_no_type_param: TextSerializationFailure # Was: Pass
@@ -546,6 +550,7 @@ inference/void_return_type_subtypes_dynamic: TextSerializationFailure # Was: Pas
 inference_new/const_invocation: TextSerializationFailure # Was: Pass
 inference_new/dependency_only_if_generic_method: TextSerializationFailure # Was: Pass
 inference_new/dependency_only_if_overloaded: TextSerializationFailure # Was: Pass
+inference_new/dependency_only_if_overloaded: TypeCheckError
 inference_new/do_loop: TextSerializationFailure # Was: Pass
 inference_new/downwards_inference_inside_top_level: TextSerializationFailure # Was: Pass
 inference_new/downwards_inference_inside_top_level_2: TextSerializationFailure # Was: Pass
@@ -593,6 +598,7 @@ inference_new/property_assign_combiner: TextSerializationFailure # Was: Pass
 inference_new/property_get_toplevel: TextSerializationFailure # Was: Pass
 inference_new/static_assign_combiner: TextSerializationFailure # Was: Pass
 inference_new/strongly_connected_component: TextSerializationFailure # Was: Pass
+inference_new/strongly_connected_component: TypeCheckError
 inference_new/super_index_get: TextSerializationFailure # Was: Pass
 inference_new/super_index_get_substitution: TextSerializationFailure # Was: Pass
 inference_new/switch: TextSerializationFailure # Was: Pass
@@ -716,6 +722,7 @@ no_such_method_forwarders/subst_on_forwarder: TextSerializationFailure # Was: Pa
 no_such_method_private_setter: TextSerializationFailure # Was: Pass
 no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
 null_aware: TextSerializationFailure # Was: Pass
+operator_method_not_found: TextSerializationFailure
 operators: TextSerializationFailure # Was: Pass
 optional: TypeCheckError
 override: TextSerializationFailure # Was: Pass

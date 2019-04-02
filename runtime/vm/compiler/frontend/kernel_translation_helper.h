@@ -59,6 +59,8 @@ class TranslationHelper {
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
+  RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
+
   void SetKernelProgramInfo(const KernelProgramInfo& info);
 
   intptr_t StringOffset(StringIndex index) const;
@@ -155,6 +157,10 @@ class TranslationHelper {
   RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
+
+  void SetupFieldAccessorFunction(const Class& klass,
+                                  const Function& function,
+                                  const AbstractType& field_type);
 
   void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,
@@ -1061,6 +1067,7 @@ class KernelReaderHelper {
   String& SourceTableUriFor(intptr_t index);
   const String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
+  String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;

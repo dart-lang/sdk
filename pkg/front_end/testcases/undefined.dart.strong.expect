@@ -2,23 +2,23 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/undefined.dart:14:33: Error: The getter 'y' isn't defined for the class 'C'.
+// pkg/front_end/testcases/undefined.dart:12:5: Error: The getter 'y' isn't defined for the class 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/undefined.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
-//   c. /*@error=UndefinedGetter*/ y;
-//                                 ^
+//   c.y;
+//     ^
 //
-// pkg/front_end/testcases/undefined.dart:16:33: Error: The method 'g' isn't defined for the class 'C'.
+// pkg/front_end/testcases/undefined.dart:14:5: Error: The method 'g' isn't defined for the class 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/undefined.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'g'.
-//   c. /*@error=UndefinedMethod*/ g();
-//                                 ^
+//   c.g();
+//     ^
 //
-// pkg/front_end/testcases/undefined.dart:18:33: Error: The setter 'y' isn't defined for the class 'C'.
+// pkg/front_end/testcases/undefined.dart:16:5: Error: The setter 'y' isn't defined for the class 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/undefined.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
-//   c. /*@error=UndefinedSetter*/ y = null;
-//                                 ^
+//   c.y = null;
+//     ^
 //
 import self as self;
 import "dart:core" as core;
@@ -32,22 +32,22 @@ class C extends core::Object {
 }
 static method test(self::C c) → void {
   c.{self::C::x};
-  invalid-expression "pkg/front_end/testcases/undefined.dart:14:33: Error: The getter 'y' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/undefined.dart:12:5: Error: The getter 'y' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/undefined.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
-  c. /*@error=UndefinedGetter*/ y;
-                                ^";
+  c.y;
+    ^";
   c.{self::C::f}();
-  invalid-expression "pkg/front_end/testcases/undefined.dart:16:33: Error: The method 'g' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/undefined.dart:14:5: Error: The method 'g' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/undefined.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'g'.
-  c. /*@error=UndefinedMethod*/ g();
-                                ^";
+  c.g();
+    ^";
   c.{self::C::x} = null;
-  invalid-expression "pkg/front_end/testcases/undefined.dart:18:33: Error: The setter 'y' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/undefined.dart:16:5: Error: The setter 'y' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/undefined.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
-  c. /*@error=UndefinedSetter*/ y = null;
-                                ^";
+  c.y = null;
+    ^";
 }
 static method main() → dynamic {}

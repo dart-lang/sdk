@@ -47,7 +47,7 @@ class bool {
   //ignore: const_constructor_with_body
   //ignore: const_factory
   external const factory bool.fromEnvironment(String name,
-      {bool defaultValue: false});
+      {bool defaultValue = false});
 
   external int get hashCode;
 

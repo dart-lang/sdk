@@ -6,9 +6,9 @@
 library test;
 
 class B<T> {
-  void f(T /*@covariance=genericImpl*/ x) {}
-  void g({T /*@covariance=genericImpl*/ x}) {}
-  void h< /*@covariance=genericImpl*/ U extends T>() {}
+  void f(T x) {}
+  void g({T x}) {}
+  void h<U extends T>() {}
 }
 
 class C extends B<int> {}

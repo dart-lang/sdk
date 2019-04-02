@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constants;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 import 'package:meta/meta.dart';
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
@@ -30,7 +31,8 @@ TransformationInfo transformComponent(
   constants.transformComponent(component, vmConstants, environment, null,
       keepFields: true,
       evaluateAnnotations: true,
-      enableAsserts: enableAsserts);
+      enableAsserts: enableAsserts,
+      desugarSets: !target.supportsSetLiterals);
 
   TransformationInfo info = collectInfo ? TransformationInfo() : null;
 

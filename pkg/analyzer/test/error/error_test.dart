@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -70,7 +70,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
                 member.variables.variables[0].name.name == 'errorCodeValues',
             orElse: () => null);
     ListLiteral listLiteral = declaration.variables.variables[0].initializer;
-    for (PrefixedIdentifier element in listLiteral.elements2) {
+    for (PrefixedIdentifier element in listLiteral.elements) {
       listedCodes.add(element.name);
     }
     return listedCodes;
@@ -91,7 +91,6 @@ class ErrorCodeValuesTest extends ParserTestCase {
       ['lib', 'src', 'dart', 'error', 'hint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'lint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'todo_codes.dart'],
-      ['lib', 'src', 'html', 'error', 'html_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'syntactic_errors.dart'],
       ['lib', 'src', 'error', 'codes.dart'],
       ['..', 'front_end', 'lib', 'src', 'scanner', 'errors.dart']

@@ -196,6 +196,28 @@ abstract class Forest {
   MapEntry ifMapEntry(
       Expression condition, MapEntry then, MapEntry otherwise, Token token);
 
+  Expression forElement(
+      List<VariableDeclaration> variables,
+      Expression condition,
+      List<Expression> updates,
+      Expression body,
+      Token token);
+
+  MapEntry forMapEntry(
+      List<VariableDeclaration> variables,
+      Expression condition,
+      List<Expression> updates,
+      MapEntry body,
+      Token token);
+
+  Expression forInElement(VariableDeclaration variable, Expression iterable,
+      Statement prologue, Expression body, Expression problem, Token token,
+      {bool isAsync: false});
+
+  MapEntry forInMapEntry(VariableDeclaration variable, Expression iterable,
+      Statement prologue, MapEntry body, Expression problem, Token token,
+      {bool isAsync: false});
+
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
   Object assertInitializer(Token assertKeyword, Token leftParenthesis,

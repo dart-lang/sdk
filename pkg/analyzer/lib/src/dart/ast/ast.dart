@@ -443,13 +443,8 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => RELATIONAL_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.relational;
+  Precedence get precedence => Precedence.relational;
 
   @override
   TypeAnnotation get type => _type;
@@ -697,13 +692,8 @@ class AssignmentExpressionImpl extends ExpressionImpl
     _leftHandSide = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => ASSIGNMENT_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.assignment;
+  Precedence get precedence => Precedence.assignment;
 
   @deprecated
   @override
@@ -924,13 +914,8 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => PREFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.prefix;
+  Precedence get precedence => Precedence.prefix;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
@@ -994,13 +979,8 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
     _leftOperand = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => operator.type.precedence;
-
-  @override
-  Precedence get precedence2 => Precedence.forTokenType(operator.type);
+  Precedence get precedence => Precedence.forTokenType(operator.type);
 
   @deprecated
   @override
@@ -1283,13 +1263,8 @@ class CascadeExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _cascadeSections.endToken;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => CASCADE_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.cascade;
+  Precedence get precedence => Precedence.cascade;
 
   @override
   Expression get target => _target;
@@ -2283,13 +2258,8 @@ class ConditionalExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _elseExpression.endToken;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => CONDITIONAL_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.conditional;
+  Precedence get precedence => Precedence.conditional;
 
   @override
   Expression get thenExpression => _thenExpression;
@@ -2438,7 +2408,6 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
         case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-        case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
         case CompileTimeErrorCode
             .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.INVALID_CONSTANT:
@@ -3042,9 +3011,6 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
-  ParameterElement get declaredElement => _parameter.declaredElement;
-
-  @override
   Token get beginToken => _parameter.beginToken;
 
   @override
@@ -3053,6 +3019,9 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   Token get covariantKeyword => null;
+
+  @override
+  ParameterElement get declaredElement => _parameter.declaredElement;
 
   @override
   Expression get defaultValue => _defaultValue;
@@ -3699,6 +3668,10 @@ abstract class ExpressionImpl extends AstNodeImpl
   @override
   bool get isAssignable => false;
 
+  @Deprecated('Use precedence')
+  @override
+  Precedence get precedence2 => precedence;
+
   @deprecated
   @override
   ParameterElement get propagatedParameterElement => null;
@@ -4171,107 +4144,6 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 }
 
-/// A for-each statement.
-///
-///    forEachStatement ::=
-///        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
-///      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
-@Deprecated('Use ForStatement2Impl')
-class ForEachStatementImpl extends ForStatement2Impl
-    implements ForEachStatement {
-  /// Initialize a newly created for-each statement whose loop control variable
-  /// is declared internally (in the for-loop part). The [awaitKeyword] can be
-  /// `null` if this is not an asynchronous for loop.
-  ForEachStatementImpl.withDeclaration(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      DeclaredIdentifierImpl loopVariable,
-      Token inKeyword,
-      ExpressionImpl iterator,
-      Token rightParenthesis,
-      StatementImpl body)
-      : super(
-            awaitKeyword,
-            forKeyword,
-            leftParenthesis,
-            new ForEachPartsWithDeclarationImpl(
-                loopVariable, inKeyword, iterator),
-            rightParenthesis,
-            body);
-
-  /// Creates a for-each statement using a caller-provided "parts" data
-  /// structure.
-  ForEachStatementImpl.withParts(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForEachPartsImpl forLoopParts,
-      Token rightParenthesis,
-      Statement body)
-      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
-            rightParenthesis, body);
-
-  /// Initialize a newly created for-each statement whose loop control variable
-  /// is declared outside the for loop. The [awaitKeyword] can be `null` if this
-  /// is not an asynchronous for loop.
-  ForEachStatementImpl.withReference(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      SimpleIdentifierImpl identifier,
-      Token inKeyword,
-      ExpressionImpl iterator,
-      Token rightParenthesis,
-      StatementImpl body)
-      : super(
-            awaitKeyword,
-            forKeyword,
-            leftParenthesis,
-            new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterator),
-            rightParenthesis,
-            body);
-
-  @override
-  SimpleIdentifier get identifier => forLoopParts is ForEachPartsWithIdentifier
-      ? (forLoopParts as ForEachPartsWithIdentifier).identifier
-      : null;
-
-  @override
-  void set identifier(SimpleIdentifier identifier) {
-    (forLoopParts as ForEachPartsWithIdentifierImpl).identifier = identifier;
-  }
-
-  @override
-  Token get inKeyword => (forLoopParts as ForEachParts).inKeyword;
-
-  @override
-  set inKeyword(Token keyword) =>
-      (forLoopParts as ForEachPartsImpl).inKeyword = keyword;
-
-  @override
-  Expression get iterable => (forLoopParts as ForEachParts).iterable;
-
-  @override
-  void set iterable(Expression expression) {
-    (forLoopParts as ForEachPartsImpl).iterable = expression;
-  }
-
-  @override
-  DeclaredIdentifier get loopVariable =>
-      forLoopParts is ForEachPartsWithDeclaration
-          ? (forLoopParts as ForEachPartsWithDeclaration).loopVariable
-          : null;
-
-  @override
-  void set loopVariable(DeclaredIdentifier variable) {
-    (forLoopParts as ForEachPartsWithDeclarationImpl).loopVariable = variable;
-  }
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForEachStatement(this);
-}
-
 class ForElementImpl extends CollectionElementImpl
     with ForMixin
     implements ForElement {
@@ -4641,20 +4513,12 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-abstract class ForStatement2Impl extends StatementImpl
-    with ForMixin
-    implements ForStatement2 {
-  /// The body of the loop.
-  StatementImpl _body;
-
+@Deprecated('Replaced by ForStatementImpl')
+class ForStatement2Impl extends ForStatementImpl implements ForStatement2 {
   /// Initialize a newly created for statement.
-  ForStatement2Impl(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopPartsImpl forLoopParts,
-      Token rightParenthesis,
-      StatementImpl body) {
+  ForStatement2Impl(Token awaitKeyword, Token forKeyword, Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts, Token rightParenthesis, StatementImpl body)
+      : super._() {
     this.awaitKeyword = awaitKeyword;
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
@@ -4662,6 +4526,28 @@ abstract class ForStatement2Impl extends StatementImpl
     this.rightParenthesis = rightParenthesis;
     _body = _becomeParentOf(body);
   }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+}
+
+abstract class ForStatementImpl extends StatementImpl
+    with ForMixin
+    implements ForStatement {
+  /// The body of the loop.
+  StatementImpl _body;
+
+  /// Initialize a newly created for statement.
+  factory ForStatementImpl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      // ignore: deprecated_member_use_from_same_package
+      StatementImpl body) = ForStatement2Impl;
+
+  ForStatementImpl._();
 
   Statement get body => _body;
 
@@ -4678,118 +4564,13 @@ abstract class ForStatement2Impl extends StatementImpl
   Token get endToken => _body.endToken;
 
   @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
     _forLoopParts?.accept(visitor);
     _body?.accept(visitor);
   }
-}
-
-/// A for statement.
-///
-///    forStatement ::=
-///        'for' '(' forLoopParts ')' [Statement]
-///
-///    forLoopParts ::=
-///        forInitializerStatement ';' [Expression]? ';' [Expression]?
-///
-///    forInitializerStatement ::=
-///        [DefaultFormalParameter]
-///      | [Expression]?
-@Deprecated('Use ForStatement2Impl')
-class ForStatementImpl extends ForStatement2Impl implements ForStatement {
-  /// Initialize a newly created for statement. Either the [variableList] or the
-  /// [initialization] must be `null`. Either the [condition] and the list of
-  /// [updaters] can be `null` if the loop does not have the corresponding
-  /// attribute.
-  ForStatementImpl(
-      Token forKeyword,
-      Token leftParenthesis,
-      VariableDeclarationListImpl variableList,
-      ExpressionImpl initialization,
-      Token leftSeparator,
-      ExpressionImpl condition,
-      Token rightSeparator,
-      List<Expression> updaters,
-      Token rightParenthesis,
-      StatementImpl body)
-      : super(
-            null,
-            forKeyword,
-            leftParenthesis,
-            variableList == null
-                ? new ForPartsWithExpressionImpl(initialization, leftSeparator,
-                    condition, rightSeparator, updaters)
-                : new ForPartsWithDeclarationsImpl(variableList, leftSeparator,
-                    condition, rightSeparator, updaters),
-            rightParenthesis,
-            body);
-
-  /// Creates a for-each statement using a caller-provided "parts" data
-  /// structure.
-  ForStatementImpl.withParts(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForPartsImpl forLoopParts,
-      Token rightParenthesis,
-      Statement body)
-      : super(awaitKeyword, forKeyword, leftParenthesis, forLoopParts,
-            rightParenthesis, body);
-
-  @override
-  Expression get condition => (forLoopParts as ForParts).condition;
-
-  @override
-  void set condition(Expression expression) {
-    (forLoopParts as ForPartsImpl).condition = expression;
-  }
-
-  @override
-  Expression get initialization => forLoopParts is ForPartsWithExpression
-      ? (forLoopParts as ForPartsWithExpression).initialization
-      : null;
-
-  @override
-  void set initialization(Expression initialization) {
-    if (forLoopParts is ForPartsWithExpressionImpl) {
-      (forLoopParts as ForPartsWithExpressionImpl).initialization =
-          initialization;
-    }
-  }
-
-  @override
-  Token get leftSeparator => (forLoopParts as ForParts).leftSeparator;
-
-  @override
-  set leftSeparator(Token separator) =>
-      (forLoopParts as ForPartsImpl).leftSeparator = separator;
-
-  @override
-  Token get rightSeparator => (forLoopParts as ForParts).rightSeparator;
-
-  @override
-  set rightSeparator(Token separator) =>
-      (forLoopParts as ForPartsImpl).rightSeparator = separator;
-
-  @override
-  NodeList<Expression> get updaters => (forLoopParts as ForParts).updaters;
-
-  @override
-  VariableDeclarationList get variables =>
-      forLoopParts is ForPartsWithDeclarations
-          ? (forLoopParts as ForPartsWithDeclarations).variables
-          : null;
-
-  @override
-  void set variables(VariableDeclarationList variableList) {
-    (forLoopParts as ForPartsWithDeclarationsImpl).variables = variableList;
-  }
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
 }
 
 /// A node representing the body of a function or method.
@@ -5080,13 +4861,8 @@ class FunctionExpressionImpl extends ExpressionImpl
     _parameters = _becomeParentOf(parameters as FormalParameterListImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 
   @override
   TypeParameterList get typeParameters => _typeParameters;
@@ -5154,13 +4930,8 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     _function = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => POSTFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   @deprecated
   @override
@@ -6002,13 +5773,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   @override
   bool get isCascaded => period != null;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => POSTFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   @deprecated
   @override
@@ -6178,13 +5944,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   /// Return `true` if this is an implicit constructor invocations.
   bool get isImplicit => keyword == null;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 
   /// Return the type arguments associated with the constructor, rather than
   /// with the class in which the constructor is defined. It is always an error
@@ -6611,13 +6372,8 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => RELATIONAL_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.relational;
+  Precedence get precedence => Precedence.relational;
 
   @override
   TypeAnnotation get type => _type;
@@ -6843,13 +6599,8 @@ class LibraryIdentifierImpl extends IdentifierImpl
     return buffer.toString();
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => POSTFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   @deprecated
   @override
@@ -6864,72 +6615,6 @@ class LibraryIdentifierImpl extends IdentifierImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _components.accept(visitor);
-  }
-}
-
-/// A list literal.
-///
-///    listLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')?
-///        '[' ([CollectionLiteralElement] ','?)? ']'
-///
-/// This is the class that is used to represent a list literal when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [ListLiteral] will be
-/// used.
-@Deprecated('Replaced by ListLiteralImpl')
-class ListLiteral2Impl extends TypedLiteralImpl implements ListLiteral2 {
-  @override
-  Token leftBracket;
-
-  /// The elements used to compute the elements of the list.
-  NodeList<CollectionElement> _elements;
-
-  @override
-  Token rightBracket;
-
-  /// Initialize a newly created list literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The list of [elements] can be `null` if the
-  /// list is empty.
-  ListLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      this.leftBracket, List<CollectionElement> elements, this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<CollectionElement>(this, elements);
-  }
-
-  @override
-  Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword;
-    }
-    TypeArgumentList typeArguments = this.typeArguments;
-    if (typeArguments != null) {
-      return typeArguments.beginToken;
-    }
-    return leftBracket;
-  }
-
-  @override
-  // TODO(paulberry): add commas.
-  Iterable<SyntacticEntity> get childEntities => super._childEntities
-    ..add(leftBracket)
-    ..addAll(_elements)
-    ..add(rightBracket);
-
-  @override
-  NodeList<CollectionElement> get elements => _elements;
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral2(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _elements.accept(visitor);
   }
 }
 
@@ -6990,9 +6675,10 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..add(rightBracket);
 
   @override
-  NodeList<Expression> get elements => _elements;
+  NodeList<CollectionElement> get elements => _elements;
 
   @override
+  @Deprecated('Replaced by elements')
   NodeList<CollectionElement> get elements2 => _elements;
 
   @override
@@ -7019,13 +6705,8 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 ///      | [NullLiteral]
 ///      | [StringLiteral]
 abstract class LiteralImpl extends ExpressionImpl implements Literal {
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 }
 
 /// Additional information about local variables within a function or method
@@ -7041,32 +6722,6 @@ class LocalVariableInfo {
   /// within the scope of their declarations.
   final Set<VariableElement> potentiallyMutatedInScope =
       new Set<VariableElement>();
-}
-
-/// A literal map.
-///
-///    mapLiteral ::=
-///        'const'? ('<' [TypeAnnotation] (',' [TypeAnnotation])* '>')?
-///        '{' ([MapElement] (',' [MapElement])* ','?)? '}'
-///
-/// This is the class that is used to represent a map literal when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [MapLiteral] will be used.
-@Deprecated('Replaced by SetOrMapLiteralImpl')
-class MapLiteral2Impl extends SetOrMapLiteralImpl implements MapLiteral2 {
-  /// Initialize a newly created map literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [entries] can be `null` if the map is
-  /// empty.
-  MapLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<CollectionElement> entries, Token rightBracket)
-      : super(constKeyword, typeArguments, leftBracket, entries, rightBracket);
-
-  @override
-  NodeList<CollectionElement> get entries => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral2(this);
 }
 
 /// A single key/value pair in a map literal.
@@ -7126,24 +6781,6 @@ class MapLiteralEntryImpl extends CollectionElementImpl
     _key?.accept(visitor);
     _value?.accept(visitor);
   }
-}
-
-@Deprecated('Use SetOrMapLiteral')
-class MapLiteralImpl extends SetOrMapLiteralImpl implements MapLiteral {
-  /// Initialize a newly created map literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [entries] can be `null` if the map is
-  /// empty.
-  MapLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket)
-      : super._map(
-            constKeyword, typeArguments, leftBracket, entries, rightBracket);
-
-  @override
-  NodeList<MapLiteralEntry> get entries => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteral(this);
 }
 
 /// A method declaration.
@@ -7434,13 +7071,8 @@ class MethodInvocationImpl extends InvocationExpressionImpl
     _methodNameType = methodNameType;
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => POSTFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   @override
   Expression get realTarget {
@@ -7653,13 +7285,8 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
     _name = _becomeParentOf(identifier as LabelImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => NO_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.none;
+  Precedence get precedence => Precedence.none;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
@@ -8210,13 +7837,8 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 
   @override
   Expression get unParenthesized {
@@ -8410,13 +8032,8 @@ class PostfixExpressionImpl extends ExpressionImpl
     _operand = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => POSTFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   @deprecated
   @override
@@ -8522,13 +8139,8 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   String get name => "${_prefix.name}.${_identifier.name}";
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => POSTFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   @override
   SimpleIdentifier get prefix => _prefix;
@@ -8603,13 +8215,8 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
     _operand = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => PREFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.prefix;
+  Precedence get precedence => Precedence.prefix;
 
   @deprecated
   @override
@@ -8690,13 +8297,8 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   bool get isCascaded =>
       operator != null && operator.type == TokenType.PERIOD_PERIOD;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => POSTFIX_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   @override
   SimpleIdentifier get propertyName => _propertyName;
@@ -8837,13 +8439,8 @@ class RethrowExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => rethrowKeyword;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => ASSIGNMENT_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.assignment;
+  Precedence get precedence => Precedence.assignment;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
@@ -8934,51 +8531,6 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   }
 }
 
-/// A literal set.
-///
-///    setLiteral ::=
-///        'const'? ('<' [TypeAnnotation] '>')?
-///        '{' [CollectionElement] (',' [Expression])* ','? '}'
-///      | 'const'? ('<' [TypeAnnotation] '>')? '{' '}'
-///
-/// This is the class that is used to represent a set literal when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then [SetLiteral] will be used.
-@Deprecated('Replaced by SetOrMapLiteralImpl')
-class SetLiteral2Impl extends SetOrMapLiteralImpl implements SetLiteral2 {
-  /// Initialize a newly created set literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [elements] can be `null` if the set is
-  /// empty.
-  SetLiteral2Impl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<CollectionElement> elements, Token rightBracket)
-      : super(constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  NodeList<CollectionElement> get elements => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral2(this);
-}
-
-@Deprecated('Use SetOrMapLiteralImpl')
-class SetLiteralImpl extends SetOrMapLiteralImpl implements SetLiteral {
-  /// Initialize a newly created set literal. The [constKeyword] can be `null`
-  /// if the literal is not a constant. The [typeArguments] can be `null` if no
-  /// type arguments were declared. The [elements] can be `null` if the set is
-  /// empty.
-  SetLiteralImpl(Token constKeyword, TypeArgumentListImpl typeArguments,
-      Token leftBracket, List<Expression> elements, Token rightBracket)
-      : super._set(
-            constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  NodeList<Expression> get elements => _elements;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitSetLiteral(this);
-}
-
 class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   @override
   Token leftBracket;
@@ -9017,30 +8569,6 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
     _resolvedKind = _SetOrMapKind.unresolved;
   }
 
-  /// Temporary constructor to support MapLiteral2Impl.
-  SetOrMapLiteralImpl._map(
-      Token constKeyword,
-      TypeArgumentListImpl typeArguments,
-      this.leftBracket,
-      List<MapLiteralEntry> elements,
-      this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<MapLiteralEntry>(this, elements);
-    _resolvedKind = _SetOrMapKind.map;
-  }
-
-  /// Temporary constructor to support SetLiteral2Impl.
-  SetOrMapLiteralImpl._set(
-      Token constKeyword,
-      TypeArgumentListImpl typeArguments,
-      this.leftBracket,
-      List<Expression> elements,
-      this.rightBracket)
-      : super(constKeyword, typeArguments) {
-    _elements = new NodeListImpl<Expression>(this, elements);
-    _resolvedKind = _SetOrMapKind.set;
-  }
-
   @override
   Token get beginToken {
     if (constKeyword != null) {
@@ -9057,10 +8585,14 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   // TODO(paulberry): add commas.
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(leftBracket)
-    ..addAll(elements2)
+    ..addAll(elements)
     ..add(rightBracket);
 
   @override
+  NodeList<CollectionElement> get elements => _elements;
+
+  @override
+  @Deprecated('Replaced by elements')
   NodeList<CollectionElement> get elements2 => _elements;
 
   @override
@@ -9274,13 +8806,8 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   String get name => token.lexeme;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 
   @deprecated
   @override
@@ -9344,12 +8871,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         return false;
       }
     }
-    // ignore: deprecated_member_use_from_same_package
-    if (parent is ForEachStatement) {
-      if (identical(parent.identifier, target)) {
-        return false;
-      }
-    }
     if (parent is FieldFormalParameter) {
       if (identical(parent.identifier, target)) {
         return false;
@@ -9392,9 +8913,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, target);
     } else if (parent is ForEachPartsWithIdentifier) {
-      return identical(parent.identifier, target);
-      // ignore: deprecated_member_use_from_same_package
-    } else if (parent is ForEachStatement) {
       return identical(parent.identifier, target);
     }
     return false;
@@ -9842,13 +9360,8 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   @override
   Token get endToken => superKeyword;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
@@ -10113,13 +9626,8 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   @override
   Token get endToken => thisKeyword;
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => SELECTOR_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.primary;
+  Precedence get precedence => Precedence.primary;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
@@ -10169,13 +9677,8 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
 
-  @Deprecated('In the next major release, type will change to `Precedence`.  '
-      'Switch to `precedence2` to prepare for this change.')
   @override
-  int get precedence => ASSIGNMENT_PRECEDENCE;
-
-  @override
-  Precedence get precedence2 => Precedence.assignment;
+  Precedence get precedence => Precedence.assignment;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);

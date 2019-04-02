@@ -97,6 +97,8 @@ type SourceInfo {
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<UInt> lineStarts;
+
+  List<Byte> importUriUtf8Bytes;
 }
 
 type UriSource {
@@ -137,7 +139,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 21;
+  UInt32 formatVersion = 22;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;

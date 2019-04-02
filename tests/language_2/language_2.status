@@ -21,7 +21,7 @@ issue34488_test/none: Fail # Issue 34488
 mixin_class_from_core_library_test: Fail # Issue 34488
 nested_generic_closure_test: Fail # Issue 28515
 
-[ $compiler != compare_analyzer_cfe ]
+[ $compiler != compare_analyzer_cfe && $compiler != spec_parser ]
 mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
@@ -67,10 +67,7 @@ partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Iss
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
-[ $compiler != compare_analyzer_cfe && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
-type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
-
-[ $compiler != compare_analyzer_cfe && $compiler != dart2js && !$fasta && $strong ]
+[ $compiler != compare_analyzer_cfe && $compiler != dart2js && $compiler != spec_parser && !$fasta && $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546

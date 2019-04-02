@@ -64,6 +64,7 @@ ConstEvalCircularity/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
 ConstEvalDeferredLibrary/example: Fail
+ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
@@ -72,15 +73,22 @@ ConstEvalFreeTypeParameter/example: Fail
 ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
 ConstEvalInvalidBinaryOperandType/example: Fail
 ConstEvalInvalidMethodInvocation/example: Fail
+ConstEvalInvalidPropertyGet/example: Fail
 ConstEvalInvalidStaticInvocation/example: Fail
 ConstEvalInvalidStringInterpolationOperand/example: Fail
 ConstEvalInvalidSymbolName/example: Fail
 ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
 ConstEvalInvalidType/example: Fail
+ConstEvalIterationInConstList/example: Fail
+ConstEvalIterationInConstMap/example: Fail
+ConstEvalIterationInConstSet/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantLiteral/example: Fail
 ConstEvalNonConstantVariableGet/example: Fail
+ConstEvalNotListOrSetInSpread/example: Fail
+ConstEvalNotMapInSpread/example: Fail
+ConstEvalNullValue/example: Fail
 ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/example: Fail
@@ -239,6 +247,8 @@ InvalidInitializer/analyzerCode: Fail # The analyzer reports a different error
 InvalidInitializer/example: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
+InvalidSuperInInitializer/example: Fail
+InvalidThisInInitializer/example: Fail
 InvalidUseOfNullAwareAccess/example: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
@@ -282,6 +292,7 @@ NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
 NotAType/example: Fail
 NotAnLvalue/example: Fail
+NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail

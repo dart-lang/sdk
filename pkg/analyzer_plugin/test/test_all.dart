@@ -8,12 +8,14 @@ import '../tool/spec/check_all_test.dart' as check_spec;
 import 'plugin/test_all.dart' as plugin;
 import 'src/test_all.dart' as src;
 import 'utilities/test_all.dart' as utilities;
+import 'verify_tests_test.dart' as verify_tests;
 
 main() {
   defineReflectiveSuite(() {
     plugin.main();
     src.main();
     utilities.main();
+    verify_tests.main();
     defineReflectiveSuite(() {
       defineReflectiveTests(SpecTest);
     }, name: 'spec');

@@ -41,6 +41,7 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/lib_2'),
   new Path('tests/standalone'),
   new Path('tests/standalone_2'),
+  new Path('tests/ffi'),
   new Path('utils/tests/peg'),
 ];
 
@@ -235,8 +236,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   // make a pool of all available adb devices.
   AdbDevicePool adbDevicePool;
   var needsAdbDevicePool = configurations.any((conf) {
-    return conf.runtime == Runtime.dartPrecompiled &&
-        conf.system == System.android;
+    return conf.system == System.android;
   });
   if (needsAdbDevicePool) {
     adbDevicePool = await AdbDevicePool.create();

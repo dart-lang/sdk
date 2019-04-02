@@ -336,7 +336,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
     // Write object header with the mark and read-only bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
-    marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
@@ -487,7 +486,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
       // Write Instructions with the mark and read-only bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
       marked_tags = RawObject::OldBit::update(true, marked_tags);
       marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
       marked_tags =
@@ -737,7 +735,6 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     // Write Instructions with the mark and read-only bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
-    marked_tags = RawObject::ReadOnlyBit::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
@@ -823,7 +820,11 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
    public:
     explicit DropCodeVisitor(const void* reused_instructions)
-        : code_(Code::Handle()), instructions_(Instructions::Handle()) {
+        : code_(Code::Handle()),
+          instructions_(Instructions::Handle()),
+          pool_(ObjectPool::Handle()),
+          table_(Array::Handle()),
+          entry_(Object::Handle()) {
       ImageWriter::SetupShared(&reused_instructions_, reused_instructions);
       if (FLAG_trace_reused_instructions) {
         OS::PrintErr("%" Pd " reusable instructions\n",
@@ -833,18 +834,20 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
 
     void Visit(const Class& cls) {
       code_ = cls.allocation_stub();
-      if (!code_.IsNull() && !IsAvailable(code_)) {
-        if (FLAG_trace_reused_instructions) {
-          OS::PrintErr("No reusable instructions for %s\n", cls.ToCString());
+      if (!code_.IsNull()) {
+        if (!CanKeep(code_)) {
+          if (FLAG_trace_reused_instructions) {
+            OS::PrintErr("No reusable instructions for %s\n", cls.ToCString());
+          }
+          cls.DisableAllocationStub();
         }
-        cls.DisableAllocationStub();
       }
     }
 
     void Visit(const Function& func) {
       if (func.HasCode()) {
         code_ = func.CurrentCode();
-        if (!IsAvailable(code_)) {
+        if (!CanKeep(code_)) {
           if (FLAG_trace_reused_instructions) {
             OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
           }
@@ -854,14 +857,42 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
         }
       }
       code_ = func.unoptimized_code();
-      if (!code_.IsNull() && !IsAvailable(code_)) {
+      if (!code_.IsNull() && !CanKeep(code_)) {
         if (FLAG_trace_reused_instructions) {
           OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
         }
         func.ClearCode();
         func.ClearICDataArray();
-        return;
       }
+    }
+
+    bool CanKeep(const Code& code) {
+      if (!IsAvailable(code)) {
+        return false;
+      }
+
+      pool_ = code.object_pool();
+      for (intptr_t i = 0; i < pool_.Length(); i++) {
+        if (pool_.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
+          entry_ = pool_.ObjectAt(i);
+          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
+            return false;
+          }
+        }
+      }
+
+      table_ = code.static_calls_target_table();
+      if (!table_.IsNull()) {
+        StaticCallsTable static_calls(table_);
+        for (auto& view : static_calls) {
+          entry_ = view.Get<Code::kSCallTableCodeTarget>();
+          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
+            return false;
+          }
+        }
+      }
+
+      return true;
     }
 
    private:
@@ -873,6 +904,9 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
     ObjectOffsetMap reused_instructions_;
     Code& code_;
     Instructions& instructions_;
+    ObjectPool& pool_;
+    Array& table_;
+    Object& entry_;
 
     DISALLOW_COPY_AND_ASSIGN(DropCodeVisitor);
   };

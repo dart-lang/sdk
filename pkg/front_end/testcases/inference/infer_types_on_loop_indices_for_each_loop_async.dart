@@ -12,7 +12,7 @@ class Foo {
 }
 
 class Bar<T extends Stream<String>> {
-  /*@topType=dynamic*/ foo(T t) async {
+  foo(T t) async {
     await for (var /*@type=String*/ i in t) {
       int x = /*error:INVALID_ASSIGNMENT*/ i;
     }
@@ -20,7 +20,7 @@ class Bar<T extends Stream<String>> {
 }
 
 class Baz<T, E extends Stream<T>, S extends E> {
-  /*@topType=dynamic*/ foo(S t) async {
+  foo(S t) async {
     await for (var /*@type=Baz::T*/ i in t) {
       int x = /*error:INVALID_ASSIGNMENT*/ i;
       T y = i;

@@ -44,6 +44,7 @@ class SetLiteralTransformer extends Transformer {
   final Procedure setFactory;
   final Procedure addMethod;
   final Constructor unmodifiableSetConstructor;
+  final bool transformConst;
 
   static Procedure _findSetFactory(CoreTypes coreTypes) {
     Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
@@ -76,7 +77,7 @@ class SetLiteralTransformer extends Transformer {
     return null;
   }
 
-  SetLiteralTransformer(SourceLoader loader)
+  SetLiteralTransformer(SourceLoader loader, {this.transformConst: true})
       : coreTypes = loader.coreTypes,
         nullType = new InterfaceType(loader.coreTypes.nullClass, []),
         setFactory = _findSetFactory(loader.coreTypes),
@@ -85,6 +86,7 @@ class SetLiteralTransformer extends Transformer {
 
   TreeNode visitSetLiteral(SetLiteral node) {
     if (node.isConst) {
+      if (!transformConst) return node;
       List<MapEntry> entries = new List<MapEntry>(node.expressions.length);
       for (int i = 0; i < node.expressions.length; i++) {
         // expression_i: null

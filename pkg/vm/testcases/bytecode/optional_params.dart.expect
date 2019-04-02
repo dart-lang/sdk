@@ -1,8 +1,21 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-[@vm.bytecode=
+Bytecode (version: stable)
+Main library: #lib
+
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function 'foo1', static, has-optional-positional-params, reflectable, debuggable
+    parameters [dynamic 'x', dynamic 'a', dynamic 'b'] (required: 1)
+    return-type void
+
+
 Bytecode {
   EntryOptional        1, 2, 0
   LoadConstant         r1, CP#0
@@ -68,12 +81,13 @@ ConstantPool {
   [7] = ObjectRef 'a = '
   [8] = ObjectRef 'b = '
 }
-]static method foo1(dynamic x, [dynamic a = "default_a", dynamic b = "default_b"]) → void {
-  core::print("x = ${x}");
-  core::print("a = ${a}");
-  core::print("b = ${b}");
-}
-[@vm.bytecode=
+
+
+Function 'foo2', static, has-optional-named-params, reflectable, debuggable
+    parameters [dynamic 'y', dynamic 'z', dynamic 'c', dynamic 'a', dynamic 'b'] (required: 2)
+    return-type void
+
+
 Bytecode {
   EntryOptional        2, 0, 3
   LoadConstant         r2, CP#0
@@ -179,14 +193,14 @@ ConstantPool {
   [13] = ObjectRef 'b = '
   [14] = ObjectRef 'c = '
 }
-]static method foo2(dynamic y, dynamic z, {dynamic c = "default_c", dynamic a = 42, dynamic b = const <core::String>["default_b"]}) → void {
-  core::print("y = ${y}");
-  core::print("z = ${z}");
-  core::print("a = ${a}");
-  core::print("b = ${b}");
-  core::print("c = ${c}");
-}
-[@vm.bytecode=
+
+
+Function 'foo3', static, has-optional-named-params, reflectable, debuggable
+    type-params <dart:core::Object P, dart:core::Object Q>
+    parameters [dynamic 'z', dynamic 'y', dart:core::bool 'a', dart:core::Map < #lib::foo3::TypeParam/0, #lib::foo3::TypeParam/1 > 'b'] (required: 2)
+    return-type void
+
+
 Bytecode {
   EntryOptional        2, 0, 2
   LoadConstant         r2, CP#0
@@ -219,12 +233,13 @@ ConstantPool {
   [5] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [6] = Reserved
 }
-]static method foo3<P extends core::Object = dynamic, Q extends core::Object = dynamic>(dynamic z, dynamic y, {core::bool a = false, core::Map<self::foo3::P, self::foo3::Q> b = null}) → void {
-  core::print(self::foo3::P);
-  core::print(y);
-  core::print(b);
-}
-[@vm.bytecode=
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -250,7 +265,31 @@ ConstantPool {
   [6] = DirectCall '#lib::foo2', ArgDesc num-args 3, num-type-args 0, names ['a']
   [7] = Reserved
 }
-]static method main() → dynamic {
-  self::foo1("fixed_x", "concrete_a");
-  self::foo2("fixed_y", "fixed_z", a: "concrete_a");
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method foo1(dynamic x, [dynamic a = "default_a", dynamic b = "default_b"]) → void {
+    dart.core::print("x = ${x}");
+    dart.core::print("a = ${a}");
+    dart.core::print("b = ${b}");
+  }
+  static method foo2(dynamic y, dynamic z, {dynamic c = "default_c", dynamic a = 42, dynamic b = const <dart.core::String>["default_b"]}) → void {
+    dart.core::print("y = ${y}");
+    dart.core::print("z = ${z}");
+    dart.core::print("a = ${a}");
+    dart.core::print("b = ${b}");
+    dart.core::print("c = ${c}");
+  }
+  static method foo3<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic>(dynamic z, dynamic y, {dart.core::bool a = false, dart.core::Map<#lib::foo3::P, #lib::foo3::Q> b = null}) → void {
+    dart.core::print(#lib::foo3::P);
+    dart.core::print(y);
+    dart.core::print(b);
+  }
+  static method main() → dynamic {
+    #lib::foo1("fixed_x", "concrete_a");
+    #lib::foo2("fixed_y", "fixed_z", a: "concrete_a");
+  }
 }

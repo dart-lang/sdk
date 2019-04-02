@@ -68,7 +68,8 @@ ReplacedMembers transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter) {
-  final index = new LibraryIndex(component, ["dart:ffi"]);
+  final LibraryIndex index = LibraryIndex(
+      component, const ["dart:ffi", "dart:_internal", "dart:core"]);
   if (!index.containsLibrary("dart:ffi")) {
     // if dart:ffi is not loaded, do not do the transformation
     return ReplacedMembers({}, {});
@@ -82,12 +83,28 @@ ReplacedMembers transformLibraries(
 
 /// Checks and expands the dart:ffi @struct and field annotations.
 class _FfiDefinitionTransformer extends FfiTransformer {
+  final LibraryIndex index;
+  final Field _internalIs64Bit;
+  final Constructor _unimplementedErrorCtor;
+  static const String _errorOn32BitMessage =
+      "Code-gen for FFI structs is not supported on 32-bit platforms.";
+
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
 
-  _FfiDefinitionTransformer(LibraryIndex index, CoreTypes coreTypes,
+  _FfiDefinitionTransformer(this.index, CoreTypes coreTypes,
       ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter)
-      : super(index, coreTypes, hierarchy, diagnosticReporter) {}
+      : _internalIs64Bit = index.getTopLevelMember('dart:_internal', 'is64Bit'),
+        _unimplementedErrorCtor =
+            index.getMember('dart:core', 'UnimplementedError', ''),
+        super(index, coreTypes, hierarchy, diagnosticReporter) {}
+
+  Statement guardOn32Bit(Statement body) {
+    final Throw error = Throw(ConstructorInvocation(_unimplementedErrorCtor,
+        Arguments([StringLiteral(_errorOn32BitMessage)])));
+    return IfStatement(
+        StaticGet(_internalIs64Bit), body, ExpressionStatement(error));
+  }
 
   @override
   visitClass(Class node) {
@@ -237,8 +254,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         pointerName,
         ProcedureKind.Getter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(offsetExpression, castMethod.name,
-                Arguments([], types: [pointerType]), castMethod)),
+            guardOn32Bit(ReturnStatement(MethodInvocation(
+                offsetExpression,
+                castMethod.name,
+                Arguments([], types: [pointerType]),
+                castMethod))),
             returnType: pointerType));
 
     // Sample output:
@@ -247,11 +267,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         field.name,
         ProcedureKind.Getter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(
+            guardOn32Bit(ReturnStatement(MethodInvocation(
                 PropertyGet(ThisExpression(), pointerName, pointerGetter),
                 loadMethod.name,
                 Arguments([], types: [field.type]),
-                loadMethod)),
+                loadMethod))),
             returnType: field.type));
 
     // Sample output:
@@ -261,11 +281,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         field.name,
         ProcedureKind.Setter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(
+            guardOn32Bit(ReturnStatement(MethodInvocation(
                 PropertyGet(ThisExpression(), pointerName, pointerGetter),
                 storeMethod.name,
                 Arguments([VariableGet(argument)]),
-                storeMethod)),
+                storeMethod))),
             returnType: VoidType(),
             positionalParameters: [argument]));
 
@@ -287,7 +307,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     // replace in place to avoid going over use sites
-    sizeOf.function = FunctionNode(ReturnStatement(IntLiteral(size)),
+    sizeOf.function = FunctionNode(
+        guardOn32Bit(ReturnStatement(IntLiteral(size))),
         returnType: InterfaceType(intClass));
     sizeOf.isExternal = false;
   }

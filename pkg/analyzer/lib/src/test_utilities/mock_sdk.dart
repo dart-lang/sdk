@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -143,9 +143,12 @@ external bool identical(Object a, Object b);
 
 void print(Object object) {}
 
-class bool extends Object {
+abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});
+  bool operator &(bool other);
+  bool operator |(bool other);
+  bool operator ^(bool other);
 }
 
 abstract class Comparable<T> {

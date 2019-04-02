@@ -1635,7 +1635,8 @@ ProcessedSample::ProcessedSample()
       user_tag_(0),
       allocation_cid_(-1),
       truncated_(false),
-      timeline_trie_(NULL) {}
+      timeline_code_trie_(nullptr),
+      timeline_function_trie_(nullptr) {}
 
 void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
                                   uword pc_marker,

@@ -45,7 +45,8 @@ import '../quote.dart'
 
 import '../scanner.dart' show Token;
 
-import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
+import '../scanner/token.dart'
+    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 
 import '../scope.dart' show ProblemBuilder;
 
@@ -65,7 +66,16 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
 
-import 'collections.dart' show SpreadElement, SpreadMapEntry;
+import 'collections.dart'
+    show
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement,
+        SpreadMapEntry;
 
 import 'constness.dart' show Constness;
 
@@ -1374,8 +1384,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       negate = true;
     }
     if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
-      return buildProblem(fasta.templateInvalidOperator.withArguments(token),
-          token.charOffset, token.length);
+      if (isUserDefinableOperator(operator)) {
+        return buildProblem(
+            fasta.templateNotBinaryOperator.withArguments(token),
+            token.charOffset,
+            token.length);
+      } else {
+        return buildProblem(fasta.templateInvalidOperator.withArguments(token),
+            token.charOffset, token.length);
+      }
     } else {
       Expression result = buildMethodInvocation(a, new Name(operator),
           forest.arguments(<Expression>[b], noLocation), token.charOffset,
@@ -2270,22 +2287,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endForControlFlow(Token token) {
-    debugEvent("endForControlFlow");
-    // TODO(danrubel) implement control flow support
-
+    debugEvent("ForControlFlow");
     var entry = pop();
     int updateExpressionCount = pop();
     pop(); // left separator
     pop(); // left parenthesis
     Token forToken = pop();
-
-    popListForEffect(updateExpressionCount); // updates
-    popStatement(); // condition
+    List<Expression> updates = popListForEffect(updateExpressionCount);
+    Statement conditionStatement = popStatement(); // condition
     Object variableOrExpression = pop();
+    exitLocalScope();
 
-    if (entry != invalidCollectionElement) {
-      // TODO(danrubel): Replace with control flow structures
-      buildVariableDeclarations(variableOrExpression); // variables
+    if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled
       handleRecoverableError(
@@ -2293,9 +2306,27 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           forToken,
           forToken);
       push(invalidCollectionElement);
-    } else {
-      // TODO(danrubel): Remove once unified collections enabled by default
+      return;
+    }
+    if (entry == invalidCollectionElement) {
       push(invalidCollectionElement);
+      return;
+    }
+    transformCollections = true;
+    List<VariableDeclaration> variables =
+        buildVariableDeclarations(variableOrExpression);
+    Expression condition;
+    if (forest.isExpressionStatement(conditionStatement)) {
+      condition =
+          forest.getExpressionFromExpressionStatement(conditionStatement);
+    } else {
+      assert(forest.isEmptyStatement(conditionStatement));
+    }
+    if (entry is MapEntry) {
+      push(forest.forMapEntry(variables, condition, updates, entry, forToken));
+    } else {
+      push(forest.forElement(
+          variables, condition, updates, toValue(entry), forToken));
     }
   }
 
@@ -2431,7 +2462,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (entry is MapEntry) {
           // TODO(danrubel): report the error on the colon
           addProblem(fasta.templateExpectedButGot.withArguments(','),
-              entry.value.fileOffset - 1, 1);
+              entry.fileOffset, 1);
         } else {
           // TODO(danrubel): Revise once control flow and spread
           //  collection entries are supported.
@@ -2493,6 +2524,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     final typeArgCount = typeArguments?.length;
     bool isSet = typeArgCount == 1 ? true : typeArgCount != null ? false : null;
 
+    for (int i = 0; i < setOrMapEntries.length; ++i) {
+      if (setOrMapEntries[i] is! MapEntry &&
+          !isConvertibleToMapEntry(setOrMapEntries[i])) {
+        hasSetEntry = true;
+      }
+    }
+
     // TODO(danrubel): If the type arguments are not known (null) then
     // defer set/map determination until after type resolution as per the
     // unified collection spec: https://github.com/dart-lang/language/pull/200
@@ -2502,7 +2540,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (isSet) {
       buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
     } else {
-      buildLiteralMap(typeArguments, constKeyword, leftBrace, setOrMapEntries);
+      List<MapEntry> mapEntries = new List<MapEntry>(setOrMapEntries.length);
+      for (int i = 0; i < setOrMapEntries.length; ++i) {
+        if (setOrMapEntries[i] is MapEntry) {
+          mapEntries[i] = setOrMapEntries[i];
+        } else {
+          mapEntries[i] = convertToMapEntry(setOrMapEntries[i]);
+        }
+      }
+      buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);
     }
   }
 
@@ -2526,8 +2572,58 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(forest.literalNull(token));
   }
 
+  bool isConvertibleToMapEntry(Expression element) {
+    if (element is SpreadElement) return true;
+    if (element is IfElement) {
+      return isConvertibleToMapEntry(element.then) &&
+          (element.otherwise == null ||
+              isConvertibleToMapEntry(element.otherwise));
+    }
+    if (element is ForElement) {
+      return isConvertibleToMapEntry(element.body);
+    }
+    if (element is ForInElement) {
+      return isConvertibleToMapEntry(element.body);
+    }
+    return false;
+  }
+
+  MapEntry convertToMapEntry(Expression element) {
+    if (element is SpreadElement) {
+      return new SpreadMapEntry(element.expression, element.isNullAware)
+        ..fileOffset = element.expression.fileOffset;
+    }
+    if (element is IfElement) {
+      return new IfMapEntry(
+          element.condition,
+          convertToMapEntry(element.then),
+          element.otherwise == null
+              ? null
+              : convertToMapEntry(element.otherwise))
+        ..fileOffset = element.fileOffset;
+    }
+    if (element is ForElement) {
+      return new ForMapEntry(element.variables, element.condition,
+          element.updates, convertToMapEntry(element.body))
+        ..fileOffset = element.fileOffset;
+    }
+    if (element is ForInElement) {
+      return new ForInMapEntry(element.variable, element.iterable,
+          element.prologue, convertToMapEntry(element.body), element.problem)
+        ..fileOffset = element.fileOffset;
+    }
+    return new MapEntry(
+        desugarSyntheticExpression(buildProblem(
+          fasta.templateExpectedAfterButGot.withArguments(':'),
+          element.fileOffset,
+          // TODO(danrubel): what is the length of the expression?
+          1,
+        )),
+        new NullLiteral());
+  }
+
   void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
-      Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
+      Token constKeyword, Token leftBrace, List<MapEntry> entries) {
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
@@ -2546,24 +2642,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       DartType implicitTypeArgument = this.implicitTypeArgument;
       keyType = implicitTypeArgument;
       valueType = implicitTypeArgument;
-    }
-
-    List<MapEntry> entries = <MapEntry>[];
-    if (setOrMapEntries != null) {
-      for (var entry in setOrMapEntries) {
-        if (entry is MapEntry) {
-          entries.add(entry);
-        } else if (entry is SpreadElement) {
-          entries.add(new SpreadMapEntry(entry.expression, entry.isNullAware));
-        } else {
-          addProblem(
-            fasta.templateExpectedAfterButGot.withArguments(':'),
-            (entry as Expression).fileOffset,
-            // TODO(danrubel): what is the length of the expression?
-            1,
-          );
-        }
-      }
     }
 
     Expression node = forest.literalMap(
@@ -2740,7 +2818,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType type = buildDartType(pop());
     library.checkBoundsInType(type, typeEnvironment, operator.charOffset);
     Expression expression = popForValue();
-    if (constantContext != ConstantContext.none) {
+    if (!library.loader.target.enableConstantUpdate2018 &&
+        constantContext != ConstantContext.none) {
       push(desugarSyntheticExpression(buildProblem(
           fasta.templateNotConstantExpression.withArguments('As expression'),
           operator.charOffset,
@@ -2764,7 +2843,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       typePromoter?.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
     }
-    if (constantContext != ConstantContext.none) {
+    if (!library.loader.target.enableConstantUpdate2018 &&
+        constantContext != ConstantContext.none) {
       push(desugarSyntheticExpression(buildProblem(
           fasta.templateNotConstantExpression.withArguments('Is expression'),
           isOperator.charOffset,
@@ -3652,6 +3732,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(ifToken);
   }
 
+  void handleElseControlFlow(Token elseToken) {}
+
   @override
   void endIfControlFlow(Token token) {
     debugEvent("endIfControlFlow");
@@ -4036,18 +4118,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endForInControlFlow(Token token) {
-    debugEvent("endForInControlFlow");
-    // TODO(danrubel) implement control flow support
-
+    debugEvent("ForInControlFlow");
     var entry = pop();
-    pop(); // `in` keyword
+    Token inToken = pop();
     Token forToken = pop();
-    pop(NullValue.AwaitToken); // await token
-    popForValue(); // expression
-    pop(); // lvalue
+    Token awaitToken = pop(NullValue.AwaitToken);
+    Expression iterable = popForValue();
+    Object lvalue = pop(); // lvalue
+    exitLocalScope();
 
-    if (entry != invalidCollectionElement) {
-      // TODO(danrubel): Replace this with control flow element
+    if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled
       handleRecoverableError(
@@ -4055,10 +4135,98 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           forToken,
           forToken);
       push(invalidCollectionElement);
-    } else {
-      // TODO(danrubel): Remove once unified collections enabled by default
-      push(invalidCollectionElement);
+      return;
     }
+    if (entry == invalidCollectionElement) {
+      push(invalidCollectionElement);
+      return;
+    }
+    transformCollections = true;
+    VariableDeclaration variable = buildForInVariable(lvalue);
+    Expression problem = checkForInVariable(lvalue, variable, forToken);
+    Statement prologue = buildForInBody(lvalue, variable, forToken, inToken);
+    if (entry is MapEntry) {
+      push(forest.forInMapEntry(
+          variable, iterable, prologue, entry, problem, forToken,
+          isAsync: awaitToken != null));
+    } else {
+      push(forest.forInElement(
+          variable, iterable, prologue, toValue(entry), problem, forToken,
+          isAsync: awaitToken != null));
+    }
+  }
+
+  VariableDeclaration buildForInVariable(Object lvalue) {
+    if (lvalue is VariableDeclaration) return lvalue;
+    return new VariableDeclarationJudgment.forValue(null, functionNestingLevel);
+  }
+
+  Expression checkForInVariable(
+      Object lvalue, VariableDeclaration variable, Token forToken) {
+    if (lvalue is VariableDeclaration) {
+      if (variable.isConst) {
+        return buildProblem(fasta.messageForInLoopWithConstVariable,
+            variable.fileOffset, variable.name.length);
+      }
+    } else if (lvalue is! Generator) {
+      Message message = forest.isVariablesDeclaration(lvalue)
+          ? fasta.messageForInLoopExactlyOneVariable
+          : fasta.messageForInLoopNotAssignable;
+      Token token = forToken.next.next;
+      return buildProblem(
+          message, offsetForToken(token), lengthForToken(token));
+    }
+    return null;
+  }
+
+  Statement buildForInBody(Object lvalue, VariableDeclaration variable,
+      Token forToken, Token inKeyword) {
+    if (lvalue is VariableDeclaration) return null;
+    if (lvalue is Generator) {
+      /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
+      ///
+      ///     for (lvalue in expression) body
+      ///
+      /// This is normalized to:
+      ///
+      ///     for (final #t in expression) {
+      ///       lvalue = #t;
+      ///       body;
+      ///     }
+      TypePromotionFact fact =
+          typePromoter?.getFactForAccess(variable, functionNestingLevel);
+      TypePromotionScope scope = typePromoter?.currentScope;
+      Expression syntheticAssignment = lvalue.buildAssignment(
+          new VariableGetJudgment(variable, fact, scope)
+            ..fileOffset = inKeyword.offset,
+          voidContext: true);
+      if (syntheticAssignment is shadow.SyntheticExpressionJudgment) {
+        syntheticAssignment = wrapSyntheticExpression(
+            desugarSyntheticExpression(syntheticAssignment),
+            offsetForToken(lvalue.token));
+      }
+      return forest.expressionStatement(syntheticAssignment, null);
+    }
+    Message message = forest.isVariablesDeclaration(lvalue)
+        ? fasta.messageForInLoopExactlyOneVariable
+        : fasta.messageForInLoopNotAssignable;
+    Token token = forToken.next.next;
+    Statement body;
+    if (forest.isVariablesDeclaration(lvalue)) {
+      body = forest.block(
+          null,
+          // New list because the declarations are not a growable list.
+          new List<Statement>.from(
+              forest.variablesDeclarationExtractDeclarations(lvalue)),
+          null);
+    } else {
+      body = forest.expressionStatement(lvalue, null);
+    }
+    return combineStatements(
+        forest.expressionStatement(
+            buildProblem(message, offsetForToken(token), lengthForToken(token)),
+            null),
+        body);
   }
 
   @override
@@ -4079,67 +4247,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       body = forest.syntheticLabeledStatement(body);
       continueTarget.resolveContinues(forest, body);
     }
-    VariableDeclaration variable;
-    Expression problem;
-    if (lvalue is VariableDeclaration) {
-      variable = lvalue;
-      if (variable.isConst) {
-        problem = buildProblem(fasta.messageForInLoopWithConstVariable,
-            variable.fileOffset, variable.name.length);
-      }
-    } else if (lvalue is Generator) {
-      /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
-      ///
-      ///     for (lvalue in expression) body
-      ///
-      /// This is normalized to:
-      ///
-      ///     for (final #t in expression) {
-      ///       lvalue = #t;
-      ///       body;
-      ///     }
-      variable =
-          new VariableDeclarationJudgment.forValue(null, functionNestingLevel);
-      TypePromotionFact fact =
-          typePromoter?.getFactForAccess(variable, functionNestingLevel);
-      TypePromotionScope scope = typePromoter?.currentScope;
-      Expression syntheticAssignment = lvalue.buildAssignment(
-          new VariableGetJudgment(variable, fact, scope)
-            ..fileOffset = inKeyword.offset,
-          voidContext: true);
-      if (syntheticAssignment is shadow.SyntheticExpressionJudgment) {
-        syntheticAssignment = wrapSyntheticExpression(
-            desugarSyntheticExpression(syntheticAssignment),
-            offsetForToken(lvalue.token));
-      }
-      body = combineStatements(
-          forest.expressionStatement(syntheticAssignment, null), body);
-    } else {
-      Message message = forest.isVariablesDeclaration(lvalue)
-          ? fasta.messageForInLoopExactlyOneVariable
-          : fasta.messageForInLoopNotAssignable;
-      Token token = forToken.next.next;
-      variable =
-          new VariableDeclarationJudgment.forValue(null, functionNestingLevel);
-      problem =
-          buildProblem(message, offsetForToken(token), lengthForToken(token));
-      if (forest.isVariablesDeclaration(lvalue)) {
-        body = forest.block(
-            null,
-            <Statement>[]
-              ..addAll(forest.variablesDeclarationExtractDeclarations(lvalue))
-              ..add(body),
-            null);
+    VariableDeclaration variable = buildForInVariable(lvalue);
+    Expression problem = checkForInVariable(lvalue, variable, forToken);
+    Statement prologue = buildForInBody(lvalue, variable, forToken, inKeyword);
+    if (prologue != null) {
+      if (prologue is Block) {
+        if (body is Block) {
+          for (Statement statement in body.statements) {
+            prologue.addStatement(statement);
+          }
+        } else {
+          prologue.addStatement(body);
+        }
+        body = prologue;
       } else {
-        body =
-            combineStatements(forest.expressionStatement(lvalue, null), body);
+        body = combineStatements(prologue, body);
       }
-      body = combineStatements(
-          forest.expressionStatement(
-              buildProblem(
-                  message, offsetForToken(token), lengthForToken(token)),
-              null),
-          body);
     }
     Statement result = new ForInStatement(variable, expression, body,
         isAsync: awaitToken != null)

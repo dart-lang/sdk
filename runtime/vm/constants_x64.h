@@ -157,14 +157,14 @@ class CallingConventions {
       R(kArg1Reg) | R(kArg2Reg) | R(kArg3Reg) | R(kArg4Reg);
   static const intptr_t kNumArgRegs = 4;
 
-  static const XmmRegister XmmArgumentRegisters[];
-  static const intptr_t kXmmArgumentRegisters =
+  static const XmmRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters =
       R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
-  static const intptr_t kNumXmmArgRegs = 4;
+  static const intptr_t kNumFpuArgRegs = 4;
 
   // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
   // same time? (Windows no, rest yes)
-  static const bool kArgumentIntRegXorXmmReg = true;
+  static const bool kArgumentIntRegXorFpuReg = true;
 
   static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
@@ -188,6 +188,7 @@ class CallingConventions {
   static const size_t kRegisterTransferLimit = 16;
 
   static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 #else
   static const Register kArg1Reg = RDI;
@@ -202,15 +203,15 @@ class CallingConventions {
                                              R(kArg5Reg) | R(kArg6Reg);
   static const intptr_t kNumArgRegs = 6;
 
-  static const XmmRegister XmmArgumentRegisters[];
+  static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kXmmArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
                                                 R(XMM3) | R(XMM4) | R(XMM5) |
                                                 R(XMM6) | R(XMM7);
-  static const intptr_t kNumXmmArgRegs = 8;
+  static const intptr_t kNumFpuArgRegs = 8;
 
   // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
   // same time? (Windows no, rest yes)
-  static const bool kArgumentIntRegXorXmmReg = false;
+  static const bool kArgumentIntRegXorFpuReg = false;
 
   static const intptr_t kShadowSpaceBytes = 0;
 
@@ -231,6 +232,7 @@ class CallingConventions {
   static const XmmRegister xmmFirstNonParameterReg = XMM8;
 
   static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 #endif
 

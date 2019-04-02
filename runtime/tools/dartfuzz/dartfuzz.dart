@@ -8,11 +8,12 @@ import 'dart:math';
 import 'package:args/args.dart';
 
 import 'dartfuzz_values.dart';
+import 'dartfuzz_api_table.dart';
 
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.4';
+const String version = '1.5';
 
 // Restriction on statement and expression depths.
 const int stmtDepth = 2;
@@ -65,6 +66,16 @@ class DartFuzz {
     emitLn('// The Dart Project Fuzz Tester ($version).');
     emitLn('// Program generated as:');
     emitLn('//   dart dartfuzz.dart --seed $seed');
+    emitLn('');
+    emitLn("import 'dart:async';");
+    emitLn("import 'dart:cli';");
+    emitLn("import 'dart:collection';");
+    emitLn("import 'dart:convert';");
+    emitLn("import 'dart:core';");
+    emitLn("import 'dart:io';");
+    emitLn("import 'dart:isolate';");
+    emitLn("import 'dart:math';");
+    emitLn("import 'dart:typed_data';");
   }
 
   void emitMethods(String name, List<List<DartType>> methods) {
@@ -283,7 +294,7 @@ class DartFuzz {
   bool emitForIn(int depth) {
     int i = localVars.length;
     emitLn('for (var $localName$i in ', newline: false);
-    emitExpr(0, DartType.INT_LIST);
+    emitExpr(0, rand.nextBool() ? DartType.INT_LIST : DartType.INT_SET);
     emit(') {', newline: true);
     indent += 2;
     nest++;
@@ -486,30 +497,26 @@ class DartFuzz {
   }
 
   void emitInt() {
-    switch (rand.nextInt(4)) {
-      // Favors small positive int.
+    switch (rand.nextInt(7)) {
+      // Favors small ints.
       case 0:
-        emit('${oneOf(DartFuzzValues.interestingIntegers)}');
-        break;
       case 1:
+      case 2:
+        emitSmallPositiveInt();
+        break;
+      case 3:
+      case 4:
+      case 5:
         emitSmallNegativeInt();
         break;
       default:
-        emitSmallPositiveInt();
+        emit('${oneOf(DartFuzzValues.interestingIntegers)}');
         break;
     }
   }
 
   void emitDouble() {
-    switch (rand.nextInt(10)) {
-      // Favors regular double.
-      case 0:
-        emit(oneOf(DartFuzzValues.interestingDoubles));
-        break;
-      default:
-        emit('${rand.nextDouble()}');
-        break;
-    }
+    emit('${rand.nextDouble()}');
   }
 
   void emitChar() {
@@ -519,8 +526,8 @@ class DartFuzz {
         emit(oneOf(DartFuzzValues.interestingChars));
         break;
       default:
-        emit(DartFuzzValues.regularChars[
-            rand.nextInt(DartFuzzValues.interestingChars.length)]);
+        emit(DartFuzzValues
+            .regularChars[rand.nextInt(DartFuzzValues.regularChars.length)]);
         break;
     }
   }
@@ -534,8 +541,8 @@ class DartFuzz {
     emit("'");
   }
 
-  void emitIntList() {
-    emit('[ ');
+  void emitList(String open, String close) {
+    emit('$open ');
     int l = 1 + rand.nextInt(4);
     for (int i = 0; i < l; i++) {
       emitInt();
@@ -543,10 +550,10 @@ class DartFuzz {
         emit(', ');
       }
     }
-    emit(' ]');
+    emit(' $close');
   }
 
-  void emitIntStringMap() {
+  void emitMap() {
     emit('{ ');
     int l = 1 + rand.nextInt(4);
     for (int i = 0; i < l; i++) {
@@ -569,9 +576,11 @@ class DartFuzz {
     } else if (tp == DartType.STRING) {
       emitString();
     } else if (tp == DartType.INT_LIST) {
-      emitIntList();
+      emitList('[', ']');
+    } else if (tp == DartType.INT_SET) {
+      emitList('{', '}');
     } else if (tp == DartType.INT_STRING_MAP) {
-      emitIntStringMap();
+      emitMap();
     } else {
       assert(false);
     }
@@ -919,9 +928,11 @@ class DartFuzz {
     } else if (tp == DartType.STRING) {
       return oneOf(DartLib.stringLibs);
     } else if (tp == DartType.INT_LIST) {
-      return oneOf(DartLib.intListLibs);
+      return oneOf(DartLib.listLibs);
+    } else if (tp == DartType.INT_SET) {
+      return oneOf(DartLib.setLibs);
     } else if (tp == DartType.INT_STRING_MAP) {
-      return oneOf(DartLib.intStringMapLibs);
+      return oneOf(DartLib.mapLibs);
     } else {
       assert(false);
     }
@@ -948,6 +959,9 @@ class DartFuzz {
       case 'L':
         emitExpr(depth, DartType.INT_LIST);
         break;
+      case 'X':
+        emitExpr(depth, DartType.INT_SET);
+        break;
       case 'M':
         emitExpr(depth, DartType.INT_STRING_MAP);
         break;
@@ -962,7 +976,7 @@ class DartFuzz {
 
   // Get a random value type.
   DartType getType() {
-    switch (rand.nextInt(6)) {
+    switch (rand.nextInt(7)) {
       case 0:
         return DartType.BOOL;
       case 1:
@@ -974,6 +988,8 @@ class DartFuzz {
       case 4:
         return DartType.INT_LIST;
       case 5:
+        return DartType.INT_SET;
+      case 6:
         return DartType.INT_STRING_MAP;
     }
   }

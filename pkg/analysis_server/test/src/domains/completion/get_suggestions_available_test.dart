@@ -29,6 +29,27 @@ class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
     expect(includedIdSet, contains(asyncSet.id));
   }
 
+  test_dart_instanceCreationExpression() async {
+    addTestFile(r'''
+main() {
+  new ; // ref
+}
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var asyncSet = await waitForSetWithUri('dart:async');
+
+    var results = await _getSuggestions(testFile, findOffset('; // ref'));
+    expect(
+      results.includedElementKinds,
+      unorderedEquals([ElementKind.CONSTRUCTOR]),
+    );
+
+    var includedIdSet = results.includedSuggestionSets.map((set) => set.id);
+    expect(includedIdSet, contains(mathSet.id));
+    expect(includedIdSet, contains(asyncSet.id));
+  }
+
   test_defaultArgumentListString() async {
     newFile('/home/test/lib/a.dart', content: r'''
 void fff(int aaa, int bbb) {}
@@ -119,6 +140,7 @@ main() {
       unorderedEquals([
         ElementKind.CLASS,
         ElementKind.CLASS_TYPE_ALIAS,
+        ElementKind.CONSTRUCTOR,
         ElementKind.ENUM,
         ElementKind.ENUM_CONSTANT,
         ElementKind.FUNCTION,

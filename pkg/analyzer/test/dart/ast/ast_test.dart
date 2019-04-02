@@ -102,13 +102,12 @@ class ClassDeclarationTest extends ParserTestCase {
 
   void test_isAbstract() {
     expect(
-        AstTestFactory
-            .classDeclaration(null, "A", null, null, null, null)
+        AstTestFactory.classDeclaration(null, "A", null, null, null, null)
             .isAbstract,
         isFalse);
     expect(
-        AstTestFactory
-            .classDeclaration(Keyword.ABSTRACT, "B", null, null, null, null)
+        AstTestFactory.classDeclaration(
+                Keyword.ABSTRACT, "B", null, null, null, null)
             .isAbstract,
         isTrue);
   }
@@ -118,13 +117,12 @@ class ClassDeclarationTest extends ParserTestCase {
 class ClassTypeAliasTest extends ParserTestCase {
   void test_isAbstract() {
     expect(
-        AstTestFactory
-            .classTypeAlias("A", null, null, null, null, null)
+        AstTestFactory.classTypeAlias("A", null, null, null, null, null)
             .isAbstract,
         isFalse);
     expect(
-        AstTestFactory
-            .classTypeAlias("B", null, Keyword.ABSTRACT, null, null, null)
+        AstTestFactory.classTypeAlias(
+                "B", null, Keyword.ABSTRACT, null, null, null)
             .isAbstract,
         isTrue);
   }
@@ -479,8 +477,8 @@ class NodeListTest extends EngineTestCase {
   void test_getBeginToken_nonEmpty() {
     NodeList<AstNode> list =
         astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory
-        .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
+    AstNode node = AstTestFactory.parenthesizedExpression(
+        AstTestFactory.booleanLiteral(true));
     list.add(node);
     expect(list.beginToken, same(node.beginToken));
   }
@@ -494,8 +492,8 @@ class NodeListTest extends EngineTestCase {
   void test_getEndToken_nonEmpty() {
     NodeList<AstNode> list =
         astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory
-        .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
+    AstNode node = AstTestFactory.parenthesizedExpression(
+        AstTestFactory.booleanLiteral(true));
     list.add(node);
     expect(list.endToken, same(node.endToken));
   }
@@ -726,8 +724,9 @@ class SimpleIdentifierTest extends ParserTestCase {
   }
 
   void test_inGetterContext_constructorFieldInitializer() {
-    ConstructorFieldInitializer initializer = AstTestFactory
-        .constructorFieldInitializer(false, 'f', AstTestFactory.integer(0));
+    ConstructorFieldInitializer initializer =
+        AstTestFactory.constructorFieldInitializer(
+            false, 'f', AstTestFactory.integer(0));
     SimpleIdentifier identifier = initializer.fieldName;
     expect(identifier.inGetterContext(), isFalse);
   }
@@ -743,8 +742,8 @@ class SimpleIdentifierTest extends ParserTestCase {
     SimpleIdentifier identifier = AstTestFactory.identifier3("a");
     Expression iterator = AstTestFactory.listLiteral();
     Statement body = AstTestFactory.block();
-    // ignore: deprecated_member_use_from_same_package
-    AstTestFactory.forEachStatement2(identifier, iterator, body);
+    AstTestFactory.forStatement(
+        AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
     expect(identifier.inGetterContext(), isFalse);
   }
 
@@ -789,14 +788,14 @@ class SimpleIdentifierTest extends ParserTestCase {
     SimpleIdentifier identifier = AstTestFactory.identifier3("a");
     Expression iterator = AstTestFactory.listLiteral();
     Statement body = AstTestFactory.block();
-    // ignore: deprecated_member_use_from_same_package
-    AstTestFactory.forEachStatement2(identifier, iterator, body);
+    AstTestFactory.forStatement(
+        AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
     expect(identifier.inSetterContext(), isTrue);
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
-    MethodInvocation invocation = AstTestFactory
-        .methodInvocation2("test", [AstTestFactory.identifier3("arg0")]);
+    MethodInvocation invocation = AstTestFactory.methodInvocation2(
+        "test", [AstTestFactory.identifier3("arg0")]);
     SimpleIdentifier identifier = invocation.methodName;
     expect(identifier.isQualified, isFalse);
   }
@@ -1242,8 +1241,8 @@ class StringInterpolationTest extends ParserTestCase {
   }
 
   void test_isMultiline() {
-    var b = AstTestFactory
-        .interpolationExpression(AstTestFactory.identifier3('bb'));
+    var b = AstTestFactory.interpolationExpression(
+        AstTestFactory.identifier3('bb'));
     // '
     {
       var a = AstTestFactory.interpolationString("'a", "a");
@@ -1280,8 +1279,8 @@ class StringInterpolationTest extends ParserTestCase {
   }
 
   void test_isSingleQuoted() {
-    var b = AstTestFactory
-        .interpolationExpression(AstTestFactory.identifier3('bb'));
+    var b = AstTestFactory.interpolationExpression(
+        AstTestFactory.identifier3('bb'));
     // "
     {
       var a = AstTestFactory.interpolationString('"a', "a");

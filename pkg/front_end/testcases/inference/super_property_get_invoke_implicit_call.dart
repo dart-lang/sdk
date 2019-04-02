@@ -10,7 +10,7 @@ class CallableClass {
 }
 
 class C {
-  var /*@topType=CallableClass*/ f = new CallableClass();
+  var f = new CallableClass();
 }
 
 class D extends C {

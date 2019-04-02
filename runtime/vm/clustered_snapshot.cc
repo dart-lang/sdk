@@ -76,7 +76,6 @@ void Deserializer::InitializeHeader(RawObject* raw,
   uint32_t tags = 0;
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::ReadOnlyBit::update(false, tags);
   tags = RawObject::CanonicalBit::update(is_canonical, tags);
   tags = RawObject::OldBit::update(true, tags);
   tags = RawObject::OldAndNotMarkedBit::update(true, tags);
@@ -503,7 +502,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(func->ptr()->token_pos_);
         s->WriteTokenPosition(func->ptr()->end_token_pos_);
-        s->Write<int32_t>(func->ptr()->kernel_offset_);
+        s->Write<uint32_t>(func->ptr()->binary_declaration_);
       }
 #endif
       s->Write<uint32_t>(func->ptr()->packed_fields_);
@@ -563,7 +562,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind != Snapshot::kFullAOT) {
         func->ptr()->token_pos_ = d->ReadTokenPosition();
         func->ptr()->end_token_pos_ = d->ReadTokenPosition();
-        func->ptr()->kernel_offset_ = d->Read<int32_t>();
+        func->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
       func->ptr()->packed_fields_ = d->Read<uint32_t>();
@@ -936,7 +935,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteCid(field->ptr()->is_nullable_);
         s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        s->Write<int32_t>(field->ptr()->kernel_offset_);
+        s->Write<uint32_t>(field->ptr()->binary_declaration_);
 #endif
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
@@ -977,7 +976,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->is_nullable_ = d->ReadCid();
         field->ptr()->static_type_exactness_state_ = d->Read<int8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        field->ptr()->kernel_offset_ = d->Read<int32_t>();
+        field->ptr()->binary_declaration_ = d->Read<uint32_t>();
 #endif
       }
       field->ptr()->kind_bits_ = d->Read<uint16_t>();
@@ -1761,7 +1760,8 @@ class RODataSerializationCluster : public SerializationCluster {
     // will be loaded into read-only memory. Extra bytes due to allocation
     // rounding need to be deterministically set for reliable deduplication in
     // shared images.
-    if (object->IsReadOnly()) {
+    if (object->InVMIsolateHeap() ||
+        s->isolate()->heap()->old_space()->IsObjectFromImagePages(object)) {
       // This object is already read-only.
     } else {
       Object::FinalizeReadOnlyObject(object);
@@ -3372,9 +3372,87 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(
           data, cid_, TypedData::InstanceSize(length_in_bytes), is_canonical);
       data->ptr()->length_ = Smi::New(length);
-      data->ResetData();
-      uint8_t* cdata = data->ptr()->data();
+      data->RecomputeDataField();
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data());
       d->ReadBytes(cdata, length_in_bytes);
+    }
+  }
+
+ private:
+  const intptr_t cid_;
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class TypedDataViewSerializationCluster : public SerializationCluster {
+ public:
+  explicit TypedDataViewSerializationCluster(intptr_t cid)
+      : SerializationCluster("TypedDataView"), cid_(cid) {}
+  ~TypedDataViewSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawTypedDataView* view = TypedDataView::RawCast(object);
+    objects_.Add(view);
+
+    PushFromTo(view);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteCid(cid_);
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawTypedDataView* view = objects_[i];
+      s->AssignRef(view);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawTypedDataView* view = objects_[i];
+      AutoTraceObject(view);
+      s->Write<bool>(view->IsCanonical());
+      WriteFromTo(view);
+    }
+  }
+
+ private:
+  const intptr_t cid_;
+  GrowableArray<RawTypedDataView*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class TypedDataViewDeserializationCluster : public DeserializationCluster {
+ public:
+  explicit TypedDataViewDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  ~TypedDataViewDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, TypedDataView::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawTypedDataView* view = reinterpret_cast<RawTypedDataView*>(d->Ref(id));
+      const bool is_canonical = d->Read<bool>();
+      Deserializer::InitializeHeader(view, cid_, TypedDataView::InstanceSize(),
+                                     is_canonical);
+      ReadFromTo(view);
+    }
+  }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    auto& view = TypedDataView::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      view ^= refs.At(id);
+      view.RecomputeDataField();
     }
   }
 
@@ -4123,10 +4201,12 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
   return NULL;
 #else
   Zone* Z = zone_;
-  if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
-      RawObject::IsTypedDataViewClassId(cid)) {
+  if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     Push(isolate()->class_table()->At(cid));
     return new (Z) InstanceSerializationCluster(cid);
+  }
+  if (RawObject::IsTypedDataViewClassId(cid)) {
+    return new (Z) TypedDataViewSerializationCluster(cid);
   }
   if (RawObject::IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataSerializationCluster(cid);
@@ -4605,6 +4685,12 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<empty>");
   AddBaseObject(Object::empty_exception_handlers().raw(), "ExceptionHandlers",
                 "<empty>");
+  ASSERT(Object::implicit_getter_bytecode().raw() != Object::null());
+  AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
+                "<implicit getter>");
+  ASSERT(Object::implicit_setter_bytecode().raw() != Object::null());
+  AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
+                "<implicit setter>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -4740,9 +4826,11 @@ Deserializer::~Deserializer() {
 DeserializationCluster* Deserializer::ReadCluster() {
   intptr_t cid = ReadCid();
   Zone* Z = zone_;
-  if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
-      RawObject::IsTypedDataViewClassId(cid)) {
+  if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     return new (Z) InstanceDeserializationCluster(cid);
+  }
+  if (RawObject::IsTypedDataViewClassId(cid)) {
+    return new (Z) TypedDataViewDeserializationCluster(cid);
   }
   if (RawObject::IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataDeserializationCluster(cid);
@@ -5058,6 +5146,8 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::empty_descriptors().raw());
   AddBaseObject(Object::empty_var_descriptors().raw());
   AddBaseObject(Object::empty_exception_handlers().raw());
+  AddBaseObject(Object::implicit_getter_bytecode().raw());
+  AddBaseObject(Object::implicit_setter_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);

@@ -19,6 +19,7 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart'
     show transformModuleFormat, ModuleFormat;
 import '../compiler/shared_command.dart';
+import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
@@ -135,9 +136,6 @@ class CompilerOptions extends SharedCompilerOptions {
   /// into the output JavaScript module.
   final bool sourceMapComment;
 
-  /// Whether to emit the source mapping file inline as a data url.
-  final bool inlineSourceMap;
-
   /// The file extension for summaries.
   final String summaryExtension;
 
@@ -159,7 +157,6 @@ class CompilerOptions extends SharedCompilerOptions {
   CompilerOptions(
       {bool sourceMap = true,
       this.sourceMapComment = true,
-      this.inlineSourceMap = false,
       bool summarizeApi = true,
       this.summaryExtension = 'sum',
       this.unsafeForceCompile = false,
@@ -182,7 +179,6 @@ class CompilerOptions extends SharedCompilerOptions {
 
   CompilerOptions.fromArguments(ArgResults args)
       : sourceMapComment = args['source-map-comment'] as bool,
-        inlineSourceMap = args['inline-source-map'] as bool,
         summaryExtension = args['summary-extension'] as String,
         unsafeForceCompile = args['unsafe-force-compile'] as bool,
         summaryOutPath = args['summary-out'] as String,
@@ -203,8 +199,6 @@ class CompilerOptions extends SharedCompilerOptions {
               'disable if using X-SourceMap header',
           defaultsTo: true,
           hide: hide)
-      ..addFlag('inline-source-map',
-          help: 'emit source mapping inline', defaultsTo: false, hide: hide)
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',
@@ -241,13 +235,6 @@ class JSModuleFile {
   /// The binary contents of the API summary file, including APIs from each of
   /// the libraries in this module.
   final List<int> summaryBytes;
-
-  /// Unique identifier indicating hole to inline the source map.
-  ///
-  /// We cannot generate the source map before the script it is for is
-  /// generated so we have generate the script including this id and then
-  /// replace the ID once the source map is generated.
-  static String sourceMapHoleID = 'SourceMap3G5a8h6JVhHfdGuDxZr1EF9GQC8y0e6u';
 
   JSModuleFile(this.errors, this.options, this.moduleTree, this.summaryBytes);
 
@@ -303,7 +290,7 @@ class JSModuleFile {
     var rawSourceMap = options.inlineSourceMap
         ? js.escapedString(json.encode(builtMap), "'").value
         : 'null';
-    text = text.replaceFirst(sourceMapHoleID, rawSourceMap);
+    text = text.replaceFirst(SharedCompiler.sourceMapLocationID, rawSourceMap);
 
     return JSModuleCode(text, builtMap);
   }

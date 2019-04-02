@@ -30,3 +30,6 @@ deep_nesting_expression_test/01: Crash, Pass # Issue 31496
 
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # tests/language has the non-strong mode versions of these tests.
+
+[ $runtime == dart_precompiled || $runtime == vm ]
+superinterface_variance/*: Skip # Issue dart-lang/language#113

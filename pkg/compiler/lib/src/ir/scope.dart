@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 import 'closure.dart';
 import 'scope_visitor.dart';
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 class ScopeModel {
   final ClosureScopeModel closureScopeModel;
@@ -19,8 +20,9 @@ class ScopeModel {
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  factory ScopeModel.from(ir.Member node) {
-    ScopeModelBuilder builder = new ScopeModelBuilder();
+  factory ScopeModel.from(
+      ir.Member node, ir.ConstantEvaluator constantEvaluator) {
+    ScopeModelBuilder builder = new ScopeModelBuilder(constantEvaluator);
     return builder.computeModel(node);
   }
 }

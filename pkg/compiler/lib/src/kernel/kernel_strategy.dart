@@ -70,7 +70,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    if (useIrAnnotationsDataForTesting) {
+    if (_options.useCFEConstants) {
       _irAnnotationData = processAnnotations(kernelResult.component);
     }
     _annotationProcessor = new KernelAnnotationProcessor(
@@ -114,8 +114,6 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
     return new KernelNoSuchMethodResolver(elementMap);
   }
 
-  /// Computes the main function from [mainLibrary] adding additional world
-  /// impact to [impactBuilder].
   @override
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
@@ -274,8 +272,8 @@ class KernelWorkItem implements WorkItem {
   @override
   WorldImpact run() {
     return _compilerTask.measure(() {
-      _nativeMemberResolver.resolveNativeMember(element, _irAnnotationData);
       ir.Member node = _elementMap.getMemberNode(element);
+      _nativeMemberResolver.resolveNativeMember(node, _irAnnotationData);
 
       List<PragmaAnnotationData> pragmaAnnotationData =
           _modularStrategy.getPragmaAnnotationData(node);
@@ -314,16 +312,15 @@ class KernelWorkItem implements WorkItem {
       });
     });
   }
+
+  @override
+  String toString() => 'KernelWorkItem($element)';
 }
 
 /// If `true` kernel impacts are computed as [ImpactData] directly on kernel
 /// and converted to the K model afterwards. This is a pre-step to modularizing
 /// the world impact computation.
 bool useImpactDataForTesting = false;
-
-/// If `true` pragma annotations are computed directly on kernel. This is a
-/// pre-step to modularizing the world impact computation.
-bool useIrAnnotationsDataForTesting = false;
 
 class KernelModularStrategy extends ModularStrategy {
   final CompilerTask _compilerTask;
@@ -333,7 +330,7 @@ class KernelModularStrategy extends ModularStrategy {
 
   @override
   List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
-    if (useIrAnnotationsDataForTesting) {
+    if (_elementMap.options.useCFEConstants) {
       return computePragmaAnnotationDataFromIr(node);
     } else {
       return computePragmaAnnotationData(_elementMap.commonElements,
@@ -344,8 +341,8 @@ class KernelModularStrategy extends ModularStrategy {
   @override
   ModularMemberData getModularMemberData(
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
-    ScopeModel scopeModel = _compilerTask.measureSubtask(
-        'closures', () => new ScopeModel.from(node));
+    ScopeModel scopeModel = _compilerTask.measureSubtask('closures',
+        () => new ScopeModel.from(node, _elementMap.constantEvaluator));
     ImpactBuilderData impactBuilderData;
     if (useImpactDataForTesting) {
       // TODO(johnniwinther): Always create and use the [ImpactBuilderData].

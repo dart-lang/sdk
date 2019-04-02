@@ -10,7 +10,7 @@ class A {
 }
 
 class B extends A {
-  get /*@topType=int*/ x => 3;
+  get x => 3;
 }
 
 foo() {

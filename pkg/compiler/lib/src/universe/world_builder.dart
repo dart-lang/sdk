@@ -221,8 +221,8 @@ abstract class WorldBuilder {
   /// All types that are checked either through is, as or checked mode checks.
   Iterable<DartType> get isChecks;
 
-  /// All directly instantiated types, that is, the types of the directly
-  /// instantiated classes.
+  /// All directly instantiated types, that is, the types of
+  /// [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<InterfaceType> get instantiatedTypes;
 

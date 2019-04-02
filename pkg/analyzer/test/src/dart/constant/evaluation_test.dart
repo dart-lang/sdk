@@ -211,7 +211,10 @@ class ConstantVisitorWithConstantUpdate2018Test
     extends ConstantVisitorTestSupport {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..enabledExperiments = [
+      EnableString.constant_update_2018,
+      EnableString.triple_shift
+    ];
 
   test_visitAsExpression_instanceOfSameClass() async {
     await _resolveTestCode('''
@@ -284,6 +287,19 @@ class A {}
     expect(result.type, typeProvider.nullType);
   }
 
+  test_visitAsExpression_potentialConst() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+
+class MyClass {
+  final A a;
+  const MyClass(Object o) : a = o as A;
+}
+''');
+  }
+
   test_visitBinaryExpression_and_bool_known_known() async {
     await _resolveTestCode('''
 const c = false & true;
@@ -354,6 +370,15 @@ const c = 0xFFFFFFFF >>> 33;
     expect(result.toIntValue(), 0);
   }
 
+  test_visitBinaryExpression_gtGtGt_negative_moreThan64Bits() async {
+    await _resolveTestCode('''
+const c = 0xFFFFFFFF >>> 65;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
   test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
     await _resolveTestCode('''
 const c = 0xFFFFFFFF >>> -2;
@@ -383,6 +408,15 @@ const c = 0xFF >>> 3;
   test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
     await _resolveTestCode('''
 const c = 0xFF >>> 9;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_moreThan64Bits() async {
+    await _resolveTestCode('''
+const c = 0xFF >>> 65;
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.intType);
@@ -573,9 +607,9 @@ const c = false ? 1 : new C();
   test_visitConditionalExpression_lazy_false_invalid_int() async {
     await _resolveTestCode('''
 const c = false ? new C() : 0;
-class C {}
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 0);
   }
@@ -599,9 +633,10 @@ const c = true ? 1 : 0;
 
   test_visitConditionalExpression_lazy_true_int_invalid() async {
     await _resolveTestCode('''
-const c = true ? 1 : new C();
+const c = true ? 1: new C();
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
+    DartObjectImpl result = _evaluateConstant('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 1);
   }

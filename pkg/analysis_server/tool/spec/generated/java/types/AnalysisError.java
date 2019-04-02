@@ -69,6 +69,11 @@ public class AnalysisError {
   private final String code;
 
   /**
+   * The URL of a page containing documentation associated with this error.
+   */
+  private final String url;
+
+  /**
    * A hint to indicate to interested clients that this error has an associated fix (or fixes). The
    * absence of this field implies there are not known to be fixes. Note that since the operation to
    * calculate whether fixes apply needs to be performant it is possible that complicated tests will
@@ -82,13 +87,14 @@ public class AnalysisError {
   /**
    * Constructor for {@link AnalysisError}.
    */
-  public AnalysisError(String severity, String type, Location location, String message, String correction, String code, Boolean hasFix) {
+  public AnalysisError(String severity, String type, Location location, String message, String correction, String code, String url, Boolean hasFix) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
     this.code = code;
+    this.url = url;
     this.hasFix = hasFix;
   }
 
@@ -103,6 +109,7 @@ public class AnalysisError {
         ObjectUtilities.equals(other.message, message) &&
         ObjectUtilities.equals(other.correction, correction) &&
         ObjectUtilities.equals(other.code, code) &&
+        ObjectUtilities.equals(other.url, url) &&
         ObjectUtilities.equals(other.hasFix, hasFix);
     }
     return false;
@@ -115,8 +122,9 @@ public class AnalysisError {
     String message = jsonObject.get("message").getAsString();
     String correction = jsonObject.get("correction") == null ? null : jsonObject.get("correction").getAsString();
     String code = jsonObject.get("code").getAsString();
+    String url = jsonObject.get("url") == null ? null : jsonObject.get("url").getAsString();
     Boolean hasFix = jsonObject.get("hasFix") == null ? null : jsonObject.get("hasFix").getAsBoolean();
-    return new AnalysisError(severity, type, location, message, correction, code, hasFix);
+    return new AnalysisError(severity, type, location, message, correction, code, url, hasFix);
   }
 
   public static List<AnalysisError> fromJsonArray(JsonArray jsonArray) {
@@ -189,6 +197,13 @@ public class AnalysisError {
     return type;
   }
 
+  /**
+   * The URL of a page containing documentation associated with this error.
+   */
+  public String getUrl() {
+    return url;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
@@ -198,6 +213,7 @@ public class AnalysisError {
     builder.append(message);
     builder.append(correction);
     builder.append(code);
+    builder.append(url);
     builder.append(hasFix);
     return builder.toHashCode();
   }
@@ -212,6 +228,9 @@ public class AnalysisError {
       jsonObject.addProperty("correction", correction);
     }
     jsonObject.addProperty("code", code);
+    if (url != null) {
+      jsonObject.addProperty("url", url);
+    }
     if (hasFix != null) {
       jsonObject.addProperty("hasFix", hasFix);
     }
@@ -234,6 +253,8 @@ public class AnalysisError {
     builder.append(correction + ", ");
     builder.append("code=");
     builder.append(code + ", ");
+    builder.append("url=");
+    builder.append(url + ", ");
     builder.append("hasFix=");
     builder.append(hasFix);
     builder.append("]");

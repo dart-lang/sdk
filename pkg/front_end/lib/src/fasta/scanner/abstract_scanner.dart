@@ -16,8 +16,7 @@ import '../fasta_codes.dart'
         messageExpectedHexDigit,
         messageMissingExponent,
         messageUnexpectedDollarInString,
-        messageUnterminatedComment,
-        templateUnterminatedString;
+        messageUnterminatedComment;
 
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
@@ -44,10 +43,15 @@ abstract class AbstractScanner implements Scanner {
 
   final bool includeComments;
 
-  /// Experimental flag for enabling parsing of `>>>`.
+  /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
   bool enableGtGtGt = false;
+
+  /// Experimental flag for enabling scanning of `>>>=`.
+  /// See https://github.com/dart-lang/language/issues/61
+  /// and https://github.com/dart-lang/language/issues/60
+  bool enableGtGtGtEq = false;
 
   /**
    * The string offset for the next token that will be created.
@@ -643,7 +647,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeGreaterThan(int next) {
-    // > >= >> >>= >>>
+    // > >= >> >>= >>> >>>=
     next = advance();
     if (identical($EQ, next)) {
       appendPrecedenceToken(TokenType.GT_EQ);
@@ -654,8 +658,13 @@ abstract class AbstractScanner implements Scanner {
         appendPrecedenceToken(TokenType.GT_GT_EQ);
         return advance();
       } else if (enableGtGtGt && identical($GT, next)) {
+        next = advance();
+        if (enableGtGtGtEq && identical($EQ, next)) {
+          appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
+          return advance();
+        }
         appendPrecedenceToken(TokenType.GT_GT_GT);
-        return advance();
+        return next;
       } else {
         appendGtGt(TokenType.GT_GT);
         return next;
@@ -1262,16 +1271,8 @@ abstract class AbstractScanner implements Scanner {
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
     // Ensure that the error is reported on a visible token
     int errorStart = tokenStart < stringOffset ? tokenStart : quoteStart;
-    if (reportErrors) {
-      addError(errorStart, stringOffset - errorStart,
-          templateUnterminatedString.withArguments(prefix, suffix));
-    } else {
-      appendErrorToken(
-          new UnterminatedString(prefix, errorStart, stringOffset));
-    }
+    appendErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
   }
-
-  void addError(int charOffset, int length, Message message);
 
   int advanceAfterError(bool shouldAdvance) {
     if (atEndOfFile()) return $EOF;

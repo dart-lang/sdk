@@ -18,6 +18,10 @@ namespace compiler {
 
 namespace ffi {
 
+// On all supported platforms, the minimum width an argument must be sign- or
+// zero-extended to is 4 bytes.
+constexpr intptr_t kMinimumArgumentWidth = 4;
+
 // Storage size for an FFI type (extends 'ffi.NativeType').
 size_t ElementSizeInBytes(intptr_t class_id);
 
@@ -45,7 +49,7 @@ ZoneGrowableArray<Location>* ArgumentLocations(
     const ZoneGrowableArray<Representation>& arg_reps);
 
 // Number of stack slots used in 'locations'.
-intptr_t NumStackArguments(const ZoneGrowableArray<Location>& locations);
+intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations);
 
 }  // namespace ffi
 

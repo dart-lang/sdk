@@ -63,6 +63,9 @@ class MockErrorCode implements ErrorCode {
   @override
   String name;
 
+  @override
+  String url;
+
   MockErrorCode(this.type, this.errorSeverity, this.name);
 
   @override

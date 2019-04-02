@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@JS()
+library lib;
+
+import 'package:js/js.dart';
+
 /*element: main:[]*/
 main() {
   externalFunction();
@@ -14,4 +19,5 @@ externalFunction() {
 }
 
 /*element: _externalFunction:[]*/
+@JS('externalFunction')
 external _externalFunction();

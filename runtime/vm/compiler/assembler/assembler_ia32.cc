@@ -1910,6 +1910,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   Label done;
   pushl(value);
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+
+  testb(FieldAddress(object, target::Object::tags_offset()),
+        Immediate(1 << target::RawObject::kOldAndNotRememberedBit));
+  j(ZERO, &done, Assembler::kNearJump);
+
   Stop("Store buffer update is required");
   Bind(&done);
   popl(value);
@@ -1973,6 +1978,12 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
     buffer_.EmitObject(value);
   }
   // No store buffer update.
+}
+
+void Assembler::StoreInternalPointer(Register object,
+                                     const Address& dest,
+                                     Register value) {
+  movl(dest, value);
 }
 
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
@@ -2535,7 +2546,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              Register array,
                                              intptr_t index,
                                              intptr_t extra_disp) {
-  if (is_external || RawObject::IsTypedDataClassId(cid)) {
+  if (is_external) {
     return Address(array, index * index_scale + extra_disp);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
@@ -2573,7 +2584,7 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              Register array,
                                              Register index,
                                              intptr_t extra_disp) {
-  if (is_external || RawObject::IsTypedDataClassId(cid)) {
+  if (is_external) {
     return Address(array, index, ToScaleFactor(index_scale), extra_disp);
   } else {
     return FieldAddress(array, index, ToScaleFactor(index_scale),

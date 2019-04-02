@@ -696,7 +696,11 @@ class BinaryBuilder {
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
-      uriToSource[uri] = new Source(lineStarts, sourceCode);
+      List<int> importUriBytes = readByteList();
+      Uri importUri = importUriBytes.isEmpty
+          ? null
+          : Uri.parse(const Utf8Decoder().convert(importUriBytes));
+      uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri);
     }
 
     // Read index.

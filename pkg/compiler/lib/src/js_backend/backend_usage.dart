@@ -113,14 +113,12 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// `true` if a core-library function requires the preamble file to function.
   bool requiresPreamble = false;
 
-  /// `true` if `Function.apply` is used.
   @override
   bool isFunctionApplyUsed = false;
 
   /// `true` if 'dart:mirrors' features are used.
   bool isMirrorsUsed = false;
 
-  /// `true` if `noSuchMethod` is used.
   @override
   bool isNoSuchMethodUsed = false;
 
@@ -301,19 +299,15 @@ class BackendUsageImpl implements BackendUsage {
   @override
   bool needToInitializeDispatchProperty;
 
-  /// `true` if a core-library function requires the preamble file to function.
   @override
   final bool requiresPreamble;
 
-  /// `true` if `Function.apply` is used.
   @override
   final bool isFunctionApplyUsed;
 
-  /// `true` if 'dart:mirrors' features are used.
   @override
   final bool isMirrorsUsed;
 
-  /// `true` if `noSuchMethod` is used.
   @override
   final bool isNoSuchMethodUsed;
 

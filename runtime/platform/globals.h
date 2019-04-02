@@ -376,8 +376,9 @@ typedef simd128_value_t fpu_register_t;
 
 // Determine whether dual mapping of code pages is supported.
 // We test dual mapping on linux x64 and deploy it on fuchsia.
-#if defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                    \
-    defined(TARGET_OS_FUCHSIA)
+#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
+    (defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                   \
+     defined(TARGET_OS_FUCHSIA))
 #define DUAL_MAPPING_SUPPORTED 1
 #endif
 
@@ -530,8 +531,8 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 #if !defined(DISALLOW_COPY_AND_ASSIGN)
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
  private:                                                                      \
-  TypeName(const TypeName&);                                                   \
-  void operator=(const TypeName&)
+  TypeName(const TypeName&) = delete;                                          \
+  void operator=(const TypeName&) = delete
 #endif  // !defined(DISALLOW_COPY_AND_ASSIGN)
 
 // A macro to disallow all the implicit constructors, namely the default
@@ -542,7 +543,7 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 #if !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 #define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName)                               \
  private:                                                                      \
-  TypeName();                                                                  \
+  TypeName() = delete;                                                         \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
 #endif  // !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 

@@ -498,8 +498,9 @@ word Array::header_size() {
   V(TimelineStream, enabled_offset)                                            \
   V(TwoByteString, data_offset)                                                \
   V(Type, arguments_offset)                                                    \
+  V(TypedDataBase, data_field_offset)                                          \
+  V(TypedDataBase, length_offset)                                              \
   V(TypedData, data_offset)                                                    \
-  V(TypedData, length_offset)                                                  \
   V(Type, hash_offset)                                                         \
   V(TypeRef, type_offset)                                                      \
   V(Type, signature_offset)                                                    \
@@ -773,7 +774,7 @@ uword Code::EntryPointOf(const dart::Code& code) {
 }
 
 bool CanEmbedAsRawPointerInGeneratedCode(const dart::Object& obj) {
-  return obj.IsSmi() || obj.IsReadOnly();
+  return obj.IsSmi() || obj.InVMIsolateHeap();
 }
 
 word ToRawPointer(const dart::Object& a) {

@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
-import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 DartType _dynamicIfNull(DartType type) {
@@ -19,106 +22,119 @@ DartType _dynamicIfNull(DartType type) {
   return type;
 }
 
+/// TODO(scheglov) This is not a valid implementation of top-level inference.
+/// See https://bit.ly/2HYfAKg
+///
+/// In general inference of constructor field formal parameters should be
+/// interleaved with inference of fields. There are resynthesis tests that
+/// fail because of this limitation.
 class TopLevelInference {
   final Linker linker;
-  final Reference libraryRef;
-  final UnitBuilder unit;
+  LibraryElementImpl _libraryElement;
 
-  TopLevelInference(this.linker, this.libraryRef, this.unit);
+  Scope _libraryScope;
+  Scope _nameScope;
+
+  LinkedUnitContext _linkedContext;
+  CompilationUnitElementImpl unitElement;
+
+  TopLevelInference(this.linker, Reference libraryRef) {
+    _libraryElement = linker.elementFactory.elementOfReference(libraryRef);
+    _libraryScope = LibraryScope(_libraryElement);
+    _nameScope = _libraryScope;
+  }
 
   void infer() {
+    _setOmittedReturnTypes();
     _inferFieldsTemporary();
     _inferConstructorFieldFormals();
   }
 
   void _inferConstructorFieldFormals() {
-    _visitClassList((unitDeclaration) {
-      var members = unitDeclaration.classOrMixinDeclaration_members;
+    for (CompilationUnitElementImpl unit in _libraryElement.units) {
+      this.unitElement = unit;
+      _linkedContext = unit.linkedContext;
 
-      var fields = <String, LinkedNodeType>{};
-      _visitClassFields(unitDeclaration, (field) {
-        var name = unit.context.getVariableName(field);
-        var type = field.variableDeclaration_type2;
-        if (type == null) {
-          throw StateError('Field $name should have a type.');
+      for (var class_ in unit.types) {
+        var fields = <String, LinkedNodeType>{};
+        for (FieldElementImpl field in class_.fields) {
+          if (field.isSynthetic) continue;
+
+          var name = field.name;
+          var type = field.linkedNode.variableDeclaration_type2;
+          if (type == null) {
+            throw StateError('Field $name should have a type.');
+          }
+          fields[name] ??= type;
         }
-        fields[name] = type;
-      });
 
-      for (var member in members) {
-        if (member.kind == LinkedNodeKind.constructorDeclaration) {
-          for (var parameter in member.constructorDeclaration_parameters
-              .formalParameterList_parameters) {
-            if (parameter.kind == LinkedNodeKind.fieldFormalParameter &&
-                parameter.fieldFormalParameter_type2 == null) {
-              var name = unit.context.getSimpleName(
-                parameter.normalFormalParameter_identifier,
-              );
-              var type = fields[name];
-              if (type == null) {
-                type = LinkedNodeTypeBuilder(
-                  kind: LinkedNodeTypeKind.dynamic_,
-                );
+        for (ConstructorElementImpl constructor in class_.constructors) {
+          for (ParameterElementImpl parameter in constructor.parameters) {
+            if (parameter is FieldFormalParameterElement) {
+              LinkedNodeBuilder parameterNode = parameter.linkedNode;
+              if (parameterNode.kind == LinkedNodeKind.defaultFormalParameter) {
+                parameterNode = parameterNode.defaultFormalParameter_parameter;
               }
-              parameter.fieldFormalParameter_type2 = type;
-            }
-          }
-        }
-      }
-    });
-  }
 
-  void _inferFieldsTemporary() {
-    var unitDeclarations = unit.node.compilationUnit_declarations;
-    for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
-      if (unitDeclaration.kind == LinkedNodeKind.classDeclaration) {
-        _visitClassFields(unitDeclaration, (field) {
-          var name = unit.context.getVariableName(field);
-          // TODO(scheglov) Use inheritance
-          if (field.variableDeclaration_type2 == null) {
-            field.variableDeclaration_type2 = LinkedNodeTypeBuilder(
-              kind: LinkedNodeTypeKind.dynamic_,
-            );
-          }
-        });
-
-        var members = unitDeclaration.classOrMixinDeclaration_members;
-        for (var member in members) {
-          if (member.kind == LinkedNodeKind.methodDeclaration) {
-            // TODO(scheglov) Use inheritance
-            if (member.methodDeclaration_returnType2 == null) {
-              if (unit.context.isSetter(member)) {
-                member.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
-                  kind: LinkedNodeTypeKind.void_,
-                );
-              } else {
-                member.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
-                  kind: LinkedNodeTypeKind.dynamic_,
-                );
+              if (parameterNode.fieldFormalParameter_type2 == null) {
+                var name = parameter.name;
+                var type = fields[name];
+                if (type == null) {
+                  type = LinkedNodeTypeBuilder(
+                    kind: LinkedNodeTypeKind.dynamic_,
+                  );
+                }
+                parameterNode.fieldFormalParameter_type2 = type;
               }
             }
-          }
-        }
-      } else if (unitDeclaration.kind == LinkedNodeKind.functionDeclaration) {
-        if (unit.context.isSetter(unitDeclaration)) {
-          unitDeclaration.functionDeclaration_returnType2 =
-              LinkedNodeTypeBuilder(
-            kind: LinkedNodeTypeKind.void_,
-          );
-        }
-      } else if (unitDeclaration.kind ==
-          LinkedNodeKind.topLevelVariableDeclaration) {
-        var variableList =
-            unitDeclaration.topLevelVariableDeclaration_variableList;
-        for (var variable in variableList.variableDeclarationList_variables) {
-          // TODO(scheglov) infer in the correct order
-          if (variable.variableDeclaration_type2 == null ||
-              unit.context.isConst(variable)) {
-            _inferVariableTypeFromInitializerTemporary(variable);
           }
         }
       }
     }
+  }
+
+  void _inferFieldsTemporary() {
+    for (CompilationUnitElementImpl unit in _libraryElement.units) {
+      this.unitElement = unit;
+      _linkedContext = unit.linkedContext;
+
+      for (var class_ in unit.types) {
+        _inferFieldsTemporaryClass(class_);
+      }
+
+      for (var mixin_ in unit.mixins) {
+        _inferFieldsTemporaryClass(mixin_);
+      }
+
+      for (TopLevelVariableElementImpl variable in unit.topLevelVariables) {
+        if (variable.isSynthetic) continue;
+        LinkedNodeBuilder variableNode = variable.linkedNode;
+        if (variableNode.variableDeclaration_type2 == null ||
+            _linkedContext.isConst(variableNode)) {
+          _inferVariableTypeFromInitializerTemporary(variableNode);
+        }
+      }
+    }
+  }
+
+  void _inferFieldsTemporaryClass(ClassElement class_) {
+    var prevScope = _nameScope;
+
+    _nameScope = TypeParameterScope(_nameScope, class_);
+    _nameScope = ClassScope(_nameScope, class_);
+
+    for (FieldElementImpl field in class_.fields) {
+      if (field.isSynthetic) continue;
+      var fieldNode = field.linkedNode;
+
+      // TODO(scheglov) Use inheritance
+      // TODO(scheglov) infer in the correct order
+      if (fieldNode.variableDeclaration_type2 == null) {
+        _inferVariableTypeFromInitializerTemporary(fieldNode);
+      }
+    }
+
+    _nameScope = prevScope;
   }
 
   void _inferVariableTypeFromInitializerTemporary(LinkedNodeBuilder node) {
@@ -131,13 +147,11 @@ class TopLevelInference {
       return;
     }
 
-    var expression = unit.context.readInitializer(node);
+    var expression = _linkedContext.readInitializer(unitElement, node);
     astFactory.expressionFunctionBody(null, null, expression, null);
 
-    // TODO(scheglov) can be shared for the whole library
-    var astResolver = AstResolver(linker, libraryRef);
-
-    var resolvedNode = astResolver.resolve(unit, expression);
+    var astResolver = AstResolver(linker, _libraryElement, _nameScope);
+    var resolvedNode = astResolver.resolve(_linkedContext, expression);
     node.variableDeclaration_initializer = resolvedNode;
 
     if (node.variableDeclaration_type2 == null) {
@@ -151,25 +165,66 @@ class TopLevelInference {
     }
   }
 
-  void _visitClassFields(
-      LinkedNode class_, void Function(LinkedNodeBuilder) f) {
-    var members = class_.classOrMixinDeclaration_members;
+  void _setOmittedReturnTypes() {
+    for (CompilationUnitElementImpl unit in _libraryElement.units) {
+      this.unitElement = unit;
+      _linkedContext = unit.linkedContext;
 
-    for (var member in members) {
-      if (member.kind == LinkedNodeKind.fieldDeclaration) {
-        var variableList = member.fieldDeclaration_fields;
-        for (var field in variableList.variableDeclarationList_variables) {
-          f(field);
+      for (var class_ in unit.types) {
+        _setOmittedReturnTypesClass(class_);
+      }
+
+      for (var mixin_ in unit.mixins) {
+        _setOmittedReturnTypesClass(mixin_);
+      }
+
+      for (FunctionElementImpl function in unit.functions) {
+        LinkedNodeBuilder functionNode = function.linkedNode;
+        if (functionNode.functionDeclaration_returnType == null) {
+          functionNode.functionDeclaration_returnType2 = LinkedNodeTypeBuilder(
+            kind: LinkedNodeTypeKind.dynamic_,
+          );
+        }
+      }
+
+      for (PropertyAccessorElementImpl accessor in unit.accessors) {
+        if (accessor.isSynthetic) continue;
+        if (accessor.isSetter) {
+          LinkedNodeBuilder node = accessor.linkedNode;
+          if (node.functionDeclaration_returnType == null) {
+            node.functionDeclaration_returnType2 = LinkedNodeTypeBuilder(
+              kind: LinkedNodeTypeKind.void_,
+            );
+          }
         }
       }
     }
   }
 
-  void _visitClassList(void Function(LinkedNodeBuilder) f) {
-    var unitDeclarations = unit.node.compilationUnit_declarations;
-    for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
-      if (unitDeclaration.kind == LinkedNodeKind.classDeclaration) {
-        f(unitDeclaration);
+  void _setOmittedReturnTypesClass(ClassElement class_) {
+    for (MethodElementImpl method in class_.methods) {
+      LinkedNodeBuilder methodNode = method.linkedNode;
+      if (methodNode.methodDeclaration_returnType == null) {
+        methodNode.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.dynamic_,
+        );
+      }
+    }
+
+    for (PropertyAccessorElementImpl accessor in class_.accessors) {
+      if (accessor.isSynthetic) continue;
+
+      LinkedNodeBuilder accessorNode = accessor.linkedNode;
+      if (accessorNode.methodDeclaration_returnType != null) continue;
+
+      if (accessor.isSetter) {
+        accessorNode.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.void_,
+        );
+      } else {
+        accessorNode.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.dynamic_,
+        );
       }
     }
   }

@@ -32,8 +32,8 @@ main(List<String> args) async {
     }
     await new KernelWorker().run();
   } else {
-    var succeeded = await computeKernel(args);
-    if (!succeeded) {
+    var result = await computeKernel(args);
+    if (!result.succeeded) {
       exitCode = 15;
     }
   }
@@ -41,13 +41,25 @@ main(List<String> args) async {
 
 /// A bazel worker loop that can compute full or summary kernel files.
 class KernelWorker extends AsyncWorkerLoop {
+  fe.InitializedCompilerState previousState;
+
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var outputBuffer = new StringBuffer();
     var response = new WorkResponse()..exitCode = 0;
     try {
-      var succeeded = await computeKernel(request.arguments,
-          isWorker: true, outputBuffer: outputBuffer);
-      if (!succeeded) {
+      fe.InitializedCompilerState previousStateToPass;
+      if (request.arguments.contains("--reuse-compiler-result")) {
+        previousStateToPass = previousState;
+      } else {
+        previousState = null;
+      }
+      var result = await computeKernel(request.arguments,
+          isWorker: true,
+          outputBuffer: outputBuffer,
+          inputs: request.inputs,
+          previousState: previousStateToPass);
+      previousState = result.previousState;
+      if (!result.succeeded) {
         response.exitCode = 15;
       }
     } catch (e, s) {
@@ -105,7 +117,16 @@ final summaryArgsParser = new ArgParser()
   ..addOption('libraries-file')
   ..addOption('packages-file')
   ..addMultiOption('source')
-  ..addOption('output');
+  ..addOption('output')
+  ..addFlag('reuse-compiler-result', defaultsTo: false)
+  ..addFlag('use-incremental-compiler', defaultsTo: false);
+
+class ComputeKernelResult {
+  final bool succeeded;
+  final fe.InitializedCompilerState previousState;
+
+  ComputeKernelResult(this.succeeded, this.previousState);
+}
 
 /// Computes a kernel file based on [args].
 ///
@@ -115,8 +136,11 @@ final summaryArgsParser = new ArgParser()
 /// instead of printed to the console.
 ///
 /// Returns whether or not the summary was successfully output.
-Future<bool> computeKernel(List<String> args,
-    {bool isWorker: false, StringBuffer outputBuffer}) async {
+Future<ComputeKernelResult> computeKernel(List<String> args,
+    {bool isWorker: false,
+    StringBuffer outputBuffer,
+    Iterable<Input> inputs,
+    fe.InitializedCompilerState previousState}) async {
   dynamic out = outputBuffer ?? stderr;
   bool succeeded = true;
   var parsedArgs = summaryArgsParser.parse(args);
@@ -124,7 +148,7 @@ Future<bool> computeKernel(List<String> args,
   if (parsedArgs['help']) {
     out.writeln(summaryArgsParser.usage);
     if (!isWorker) exit(0);
-    return false;
+    return new ComputeKernelResult(false, previousState);
   }
 
   // Bazel creates an overlay file system where some files may be located in the
@@ -177,28 +201,75 @@ Future<bool> computeKernel(List<String> args,
   var librariesSpec = parsedArgs['libraries-file'] == null
       ? null
       : Uri.base.resolve(parsedArgs['libraries-file']);
-  var state = await fe.initializeCompiler(
-      // TODO(sigmund): pass an old state once we can make use of it.
-      null,
-      Uri.base.resolve(parsedArgs['dart-sdk-summary']),
-      librariesSpec,
-      Uri.base.resolve(parsedArgs['packages-file']),
-      (parsedArgs['input-summary'] as List<String>)
-          .map(Uri.base.resolve)
-          .toList(),
-      (parsedArgs['input-linked'] as List<String>)
-          .map(Uri.base.resolve)
-          .toList(),
-      target,
-      fileSystem);
+
+  List<Uri> linkedInputs = (parsedArgs['input-linked'] as List<String>)
+      .map(Uri.base.resolve)
+      .toList();
+
+  List<Uri> summaryInputs = (parsedArgs['input-summary'] as List<String>)
+      .map(Uri.base.resolve)
+      .toList();
+
+  fe.InitializedCompilerState state;
+  bool usingIncrementalCompiler = false;
+  if (parsedArgs['use-incremental-compiler'] && linkedInputs.isEmpty) {
+    usingIncrementalCompiler = true;
+
+    /// Build a map of uris to digests.
+    final inputDigests = <Uri, List<int>>{};
+    for (var input in inputs) {
+      var uri = Uri.parse(input.path);
+      if (uri.scheme.isEmpty) {
+        uri = Uri.parse('file://${input.path}');
+      }
+      inputDigests[uri] = input.digest;
+    }
+
+    state = await fe.initializeIncrementalCompiler(
+        previousState,
+        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
+        Uri.base.resolve(parsedArgs['packages-file']),
+        librariesSpec,
+        summaryInputs,
+        inputDigests,
+        target,
+        fileSystem,
+        summaryOnly);
+  } else {
+    state = await fe.initializeCompiler(
+        // TODO(sigmund): pass an old state once we can make use of it.
+        null,
+        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
+        librariesSpec,
+        Uri.base.resolve(parsedArgs['packages-file']),
+        summaryInputs,
+        linkedInputs,
+        target,
+        fileSystem);
+  }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
     fe.printDiagnosticMessage(message, out.writeln);
     succeeded = false;
   }
 
-  var kernel =
-      await fe.compile(state, sources, onDiagnostic, summaryOnly: summaryOnly);
+  List<int> kernel;
+  if (usingIncrementalCompiler) {
+    state.options.onDiagnostic = onDiagnostic;
+    Component incrementalComponent = await state.incrementalCompiler
+        .computeDelta(entryPoints: sources, fullComponent: true);
+    if (summaryOnly) {
+      incrementalComponent.uriToSource.clear();
+      incrementalComponent.problemsAsJson = null;
+      incrementalComponent.mainMethod = null;
+      target.performOutlineTransformations(incrementalComponent);
+    }
+
+    kernel = fe.serializeComponent(incrementalComponent);
+  } else {
+    kernel = await fe.compile(state, sources, onDiagnostic,
+        summaryOnly: summaryOnly);
+  }
 
   if (kernel != null) {
     var outputFile = new File(parsedArgs['output']);
@@ -208,7 +279,7 @@ Future<bool> computeKernel(List<String> args,
     assert(!succeeded);
   }
 
-  return succeeded;
+  return new ComputeKernelResult(succeeded, state);
 }
 
 /// Extends the DevCompilerTarget to transform outlines to meet the requirements

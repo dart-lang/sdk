@@ -4,7 +4,7 @@
 
 /*class: C:OutputUnit(1, {s1, s2})*/
 class C {
-  /*element: C.:OutputUnit(1, {s1, s2})*/
+  /*strong.element: C.:OutputUnit(1, {s1, s2})*/
   const C();
 
   /*element: C.method:OutputUnit(1, {s1, s2})*/

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -29,6 +29,8 @@ import 'package:front_end/src/fasta/messages.dart'
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
+        messageInvalidSuperInInitializer,
+        messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageStaticConstructor,
@@ -110,6 +112,9 @@ class AstBuilder extends StackListener {
 
   /// `true` if control-flow-collections behavior is enabled
   bool enableControlFlowCollections = false;
+
+  /// `true` if triple-shift behavior is enabled
+  bool enableTripleShift = false;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
@@ -395,6 +400,13 @@ class AstBuilder extends StackListener {
       Expression left = pop();
       reportErrorIfSuper(right);
       push(ast.binaryExpression(left, operatorToken, right));
+      if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
+        handleRecoverableError(
+            templateExperimentNotEnabled
+                .withArguments(EnableString.triple_shift),
+            operatorToken,
+            operatorToken);
+      }
     }
   }
 
@@ -727,7 +739,7 @@ class AstBuilder extends StackListener {
     Token forToken = pop();
     Token awaitToken = pop(NullValue.AwaitToken);
 
-    push(ast.forStatement2(
+    push(ast.forStatement(
       awaitKeyword: awaitToken,
       forKeyword: forToken,
       leftParenthesis: leftParenthesis,
@@ -880,7 +892,7 @@ class AstBuilder extends StackListener {
     Token leftParen = pop();
     Token forToken = pop();
 
-    push(ast.forStatement2(
+    push(ast.forStatement(
       forKeyword: forToken,
       leftParenthesis: leftParen,
       forLoopParts: forLoopParts,
@@ -1123,8 +1135,31 @@ class AstBuilder extends StackListener {
               initializerObject.methodName,
               initializerObject.argumentList));
         } else {
-          // Invalid initializer
-          // TODO(danrubel): Capture this in the AST.
+          // Recovery: Invalid initializer
+          if (target is FunctionExpressionInvocation) {
+            var targetFunct = target.function;
+            if (targetFunct is SuperExpression) {
+              initializers.add(ast.superConstructorInvocation(
+                  targetFunct.superKeyword, null, null, target.argumentList));
+              // TODO(danrubel): Consider generating this error in the parser
+              // This error is also reported in the body builder
+              handleRecoverableError(messageInvalidSuperInInitializer,
+                  targetFunct.superKeyword, targetFunct.superKeyword);
+            } else if (targetFunct is ThisExpression) {
+              initializers.add(ast.redirectingConstructorInvocation(
+                  targetFunct.thisKeyword, null, null, target.argumentList));
+              // TODO(danrubel): Consider generating this error in the parser
+              // This error is also reported in the body builder
+              handleRecoverableError(messageInvalidThisInInitializer,
+                  targetFunct.thisKeyword, targetFunct.thisKeyword);
+            } else {
+              throw new UnsupportedError(
+                  'unsupported initializer $initializerObject');
+            }
+          } else {
+            throw new UnsupportedError(
+                'unsupported initializer $initializerObject');
+          }
         }
       } else if (initializerObject is AssignmentExpression) {
         Token thisKeyword;
@@ -1158,6 +1193,36 @@ class AstBuilder extends StackListener {
             initializerObject.rightHandSide));
       } else if (initializerObject is AssertInitializer) {
         initializers.add(initializerObject);
+      } else if (initializerObject is PropertyAccess) {
+        // Recovery: Invalid initializer
+        Expression target = initializerObject.target;
+        if (target is FunctionExpressionInvocation) {
+          var targetFunct = target.function;
+          if (targetFunct is SuperExpression) {
+            initializers.add(ast.superConstructorInvocation(
+                targetFunct.superKeyword, null, null, target.argumentList));
+            // TODO(danrubel): Consider generating this error in the parser
+            // This error is also reported in the body builder
+            handleRecoverableError(messageInvalidSuperInInitializer,
+                targetFunct.superKeyword, targetFunct.superKeyword);
+          } else if (targetFunct is ThisExpression) {
+            initializers.add(ast.redirectingConstructorInvocation(
+                targetFunct.thisKeyword, null, null, target.argumentList));
+            // TODO(danrubel): Consider generating this error in the parser
+            // This error is also reported in the body builder
+            handleRecoverableError(messageInvalidThisInInitializer,
+                targetFunct.thisKeyword, targetFunct.thisKeyword);
+          } else {
+            throw new UnsupportedError(
+                'unsupported initializer $initializerObject');
+          }
+        } else {
+          throw new UnsupportedError(
+              'unsupported initializer $initializerObject');
+        }
+      } else {
+        throw new UnsupportedError('unsupported initializer:'
+            ' ${initializerObject.runtimeType} :: $initializerObject');
       }
     }
 
@@ -1869,6 +1934,12 @@ class AstBuilder extends StackListener {
           messageMissingAssignableSelector, lhs.beginToken, lhs.endToken);
     }
     push(ast.assignmentExpression(lhs, token, rhs));
+    if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(EnableString.triple_shift),
+          token,
+          token);
+    }
   }
 
   void handleAsyncModifier(Token asyncToken, Token starToken) {
@@ -2078,6 +2149,11 @@ class AstBuilder extends StackListener {
     debugEvent("EmptyStatement");
 
     push(ast.emptyStatement(semicolon));
+  }
+
+  @override
+  void handleErrorToken(ErrorToken token) {
+    translateErrorToken(token, errorReporter.reportScannerError);
   }
 
   void handleExpressionFunctionBody(Token arrowToken, Token semicolon) {
@@ -2523,9 +2599,13 @@ class AstBuilder extends StackListener {
             }
           }
         }
-        // ignore: deprecated_member_use_from_same_package
-        push(ast.setLiteral(
-            constKeyword, typeArguments, leftBrace, setEntries, rightBrace));
+        push(ast.setOrMapLiteral(
+          constKeyword: constKeyword,
+          typeArguments: typeArguments,
+          leftBracket: leftBrace,
+          elements: setEntries,
+          rightBracket: rightBrace,
+        ));
       } else {
         final mapEntries = <MapLiteralEntry>[];
         if (elements != null) {
@@ -2546,9 +2626,13 @@ class AstBuilder extends StackListener {
             }
           }
         }
-        // ignore: deprecated_member_use_from_same_package
-        push(ast.mapLiteral(
-            constKeyword, typeArguments, leftBrace, mapEntries, rightBrace));
+        push(ast.setOrMapLiteral(
+          constKeyword: constKeyword,
+          typeArguments: typeArguments,
+          leftBracket: leftBrace,
+          elements: mapEntries,
+          rightBracket: rightBrace,
+        ));
       }
     }
   }

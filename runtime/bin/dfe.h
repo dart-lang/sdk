@@ -21,6 +21,7 @@ class DFE {
   // Call Init before Dart_Initialize to prevent races between the
   // different isolates.
   void Init();
+  void Init(int target_abi_version);
 
   char* frontend_filename() const { return frontend_filename_; }
 
@@ -78,7 +79,7 @@ class DFE {
                   uint8_t** kernel_buffer,
                   intptr_t* kernel_buffer_size) const;
 
-  static bool KernelServiceDillAvailable();
+  bool KernelServiceDillAvailable() const;
 
   // Tries to read [script_uri] as a Kernel IR file.
   // Returns `true` if successful and sets [kernel_file] and [kernel_length]
@@ -104,10 +105,16 @@ class DFE {
   bool use_dfe_;
   bool use_incremental_compiler_;
   char* frontend_filename_;
+  const uint8_t* kernel_service_dill_;
+  intptr_t kernel_service_dill_size_;
+  const uint8_t* platform_strong_dill_;
+  intptr_t platform_strong_dill_size_;
 
   // Kernel binary specified on the cmd line.
   uint8_t* application_kernel_buffer_;
   intptr_t application_kernel_buffer_size_;
+
+  bool InitKernelServiceAndPlatformDills(int target_abi_version);
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };

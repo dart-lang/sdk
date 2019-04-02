@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=control-flow-collections,spread-collections
+// SharedOptions=--enable-experiment=control-flow-collections,spread-collections,constant-update-2018
 
 import 'package:expect/expect.dart';
 
@@ -62,6 +62,10 @@ void testList() {
   Expect.listEquals([1], [for (var i = 1; i < 2; i++) [i]].first);
   Expect.mapEquals({1: 1}, [for (var i = 1; i < 2; i++) {i: i}].first);
   Expect.setEquals({1}, [for (var i = 1; i < 2; i++) {i}].first);
+
+  // Downcast iterable.
+  Object obj = <int>[1, 2, 3, 4];
+  Expect.listEquals(list, <int>[for (var n in obj) n]);
 
   // Downcast variable.
   Expect.listEquals(list, <int>[for (int n in <num>[1, 2, 3, 4]) n]);
@@ -125,6 +129,10 @@ void testMap() {
     for (var i in <int>[0, 2]) for (var j = 1; j <= 2; j++) i + j: i + j
   });
 
+  // Downcast iterable.
+  Object obj = <int>[1, 2, 3, 4];
+  Expect.mapEquals(map, <int, int>{for (var n in obj) n: n});
+
   // Downcast variable.
   Expect.mapEquals(map, <int, int>{for (int n in <num>[1, 2, 3, 4]) n: n});
 
@@ -180,6 +188,10 @@ void testSet() {
   Expect.mapEquals({1: 1}, {for (var i = 1; i < 2; i++) {i: i}}.first);
   Expect.setEquals({1}, {for (var i = 1; i < 2; i++) {i}}.first);
 
+  // Downcast iterable.
+  Object obj = <int>[1, 2, 3, 4];
+  Expect.setEquals(set, <int>{for (var n in obj) n});
+
   // Downcast variable.
   Expect.setEquals(set, <int>{for (int n in <num>[1, 2, 3, 4]) n});
 
@@ -203,7 +215,7 @@ void testDuplicateKeys() {
     1,
     for (var i in <int>[1, 2, 3]) i,
     for (var i = 2; i <= 3; i++) i,
-    3, 
+    3,
     4
   });
 }
@@ -222,6 +234,7 @@ void testKeyOrder() {
     for (var i = 0; i < keys.length; i++) keys[i]: values[i]
   };
   Expect.equals("1:a,2:a", map.keys.join(","));
+  Expect.equals("2,4", map.values.join(","));
 
   var set = <Equality>{e1a, for (var i = 0; i < keys.length; i++) keys[i]};
   Expect.equals("1:a,2:a", set.join(","));

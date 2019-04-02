@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class A<S extends core::Object = dynamic, T extends core::Object = dynamic> extends core::Object {
-  field self::A::S x;
-  field self::A::T y;
+  generic-covariant-impl field self::A::S x;
+  generic-covariant-impl field self::A::T y;
   constructor •(self::A::S x, self::A::T y) → self::A<self::A::S, self::A::T>
     : self::A::x = x, self::A::y = y, super core::Object::•()
     ;

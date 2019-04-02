@@ -970,8 +970,8 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
-  Object visitForStatement2(ForStatement2 node) {
-    super.visitForStatement2(node);
+  Object visitForStatement(ForStatement node) {
+    super.visitForStatement(node);
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
       if (forLoopParts is ForPartsWithDeclarations &&
@@ -1104,11 +1104,11 @@ class _HasAwaitVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForStatement2(ForStatement2 node) {
+  visitForStatement(ForStatement node) {
     if (node.awaitKeyword != null) {
       result = true;
     }
-    super.visitForStatement2(node);
+    super.visitForStatement(node);
   }
 }
 

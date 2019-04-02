@@ -273,7 +273,7 @@ ${parser.usage}""");
         ? new Result.fromMap(mapBefore, flakinessData[name])
         : null;
     final resultAfter = new Result.fromMap(mapAfter, flakinessData[name]);
-    final resultApproved = mapApproved != null
+    final resultApproved = mapApproved != null && mapApproved["result"] != null
         ? new Result.fromMap(mapApproved, flakinessData[name])
         : null;
     final event = new Event(resultBefore, resultAfter, resultApproved);

@@ -58,9 +58,8 @@ inference/mixin_inference_unification_2: TypeCheckError
 inference/override_equals: RuntimeError
 inference/unresolved_super: TypeCheckError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: InstrumentationMismatch # Issue #25824
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: InstrumentationMismatch # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: InstrumentationMismatch # Issue #25824
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: InstrumentationMismatch # Issue #25824
+inference_new/dependency_only_if_overloaded: TypeCheckError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
@@ -68,13 +67,15 @@ inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
-instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
+inference_new/strongly_connected_component: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
+instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 invalid_type: TypeCheckError
 invocations: RuntimeError
 issue34899: TypeCheckError
 micro: RuntimeError
 mixin_application_override: TypeCheckError
+operator_method_not_found: RuntimeError # Expected
 optional: TypeCheckError
 override_check_accessor_after_inference: TypeCheckError # Issue #31620
 override_check_accessor_basic: TypeCheckError # Issue #31620
@@ -131,7 +132,6 @@ regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31299: TypeCheckError
-regress/issue_32200: RuntimeError # Invalid type.
 regress/issue_32972: TypeCheckError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
@@ -150,7 +150,6 @@ set_literals/disambiguation_rule: RuntimeError
 spread_collection: RuntimeError
 statements: Crash
 type_variable_as_super: RuntimeError
-type_variable_prefix: RuntimeError
 unsound_promotion: RuntimeError
 void_methods: ExpectationFileMismatch
 warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics

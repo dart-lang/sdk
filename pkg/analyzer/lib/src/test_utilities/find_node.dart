@@ -91,8 +91,8 @@ class FindNode {
     return _node(search, (n) => n is FieldFormalParameter);
   }
 
-  ForStatement2 forStatement2(String search) {
-    return _node(search, (n) => n is ForStatement2);
+  ForStatement forStatement(String search) {
+    return _node(search, (n) => n is ForStatement);
   }
 
   FunctionBody functionBody(String search) {
@@ -149,6 +149,10 @@ class FindNode {
 
   MixinDeclaration mixin(String search) {
     return _node(search, (n) => n is MixinDeclaration);
+  }
+
+  NamedExpression namedExpression(String search) {
+    return _node(search, (n) => n is NamedExpression);
   }
 
   ParenthesizedExpression parenthesized(String search) {

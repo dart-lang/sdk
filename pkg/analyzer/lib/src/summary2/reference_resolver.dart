@@ -5,7 +5,6 @@
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
-import 'package:analyzer/src/summary2/declaration.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/scope.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/summary2/scope.dart';
 /// it later).
 class ReferenceResolver {
   final LinkingBundleContext linkingBundleContext;
+  final TypesToBuild typesToBuild;
   final UnitBuilder unit;
 
   /// TODO(scheglov) Update scope with local scopes (formal / type parameters).
@@ -30,6 +30,7 @@ class ReferenceResolver {
 
   ReferenceResolver(
     this.linkingBundleContext,
+    this.typesToBuild,
     this.unit,
     this.scope,
     this.reference,
@@ -51,28 +52,18 @@ class ReferenceResolver {
 
     var typeParameters = node.classOrMixinDeclaration_typeParameters;
     _withTypeParameters(typeParameters, () {
-      var extendsClause = node.classDeclaration_extendsClause;
-      if (extendsClause != null) {
-        _typeName(extendsClause.extendsClause_superclass);
-      }
+      _extendsClause(node.classDeclaration_extendsClause);
+      _withClause(node.classDeclaration_withClause);
+      _implementsClause(node.classOrMixinDeclaration_implementsClause);
 
-      _nodeList(
-        node.classDeclaration_withClause?.withClause_mixinTypes,
-      );
-
-      _nodeList(
-        node.classOrMixinDeclaration_implementsClause
-            ?.implementsClause_interfaces,
-      );
-
-      for (var field in node.classOrMixinDeclaration_members) {
-        if (field.kind != LinkedNodeKind.constructorDeclaration) {
-          _node(field);
+      for (var member in node.classOrMixinDeclaration_members) {
+        if (member.kind != LinkedNodeKind.constructorDeclaration) {
+          _node(member);
         }
       }
-      for (var field in node.classOrMixinDeclaration_members) {
-        if (field.kind == LinkedNodeKind.constructorDeclaration) {
-          _node(field);
+      for (var member in node.classOrMixinDeclaration_members) {
+        if (member.kind == LinkedNodeKind.constructorDeclaration) {
+          _node(member);
         }
       }
     });
@@ -86,18 +77,9 @@ class ReferenceResolver {
 
     var typeParameters = node.classTypeAlias_typeParameters;
     _withTypeParameters(typeParameters, () {
-      var superclass = node.classTypeAlias_superclass;
-      if (superclass != null) {
-        _typeName(superclass);
-      }
-
-      _nodeList(
-        node.classTypeAlias_withClause?.withClause_mixinTypes,
-      );
-
-      _nodeList(
-        node.classTypeAlias_implementsClause?.implementsClause_interfaces,
-      );
+      _typeName(node.classTypeAlias_superclass);
+      _withClause(node.classTypeAlias_withClause);
+      _implementsClause(node.classTypeAlias_implementsClause);
     });
 
     reference = reference.parent.parent;
@@ -118,6 +100,14 @@ class ReferenceResolver {
     _nodeList(node.enumDeclaration_constants);
   }
 
+  void _exportDirective(LinkedNodeBuilder node) {}
+
+  void _extendsClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeName(node.extendsClause_superclass);
+  }
+
   void _fieldDeclaration(LinkedNodeBuilder node) {
     _node(node.fieldDeclaration_fields);
   }
@@ -126,13 +116,15 @@ class ReferenceResolver {
     var typeNode = node.fieldFormalParameter_type;
     if (typeNode != null) {
       _node(typeNode);
-      node.fieldFormalParameter_type2 = _getTypeAnnotationType(typeNode);
     }
 
     var formalParameters = node.fieldFormalParameter_formalParameters;
     if (formalParameters != null) {
-      _node(formalParameters);
-      throw 'incomplete';
+      _formalParameters(formalParameters);
+    }
+
+    if (typeNode != null || formalParameters != null) {
+      typesToBuild.declarations.add(node);
     }
   }
 
@@ -152,8 +144,7 @@ class ReferenceResolver {
       var returnType = node.functionDeclaration_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.functionDeclaration_returnType2 =
-            _getTypeAnnotationType(returnType);
+        typesToBuild.declarations.add(node);
       } else {
         node.functionDeclaration_returnType2 = _dynamicType;
       }
@@ -180,7 +171,7 @@ class ReferenceResolver {
       var returnType = node.functionTypeAlias_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.functionTypeAlias_returnType2 = _getTypeAnnotationType(returnType);
+        typesToBuild.declarations.add(node);
       } else {
         node.functionTypeAlias_returnType2 = _dynamicType;
       }
@@ -189,6 +180,19 @@ class ReferenceResolver {
     });
 
     reference = reference.parent.parent;
+  }
+
+  void _functionTypedFormalParameter(LinkedNodeBuilder node) {
+    var typeParameters = node.functionTypedFormalParameter_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      var typeNode = node.functionTypedFormalParameter_returnType;
+      if (typeNode != null) {
+        _node(typeNode);
+      }
+
+      _formalParameters(node.functionTypedFormalParameter_formalParameters);
+      typesToBuild.declarations.add(node);
+    });
   }
 
   void _genericFunctionType(LinkedNodeBuilder node) {
@@ -202,13 +206,12 @@ class ReferenceResolver {
       var returnType = node.genericFunctionType_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.genericFunctionType_returnType2 =
-            _getTypeAnnotationType(returnType);
-      } else {
-        node.genericFunctionType_returnType2 = _dynamicType;
+        typesToBuild.declarations.add(node);
       }
 
-      _node(node.genericFunctionType_formalParameters);
+      _formalParameters(node.genericFunctionType_formalParameters);
+
+      typesToBuild.typeAnnotations.add(node);
     });
 
     reference = reference.parent.parent;
@@ -228,13 +231,10 @@ class ReferenceResolver {
     reference = reference.parent.parent;
   }
 
-  LinkedNodeTypeBuilder _getTypeAnnotationType(LinkedNodeBuilder node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.typeName) {
-      return node.typeName_type;
-    } else {
-      throw UnimplementedError('$kind');
-    }
+  void _implementsClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeNameList(node.implementsClause_interfaces);
   }
 
   void _importDirective(LinkedNodeBuilder node) {}
@@ -250,10 +250,24 @@ class ReferenceResolver {
       var returnType = node.methodDeclaration_returnType;
       if (returnType != null) {
         _node(returnType);
-        node.methodDeclaration_returnType2 = _getTypeAnnotationType(returnType);
+        typesToBuild.declarations.add(node);
       }
 
       _node(node.methodDeclaration_formalParameters);
+    });
+
+    reference = reference.parent.parent;
+  }
+
+  void _mixinDeclaration(LinkedNodeBuilder node) {
+    var name = unit.context.getUnitMemberName(node);
+    reference = reference.getChild('@class').getChild(name);
+
+    var typeParameters = node.classOrMixinDeclaration_typeParameters;
+    _withTypeParameters(typeParameters, () {
+      _onClause(node.mixinDeclaration_onClause);
+      _implementsClause(node.classOrMixinDeclaration_implementsClause);
+      _nodeList(node.classOrMixinDeclaration_members);
     });
 
     reference = reference.parent.parent;
@@ -276,6 +290,8 @@ class ReferenceResolver {
       _enumDeclaration(node);
     } else if (node.kind == LinkedNodeKind.enumConstantDeclaration) {
       _enumConstantDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.exportDirective) {
+      _exportDirective(node);
     } else if (node.kind == LinkedNodeKind.fieldDeclaration) {
       _fieldDeclaration(node);
     } else if (node.kind == LinkedNodeKind.fieldFormalParameter) {
@@ -288,6 +304,8 @@ class ReferenceResolver {
       _functionExpression(node);
     } else if (node.kind == LinkedNodeKind.functionTypeAlias) {
       _functionTypeAlias(node);
+    } else if (node.kind == LinkedNodeKind.functionTypedFormalParameter) {
+      _functionTypedFormalParameter(node);
     } else if (node.kind == LinkedNodeKind.genericFunctionType) {
       _genericFunctionType(node);
     } else if (node.kind == LinkedNodeKind.genericTypeAlias) {
@@ -298,6 +316,12 @@ class ReferenceResolver {
       _libraryDirective(node);
     } else if (node.kind == LinkedNodeKind.methodDeclaration) {
       _methodDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.mixinDeclaration) {
+      _mixinDeclaration(node);
+    } else if (node.kind == LinkedNodeKind.partDirective) {
+      _partDirective(node);
+    } else if (node.kind == LinkedNodeKind.partOfDirective) {
+      _partOfDirective(node);
     } else if (node.kind == LinkedNodeKind.simpleFormalParameter) {
       _simpleFormalParameter(node);
     } else if (node.kind == LinkedNodeKind.topLevelVariableDeclaration) {
@@ -327,11 +351,26 @@ class ReferenceResolver {
     }
   }
 
+  void _onClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeNameList(node.onClause_superclassConstraints);
+  }
+
+  void _partDirective(LinkedNodeBuilder node) {}
+
+  void _partOfDirective(LinkedNodeBuilder node) {}
+
+  void _setSimpleElement(LinkedNodeBuilder identifier, Reference reference) {
+    var referenceIndex = linkingBundleContext.indexOfReference(reference);
+    identifier.simpleIdentifier_element = referenceIndex;
+  }
+
   void _simpleFormalParameter(LinkedNodeBuilder node) {
     var typeNode = node.simpleFormalParameter_type;
     if (typeNode != null) {
       _node(typeNode);
-      node.simpleFormalParameter_type2 = _getTypeAnnotationType(typeNode);
+      typesToBuild.declarations.add(node);
     } else {
       // TODO(scheglov) might be inferred
       node.simpleFormalParameter_type2 = _dynamicType;
@@ -358,6 +397,8 @@ class ReferenceResolver {
     if (node == null) return;
 
     var identifier = node.typeName_name;
+    Reference reference;
+
     if (identifier.kind == LinkedNodeKind.simpleIdentifier) {
       var name = unit.context.getSimpleName(identifier);
 
@@ -368,49 +409,46 @@ class ReferenceResolver {
         return;
       }
 
-      var declaration = scope.lookup(name);
-      if (declaration == null) {
+      reference = scope.lookup(name);
+    } else {
+      var prefixNode = identifier.prefixedIdentifier_prefix;
+      var prefixName = unit.context.getSimpleName(prefixNode);
+      var prefixReference = scope.lookup(prefixName);
+      _setSimpleElement(prefixNode, prefixReference);
+
+      identifier = identifier.prefixedIdentifier_identifier;
+      var name = unit.context.getSimpleName(identifier);
+
+      if (prefixReference != null && prefixReference.isPrefix) {
+        var prefixScope = prefixReference.prefixScope;
+        reference = prefixScope.lookup(name);
+      } else {
         identifier.simpleIdentifier_element = 0;
         node.typeName_type = _dynamicType;
         return;
       }
+    }
 
-      var reference = declaration.reference;
-      var referenceIndex = linkingBundleContext.indexOfReference(reference);
-      identifier.simpleIdentifier_element = referenceIndex;
+    if (reference == null) {
+      identifier.simpleIdentifier_element = 0;
+      node.typeName_type = _dynamicType;
+      return;
+    }
 
-      var typeArguments = const <LinkedNodeTypeBuilder>[];
-      var typeArgumentList = node.typeName_typeArguments;
-      if (typeArgumentList != null) {
-        _node(typeArgumentList);
-        typeArguments = typeArgumentList.typeArgumentList_arguments
-            .map((node) => _getTypeAnnotationType(node))
-            .toList();
-      }
+    _setSimpleElement(identifier, reference);
 
-      if (reference.isClass) {
-        node.typeName_type = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.interface,
-          interfaceClass: referenceIndex,
-          interfaceTypeArguments: typeArguments,
-        );
-      } else if (reference.isEnum) {
-        node.typeName_type = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.interface,
-          interfaceClass: referenceIndex,
-        );
-      } else if (reference.isTypeParameter) {
-        node.typeName_type = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.typeParameter,
-          typeParameterParameter: referenceIndex,
-        );
-      } else {
-        // TODO(scheglov) set Object? keep unresolved?
-        throw UnimplementedError();
-      }
-    } else {
-      // TODO(scheglov) implement
-      throw UnimplementedError();
+    var typeArgumentList = node.typeName_typeArguments;
+    if (typeArgumentList != null) {
+      _node(typeArgumentList);
+    }
+
+    typesToBuild.typeAnnotations.add(node);
+  }
+
+  void _typeNameList(List<LinkedNode> nodeList) {
+    for (var i = 0; i < nodeList.length; ++i) {
+      var node = nodeList[i];
+      _typeName(node);
     }
   }
 
@@ -429,10 +467,14 @@ class ReferenceResolver {
     var typeNode = node.variableDeclarationList_type;
     if (typeNode != null) {
       _node(typeNode);
-      for (var field in node.variableDeclarationList_variables) {
-        field.variableDeclaration_type2 = _getTypeAnnotationType(typeNode);
-      }
+      typesToBuild.declarations.add(node);
     }
+  }
+
+  void _withClause(LinkedNodeBuilder node) {
+    if (node == null) return;
+
+    _typeNameList(node.withClause_mixinTypes);
   }
 
   /// Enter the type parameters scope, visit them, and run [f].
@@ -450,7 +492,7 @@ class ReferenceResolver {
       var name = unit.context.getSimpleName(typeParameter.typeParameter_name);
       var reference = containerRef.getChild(name);
       reference.node = typeParameter;
-      scope.declare(name, Declaration(name, reference));
+      scope.declare(name, reference);
     }
 
     _node(typeParameterList);
@@ -460,4 +502,28 @@ class ReferenceResolver {
       scope = scope.parent;
     }
   }
+}
+
+/// Type annotations and declarations to build types for.
+///
+/// Not all types can be build during reference resolution phase.
+/// For example `A` means `A<num>` if `class A<T extends num>`, but we don't
+/// know this until we resolved `A` declaration, and we might have not yet.
+/// So, we remember [LinkedNodeKind.typeName] nodes to resolve them later.
+class TypesToBuild {
+  /// Nodes with [LinkedNodeKind.typeName] (with type arguments, and without
+  /// them), and [LinkedNodeKind.genericFunctionType].  These nodes will be
+  /// resolved by [ReferenceResolver], so that they have their references set,
+  /// but their types will not be set yet.
+  ///
+  /// Types arguments, return types, and types of formal parameters must be
+  /// before the types that use them in this list.
+  final List<LinkedNodeBuilder> typeAnnotations = [];
+
+  /// Nodes with type annotations, where we want not just resolve these types
+  /// annotations, but also set additional types.  For example instance method
+  /// return types might be specified, and then the method has the specified
+  /// return type.  But if the return type is not specified explicitly, the
+  /// method still might have a return type, inferred from a superclass.
+  final List<LinkedNodeBuilder> declarations = [];
 }

@@ -34,6 +34,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "message": String
  *   "correction": optional String
  *   "code": String
+ *   "url": optional String
  *   "hasFix": optional bool
  * }
  */
@@ -46,6 +47,7 @@ final Matcher isAnalysisError =
           "code": isString
         }, optionalFields: {
           "correction": isString,
+          "url": isString,
           "hasFix": isBool
         }));
 
@@ -1617,15 +1619,12 @@ final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
  * {
  *   "lexeme": String
  *   "type": String
- *   "validElementKinds": List<ElementKind>
+ *   "validElementKinds": optional List<String>
  * }
  */
-final Matcher isTokenDetails =
-    new LazyMatcher(() => new MatchesJsonObject("TokenDetails", {
-          "lexeme": isString,
-          "type": isString,
-          "validElementKinds": isListOf(isElementKind)
-        }));
+final Matcher isTokenDetails = new LazyMatcher(() => new MatchesJsonObject(
+    "TokenDetails", {"lexeme": isString, "type": isString},
+    optionalFields: {"validElementKinds": isListOf(isString)}));
 
 /**
  * TypeHierarchyItem

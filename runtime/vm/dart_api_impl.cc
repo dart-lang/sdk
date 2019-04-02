@@ -492,7 +492,7 @@ void Api::Init() {
 }
 
 static Dart_Handle InitNewReadOnlyApiHandle(RawObject* raw) {
-  ASSERT(raw->IsReadOnly());
+  ASSERT(raw->InVMIsolateHeap());
   LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
   ref->set_raw(raw);
   return ref->apiHandle();
@@ -1075,43 +1075,8 @@ ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
 
 // --- Isolates ---
 
-static char* BuildIsolateName(const char* script_uri, const char* main) {
-  if (script_uri == NULL) {
-    // Just use the main as the name.
-    if (main == NULL) {
-      return strdup("isolate");
-    } else {
-      return strdup(main);
-    }
-  }
-
-  if (ServiceIsolate::NameEquals(script_uri) ||
-      (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0)) {
-    return strdup(script_uri);
-  }
-
-  // Skip past any slashes and backslashes in the script uri.
-  const char* last_slash = strrchr(script_uri, '/');
-  if (last_slash != NULL) {
-    script_uri = last_slash + 1;
-  }
-  const char* last_backslash = strrchr(script_uri, '\\');
-  if (last_backslash != NULL) {
-    script_uri = last_backslash + 1;
-  }
-  if (main == NULL) {
-    main = "main";
-  }
-
-  char* chars = NULL;
-  intptr_t len = Utils::SNPrint(NULL, 0, "%s:%s()", script_uri, main) + 1;
-  chars = reinterpret_cast<char*>(malloc(len));
-  Utils::SNPrint(chars, len, "%s:%s()", script_uri, main);
-  return chars;
-}
-
 static Dart_Isolate CreateIsolate(const char* script_uri,
-                                  const char* main,
+                                  const char* name,
                                   const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
                                   const uint8_t* shared_data,
@@ -1122,7 +1087,6 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
                                   void* callback_data,
                                   char** error) {
   CHECK_NO_ISOLATE(Isolate::Current());
-  char* isolate_name = BuildIsolateName(script_uri, main);
 
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
@@ -1130,8 +1094,7 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     Isolate::FlagsInitialize(&api_flags);
     flags = &api_flags;
   }
-  Isolate* I = Dart::CreateIsolate(isolate_name, *flags);
-  free(isolate_name);
+  Isolate* I = Dart::CreateIsolate((name == NULL) ? "isolate" : name, *flags);
   if (I == NULL) {
     if (error != NULL) {
       *error = strdup("Isolate creation failed");
@@ -1186,7 +1149,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {
 
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolate(const char* script_uri,
-                   const char* main,
+                   const char* name,
                    const uint8_t* snapshot_data,
                    const uint8_t* snapshot_instructions,
                    const uint8_t* shared_data,
@@ -1195,21 +1158,21 @@ Dart_CreateIsolate(const char* script_uri,
                    void* callback_data,
                    char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-  return CreateIsolate(script_uri, main, snapshot_data, snapshot_instructions,
+  return CreateIsolate(script_uri, name, snapshot_data, snapshot_instructions,
                        shared_data, shared_instructions, NULL, 0, flags,
                        callback_data, error);
 }
 
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolateFromKernel(const char* script_uri,
-                             const char* main,
+                             const char* name,
                              const uint8_t* kernel_buffer,
                              intptr_t kernel_buffer_size,
                              Dart_IsolateFlags* flags,
                              void* callback_data,
                              char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-  return CreateIsolate(script_uri, main, NULL, NULL, NULL, NULL, kernel_buffer,
+  return CreateIsolate(script_uri, name, NULL, NULL, NULL, NULL, kernel_buffer,
                        kernel_buffer_size, flags, callback_data, error);
 }
 
@@ -3088,7 +3051,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   }
   if (RawObject::IsTypedDataViewClassId(obj.GetClassId())) {
     const auto& view = TypedDataView::Cast(obj);
-    if (TypedDataView::ElementSizeInBytes(view) == 1) {
+    if (view.ElementSizeInBytes() == 1) {
       const intptr_t view_length = Smi::Value(view.length());
       if (!Utils::RangeCheck(offset, length, view_length)) {
         return Api::NewError(

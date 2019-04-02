@@ -38,7 +38,6 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
-    errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL ||
     errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
     errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
@@ -133,6 +132,8 @@ class DartFixKind {
       appliedTogetherMessage: "Add all casts in file");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 70, "Add final field formal parameters");
+  static const ADD_MISSING_ENUM_CASE_CLAUSES = const FixKind(
+      'ADD_MISSING_ENUM_CASE_CLAUSES', 50, 'Add missing case clauses');
   static const ADD_MISSING_PARAMETER_NAMED = const FixKind(
       'ADD_MISSING_PARAMETER_NAMED', 70, "Add named parameter '{0}'");
   static const ADD_MISSING_PARAMETER_POSITIONAL = const FixKind(

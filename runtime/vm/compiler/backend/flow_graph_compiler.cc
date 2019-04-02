@@ -1065,7 +1065,9 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 // No debugger: no var descriptors.
 #else
   // TODO(alexmarkov): revise local vars descriptors when compiling bytecode
-  if (code.is_optimized() || flow_graph().function().HasBytecode()) {
+  if (code.is_optimized() ||
+      flow_graph().function().is_declared_in_bytecode() ||
+      flow_graph().function().HasBytecode()) {
     // Optimized code does not need variable descriptors. They are
     // only stored in the unoptimized version.
     code.set_var_descriptors(Object::empty_var_descriptors());

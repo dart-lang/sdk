@@ -59,6 +59,8 @@ abstract class InferrerEngine {
   ]);
 
   CompilerOptions get options;
+
+  /// The [JClosedWorld] on which inference reasoning is based.
   JClosedWorld get closedWorld;
   DiagnosticReporter get reporter;
   AbstractValueDomain get abstractValueDomain =>
@@ -70,7 +72,7 @@ abstract class InferrerEngine {
   NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   TypeSystem get types;
-  Map<ir.Node, TypeInformation> get concreteTypes;
+  Map<ir.TreeNode, TypeInformation> get concreteTypes;
   InferredDataBuilder get inferredDataBuilder;
 
   FunctionEntity get mainElement;
@@ -271,7 +273,6 @@ class InferrerEngineImpl extends InferrerEngine {
   final DiagnosticReporter reporter;
   final CompilerOutput _compilerOutput;
 
-  /// The [JClosedWorld] on which inference reasoning is based.
   @override
   final JsClosedWorld closedWorld;
   @override
@@ -280,8 +281,8 @@ class InferrerEngineImpl extends InferrerEngine {
   @override
   final TypeSystem types;
   @override
-  final Map<ir.Node, TypeInformation> concreteTypes =
-      new Map<ir.Node, TypeInformation>();
+  final Map<ir.TreeNode, TypeInformation> concreteTypes =
+      new Map<ir.TreeNode, TypeInformation>();
 
   final Set<ConstructorEntity> generativeConstructorsExposingThis =
       new Set<ConstructorEntity>();
@@ -1286,11 +1287,6 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  /// Returns true if global optimizations such as type inferencing can apply to
-  /// the field [element].
-  ///
-  /// One category of elements that do not apply is runtime helpers that the
-  /// backend calls, but the optimizations don't see those calls.
   @override
   bool canFieldBeUsedForGlobalOptimizations(FieldEntity element) {
     if (closedWorld.backendUsage.isFieldUsedByBackend(element)) {
@@ -1302,11 +1298,6 @@ class InferrerEngineImpl extends InferrerEngine {
     return true;
   }
 
-  /// Returns true if global optimizations such as type inferencing can apply to
-  /// the parameter [element].
-  ///
-  /// One category of elements that do not apply is runtime helpers that the
-  /// backend calls, but the optimizations don't see those calls.
   @override
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function) {
@@ -1467,7 +1458,6 @@ class KernelGlobalTypeInferenceElementData
         sendMap, iteratorMap, currentMap, moveNextMap);
   }
 
-  /// Serializes this [GlobalTypeInferenceElementData] to [sink].
   @override
   void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
     sink.begin(tag);

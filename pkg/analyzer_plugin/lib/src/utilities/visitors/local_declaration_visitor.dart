@@ -147,7 +147,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForStatement2(ForStatement2 node) {
+  visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
       DeclaredIdentifier loopVar = forLoopParts.loopVariable;

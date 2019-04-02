@@ -1526,8 +1526,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitConstantExpression(ir.ConstantExpression node) {
-    stack.add(
-        graph.addConstant(_elementMap.getConstantValue(node), closedWorld));
+    ConstantValue value = _elementMap.getConstantValue(node);
+    if (!closedWorld.outputUnitData
+        .hasOnlyNonDeferredImportPathsToConstant(targetElement, value)) {
+      stack.add(graph.addDeferredConstant(
+          value,
+          closedWorld.outputUnitData.outputUnitForConstant(value),
+          _sourceInformationBuilder.buildGet(node),
+          closedWorld));
+    } else {
+      stack.add(graph.addConstant(value, closedWorld));
+    }
   }
 
   /// Returns true if the [type] is a valid return type for an asynchronous
@@ -3094,8 +3103,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // unit, the old FE would still generate a deferred wrapper here.
         if (!closedWorld.outputUnitData
             .hasOnlyNonDeferredImportPaths(targetElement, field)) {
-          stack.add(graph.addDeferredConstant(fieldData.initialValue, unit,
-              sourceInformation, compiler, closedWorld));
+          stack.add(graph.addDeferredConstant(
+              fieldData.initialValue, unit, sourceInformation, closedWorld));
         } else {
           stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
               sourceInformation: sourceInformation));
@@ -3293,6 +3302,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(sra): Apply inferred type information.
     letBindings[variable] = initializedValue;
     node.body.accept(this);
+  }
+
+  @override
+  void visitBlockExpression(ir.BlockExpression node) {
+    node.body.accept(this);
+    node.value.accept(this);
   }
 
   /// Extracts the list of instructions for the positional subset of arguments.
@@ -3811,7 +3826,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     ir.ListLiteral positionalArgumentsLiteral =
         invocation.arguments.positional[2];
-    ir.MapLiteral namedArgumentsLiteral = invocation.arguments.positional[3];
+    ir.Expression namedArgumentsLiteral = invocation.arguments.positional[3];
+    Map<String, ir.Expression> namedArguments = {};
     ir.IntLiteral kindLiteral = invocation.arguments.positional[4];
 
     Name memberName = new Name(name, _currentFrame.member.library);
@@ -3829,12 +3845,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
         } else if (memberName == Names.INDEX_SET_NAME) {
           selector = new Selector.indexSet();
         } else {
+          if (namedArgumentsLiteral is ir.MapLiteral) {
+            namedArgumentsLiteral.entries.forEach((ir.MapEntry entry) {
+              ir.StringLiteral key = entry.key;
+              namedArguments[key.value] = entry.value;
+            });
+          } else if (namedArgumentsLiteral is ir.ConstantExpression &&
+              namedArgumentsLiteral.constant is ir.MapConstant) {
+            ir.MapConstant constant = namedArgumentsLiteral.constant;
+            for (ir.ConstantMapEntry entry in constant.entries) {
+              ir.StringConstant key = entry.key;
+              namedArguments[key.value] =
+                  new ir.ConstantExpression(entry.value);
+            }
+          } else {
+            reporter.internalError(
+                computeSourceSpanFromTreeNode(invocation),
+                "Unexpected named arguments value in createInvocationMirrror: "
+                "${namedArgumentsLiteral}.");
+          }
           CallStructure callStructure = new CallStructure(
               positionalArgumentsLiteral.expressions.length,
-              namedArgumentsLiteral.entries.map<String>((ir.MapEntry entry) {
-                ir.StringLiteral key = entry.key;
-                return key.value;
-              }).toList(),
+              namedArguments.keys.toList(),
               typeArguments.length);
           if (Selector.isOperatorName(name)) {
             selector =
@@ -3855,14 +3887,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       argument.accept(this);
       arguments.add(pop());
     }
-    if (namedArgumentsLiteral.entries.isNotEmpty) {
+    if (namedArguments.isNotEmpty) {
       Map<String, HInstruction> namedValues = <String, HInstruction>{};
-      for (ir.MapEntry entry in namedArgumentsLiteral.entries) {
-        ir.StringLiteral key = entry.key;
-        String name = key.value;
-        entry.value.accept(this);
+      namedArguments.forEach((String name, ir.Expression value) {
+        value.accept(this);
         namedValues[name] = pop();
-      }
+      });
       for (String name in selector.callStructure.getOrderedNamedArguments()) {
         arguments.add(namedValues[name]);
       }
@@ -4001,26 +4031,40 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     ir.Expression closure = invocation.arguments.positional.single;
     String problem = 'requires a static method or top-level method';
+
+    bool handleTarget(ir.Procedure procedure) {
+      ir.FunctionNode function = procedure.function;
+      if (function != null &&
+          function.requiredParameterCount ==
+              function.positionalParameters.length &&
+          function.namedParameters.isEmpty) {
+        push(new HForeignCode(
+            js.js.expressionTemplateYielding(
+                emitter.staticFunctionAccess(_elementMap.getMethod(procedure))),
+            abstractValueDomain.dynamicType,
+            <HInstruction>[],
+            nativeBehavior: NativeBehavior.PURE,
+            foreignFunction: _elementMap.getMethod(procedure)));
+        return true;
+      }
+      problem = 'does not handle a closure with optional parameters';
+      return false;
+    }
+
     if (closure is ir.StaticGet) {
       ir.Member staticTarget = closure.target;
       if (staticTarget is ir.Procedure) {
         if (staticTarget.kind == ir.ProcedureKind.Method) {
-          ir.FunctionNode function = staticTarget.function;
-          if (function != null &&
-              function.requiredParameterCount ==
-                  function.positionalParameters.length &&
-              function.namedParameters.isEmpty) {
-            push(new HForeignCode(
-                js.js.expressionTemplateYielding(emitter
-                    .staticFunctionAccess(_elementMap.getMethod(staticTarget))),
-                abstractValueDomain.dynamicType,
-                <HInstruction>[],
-                nativeBehavior: NativeBehavior.PURE,
-                foreignFunction: _elementMap.getMethod(staticTarget)));
+          if (handleTarget(staticTarget)) {
             return;
           }
-          problem = 'does not handle a closure with optional parameters';
         }
+      }
+    } else if (closure is ir.ConstantExpression &&
+        closure.constant is ir.TearOffConstant) {
+      ir.TearOffConstant tearOff = closure.constant;
+      if (handleTarget(tearOff.procedure)) {
+        return;
       }
     }
 

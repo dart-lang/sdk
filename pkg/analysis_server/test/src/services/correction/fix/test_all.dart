@@ -8,6 +8,8 @@ import 'add_async_test.dart' as add_async;
 import 'add_await_test.dart' as add_await;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
+import 'add_missing_enum_case_clauses_test.dart'
+    as add_missing_enum_case_clauses;
 import 'add_missing_parameter_named_test.dart' as add_missing_parameter_named;
 import 'add_missing_parameter_positional_test.dart'
     as add_missing_parameter_positional;
@@ -21,6 +23,7 @@ import 'add_required_test.dart' as add_required;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
     as change_to_nearest_precise_value;
 import 'change_to_static_access_test.dart' as change_to_static_access;
@@ -109,6 +112,7 @@ main() {
     add_await.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
+    add_missing_enum_case_clauses.main();
     add_missing_parameter_named.main();
     add_missing_parameter_positional.main();
     add_missing_parameter_required.main();
@@ -118,6 +122,7 @@ main() {
     add_required.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();
     change_to_static_access.main();

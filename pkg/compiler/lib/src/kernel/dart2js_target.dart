@@ -10,7 +10,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'invocation_mirror_constants.dart';
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
@@ -31,7 +30,8 @@ bool maybeEnableNative(Uri uri) {
   bool allowedTestLibrary() {
     String scriptName = uri.path;
     return scriptName.contains('tests/compiler/dart2js_native') ||
-        scriptName.contains('tests/compiler/dart2js_extra');
+        scriptName.contains('tests/compiler/dart2js_extra') ||
+        scriptName.contains('generated_tests/dart2js_native/native_test');
   }
 
   bool allowedDartLibrary() {
@@ -147,10 +147,9 @@ class Dart2jsTarget extends Target {
     return new ir.InvalidExpression(null);
   }
 
-  // TODO(askesc): Return specialized dart2js constants backend.
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const ConstantsBackend();
+      const Dart2jsConstantsBackend();
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
@@ -195,3 +194,10 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:mirrors',
   ]
 };
+
+class Dart2jsConstantsBackend extends ConstantsBackend {
+  const Dart2jsConstantsBackend();
+
+  @override
+  NumberSemantics get numberSemantics => NumberSemantics.js;
+}

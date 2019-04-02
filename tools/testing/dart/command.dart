@@ -81,6 +81,12 @@ class Command {
         precompiledRunner, processTest, testDirectory, arguments, useBlobs);
   }
 
+  static Command adbDartk(String precompiledRunner, String processTest,
+      String script, List<String> arguments, List<String> extraLibraries) {
+    return new AdbDartkCommand._(
+        precompiledRunner, processTest, script, arguments, extraLibraries);
+  }
+
   static Command jsCommandLine(
       String displayName, String executable, List<String> arguments,
       [Map<String, String> environment]) {
@@ -601,6 +607,40 @@ class AdbPrecompilationCommand extends Command {
       precompiledTestDirectory == other.precompiledTestDirectory;
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
+      'to an attached device. Uses (and requires) adb.';
+}
+
+class AdbDartkCommand extends Command {
+  final String buildPath;
+  final String processTestFilename;
+  final String kernelFile;
+  final List<String> arguments;
+  final List<String> extraLibraries;
+
+  AdbDartkCommand._(this.buildPath, this.processTestFilename, this.kernelFile,
+      this.arguments, this.extraLibraries,
+      {int index = 0})
+      : super._("adb_precompilation", index: index);
+
+  AdbDartkCommand indexedCopy(int index) => AdbDartkCommand._(
+      buildPath, processTestFilename, kernelFile, arguments, extraLibraries,
+      index: index);
+  _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(buildPath);
+    builder.add(kernelFile);
+    builder.add(arguments);
+    builder.add(extraLibraries);
+  }
+
+  bool _equal(AdbDartkCommand other) =>
+      super._equal(other) &&
+      buildPath == other.buildPath &&
+      arguments == other.arguments &&
+      extraLibraries == other.extraLibraries &&
+      kernelFile == other.kernelFile;
+
+  String toString() => 'Steps to push Dart VM and Dill file '
       'to an attached device. Uses (and requires) adb.';
 }
 

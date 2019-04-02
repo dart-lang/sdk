@@ -20,16 +20,6 @@ import "package:async_helper/async_helper.dart";
 const SECONDS = 4;
 const SLACK = 60;
 
-List<String> packageOptions() {
-  if (Platform.packageRoot != null) {
-    return <String>['--package-root=${Platform.packageRoot}'];
-  } else if (Platform.packageConfig != null) {
-    return <String>['--packages=${Platform.packageConfig}'];
-  } else {
-    return <String>[];
-  }
-}
-
 void runServerProcess() {
   asyncStart();
   HttpServer.bind('127.0.0.1', 0).then((server) {
@@ -47,7 +37,10 @@ void runServerProcess() {
     var script = Platform.script
         .resolve('http_client_stays_alive_test.dart')
         .toFilePath();
-    var arguments = packageOptions()..add(script)..add(url);
+    var arguments = <String>[]
+      ..addAll(Platform.executableArguments)
+      ..add(script)
+      ..add(url);
     Process.run(Platform.executable, arguments).then((res) {
       subscription.cancel();
       if (res.exitCode != 0) {

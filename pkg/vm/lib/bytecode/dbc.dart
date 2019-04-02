@@ -8,16 +8,14 @@ library vm.bytecode.dbc;
 
 /// Version of bytecode format, produced by default.
 /// Before bumping current bytecode version format, make sure that
-/// all users have switched to a VM which is able to consume next
+/// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int stableBytecodeFormatVersion = 2;
+const int currentBytecodeFormatVersion = 3;
 
-/// Version of bleeding edge bytecode format.
+/// Version of experimental / bleeding edge bytecode format.
 /// Produced by bytecode generator when --use-future-bytecode-format
 /// option is enabled.
-/// Should match kMaxSupportedBytecodeFormatVersion in
-/// runtime/vm/constants_kbc.h.
-const int futureBytecodeFormatVersion = stableBytecodeFormatVersion + 1;
+const int futureBytecodeFormatVersion = currentBytecodeFormatVersion + 1;
 
 /// Alignment of bytecode instructions.
 const int bytecodeInstructionsAlignment = 4;

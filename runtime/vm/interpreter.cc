@@ -175,6 +175,8 @@ class InterpreterHelpers {
       return false;
     }
 
+    ASSERT(Isolate::Current()->use_field_guards());
+
     const classid_t nullability_cid = field->ptr()->is_nullable_;
     const classid_t value_cid = InterpreterHelpers::GetClassId(value);
 
@@ -575,170 +577,8 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
                                                   RawObject*** SP) {
   ASSERT(!Function::HasCode(function) && !Function::HasBytecode(function));
   ASSERT(function == call_top[0]);
-  // If the function is an implicit getter or setter, process its invocation
-  // here without code or bytecode.
   RawFunction::Kind kind = Function::kind(function);
   switch (kind) {
-    case RawFunction::kImplicitGetter: {
-      // Field object is cached in function's data_.
-      RawInstance* instance = reinterpret_cast<RawInstance*>(*call_base);
-      RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-      intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
-      RawObject* value =
-          reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
-
-      const bool unboxing =
-          (field->ptr()->is_nullable_ != kNullCid) &&
-          Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
-      classid_t guarded_cid = field->ptr()->guarded_cid_;
-      if (unboxing && (guarded_cid == kDoubleCid)) {
-        double raw_value = Double::RawCast(value)->ptr()->value_;
-        if (!AllocateDoubleBox(thread, raw_value, *pc, *FP, *SP)) {
-          *invoked = true;
-          return false;
-        }
-        value = Double::RawCast(*SP[0]);
-      } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
-        simd128_value_t raw_value;
-        raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
-        if (!AllocateFloat32x4Box(thread, raw_value, *pc, *FP, *SP)) {
-          *invoked = true;
-          return false;
-        }
-        value = Float32x4::RawCast(*SP[0]);
-      } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
-        simd128_value_t raw_value;
-        raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
-        if (!AllocateFloat64x2Box(thread, raw_value, *pc, *FP, *SP)) {
-          *invoked = true;
-          return false;
-        }
-        value = Float64x2::RawCast(*SP[0]);
-      }
-
-      *SP = call_base;
-      **SP = value;
-      *invoked = true;
-      return true;
-    }
-    case RawFunction::kImplicitSetter: {
-      // Field object is cached in function's data_.
-      RawInstance* instance = reinterpret_cast<RawInstance*>(call_base[0]);
-      RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-      intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
-      RawAbstractType* field_type = field->ptr()->type_;
-      classid_t cid;
-      if (field_type->GetClassId() == kTypeCid) {
-        cid = Smi::Value(reinterpret_cast<RawSmi*>(
-            Type::RawCast(field_type)->ptr()->type_class_id_));
-      } else {
-        cid = kIllegalCid;  // Not really illegal, but not a Type to skip.
-      }
-      // Perform type test of value if field type is not one of dynamic, object,
-      // or void, and if the value is not null.
-      RawObject* null_value = Object::null();
-      RawObject* value = call_base[1];
-      if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
-          value != null_value) {
-        RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;
-        if (cache->GetClassId() != kSubtypeTestCacheCid) {
-          // Allocate new cache.
-          call_top[1] = null_value;  // Result.
-          Exit(thread, *FP, call_top + 2, *pc);
-          NativeArguments native_args(thread, 0, call_top + 1, call_top + 1);
-          if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
-                             native_args)) {
-            *invoked = true;
-            return false;
-          }
-          // Reload objects after the call which may trigger GC.
-          function = reinterpret_cast<RawFunction*>(call_top[0]);
-          field = reinterpret_cast<RawField*>(function->ptr()->data_);
-          field_type = field->ptr()->type_;
-          instance = reinterpret_cast<RawInstance*>(call_base[0]);
-          value = call_base[1];
-          cache = reinterpret_cast<RawSubtypeTestCache*>(call_top[1]);
-          field->ptr()->type_test_cache_ = cache;
-        }
-        // Push arguments of type test.
-        call_top[1] = value;
-        call_top[2] = field_type;
-        // Provide type arguments of instance as instantiator.
-        RawClass* instance_class = thread->isolate()->class_table()->At(
-            InterpreterHelpers::GetClassId(instance));
-        call_top[3] =
-            instance_class->ptr()->num_type_arguments_ > 0
-                ? reinterpret_cast<RawObject**>(
-                      instance
-                          ->ptr())[instance_class->ptr()
-                                       ->type_arguments_field_offset_in_words_]
-                : null_value;
-        call_top[4] = null_value;  // Implicit setters cannot be generic.
-        call_top[5] = field->ptr()->name_;
-        if (!AssertAssignable(thread, *pc, *FP, call_top + 5, call_top + 1,
-                              cache)) {
-          *invoked = true;
-          return false;
-        }
-        // Reload objects after the call which may trigger GC.
-        function = reinterpret_cast<RawFunction*>(call_top[0]);
-        field = reinterpret_cast<RawField*>(function->ptr()->data_);
-        instance = reinterpret_cast<RawInstance*>(call_base[0]);
-        value = call_base[1];
-      }
-      if (thread->isolate()->use_field_guards() &&
-          InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
-        call_top[1] = 0;  // Unused result of runtime call.
-        call_top[2] = field;
-        call_top[3] = value;
-        Exit(thread, *FP, call_top + 4, *pc);
-        NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
-        if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
-          *invoked = true;
-          return false;
-        }
-        // Reload objects after the call which may trigger GC.
-        instance = reinterpret_cast<RawInstance*>(call_base[0]);
-        value = call_base[1];
-      }
-
-      const bool unboxing =
-          (field->ptr()->is_nullable_ != kNullCid) &&
-          Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
-      classid_t guarded_cid = field->ptr()->guarded_cid_;
-      if (unboxing && (guarded_cid == kDoubleCid)) {
-        double raw_value = Double::RawCast(value)->ptr()->value_;
-        RawDouble* box =
-            *(reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words);
-        ASSERT(box != null_value);  // Non-initializing store.
-        box->ptr()->value_ = raw_value;
-      } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
-        simd128_value_t raw_value;
-        raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
-        RawFloat32x4* box =
-            *(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
-              offset_in_words);
-        ASSERT(box != null_value);  // Non-initializing store.
-        raw_value.writeTo(box->ptr()->value_);
-      } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
-        simd128_value_t raw_value;
-        raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
-        RawFloat64x2* box =
-            *(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
-              offset_in_words);
-        ASSERT(box != null_value);  // Non-initializing store.
-        raw_value.writeTo(box->ptr()->value_);
-      } else {
-        instance->StorePointer(
-            reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
-            value, thread);
-      }
-
-      *SP = call_base;
-      **SP = null_value;
-      *invoked = true;
-      return true;
-    }
     case RawFunction::kImplicitStaticFinalGetter: {
       // Field object is cached in function's data_.
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
@@ -801,39 +641,91 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       }
       if (call_function == Function::null()) {
         // Invoke field getter on receiver.
-        call_top[1] = 0;                       // Result of runtime call.
-        call_top[2] = receiver;                // Receiver.
-        call_top[3] = function->ptr()->name_;  // Field name.
-        Exit(thread, *FP, call_top + 4, *pc);
-        NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
+        call_top[1] = argdesc_;                // Save argdesc_.
+        call_top[2] = 0;                       // Result of runtime call.
+        call_top[3] = receiver;                // Receiver.
+        call_top[4] = function->ptr()->name_;  // Field name.
+        Exit(thread, *FP, call_top + 5, *pc);
+        NativeArguments native_args(thread, 2, call_top + 3, call_top + 2);
         if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch,
                            native_args)) {
           return false;
         }
+        argdesc_ = Array::RawCast(call_top[1]);
+
+        // Replace receiver with field value, keep all other arguments, and
+        // invoke 'call' function, or if not found, invoke noSuchMethod.
+        receiver = call_top[2];
+        call_base[receiver_idx] = receiver;
+
         // If the field value is a closure, no need to resolve 'call' function.
         // Otherwise, call runtime to resolve 'call' function.
-        if (InterpreterHelpers::GetClassId(call_top[1]) == kClosureCid) {
+        if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
           // Closure call.
-          call_function = Closure::RawCast(call_top[1])->ptr()->function_;
+          call_function = Closure::RawCast(receiver)->ptr()->function_;
         } else {
           // Resolve and invoke the 'call' function.
-          call_top[2] = 0;  // Result of runtime call.
-          Exit(thread, *FP, call_top + 3, *pc);
-          NativeArguments native_args(thread, 1, call_top + 1, call_top + 2);
+          call_top[3] = argdesc_;
+          call_top[4] = 0;  // Result of runtime call.
+          Exit(thread, *FP, call_top + 5, *pc);
+          NativeArguments native_args(thread, 2, call_top + 2, call_top + 4);
           if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction,
                              native_args)) {
             return false;
           }
-          call_function = Function::RawCast(call_top[2]);
+          argdesc_ = Array::RawCast(call_top[1]);
+          call_function = Function::RawCast(call_top[4]);
           if (call_function == Function::null()) {
-            // 'Call' could not be resolved. TODO(regis): Can this happen?
-            // Fall back to jitting the field dispatcher function.
-            break;
+            // Function 'call' could not be resolved for argdesc_.
+            // Invoke noSuchMethod.
+            const intptr_t argc =
+                receiver_idx + InterpreterHelpers::ArgDescArgCount(argdesc_);
+            RawObject* null_value = Object::null();
+            call_top[1] = null_value;
+            call_top[2] = call_base[receiver_idx];
+            call_top[3] = argdesc_;
+            call_top[4] = null_value;  // Array of arguments (will be filled).
+
+            // Allocate array of arguments.
+            {
+              call_top[5] = Smi::New(argc);  // length
+              call_top[6] = null_value;      // type
+              Exit(thread, *FP, call_top + 7, *pc);
+              NativeArguments native_args(thread, 2, call_top + 5,
+                                          call_top + 4);
+              if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                                 native_args)) {
+                return false;
+              }
+
+              // Copy arguments into the newly allocated array.
+              RawArray* array = static_cast<RawArray*>(call_top[4]);
+              ASSERT(array->GetClassId() == kArrayCid);
+              for (intptr_t i = 0; i < argc; i++) {
+                array->ptr()->data()[i] = call_base[i];
+              }
+            }
+
+            // We failed to resolve 'call' function.
+            call_top[5] = Symbols::Call().raw();
+
+            // Invoke noSuchMethod passing down receiver, argument descriptor,
+            // array of arguments, and target name.
+            {
+              Exit(thread, *FP, call_top + 6, *pc);
+              NativeArguments native_args(thread, 4, call_top + 2,
+                                          call_top + 1);
+              if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod,
+                                 native_args)) {
+                return false;
+              }
+            }
+            *SP = call_base;
+            **SP = call_top[1];
+            *invoked = true;
+            return true;
           }
         }
-        // Replace receiver with field value, keep all other arguments, and
-        // invoke 'call' function.
-        call_base[receiver_idx] = call_top[1];
       }
       ASSERT(call_function != Function::null());
       // Patch field dispatcher in callee frame with call function.
@@ -2177,10 +2069,12 @@ SwitchDispatch:
         SP[0] = reinterpret_cast<RawObject**>(
             instance->ptr())[Array::length_offset() / kWordSize];
       } break;
-      case MethodRecognizer::kTypedDataLength: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+      case MethodRecognizer::kTypedListLength:
+      case MethodRecognizer::kTypedListViewLength:
+      case MethodRecognizer::kByteDataViewLength: {
+        RawInstance* instance = reinterpret_cast<RawTypedDataBase*>(SP[0]);
         SP[0] = reinterpret_cast<RawObject**>(
-            instance->ptr())[TypedData::length_offset() / kWordSize];
+            instance->ptr())[TypedDataBase::length_offset() / kWordSize];
       } break;
       case MethodRecognizer::kClassIDgetID: {
         SP[0] = InterpreterHelpers::GetClassIdAsSmi(SP[0]);
@@ -2397,8 +2291,7 @@ SwitchDispatch:
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
     intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
 
-    if (thread->isolate()->use_field_guards() &&
-        InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
+    if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
       SP[2] = field;
       SP[3] = value;
@@ -2965,6 +2858,173 @@ SwitchDispatch:
   {
     BYTECODE(Trap, 0);
     UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitGetter, 0);
+    // Field object is cached in function's data_.
+    RawField* field =
+        reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+
+    const intptr_t kArgc = 1;
+    RawInstance* instance =
+        reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
+    RawObject* value =
+        reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+
+    *++SP = value;
+
+    const bool unboxing =
+        (field->ptr()->is_nullable_ != kNullCid) &&
+        Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
+    classid_t guarded_cid = field->ptr()->guarded_cid_;
+    if (unboxing && (guarded_cid == kDoubleCid)) {
+      double raw_value = Double::RawCast(value)->ptr()->value_;
+      // AllocateDoubleBox places result at SP[0]
+      if (!AllocateDoubleBox(thread, raw_value, pc, FP, SP)) {
+        HANDLE_EXCEPTION;
+      }
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+      simd128_value_t raw_value;
+      raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
+      // AllocateFloat32x4Box places result at SP[0]
+      if (!AllocateFloat32x4Box(thread, raw_value, pc, FP, SP)) {
+        HANDLE_EXCEPTION;
+      }
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+      simd128_value_t raw_value;
+      raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
+      // AllocateFloat64x2Box places result at SP[0]
+      if (!AllocateFloat64x2Box(thread, raw_value, pc, FP, SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitSetter, 0);
+    // Field object is cached in function's data_.
+    RawField* field =
+        reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+    const intptr_t kArgc = 2;
+    RawInstance* instance =
+        reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
+    RawObject* value = FrameArguments(FP, kArgc)[1];
+
+    RawAbstractType* field_type = field->ptr()->type_;
+    classid_t cid;
+    if (field_type->GetClassId() == kTypeCid) {
+      cid = Smi::Value(reinterpret_cast<RawSmi*>(
+          Type::RawCast(field_type)->ptr()->type_class_id_));
+    } else {
+      cid = kIllegalCid;  // Not really illegal, but not a Type to skip.
+    }
+    // Perform type test of value if field type is not one of dynamic, object,
+    // or void, and if the value is not null.
+    RawObject* null_value = Object::null();
+    if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
+        value != null_value) {
+      RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;
+      if (cache->GetClassId() != kSubtypeTestCacheCid) {
+        // Allocate new cache.
+        SP[1] = null_value;  // Result.
+
+        Exit(thread, FP, SP + 2, pc);
+        NativeArguments native_args(thread, 0, /* argv */ SP + 1,
+                                    /* retval */ SP + 1);
+        if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
+                           native_args)) {
+          HANDLE_EXCEPTION;
+        }
+
+        // Reload objects after the call which may trigger GC.
+        field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+        field_type = field->ptr()->type_;
+        instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
+        value = FrameArguments(FP, kArgc)[1];
+        cache = reinterpret_cast<RawSubtypeTestCache*>(SP[1]);
+        field->ptr()->type_test_cache_ = cache;
+      }
+
+      // Push arguments of type test.
+      SP[1] = value;
+      SP[2] = field_type;
+      // Provide type arguments of instance as instantiator.
+      RawClass* instance_class = thread->isolate()->class_table()->At(
+          InterpreterHelpers::GetClassId(instance));
+      SP[3] =
+          instance_class->ptr()->num_type_arguments_ > 0
+              ? reinterpret_cast<RawObject**>(
+                    instance
+                        ->ptr())[instance_class->ptr()
+                                     ->type_arguments_field_offset_in_words_]
+              : null_value;
+      SP[4] = null_value;  // Implicit setters cannot be generic.
+      SP[5] = field->ptr()->name_;
+      if (!AssertAssignable(thread, pc, FP, /* argv */ SP + 5,
+                            /* reval */ SP + 1, cache)) {
+        HANDLE_EXCEPTION;
+      }
+
+      // Reload objects after the call which may trigger GC.
+      field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+      instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
+      value = FrameArguments(FP, kArgc)[1];
+    }
+
+    if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
+      SP[1] = 0;  // Unused result of runtime call.
+      SP[2] = field;
+      SP[3] = value;
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments native_args(thread, 2, /* argv */ SP + 2,
+                                  /* retval */ SP + 1);
+      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
+        HANDLE_EXCEPTION;
+      }
+
+      // Reload objects after the call which may trigger GC.
+      instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
+      value = FrameArguments(FP, kArgc)[1];
+    }
+
+    const bool unboxing =
+        (field->ptr()->is_nullable_ != kNullCid) &&
+        Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
+    classid_t guarded_cid = field->ptr()->guarded_cid_;
+    if (unboxing && (guarded_cid == kDoubleCid)) {
+      double raw_value = Double::RawCast(value)->ptr()->value_;
+      RawDouble* box =
+          *(reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words);
+      ASSERT(box != null_value);  // Non-initializing store.
+      box->ptr()->value_ = raw_value;
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+      simd128_value_t raw_value;
+      raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
+      RawFloat32x4* box = *(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
+                            offset_in_words);
+      ASSERT(box != null_value);  // Non-initializing store.
+      raw_value.writeTo(box->ptr()->value_);
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+      simd128_value_t raw_value;
+      raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
+      RawFloat64x2* box = *(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
+                            offset_in_words);
+      ASSERT(box != null_value);  // Non-initializing store.
+      raw_value.writeTo(box->ptr()->value_);
+    } else {
+      instance->StorePointer(
+          reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+          value, thread);
+    }
+
+    *++SP = null_value;
+
     DISPATCH();
   }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,6 +55,7 @@ void applyCheckElementTextReplacements() {
 void checkElementText(LibraryElement library, String expected,
     {bool withCodeRanges: false,
     bool withConstElements: true,
+    bool withExportScope: false,
     bool withOffsets: false,
     bool withSyntheticAccessors: false,
     bool withSyntheticFields: false,
@@ -62,6 +63,7 @@ void checkElementText(LibraryElement library, String expected,
   var writer = new _ElementWriter(
       withCodeRanges: withCodeRanges,
       withConstElements: withConstElements,
+      withExportScope: withExportScope,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
       withSyntheticFields: withSyntheticFields,
@@ -127,6 +129,7 @@ void checkElementText(LibraryElement library, String expected,
  */
 class _ElementWriter {
   final bool withCodeRanges;
+  final bool withExportScope;
   final bool withOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
@@ -137,6 +140,7 @@ class _ElementWriter {
   _ElementWriter(
       {this.withCodeRanges,
       this.withConstElements: true,
+      this.withExportScope: false,
       this.withOffsets: false,
       this.withSyntheticAccessors: false,
       this.withSyntheticFields: false,
@@ -405,6 +409,8 @@ class _ElementWriter {
     e.parts.forEach(writePartElement);
 
     e.units.forEach(writeUnitElement);
+
+    writeExportScope(e);
   }
 
   void writeList<T>(String open, String close, List<T> items, String separator,
@@ -481,7 +487,7 @@ class _ElementWriter {
   void writeNode(AstNode e, [Expression enclosing]) {
     bool needsParenthesis = e is Expression &&
         enclosing != null &&
-        e.precedence2 < enclosing.precedence2;
+        e.precedence < enclosing.precedence;
 
     if (needsParenthesis) {
       buffer.write('(');
@@ -565,7 +571,7 @@ class _ElementWriter {
       } else if (withTypes) {
         writeInterfaceTypeArgsComment(e);
       }
-      writeList('[', ']', e.elements2, ', ', writeNode, includeEmpty: true);
+      writeList('[', ']', e.elements, ', ', writeNode, includeEmpty: true);
     } else if (e is Label) {
       writeNode(e.label);
       buffer.write(': ');
@@ -578,7 +584,7 @@ class _ElementWriter {
       } else if (withTypes) {
         writeInterfaceTypeArgsComment(e);
       }
-      writeList('{', '}', e.elements2, ', ', writeNode, includeEmpty: true);
+      writeList('{', '}', e.elements, ', ', writeNode, includeEmpty: true);
       if (e.isMap) {
         buffer.write('/*isMap*/');
       }
@@ -907,6 +913,7 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeName(e);
+    writeCodeRange(e);
     if (e.bound != null && !e.bound.isObject) {
       buffer.write(' extends ');
       writeType(e.bound);
@@ -930,6 +937,22 @@ class _ElementWriter {
     e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);
+  }
+
+  void writeExportScope(LibraryElement e) {
+    if (!withExportScope) return;
+
+    buffer.writeln();
+    buffer.writeln('-' * 20);
+    buffer.writeln('Exports:');
+
+    var map = e.exportNamespace.definedNames;
+    var names = map.keys.toList()..sort();
+    for (var name in names) {
+      var element = map[name];
+      var elementLocationStr = _getElementLocationString(element);
+      buffer.writeln('  $name: $elementLocationStr');
+    }
   }
 
   void writeUri(Source source) {

@@ -4,10 +4,12 @@
 
 #include "vm/compiler/frontend/bytecode_reader.h"
 
+#include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/frontend/bytecode_scope_builder.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
@@ -19,7 +21,7 @@
 
 #define Z (zone_)
 #define H (translation_helper_)
-#define I Isolate::Current()
+#define I (translation_helper_.isolate())
 
 namespace dart {
 
@@ -47,28 +49,138 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "Function", function.ToQualifiedCString());
 #endif  // defined(DEBUG)
-#endif  // !defined(PRODUCT)
+#endif  // !defined(SUPPORT_TIMELINE)
 
-  const intptr_t node_offset = function.kernel_offset();
-  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
-  if (md_offset < 0) {
-    return;
+  switch (function.kind()) {
+    case RawFunction::kImplicitGetter:
+      function.AttachBytecode(Object::implicit_getter_bytecode());
+      return;
+    case RawFunction::kImplicitSetter:
+      function.AttachBytecode(Object::implicit_setter_bytecode());
+      return;
+    default: {
+    }
+  }
+
+  intptr_t code_offset = 0;
+  if (function.is_declared_in_bytecode()) {
+    code_offset = function.bytecode_offset();
+    if (code_offset == 0) {
+      return;
+    }
+  } else {
+    const intptr_t node_offset = function.kernel_offset();
+    code_offset = GetNextMetadataPayloadOffset(node_offset);
+    if (code_offset < 0) {
+      return;
+    }
   }
 
   ASSERT(Thread::Current()->IsMutatorThread());
 
-  Array& bytecode_component_array =
-      Array::Handle(helper_->zone_, translation_helper_.GetBytecodeComponent());
-  if (bytecode_component_array.IsNull()) {
-    bytecode_component_array = ReadBytecodeComponent();
-    ASSERT(!bytecode_component_array.IsNull());
-  }
-
-  BytecodeComponentData bytecode_component(bytecode_component_array);
+  BytecodeComponentData bytecode_component(
+      Array::Handle(helper_->zone_, GetBytecodeComponent()));
   BytecodeReaderHelper bytecode_reader(helper_, active_class_,
                                        &bytecode_component);
 
-  bytecode_reader.ReadMemberBytecode(function, md_offset);
+  bytecode_reader.ReadCode(function, code_offset);
+}
+
+void BytecodeMetadataHelper::ParseBytecodeFunction(
+    ParsedFunction* parsed_function) {
+  TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
+                    "BytecodeMetadataHelper::ParseBytecodeFunction");
+
+  const Function& function = parsed_function->function();
+  ASSERT(function.is_declared_in_bytecode());
+
+  // No parsing is needed if function has bytecode attached.
+  // With one exception: implicit getters and setters have artificial
+  // bytecodes, but they are still handled by shared flow graph builder
+  // which requires scopes/parsing.
+  if (function.HasBytecode() && !function.IsImplicitGetterFunction() &&
+      !function.IsImplicitSetterFunction()) {
+    return;
+  }
+
+  BytecodeComponentData bytecode_component(
+      Array::Handle(helper_->zone_, GetBytecodeComponent()));
+  BytecodeReaderHelper bytecode_reader(helper_, active_class_,
+                                       &bytecode_component);
+
+  bytecode_reader.ParseBytecodeFunction(parsed_function, function);
+}
+
+bool BytecodeMetadataHelper::ReadMembers(intptr_t node_offset,
+                                         const Class& cls,
+                                         bool discard_fields) {
+  TIMELINE_DURATION(Thread::Current(), Compiler,
+                    "BytecodeMetadataHelper::ReadMembers");
+
+  ASSERT(node_offset > 0);
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return false;
+  }
+
+  ASSERT(Thread::Current()->IsMutatorThread());
+
+  BytecodeComponentData bytecode_component(
+      Array::Handle(helper_->zone_, GetBytecodeComponent()));
+  BytecodeReaderHelper bytecode_reader(helper_, active_class_,
+                                       &bytecode_component);
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+
+  intptr_t members_offset = helper_->reader_.ReadUInt();
+
+  bytecode_reader.ReadMembers(cls, members_offset, discard_fields);
+
+  return true;
+}
+
+RawObject* BytecodeMetadataHelper::ReadAnnotation(intptr_t annotation_offset) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+
+  BytecodeComponentData bytecode_component(
+      Array::Handle(helper_->zone_, GetBytecodeComponent()));
+  BytecodeReaderHelper bytecode_reader(helper_, active_class_,
+                                       &bytecode_component);
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              annotation_offset);
+
+  return bytecode_reader.ReadObject();
+}
+
+RawLibrary* BytecodeMetadataHelper::GetMainLibrary() {
+  const intptr_t md_offset = GetComponentMetadataPayloadOffset();
+  if (md_offset < 0) {
+    return Library::null();
+  }
+
+  BytecodeComponentData bytecode_component(
+      Array::Handle(helper_->zone_, GetBytecodeComponent()));
+  const intptr_t main_offset = bytecode_component.GetMainOffset();
+  if (main_offset == 0) {
+    return Library::null();
+  }
+
+  BytecodeReaderHelper bytecode_reader(helper_, active_class_,
+                                       &bytecode_component);
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              main_offset);
+  return bytecode_reader.ReadMain();
+}
+
+RawArray* BytecodeMetadataHelper::GetBytecodeComponent() {
+  RawArray* array = translation_helper_.GetBytecodeComponent();
+  if (array == Array::null()) {
+    array = ReadBytecodeComponent();
+    ASSERT(array != Array::null());
+  }
+  return array;
 }
 
 RawArray* BytecodeMetadataHelper::ReadBytecodeComponent() {
@@ -90,26 +202,47 @@ BytecodeReaderHelper::BytecodeReaderHelper(
       active_class_(active_class),
       zone_(helper_->zone_),
       bytecode_component_(bytecode_component),
-      closures_(nullptr),
-      function_type_type_parameters_(nullptr) {}
+      scoped_function_(Function::Handle(helper_->zone_)),
+      scoped_function_name_(String::Handle(helper_->zone_)),
+      scoped_function_class_(Class::Handle(helper_->zone_)) {}
 
-void BytecodeReaderHelper::ReadMemberBytecode(const Function& function,
-                                              intptr_t md_offset) {
+void BytecodeReaderHelper::ReadCode(const Function& function,
+                                    intptr_t code_offset) {
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(!function.IsImplicitGetterFunction() &&
+         !function.IsImplicitSetterFunction());
+  ASSERT(code_offset > 0);
 
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
-                              md_offset);
-
-  const int kHasExceptionsTableFlag = 1 << 0;
-  const int kHasSourcePositionsFlag = 1 << 1;
-  const int kHasNullableFieldsFlag = 1 << 2;
-  const int kHasClosuresFlag = 1 << 3;
+                              code_offset);
 
   const intptr_t flags = helper_->reader_.ReadUInt();
-  const bool has_exceptions_table = (flags & kHasExceptionsTableFlag) != 0;
-  const bool has_source_positions = (flags & kHasSourcePositionsFlag) != 0;
-  const bool has_nullable_fields = (flags & kHasNullableFieldsFlag) != 0;
-  const bool has_closures = (flags & kHasClosuresFlag) != 0;
+  const bool has_exceptions_table =
+      (flags & Code::kHasExceptionsTableFlag) != 0;
+  const bool has_source_positions =
+      (flags & Code::kHasSourcePositionsFlag) != 0;
+  const bool has_nullable_fields = (flags & Code::kHasNullableFieldsFlag) != 0;
+  const bool has_closures = (flags & Code::kHasClosuresFlag) != 0;
+  const bool has_parameters_flags = (flags & Code::kHasParameterFlagsFlag) != 0;
+  const bool has_forwarding_stub_target =
+      (flags & Code::kHasForwardingStubTargetFlag) != 0;
+  const bool has_default_function_type_args =
+      (flags & Code::kHasDefaultFunctionTypeArgsFlag) != 0;
+
+  if (has_parameters_flags) {
+    intptr_t num_params = helper_->reader_.ReadUInt();
+    ASSERT(num_params ==
+           function.NumParameters() - function.NumImplicitParameters());
+    for (intptr_t i = 0; i < num_params; ++i) {
+      helper_->reader_.ReadUInt();
+    }
+  }
+  if (has_forwarding_stub_target) {
+    helper_->reader_.ReadUInt();
+  }
+  if (has_default_function_type_args) {
+    helper_->reader_.ReadUInt();
+  }
 
   intptr_t num_closures = 0;
   if (has_closures) {
@@ -173,8 +306,10 @@ void BytecodeReaderHelper::ReadMemberBytecode(const Function& function,
       closure ^= closures_->At(i);
 
       const intptr_t flags = helper_->reader_.ReadUInt();
-      const bool has_exceptions_table = (flags & kHasExceptionsTableFlag) != 0;
-      const bool has_source_positions = (flags & kHasSourcePositionsFlag) != 0;
+      const bool has_exceptions_table =
+          (flags & Code::kHasExceptionsTableFlag) != 0;
+      const bool has_source_positions =
+          (flags & Code::kHasSourcePositionsFlag) != 0;
 
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
@@ -236,8 +371,7 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
   FunctionTypeScope function_type_scope(this);
 
   if (has_type_params) {
-    const intptr_t num_type_params = helper_->reader_.ReadUInt();
-    ReadTypeParametersDeclaration(Class::Handle(Z), func, num_type_params);
+    ReadTypeParametersDeclaration(Class::Handle(Z), func);
     function_type_type_parameters_ =
         &TypeArguments::Handle(Z, func.type_parameters());
   }
@@ -291,9 +425,10 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
 
 void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     const Class& parameterized_class,
-    const Function& parameterized_function,
-    intptr_t num_type_params) {
+    const Function& parameterized_function) {
   ASSERT(parameterized_class.IsNull() != parameterized_function.IsNull());
+
+  const intptr_t num_type_params = helper_->reader_.ReadUInt();
   ASSERT(num_type_params > 0);
 
   // First setup the type parameters, so if any of the following code uses it
@@ -316,7 +451,9 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
 
   if (!parameterized_class.IsNull()) {
     parameterized_class.set_type_parameters(type_parameters);
-  } else {
+  } else if (!parameterized_function.IsFactory()) {
+    // Do not set type parameters for factories, as VM uses class type
+    // parameters instead.
     parameterized_function.set_type_parameters(type_parameters);
   }
 
@@ -690,8 +827,10 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
 }
 
 RawBytecode* BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
+#if defined(SUPPORT_TIMELINE)
   TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
                     "BytecodeReaderHelper::ReadBytecode");
+#endif  // defined(SUPPORT_TIMELINE)
   intptr_t size = helper_->ReadUInt();
   intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), sizeof(KBCInstr));
   const uint8_t* data = helper_->reader_.BufferAt(offset);
@@ -704,8 +843,10 @@ RawBytecode* BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
 
 void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                                bool has_exceptions_table) {
+#if defined(SUPPORT_TIMELINE)
   TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
                     "BytecodeReaderHelper::ReadExceptionsTable");
+#endif
 
   const intptr_t try_block_count =
       has_exceptions_table ? helper_->reader_.ReadListLength() : 0;
@@ -773,9 +914,9 @@ void BytecodeReaderHelper::ReadSourcePositions(const Bytecode& bytecode,
     return;
   }
 
-  intptr_t length = helper_->reader_.ReadUInt();
-  bytecode.set_source_positions_binary_offset(helper_->reader_.offset());
-  helper_->SkipBytes(length);
+  intptr_t offset = helper_->reader_.ReadUInt();
+  bytecode.set_source_positions_binary_offset(
+      bytecode_component_->GetSourcePositionsOffset() + offset);
 }
 
 RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
@@ -790,7 +931,9 @@ RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
     case MethodRecognizer::kGrowableArrayLength:
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kTypedDataLength:
+    case MethodRecognizer::kTypedListLength:
+    case MethodRecognizer::kTypedListViewLength:
+    case MethodRecognizer::kByteDataViewLength:
     case MethodRecognizer::kClassIDgetID:
     case MethodRecognizer::kGrowableArrayCapacity:
     case MethodRecognizer::kListFactory:
@@ -823,7 +966,13 @@ RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
       bool is_auto_scope = true;
       native_function = NativeEntry::ResolveNative(library, external_name,
                                                    num_params, &is_auto_scope);
-      ASSERT(native_function != NULL);  // TODO(regis): Should we throw instead?
+      if (native_function == nullptr) {
+        Report::MessageF(Report::kError, Script::Handle(function.script()),
+                         function.token_pos(), Report::AtLocation,
+                         "native function '%s' (%" Pd
+                         " arguments) cannot be found",
+                         external_name.ToCString(), function.NumParameters());
+      }
       if (is_bootstrap_native) {
         trampoline = &NativeEntry::BootstrapNativeCallWrapper;
       } else if (is_auto_scope) {
@@ -843,7 +992,14 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
-  const intptr_t version = helper_->reader_.ReadUInt();
+  const intptr_t start_offset = helper_->reader_.offset();
+
+  intptr_t magic = helper_->reader_.ReadUInt32();
+  if (magic != KernelBytecode::kMagicValue) {
+    return ReadBytecodeComponentV2(md_offset);
+  }
+
+  const intptr_t version = helper_->reader_.ReadUInt32();
   if ((version < KernelBytecode::kMinSupportedBytecodeFormatVersion) ||
       (version > KernelBytecode::kMaxSupportedBytecodeFormatVersion)) {
     FATAL3("Unsupported Dart bytecode format version %" Pd
@@ -852,6 +1008,83 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
            " to %" Pd ".",
            version, KernelBytecode::kMinSupportedBytecodeFormatVersion,
            KernelBytecode::kMaxSupportedBytecodeFormatVersion);
+  }
+
+  helper_->reader_.ReadUInt32();  // Skip stringTable.numItems
+  const intptr_t string_table_offset =
+      start_offset + helper_->reader_.ReadUInt32();
+
+  helper_->reader_.ReadUInt32();  // Skip objectTable.numItems
+  const intptr_t object_table_offset =
+      start_offset + helper_->reader_.ReadUInt32();
+
+  helper_->reader_.ReadUInt32();  // Skip main.numItems
+  const intptr_t main_offset = start_offset + helper_->reader_.ReadUInt32();
+
+  helper_->reader_.ReadUInt32();  // Skip members.numItems
+  const intptr_t members_offset = start_offset + helper_->reader_.ReadUInt32();
+
+  helper_->reader_.ReadUInt32();  // Skip codes.numItems
+  const intptr_t codes_offset = start_offset + helper_->reader_.ReadUInt32();
+
+  helper_->reader_.ReadUInt32();  // Skip sourcePositions.numItems
+  const intptr_t sources_positions_offset =
+      start_offset + helper_->reader_.ReadUInt32();
+
+  helper_->reader_.ReadUInt32();  // Skip annotations.numItems
+  const intptr_t annotations_offset =
+      start_offset + helper_->reader_.ReadUInt32();
+
+  // Read header of string table.
+  helper_->reader_.set_offset(string_table_offset);
+  const intptr_t num_one_byte_strings = helper_->reader_.ReadUInt32();
+  const intptr_t num_two_byte_strings = helper_->reader_.ReadUInt32();
+  const intptr_t strings_contents_offset =
+      helper_->reader_.offset() +
+      (num_one_byte_strings + num_two_byte_strings) * 4;
+
+  // Read header of object table.
+  helper_->reader_.set_offset(object_table_offset);
+  const intptr_t num_objects = helper_->reader_.ReadUInt();
+  const intptr_t objects_size = helper_->reader_.ReadUInt();
+
+  // Skip over contents of objects.
+  const intptr_t objects_contents_offset = helper_->reader_.offset();
+  helper_->reader_.set_offset(objects_contents_offset + objects_size);
+
+  const Array& bytecode_component_array = Array::Handle(
+      Z,
+      BytecodeComponentData::New(
+          Z, version, num_objects, string_table_offset, strings_contents_offset,
+          objects_contents_offset, main_offset, members_offset, codes_offset,
+          sources_positions_offset, annotations_offset, Heap::kOld));
+
+  BytecodeComponentData bytecode_component(bytecode_component_array);
+
+  // Read object offsets.
+  Smi& offs = Smi::Handle(Z);
+  for (intptr_t i = 0; i < num_objects; ++i) {
+    offs = Smi::New(helper_->reader_.ReadUInt());
+    bytecode_component.SetObject(i, offs);
+  }
+
+  H.SetBytecodeComponent(bytecode_component_array);
+
+  return bytecode_component_array.raw();
+}
+
+// TODO(alexmarkov): obsolete, remove when dropping support for old bytecode
+// format version.
+RawArray* BytecodeReaderHelper::ReadBytecodeComponentV2(intptr_t md_offset) {
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+
+  const intptr_t kMinVersion = 1;
+  const intptr_t kMaxVersion = 2;
+
+  const intptr_t version = helper_->reader_.ReadUInt();
+  if ((version < kMinVersion) || (version > kMaxVersion)) {
+    FATAL1("Unsupported Dart bytecode format version %" Pd ".", version);
   }
 
   const intptr_t strings_size = helper_->reader_.ReadUInt();
@@ -874,10 +1107,11 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   const intptr_t objects_contents_offset = helper_->reader_.offset();
   helper_->reader_.set_offset(objects_contents_offset + objects_size);
 
-  const Array& bytecode_component_array = Array::Handle(
-      Z, BytecodeComponentData::New(
-             Z, version, num_objects, strings_header_offset,
-             strings_contents_offset, objects_contents_offset, Heap::kOld));
+  const Array& bytecode_component_array =
+      Array::Handle(Z, BytecodeComponentData::New(
+                           Z, version, num_objects, strings_header_offset,
+                           strings_contents_offset, objects_contents_offset, 0,
+                           0, 0, 0, 0, Heap::kOld));
   BytecodeComponentData bytecode_component(bytecode_component_array);
 
   // Read object offsets.
@@ -923,6 +1157,15 @@ RawObject* BytecodeReaderHelper::ReadObject() {
   }
 
   return ReadObjectContents(header);
+}
+
+RawString* BytecodeReaderHelper::ConstructorName(const Class& cls,
+                                                 const String& name) {
+  GrowableHandlePtrArray<const String> pieces(Z, 3);
+  pieces.Add(String::Handle(Z, cls.Name()));
+  pieces.Add(Symbols::Dot());
+  pieces.Add(name);
+  return Symbols::FromConcatAll(H.thread(), pieces);
 }
 
 RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
@@ -1008,11 +1251,12 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         return field;
       } else {
         if ((flags & kFlagIsConstructor) != 0) {
-          GrowableHandlePtrArray<const String> pieces(Z, 3);
-          pieces.Add(String::Handle(Z, cls.Name()));
-          pieces.Add(Symbols::Dot());
-          pieces.Add(name);
-          name = Symbols::FromConcatAll(H.thread(), pieces);
+          name = ConstructorName(cls, name);
+        }
+        ASSERT(!name.IsNull() && name.IsSymbol());
+        if (name.raw() == scoped_function_name_.raw() &&
+            cls.raw() == scoped_function_class_.raw()) {
+          return scoped_function_.raw();
         }
         RawFunction* function = cls.LookupFunctionAllowPrivate(name);
         if (function == Function::null()) {
@@ -1339,6 +1583,649 @@ RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments(
   return type.arguments();
 }
 
+void BytecodeReaderHelper::ReadMembers(const Class& cls,
+                                       intptr_t members_offset,
+                                       bool discard_fields) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(cls.is_type_finalized());
+  ASSERT(!cls.is_loaded());
+
+  const intptr_t offset =
+      bytecode_component_->GetMembersOffset() + members_offset;
+  AlternativeReadingScope alt_md(&helper_->reader_, &H.metadata_payloads(),
+                                 offset);
+
+  const intptr_t num_functions = helper_->reader_.ReadUInt();
+  functions_ = &Array::Handle(Z, Array::New(num_functions, Heap::kOld));
+  function_index_ = 0;
+
+  ReadFieldDeclarations(cls, discard_fields);
+  ReadFunctionDeclarations(cls);
+
+  cls.set_is_loaded(true);
+}
+
+void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
+                                                 bool discard_fields) {
+  // Field flags, must be in sync with FieldDeclaration constants in
+  // pkg/vm/lib/bytecode/declarations.dart.
+  const int kHasInitializerFlag = 1 << 0;
+  const int kHasGetterFlag = 1 << 1;
+  const int kHasSetterFlag = 1 << 2;
+  const int kIsReflectableFlag = 1 << 3;
+  const int kIsStaticFlag = 1 << 4;
+  const int kIsConstFlag = 1 << 5;
+  const int kIsFinalFlag = 1 << 6;
+  const int kIsCovariantFlag = 1 << 7;
+  const int kIsGenericCovariantImplFlag = 1 << 8;
+  const int kHasSourcePositionsFlag = 1 << 9;
+  const int kHasAnnotationsFlag = 1 << 10;
+  const int kHasPragmaFlag = 1 << 11;
+  const int kHasCustomScriptFlag = 1 << 12;
+
+  const int num_fields = helper_->ReadListLength();
+  if ((num_fields == 0) && !cls.is_enum_class()) {
+    return;
+  }
+  const Array& fields = Array::Handle(
+      Z, Array::New(num_fields + (cls.is_enum_class() ? 1 : 0), Heap::kOld));
+  String& name = String::Handle(Z);
+  Object& script_class = Object::Handle(Z);
+  AbstractType& type = AbstractType::Handle(Z);
+  Field& field = Field::Handle(Z);
+  Instance& value = Instance::Handle(Z);
+  Function& function = Function::Handle(Z);
+
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    intptr_t flags = helper_->reader_.ReadUInt();
+
+    const bool is_static = (flags & kIsStaticFlag) != 0;
+    const bool is_final = (flags & kIsFinalFlag) != 0;
+    const bool is_const = (flags & kIsConstFlag) != 0;
+    const bool has_initializer = (flags & kHasInitializerFlag) != 0;
+    const bool has_pragma = (flags & kHasPragmaFlag) != 0;
+
+    name ^= ReadObject();
+    type ^= ReadObject();
+
+    if ((flags & kHasCustomScriptFlag) != 0) {
+      Script& script = Script::CheckedHandle(Z, ReadObject());
+      script_class = GetPatchClass(cls, script);
+    } else {
+      script_class = cls.raw();
+    }
+
+    TokenPosition position = TokenPosition::kNoSource;
+    TokenPosition end_position = TokenPosition::kNoSource;
+    if ((flags & kHasSourcePositionsFlag) != 0) {
+      position = helper_->ReadPosition();
+      end_position = helper_->ReadPosition();
+    }
+
+    field = Field::New(name, is_static, is_final, is_const,
+                       (flags & kIsReflectableFlag) != 0, script_class, type,
+                       position, end_position);
+
+    field.set_is_declared_in_bytecode(true);
+    field.set_has_pragma(has_pragma);
+    field.set_is_covariant((flags & kIsCovariantFlag) != 0);
+    field.set_is_generic_covariant_impl((flags & kIsGenericCovariantImplFlag) !=
+                                        0);
+    field.set_has_initializer(has_initializer);
+
+    if (!has_initializer) {
+      value ^= ReadObject();
+      if (is_static) {
+        field.SetStaticValue(value, true);
+      } else {
+        // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
+        // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
+        // details.
+        field.RecordStore(value);
+        if (value.IsDouble()) {
+          field.set_is_double_initialized(true);
+        }
+      }
+    }
+
+    if (has_initializer && is_static) {
+      const intptr_t code_offset = helper_->reader_.ReadUInt();
+      field.set_bytecode_offset(code_offset +
+                                bytecode_component_->GetCodesOffset());
+      field.SetStaticValue(Object::sentinel(), true);
+    }
+
+    if ((flags & kHasGetterFlag) != 0) {
+      name ^= ReadObject();
+      function =
+          Function::New(name,
+                        is_static ? RawFunction::kImplicitStaticFinalGetter
+                                  : RawFunction::kImplicitGetter,
+                        is_static, is_const,
+                        false,  // is_abstract
+                        false,  // is_external
+                        false,  // is_native
+                        script_class, position);
+      function.set_end_token_pos(end_position);
+      function.set_result_type(type);
+      function.set_is_debuggable(false);
+      function.set_accessor_field(field);
+      function.set_is_declared_in_bytecode(true);
+      if (is_const && has_initializer) {
+        function.set_bytecode_offset(field.bytecode_offset());
+      }
+      H.SetupFieldAccessorFunction(cls, function, type);
+      functions_->SetAt(function_index_++, function);
+    }
+
+    if ((flags & kHasSetterFlag) != 0) {
+      ASSERT((!is_static) && (!is_final) && (!is_const));
+      name ^= ReadObject();
+      function = Function::New(name, RawFunction::kImplicitSetter,
+                               false,  // is_static
+                               false,  // is_const
+                               false,  // is_abstract
+                               false,  // is_external
+                               false,  // is_native
+                               script_class, position);
+      function.set_end_token_pos(end_position);
+      function.set_result_type(Object::void_type());
+      function.set_is_debuggable(false);
+      function.set_accessor_field(field);
+      function.set_is_declared_in_bytecode(true);
+      H.SetupFieldAccessorFunction(cls, function, type);
+      functions_->SetAt(function_index_++, function);
+    }
+
+    if ((flags & kHasAnnotationsFlag) != 0) {
+      intptr_t annotations_offset = helper_->reader_.ReadUInt() +
+                                    bytecode_component_->GetAnnotationsOffset();
+      ASSERT(annotations_offset > 0);
+
+      if (FLAG_enable_mirrors || has_pragma) {
+        Library& library = Library::Handle(Z, cls.library());
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, 0,
+                                 annotations_offset);
+        if (has_pragma) {
+          // TODO(alexmarkov): read annotations right away using
+          //  annotations_offset.
+          Thread* thread = H.thread();
+          NoOOBMessageScope no_msg_scope(thread);
+          NoReloadScope no_reload_scope(thread->isolate(), thread);
+          library.GetMetadata(field);
+        }
+      }
+    }
+
+    fields.SetAt(i, field);
+  }
+
+  if (cls.is_enum_class()) {
+    // Add static field 'const _deleted_enum_sentinel'.
+    field =
+        Field::New(Symbols::_DeletedEnumSentinel(),
+                   /* is_static = */ true,
+                   /* is_final = */ true,
+                   /* is_const = */ true,
+                   /* is_reflectable = */ false, cls, Object::dynamic_type(),
+                   TokenPosition::kNoSource, TokenPosition::kNoSource);
+
+    fields.SetAt(num_fields, field);
+  }
+
+  if (!discard_fields) {
+    cls.SetFields(fields);
+  }
+
+  if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(Z, cls.library());
+    for (intptr_t i = 0, n = fields.Length(); i < n; ++i) {
+      field ^= fields.At(i);
+      name = field.name();
+      library.AddObject(field, name);
+    }
+  }
+}
+
+RawPatchClass* BytecodeReaderHelper::GetPatchClass(const Class& cls,
+                                                   const Script& script) {
+  if (patch_class_ != nullptr && patch_class_->patched_class() == cls.raw() &&
+      patch_class_->script() == script.raw()) {
+    return patch_class_->raw();
+  }
+  if (patch_class_ == nullptr) {
+    patch_class_ = &PatchClass::Handle(Z);
+  }
+  *patch_class_ = PatchClass::New(cls, script);
+  return patch_class_->raw();
+}
+
+void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
+  // Function flags, must be in sync with FunctionDeclaration constants in
+  // pkg/vm/lib/bytecode/declarations.dart.
+  const int kIsConstructorFlag = 1 << 0;
+  const int kIsGetterFlag = 1 << 1;
+  const int kIsSetterFlag = 1 << 2;
+  const int kIsFactoryFlag = 1 << 3;
+  const int kIsStaticFlag = 1 << 4;
+  const int kIsAbstractFlag = 1 << 5;
+  const int kIsConstFlag = 1 << 6;
+  const int kHasOptionalPositionalParamsFlag = 1 << 7;
+  const int kHasOptionalNamedParamsFlag = 1 << 8;
+  const int kHasTypeParamsFlag = 1 << 9;
+  const int kIsReflectableFlag = 1 << 10;
+  const int kIsDebuggableFlag = 1 << 11;
+  const int kIsAsyncFlag = 1 << 12;
+  const int kIsAsyncStarFlag = 1 << 13;
+  const int kIsSyncStarFlag = 1 << 14;
+  // const int kIsForwardingStubFlag = 1 << 15;
+  const int kIsNoSuchMethodForwarderFlag = 1 << 16;
+  const int kIsNativeFlag = 1 << 17;
+  const int kIsExternalFlag = 1 << 18;
+  const int kHasSourcePositionsFlag = 1 << 19;
+  const int kHasAnnotationsFlag = 1 << 20;
+  const int kHasPragmaFlag = 1 << 21;
+  const int kHasCustomScriptFlag = 1 << 22;
+
+  const intptr_t num_functions = helper_->ReadListLength();
+  ASSERT(function_index_ + num_functions == functions_->Length());
+
+  if (function_index_ + num_functions == 0) {
+    return;
+  }
+
+  String& name = String::Handle(Z);
+  Object& script_class = Object::Handle(Z);
+  Function& function = Function::Handle(Z);
+  Array& parameter_types = Array::Handle(Z);
+  Array& parameter_names = Array::Handle(Z);
+  AbstractType& type = AbstractType::Handle(Z);
+
+  for (intptr_t i = 0; i < num_functions; ++i) {
+    intptr_t flags = helper_->reader_.ReadUInt();
+
+    const bool is_static = (flags & kIsStaticFlag) != 0;
+    const bool is_factory = (flags & kIsFactoryFlag) != 0;
+    const bool is_native = (flags & kIsNativeFlag) != 0;
+    const bool has_pragma = (flags & kHasPragmaFlag) != 0;
+
+    name ^= ReadObject();
+
+    if ((flags & kHasCustomScriptFlag) != 0) {
+      Script& script = Script::CheckedHandle(Z, ReadObject());
+      script_class = GetPatchClass(cls, script);
+    } else {
+      script_class = cls.raw();
+    }
+
+    TokenPosition position = TokenPosition::kNoSource;
+    TokenPosition end_position = TokenPosition::kNoSource;
+    if ((flags & kHasSourcePositionsFlag) != 0) {
+      position = helper_->ReadPosition();
+      end_position = helper_->ReadPosition();
+    }
+
+    RawFunction::Kind kind = RawFunction::kRegularFunction;
+    if ((flags & kIsGetterFlag) != 0) {
+      kind = RawFunction::kGetterFunction;
+    } else if ((flags & kIsSetterFlag) != 0) {
+      kind = RawFunction::kSetterFunction;
+    } else if ((flags & (kIsConstructorFlag | kIsFactoryFlag)) != 0) {
+      kind = RawFunction::kConstructor;
+      name = ConstructorName(cls, name);
+    }
+
+    // Expression evaluation functions are not supported yet.
+    ASSERT(!name.Equals(Symbols::DebugProcedureName()));
+
+    function = Function::New(name, kind, is_static, (flags & kIsConstFlag) != 0,
+                             (flags & kIsAbstractFlag) != 0,
+                             (flags & kIsExternalFlag) != 0, is_native,
+                             script_class, position);
+
+    // Declare function scope as types (type parameters) in function
+    // signature may back-reference to the function being declared.
+    // At this moment, owner class is not fully loaded yet and it won't be
+    // able to serve function lookup requests.
+    FunctionScope function_scope(this, function, name, cls);
+
+    function.set_is_declared_in_bytecode(true);
+    function.set_has_pragma(has_pragma);
+    function.set_end_token_pos(end_position);
+    function.set_is_no_such_method_forwarder(
+        (flags & kIsNoSuchMethodForwarderFlag) != 0);
+    function.set_is_reflectable((flags & kIsReflectableFlag) != 0);
+    function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
+
+    if ((flags & kIsSyncStarFlag) != 0) {
+      function.set_modifier(RawFunction::kSyncGen);
+    } else if ((flags & kIsAsyncFlag) != 0) {
+      function.set_modifier(RawFunction::kAsync);
+      function.set_is_inlinable(!FLAG_causal_async_stacks);
+    } else if ((flags & kIsAsyncStarFlag) != 0) {
+      function.set_modifier(RawFunction::kAsyncGen);
+      function.set_is_inlinable(!FLAG_causal_async_stacks);
+    }
+
+    if ((flags & kHasTypeParamsFlag) != 0) {
+      ReadTypeParametersDeclaration(Class::Handle(Z), function);
+    }
+
+    const intptr_t num_implicit_params = (!is_static || is_factory) ? 1 : 0;
+    const intptr_t num_params =
+        num_implicit_params + helper_->reader_.ReadUInt();
+
+    intptr_t num_required_params = num_params;
+    if ((flags & (kHasOptionalPositionalParamsFlag |
+                  kHasOptionalNamedParamsFlag)) != 0) {
+      num_required_params = num_implicit_params + helper_->reader_.ReadUInt();
+    }
+
+    function.set_num_fixed_parameters(num_required_params);
+    function.SetNumOptionalParameters(
+        num_params - num_required_params,
+        (flags & kHasOptionalNamedParamsFlag) == 0);
+
+    parameter_types = Array::New(num_params, Heap::kOld);
+    function.set_parameter_types(parameter_types);
+
+    parameter_names = Array::New(num_params, Heap::kOld);
+    function.set_parameter_names(parameter_names);
+
+    intptr_t param_index = 0;
+    if (!is_static) {
+      function.SetParameterTypeAt(param_index, H.GetDeclarationType(cls));
+      function.SetParameterNameAt(param_index, Symbols::This());
+      ++param_index;
+    } else if (is_factory) {
+      function.SetParameterTypeAt(param_index, AbstractType::dynamic_type());
+      function.SetParameterNameAt(param_index,
+                                  Symbols::TypeArgumentsParameter());
+      ++param_index;
+    }
+
+    for (; param_index < num_params; ++param_index) {
+      name ^= ReadObject();
+      parameter_names.SetAt(param_index, name);
+      type ^= ReadObject();
+      parameter_types.SetAt(param_index, type);
+    }
+
+    type ^= ReadObject();
+    function.set_result_type(type);
+
+    if (is_native) {
+      name ^= ReadObject();
+      function.set_native_name(name);
+    }
+
+    if ((flags & kIsAbstractFlag) == 0) {
+      const intptr_t code_offset = helper_->reader_.ReadUInt();
+      function.set_bytecode_offset(code_offset +
+                                   bytecode_component_->GetCodesOffset());
+    }
+
+    if ((flags & kHasAnnotationsFlag) != 0) {
+      const intptr_t annotations_offset =
+          helper_->reader_.ReadUInt() +
+          bytecode_component_->GetAnnotationsOffset();
+      ASSERT(annotations_offset > 0);
+
+      if (FLAG_enable_mirrors || has_pragma) {
+        Library& library = Library::Handle(Z, cls.library());
+        library.AddFunctionMetadata(function, TokenPosition::kNoSource, 0,
+                                    annotations_offset);
+
+        if (has_pragma) {
+          if (H.constants().IsNull() &&
+              library.raw() == Library::CoreLibrary()) {
+            // Bootstrapping, need to postpone evaluation of pragma annotations
+            // as classes are not fully loaded/finalized yet.
+            const auto& pragma_funcs = GrowableObjectArray::Handle(
+                Z, H.EnsurePotentialPragmaFunctions());
+            pragma_funcs.Add(function);
+          } else {
+            // TODO(alexmarkov): read annotations right away using
+            //  annotations_offset.
+            Thread* thread = H.thread();
+            NoOOBMessageScope no_msg_scope(thread);
+            NoReloadScope no_reload_scope(thread->isolate(), thread);
+            library.GetMetadata(function);
+          }
+        }
+      }
+    }
+
+    functions_->SetAt(function_index_++, function);
+  }
+
+  cls.SetFunctions(*functions_);
+
+  if (cls.IsTopLevel()) {
+    const Library& library = Library::Handle(Z, cls.library());
+    for (intptr_t i = 0, n = functions_->Length(); i < n; ++i) {
+      function ^= functions_->At(i);
+      name = function.name();
+      library.AddObject(function, name);
+    }
+  }
+
+  functions_ = nullptr;
+}
+
+void BytecodeReaderHelper::ReadParameterCovariance(
+    const Function& function,
+    BitVector* is_covariant,
+    BitVector* is_generic_covariant_impl) {
+  ASSERT(function.is_declared_in_bytecode());
+
+  const intptr_t num_params = function.NumParameters();
+  ASSERT(is_covariant->length() == num_params);
+  ASSERT(is_generic_covariant_impl->length() == num_params);
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              function.bytecode_offset());
+
+  const intptr_t code_flags = helper_->reader_.ReadUInt();
+  if ((code_flags & Code::kHasParameterFlagsFlag) != 0) {
+    const intptr_t num_explicit_params = helper_->reader_.ReadUInt();
+    ASSERT(num_params ==
+           function.NumImplicitParameters() + num_explicit_params);
+
+    for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
+      const intptr_t flags = helper_->reader_.ReadUInt();
+
+      if ((flags & Parameter::kIsCovariantFlag) != 0) {
+        is_covariant->Add(i);
+      }
+      if ((flags & Parameter::kIsGenericCovariantImplFlag) != 0) {
+        is_generic_covariant_impl->Add(i);
+      }
+    }
+  }
+}
+
+void BytecodeReaderHelper::ParseBytecodeFunction(
+    ParsedFunction* parsed_function,
+    const Function& function) {
+  switch (function.kind()) {
+    case RawFunction::kImplicitClosureFunction:
+      ParseForwarderFunction(parsed_function, function,
+                             Function::Handle(Z, function.parent_function()));
+      break;
+    case RawFunction::kDynamicInvocationForwarder:
+      ParseForwarderFunction(
+          parsed_function, function,
+          Function::Handle(Z,
+                           function.GetTargetOfDynamicInvocationForwarder()));
+      break;
+    case RawFunction::kImplicitGetter:
+    case RawFunction::kImplicitSetter:
+    case RawFunction::kImplicitStaticFinalGetter:
+      if (IsBytecodeFieldInitializer(function, Z)) {
+        ReadCode(function, function.bytecode_offset());
+      } else {
+        BytecodeScopeBuilder(parsed_function).BuildScopes();
+      }
+      break;
+    case RawFunction::kMethodExtractor:
+      BytecodeScopeBuilder(parsed_function).BuildScopes();
+      break;
+    case RawFunction::kRegularFunction:
+    case RawFunction::kGetterFunction:
+    case RawFunction::kSetterFunction:
+    case RawFunction::kClosureFunction:
+    case RawFunction::kConstructor:
+      ReadCode(function, function.bytecode_offset());
+      break;
+    case RawFunction::kNoSuchMethodDispatcher:
+    case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kSignatureFunction:
+    case RawFunction::kIrregexpFunction:
+    case RawFunction::kFfiTrampoline:
+      UNREACHABLE();
+      break;
+  }
+}
+
+void BytecodeReaderHelper::ParseForwarderFunction(
+    ParsedFunction* parsed_function,
+    const Function& function,
+    const Function& target) {
+  ASSERT(function.IsImplicitClosureFunction() ||
+         function.IsDynamicInvocationForwarder());
+
+  ASSERT(target.is_declared_in_bytecode());
+
+  if (function.IsDynamicInvocationForwarder() &&
+      target.IsImplicitSetterFunction()) {
+    BytecodeScopeBuilder(parsed_function).BuildScopes();
+    return;
+  }
+
+  if (!target.HasBytecode()) {
+    ReadCode(target, target.bytecode_offset());
+  }
+
+  BytecodeScopeBuilder(parsed_function).BuildScopes();
+
+  const auto& target_bytecode = Bytecode::Handle(Z, target.bytecode());
+  const auto& obj_pool = ObjectPool::Handle(Z, target_bytecode.object_pool());
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              target.bytecode_offset());
+
+  const intptr_t flags = helper_->reader_.ReadUInt();
+  const bool has_parameters_flags = (flags & Code::kHasParameterFlagsFlag) != 0;
+  const bool has_forwarding_stub_target =
+      (flags & Code::kHasForwardingStubTargetFlag) != 0;
+  const bool has_default_function_type_args =
+      (flags & Code::kHasDefaultFunctionTypeArgsFlag) != 0;
+
+  if (has_parameters_flags) {
+    const intptr_t num_params = helper_->reader_.ReadUInt();
+    const intptr_t num_implicit_params = function.NumImplicitParameters();
+    for (intptr_t i = 0; i < num_params; ++i) {
+      const intptr_t flags = helper_->reader_.ReadUInt();
+
+      bool is_covariant = (flags & Parameter::kIsCovariantFlag) != 0;
+      bool is_generic_covariant_impl =
+          (flags & Parameter::kIsGenericCovariantImplFlag) != 0;
+
+      LocalVariable* variable =
+          parsed_function->ParameterVariable(num_implicit_params + i);
+
+      if (is_covariant) {
+        variable->set_is_explicit_covariant_parameter();
+      }
+
+      const bool checked_in_method_body =
+          is_covariant || is_generic_covariant_impl;
+
+      if (checked_in_method_body) {
+        variable->set_type_check_mode(LocalVariable::kSkipTypeCheck);
+      } else {
+        ASSERT(variable->type_check_mode() == LocalVariable::kDoTypeCheck);
+      }
+    }
+  }
+
+  if (has_forwarding_stub_target) {
+    const intptr_t cp_index = helper_->reader_.ReadUInt();
+    const auto& forwarding_stub_target =
+        Function::CheckedZoneHandle(Z, obj_pool.ObjectAt(cp_index));
+    parsed_function->MarkForwardingStub(&forwarding_stub_target);
+  }
+
+  if (has_default_function_type_args) {
+    ASSERT(function.IsGeneric());
+    const intptr_t cp_index = helper_->reader_.ReadUInt();
+    const auto& type_args =
+        TypeArguments::CheckedHandle(Z, obj_pool.ObjectAt(cp_index));
+    parsed_function->SetDefaultFunctionTypeArguments(type_args);
+  }
+
+  if (function.HasOptionalParameters()) {
+    const KBCInstr* raw_bytecode =
+        reinterpret_cast<KBCInstr*>(target_bytecode.PayloadStart());
+    KBCInstr entry = raw_bytecode[0];
+    ASSERT(KernelBytecode::DecodeOpcode(entry) ==
+           KernelBytecode::kEntryOptional);
+    ASSERT(KernelBytecode::DecodeB(entry) ==
+           function.NumOptionalPositionalParameters());
+    ASSERT(KernelBytecode::DecodeC(entry) ==
+           function.NumOptionalNamedParameters());
+
+    const intptr_t num_opt_params = function.NumOptionalParameters();
+    ZoneGrowableArray<const Instance*>* default_values =
+        new (Z) ZoneGrowableArray<const Instance*>(Z, num_opt_params);
+
+    if (function.HasOptionalPositionalParameters()) {
+      for (intptr_t i = 0, n = function.NumOptionalPositionalParameters();
+           i < n; ++i) {
+        const KBCInstr load = raw_bytecode[1 + i];
+        ASSERT(KernelBytecode::DecodeOpcode(load) ==
+               KernelBytecode::kLoadConstant);
+        const auto& value = Instance::CheckedZoneHandle(
+            Z, obj_pool.ObjectAt(KernelBytecode::DecodeD(load)));
+        default_values->Add(&value);
+      }
+    } else {
+      const intptr_t num_fixed_params = function.num_fixed_parameters();
+      auto& param_name = String::Handle(Z);
+      default_values->EnsureLength(num_opt_params, nullptr);
+      for (intptr_t i = 0; i < num_opt_params; ++i) {
+        const KBCInstr load_name = raw_bytecode[1 + 2 * i];
+        const KBCInstr load_value = raw_bytecode[1 + 2 * i + 1];
+        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
+               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
+               KernelBytecode::kLoadConstant);
+        param_name ^= obj_pool.ObjectAt(KernelBytecode::DecodeD(load_name));
+        const auto& value = Instance::CheckedZoneHandle(
+            Z, obj_pool.ObjectAt(KernelBytecode::DecodeD(load_value)));
+
+        const intptr_t num_params = function.NumParameters();
+        intptr_t param_index = num_fixed_params;
+        for (; param_index < num_params; ++param_index) {
+          if (function.ParameterNameAt(param_index) == param_name.raw()) {
+            break;
+          }
+        }
+        ASSERT(param_index < num_params);
+        ASSERT(default_values->At(param_index - num_fixed_params) == nullptr);
+        (*default_values)[param_index - num_fixed_params] = &value;
+      }
+    }
+
+    parsed_function->set_default_parameter_values(default_values);
+  }
+}
+
+RawLibrary* BytecodeReaderHelper::ReadMain() {
+  return Library::RawCast(ReadObject());
+}
+
 intptr_t BytecodeComponentData::GetVersion() const {
   return Smi::Value(Smi::RawCast(data_.At(kVersion)));
 }
@@ -1355,6 +2242,26 @@ intptr_t BytecodeComponentData::GetObjectsContentsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kObjectsContentsOffset)));
 }
 
+intptr_t BytecodeComponentData::GetMainOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kMainOffset)));
+}
+
+intptr_t BytecodeComponentData::GetMembersOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kMembersOffset)));
+}
+
+intptr_t BytecodeComponentData::GetCodesOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kCodesOffset)));
+}
+
+intptr_t BytecodeComponentData::GetSourcePositionsOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kSourcePositionsOffset)));
+}
+
+intptr_t BytecodeComponentData::GetAnnotationsOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kAnnotationsOffset)));
+}
+
 void BytecodeComponentData::SetObject(intptr_t index, const Object& obj) const {
   data_.SetAt(kNumFields + index, obj);
 }
@@ -1369,6 +2276,11 @@ RawArray* BytecodeComponentData::New(Zone* zone,
                                      intptr_t strings_header_offset,
                                      intptr_t strings_contents_offset,
                                      intptr_t objects_contents_offset,
+                                     intptr_t main_offset,
+                                     intptr_t members_offset,
+                                     intptr_t codes_offset,
+                                     intptr_t source_positions_offset,
+                                     intptr_t annotations_offset,
                                      Heap::Space space) {
   const Array& data =
       Array::Handle(zone, Array::New(kNumFields + num_objects, space));
@@ -1385,6 +2297,21 @@ RawArray* BytecodeComponentData::New(Zone* zone,
 
   smi_handle = Smi::New(objects_contents_offset);
   data.SetAt(kObjectsContentsOffset, smi_handle);
+
+  smi_handle = Smi::New(main_offset);
+  data.SetAt(kMainOffset, smi_handle);
+
+  smi_handle = Smi::New(members_offset);
+  data.SetAt(kMembersOffset, smi_handle);
+
+  smi_handle = Smi::New(codes_offset);
+  data.SetAt(kCodesOffset, smi_handle);
+
+  smi_handle = Smi::New(source_positions_offset);
+  data.SetAt(kSourcePositionsOffset, smi_handle);
+
+  smi_handle = Smi::New(annotations_offset);
+  data.SetAt(kAnnotationsOffset, smi_handle);
 
   return data.raw();
 }
@@ -1434,6 +2361,42 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   } else {
     return thread->StealStickyError();
   }
+}
+
+RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
+  ASSERT(annotation_field.is_declared_in_bytecode());
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+
+  const Script& script = Script::Handle(zone, annotation_field.Script());
+  TranslationHelper translation_helper(thread);
+  translation_helper.InitFromScript(script);
+
+  KernelReaderHelper reader_helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, annotation_field.KernelData()),
+      annotation_field.KernelDataProgramOffset());
+  ActiveClass active_class;
+
+  BytecodeMetadataHelper bytecode_metadata_helper(&reader_helper,
+                                                  &active_class);
+
+  return bytecode_metadata_helper.ReadAnnotation(
+      annotation_field.bytecode_offset());
+}
+
+bool IsBytecodeFieldInitializer(const Function& function, Zone* zone) {
+  if (IsFieldInitializer(function, zone)) {
+    return true;
+  }
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+    const auto& field = Field::Handle(zone, function.accessor_field());
+    return field.is_declared_in_bytecode() && field.is_const() &&
+           field.has_initializer();
+  }
+  return false;
 }
 
 }  // namespace kernel

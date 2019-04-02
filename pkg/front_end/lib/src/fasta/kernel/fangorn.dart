@@ -53,7 +53,15 @@ import '../scanner.dart' show Token;
 
 import 'body_builder.dart' show LabelTarget;
 
-import 'collections.dart' show IfElement, IfMapEntry, SpreadElement;
+import 'collections.dart'
+    show
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement;
 
 import 'kernel_expression_generator.dart'
     show
@@ -293,6 +301,46 @@ class Fangorn extends Forest {
   MapEntry ifMapEntry(
       Expression condition, MapEntry then, MapEntry otherwise, Token token) {
     return new IfMapEntry(condition, then, otherwise)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression forElement(
+      List<VariableDeclaration> variables,
+      Expression condition,
+      List<Expression> updates,
+      Expression body,
+      Token token) {
+    return new ForElement(variables, condition, updates, body)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  MapEntry forMapEntry(
+      List<VariableDeclaration> variables,
+      Expression condition,
+      List<Expression> updates,
+      MapEntry body,
+      Token token) {
+    return new ForMapEntry(variables, condition, updates, body)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression forInElement(VariableDeclaration variable, Expression iterable,
+      Statement prologue, Expression body, Expression problem, Token token,
+      {bool isAsync: false}) {
+    return new ForInElement(variable, iterable, prologue, body, problem,
+        isAsync: isAsync)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  MapEntry forInMapEntry(VariableDeclaration variable, Expression iterable,
+      Statement prologue, MapEntry body, Expression problem, Token token,
+      {bool isAsync: false}) {
+    return new ForInMapEntry(variable, iterable, prologue, body, problem,
+        isAsync: isAsync)
       ..fileOffset = offsetForToken(token);
   }
 
