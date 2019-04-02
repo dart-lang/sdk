@@ -7,7 +7,12 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:yaml/yaml.dart';
+import 'package:source_span/source_span.dart';
 
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
@@ -67,5 +72,65 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   void addFix(SingleNullabilityFix fix) {
     // TODO(danrubel): Update the description based upon the [fix.kind]
     listener.addSuggestion(fix.kind.appliedMessage, fix.location);
+  }
+}
+
+/// If the package contains an analysis_options.yaml file, then update the
+/// file to enabled NNBD. If that file does not exist, but the package
+/// contains a pubspec.yaml, then create the analysis_options.yaml file.
+void processNonNullablePackage(Folder pkgFolder, DartFixListener listener) {
+  // TODO(danrubel): Update pubspec.yaml to enable NNBD
+
+  File optionsFile = pkgFolder.getChildAssumingFile('analysis_options.yaml');
+  YamlNode optionsMap;
+  if (optionsFile.exists) {
+    optionsMap = loadYaml(optionsFile.readAsStringSync());
+  }
+
+  SourceSpan parentSpan;
+  String content;
+  YamlNode analyzerOptions;
+  if (optionsMap is YamlMap) {
+    analyzerOptions = optionsMap[AnalyzerOptions.analyzer];
+  }
+  if (analyzerOptions == null) {
+    var start = new SourceLocation(0, line: 0, column: 0);
+    parentSpan = new SourceSpan(start, start, '');
+    content = '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''';
+  } else if (analyzerOptions is YamlMap) {
+    YamlNode experiments = analyzerOptions[AnalyzerOptions.enableExperiment];
+    if (experiments == null) {
+      parentSpan = analyzerOptions.span;
+      content = '''
+  enable-experiment:
+    - non-nullable''';
+    } else if (experiments is YamlList) {
+      experiments.nodes.firstWhere(
+        (node) => node.span.text == EnableString.non_nullable,
+        orElse: () {
+          parentSpan = experiments.span;
+          content = '''
+    - non-nullable''';
+        },
+      );
+    }
+  }
+
+  if (parentSpan != null) {
+    listener.addSourceFileEdit(
+        'enable non-nullable analysis',
+        new Location(
+          optionsFile.path,
+          parentSpan.end.offset,
+          content.length,
+          parentSpan.end.line,
+          parentSpan.end.column,
+        ),
+        new SourceFileEdit(optionsFile.path, 0,
+            edits: [new SourceEdit(parentSpan.end.offset, 0, content)]));
   }
 }

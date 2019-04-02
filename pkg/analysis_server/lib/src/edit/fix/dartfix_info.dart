@@ -11,6 +11,17 @@ import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 
+const nnbdFix = const DartFixInfo(
+  'non-nullable',
+  // TODO(danrubel) update description and make default/required
+  // when NNBD fix is ready
+  'Experimental: Update sources to be non-nullable by default.\n'
+      'Requires the experimental non-nullable flag to be enabled.\n'
+      'This is not applied unless explicitly included.',
+  NonNullableFix.task,
+  isDefault: false,
+);
+
 const allFixes = <DartFixInfo>[
   //
   // Required fixes
@@ -39,16 +50,7 @@ const allFixes = <DartFixInfo>[
   //
   // Expermimental fixes
   //
-  const DartFixInfo(
-    'non-nullable',
-    // TODO(danrubel) update description and make default/required
-    // when NNBD fix is ready
-    'Experimental: Update sources to be non-nullable by default.\n'
-        'Requires the experimental non-nullable flag to be enabled.\n'
-        'This is not applied unless explicitly included.',
-    NonNullableFix.task,
-    isDefault: false,
-  ),
+  nnbdFix,
 ];
 
 /// [DartFixInfo] represents a fix that can be applied by [EditDartFix].

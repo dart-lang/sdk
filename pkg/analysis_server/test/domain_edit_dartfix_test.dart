@@ -28,8 +28,13 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   void expectEdits(List<SourceFileEdit> fileEdits, String expectedSource) {
     expect(fileEdits, hasLength(1));
     expect(fileEdits[0].file, testFile);
-    List<SourceEdit> edits = fileEdits[0].edits;
-    String source = testCode;
+    expectFileEdits(testCode, fileEdits[0], expectedSource);
+  }
+
+  void expectFileEdits(
+      String originalSource, SourceFileEdit fileEdit, String expectedSource) {
+    String source = originalSource;
+    List<SourceEdit> edits = fileEdit.edits;
     for (SourceEdit edit in edits) {
       source = edit.apply(source);
     }
@@ -142,6 +147,65 @@ void test() {
   g(null);
 }
 ''');
+  }
+
+  test_dartfix_non_nullable_analysis_options_created() async {
+    // Add pubspec for nnbd migration to detect
+    newFile('/project/pubspec.yaml', content: '''
+name: testnnbd
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expect(result.edits, hasLength(1));
+    expectFileEdits('', result.edits[0], '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''');
+  }
+
+  test_dartfix_non_nullable_analysis_options_experiments_added() async {
+    String originalOptions = '''
+analyzer:
+  something:
+    - other
+''';
+    newFile('/project/analysis_options.yaml', content: originalOptions);
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expect(result.edits, hasLength(1));
+    expectFileEdits(originalOptions, result.edits[0], '''
+analyzer:
+  something:
+    - other
+  enable-experiment:
+    - non-nullable''');
+  }
+
+  test_dartfix_non_nullable_analysis_options_nnbd_added() async {
+    String originalOptions = '''
+analyzer:
+  enable-experiment:
+    - other
+''';
+    newFile('/project/analysis_options.yaml', content: originalOptions);
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expect(result.edits, hasLength(1));
+    expectFileEdits(originalOptions, result.edits[0], '''
+analyzer:
+  enable-experiment:
+    - other
+    - non-nullable''');
   }
 
   test_dartfix_excludedSource() async {

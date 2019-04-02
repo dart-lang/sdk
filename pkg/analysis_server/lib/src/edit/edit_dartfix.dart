@@ -11,6 +11,8 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
+import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart'
+    show processNonNullablePackage;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -21,6 +23,7 @@ class EditDartFix
   final AnalysisServer server;
 
   final Request request;
+  final pkgFolders = <Folder>[];
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
 
@@ -78,10 +81,22 @@ class EditDartFix
               contextManager.isInAnalysisRoot(filePath))) {
         return new Response.fileNotAnalyzed(request, filePath);
       }
+      var pkgFolder =
+          findPkgFolder(contextManager.getContextFolderFor(filePath));
+      if (pkgFolder != null && !pkgFolders.contains(pkgFolder)) {
+        pkgFolders.add(pkgFolder);
+      }
       if (res is Folder) {
         fixFolders.add(res);
       } else {
         fixFiles.add(res);
+      }
+    }
+
+    // NNBD update analysis options file(s).
+    if (fixInfo.contains(nnbdFix)) {
+      for (Folder pkgFolder in pkgFolders) {
+        processNonNullablePackage(pkgFolder, listener);
       }
     }
 
@@ -133,6 +148,17 @@ class EditDartFix
       hasErrors,
       listener.sourceChange.edits,
     ).toResponse(request.id);
+  }
+
+  Folder findPkgFolder(Folder folder) {
+    while (folder != null) {
+      if (folder.getChild('analysis_options.yaml').exists ||
+          folder.getChild('pubspec.yaml').exists) {
+        return folder;
+      }
+      folder = folder.parent;
+    }
+    return null;
   }
 
   /// Return `true` if the path in within the set of `included` files
