@@ -32,6 +32,8 @@ import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
+import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
+import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_override_different_default_values_named_test.dart'
@@ -40,6 +42,12 @@ import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'invalid_use_of_protected_member_test.dart'
+    as invalid_use_of_protected_member;
+import 'invalid_use_of_visible_for_template_member_test.dart'
+    as invalid_use_of_visible_for_template_member;
+import 'invalid_use_of_visible_for_testing_member_test.dart'
+    as invalid_use_of_visible_for_testing_member;
 import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
 import 'list_element_type_not_assignable_test.dart'
@@ -48,6 +56,7 @@ import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
 import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
 import 'map_value_type_not_assignable_test.dart'
     as map_value_type_not_assignable;
+import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'must_be_immutable_test.dart' as must_be_immutable;
@@ -153,17 +162,23 @@ main() {
     import_deferred_library_with_load_function.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
+    invalid_factory_annotation.main();
+    invalid_factory_method_impl.main();
     invalid_immutable_annotation.main();
     invalid_literal_annotation.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
+    invalid_use_of_protected_member.main();
+    invalid_use_of_visible_for_template_member.main();
+    invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
     list_element_type_not_assignable.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();
+    missing_required_param.main();
     missing_return.main();
     mixin_on_sealed_class.main();
     must_be_immutable.main();
