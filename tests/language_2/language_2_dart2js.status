@@ -22,7 +22,6 @@ config_import_corelib_test: CompileTimeError # we need a special platform.dill f
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
-control_flow_collections/*: Skip
 deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.

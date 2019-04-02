@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk ]
-LanguageFeatures/Control-flow-collections/*: Skip
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A01_t01: CompileTimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A06_t01: CompileTimeError
@@ -41,7 +40,6 @@ Language/Metadata/before_param_t09: DartkCrash
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError
 Language/Types/Interface_Types/subtype_t03: RuntimeError
 Language/Types/Interface_Types/subtype_t26: RuntimeError
-LanguageFeatures/Control-flow-collections/*: Skip
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 LanguageFeatures/Spread-collections/ConstSpreads_A01_t01: DartkCrash
 LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError

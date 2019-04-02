@@ -175,7 +175,6 @@ const_map3_test/00: MissingCompileTimeError
 const_optional_args_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-control_flow_collections/*: Skip
 covariant_subtyping_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
