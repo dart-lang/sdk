@@ -1299,6 +1299,8 @@ class _File {
         }
       } else if (node is GenericTypeAlias) {
         var functionType = node.functionType;
+        if (functionType == null) continue;
+
         var parameters = functionType.parameters;
         addDeclaration(
           isDeprecated: isDeprecated,

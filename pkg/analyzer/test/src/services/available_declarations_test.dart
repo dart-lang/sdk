@@ -1251,6 +1251,18 @@ typedef F = void Function<T extends num, U>();
         typeParameters: '<T extends num, U>');
   }
 
+  test_FUNCTION_TYPE_ALIAS_noFunction() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+typedef A = ;
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertNoDeclaration(library, 'A');
+  }
+
   test_GETTER() async {
     newFile('/home/test/lib/test.dart', content: r'''
 int get a => 0;
@@ -2428,6 +2440,13 @@ class _Base extends AbstractContextTest {
 
   void _assertHasNoLibrary(String uri) {
     expect(uriToLibrary, isNot(contains(uri)));
+  }
+
+  void _assertNoDeclaration(Library library, String name) {
+    expect(
+      library.declarations.where((declaration) => declaration.name == name),
+      isEmpty,
+    );
   }
 
   void _createTracker() {
