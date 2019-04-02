@@ -103,6 +103,9 @@ ConstEvalInvalidType:
 ConstEvalInvalidBinaryOperandType:
   template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
 
+ConstEvalInvalidEqualsOperandType:
+  template: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
+
 ConstEvalZeroDivisor:
   template: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
   analyzerCode: CONST_EVAL_THROWS_IDBZE

@@ -53,6 +53,7 @@ import '../fasta_codes.dart'
         templateConstEvalFreeTypeParameter,
         templateConstEvalInvalidType,
         templateConstEvalInvalidBinaryOperandType,
+        templateConstEvalInvalidEqualsOperandType,
         templateConstEvalInvalidMethodInvocation,
         templateConstEvalInvalidPropertyGet,
         templateConstEvalInvalidStaticInvocation,
@@ -1425,17 +1426,23 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               unevaluatedArguments(arguments, {}, node.arguments.types)));
     }
 
-    // TODO(http://dartbug.com/31799): Ensure we only invoke ==/!= on
-    // null/bool/int/double/String objects.
-
-    // Handle == and != first (it's common between all types).
+    // Handle == and != first (it's common between all types). Since `a != b` is
+    // parsed as `!(a == b)` it is handled implicitly through ==.
     if (arguments.length == 1 && node.name.name == '==') {
       final right = arguments[0];
-      return receiver == right ? trueConstant : falseConstant;
-    }
-    if (arguments.length == 1 && node.name.name == '!=') {
-      final right = arguments[0];
-      return receiver != right ? trueConstant : falseConstant;
+      if (receiver is NullConstant ||
+          receiver is BoolConstant ||
+          receiver is IntConstant ||
+          receiver is DoubleConstant ||
+          receiver is StringConstant ||
+          right is NullConstant) {
+        return receiver == right ? trueConstant : falseConstant;
+      } else {
+        return report(
+            node,
+            templateConstEvalInvalidEqualsOperandType.withArguments(
+                receiver, receiver.getType(typeEnvironment)));
+      }
     }
 
     // This is a white-listed set of methods we need to support on constants.

@@ -1212,6 +1212,40 @@ Message _withArgumentsConstEvalInvalidBinaryOperandType(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        Constant _constant,
+        DartType
+            _type)> templateConstEvalInvalidEqualsOperandType = const Template<
+        Message Function(Constant _constant, DartType _type)>(
+    messageTemplate:
+        r"""Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'.""",
+    withArguments: _withArgumentsConstEvalInvalidEqualsOperandType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, DartType _type)>
+    codeConstEvalInvalidEqualsOperandType =
+    const Code<Message Function(Constant _constant, DartType _type)>(
+  "ConstEvalInvalidEqualsOperandType",
+  templateConstEvalInvalidEqualsOperandType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidEqualsOperandType(
+    Constant _constant, DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  List<Object> typeParts = labeler.labelType(_type);
+  String constant = constantParts.join();
+  String type = typeParts.join();
+  return new Message(codeConstEvalInvalidEqualsOperandType,
+      message:
+          """Binary operator '==' requires receiver constant '${constant}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         Constant
             _constant)> templateConstEvalInvalidMethodInvocation = const Template<
