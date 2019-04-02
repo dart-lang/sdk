@@ -1146,11 +1146,13 @@ class ProgramCompiler extends Object
     var savedClass = _classEmittingSignatures;
     _classEmittingSignatures = c;
 
-    if (c.implementedTypes.isNotEmpty) {
+    var interfaces = List.from(c.implementedTypes)
+      ..addAll(c.superclassConstraints());
+    if (interfaces.isNotEmpty) {
       body.add(js.statement('#[#.implements] = () => [#];', [
         className,
         runtimeModule,
-        c.implementedTypes.map((i) => _emitType(i.asInterfaceType))
+        interfaces.map((i) => _emitType(i.asInterfaceType))
       ]));
     }
 
