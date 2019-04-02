@@ -39,7 +39,7 @@ catchTyped() {
 /// Catch clause with stack trace.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchStackTrace:[subclass=Object]*/
+/*element: catchStackTrace:[null|subclass=Object]*/
 catchStackTrace() {
   dynamic local = 0;
   try {} catch (_, s) {

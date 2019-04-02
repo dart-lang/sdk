@@ -1693,9 +1693,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (stackTrace != null) {
       Local local = _localsMap.getLocalVariable(stackTrace);
       // TODO(johnniwinther): Use a mask based on [StackTrace].
+      // Note: stack trace may be null if users omit a stack in
+      // `completer.completeError`.
       _state.updateLocal(_inferrer, _capturedAndBoxed, local,
-          _types.dynamicType, node, const DynamicType(),
-          isNullable: false /* if requested, the stack is never null */);
+          _types.dynamicType, node, const DynamicType());
     }
     visit(node.body);
     return null;
