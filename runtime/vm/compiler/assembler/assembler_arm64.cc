@@ -1136,12 +1136,6 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   }
 }
 
-void Assembler::StoreInternalPointer(Register object,
-                                     const Address& dest,
-                                     Register value) {
-  str(value, dest);
-}
-
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);

@@ -1799,12 +1799,6 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
   }
 }
 
-void Assembler::StoreInternalPointer(Register object,
-                                     const Address& dest,
-                                     Register value) {
-  str(value, dest);
-}
-
 void Assembler::InitializeFieldsNoBarrier(Register object,
                                           Register begin,
                                           Register end,

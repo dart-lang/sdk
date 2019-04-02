@@ -985,7 +985,7 @@ void UnboxIntegerInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void IntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
+void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s->%s%s, ", RepresentationToCString(from()),
            RepresentationToCString(to()), is_truncating() ? "[tr]" : "");
   Definition::PrintOperandsTo(f);

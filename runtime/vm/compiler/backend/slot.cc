@@ -70,10 +70,13 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
 // Note: should only be called with cids of array-like classes.
 const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
   if (RawObject::IsExternalTypedDataClassId(array_cid) ||
-      RawObject::IsTypedDataClassId(array_cid) ||
-      RawObject::IsTypedDataViewClassId(array_cid)) {
-    return GetNativeSlot(Kind::kTypedDataBase_length);
+      RawObject::IsTypedDataClassId(array_cid)) {
+    return GetNativeSlot(Kind::kTypedData_length);
   }
+  if (RawObject::IsTypedDataViewClassId(array_cid)) {
+    return GetNativeSlot(Kind::kTypedDataView_length);
+  }
+
   switch (array_cid) {
     case kGrowableObjectArrayCid:
       return GetNativeSlot(Kind::kGrowableObjectArray_length);

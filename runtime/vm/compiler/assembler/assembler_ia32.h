@@ -620,11 +620,6 @@ class Assembler : public AssemblerBase {
                                 const Address& dest,
                                 const Object& value);
 
-  // Stores a non-tagged value into a heap object.
-  void StoreInternalPointer(Register object,
-                            const Address& dest,
-                            Register value);
-
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
   void ZeroInitSmiField(const Address& dest);

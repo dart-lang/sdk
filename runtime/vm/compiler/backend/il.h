@@ -382,7 +382,6 @@ struct InstrAttrs {
   M(AllocateObject, _)                                                         \
   M(LoadField, kNoGC)                                                          \
   M(LoadUntagged, kNoGC)                                                       \
-  M(StoreUntagged, kNoGC)                                                      \
   M(LoadClassId, kNoGC)                                                        \
   M(InstantiateType, _)                                                        \
   M(InstantiateTypeArguments, _)                                               \
@@ -450,7 +449,7 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
-  M(IntConverter, _)                                                           \
+  M(UnboxedIntConverter, _)                                                    \
   M(UnboxedWidthExtender, _)                                                   \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
@@ -1850,7 +1849,7 @@ class Definition : public Instruction {
 
   bool IsInt32Definition() {
     return IsBinaryInt32Op() || IsBoxInt32() || IsUnboxInt32() ||
-           IsIntConverter();
+           IsUnboxedIntConverter();
   }
 
   // Compute compile type for this definition. It is safe to use this
@@ -5098,9 +5097,9 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
-// Note: This instruction must not be moved without the indexed access that
-// depends on it (e.g. out of loops). GC may collect the array while the
-// external data-array is still accessed.
+// Note: this instruction must not be moved without the indexed access that
+// depends on it (e.g. out of loops). GC may cause collect
+// the array while the external data-array is still accessed.
 // TODO(vegorov) enable LICMing this instruction by ensuring that array itself
 // is kept alive.
 class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
@@ -5125,63 +5124,12 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsLoadUntagged()->offset_ == offset_;
-  }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   intptr_t offset_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
-};
-
-// Stores an untagged value into the given object.
-//
-// If the untagged value is a derived pointer (e.g. pointer to start of internal
-// typed data array backing) then this instruction cannot be moved across
-// instructions which can trigger GC, to ensure that
-//
-//    LoadUntaggeed + Arithmetic + StoreUntagged
-//
-// are performed atomically
-//
-// See kernel_to_il.cc:BuildTypedDataViewFactoryConstructor.
-class StoreUntaggedInstr : public TemplateInstruction<2, NoThrow> {
- public:
-  StoreUntaggedInstr(Value* object, Value* value, intptr_t offset)
-      : offset_(offset) {
-    SetInputAt(0, object);
-    SetInputAt(1, value);
-  }
-
-  DECLARE_INSTRUCTION(StoreUntagged)
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0 || idx == 1);
-    // The object may be tagged or untagged (for external objects).
-    if (idx == 0) return kNoRepresentation;
-    return kUntagged;
-  }
-
-  Value* object() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
-  intptr_t offset() const { return offset_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsStoreUntagged()->offset_ == offset_;
-  }
-
-  intptr_t offset_from_tagged() const {
-    const bool is_tagged = object()->definition()->representation() == kTagged;
-    return offset() - (is_tagged ? kHeapObjectTag : 0);
-  }
-
- private:
-  intptr_t offset_;
-
-  DISALLOW_COPY_AND_ASSIGN(StoreUntaggedInstr);
 };
 
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -5707,7 +5655,6 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   bool CanConvertSmi() const;
   void EmitLoadFromBox(FlowGraphCompiler* compiler);
   void EmitSmiConversion(FlowGraphCompiler* compiler);
-  void EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler);
   void EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler);
   void EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler);
 
@@ -7512,23 +7459,21 @@ class CheckConditionInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
 
-class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  IntConverterInstr(Representation from,
-                    Representation to,
-                    Value* value,
-                    intptr_t deopt_id)
+  UnboxedIntConverterInstr(Representation from,
+                           Representation to,
+                           Value* value,
+                           intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         from_representation_(from),
         to_representation_(to),
         is_truncating_(to == kUnboxedUint32) {
     ASSERT(from != to);
-    ASSERT(from == kUnboxedInt64 || from == kUnboxedUint32 ||
-           from == kUnboxedInt32 || from == kUntagged);
-    ASSERT(to == kUnboxedInt64 || to == kUnboxedUint32 || to == kUnboxedInt32 ||
-           to == kUntagged);
-    ASSERT(from != kUntagged || to == kUnboxedIntPtr);
-    ASSERT(to != kUntagged || from == kUnboxedIntPtr);
+    ASSERT((from == kUnboxedInt64) || (from == kUnboxedUint32) ||
+           (from == kUnboxedInt32));
+    ASSERT((to == kUnboxedInt64) || (to == kUnboxedUint32) ||
+           (to == kUnboxedInt32));
     SetInputAt(0, value);
   }
 
@@ -7552,8 +7497,8 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsIntConverter());
-    auto converter = other->AsIntConverter();
+    ASSERT(other->IsUnboxedIntConverter());
+    UnboxedIntConverterInstr* converter = other->AsUnboxedIntConverter();
     return (converter->from() == from()) && (converter->to() == to()) &&
            (converter->is_truncating() == is_truncating());
   }
@@ -7565,7 +7510,7 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return CompileType::Int();
   }
 
-  DECLARE_INSTRUCTION(IntConverter);
+  DECLARE_INSTRUCTION(UnboxedIntConverter);
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -7574,7 +7519,7 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   const Representation to_representation_;
   bool is_truncating_;
 
-  DISALLOW_COPY_AND_ASSIGN(IntConverterInstr);
+  DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
 };
 
 // Sign- or zero-extends an integer in unboxed 32-bit representation.

@@ -1069,10 +1069,6 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
-  __ movq(Address(obj, instr->offset_from_tagged()), value);
-}
-
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -3825,7 +3821,7 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, needs_writable_input ? Location::WritableRegister()
                                           : Location::RequiresRegister());
-  if (representation() == kUnboxedInt64 || representation() == kUnboxedInt32) {
+  if (representation() == kUnboxedInt64) {
     summary->set_out(0, Location::SameAsFirstInput());
   } else {
     summary->set_out(0, Location::RequiresFpuRegister());
@@ -3892,17 +3888,6 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
-}
-
-void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
-  const Register value = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
-  Label done;
-  __ SmiUntag(value);
-  __ j(NOT_CARRY, &done, Assembler::kNearJump);
-  __ movsxw(result, Address(value, TIMES_2, Mint::value_offset()));
-  __ Bind(&done);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
@@ -6147,40 +6132,30 @@ DEFINE_BACKEND(UnaryUint32Op, (SameAsFirstInput, Register value)) {
 
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
 
-LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
+                                                               bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
-    ASSERT(!CanDeoptimize());
-  } else if (from() == kUnboxedInt64) {
-    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
+  if (from() == kUnboxedInt64) {
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
   } else if (to() == kUnboxedInt64) {
-    ASSERT(from() == kUnboxedInt32 || from() == kUnboxedUint32);
+    ASSERT((from() == kUnboxedInt32) || (from() == kUnboxedUint32));
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
   } else {
-    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
-    ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
   }
-
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
-
   return summary;
 }
 
-void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const bool is_nop_conversion =
-      (from() == kUntagged && to() == kUnboxedIntPtr) ||
-      (from() == kUnboxedIntPtr && to() == kUntagged);
-  if (is_nop_conversion) {
-    ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
-    return;
-  }
-
+void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
@@ -6201,7 +6176,7 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ j(NEGATIVE, deopt);
     }
   } else if (from() == kUnboxedInt64) {
-    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
     if (!CanDeoptimize()) {

@@ -99,44 +99,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         bytes_promoted_(0),
         visiting_old_object_(NULL) {}
 
-  virtual void VisitTypedDataViewPointers(RawTypedDataView* view,
-                                          RawObject** first,
-                                          RawObject** last) {
-    // First we forward all fields of the typed data view.
-    VisitPointers(first, last);
-
-    if (view->ptr()->data_ == nullptr) {
-      ASSERT(ValueFromRawSmi(view->ptr()->offset_in_bytes_) == 0 &&
-             ValueFromRawSmi(view->ptr()->length_) == 0);
-      return;
-    }
-
-    // Validate 'this' is a typed data view.
-    const uword view_header =
-        *reinterpret_cast<uword*>(RawObject::ToAddr(view));
-    ASSERT(!IsForwarding(view_header) || view->IsOldObject());
-    ASSERT(RawObject::IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
-
-    // Validate that the backing store is not a forwarding word.
-    RawTypedDataBase* td = view->ptr()->typed_data_;
-    ASSERT(td->IsHeapObject());
-    const uword td_header = *reinterpret_cast<uword*>(RawObject::ToAddr(td));
-    ASSERT(!IsForwarding(td_header) || td->IsOldObject());
-
-    // We can always obtain the class id from the forwarded backing store.
-    const classid_t cid = td->GetClassId();
-
-    // If we have external typed data we can simply return since the backing
-    // store lives in C-heap and will not move.
-    if (RawObject::IsExternalTypedDataClassId(cid)) {
-      return;
-    }
-
-    // Now we update the inner pointer.
-    ASSERT(RawObject::IsTypedDataClassId(cid));
-    view->RecomputeDataFieldForInternalTypedData();
-  }
-
   void VisitPointers(RawObject** first, RawObject** last) {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
@@ -244,10 +206,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         tags =
             RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
-      }
-
-      if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
-        reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
       }
 
       // Remember forwarding address.

@@ -892,11 +892,9 @@ void BytecodeFlowGraphBuilder::BuildNativeCall() {
       ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
       code_ += B->LoadNativeField(Slot::Array_length());
       break;
-    case MethodRecognizer::kTypedListLength:
-    case MethodRecognizer::kTypedListViewLength:
-    case MethodRecognizer::kByteDataViewLength:
+    case MethodRecognizer::kTypedDataLength:
       ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::TypedDataBase_length());
+      code_ += B->LoadNativeField(Slot::TypedData_length());
       break;
     case MethodRecognizer::kClassIDgetID:
       ASSERT((function().NumParameters() == 1) && !function().IsGeneric());

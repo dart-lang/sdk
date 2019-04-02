@@ -158,7 +158,7 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* EBX: new object end address. */                                           \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset)); /* Array length. */     \
   __ StoreIntoObjectNoBarrier(                                                 \
-      EAX, FieldAddress(EAX, target::TypedDataBase::length_offset()), EDI);    \
+      EAX, FieldAddress(EAX, target::TypedData::length_offset()), EDI);        \
   /* Initialize all array elements to 0. */                                    \
   /* EAX: new object start as a tagged pointer. */                             \
   /* EBX: new object end address. */                                           \
@@ -167,9 +167,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* data area to be initialized. */                                           \
   __ xorl(ECX, ECX); /* Zero. */                                               \
   __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));          \
-  __ StoreInternalPointer(                                                     \
-      EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),      \
-      EDI);                                                                    \
   Label done, init_loop;                                                       \
   __ Bind(&init_loop);                                                         \
   __ cmpl(EDI, EBX);                                                           \
@@ -2213,7 +2210,7 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
 // On stack: user tag (+1), return-address (+0).
 void AsmIntrinsifier::UserTag_makeCurrent(Assembler* assembler,
                                           Label* normal_ir_body) {
-  // EDI: Isolate.
+  // RDI: Isolate.
   __ LoadIsolate(EDI);
   // EAX: Current user tag.
   __ movl(EAX, Address(EDI, target::Isolate::current_tag_offset()));

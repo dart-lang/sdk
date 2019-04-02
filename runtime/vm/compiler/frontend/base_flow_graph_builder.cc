@@ -6,7 +6,6 @@
 
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
-#include "vm/compiler/runtime_api.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -322,62 +321,6 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(intptr_t index_scale) {
                        DeoptId::kNone, TokenPosition::kNoSource);
   Push(instr);
   return Fragment(instr);
-}
-
-Fragment BaseFlowGraphBuilder::LoadUntagged(intptr_t offset) {
-  Value* object = Pop();
-  auto load = new (Z) LoadUntaggedInstr(object, offset);
-  Push(load);
-  return Fragment(load);
-}
-
-Fragment BaseFlowGraphBuilder::StoreUntagged(intptr_t offset) {
-  Value* value = Pop();
-  Value* object = Pop();
-  auto store = new (Z) StoreUntaggedInstr(object, value, offset);
-  return Fragment(store);
-}
-
-Fragment BaseFlowGraphBuilder::ConvertUntaggedToIntptr() {
-  Value* value = Pop();
-  auto converted = new (Z)
-      IntConverterInstr(kUntagged, kUnboxedIntPtr, value, DeoptId::kNone);
-  converted->mark_truncating();
-  Push(converted);
-  return Fragment(converted);
-}
-
-Fragment BaseFlowGraphBuilder::ConvertIntptrToUntagged() {
-  Value* value = Pop();
-  auto converted = new (Z)
-      IntConverterInstr(kUnboxedIntPtr, kUntagged, value, DeoptId::kNone);
-  converted->mark_truncating();
-  Push(converted);
-  return Fragment(converted);
-}
-
-Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
-  Value* right = Pop();
-  Value* left = Pop();
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_X64)
-  auto add = new (Z) BinaryInt64OpInstr(
-      Token::kADD, left, right, DeoptId::kNone, Instruction::kNotSpeculative);
-#else
-  auto add =
-      new (Z) BinaryInt32OpInstr(Token::kADD, left, right, DeoptId::kNone);
-#endif
-  add->mark_truncating();
-  Push(add);
-  return Fragment(add);
-}
-
-Fragment BaseFlowGraphBuilder::UnboxSmiToIntptr() {
-  Value* value = Pop();
-  auto untagged = new (Z)
-      UnboxIntegerInstr(kUnboxedIntPtr, UnboxIntegerInstr::kNoTruncation, value,
-                        DeoptId::kNone, Instruction::kNotSpeculative);
-  Push(untagged);
-  return Fragment(untagged);
 }
 
 Fragment BaseFlowGraphBuilder::LoadField(const Field& field) {

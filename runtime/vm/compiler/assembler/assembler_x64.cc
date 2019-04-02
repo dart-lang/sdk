@@ -1389,12 +1389,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreObject(dest, value);
 }
 
-void Assembler::StoreInternalPointer(Register object,
-                                     const Address& dest,
-                                     Register value) {
-  movq(dest, value);
-}
-
 void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 #if defined(DEBUG)
   Label done;

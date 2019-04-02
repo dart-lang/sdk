@@ -1475,11 +1475,6 @@ class Assembler : public AssemblerBase {
                                       int32_t offset,
                                       const Object& value);
 
-  // Stores a non-tagged value into a heap object.
-  void StoreInternalPointer(Register object,
-                            const Address& dest,
-                            Register value);
-
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp = PP);
 

@@ -808,11 +808,6 @@ class Assembler : public AssemblerBase {
                                       int32_t offset,
                                       const Object& value);
 
-  // Stores a non-tagged value into a heap object.
-  void StoreInternalPointer(Register object,
-                            const Address& dest,
-                            Register value);
-
   // Store value_even, value_odd, value_even, ... into the words in the address
   // range [begin, end), assumed to be uninitialized fields in object (tagged).
   // The stores must not need a generational store barrier (e.g., smi/null),
@@ -859,13 +854,6 @@ class Assembler : public AssemblerBase {
                      Register base,
                      int32_t offset,
                      Condition cond = AL);
-  void StoreFieldToOffset(OperandSize type,
-                          Register reg,
-                          Register base,
-                          int32_t offset,
-                          Condition cond = AL) {
-    StoreToOffset(type, reg, base, offset - kHeapObjectTag, cond);
-  }
   void LoadSFromOffset(SRegister reg,
                        Register base,
                        int32_t offset,

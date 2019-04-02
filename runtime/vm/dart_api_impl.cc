@@ -3042,7 +3042,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   }
   if (RawObject::IsTypedDataViewClassId(obj.GetClassId())) {
     const auto& view = TypedDataView::Cast(obj);
-    if (view.ElementSizeInBytes() == 1) {
+    if (TypedDataView::ElementSizeInBytes(view) == 1) {
       const intptr_t view_length = Smi::Value(view.length());
       if (!Utils::RangeCheck(offset, length, view_length)) {
         return Api::NewError(

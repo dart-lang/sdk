@@ -34,19 +34,12 @@ enum Representation {
   kNumRepresentations
 };
 
-// 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
-// On a 32-bit platform, it's an unsigned 32-bit int because it should be
+// 'UnboxedIntPtr' should be able to hold a pointer of the target word-size. On
+// a 32-bit platform, it's an unsigned 32-bit int because it should be
 // zero-extended to 64-bits, not sign-extended (pointers are inherently
 // unsigned).
-//
-// Issue(36370): Use [kUnboxedIntPtr] instead.
-static constexpr Representation kUnboxedFfiIntPtr =
-    compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
-
-// The representation which can be used for native pointers. We use signed 32/64
-// bit representation to be able to do arithmetic on pointers.
 static constexpr Representation kUnboxedIntPtr =
-    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
+    compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
