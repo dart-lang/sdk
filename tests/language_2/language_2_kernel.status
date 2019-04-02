@@ -37,7 +37,6 @@ const_map4_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
-control_flow_collections/*: Skip
 covariant_subtyping_test: RuntimeError
 ct_const_test: RuntimeError
 cyclic_type2_test: CompileTimeError
@@ -146,11 +145,7 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 mixin_method_override_test/G5: Skip # Issue 34354
 private_method_tearoff_test: RuntimeError
 
-[ $compiler == dartk ]
-control_flow_collections/*: Skip
-
 [ $compiler == dartkp ]
-control_flow_collections/*: Skip
 covariant_subtyping_test: RuntimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 spread_collections/await_test: CompileTimeError
@@ -561,19 +556,8 @@ async_star_test/04: Pass, RuntimeError # Please triage
 compile_time_constant_o_test/01: Pass
 compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
-control_flow_collections/*: Skip
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
-spread_collections/type_error_test/00: DartkCrash
-spread_collections/type_error_test/02: DartkCrash
-spread_collections/type_error_test/03: DartkCrash
-spread_collections/type_error_test/05: DartkCrash
 vm/bool_check_stack_traces_test/02: Pass
 vm/causal_async_exception_stack2_test: RuntimeError # Please triage
 vm/causal_async_exception_stack_test: RuntimeError # Please triage
@@ -2180,6 +2164,9 @@ async_star_test/04: Skip # Timeout
 async_star_test/05: Skip # Timeout
 async_star_test/none: Skip # Timeout
 type_constants_test/none: Skip # Deferred libraries and hot reload.
+
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
+control_flow_collections/*: Skip
 
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076

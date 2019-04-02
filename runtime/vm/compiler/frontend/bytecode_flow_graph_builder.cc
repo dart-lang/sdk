@@ -327,12 +327,6 @@ void BytecodeFlowGraphBuilder::PropagateStackState(intptr_t target_pc) {
     return;
   }
 
-  // Stack state propagation is supported for forward branches only.
-  // Bytecode generation guarantees that expression stack is empty between
-  // statements and backward jumps are only used to transfer control between
-  // statements (e.g. in loop and continue statements).
-  RELEASE_ASSERT(target_pc > pc_);
-
   Value* current_stack = B->stack_;
   Value* target_stack = stack_states_.Lookup(target_pc);
 
@@ -341,6 +335,8 @@ void BytecodeFlowGraphBuilder::PropagateStackState(intptr_t target_pc) {
     // all incoming branches.
     RELEASE_ASSERT(target_stack == current_stack);
   } else {
+    // Stack state propagation is supported for forward branches only.
+    RELEASE_ASSERT(target_pc > pc_);
     stack_states_.Insert(target_pc, current_stack);
   }
 }
@@ -666,11 +662,15 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
   }
   const intptr_t loop_depth = DecodeOperandA().value();
   if (loop_depth == 0) {
+    ASSERT(IsStackEmpty());
     code_ += B->CheckStackOverflowInPrologue(position_);
   } else {
-    code_ += B->CheckStackOverflow(position_, loop_depth);
+    // Avoid OSR points inside block-expressions.
+    // TODO(ajcbik): make sure OSR works inside BE too.
+    if (!IsStackEmpty()) {
+      code_ += B->CheckStackOverflow(position_, loop_depth);
+    }
   }
-  ASSERT(IsStackEmpty());
 }
 
 void BytecodeFlowGraphBuilder::BuildPushConstant() {
@@ -1824,7 +1824,10 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     if (join != nullptr) {
       Value* stack_state = stack_states_.Lookup(pc_);
       if (code_.is_open()) {
-        ASSERT((stack_state == nullptr) || (stack_state == B->stack_));
+        if (stack_state != B->stack_) {
+          ASSERT(stack_state == nullptr);
+          stack_states_.Insert(pc_, B->stack_);
+        }
         code_ += B->Goto(join);
       } else {
         ASSERT(IsStackEmpty());

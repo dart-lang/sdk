@@ -2702,6 +2702,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitBlockExpression(BlockExpression node) {
+    _enterScope(node);
+    _generateNodeList(node.body.statements);
+    _generateNode(node.value);
+    _leaveScope();
+  }
+
+  @override
   visitBreakStatement(BreakStatement node) {
     final targetLabel = labeledStatements[node.target] ??
         (throw 'Target label ${node.target} was not registered for break $node');
