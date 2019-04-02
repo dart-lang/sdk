@@ -411,7 +411,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   const char* resolved_url_chars = url_chars;
   if (IsPackageSchemeURL(url_chars)) {
     resolved_url = ResolvePackageUri(url_chars);
-    DART_CHECK_VALID(resolved_url);
+    EXPECT_VALID(resolved_url);
     if (Dart_IsError(Dart_StringToCString(resolved_url, &resolved_url_chars))) {
       return Dart_NewApiError("unable to convert resolved uri to string");
     }
@@ -501,9 +501,9 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
 
     // TODO(32618): Kernel doesn't correctly represent the root library.
     lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
-    DART_CHECK_VALID(lib);
+    EXPECT_VALID(lib);
     Dart_Handle result = Dart_SetRootLibrary(lib);
-    DART_CHECK_VALID(result);
+    EXPECT_VALID(result);
 
     Dart_SetNativeResolver(lib, resolver, NULL);
     return lib;
@@ -534,7 +534,7 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 
   Dart_Handle lib =
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-  DART_CHECK_VALID(lib);
+  EXPECT_VALID(lib);
 
   // Ensure kernel buffer isn't leaked after test is run.
   AddToKernelBuffers(kernel_buffer);
@@ -542,15 +542,15 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(
       entry_script_uri != NULL ? entry_script_uri : sourcefiles[0].uri));
-  DART_CHECK_VALID(lib);
+  EXPECT_VALID(lib);
   result = Dart_SetRootLibrary(lib);
-  DART_CHECK_VALID(result);
+  EXPECT_VALID(result);
 
   result = Dart_SetNativeResolver(lib, resolver, NULL);
-  DART_CHECK_VALID(result);
+  EXPECT_VALID(result);
   if (finalize) {
     result = Dart_FinalizeLoading(false);
-    DART_CHECK_VALID(result);
+    EXPECT_VALID(result);
   }
   return lib;
 }
@@ -641,7 +641,7 @@ Dart_Handle TestCase::LoadCoreTestScript(const char* script,
 Dart_Handle TestCase::lib() {
   Dart_Handle url = NewString(TestCase::url());
   Dart_Handle lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(lib);
+  EXPECT_VALID(lib);
   ASSERT(Dart_IsLibrary(lib));
   return lib;
 }

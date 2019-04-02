@@ -39,8 +39,9 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
     Dart_Handle library = Dart_LookupLibrary(url);
     ASSERT(!Dart_IsError(library));
     // Setup the native resolver for built in library functions.
-    DART_CHECK_VALID(
-        Dart_SetNativeResolver(library, NativeLookup, NativeSymbol));
+    Dart_Handle result =
+        Dart_SetNativeResolver(library, NativeLookup, NativeSymbol);
+    ASSERT(!Dart_IsError(result));
   }
 }
 

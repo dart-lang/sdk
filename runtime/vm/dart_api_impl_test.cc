@@ -571,8 +571,7 @@ void PropagateErrorNative(Dart_NativeArguments args) {
     EXPECT_VALID(result);  // We do not expect to reach here.
     UNREACHABLE();
   } else {
-    result = Dart_PropagateError(result);
-    EXPECT_VALID(result);  // We do not expect to reach here.
+    Dart_PropagateError(result);
     UNREACHABLE();
   }
 }

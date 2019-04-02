@@ -852,34 +852,6 @@ executable("process_test") {
   ]
 }
 
-action("generate_snapshot_test_dat_file") {
-  snapshot_test_dat_file = "$root_gen_dir/snapshot_test.dat"
-  snapshot_test_in_dat_file = "../vm/snapshot_test_in.dat"
-  snapshot_test_dart_file = "../vm/snapshot_test.dart"
-  inputs = [
-    "../tools/create_string_literal.py",
-    snapshot_test_in_dat_file,
-    snapshot_test_dart_file,
-  ]
-
-  outputs = [
-    snapshot_test_dat_file,
-  ]
-
-  script = "../tools/create_string_literal.py"
-  args = [
-    "--output",
-    rebase_path(snapshot_test_dat_file),
-    "--input_cc",
-    rebase_path(snapshot_test_in_dat_file),
-    "--include",
-    "INTENTIONALLY_LEFT_BLANK",
-    "--var_name",
-    "INTENTIONALLY_LEFT_BLANK_TOO",
-    rebase_path(snapshot_test_dart_file),
-  ]
-}
-
 prebuilt_dart_action("gen_kernel_bytecode_dill") {
   deps = [
     "../vm:vm_platform",
@@ -935,7 +907,6 @@ executable("run_vm_tests") {
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",
     ":generate_abi_version_cc_file",
-    ":generate_snapshot_test_dat_file",
     ":libdart_builtin",
     ":standalone_dart_io",
     "..:libdart_jit",

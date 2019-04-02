@@ -47,7 +47,9 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
                                           bool* auto_setup_scope) {
   const char* function_name = NULL;
   Dart_Handle err = Dart_StringToCString(name, &function_name);
-  DART_CHECK_VALID(err);
+  if (Dart_IsError(err)) {
+    Dart_PropagateError(err);
+  }
   ASSERT(function_name != NULL);
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;

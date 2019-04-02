@@ -68,7 +68,7 @@ static void SetupDart2JSPackagePath() {
   EXPECT(worked);
 
   Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(false, false);
-  DART_CHECK_VALID(result);
+  EXPECT_VALID(result);
 
   // Setup package root.
   char buffer[2048];
@@ -79,7 +79,7 @@ static void SetupDart2JSPackagePath() {
   Utils::SNPrint(buffer, 2048, packages_path, executable_path, path_separator,
                  path_separator);
   result = bin::DartUtils::SetupPackageRoot(buffer, NULL);
-  DART_CHECK_VALID(result);
+  EXPECT_VALID(result);
 }
 
 void Benchmark::RunAll(const char* executable) {

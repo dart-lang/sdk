@@ -8,7 +8,15 @@
 #include "./include/dart_api.h"
 #include "./include/dart_native_api.h"
 
-#define CHECK(H) DART_CHECK_VALID(H)
+#define CHECK(H)                                                               \
+  do {                                                                         \
+    Dart_Handle __handle__ = H;                                                \
+    if (Dart_IsError(__handle__)) {                                            \
+      const char* message = Dart_GetError(__handle__);                         \
+      fprintf(stderr, "Check \"" #H "\" failed: %s", message);                 \
+      abort();                                                                 \
+    }                                                                          \
+  } while (false)
 
 #define ASSERT(E)                                                              \
   if (!(E)) {                                                                  \

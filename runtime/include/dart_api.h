@@ -386,34 +386,10 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
  *
  * \param An error handle (See Dart_IsError)
  *
- * \return On success, this function does not return.  On failure, an
- *   error handle is returned.
+ * \return On success, this function does not return.  On failure, the
+ * process is terminated.
  */
-DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle);
-/* TODO(turnidge): Should this really return an error handle? */
-/* Consider just terminating. */
-
-/* Internal routine used for reporting error handles. */
-DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
-                                         int line,
-                                         const char* handle_string,
-                                         const char* error);
-
-/* TODO(turnidge): Move DART_CHECK_VALID to some sort of dart_utils
- * header instead of this header. */
-/**
- * Aborts the process if 'handle' is an error handle.
- *
- * Provided for convenience.
- */
-#define DART_CHECK_VALID(handle)                                               \
-  {                                                                            \
-    Dart_Handle __handle = handle;                                             \
-    if (Dart_IsError((__handle))) {                                            \
-      _Dart_ReportErrorHandle(__FILE__, __LINE__, #handle,                     \
-                              Dart_GetError(__handle));                        \
-    }                                                                          \
-  }
+DART_EXPORT void Dart_PropagateError(Dart_Handle handle);
 
 /**
  * Converts an object to a string.
