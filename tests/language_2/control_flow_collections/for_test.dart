@@ -241,42 +241,10 @@ void testKeyOrder() {
 }
 
 void testRuntimeErrors() {
-  // Non-bool condition expression.
-  dynamic nonBool = 3;
-  Expect.throwsTypeError(() => <int>[for (; nonBool;) 1]);
-  Expect.throwsTypeError(() => <int, int>{for (; nonBool;) 1: 1});
-  Expect.throwsTypeError(() => <int>{for (; nonBool;) 1});
-
-  // Null condition expression.
-  bool nullBool = null;
-  Expect.throwsAssertionError(() => <int>[for (; nullBool;) 1]);
-  Expect.throwsAssertionError(() => <int, int>{for (; nullBool;) 1: 1});
-  Expect.throwsAssertionError(() => <int>{for (; nullBool;) 1});
-
-  // Cast for variable.
-  dynamic nonInt = "string";
-  Expect.throwsTypeError(() => <int>[for (int i = nonInt; false;) 1]);
-  Expect.throwsTypeError(() => <int, int>{for (int i = nonInt; false;) 1: 1});
-  Expect.throwsTypeError(() => <int>{for (int i = nonInt; false;) 1});
-
-  // Cast for-in variable.
-  dynamic nonIterable = 3;
-  Expect.throwsTypeError(() => <int>[for (int i in nonIterable) 1]);
-  Expect.throwsTypeError(() => <int, int>{for (int i in nonIterable) 1: 1});
-  Expect.throwsTypeError(() => <int>{for (int i in nonIterable) 1});
-
   // Null iterable.
   Iterable<int> nullIterable = null;
   Expect.throwsNoSuchMethodError(() => <int>[for (var i in nullIterable) 1]);
   Expect.throwsNoSuchMethodError(
       () => <int, int>{for (var i in nullIterable) 1: 1});
   Expect.throwsNoSuchMethodError(() => <int>{for (var i in nullIterable) 1});
-
-  // Wrong element type.
-  Expect.throwsTypeError(() => <int>[for (var i = 0; i < 1; i++) nonInt]);
-  Expect.throwsTypeError(
-      () => <int, int>{for (var i = 0; i < 1; i++) nonInt: 1});
-  Expect.throwsTypeError(
-      () => <int, int>{for (var i = 0; i < 1; i++) 1: nonInt});
-  Expect.throwsTypeError(() => <int>{for (var i = 0; i < 1; i++) nonInt});
 }
