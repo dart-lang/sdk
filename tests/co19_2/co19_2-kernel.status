@@ -121,8 +121,6 @@ LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: CompileTimeErro
 LanguageFeatures/Control-flow-collections/const_collections_A02_t02/01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A02_t02/03: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/const_collections_A02_t02/04: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A01_t03: Crash
 LanguageFeatures/Set-literals/type_inference_A01_t04: Crash
 LanguageFeatures/Set-literals/type_inference_A04_t02/02: MissingCompileTimeError

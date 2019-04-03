@@ -729,9 +729,12 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           getSpreadElementType(spreadType, element.isNullAware) ??
               const DynamicType();
     } else if (element is IfElement) {
-      inferrer.inferExpression(element.condition,
-          inferrer.coreTypes.boolClass.rawType, typeChecksNeeded,
+      DartType boolType = inferrer.coreTypes.boolClass.rawType;
+      DartType conditionType = inferrer.inferExpression(
+          element.condition, boolType, typeChecksNeeded,
           isVoidAllowed: false);
+      inferrer.ensureAssignable(boolType, conditionType, element.condition,
+          element.condition.fileOffset);
       DartType thenType = inferElement(
           element.then,
           element,
@@ -1100,9 +1103,12 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
       return;
     } else if (entry is IfMapEntry) {
-      inferrer.inferExpression(entry.condition,
-          inferrer.coreTypes.boolClass.rawType, typeChecksNeeded,
+      DartType boolType = inferrer.coreTypes.boolClass.rawType;
+      DartType conditionType = inferrer.inferExpression(
+          entry.condition, boolType, typeChecksNeeded,
           isVoidAllowed: false);
+      inferrer.ensureAssignable(
+          boolType, conditionType, entry.condition, entry.condition.fileOffset);
       // Note that this recursive invocation of inferMapEntry will add two types
       // to actualTypes; they are the actual types of the current invocation if
       // the 'else' branch is empty.

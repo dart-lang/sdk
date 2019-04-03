@@ -78,6 +78,9 @@ testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble,
   List<int> list91 = [if (oracle("foo")) ...dynVar];
   Set<int> set91 = {if (oracle("foo")) ...dynVar, null};
   Map<String, int> map91 = {if (oracle("foo")) ...dynVar, "baz": null};
+  List<int> list100 = [if (dynVar) 42];
+  Set<int> set100 = {if (dynVar) 42};
+  Map<int, int> map100 = {if (dynVar) 42: 42};
 }
 
 testIfElementErrors(Map<int, int> map) {
@@ -106,6 +109,9 @@ testIfElementErrors(Map<int, int> map) {
   Map<dynamic, dynamic> map11 = {if (oracle("foo")) "bar": 3.14 else 42};
   var map12 = {if (oracle("foo")) 42 else "bar": 3.14};
   var map13 = {if (oracle("foo")) "bar": 3.14 else 42};
+  List<int> list20 = [if (42) 42];
+  Set<int> set20 = {if (42) 42};
+  Map<int, int> map30 = {if (42) 42: 42};
 }
 
 testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int
