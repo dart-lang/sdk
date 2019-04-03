@@ -2617,7 +2617,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (element is ForInElement) {
       return new ForInMapEntry(element.variable, element.iterable,
-          element.prologue, convertToMapEntry(element.body), element.problem)
+          element.prologue, convertToMapEntry(element.body), element.problem,
+          isAsync: element.isAsync)
         ..fileOffset = element.fileOffset;
     }
     return new MapEntry(
