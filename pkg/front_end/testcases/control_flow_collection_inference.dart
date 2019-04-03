@@ -112,6 +112,10 @@ testIfElementErrors(Map<int, int> map) {
   List<int> list20 = [if (42) 42];
   Set<int> set20 = {if (42) 42};
   Map<int, int> map30 = {if (42) 42: 42};
+  List<String> list40 = <String>[if (oracle("foo")) true else 42];
+  Set<String> set40 = <String>{if (oracle("foo")) true else 42};
+  Map<String, int> map40 = <String, int>{if (oracle("foo")) true: 42 else 42: 42};
+  Map<int, String> map41 = <int, String>{if (oracle("foo")) 42: true else 42: 42};
 }
 
 testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int

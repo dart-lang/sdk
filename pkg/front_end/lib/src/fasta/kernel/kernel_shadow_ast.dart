@@ -46,7 +46,6 @@ import '../fasta_codes.dart'
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
-        templateInvalidAssignment,
         templateSpreadElementTypeMismatch,
         templateSpreadMapEntryElementKeyTypeMismatch,
         templateSpreadMapEntryElementValueTypeMismatch,

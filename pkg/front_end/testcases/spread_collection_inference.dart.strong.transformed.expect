@@ -69,17 +69,7 @@ library;
 //     spread];
 //     ^
 //
-// pkg/front_end/testcases/spread_collection_inference.dart:112:5: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-// Try changing the type of the left hand side, or casting the right hand side to 'String'.
-//     spread];
-//     ^
-//
 // pkg/front_end/testcases/spread_collection_inference.dart:114:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
-//   Set<String> set60 = <String>{... spread};
-//                                    ^
-//
-// pkg/front_end/testcases/spread_collection_inference.dart:114:36: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-// Try changing the type of the left hand side, or casting the right hand side to 'String'.
 //   Set<String> set60 = <String>{... spread};
 //                                    ^
 //
@@ -310,18 +300,12 @@ Try changing the type of the left hand side, or casting the right hand side to '
   core::Map<dynamic, dynamic> map50 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:109:2: Error: Unexpected type 'int Function()' of a map spread entry.  Expected 'dynamic' or a Map.
  notSpreadFunction};
  ^": null};
-  core::List<core::String> lhs60 = <core::String>[let final<BottomType> #t64 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:112:5: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-Try changing the type of the left hand side, or casting the right hand side to 'String'.
+  core::List<core::String> lhs60 = <core::String>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:112:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
     spread];
-    ^" in invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:112:5: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
-    spread];
-    ^" as{TypeError} core::String];
-  core::Set<core::String> set60 = let final core::Set<core::String> #t65 = col::LinkedHashSet::•<core::String>() in let final core::bool #t66 = #t65.{core::Set::add}(let final<BottomType> #t67 = invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:114:36: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-Try changing the type of the left hand side, or casting the right hand side to 'String'.
+    ^"];
+  core::Set<core::String> set60 = let final core::Set<core::String> #t64 = col::LinkedHashSet::•<core::String>() in let final core::bool #t65 = #t64.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:114:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   Set<String> set60 = <String>{... spread};
-                                   ^" in invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:114:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
-  Set<String> set60 = <String>{... spread};
-                                   ^" as{TypeError} core::String) in #t65;
+                                   ^") in #t64;
   core::Map<core::int, core::int> map60 = <core::int, core::int>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:117:2: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
  mapSpread};
  ^": null};
@@ -330,91 +314,91 @@ Try changing the type of the left hand side, or casting the right hand side to '
  ^"};
   core::List<core::int> lhs70 = <core::int>[invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:122:31: Error: Can't spread a value with static type Null.
   List<int> lhs70 = <int>[... null];
-                              ^" as{TypeError} core::int];
-  core::Set<core::int> set70 = let final core::Set<core::int> #t68 = col::LinkedHashSet::•<core::int>() in let final core::bool #t69 = #t68.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:124:30: Error: Can't spread a value with static type Null.
+                              ^"];
+  core::Set<core::int> set70 = let final core::Set<core::int> #t66 = col::LinkedHashSet::•<core::int>() in let final core::bool #t67 = #t66.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:124:30: Error: Can't spread a value with static type Null.
   Set<int> set70 = <int>{... null};
-                             ^" as{TypeError} core::int) in #t68;
+                             ^") in #t66;
   core::Set<dynamic> set71ambiguous = block {
-    final core::Set<dynamic> #t70 = col::LinkedHashSet::•<dynamic>();
-    #t70.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:127:10: Error: Expected ',' before this.
+    final core::Set<dynamic> #t68 = col::LinkedHashSet::•<dynamic>();
+    #t68.{core::Set::add}(invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:127:10: Error: Expected ',' before this.
     {... null, ... /*@typeArgs=dynamic*/
          ^");
-    for (final dynamic #t71 in <dynamic>[]) {
-      final dynamic #t72 = #t71 as{TypeError} dynamic;
-      #t70.{core::Set::add}(#t72);
+    for (final dynamic #t69 in <dynamic>[]) {
+      final dynamic #t70 = #t69 as{TypeError} dynamic;
+      #t68.{core::Set::add}(#t70);
     }
-  } =>#t70;
+  } =>#t68;
   core::Map<core::String, core::int> map70 = <core::String, core::int>{invalid-expression "pkg/front_end/testcases/spread_collection_inference.dart:131:5: Error: Can't spread a value with static type Null.
     null};
     ^": null};
   core::List<core::int> lhs80 = block {
-    final core::List<core::int> #t73 = <core::int>[];
-    final dynamic #t74 = null;
-    if(!#t74.{core::Object::==}(null))
-      for (final core::int #t75 in #t74)
-        #t73.{core::List::add}(#t75);
-  } =>#t73;
+    final core::List<core::int> #t71 = <core::int>[];
+    final dynamic #t72 = null;
+    if(!#t72.{core::Object::==}(null))
+      for (final core::int #t73 in #t72)
+        #t71.{core::List::add}(#t73);
+  } =>#t71;
   core::Set<core::int> set80 = block {
-    final core::Set<core::int> #t76 = col::LinkedHashSet::•<core::int>();
-    final dynamic #t77 = null;
-    if(!#t77.{core::Object::==}(null))
-      for (final core::int #t78 in #t77)
-        #t76.{core::Set::add}(#t78);
-  } =>#t76;
+    final core::Set<core::int> #t74 = col::LinkedHashSet::•<core::int>();
+    final dynamic #t75 = null;
+    if(!#t75.{core::Object::==}(null))
+      for (final core::int #t76 in #t75)
+        #t74.{core::Set::add}(#t76);
+  } =>#t74;
   core::Set<dynamic> set81ambiguous = block {
-    final core::Set<dynamic> #t79 = col::LinkedHashSet::•<dynamic>();
-    final dynamic #t80 = null;
-    if(!#t80.{core::Object::==}(null))
-      for (final dynamic #t81 in #t80) {
-        final dynamic #t82 = #t81 as{TypeError} dynamic;
-        #t79.{core::Set::add}(#t82);
+    final core::Set<dynamic> #t77 = col::LinkedHashSet::•<dynamic>();
+    final dynamic #t78 = null;
+    if(!#t78.{core::Object::==}(null))
+      for (final dynamic #t79 in #t78) {
+        final dynamic #t80 = #t79 as{TypeError} dynamic;
+        #t77.{core::Set::add}(#t80);
       }
-    for (final dynamic #t83 in <dynamic>[]) {
-      final dynamic #t84 = #t83 as{TypeError} dynamic;
-      #t79.{core::Set::add}(#t84);
+    for (final dynamic #t81 in <dynamic>[]) {
+      final dynamic #t82 = #t81 as{TypeError} dynamic;
+      #t77.{core::Set::add}(#t82);
     }
-  } =>#t79;
+  } =>#t77;
   core::Map<core::String, core::int> map80 = block {
-    final core::Map<core::String, core::int> #t85 = <core::String, core::int>{};
-    final core::Map<dynamic, dynamic> #t86 = null;
-    if(!#t86.{core::Object::==}(null))
-      for (final core::MapEntry<core::String, core::int> #t87 in #t86.{core::Map::entries})
-        #t85.{core::Map::[]=}(#t87.{core::MapEntry::key}, #t87.{core::MapEntry::value});
-  } =>#t85;
+    final core::Map<core::String, core::int> #t83 = <core::String, core::int>{};
+    final core::Map<dynamic, dynamic> #t84 = null;
+    if(!#t84.{core::Object::==}(null))
+      for (final core::MapEntry<core::String, core::int> #t85 in #t84.{core::Map::entries})
+        #t83.{core::Map::[]=}(#t85.{core::MapEntry::key}, #t85.{core::MapEntry::value});
+  } =>#t83;
   core::Map<core::String, core::int> map90 = block {
-    final core::Map<core::String, core::int> #t88 = <core::String, core::int>{};
-    for (final core::MapEntry<core::String, core::int> #t89 in self::bar<core::String, core::int>().{core::Map::entries})
-      #t88.{core::Map::[]=}(#t89.{core::MapEntry::key}, #t89.{core::MapEntry::value});
-  } =>#t88;
+    final core::Map<core::String, core::int> #t86 = <core::String, core::int>{};
+    for (final core::MapEntry<core::String, core::int> #t87 in self::bar<core::String, core::int>().{core::Map::entries})
+      #t86.{core::Map::[]=}(#t87.{core::MapEntry::key}, #t87.{core::MapEntry::value});
+  } =>#t86;
   core::List<core::int> list100 = block {
-    final core::List<core::int> #t90 = <core::int>[];
-    for (final dynamic #t91 in listNum) {
-      final core::int #t92 = #t91 as{TypeError} core::int;
-      #t90.{core::List::add}(#t92);
+    final core::List<core::int> #t88 = <core::int>[];
+    for (final dynamic #t89 in listNum) {
+      final core::int #t90 = #t89 as{TypeError} core::int;
+      #t88.{core::List::add}(#t90);
     }
-  } =>#t90;
+  } =>#t88;
   core::Map<core::num, core::int> map100 = block {
-    final core::Map<core::num, core::int> #t93 = <core::num, core::int>{};
-    for (final core::MapEntry<dynamic, dynamic> #t94 in mapIntNum.{core::Map::entries}) {
-      final core::num #t95 = #t94.{core::MapEntry::key} as{TypeError} core::num;
-      final core::int #t96 = #t94.{core::MapEntry::value} as{TypeError} core::int;
-      #t93.{core::Map::[]=}(#t95, #t96);
+    final core::Map<core::num, core::int> #t91 = <core::num, core::int>{};
+    for (final core::MapEntry<dynamic, dynamic> #t92 in mapIntNum.{core::Map::entries}) {
+      final core::num #t93 = #t92.{core::MapEntry::key} as{TypeError} core::num;
+      final core::int #t94 = #t92.{core::MapEntry::value} as{TypeError} core::int;
+      #t91.{core::Map::[]=}(#t93, #t94);
     }
-  } =>#t93;
+  } =>#t91;
   core::List<core::int> list110 = block {
-    final core::List<core::int> #t97 = <core::int>[];
-    for (final dynamic #t98 in dynVar as{TypeError} core::Iterable<dynamic>) {
-      final core::int #t99 = #t98 as{TypeError} core::int;
-      #t97.{core::List::add}(#t99);
+    final core::List<core::int> #t95 = <core::int>[];
+    for (final dynamic #t96 in dynVar as{TypeError} core::Iterable<dynamic>) {
+      final core::int #t97 = #t96 as{TypeError} core::int;
+      #t95.{core::List::add}(#t97);
     }
-  } =>#t97;
+  } =>#t95;
   core::Map<core::num, core::int> map110 = block {
-    final core::Map<core::num, core::int> #t100 = <core::num, core::int>{};
-    for (final core::MapEntry<dynamic, dynamic> #t101 in (dynVar as{TypeError} core::Map<dynamic, dynamic>).{core::Map::entries}) {
-      final core::num #t102 = #t101.{core::MapEntry::key} as{TypeError} core::num;
-      final core::int #t103 = #t101.{core::MapEntry::value} as{TypeError} core::int;
-      #t100.{core::Map::[]=}(#t102, #t103);
+    final core::Map<core::num, core::int> #t98 = <core::num, core::int>{};
+    for (final core::MapEntry<dynamic, dynamic> #t99 in (dynVar as{TypeError} core::Map<dynamic, dynamic>).{core::Map::entries}) {
+      final core::num #t100 = #t99.{core::MapEntry::key} as{TypeError} core::num;
+      final core::int #t101 = #t99.{core::MapEntry::value} as{TypeError} core::int;
+      #t98.{core::Map::[]=}(#t100, #t101);
     }
-  } =>#t100;
+  } =>#t98;
 }
 static method main() → dynamic {}
