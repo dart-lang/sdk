@@ -2701,17 +2701,6 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreUntagged, A_B_C);
-    const uint16_t offset_in_words = rB;
-    const uint16_t value_reg = rC;
-
-    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
-    word value = reinterpret_cast<word>(FP[value_reg]);
-    reinterpret_cast<word*>(instance->ptr())[offset_in_words] = value;
-    DISPATCH();
-  }
-
-  {
     BYTECODE(StoreFieldTOS, __D);
     const uint16_t offset_in_words = rD;
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);

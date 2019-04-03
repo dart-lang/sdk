@@ -15,7 +15,6 @@ namespace dart {
 class Isolate;
 class RawObject;
 class RawFunction;
-class RawTypedDataView;
 
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
@@ -24,15 +23,6 @@ class ObjectPointerVisitor {
   virtual ~ObjectPointerVisitor() {}
 
   Isolate* isolate() const { return isolate_; }
-
-  // Visit pointers inside the given typed data [view].
-  //
-  // Range of pointers to visit 'first' <= pointer <= 'last'.
-  virtual void VisitTypedDataViewPointers(RawTypedDataView* view,
-                                          RawObject** first,
-                                          RawObject** last) {
-    VisitPointers(first, last);
-  }
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;

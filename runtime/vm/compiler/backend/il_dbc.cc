@@ -46,7 +46,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(SpeculativeShiftUint32Op)                                                  \
   M(TruncDivMod)                                                               \
   M(UnaryUint32Op)                                                             \
-  M(IntConverter)                                                              \
+  M(UnboxedIntConverter)                                                       \
   M(UnboxedWidthExtender)
 
 // List of instructions that are not used by DBC.
@@ -1164,18 +1164,6 @@ EMIT_NATIVE_CODE(LoadUntagged, 1, Location::RequiresRegister()) {
   } else {
     ASSERT(object()->definition()->representation() == kTagged);
     __ LoadField(result, obj, offset() / kWordSize);
-  }
-}
-
-EMIT_NATIVE_CODE(StoreUntagged, 1, Location::RequiresRegister()) {
-  const Register obj = locs()->in(0).reg();
-  const Register value = locs()->out(0).reg();
-  const auto offset_in_words = offset() / kWordSize;
-  if (object()->definition()->representation() == kUntagged) {
-    __ StoreUntagged(obj, offset_in_words, value);
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ StoreField(obj, offset_in_words, value);
   }
 }
 

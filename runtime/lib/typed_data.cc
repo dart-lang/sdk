@@ -203,16 +203,20 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 #undef TYPED_DATA_NEW_NATIVE
 #undef TYPED_DATA_NEW
 
-#define TYPED_DATA_VIEW_NEW(native_name, cid)                                  \
+#define TYPED_DATA_VIEW_NEW(native_name, cid_name)                             \
   DEFINE_NATIVE_ENTRY(native_name, 0, 4) {                                     \
-    GET_NON_NULL_NATIVE_ARGUMENT(TypedDataBase, typed_data,                    \
+    GET_NON_NULL_NATIVE_ARGUMENT(Instance, typed_data,                         \
                                  arguments->NativeArgAt(1));                   \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, offset, arguments->NativeArgAt(2));      \
     GET_NON_NULL_NATIVE_ARGUMENT(Smi, len, arguments->NativeArgAt(3));         \
-    const intptr_t backing_length = typed_data.LengthInBytes();                \
+    const intptr_t backing_length =                                            \
+        typed_data.IsTypedData()                                               \
+            ? TypedData::Cast(typed_data).LengthInBytes()                      \
+            : ExternalTypedData::Cast(typed_data).LengthInBytes();             \
+    const intptr_t cid = cid_name;                                             \
     const intptr_t offset_in_bytes = offset.Value();                           \
     const intptr_t length = len.Value();                                       \
-    const intptr_t element_size = TypedDataBase::ElementSizeInBytes(cid);      \
+    const intptr_t element_size = TypedDataView::ElementSizeInBytes(cid);      \
     AlignmentCheck(offset_in_bytes, element_size);                             \
     LengthCheck(offset_in_bytes + length * element_size, backing_length);      \
     return TypedDataView::New(cid, typed_data, offset_in_bytes, length);       \

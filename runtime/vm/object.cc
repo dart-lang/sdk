@@ -1249,7 +1249,6 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
       raw->StoreSmi(&(raw->ptr()->length_), Smi::New(leftover_len));
-      raw->RecomputeDataField();
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
@@ -6495,7 +6494,6 @@ bool Function::IsOptimizable() const {
   if (FLAG_precompiled_mode) {
     return true;
   }
-  if (ForceOptimize()) return true;
   if (is_native()) {
     // Native methods don't need to be optimized.
     return false;
@@ -8709,27 +8707,38 @@ RawObject* Field::EvaluateInitializer() const {
 }
 
 static intptr_t GetListLength(const Object& value) {
-  if (value.IsTypedData() || value.IsTypedDataView() ||
-      value.IsExternalTypedData()) {
-    return TypedDataBase::Cast(value).Length();
+  if (value.IsTypedData()) {
+    const TypedData& list = TypedData::Cast(value);
+    return list.Length();
   } else if (value.IsArray()) {
-    return Array::Cast(value).Length();
+    const Array& list = Array::Cast(value);
+    return list.Length();
   } else if (value.IsGrowableObjectArray()) {
     // List length is variable.
+    return Field::kNoFixedLength;
+  } else if (value.IsExternalTypedData()) {
+    // TODO(johnmccutchan): Enable for external typed data.
+    return Field::kNoFixedLength;
+  } else if (RawObject::IsTypedDataViewClassId(value.GetClassId())) {
+    // TODO(johnmccutchan): Enable for typed data views.
     return Field::kNoFixedLength;
   }
   return Field::kNoFixedLength;
 }
 
 static intptr_t GetListLengthOffset(intptr_t cid) {
-  if (RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsTypedDataViewClassId(cid) ||
-      RawObject::IsExternalTypedDataClassId(cid)) {
+  if (RawObject::IsTypedDataClassId(cid)) {
     return TypedData::length_offset();
   } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
     return Array::length_offset();
   } else if (cid == kGrowableObjectArrayCid) {
     // List length is variable.
+    return Field::kUnknownLengthOffset;
+  } else if (RawObject::IsExternalTypedDataClassId(cid)) {
+    // TODO(johnmccutchan): Enable for external typed data.
+    return Field::kUnknownLengthOffset;
+  } else if (RawObject::IsTypedDataViewClassId(cid)) {
+    // TODO(johnmccutchan): Enable for typed data views.
     return Field::kUnknownLengthOffset;
   }
   return Field::kUnknownLengthOffset;
@@ -16485,10 +16494,10 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
 }
 
 intptr_t Instance::ElementSizeFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid) ||
-      RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsTypedDataViewClassId(cid)) {
-    return TypedDataBase::ElementSizeInBytes(cid);
+  if (RawObject::IsExternalTypedDataClassId(cid)) {
+    return ExternalTypedData::ElementSizeInBytes(cid);
+  } else if (RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::ElementSizeInBytes(cid);
   }
   switch (cid) {
     case kArrayCid:
@@ -20914,22 +20923,21 @@ const char* Float64x2::ToCString() const {
   return OS::SCreate(Thread::Current()->zone(), "[%f, %f]", _x, _y);
 }
 
-const intptr_t
-    TypedDataBase::element_size_table[TypedDataBase::kNumElementSizes] = {
-        1,   // kTypedDataInt8ArrayCid.
-        1,   // kTypedDataUint8ArrayCid.
-        1,   // kTypedDataUint8ClampedArrayCid.
-        2,   // kTypedDataInt16ArrayCid.
-        2,   // kTypedDataUint16ArrayCid.
-        4,   // kTypedDataInt32ArrayCid.
-        4,   // kTypedDataUint32ArrayCid.
-        8,   // kTypedDataInt64ArrayCid.
-        8,   // kTypedDataUint64ArrayCid.
-        4,   // kTypedDataFloat32ArrayCid.
-        8,   // kTypedDataFloat64ArrayCid.
-        16,  // kTypedDataFloat32x4ArrayCid.
-        16,  // kTypedDataInt32x4ArrayCid.
-        16,  // kTypedDataFloat64x2ArrayCid,
+const intptr_t TypedData::element_size_table[TypedData::kNumElementSizes] = {
+    1,   // kTypedDataInt8ArrayCid.
+    1,   // kTypedDataUint8ArrayCid.
+    1,   // kTypedDataUint8ClampedArrayCid.
+    2,   // kTypedDataInt16ArrayCid.
+    2,   // kTypedDataUint16ArrayCid.
+    4,   // kTypedDataInt32ArrayCid.
+    4,   // kTypedDataUint32ArrayCid.
+    8,   // kTypedDataInt64ArrayCid.
+    8,   // kTypedDataUint64ArrayCid.
+    4,   // kTypedDataFloat32ArrayCid.
+    8,   // kTypedDataFloat64ArrayCid.
+    16,  // kTypedDataFloat32x4ArrayCid.
+    16,  // kTypedDataInt32x4ArrayCid.
+    16,  // kTypedDataFloat64x2ArrayCid,
 };
 
 bool TypedData::CanonicalizeEquals(const Instance& other) const {
@@ -20977,15 +20985,14 @@ RawTypedData* TypedData::New(intptr_t class_id,
   }
   TypedData& result = TypedData::Handle();
   {
-    const intptr_t length_in_bytes = len * ElementSizeInBytes(class_id);
+    const intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
     RawObject* raw = Object::Allocate(
-        class_id, TypedData::InstanceSize(length_in_bytes), space);
+        class_id, TypedData::InstanceSize(lengthInBytes), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
-    result.RecomputeDataField();
     if (len > 0) {
-      memset(result.DataAddr(0), 0, length_in_bytes);
+      memset(result.DataAddr(0), 0, lengthInBytes);
     }
   }
   return result.raw();
@@ -21035,25 +21042,23 @@ RawTypedDataView* TypedDataView::New(intptr_t class_id, Heap::Space space) {
         Object::Allocate(class_id, TypedDataView::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.Clear();
+    result.clear_typed_data();
+    result.set_offset_in_bytes(0);
+    result.set_length(0);
   }
   return result.raw();
 }
 
 RawTypedDataView* TypedDataView::New(intptr_t class_id,
-                                     const TypedDataBase& typed_data,
+                                     const Instance& typed_data,
                                      intptr_t offset_in_bytes,
                                      intptr_t length,
                                      Heap::Space space) {
   auto& result = TypedDataView::Handle(TypedDataView::New(class_id, space));
-  result.InitializeWith(typed_data, offset_in_bytes, length);
+  result.set_typed_data(typed_data);
+  result.set_offset_in_bytes(offset_in_bytes);
+  result.set_length(length);
   return result.raw();
-}
-
-const char* TypedDataBase::ToCString() const {
-  // There are no instances of RawTypedDataBase.
-  UNREACHABLE();
-  return nullptr;
 }
 
 const char* TypedDataView::ToCString() const {

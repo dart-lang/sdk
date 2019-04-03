@@ -789,7 +789,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         bool optimized,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
-  ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
+  ASSERT(!optimized || function.WasCompiled());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -1013,8 +1013,8 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
-  const bool optimized = function.ForceOptimize();
-  return CompileFunctionHelper(pipeline, function, optimized, kNoOSRDeoptId);
+  return CompileFunctionHelper(pipeline, function,
+                               /* optimized = */ false, kNoOSRDeoptId);
 }
 
 RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {

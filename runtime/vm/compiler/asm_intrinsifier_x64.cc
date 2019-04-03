@@ -160,7 +160,7 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* RCX: new object end address. */                                           \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset)); /* Array length. */     \
   __ StoreIntoObjectNoBarrier(                                                 \
-      RAX, FieldAddress(RAX, target::TypedDataBase::length_offset()), RDI);    \
+      RAX, FieldAddress(RAX, target::TypedData::length_offset()), RDI);        \
   /* Initialize all array elements to 0. */                                    \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -169,9 +169,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* data area to be initialized. */                                           \
   __ xorq(RBX, RBX); /* Zero. */                                               \
   __ leaq(RDI, FieldAddress(RAX, target::TypedData::InstanceSize()));          \
-  __ StoreInternalPointer(                                                     \
-      RAX, FieldAddress(RAX, target::TypedDataBase::data_field_offset()),      \
-      RDI);                                                                    \
   Label done, init_loop;                                                       \
   __ Bind(&init_loop);                                                         \
   __ cmpq(RDI, RCX);                                                           \

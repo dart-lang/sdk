@@ -1770,7 +1770,7 @@ void Instruction::Goto(JoinEntryInstr* entry) {
   LinkTo(new GotoInstr(entry, CompilerState::Current().GetNextDeoptId()));
 }
 
-bool IntConverterInstr::ComputeCanDeoptimize() const {
+bool UnboxedIntConverterInstr::ComputeCanDeoptimize() const {
   return (to() == kUnboxedInt32) && !is_truncating() &&
          !RangeUtils::Fits(value()->definition()->range(),
                            RangeBoundary::kRangeBoundaryInt32);
@@ -2575,7 +2575,8 @@ Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
-    case Slot::Kind::kTypedDataBase_length:
+    case Slot::Kind::kTypedData_length:
+    case Slot::Kind::kTypedDataView_length:
     case Slot::Kind::kString_length:
       return true;
     case Slot::Kind::kGrowableObjectArray_length:
@@ -2591,7 +2592,6 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kTypeArguments:
-    case Slot::Kind::kTypedDataBase_data_field:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kGrowableObjectArray_data:
@@ -2927,7 +2927,8 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-  IntConverterInstr* conv = value()->definition()->AsIntConverter();
+  UnboxedIntConverterInstr* conv =
+      value()->definition()->AsUnboxedIntConverter();
   if (conv != NULL) {
     Definition* replacement = this;
 
@@ -2997,7 +2998,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
       return box_defn->value()->definition();
     } else if (from_representation != kTagged) {
       // Only operate on explicit unboxed operands.
-      IntConverterInstr* converter = new IntConverterInstr(
+      UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
           from_representation, representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
@@ -3073,10 +3074,11 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
 
-  IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
+  UnboxedIntConverterInstr* box_defn =
+      value()->definition()->AsUnboxedIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
     if (box_defn->from() == to()) {
       // Do not erase truncating conversions from 64-bit value to 32-bit values
@@ -3087,7 +3089,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       return box_defn->value()->definition();
     }
 
-    IntConverterInstr* converter = new IntConverterInstr(
+    UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
         box_defn->from(), representation(), box_defn->value()->CopyWithType(),
         (to() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
@@ -3546,7 +3548,6 @@ bool UnboxInstr::CanConvertSmi() const {
   switch (representation()) {
     case kUnboxedDouble:
     case kUnboxedFloat:
-    case kUnboxedInt32:
     case kUnboxedInt64:
       return true;
 
@@ -4668,10 +4669,6 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         EmitLoadFromBox(compiler);
         break;
 
-      case kUnboxedInt32:
-        EmitLoadInt32FromBoxOrSmi(compiler);
-        break;
-
       case kUnboxedInt64: {
         if (value()->Type()->ToCid() == kSmiCid) {
           // Smi -> int64 conversion is more efficient than
@@ -4682,6 +4679,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
         break;
       }
+
       default:
         UNREACHABLE();
         break;
@@ -4906,12 +4904,12 @@ Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
-  if (RawObject::IsTypedDataClassId(class_id) ||
-      RawObject::IsTypedDataViewClassId(class_id) ||
-      RawObject::IsExternalTypedDataClassId(class_id)) {
-    return TypedDataBase::length_offset();
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+    return ExternalTypedData::length_offset();
   }
-
+  if (RawObject::IsTypedDataClassId(class_id)) {
+    return TypedData::length_offset();
+  }
   switch (class_id) {
     case kGrowableObjectArrayCid:
       return GrowableObjectArray::length_offset();
@@ -5224,7 +5222,7 @@ void NativeCallInstr::SetupNative() {
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx == TargetAddressIndex()) {
-    return kUnboxedFfiIntPtr;
+    return kUnboxedIntPtr;
   } else {
     return arg_representations_[idx];
   }

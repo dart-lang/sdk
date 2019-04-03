@@ -254,10 +254,6 @@ const word RawAbstractType::kTypeStateFinalizedInstantiated =
 const word RawObject::kBarrierOverlapShift =
     dart::RawObject::kBarrierOverlapShift;
 
-bool RawObject::IsTypedDataClassId(intptr_t cid) {
-  return dart::RawObject::IsTypedDataClassId(cid);
-}
-
 intptr_t ObjectPool::element_offset(intptr_t index) {
   return dart::ObjectPool::element_offset(index);
 }
@@ -498,9 +494,8 @@ word Array::header_size() {
   V(TimelineStream, enabled_offset)                                            \
   V(TwoByteString, data_offset)                                                \
   V(Type, arguments_offset)                                                    \
-  V(TypedDataBase, data_field_offset)                                          \
-  V(TypedDataBase, length_offset)                                              \
   V(TypedData, data_offset)                                                    \
+  V(TypedData, length_offset)                                                  \
   V(Type, hash_offset)                                                         \
   V(TypeRef, type_offset)                                                      \
   V(Type, signature_offset)                                                    \

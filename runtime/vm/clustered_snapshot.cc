@@ -3372,87 +3372,8 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(
           data, cid_, TypedData::InstanceSize(length_in_bytes), is_canonical);
       data->ptr()->length_ = Smi::New(length);
-      data->RecomputeDataField();
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data());
       d->ReadBytes(cdata, length_in_bytes);
-    }
-  }
-
- private:
-  const intptr_t cid_;
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class TypedDataViewSerializationCluster : public SerializationCluster {
- public:
-  explicit TypedDataViewSerializationCluster(intptr_t cid)
-      : SerializationCluster("TypedDataView"), cid_(cid) {}
-  ~TypedDataViewSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawTypedDataView* view = TypedDataView::RawCast(object);
-    objects_.Add(view);
-
-    PushFromTo(view);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    const intptr_t count = objects_.length();
-    s->WriteCid(cid_);
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawTypedDataView* view = objects_[i];
-      s->AssignRef(view);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawTypedDataView* view = objects_[i];
-      AutoTraceObject(view);
-      s->Write<bool>(view->IsCanonical());
-      WriteFromTo(view);
-    }
-  }
-
- private:
-  const intptr_t cid_;
-  GrowableArray<RawTypedDataView*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class TypedDataViewDeserializationCluster : public DeserializationCluster {
- public:
-  explicit TypedDataViewDeserializationCluster(intptr_t cid) : cid_(cid) {}
-  ~TypedDataViewDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, TypedDataView::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawTypedDataView* view = reinterpret_cast<RawTypedDataView*>(d->Ref(id));
-      const bool is_canonical = d->Read<bool>();
-      Deserializer::InitializeHeader(view, cid_, TypedDataView::InstanceSize(),
-                                     is_canonical);
-      ReadFromTo(view);
-    }
-  }
-
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    auto& view = TypedDataView::Handle(zone);
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      view ^= refs.At(id);
-      view.RecomputeDataField();
     }
   }
 
@@ -4201,12 +4122,10 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
   return NULL;
 #else
   Zone* Z = zone_;
-  if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
+  if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
+      RawObject::IsTypedDataViewClassId(cid)) {
     Push(isolate()->class_table()->At(cid));
     return new (Z) InstanceSerializationCluster(cid);
-  }
-  if (RawObject::IsTypedDataViewClassId(cid)) {
-    return new (Z) TypedDataViewSerializationCluster(cid);
   }
   if (RawObject::IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataSerializationCluster(cid);
@@ -4826,11 +4745,9 @@ Deserializer::~Deserializer() {
 DeserializationCluster* Deserializer::ReadCluster() {
   intptr_t cid = ReadCid();
   Zone* Z = zone_;
-  if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
+  if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
+      RawObject::IsTypedDataViewClassId(cid)) {
     return new (Z) InstanceDeserializationCluster(cid);
-  }
-  if (RawObject::IsTypedDataViewClassId(cid)) {
-    return new (Z) TypedDataViewDeserializationCluster(cid);
   }
   if (RawObject::IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataDeserializationCluster(cid);

@@ -1053,10 +1053,6 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
-  __ StoreToOffset(value, obj, instr->offset_from_tagged());
-}
-
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -3627,8 +3623,7 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  const bool is_floating_point =
-      representation() != kUnboxedInt64 && representation() != kUnboxedInt32;
+  const bool is_floating_point = representation() != kUnboxedInt64;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
@@ -3695,18 +3690,6 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
-}
-
-void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
-  const Register value = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  ASSERT(value != result);
-  Label done;
-  __ SmiUntag(result, value);
-  __ BranchIfSmi(value, &done);
-  __ ldr(result, FieldAddress(value, Mint::value_offset()), kWord);
-  __ LoadFieldFromOffset(result, value, Mint::value_offset());
-  __ Bind(&done);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
@@ -5856,23 +5839,19 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
 
-LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Zone* zone,
+                                                               bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
-    ASSERT(!CanDeoptimize());
-  } else if (from() == kUnboxedInt64) {
-    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
+  if (from() == kUnboxedInt64) {
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
   } else if (to() == kUnboxedInt64) {
-    ASSERT(from() == kUnboxedInt32 || from() == kUnboxedUint32);
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
   } else {
-    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
-    ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
   }
   summary->set_in(0, Location::RequiresRegister());
   if (CanDeoptimize()) {
@@ -5883,17 +5862,8 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(from() != to());  // We don't convert from a representation to itself.
-
-  const bool is_nop_conversion =
-      (from() == kUntagged && to() == kUnboxedIntPtr) ||
-      (from() == kUnboxedIntPtr && to() == kUntagged);
-  if (is_nop_conversion) {
-    ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
-    return;
-  }
-
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
   Label* deopt = !CanDeoptimize() ? NULL

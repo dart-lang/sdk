@@ -42,8 +42,10 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x38a80b0d)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x40052c4e)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x07b89f54)              \
+  V(_ByteDataView, get:length, ByteDataViewLength, 0x0)                        \
   V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x0)          \
   V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0x0)                 \
+  V(_TypedListView, get:length, TypedDataViewLength, 0x0)                      \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \
   V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0x0)               \
   V(_ByteDataView, ., TypedData_ByteDataView_factory, 0x0)                     \
@@ -296,9 +298,7 @@ namespace dart {
   V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0x31453dab)                     \
   V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0x644a0be1)                  \
   V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0x6b836b0b)                 \
-  V(_TypedList, get:length, TypedListLength, 0x0)                \
-  V(_TypedListView, get:length, TypedListViewLength, 0x0)        \
-  V(_ByteDataView, get:length, ByteDataViewLength, 0x0)          \
+  V(_TypedList, get:length, TypedDataLength, 0x2091c4d8)                       \
   V(_Float32x4, get:x, Float32x4ShuffleX, 0x63d1a9fd)                          \
   V(_Float32x4, get:y, Float32x4ShuffleY, 0x203523d9)                          \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 0x13190678)                          \
@@ -372,11 +372,10 @@ namespace dart {
   V(Object, ==, ObjectEquals, 0x7b32a55a)                                      \
   V(_List, get:length, ObjectArrayLength, 0x25952390)                          \
   V(_ImmutableList, get:length, ImmutableArrayLength, 0x25952390)              \
+  V(_TypedList, get:length, TypedDataLength, 0x2091c4d8)                       \
+  V(_TypedListView, get:length, TypedDataViewLength, 0x0)                      \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \
   V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0x0)               \
-  V(_TypedList, get:length, TypedListLength, 0x0)                \
-  V(_TypedListView, get:length, TypedListViewLength, 0x0)        \
-  V(_ByteDataView, get:length, ByteDataViewLength, 0x0)          \
   V(_GrowableList, get:length, GrowableArrayLength, 0x18dd86b4)                \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 0x2e04be60)           \
   V(_GrowableList, add, GrowableListAdd, 0x40b490b8)                           \

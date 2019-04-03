@@ -64,7 +64,6 @@ namespace dart {
   V(Float32x4)                                                                 \
   V(Int32x4)                                                                   \
   V(Float64x2)                                                                 \
-  V(TypedDataBase)                                                             \
   V(TypedData)                                                                 \
   V(ExternalTypedData)                                                         \
   V(TypedDataView)                                                             \
@@ -178,18 +177,24 @@ enum ClassId {
   CLASS_LIST(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
-// clang-format off
 #define DEFINE_OBJECT_KIND(clazz) kFfi##clazz##Cid,
-  CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
+      CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
-#define DEFINE_OBJECT_KIND(clazz)                                              \
-  kTypedData##clazz##Cid,                                                      \
-  kTypedData##clazz##ViewCid,                                                  \
-  kExternalTypedData##clazz##Cid,
+// clang-format off
+#define DEFINE_OBJECT_KIND(clazz) kTypedData##clazz##Cid,
   CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
+
+#define DEFINE_OBJECT_KIND(clazz) kTypedData##clazz##ViewCid,
+  CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
+
   kByteDataViewCid,
+
+#define DEFINE_OBJECT_KIND(clazz) kExternalTypedData##clazz##Cid,
+  CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
 
   kByteBufferCid,
   // clang-format on
@@ -202,11 +207,6 @@ enum ClassId {
 
   kNumPredefinedCids,
 };
-
-// Keep these in sync with the cid numbering above.
-const int kTypedDataCidRemainderInternal = 0;
-const int kTypedDataCidRemainderView = 1;
-const int kTypedDataCidRemainderExternal = 2;
 
 }  // namespace dart
 

@@ -2634,7 +2634,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                      RangeBoundary::FromConstant(Array::kMaxElements));
       break;
 
-    case Slot::Kind::kTypedDataBase_length:
+    case Slot::Kind::kTypedData_length:
+    case Slot::Kind::kTypedDataView_length:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
@@ -2661,7 +2662,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kPointer_c_memory_address:
-    case Slot::Kind::kTypedDataBase_data_field:
     case Slot::Kind::kTypedDataView_data:
       // Not an integer valued field.
       UNREACHABLE();
@@ -2900,17 +2900,12 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
-  } else {
-    ASSERT(from() == kUnboxedInt32 || from() == kUnboxedInt64 ||
-           from() == kUnboxedUint32);
-    ASSERT(to() == kUnboxedInt32 || to() == kUnboxedInt64 ||
-           to() == kUnboxedUint32);
-  }
-
+void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
+                                          Range* range) {
+  ASSERT((from() == kUnboxedInt32) || (from() == kUnboxedInt64) ||
+         (from() == kUnboxedUint32));
+  ASSERT((to() == kUnboxedInt32) || (to() == kUnboxedInt64) ||
+         (to() == kUnboxedUint32));
   const Range* value_range = value()->definition()->range();
   if (Range::IsUnknown(value_range)) {
     return;
