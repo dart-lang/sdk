@@ -122,12 +122,6 @@ regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_30339_test: CompileTimeError
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
 string_interpolation_and_buffer_test: RuntimeError
 super_bound_closure_test/none: CompileTimeError
 super_test: RuntimeError
@@ -147,25 +141,6 @@ private_method_tearoff_test: RuntimeError
 [ $compiler == dartkp ]
 covariant_subtyping_test: RuntimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-spread_collections/await_test: CompileTimeError
-spread_collections/const_error_test/02: MissingCompileTimeError
-spread_collections/const_error_test/03: MissingCompileTimeError
-spread_collections/const_error_test/05: MissingCompileTimeError
-spread_collections/const_error_test/06: MissingCompileTimeError
-spread_collections/const_error_test/07: MissingCompileTimeError
-spread_collections/const_error_test/08: MissingCompileTimeError
-spread_collections/const_error_test/10: MissingCompileTimeError
-spread_collections/const_error_test/11: MissingCompileTimeError
-spread_collections/const_error_test/12: MissingCompileTimeError
-spread_collections/const_error_test/13: MissingCompileTimeError
-spread_collections/const_error_test/14: MissingCompileTimeError
-spread_collections/const_error_test/15: MissingCompileTimeError
-spread_collections/const_error_test/16: MissingCompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
@@ -424,22 +399,6 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test usi
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk ]
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
-
-[ $arch == simdbc64 && $compiler == dartk ]
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
-
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic_function_dcall_test/01: SkipByDesign # Prints type names
 invocation_mirror_test: RuntimeError # Issue 34911
@@ -531,14 +490,6 @@ assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
-
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
 
 [ $compiler == dartkb && $runtime == vm && $strong ]
 async_star_test/03: Pass, RuntimeError # Please triage
@@ -2151,9 +2102,6 @@ async_star_test/04: Skip # Timeout
 async_star_test/05: Skip # Timeout
 async_star_test/none: Skip # Timeout
 type_constants_test/none: Skip # Deferred libraries and hot reload.
-
-[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
-control_flow_collections/*: Skip
 
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076

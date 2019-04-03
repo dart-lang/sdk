@@ -4,30 +4,6 @@
 
 [ $compiler == dartk ]
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A06_t01: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t01: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t04: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t03: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t04: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/none: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/none: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t06: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t07: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t12: CompileTimeError
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
@@ -41,35 +17,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: Runtime
 Language/Types/Interface_Types/subtype_t03: RuntimeError
 Language/Types/Interface_Types/subtype_t26: RuntimeError
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A01_t01: DartkCrash
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/02: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/06: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/07: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A04_t01/08: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A06_t01: DartkCrash
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t01: DartkCrash
-LanguageFeatures/Spread-collections/ConstSpreads_A07_t02: DartkCrash
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_List_A02_t04: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t02: CompileTimeError
-LanguageFeatures/Spread-collections/DynamicSemantics_Map_A02_t03: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t03: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A01_t04: CompileTimeError
-LanguageFeatures/Spread-collections/NullAware_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A02_t01: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t01/none: CompileTimeError
-LanguageFeatures/Spread-collections/StaticSemantic_A05_t02/none: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t01: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t02: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t05: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t06: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A01_t07: CompileTimeError
-LanguageFeatures/Spread-collections/Syntax_A02_t12: CompileTimeError
 LanguageFeatures/Subtyping/static/generated/left_bottom_global_variable_A02_t01: DartkCrash
 LanguageFeatures/Subtyping/static/generated/left_promoted_variable_global_variable_A02_t01: DartkCrash
 LibTest/collection/DoubleLinkedQueue/removeWhere_A02_t02: RuntimeError
