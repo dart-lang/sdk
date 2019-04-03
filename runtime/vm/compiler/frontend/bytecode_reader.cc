@@ -1662,12 +1662,16 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       if (is_static) {
         field.SetStaticValue(value, true);
       } else {
-        // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-        // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
-        // details.
-        field.RecordStore(value);
-        if (value.IsDouble()) {
-          field.set_is_double_initialized(true);
+        // Null-initialized instance fields are tracked separately for each
+        // constructor (see handling of kHasNullableFieldsFlag).
+        if (!value.IsNull()) {
+          // Note: optimizer relies on DoubleInitialized bit in its
+          // field-unboxing heuristics.
+          // See JitCallSpecializer::VisitStoreInstanceField for more details.
+          field.RecordStore(value);
+          if (value.IsDouble()) {
+            field.set_is_double_initialized(true);
+          }
         }
       }
     }
