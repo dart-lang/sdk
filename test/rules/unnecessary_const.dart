@@ -4,6 +4,8 @@
 
 // test w/ `pub run test -N unnecessary_const`
 
+//ignore_for_file: unused_local_variable
+
 class A {
   const A([o]);
 }
