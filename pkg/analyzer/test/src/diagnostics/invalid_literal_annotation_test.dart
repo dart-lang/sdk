@@ -17,6 +17,17 @@ main() {
 @reflectiveTest
 class InvalidLiteralAnnotationTest extends DriverResolutionTest
     with PackageMixin {
+  test_constConstructor() async {
+    addMetaPackage();
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+''');
+  }
+
   test_nonConstConstructor() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
@@ -37,16 +48,5 @@ class A {
   void m() {}
 }
 ''', [HintCode.INVALID_LITERAL_ANNOTATION]);
-  }
-
-  test_constConstructor() async {
-    addMetaPackage();
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class A {
-  @literal
-  const A();
-}
-''');
   }
 }

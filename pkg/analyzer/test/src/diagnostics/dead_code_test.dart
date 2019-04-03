@@ -19,11 +19,65 @@ main() {
 
 @reflectiveTest
 class DeadCodeTest extends DriverResolutionTest with PackageMixin {
+  test_afterForEachWithBreakLabel() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  named: {
+    for (var x in [1]) {
+      if (x == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
+''');
+  }
+
+  test_afterForWithBreakLabel() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  named: {
+    for (int i = 0; i < 7; i++) {
+      if (i == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
+''');
+  }
+
+  test_afterTryCatch() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  try {
+    return f();
+  } catch (e) {
+    print(e);
+  }
+  print('not dead');
+}
+f() {
+  throw 'foo';
+}
+''');
+  }
+
   test_deadBlock_conditionalElse() async {
     await assertErrorsInCode(r'''
 f() {
   true ? 1 : 2;
 }''', [HintCode.DEAD_CODE]);
+  }
+
+  test_deadBlock_conditionalElse_debugConst() async {
+    await assertNoErrorsInCode(r'''
+const bool DEBUG = true;
+f() {
+  DEBUG ? 1 : 2;
+}''');
   }
 
   test_deadBlock_conditionalElse_nested() async {
@@ -41,28 +95,20 @@ f() {
 }''', [HintCode.DEAD_CODE]);
   }
 
-  test_deadBlock_conditionalIf_nested() async {
-    // Test that a dead then-statement can't generate additional violations.
-    await assertErrorsInCode(r'''
-f() {
-  false ? false && false : true;
-}''', [HintCode.DEAD_CODE]);
-  }
-
-  test_deadBlock_conditionalElse_debugConst() async {
-    await assertNoErrorsInCode(r'''
-const bool DEBUG = true;
-f() {
-  DEBUG ? 1 : 2;
-}''');
-  }
-
   test_deadBlock_conditionalIf_debugConst() async {
     await assertNoErrorsInCode(r'''
 const bool DEBUG = false;
 f() {
   DEBUG ? 1 : 2;
 }''');
+  }
+
+  test_deadBlock_conditionalIf_nested() async {
+    // Test that a dead then-statement can't generate additional violations.
+    await assertErrorsInCode(r'''
+f() {
+  false ? false && false : true;
+}''', [HintCode.DEAD_CODE]);
   }
 
   test_deadBlock_else() async {
@@ -78,6 +124,21 @@ const bool DEBUG = true;
 f() {
   if(DEBUG) {} else {}
 }''');
+  }
+
+  test_deadBlock_else_nested() async {
+    // Test that a dead else-statement can't generate additional violations.
+    await assertErrorsInCode(r'''
+f() {
+  if(true) {} else {if (false) {}}
+}''', [HintCode.DEAD_CODE]);
+  }
+
+  test_deadBlock_if() async {
+    await assertErrorsInCode(r'''
+f() {
+  if(false) {}
+}''', [HintCode.DEAD_CODE]);
   }
 
   test_deadBlock_if_debugConst_prefixedIdentifier() async {
@@ -126,21 +187,6 @@ f() {
 }''');
   }
 
-  test_deadBlock_else_nested() async {
-    // Test that a dead else-statement can't generate additional violations.
-    await assertErrorsInCode(r'''
-f() {
-  if(true) {} else {if (false) {}}
-}''', [HintCode.DEAD_CODE]);
-  }
-
-  test_deadBlock_if() async {
-    await assertErrorsInCode(r'''
-f() {
-  if(false) {}
-}''', [HintCode.DEAD_CODE]);
-  }
-
   test_deadBlock_if_nested() async {
     // Test that a dead then-statement can't generate additional violations.
     await assertErrorsInCode(r'''
@@ -156,20 +202,20 @@ f() {
 }''', [HintCode.DEAD_CODE]);
   }
 
-  test_deadBlock_while_nested() async {
-    // Test that a dead while body can't generate additional violations.
-    await assertErrorsInCode(r'''
-f() {
-  while(false) {if(false) {}}
-}''', [HintCode.DEAD_CODE]);
-  }
-
   test_deadBlock_while_debugConst() async {
     await assertNoErrorsInCode(r'''
 const bool DEBUG = false;
 f() {
   while(DEBUG) {}
 }''');
+  }
+
+  test_deadBlock_while_nested() async {
+    // Test that a dead while body can't generate additional violations.
+    await assertErrorsInCode(r'''
+f() {
+  while(false) {if(false) {}}
+}''', [HintCode.DEAD_CODE]);
   }
 
   test_deadCatch_catchFollowingCatch() async {
@@ -232,20 +278,21 @@ f() {
 }''');
   }
 
-  test_afterTryCatch() async {
+  test_deadFinalBreakInCase() async {
     await assertNoErrorsInCode(r'''
-main() {
-  try {
-    return f();
-  } catch (e) {
-    print(e);
-  }
-  print('not dead');
-}
 f() {
-  throw 'foo';
-}
-''');
+  switch (true) {
+  case true:
+    try {
+      int a = 1;
+    } finally {
+      return;
+    }
+    break;
+  default:
+    break;
+  }
+}''');
   }
 
   test_deadFinalReturnInCase() async {
@@ -282,28 +329,19 @@ f() {
 }''', [HintCode.DEAD_CODE]);
   }
 
-  test_deadFinalBreakInCase() async {
-    await assertNoErrorsInCode(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      int a = 1;
-    } finally {
-      return;
-    }
-    break;
-  default:
-    break;
-  }
-}''');
-  }
-
   test_deadOperandLHS_and() async {
     await assertErrorsInCode(r'''
 f() {
   bool b = false && false;
 }''', [HintCode.DEAD_CODE]);
+  }
+
+  test_deadOperandLHS_and_debugConst() async {
+    await assertNoErrorsInCode(r'''
+const bool DEBUG = false;
+f() {
+  bool b = DEBUG && false;
+}''');
   }
 
   test_deadOperandLHS_and_nested() async {
@@ -320,27 +358,19 @@ f() {
 }''', [HintCode.DEAD_CODE]);
   }
 
-  test_deadOperandLHS_or_nested() async {
-    await assertErrorsInCode(r'''
-f() {
-  bool b = true || (false && false);
-}''', [HintCode.DEAD_CODE]);
-  }
-
-  test_deadOperandLHS_and_debugConst() async {
-    await assertNoErrorsInCode(r'''
-const bool DEBUG = false;
-f() {
-  bool b = DEBUG && false;
-}''');
-  }
-
   test_deadOperandLHS_or_debugConst() async {
     await assertNoErrorsInCode(r'''
 const bool DEBUG = true;
 f() {
   bool b = DEBUG || true;
 }''');
+  }
+
+  test_deadOperandLHS_or_nested() async {
+    await assertErrorsInCode(r'''
+f() {
+  bool b = true || (false && false);
+}''', [HintCode.DEAD_CODE]);
   }
 
   test_statementAfterAlwaysThrowsFunction() async {
@@ -575,36 +605,6 @@ f() {
   throw 'Stop here';
   var two = 2;
 }''', [HintCode.DEAD_CODE]);
-  }
-
-  test_afterForEachWithBreakLabel() async {
-    await assertNoErrorsInCode(r'''
-f() {
-  named: {
-    for (var x in [1]) {
-      if (x == null)
-        break named;
-    }
-    return;
-  }
-  print('not dead');
-}
-''');
-  }
-
-  test_afterForWithBreakLabel() async {
-    await assertNoErrorsInCode(r'''
-f() {
-  named: {
-    for (int i = 0; i < 7; i++) {
-      if (i == null)
-        break named;
-    }
-    return;
-  }
-  print('not dead');
-}
-''');
   }
 }
 

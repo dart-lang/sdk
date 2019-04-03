@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
@@ -16,9 +15,6 @@ main() {
 
 @reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends DriverResolutionTest {
-  @override
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
-
   test_assertion_throws() async {
     await assertErrorsInCode(r'''
 class A {

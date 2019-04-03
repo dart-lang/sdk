@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -16,16 +15,6 @@ main() {
 
 @reflectiveTest
 class OverrideOnNonOverridingFieldTest extends DriverResolutionTest {
-  test_invalid() async {
-    await assertErrorsInCode(r'''
-class A {
-}
-class B extends A {
-  @override
-  final int m = 1;
-}''', [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
-  }
-
   test_inInterface() async {
     await assertErrorsInCode(r'''
 class A {
@@ -58,5 +47,15 @@ class B extends A {
   @override
   int c;
 }''', [CompileTimeErrorCode.INVALID_OVERRIDE]);
+  }
+
+  test_invalid() async {
+    await assertErrorsInCode(r'''
+class A {
+}
+class B extends A {
+  @override
+  final int m = 1;
+}''', [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
   }
 }

@@ -56,27 +56,6 @@ export 'lib1.dart' show fn0;
     assertNoTestErrors();
   }
 
-  test_method() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
-import 'package:meta/meta.dart';
-class A {
-  @visibleForTesting
-  void a(){ }
-}
-''');
-    newFile('/lib2.dart', content: r'''
-import 'lib1.dart';
-class B {
-  void b() => new A().a();
-}
-''');
-
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
-  }
-
   test_fromTestDirectory() async {
     addMetaPackage();
     newFile('/lib1.dart', content: r'''
@@ -140,38 +119,19 @@ void main() {
     assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
   }
 
-  test_setter() async {
+  test_method() async {
     addMetaPackage();
     newFile('/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   @visibleForTesting
-  set b(_) => 7;
+  void a(){ }
 }
 ''');
     newFile('/lib2.dart', content: r'''
 import 'lib1.dart';
-void main() {
-  new A().b = 6;
-}
-''');
-
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
-  }
-
-  test_topLevelFunction() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
-import 'package:meta/meta.dart';
-@visibleForTesting
-int fn0() => 1;
-''');
-    newFile('/lib2.dart', content: r'''
-import 'lib1.dart';
-void main() {
-  fn0();
+class B {
+  void b() => new A().a();
 }
 ''');
 
@@ -223,6 +183,46 @@ void main() {
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/test/test1.dart');
     assertNoTestErrors();
+  }
+
+  test_setter() async {
+    addMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  set b(_) => 7;
+}
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  new A().b = 6;
+}
+''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib2.dart');
+    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
+  }
+
+  test_topLevelFunction() async {
+    addMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+@visibleForTesting
+int fn0() => 1;
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  fn0();
+}
+''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib2.dart');
+    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
   }
 
   /// Resolve the test file at [path].

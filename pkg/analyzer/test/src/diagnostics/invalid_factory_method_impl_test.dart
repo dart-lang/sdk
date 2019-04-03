@@ -17,18 +17,6 @@ main() {
 @reflectiveTest
 class InvalidFactoryMethodImplTest extends DriverResolutionTest
     with PackageMixin {
-  test_expr_returnNull() async {
-    addMetaPackage();
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class Stateful {
-  @factory
-  State createState() => null;
-}
-class State { }
-''');
-  }
-
   test_abstract() async {
     addMetaPackage();
     await assertNoErrorsInCode(r'''
@@ -90,6 +78,18 @@ import 'package:meta/meta.dart';
 class Stateful {
   @factory
   State createState() => new State();
+}
+class State { }
+''');
+  }
+
+  test_expr_returnNull() async {
+    addMetaPackage();
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class Stateful {
+  @factory
+  State createState() => null;
 }
 class State { }
 ''');

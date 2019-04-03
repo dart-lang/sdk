@@ -23,65 +23,12 @@ class NonConstCallToLiteralConstructorTest extends DriverResolutionTest
     addMetaPackage();
   }
 
-  test_nonConstContext() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class A {
-  @literal
-  const A();
-}
-void main() {
-  var a = A();
-}
-''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
-  }
-
-  test_usingNew() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class A {
-  @literal
-  const A();
-}
-void main() {
-  var a = new A();
-}
-''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW]);
-  }
-
-  test_namedConstructor() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class A {
-  @literal
-  const A.named();
-}
-void main() {
-  var a = A.named();
-}
-''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
-  }
-
   test_constConstructor() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
   const A();
-}
-''');
-  }
-
-  test_constCreation() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class A {
-  @literal
-  const A();
-}
-
-void main() {
-  const a = const A();
 }
 ''');
   }
@@ -100,6 +47,46 @@ void main() {
 ''');
   }
 
+  test_constCreation() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+
+void main() {
+  const a = const A();
+}
+''');
+  }
+
+  test_namedConstructor() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A.named();
+}
+void main() {
+  var a = A.named();
+}
+''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
+  }
+
+  test_nonConstContext() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = A();
+}
+''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
+  }
+
   test_unconstableCreation() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -112,5 +99,18 @@ void main() {
   var a = A(new List());
 }
 ''');
+  }
+
+  test_usingNew() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A();
+}
+void main() {
+  var a = new A();
+}
+''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW]);
   }
 }

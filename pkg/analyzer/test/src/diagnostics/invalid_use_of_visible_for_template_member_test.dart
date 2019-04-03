@@ -146,27 +146,6 @@ void main() {
     ]);
   }
 
-  test_topLevelFunction() async {
-    addAngularMetaPackage();
-    newFile('/lib1.dart', content: r'''
-import 'package:angular_meta/angular_meta.dart';
-
-@visibleForTemplate
-int fn0() => 1;
-''');
-    newFile('/lib2.dart', content: r'''
-import 'lib1.dart';
-
-void main() {
-  fn0();
-}
-''');
-
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
-  }
-
   test_protectedAndForTemplate_usedAsProtected() async {
     addAngularMetaPackage();
     addMetaPackage();
@@ -215,6 +194,27 @@ void main() {
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib1.template.dart');
     assertNoTestErrors();
+  }
+
+  test_topLevelFunction() async {
+    addAngularMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+int fn0() => 1;
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+
+void main() {
+  fn0();
+}
+''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib2.dart');
+    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
   }
 
   /// Resolve the test file at [path].

@@ -16,6 +16,21 @@ main() {
 
 @reflectiveTest
 class MissingRequiredParamTest extends DriverResolutionTest with PackageMixin {
+  test_constructorParam_argumentGiven() async {
+    addMetaPackage();
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@required int a}) {}
+}
+
+main() {
+  new C(a: 2);
+}
+''');
+  }
+
   test_constructorParam_missingArgument() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
@@ -59,21 +74,6 @@ main() {
 ''', [HintCode.MISSING_REQUIRED_PARAM]);
   }
 
-  test_constructorParam_argumentGiven() async {
-    addMetaPackage();
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-class C {
-  C({@required int a}) {}
-}
-
-main() {
-  new C(a: 2);
-}
-''');
-  }
-
   test_constructorParam_redirectingConstructorCall() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
@@ -83,21 +83,6 @@ class C {
   C.named() : this();
 }
 ''', [HintCode.MISSING_REQUIRED_PARAM]);
-  }
-
-  test_requiredConstructor_paramSuperCall() async {
-    addMetaPackage();
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-class C {
-  C({@Required('must specify an `a`') int a}) {}
-}
-
-class D extends C {
-  D() : super();
-}
-''', [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
   }
 
   test_functionParam() async {
@@ -145,6 +130,21 @@ f() {
     await _resolveTestFile('/a_lib.dart');
     await _resolveTestFile('/test.dart');
     assertTestErrors([HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+  }
+
+  test_requiredConstructor_paramSuperCall() async {
+    addMetaPackage();
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@Required('must specify an `a`') int a}) {}
+}
+
+class D extends C {
+  D() : super();
+}
+''', [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
   }
 
   test_typedef_functionParam() async {

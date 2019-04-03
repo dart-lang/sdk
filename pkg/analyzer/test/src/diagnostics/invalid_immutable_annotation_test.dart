@@ -17,17 +17,6 @@ main() {
 @reflectiveTest
 class InvalidImmutableAnnotationTest extends DriverResolutionTest
     with PackageMixin {
-  test_method() async {
-    addMetaPackage();
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class A {
-  @immutable
-  void m() {}
-}
-''', [HintCode.INVALID_IMMUTABLE_ANNOTATION]);
-  }
-
   test_class() async {
     addMetaPackage();
     await assertNoErrorsInCode(r'''
@@ -37,5 +26,16 @@ class A {
   const A();
 }
 ''');
+  }
+
+  test_method() async {
+    addMetaPackage();
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @immutable
+  void m() {}
+}
+''', [HintCode.INVALID_IMMUTABLE_ANNOTATION]);
   }
 }

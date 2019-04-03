@@ -16,11 +16,53 @@ main() {
 
 @reflectiveTest
 class MissingReturnTest extends DriverResolutionTest with PackageMixin {
+  test_alwaysThrows() async {
+    addMetaPackage();
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@alwaysThrows
+void a() {
+  throw 'msg';
+}
+
+int f() {
+  a();
+}''');
+  }
+
   test_async() async {
     await assertErrorsInCode(r'''
 import 'dart:async';
 Future<int> f() async {}
 ''', [HintCode.MISSING_RETURN]);
+  }
+
+  test_async_futureOrVoid() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+FutureOr<void> f(Future f) async {}
+''');
+  }
+
+  test_async_futureVoid() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+Future<void> f() async {}
+''');
+  }
+
+  test_emptyFunctionBody() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int m();
+}''');
+  }
+
+  test_expressionFunctionBody() async {
+    await assertNoErrorsInCode(r'''
+int f() => 0;
+''');
   }
 
   test_factory() async {
@@ -55,33 +97,6 @@ class B extends A {
 ''', [HintCode.MISSING_RETURN]);
   }
 
-  test_emptyFunctionBody() async {
-    await assertNoErrorsInCode(r'''
-abstract class A {
-  int m();
-}''');
-  }
-
-  test_expressionFunctionBody() async {
-    await assertNoErrorsInCode(r'''
-int f() => 0;
-''');
-  }
-
-  test_async_futureVoid() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-Future<void> f() async {}
-''');
-  }
-
-  test_async_futureOrVoid() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-FutureOr<void> f(Future f) async {}
-''');
-  }
-
   test_noReturnType() async {
     await assertNoErrorsInCode(r'''
 f() {}
@@ -92,20 +107,5 @@ f() {}
     await assertNoErrorsInCode(r'''
 void f() {}
 ''');
-  }
-
-  test_alwaysThrows() async {
-    addMetaPackage();
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-@alwaysThrows
-void a() {
-  throw 'msg';
-}
-
-int f() {
-  a();
-}''');
   }
 }

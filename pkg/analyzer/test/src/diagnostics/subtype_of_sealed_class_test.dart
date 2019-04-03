@@ -66,17 +66,18 @@ class Bar2 = Bar1 with Foo;
     assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
-  test_mixinImplementsSealedClass() async {
+  test_mixinApplicationOfSealedMixin() async {
     addMetaPackage();
     _addPackage('foo', r'''
 import 'package:meta/meta.dart';
-@sealed class Foo {}
+@sealed mixin Foo {}
 ''');
 
     _newPubPackageRoot('/pkg1');
     newFile('/pkg1/lib/lib1.dart', content: r'''
 import 'package:foo/foo.dart';
-mixin Bar implements Foo {}
+class Bar1 {}
+class Bar2 = Bar1 with Foo;
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
     assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
@@ -98,18 +99,17 @@ class Bar extends Object with Foo {}
     assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
-  test_mixinApplicationOfSealedMixin() async {
+  test_mixinImplementsSealedClass() async {
     addMetaPackage();
     _addPackage('foo', r'''
 import 'package:meta/meta.dart';
-@sealed mixin Foo {}
+@sealed class Foo {}
 ''');
 
     _newPubPackageRoot('/pkg1');
     newFile('/pkg1/lib/lib1.dart', content: r'''
 import 'package:foo/foo.dart';
-class Bar1 {}
-class Bar2 = Bar1 with Foo;
+mixin Bar implements Foo {}
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
     assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
