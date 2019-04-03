@@ -164,6 +164,7 @@ name: testnnbd
 analyzer:
   enable-experiment:
     - non-nullable
+
 ''');
   }
 
@@ -172,6 +173,9 @@ analyzer:
 analyzer:
   something:
     - other
+
+linter:
+  - boo
 ''';
     newFile('/project/analysis_options.yaml', content: originalOptions);
     createProject();
@@ -185,7 +189,11 @@ analyzer:
   something:
     - other
   enable-experiment:
-    - non-nullable''');
+    - non-nullable
+
+linter:
+  - boo
+''');
   }
 
   test_dartfix_non_nullable_analysis_options_nnbd_added() async {
@@ -193,6 +201,8 @@ analyzer:
 analyzer:
   enable-experiment:
     - other
+linter:
+  - boo
 ''';
     newFile('/project/analysis_options.yaml', content: originalOptions);
     createProject();
@@ -205,7 +215,10 @@ analyzer:
 analyzer:
   enable-experiment:
     - other
-    - non-nullable''');
+    - non-nullable
+linter:
+  - boo
+''');
   }
 
   test_dartfix_excludedSource() async {

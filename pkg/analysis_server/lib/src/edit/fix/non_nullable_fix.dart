@@ -56,23 +56,19 @@ class NonNullableFix extends FixCodeTask {
     // TODO(danrubel): Update pubspec.yaml to enable NNBD
 
     File optionsFile = pkgFolder.getChildAssumingFile('analysis_options.yaml');
+    String optionsContent;
     YamlNode optionsMap;
     if (optionsFile.exists) {
       try {
-        optionsMap = loadYaml(optionsFile.readAsStringSync());
+        optionsContent = optionsFile.readAsStringSync();
       } on FileSystemException catch (e) {
-        listener.addRecommendation(
-            'Failed to read options file: ${optionsFile.path}\n'
-            '  $e\n'
-            '  Manually update this file to enable non-nullable by default');
-        _packageIsNNBD = false;
+        processYamlException('read', optionsFile.path, e);
         return;
+      }
+      try {
+        optionsMap = loadYaml(optionsContent);
       } on YamlException catch (e) {
-        listener.addRecommendation(
-            'Failed to parse options file: ${optionsFile.path}\n'
-            '  $e\n'
-            '  Manually update this file to enable non-nullable by default');
-        _packageIsNNBD = false;
+        processYamlException('parse', optionsFile.path, e);
         return;
       }
     }
@@ -81,7 +77,7 @@ class NonNullableFix extends FixCodeTask {
     String content;
     YamlNode analyzerOptions;
     if (optionsMap is YamlMap) {
-      analyzerOptions = optionsMap[AnalyzerOptions.analyzer];
+      analyzerOptions = optionsMap.nodes[AnalyzerOptions.analyzer];
     }
     if (analyzerOptions == null) {
       var start = new SourceLocation(0, line: 0, column: 0);
@@ -90,12 +86,15 @@ class NonNullableFix extends FixCodeTask {
 analyzer:
   enable-experiment:
     - non-nullable
+
 ''';
     } else if (analyzerOptions is YamlMap) {
-      YamlNode experiments = analyzerOptions[AnalyzerOptions.enableExperiment];
+      YamlNode experiments =
+          analyzerOptions.nodes[AnalyzerOptions.enableExperiment];
       if (experiments == null) {
         parentSpan = analyzerOptions.span;
         content = '''
+
   enable-experiment:
     - non-nullable''';
       } else if (experiments is YamlList) {
@@ -104,6 +103,7 @@ analyzer:
           orElse: () {
             parentSpan = experiments.span;
             content = '''
+
     - non-nullable''';
           },
         );
@@ -111,18 +111,49 @@ analyzer:
     }
 
     if (parentSpan != null) {
+      final space = ' '.codeUnitAt(0);
+      final cr = '\r'.codeUnitAt(0);
+      final lf = '\n'.codeUnitAt(0);
+
+      int line = parentSpan.end.line;
+      int offset = parentSpan.end.offset;
+      while (offset > 0) {
+        int ch = optionsContent.codeUnitAt(offset - 1);
+        if (ch == space || ch == cr) {
+          --offset;
+        } else if (ch == lf) {
+          --offset;
+          --line;
+        } else {
+          break;
+        }
+      }
       listener.addSourceFileEdit(
           'enable non-nullable analysis',
           new Location(
             optionsFile.path,
-            parentSpan.end.offset,
+            offset,
             content.length,
-            parentSpan.end.line,
-            parentSpan.end.column,
+            line,
+            0,
           ),
           new SourceFileEdit(optionsFile.path, 0,
-              edits: [new SourceEdit(parentSpan.end.offset, 0, content)]));
+              edits: [new SourceEdit(offset, 0, content)]));
     }
+  }
+
+  void processYamlException(String action, String optionsFilePath, error) {
+    listener.addRecommendation('''Failed to $action options file
+  $optionsFilePath
+  $error
+
+  Manually update this file to enable non-nullable by adding:
+
+    analyzer:
+      enable-experiment:
+        - non-nullable
+''');
+    _packageIsNNBD = false;
   }
 
   @override
