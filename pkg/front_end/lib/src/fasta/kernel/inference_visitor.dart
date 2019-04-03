@@ -1379,7 +1379,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     if (entry is ForInMapEntry) {
       return new ForInElement(entry.variable, entry.iterable, entry.prologue,
-          convertToElement(entry.body), entry.problem)
+          convertToElement(entry.body), entry.problem,
+          isAsync: entry.isAsync)
         ..fileOffset = entry.fileOffset;
     }
     return inferrer.helper
