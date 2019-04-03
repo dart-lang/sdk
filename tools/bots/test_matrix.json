@@ -266,6 +266,7 @@
     }},
     "dart2js-production-(linux|mac|win)-d8": {
       "options": {
+        "builder-tag": "dart2js_production",
         "use-sdk": true,
         "dart2js-options": ["-O3"]
     }},

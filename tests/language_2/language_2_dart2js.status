@@ -67,6 +67,9 @@ vm/*: SkipByDesign # Tests for the VM.
 [ $compiler != dart2js ]
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 
+[ $builder_tag == dart2js_production && $compiler == dart2js ]
+control_flow_collections/for_test: Crash # Issue 36442, 36446
+
 [ $compiler == dart2js && $runtime == chrome ]
 field_override_optimization_test: RuntimeError
 
