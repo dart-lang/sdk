@@ -2111,6 +2111,12 @@ class PhiInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
 
+// This instruction represents an incomming parameter for a function entry,
+// or incomming value for OSR entry or incomming value for a catch entry.
+// When [base_reg] is set to FPREG [index] corresponds to environment
+// variable index (0 is the very first parameter, 1 is next and so on).
+// When [base_reg] is set to SPREG [index] corresponds to SP relative parameter
+// indices (0 is the very last parameter, 1 is next and so on).
 class ParameterInstr : public Definition {
  public:
   ParameterInstr(intptr_t index,

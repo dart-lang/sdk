@@ -37,6 +37,7 @@ compiler_sources = [
   "assembler/disassembler_kbc.h",
   "assembler/disassembler_x86.cc",
   "assembler/object_pool_builder.h",
+  "backend/block_builder.h",
   "backend/block_scheduler.cc",
   "backend/block_scheduler.h",
   "backend/branch_optimizer.cc",

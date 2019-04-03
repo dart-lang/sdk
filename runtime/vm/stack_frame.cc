@@ -29,6 +29,7 @@ const FrameLayout invalid_frame_layout = {
     /*.first_object_from_fp = */ -1,
     /*.last_fixed_object_from_fp = */ -1,
     /*.param_end_from_fp = */ -1,
+    /*.last_param_from_entry_sp = */ -1,
     /*.first_local_from_fp = */ -1,
     /*.dart_fixed_frame_size = */ -1,
     /*.saved_caller_pp_from_fp = */ -1,
@@ -40,6 +41,7 @@ const FrameLayout default_frame_layout = {
     /*.first_object_from_fp = */ kFirstObjectSlotFromFp,
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp,
     /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.last_param_from_entry_sp = */ kLastParamSlotFromEntrySp,
     /*.first_local_from_fp = */ kFirstLocalSlotFromFp,
     /*.dart_fixed_frame_size = */ kDartFrameFixedSize,
     /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
@@ -51,6 +53,7 @@ const FrameLayout bare_instructions_frame_layout = {
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp +
         2,  // No saved CODE, PP slots
     /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.last_param_from_entry_sp = */ kLastParamSlotFromEntrySp,
     /*.first_local_from_fp =*/kFirstLocalSlotFromFp +
         2,  // No saved CODE, PP slots.
     /*.dart_fixed_frame_size =*/kDartFrameFixedSize -

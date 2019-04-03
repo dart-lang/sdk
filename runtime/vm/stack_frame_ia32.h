@@ -38,6 +38,7 @@ static const int kSavedCallerFpSlotFromFp = 0;
 static const int kSavedCallerPcSlotFromFp = 1;
 static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
+static const int kLastParamSlotFromEntrySp = 1;  // Skip return address.
 
 // No pool pointer on IA32 (indicated by aliasing saved fp).
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
