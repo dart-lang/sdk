@@ -231,20 +231,7 @@ abstract class Compiler {
       });
 
   Future runInternal(Uri uri) async {
-    // TODO(ahe): This prevents memory leaks when invoking the compiler
-    // multiple times. Implement a better mechanism where we can store
-    // such caches in the compiler and get access to them through a
-    // suitably maintained static reference to the current compiler.
-    clearStringTokenCanonicalizer();
-    Selector.canonicalizedValues.clear();
-
-    // The selector objects held in static fields must remain canonical.
-    for (Selector selector in Selectors.ALL) {
-      Selector.canonicalizedValues
-          .putIfAbsent(selector.hashCode, () => <Selector>[])
-          .add(selector);
-    }
-
+    clearState();
     assert(uri != null);
     // As far as I can tell, this branch is only used by test code.
     reporter.log('Compiling $uri (${options.buildId})');
@@ -284,6 +271,23 @@ abstract class Compiler {
       }
 
       await compileFromKernel(result.rootLibraryUri, result.libraries);
+    }
+  }
+
+  /// Clear the internal compiler state to prevent memory leaks when invoking
+  /// the compiler multiple times (e.g. in batch mode).
+  // TODO(ahe): implement a better mechanism where we can store
+  // such caches in the compiler and get access to them through a
+  // suitably maintained static reference to the current compiler.
+  void clearState() {
+    clearStringTokenCanonicalizer();
+    Selector.canonicalizedValues.clear();
+
+    // The selector objects held in static fields must remain canonical.
+    for (Selector selector in Selectors.ALL) {
+      Selector.canonicalizedValues
+          .putIfAbsent(selector.hashCode, () => <Selector>[])
+          .add(selector);
     }
   }
 
