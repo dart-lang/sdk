@@ -98,10 +98,6 @@ class BlockBuilder : public ValueObject {
   void AddPhi(PhiInstr* phi) {
     phi->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
     phi->mark_alive();
-    for (intptr_t i = 0; i < phi->InputCount(); i++) {
-      auto input = phi->InputAt(i);
-      input->definition()->AddInputUse(input);
-    }
     entry_->AsJoinEntry()->InsertPhi(phi);
   }
 

@@ -212,7 +212,7 @@ class BaseFlowGraphBuilder {
   Fragment NullConstant();
   Fragment SmiRelationalOp(Token::Kind kind);
   Fragment SmiBinaryOp(Token::Kind op, bool is_truncating = false);
-  Fragment LoadFpRelativeSlot(intptr_t offset);
+  Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,

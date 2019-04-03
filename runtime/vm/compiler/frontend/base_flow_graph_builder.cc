@@ -685,8 +685,10 @@ Fragment BaseFlowGraphBuilder::SmiBinaryOp(Token::Kind kind,
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(intptr_t offset) {
-  LoadIndexedUnsafeInstr* instr = new (Z) LoadIndexedUnsafeInstr(Pop(), offset);
+Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(intptr_t offset,
+                                                  CompileType result_type) {
+  LoadIndexedUnsafeInstr* instr =
+      new (Z) LoadIndexedUnsafeInstr(Pop(), offset, result_type);
   Push(instr);
   return Fragment(instr);
 }

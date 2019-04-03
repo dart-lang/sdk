@@ -1773,7 +1773,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop_body += LoadLocal(index);
     loop_body += SmiBinaryOp(Token::kSUB, /*truncate=*/true);
     loop_body += LoadFpRelativeSlot(
-        kWordSize * compiler::target::frame_layout.param_end_from_fp);
+        kWordSize * compiler::target::frame_layout.param_end_from_fp,
+        CompileType::Dynamic());
     loop_body += StoreIndexed(kArrayCid);
 
     // ++i

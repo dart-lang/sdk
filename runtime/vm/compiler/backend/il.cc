@@ -479,15 +479,7 @@ void Instruction::CheckField(const Field& field) const {
 }
 #endif  // DEBUG
 
-Definition::Definition(intptr_t deopt_id)
-    : Instruction(deopt_id),
-      range_(NULL),
-      type_(NULL),
-      temp_index_(-1),
-      ssa_temp_index_(-1),
-      input_use_list_(NULL),
-      env_use_list_(NULL),
-      constant_value_(NULL) {}
+Definition::Definition(intptr_t deopt_id) : Instruction(deopt_id) {}
 
 // A value in the constant propagation lattice.
 //    - non-constant sentinel

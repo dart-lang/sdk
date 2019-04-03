@@ -628,7 +628,8 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
     store_type_args += B->LoadArgDescriptor();
     store_type_args += B->LoadNativeField(Slot::ArgumentsDescriptor_count());
     store_type_args += B->LoadFpRelativeSlot(
-        kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp));
+        kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp),
+        CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
     store_type_args +=
         B->StoreLocalRaw(TokenPosition::kNoSource, type_args_var);
     store_type_args += B->Drop();

@@ -117,7 +117,8 @@ class Value : public ZoneAllocated {
 
   CompileType* Type();
 
-  void SetReachingType(CompileType* type) { reaching_type_ = type; }
+  CompileType* reaching_type() const { return reaching_type_; }
+  void SetReachingType(CompileType* type);
   void RefineReachingType(CompileType* type);
 
   void PrintTo(BufferFormatter* f) const;
@@ -1839,7 +1840,9 @@ class Definition : public Instruction {
   // propagation during graph building.
   CompileType* Type() {
     if (type_ == NULL) {
-      type_ = new CompileType(ComputeType());
+      auto type = new CompileType(ComputeType());
+      type->set_owner(this);
+      set_type(type);
     }
     return type_;
   }
@@ -1865,8 +1868,10 @@ class Definition : public Instruction {
   PRINT_TO_SUPPORT
 
   bool UpdateType(CompileType new_type) {
-    if (type_ == NULL) {
-      type_ = new CompileType(new_type);
+    if (type_ == nullptr) {
+      auto type = new CompileType(new_type);
+      type->set_owner(this);
+      set_type(type);
       return true;
     }
 
@@ -1964,16 +1969,27 @@ class Definition : public Instruction {
   friend class RangeAnalysis;
   friend class Value;
 
-  Range* range_;
-  CompileType* type_;
+  Range* range_ = nullptr;
+
+  void set_type(CompileType* type) {
+    ASSERT(type->owner() == this);
+    type_ = type;
+  }
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  const char* TypeAsCString() const {
+    return HasType() ? type_->ToCString() : "";
+  }
+#endif
 
  private:
-  intptr_t temp_index_;
-  intptr_t ssa_temp_index_;
-  Value* input_use_list_;
-  Value* env_use_list_;
+  intptr_t temp_index_ = -1;
+  intptr_t ssa_temp_index_ = -1;
+  Value* input_use_list_ = nullptr;
+  Value* env_use_list_ = nullptr;
 
-  Object* constant_value_;
+  Object* constant_value_ = nullptr;
+  CompileType* type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -2226,7 +2242,9 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  LoadIndexedUnsafeInstr(Value* index, intptr_t offset) : offset_(offset) {
+  LoadIndexedUnsafeInstr(Value* index, intptr_t offset, CompileType result_type)
+      : offset_(offset) {
+    UpdateType(result_type);
     SetInputAt(0, index);
   }
 
@@ -2780,6 +2798,8 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
 
  private:
   CompileType* constrained_type_;
