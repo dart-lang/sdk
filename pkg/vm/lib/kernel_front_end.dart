@@ -282,24 +282,29 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
   options.onDiagnostic = errorDetector;
 
-  final component = await kernelForProgram(source, options);
-
-  // If we don't default back to the current VM we'll add environment defines
-  // for the core libraries.
-  if (component != null && environmentDefines != null) {
-    if (environmentDefines['dart.vm.product'] == 'true') {
-      environmentDefines['dart.developer.causal_async_stacks'] = 'false';
-    }
-    environmentDefines['dart.isVM'] = 'true';
-    for (final library in component.libraries) {
-      if (library.importUri.scheme == 'dart') {
-        final path = library.importUri.path;
-        if (!path.startsWith('_')) {
-          environmentDefines['dart.library.${path}'] = 'true';
-        }
+  // TODO(alexmarkov): move this logic into VmTarget and call from front-end
+  // in order to have the same defines when compiling platform.
+  assert(environmentDefines != null);
+  if (environmentDefines['dart.vm.product'] == 'true') {
+    environmentDefines['dart.developer.causal_async_stacks'] = 'false';
+  }
+  environmentDefines['dart.isVM'] = 'true';
+  // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
+  for (String library in options.target.extraRequiredLibraries) {
+    Uri libraryUri = Uri.parse(library);
+    if (libraryUri.scheme == 'dart') {
+      final path = libraryUri.path;
+      if (!path.startsWith('_')) {
+        environmentDefines['dart.library.${path}'] = 'true';
       }
     }
   }
+  // dart:core is not mentioned in Target.extraRequiredLibraries.
+  environmentDefines['dart.library.core'] = 'true';
+
+  options.environmentDefines = environmentDefines;
+
+  final component = await kernelForProgram(source, options);
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
