@@ -2864,9 +2864,22 @@ SwitchDispatch:
 
   {
     BYTECODE(VMInternal_ImplicitGetter, 0);
+
+    RawFunction* function = FrameFunction(FP);
+    int32_t counter = ++(function->ptr()->usage_counter_);
+    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
+                 counter >= FLAG_compilation_counter_threshold &&
+                 !Function::HasCode(function))) {
+      SP[1] = 0;  // Unused code result.
+      SP[2] = function;
+      Exit(thread, FP, SP + 3, pc);
+      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
+      function = FrameFunction(FP);
+    }
+
     // Field object is cached in function's data_.
-    RawField* field =
-        reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+    RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
     intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
 
     const intptr_t kArgc = 1;
@@ -2908,9 +2921,22 @@ SwitchDispatch:
 
   {
     BYTECODE(VMInternal_ImplicitSetter, 0);
+
+    RawFunction* function = FrameFunction(FP);
+    int32_t counter = ++(function->ptr()->usage_counter_);
+    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
+                 counter >= FLAG_compilation_counter_threshold &&
+                 !Function::HasCode(function))) {
+      SP[1] = 0;  // Unused code result.
+      SP[2] = function;
+      Exit(thread, FP, SP + 3, pc);
+      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
+      function = FrameFunction(FP);
+    }
+
     // Field object is cached in function's data_.
-    RawField* field =
-        reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+    RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
     intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
     const intptr_t kArgc = 2;
     RawInstance* instance =
