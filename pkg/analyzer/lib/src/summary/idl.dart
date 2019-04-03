@@ -2056,6 +2056,15 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(20, variant: LinkedNodeKind.simpleStringLiteral)
   String get simpleStringLiteral_value;
 
+  @VariantId(31, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  bool get simplyBoundable_isSimplyBounded;
+
   @VariantId(6, variant: LinkedNodeKind.spreadElement)
   LinkedNode get spreadElement_expression;
 

@@ -67,7 +67,7 @@ class TypeBuilder {
   }
 
   void _buildTypeName(LinkedNodeBuilder node) {
-    var referenceIndex = _typeNameElementIndex(node.typeName_name);
+    var referenceIndex = typeNameElementIndex(node.typeName_name);
     var reference = bundleContext.referenceOfIndex(referenceIndex);
 
     List<LinkedNodeTypeBuilder> typeArguments;
@@ -97,7 +97,7 @@ class TypeBuilder {
       node.typeName_type = LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.dynamic_,
       );
-    } else if (reference.isGenericTypeAlias) {
+    } else if (reference.isTypeAlias) {
       // TODO(scheglov) Use instantiate to bounds.
       var typeParametersLength = _typeParametersLength(reference);
       if (typeArguments == null ||
@@ -215,7 +215,7 @@ class TypeBuilder {
     return LinkedUnitContext.getTypeParameters(node)?.length ?? 0;
   }
 
-  static int _typeNameElementIndex(LinkedNode name) {
+  static int typeNameElementIndex(LinkedNode name) {
     if (name.kind == LinkedNodeKind.simpleIdentifier) {
       return name.simpleIdentifier_element;
     } else {

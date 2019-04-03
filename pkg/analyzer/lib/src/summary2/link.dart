@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
+import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 LinkResult link(
@@ -210,6 +211,7 @@ class Linker {
     for (var library in builders.values) {
       library.resolveTypes(typesToBuild);
     }
+    computeSimplyBounded(bundleContext, builders.values);
     TypeBuilder(bundleContext).build(typesToBuild);
   }
 }

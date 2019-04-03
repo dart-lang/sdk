@@ -50,15 +50,22 @@ class Reference {
 
   Reference._(this.parent, this.name);
 
+  Iterable<Reference> get children {
+    if (_children != null) {
+      return _children.values;
+    }
+    return const [];
+  }
+
   bool get isClass => parent != null && parent.name == '@class';
 
   bool get isDynamic => name == 'dynamic' && parent?.name == 'dart:core';
 
   bool get isEnum => parent != null && parent.name == '@enum';
 
-  bool get isGenericTypeAlias => parent != null && parent.name == '@typeAlias';
-
   bool get isPrefix => parent != null && parent.name == '@prefix';
+
+  bool get isTypeAlias => parent != null && parent.name == '@typeAlias';
 
   bool get isTypeParameter => parent != null && parent.name == '@typeParameter';
 

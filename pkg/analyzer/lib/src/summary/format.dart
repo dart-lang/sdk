@@ -9808,8 +9808,27 @@ class LinkedNodeBuilder extends Object
     return _variantField_31 ??= false;
   }
 
+  @override
+  bool get simplyBoundable_isSimplyBounded {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
+    return _variantField_31 ??= false;
+  }
+
   set setOrMapLiteral_isSet(bool value) {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
+    _variantField_31 = value;
+  }
+
+  set simplyBoundable_isSimplyBounded(bool value) {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
     _variantField_31 = value;
   }
 
@@ -10188,6 +10207,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.classDeclaration,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10204,7 +10224,8 @@ class LinkedNodeBuilder extends Object
         _variantField_13 = classOrMixinDeclaration_typeParameters,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.classTypeAlias({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10220,6 +10241,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.classTypeAlias,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10233,7 +10255,8 @@ class LinkedNodeBuilder extends Object
         _variantField_9 = classTypeAlias_implementsClause,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.declaredIdentifier({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10307,6 +10330,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10318,7 +10342,8 @@ class LinkedNodeBuilder extends Object
         _variantField_24 = functionTypeAlias_returnType2,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.genericTypeAlias({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10331,6 +10356,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.genericTypeAlias,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10341,7 +10367,8 @@ class LinkedNodeBuilder extends Object
         _variantField_19 = typeAlias_semicolon,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.libraryDirective({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10402,6 +10429,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.mixinDeclaration,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10414,7 +10442,8 @@ class LinkedNodeBuilder extends Object
         _variantField_13 = classOrMixinDeclaration_typeParameters,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.partDirective({
     LinkedNodeBuilder annotatedNode_comment,
@@ -15303,6 +15332,18 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  bool get simplyBoundable_isSimplyBounded {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
+    _variantField_31 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 31, false);
+    return _variantField_31;
+  }
+
+  @override
   String get simpleStringLiteral_value {
     assert(kind == idl.LinkedNodeKind.simpleStringLiteral);
     _variantField_20 ??=
@@ -15766,6 +15807,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.classTypeAlias) {
       if (annotatedNode_comment != null)
@@ -15799,6 +15843,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.declaredIdentifier) {
       if (annotatedNode_comment != null)
@@ -15895,6 +15942,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
       if (annotatedNode_comment != null)
@@ -15919,6 +15969,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
       if (annotatedNode_comment != null)
@@ -16007,6 +16060,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.partDirective) {
       if (annotatedNode_comment != null)
@@ -17359,6 +17415,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.classTypeAlias) {
@@ -17378,6 +17435,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.declaredIdentifier) {
@@ -17447,6 +17505,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
@@ -17463,6 +17522,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
@@ -17518,6 +17578,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.partDirective) {

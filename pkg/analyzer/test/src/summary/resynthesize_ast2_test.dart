@@ -191,14 +191,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_type_parameters_f_bound_complex() async {
-    await super.test_class_type_parameters_f_bound_complex();
-  }
-
-  @override
-  @failingTest
-  test_class_type_parameters_f_bound_simple() async {
-    await super.test_class_type_parameters_f_bound_simple();
+  test_class_notSimplyBounded_complex_by_cycle() async {
+    await super.test_class_notSimplyBounded_complex_by_cycle();
   }
 
   @override
@@ -645,32 +639,37 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_typedef_type_parameters_bound_recursive() async {
-    await super.test_typedef_type_parameters_bound_recursive();
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included();
   }
 
   @override
   @failingTest
-  test_typedef_type_parameters_bound_recursive2() async {
-    await super.test_typedef_type_parameters_bound_recursive2();
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted();
   }
 
   @override
   @failingTest
-  test_typedef_type_parameters_f_bound_complex() async {
-    await super.test_typedef_type_parameters_f_bound_complex();
+  test_typedef_notSimplyBounded_dependency_via_param_type_old_style() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_param_type_old_style();
   }
 
   @override
   @failingTest
-  test_typedef_type_parameters_f_bound_simple() async {
-    await super.test_typedef_type_parameters_f_bound_simple();
+  test_typedef_notSimplyBounded_dependency_via_return_type_new_style() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_return_type_new_style();
   }
 
   @override
   @failingTest
-  test_typedef_type_parameters_f_bound_simple_new_syntax() async {
-    await super.test_typedef_type_parameters_f_bound_simple_new_syntax();
+  test_typedef_notSimplyBounded_dependency_via_return_type_old_style() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_return_type_old_style();
   }
 
   @override

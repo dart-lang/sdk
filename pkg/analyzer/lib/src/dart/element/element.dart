@@ -830,6 +830,14 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
+  bool get isSimplyBounded {
+    if (linkedNode != null) {
+      return linkedNode.simplyBoundable_isSimplyBounded;
+    }
+    return super.isSimplyBounded;
+  }
+
+  @override
   bool get isValidMixin {
     if (hasReferenceToSuper) {
       return false;
@@ -5543,6 +5551,14 @@ class GenericTypeAliasElementImpl extends ElementImpl
       function.enclosingElement = this;
     }
     _function = function;
+  }
+
+  @override
+  bool get isSimplyBounded {
+    if (linkedNode != null) {
+      return linkedNode.simplyBoundable_isSimplyBounded;
+    }
+    return super.isSimplyBounded;
   }
 
   @override

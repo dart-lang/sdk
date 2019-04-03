@@ -345,6 +345,61 @@ class C<C1> {
 ''');
   }
 
+  test_class_alias_notSimplyBounded_self() async {
+    var library = await checkLibrary('''
+class C<T extends C> = D with E;
+class D {}
+class E {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class alias C<T extends C<dynamic>> extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+  }
+
+  test_class_alias_notSimplyBounded_simple_no_type_parameter_bound() async {
+    // If no bounds are specified, then the class is simply bounded by syntax
+    // alone, so there is no reason to assign it a slot.
+    var library = await checkLibrary('''
+class C<T> = D with E;
+class D {}
+class E {}
+''');
+    checkElementText(library, r'''
+class alias C<T> extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+  }
+
+  test_class_alias_notSimplyBounded_simple_non_generic() async {
+    // If no type parameters are specified, then the class is simply bounded, so
+    // there is no reason to assign it a slot.
+    var library = await checkLibrary('''
+class C = D with E;
+class D {}
+class E {}
+''');
+    checkElementText(library, r'''
+class alias C extends D with E {
+  synthetic C() = D;
+}
+class D {
+}
+class E {
+}
+''');
+  }
+
   test_class_alias_with_forwarding_constructors() async {
     addLibrarySource('/a.dart', '''
 class Base {
@@ -1181,6 +1236,180 @@ class C extends Object with X, Z {
 class X {
 }
 class Z {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_circularity_via_typedef() async {
+    // C's type parameter T is not simply bounded because its bound, F, expands
+    // to `dynamic F(C)`, which refers to C.
+    var library = await checkLibrary('''
+class C<T extends F> {}
+typedef F(C value);
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function(C<dynamic> value);
+notSimplyBounded class C<T extends (C<dynamic>) → dynamic> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_circularity_with_type_params() async {
+    // C's type parameter T is simply bounded because even though it refers to
+    // C, it specifies a bound.
+    var library = await checkLibrary('''
+class C<T extends C<dynamic>> {}
+''');
+    checkElementText(library, r'''
+class C<T extends C<dynamic>> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_complex_by_cycle() async {
+    var library = await checkLibrary('''
+class C<T extends D> {}
+class D<T extends C> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class C<T extends D<dynamic>> {
+}
+notSimplyBounded class D<T extends C<D<dynamic>>> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_complex_by_reference_to_cycle() async {
+    var library = await checkLibrary('''
+class C<T extends D> {}
+class D<T extends D> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class C<T extends D<dynamic>> {
+}
+notSimplyBounded class D<T extends D<dynamic>> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_complex_by_use_of_parameter() async {
+    var library = await checkLibrary('''
+class C<T extends D<T>> {}
+class D<T> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class C<T extends D<T>> {
+}
+class D<T> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_dependency_with_type_params() async {
+    // C's type parameter T is simply bounded because even though it refers to
+    // non-simply-bounded type D, it specifies a bound.
+    var library = await checkLibrary('''
+class C<T extends D<dynamic>> {}
+class D<T extends D<T>> {}
+''');
+    checkElementText(library, r'''
+class C<T extends D<dynamic>> {
+}
+notSimplyBounded class D<T extends D<T>> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type() async {
+    var library = await checkLibrary('''
+class C<T extends void Function(T)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class C<T extends (T) → void> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_function_typed_bound_complex_via_return_type() async {
+    var library = await checkLibrary('''
+class C<T extends T Function()> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class C<T extends () → T> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_function_typed_bound_simple() async {
+    var library = await checkLibrary('''
+class C<T extends void Function()> {}
+''');
+    checkElementText(library, r'''
+class C<T extends () → void> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_refers_to_circular_typedef() async {
+    // C's type parameter T has a bound of F, which is a circular typedef.  This
+    // is illegal in Dart, but we need to make sure it doesn't lead to a crash
+    // or infinite loop.
+    var library = await checkLibrary('''
+class C<T extends F> {}
+typedef F(G value);
+typedef G(F value);
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function(((...) → dynamic) → dynamic value);
+notSimplyBounded typedef G = dynamic Function(((...) → dynamic) → dynamic value);
+notSimplyBounded class C<T extends ((...) → dynamic) → dynamic> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_self() async {
+    var library = await checkLibrary('''
+class C<T extends C> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class C<T extends C<dynamic>> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_simple_because_non_generic() async {
+    // If no type parameters are specified, then the class is simply bounded, so
+    // there is no reason to assign it a slot.
+    var library = await checkLibrary('''
+class C {}
+''');
+    checkElementText(library, r'''
+class C {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_simple_by_lack_of_cycles() async {
+    var library = await checkLibrary('''
+class C<T extends D> {}
+class D<T> {}
+''');
+    checkElementText(library, r'''
+class C<T extends D<dynamic>> {
+}
+class D<T> {
+}
+''');
+  }
+
+  test_class_notSimplyBounded_simple_by_syntax() async {
+    // If no bounds are specified, then the class is simply bounded by syntax
+    // alone, so there is no reason to assign it a slot.
+    var library = await checkLibrary('''
+class C<T> {}
+''');
+    checkElementText(library, r'''
+class C<T> {
 }
 ''');
   }
@@ -7824,6 +8053,58 @@ void f<T, U>() {}
 ''');
   }
 
+  test_new_typedef_notSimplyBounded_self() async {
+    var library = await checkLibrary('''
+typedef F<T extends F> = void Function();
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F<T extends () → void> = void Function();
+''');
+  }
+
+  test_new_typedef_notSimplyBounded_simple_no_bounds() async {
+    var library = await checkLibrary('''
+typedef F<T> = void Function();
+''');
+    checkElementText(library, r'''
+typedef F<T> = void Function();
+''');
+  }
+
+  test_new_typedef_notSimplyBounded_simple_non_generic() async {
+    var library = await checkLibrary('''
+typedef F = void Function();
+''');
+    checkElementText(library, r'''
+typedef F = void Function();
+''');
+  }
+
+  test_old_typedef_notSimplyBounded_self() async {
+    var library = await checkLibrary('''
+typedef void F<T extends F>();
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F<T extends () → void> = void Function();
+''');
+  }
+
+  test_old_typedef_notSimplyBounded_simple_because_non_generic() async {
+    var library = await checkLibrary('''
+typedef void F();
+''');
+    checkElementText(library, r'''
+typedef F = void Function();
+''');
+  }
+
+  test_old_typedef_notSimplyBounded_simple_no_bounds() async {
+    var library = await checkLibrary('typedef void F<T>();');
+    checkElementText(library, r'''
+typedef F<T> = void Function();
+''');
+  }
+
   test_operator() async {
     var library =
         await checkLibrary('class C { C operator+(C other) => null; }');
@@ -8810,6 +9091,76 @@ class A {
 typedef Foo<S> = S Function<T>(T x);
 class A {
   <T>(T) → int f;
+}
+''');
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() async {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    var library = await checkLibrary('''
+typedef F = void Function(C c);
+class C<T extends C<T>> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() async {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    var library = await checkLibrary('''
+typedef F = void Function(C);
+class C<T extends C<T>> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<C<dynamic>> );
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_param_type_old_style() async {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    var library = await checkLibrary('''
+typedef void F(C c);
+class C<T extends C<T>> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_return_type_new_style() async {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    var library = await checkLibrary('''
+typedef F = C Function();
+class C<T extends C<T>> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = C<C<dynamic>> Function();
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+  }
+
+  test_typedef_notSimplyBounded_dependency_via_return_type_old_style() async {
+    // F is considered "not simply bounded" because it expands to a type that
+    // refers to C, which is not simply bounded.
+    var library = await checkLibrary('''
+typedef C F();
+class C<T extends C<T>> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = C<C<dynamic>> Function();
+notSimplyBounded class C<T extends C<T>> {
 }
 ''');
   }

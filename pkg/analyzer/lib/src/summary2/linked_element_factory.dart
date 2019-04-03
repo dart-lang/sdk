@@ -344,6 +344,9 @@ class _ElementRequest {
       } else if (kind == LinkedNodeKind.functionTypeAlias) {
         var name = unitContext.getUnitMemberName(declaration);
         typeAliasRef.getChild(name).node = declaration;
+      } else if (kind == LinkedNodeKind.genericTypeAlias) {
+        var name = unitContext.getUnitMemberName(declaration);
+        typeAliasRef.getChild(name).node = declaration;
       } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
         var variables = declaration.topLevelVariableDeclaration_variableList;
         for (var variable in variables.variableDeclarationList_variables) {

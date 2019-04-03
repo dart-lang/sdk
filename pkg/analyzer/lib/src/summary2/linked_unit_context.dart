@@ -191,7 +191,9 @@ class LinkedUnitContext {
 
   DartType getTypeAnnotationType(LinkedNode node) {
     var kind = node.kind;
-    if (kind == LinkedNodeKind.typeName) {
+    if (kind == LinkedNodeKind.genericFunctionType) {
+      return getType(node.genericFunctionType_type);
+    } else if (kind == LinkedNodeKind.typeName) {
       return getType(node.typeName_type);
     } else {
       throw UnimplementedError('$kind');
