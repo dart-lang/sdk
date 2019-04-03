@@ -2151,19 +2151,22 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _genTypeArguments([node.typeArgument]);
 
-    _genDupTOS(locals.tempIndexInFrame(node));
+    if (node.expressions.isEmpty) {
+      asm.emitPushConstant(
+          cp.addObjectRef(new ListConstant(const DynamicType(), const [])));
+    } else {
+      _genDupTOS(locals.tempIndexInFrame(node));
+      _genPushInt(node.expressions.length);
+      asm.emitCreateArrayTOS();
+      final int temp = locals.tempIndexInFrame(node);
+      asm.emitStoreLocal(temp);
 
-    // TODO(alexmarkov): gen more efficient code for empty array
-    _genPushInt(node.expressions.length);
-    asm.emitCreateArrayTOS();
-    final int temp = locals.tempIndexInFrame(node);
-    asm.emitStoreLocal(temp);
-
-    for (int i = 0; i < node.expressions.length; i++) {
-      asm.emitPush(temp);
-      _genPushInt(i);
-      _generateNode(node.expressions[i]);
-      asm.emitStoreIndexedTOS();
+      for (int i = 0; i < node.expressions.length; i++) {
+        asm.emitPush(temp);
+        _genPushInt(i);
+        _generateNode(node.expressions[i]);
+        asm.emitStoreIndexedTOS();
+      }
     }
 
     // List._fromLiteral is a factory constructor.
