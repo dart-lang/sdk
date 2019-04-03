@@ -37,7 +37,6 @@ final String testConfigDir = p.join('test', 'configs');
 
 /// Rule tests
 defineRuleTests() {
-  // TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
     group('dart', () {
       // Rule tests run with default analysis options.
