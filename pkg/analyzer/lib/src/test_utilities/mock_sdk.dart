@@ -340,6 +340,7 @@ abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int end]);
   List<int> get codeUnits;
+  int indexOf(Pattern pattern, [int start]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;

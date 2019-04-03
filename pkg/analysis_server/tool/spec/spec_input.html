@@ -3892,13 +3892,14 @@
       <field name="lexeme">
         <ref>String</ref>
         <p>
-          The raw token text.
+          The token's lexeme.
         </p>
       </field>
-      <field name="type">
+      <field name="type" optional="true">
         <ref>String</ref>
         <p>
-          The type of this token.
+          A unique id for the type of the identifier.
+          Omitted if the token is not an identifier in a reference position.
         </p>
       </field>
       <field name="validElementKinds" optional="true">
@@ -3906,7 +3907,10 @@
           <ref>String</ref>
         </list>
         <p>
-          The kinds of elements which could validly replace this token.
+          An indication of whether this token is in a declaration or reference
+          position. (If no other purpose is found for this field then it should
+          be renamed and converted to a boolean value.)
+          Omitted if the token is not an identifier.
         </p>
       </field>
     </object>

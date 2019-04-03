@@ -21541,7 +21541,7 @@ class ServerStatusParams implements HasToJson {
  *
  * {
  *   "lexeme": String
- *   "type": String
+ *   "type": optional String
  *   "validElementKinds": optional List<String>
  * }
  *
@@ -21555,12 +21555,12 @@ class TokenDetails implements HasToJson {
   List<String> _validElementKinds;
 
   /**
-   * The raw token text.
+   * The token's lexeme.
    */
   String get lexeme => _lexeme;
 
   /**
-   * The raw token text.
+   * The token's lexeme.
    */
   void set lexeme(String value) {
     assert(value != null);
@@ -21568,31 +21568,38 @@ class TokenDetails implements HasToJson {
   }
 
   /**
-   * The type of this token.
+   * A unique id for the type of the identifier. Omitted if the token is not an
+   * identifier in a reference position.
    */
   String get type => _type;
 
   /**
-   * The type of this token.
+   * A unique id for the type of the identifier. Omitted if the token is not an
+   * identifier in a reference position.
    */
   void set type(String value) {
-    assert(value != null);
     this._type = value;
   }
 
   /**
-   * The kinds of elements which could validly replace this token.
+   * An indication of whether this token is in a declaration or reference
+   * position. (If no other purpose is found for this field then it should be
+   * renamed and converted to a boolean value.) Omitted if the token is not an
+   * identifier.
    */
   List<String> get validElementKinds => _validElementKinds;
 
   /**
-   * The kinds of elements which could validly replace this token.
+   * An indication of whether this token is in a declaration or reference
+   * position. (If no other purpose is found for this field then it should be
+   * renamed and converted to a boolean value.) Omitted if the token is not an
+   * identifier.
    */
   void set validElementKinds(List<String> value) {
     this._validElementKinds = value;
   }
 
-  TokenDetails(String lexeme, String type, {List<String> validElementKinds}) {
+  TokenDetails(String lexeme, {String type, List<String> validElementKinds}) {
     this.lexeme = lexeme;
     this.type = type;
     this.validElementKinds = validElementKinds;
@@ -21613,8 +21620,6 @@ class TokenDetails implements HasToJson {
       String type;
       if (json.containsKey("type")) {
         type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "type");
       }
       List<String> validElementKinds;
       if (json.containsKey("validElementKinds")) {
@@ -21623,8 +21628,8 @@ class TokenDetails implements HasToJson {
             json["validElementKinds"],
             jsonDecoder.decodeString);
       }
-      return new TokenDetails(lexeme, type,
-          validElementKinds: validElementKinds);
+      return new TokenDetails(lexeme,
+          type: type, validElementKinds: validElementKinds);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "TokenDetails", json);
     }
@@ -21634,7 +21639,9 @@ class TokenDetails implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["lexeme"] = lexeme;
-    result["type"] = type;
+    if (type != null) {
+      result["type"] = type;
+    }
     if (validElementKinds != null) {
       result["validElementKinds"] = validElementKinds;
     }
