@@ -76,17 +76,3 @@ index aed4d561d..ca6f1c3fe 100644
        ]
      }
    } else if (is_win) {
-diff --git a/tools/gn b/tools/gn
-index 7dacacf06..83bd7d9da 100755
---- a/tools/gn
-+++ b/tools/gn
-@@ -134,6 +134,9 @@ def to_gn_args(args):
-     else:
-         gn_args['dart_runtime_mode'] = runtime_mode
- 
-+    gn_args['is_release'] = gn_args['dart_runtime_mode'] == 'profile'
-+    gn_args['is_product'] = gn_args['dart_runtime_mode'] == 'release'
-+
-     if args.dart_debug:
-         gn_args['dart_debug'] = True
- 

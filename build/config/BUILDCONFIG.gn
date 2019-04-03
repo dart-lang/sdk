@@ -109,6 +109,12 @@ declare_args() {
   # Debug build.
   is_debug = true
 
+  # Release build.
+  is_release = false
+
+  # Product build.
+  is_product = false
+
   # Set to true when compiling with the Clang compiler. Typically this is used
   # to configure warnings.
   is_clang = current_os == "mac" || current_os == "linux"
@@ -195,8 +201,6 @@ if (current_os == "win") {
 if (!is_clang && (is_asan || is_lsan || is_tsan || is_msan)) {
   is_clang = true
 }
-
-import("runtime/runtime_args.gni")
 
 # =============================================================================
 # TARGET DEFAULTS
