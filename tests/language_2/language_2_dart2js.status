@@ -480,7 +480,6 @@ deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
 enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
 expect_test: RuntimeError, OK # Issue 13080

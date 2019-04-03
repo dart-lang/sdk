@@ -17,10 +17,10 @@ main() {
   Expect.equals(3, sub.u);
 
   sub = new Sub.stat();
-  Expect.equals(0, sub.x);
-  Expect.equals(1, sub.y);
-  Expect.equals(2, sub.v);
-  Expect.equals(3, sub.w);
+  Expect.equals(2, sub.x);
+  Expect.equals(3, sub.y);
+  Expect.equals(0, sub.v);
+  Expect.equals(1, sub.w);
   Expect.equals(4, sub.z);
   Expect.equals(5, sub.u);
 }

@@ -48,7 +48,6 @@ deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
 deferred_static_seperate_test: RuntimeError
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
 example_constructor_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -713,7 +712,6 @@ deferred_redirecting_factory_test: CompileTimeError, Fail, Crash # Issue 23408, 
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError # Issue 31533
 enum_mirror_test: SkipByDesign
 example_constructor_test: Fail, OK
 export_ambiguous_main_test: Skip # Issue 29895 Fail Issue 14763
@@ -870,7 +868,6 @@ const_constructor3_test/04: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
@@ -1260,7 +1257,6 @@ deferred_redirecting_factory_test: RuntimeError # KernelVM bug: Deferred loading
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 disassemble_test: Pass, Slow, Crash # dartbug.com/34971
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError # Issue 31533
 example_constructor_test: Fail, OK
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.

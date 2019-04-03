@@ -17,7 +17,6 @@ const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expressio
 const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
-emit_const_fields_test: CompileTimeError # failing-by-design: #34340
 enum_syntax_test/05: Fail # Issue 34341
 enum_syntax_test/06: Fail # Issue 34341
 f_bounded_quantification2_test: CompileTimeError # Issue 34583

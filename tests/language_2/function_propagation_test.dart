@@ -12,14 +12,12 @@ typedef int F(String str);
 
 main() {
   var a = new A();
-  Expect.isFalse(a is A);
-
-  var a2 = new A();
-  Expect.isFalse(a is F);
+  Expect.type<A>(a);
+  Expect.notType<F>(a);
 
   Function a3 = new A();
-  Expect.isFalse(a3 is A);
+  Expect.notType<A>(a3);
 
   F a4 = new A();
-  Expect.isFalse(a4 is A);
+  Expect.notType<A>(a4);
 }

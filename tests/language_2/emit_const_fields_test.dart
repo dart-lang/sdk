@@ -17,5 +17,5 @@ class Guide {
 
 main() {
   Expect.isTrue(42 == Guide.LTUAE);
-  Expect.isTrue("1978-03-08" == Guide.EARTH["Status"][1]);
+  Expect.isTrue("1978-03-08" == (Guide.EARTH["Status"] as List)[1]);
 }
