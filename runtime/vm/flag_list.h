@@ -57,8 +57,6 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Debugger support async functions.")                                       \
   P(background_compilation, bool, USING_MULTICORE,                             \
     "Run optimizing compilation in background")                                \
-  R(background_compilation_stop_alot, false, bool, false,                      \
-    "Stress test system: stop background compiler often.")                     \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(collect_code, bool, true, "Attempt to GC infrequently used code.")         \
   P(collect_dynamic_function_names, bool, true,                                \
