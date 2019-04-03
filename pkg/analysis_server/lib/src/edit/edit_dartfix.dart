@@ -11,8 +11,6 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart'
-    show processNonNullablePackage;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -93,11 +91,9 @@ class EditDartFix
       }
     }
 
-    // NNBD update analysis options file(s).
-    if (fixInfo.contains(nnbdFix)) {
-      for (Folder pkgFolder in pkgFolders) {
-        processNonNullablePackage(pkgFolder, listener);
-      }
+    // Process each package
+    for (Folder pkgFolder in pkgFolders) {
+      await processPackage(pkgFolder);
     }
 
     // Process each source file.
