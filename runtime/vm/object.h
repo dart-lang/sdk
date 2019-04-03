@@ -2514,7 +2514,15 @@ class Function : public Object {
   // deoptimize, since we won't generate deoptimization info or register
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
-  bool ForceOptimize() const { return IsFfiTrampoline(); }
+  bool ForceOptimize() const {
+    return IsFfiTrampoline()
+    // On DBC we use native calls instead of IR for the view factories (see
+    // kernel_to_il.cc)
+#if !defined(TARGET_ARCH_DBC)
+           || IsTypedDataViewFactory()
+#endif
+        ;
+  }
 
   bool CanBeInlined() const;
 
@@ -2696,6 +2704,15 @@ class Function : public Object {
 
   bool IsAsyncOrGenerator() const {
     return modifier() != RawFunction::kNoModifier;
+  }
+
+  bool IsTypedDataViewFactory() const {
+    if (is_native() && kind() == RawFunction::kConstructor) {
+      // This is a native factory constructor.
+      const Class& klass = Class::Handle(Owner());
+      return RawObject::IsTypedDataViewClassId(klass.id());
+    }
+    return false;
   }
 
   DART_WARN_UNUSED_RESULT
@@ -6912,7 +6929,7 @@ class Smi : public Integer {
   static const intptr_t kMaxValue = kSmiMax;
   static const intptr_t kMinValue = kSmiMin;
 
-  intptr_t Value() const { return ValueFromRaw(raw_value()); }
+  intptr_t Value() const { return ValueFromRawSmi(raw()); }
 
   virtual bool Equals(const Instance& other) const;
   virtual bool IsZero() const { return Value() == 0; }
@@ -6929,9 +6946,10 @@ class Smi : public Integer {
   static intptr_t InstanceSize() { return 0; }
 
   static RawSmi* New(intptr_t value) {
-    intptr_t raw_smi = (value << kSmiTagShift) | kSmiTag;
-    ASSERT(ValueFromRaw(raw_smi) == value);
-    return reinterpret_cast<RawSmi*>(raw_smi);
+    RawSmi* raw_smi =
+        reinterpret_cast<RawSmi*>((value << kSmiTagShift) | kSmiTag);
+    ASSERT(ValueFromRawSmi(raw_smi) == value);
+    return raw_smi;
   }
 
   static RawSmi* FromAlignedAddress(uword address) {
@@ -6942,7 +6960,7 @@ class Smi : public Integer {
   static RawClass* Class();
 
   static intptr_t Value(const RawSmi* raw_smi) {
-    return ValueFromRaw(reinterpret_cast<uword>(raw_smi));
+    return ValueFromRawSmi(raw_smi);
   }
 
   static intptr_t RawValue(intptr_t value) {
@@ -6966,12 +6984,6 @@ class Smi : public Integer {
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
     return -kWordSize;
-  }
-
-  static intptr_t ValueFromRaw(uword raw_value) {
-    intptr_t value = raw_value;
-    ASSERT((value & kSmiTagMask) == kSmiTag);
-    return (value >> kSmiTagShift);
   }
 
   static cpp_vtable handle_vtable_;
@@ -8299,32 +8311,86 @@ class Float64x2 : public Instance {
   friend class Class;
 };
 
-class TypedData : public Instance {
+class TypedDataBase : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawTypedDataBase, length_);
+  }
+
+  static intptr_t data_field_offset() {
+    return OFFSET_OF(RawTypedDataBase, data_);
+  }
+
+  RawSmi* length() const { return raw_ptr()->length_; }
 
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
   }
 
-  intptr_t ElementSizeInBytes() const {
-    intptr_t cid = raw()->GetClassId();
-    return ElementSizeInBytes(cid);
+  intptr_t LengthInBytes() const {
+    return ElementSizeInBytes(raw()->GetClassId()) * Length();
   }
 
   TypedDataElementType ElementType() const {
-    intptr_t cid = raw()->GetClassId();
-    return ElementType(cid);
+    return ElementType(raw()->GetClassId());
   }
 
-  intptr_t LengthInBytes() const {
-    intptr_t cid = raw()->GetClassId();
-    return (ElementSizeInBytes(cid) * Length());
+  intptr_t ElementSizeInBytes() const {
+    return element_size(ElementType(raw()->GetClassId()));
   }
+
+  static intptr_t ElementSizeInBytes(classid_t cid) {
+    return element_size(ElementType(cid));
+  }
+
+  static TypedDataElementType ElementType(classid_t cid) {
+    if (cid == kByteDataViewCid) {
+      return kUint8ArrayElement;
+    } else if (RawObject::IsTypedDataClassId(cid)) {
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 3;
+      return static_cast<TypedDataElementType>(index);
+    } else if (RawObject::IsTypedDataViewClassId(cid)) {
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 3;
+      return static_cast<TypedDataElementType>(index);
+    } else {
+      ASSERT(RawObject::IsExternalTypedDataClassId(cid));
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 3;
+      return static_cast<TypedDataElementType>(index);
+    }
+  }
+
+ protected:
+  void SetLength(intptr_t value) const {
+    ASSERT(value <= Smi::kMaxValue);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
+  }
+
+ private:
+  friend class Class;
+
+  static intptr_t element_size(intptr_t index) {
+    ASSERT(0 <= index && index < kNumElementSizes);
+    intptr_t size = element_size_table[index];
+    ASSERT(size != 0);
+    return size;
+  }
+  static const intptr_t kNumElementSizes =
+      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 3 + 1;
+  static const intptr_t element_size_table[kNumElementSizes];
+
+  HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, Instance);
+};
+
+class TypedData : public TypedDataBase {
+ public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
 
   void* DataAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset == 0) ||
@@ -8364,31 +8430,17 @@ class TypedData : public Instance {
 
 #undef TYPED_GETTER_SETTER
 
-  static intptr_t length_offset() { return OFFSET_OF(RawTypedData, length_); }
-
-  static intptr_t data_offset() {
-    return OFFSET_OF_RETURNED_VALUE(RawTypedData, data);
-  }
+  static intptr_t data_offset() { return RawTypedData::payload_offset(); }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTypedData) ==
-           OFFSET_OF_RETURNED_VALUE(RawTypedData, data));
+           OFFSET_OF_RETURNED_VALUE(RawTypedData, internal_data));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t lengthInBytes) {
     ASSERT(0 <= lengthInBytes && lengthInBytes <= kSmiMax);
     return RoundedAllocationSize(sizeof(RawTypedData) + lengthInBytes);
-  }
-
-  static intptr_t ElementSizeInBytes(intptr_t class_id) {
-    ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return element_size(ElementType(class_id));
-  }
-
-  static TypedDataElementType ElementType(intptr_t class_id) {
-    ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return static_cast<TypedDataElementType>(class_id - kTypedDataInt8ArrayCid);
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
@@ -8460,9 +8512,7 @@ class TypedData : public Instance {
   }
 
  protected:
-  void SetLength(intptr_t value) const {
-    StoreSmi(&raw_ptr()->length_, Smi::New(value));
-  }
+  void RecomputeDataField() { raw()->RecomputeDataField(); }
 
  private:
   // Provides const access to non-pointer, non-aligned data within the object.
@@ -8477,47 +8527,17 @@ class TypedData : public Instance {
                                               byte_offset);
   }
 
-  static intptr_t element_size(intptr_t index) {
-    ASSERT(0 <= index && index < kNumElementSizes);
-    intptr_t size = element_size_table[index];
-    ASSERT(size != 0);
-    return size;
-  }
-  static const intptr_t kNumElementSizes =
-      kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid + 1;
-  static const intptr_t element_size_table[kNumElementSizes];
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, TypedDataBase);
   friend class Class;
   friend class ExternalTypedData;
   friend class TypedDataView;
 };
 
-class ExternalTypedData : public Instance {
+class ExternalTypedData : public TypedDataBase {
  public:
   // Alignment of data when serializing ExternalTypedData in a clustered
   // snapshot. Should be independent of word size.
   static const int kDataSerializationAlignment = 8;
-
-  intptr_t Length() const {
-    ASSERT(!IsNull());
-    return Smi::Value(raw_ptr()->length_);
-  }
-
-  intptr_t ElementSizeInBytes() const {
-    intptr_t cid = raw()->GetClassId();
-    return ElementSizeInBytes(cid);
-  }
-
-  TypedDataElementType ElementType() const {
-    intptr_t cid = raw()->GetClassId();
-    return ElementType(cid);
-  }
-
-  intptr_t LengthInBytes() const {
-    intptr_t cid = raw()->GetClassId();
-    return (ElementSizeInBytes(cid) * Length());
-  }
 
   void* DataAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset == 0) ||
@@ -8553,27 +8573,12 @@ class ExternalTypedData : public Instance {
       Dart_WeakPersistentHandleFinalizer callback,
       intptr_t external_size) const;
 
-  static intptr_t length_offset() {
-    return OFFSET_OF(RawExternalTypedData, length_);
-  }
-
   static intptr_t data_offset() {
     return OFFSET_OF(RawExternalTypedData, data_);
   }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalTypedData));
-  }
-
-  static intptr_t ElementSizeInBytes(intptr_t class_id) {
-    ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return TypedData::element_size(ElementType(class_id));
-  }
-
-  static TypedDataElementType ElementType(intptr_t class_id) {
-    ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return static_cast<TypedDataElementType>(class_id -
-                                             kExternalTypedDataInt8ArrayCid);
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
@@ -8594,6 +8599,7 @@ class ExternalTypedData : public Instance {
 
  protected:
   void SetLength(intptr_t value) const {
+    ASSERT(value <= Smi::kMaxValue);
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
@@ -8604,28 +8610,22 @@ class ExternalTypedData : public Instance {
   }
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData, TypedDataBase);
   friend class Class;
 };
 
-class TypedDataView : public Instance {
+class TypedDataView : public TypedDataBase {
  public:
   static RawTypedDataView* New(intptr_t class_id,
                                Heap::Space space = Heap::kNew);
   static RawTypedDataView* New(intptr_t class_id,
-                               const Instance& typed_data,
+                               const TypedDataBase& typed_data,
                                intptr_t offset_in_bytes,
                                intptr_t length,
                                Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypedDataView));
-  }
-
-  static intptr_t ElementSizeInBytes(const TypedDataView& view_obj) {
-    ASSERT(!view_obj.IsNull());
-    intptr_t cid = view_obj.raw()->GetClassId();
-    return ElementSizeInBytes(cid);
   }
 
   static RawInstance* Data(const TypedDataView& view) {
@@ -8635,8 +8635,6 @@ class TypedDataView : public Instance {
   static RawSmi* OffsetInBytes(const TypedDataView& view) {
     return view.offset_in_bytes();
   }
-
-  static RawSmi* Length(const TypedDataView& view) { return view.length(); }
 
   static bool IsExternalTypedDataView(const TypedDataView& view_obj) {
     const auto& data = Instance::Handle(Data(view_obj));
@@ -8650,49 +8648,42 @@ class TypedDataView : public Instance {
     return OFFSET_OF(RawTypedDataView, typed_data_);
   }
 
-  static intptr_t length_offset() {
-    return OFFSET_OF(RawTypedDataView, length_);
-  }
-
   static intptr_t offset_in_bytes_offset() {
     return OFFSET_OF(RawTypedDataView, offset_in_bytes_);
   }
 
-  static intptr_t ElementSizeInBytes(intptr_t class_id) {
-    ASSERT(RawObject::IsTypedDataViewClassId(class_id));
-    return (class_id == kByteDataViewCid)
-               ? 1
-               : TypedData::element_size(class_id - kTypedDataInt8ArrayViewCid);
-  }
-
   RawInstance* typed_data() const { return raw_ptr()->typed_data_; }
 
-  void set_typed_data(const Instance& typed_data) {
+  void InitializeWith(const TypedDataBase& typed_data,
+                      intptr_t offset_in_bytes,
+                      intptr_t length) {
     const classid_t cid = typed_data.GetClassId();
     ASSERT(RawObject::IsTypedDataClassId(cid) ||
            RawObject::IsExternalTypedDataClassId(cid));
     StorePointer(&raw_ptr()->typed_data_, typed_data.raw());
-  }
+    StoreSmi(&raw_ptr()->length_, Smi::New(length));
+    StoreSmi(&raw_ptr()->offset_in_bytes_, Smi::New(offset_in_bytes));
 
-  void set_length(intptr_t value) {
-    StorePointer(&raw_ptr()->length_, Smi::New(value));
-  }
-
-  void set_offset_in_bytes(intptr_t value) {
-    StorePointer(&raw_ptr()->offset_in_bytes_, Smi::New(value));
+    // Update the inner pointer.
+    RecomputeDataField();
   }
 
   RawSmi* offset_in_bytes() const { return raw_ptr()->offset_in_bytes_; }
 
-  RawSmi* length() const { return raw_ptr()->length_; }
-
  private:
-  void clear_typed_data() {
-    StorePointer(&raw_ptr()->typed_data_, Instance::RawCast(Object::null()));
+  void RecomputeDataField() { raw()->RecomputeDataField(); }
+
+  void Clear() {
+    StoreSmi(&raw_ptr()->length_, Smi::New(0));
+    StoreSmi(&raw_ptr()->offset_in_bytes_, Smi::New(0));
+    StoreNonPointer(&raw_ptr()->data_, nullptr);
+    StorePointer(&raw_ptr()->typed_data_,
+                 TypedDataBase::RawCast(Object::null()));
   }
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, TypedDataBase);
   friend class Class;
+  friend class TypedDataViewDeserializationCluster;
 };
 
 class ByteBuffer : public AllStatic {

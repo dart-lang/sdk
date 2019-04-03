@@ -1358,6 +1358,10 @@ void Float64x2::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("valueAsString", ToCString());
 }
 
+void TypedDataBase::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
 void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

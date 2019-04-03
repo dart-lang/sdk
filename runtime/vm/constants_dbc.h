@@ -490,6 +490,10 @@ namespace dart {
 //    stored in the following Nop instruction. Used to access fields with
 //    large offsets.
 //
+//  - StoreUntagged rA, B, rC
+//
+//    Like StoreField, but assumes that FP[rC] is untagged.
+//
 //  - StoreFieldTOS D
 //
 //    Store value SP[0] into object SP[-1] at offset (in words) D.
@@ -906,6 +910,7 @@ namespace dart {
   V(LoadIndexedUntaggedFloat64,        A_B_C, reg, reg, reg) \
   V(StoreField,                        A_B_C, reg, num, reg) \
   V(StoreFieldExt,                       A_D, reg, reg, ___) \
+  V(StoreUntagged,                     A_B_C, reg, num, reg) \
   V(StoreFieldTOS,                         D, num, ___, ___) \
   V(LoadField,                         A_B_C, reg, reg, num) \
   V(LoadFieldExt,                        A_D, reg, reg, ___) \

@@ -59,16 +59,17 @@ void BlockScheduler::AssignEdgeWeights() const {
     return;
   }
 
+  const Function& function = flow_graph()->parsed_function().function();
   const Array& ic_data_array =
-      Array::Handle(flow_graph()->zone(),
-                    flow_graph()->parsed_function().function().ic_data_array());
+      Array::Handle(flow_graph()->zone(), function.ic_data_array());
   if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
     // Deferred loading cleared ic_data_array.
     Compiler::AbortBackgroundCompilation(
         DeoptId::kNone, "BlockScheduler: ICData array cleared");
   }
   if (ic_data_array.IsNull()) {
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload() ||
+                 function.ForceOptimize());
     return;
   }
   Array& edge_counters = Array::Handle();
