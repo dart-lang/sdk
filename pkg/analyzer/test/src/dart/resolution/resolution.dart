@@ -42,6 +42,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Element get dynamicElement => typeProvider.dynamicType.element;
 
+  bool get enableUnusedElement => false;
+
+  bool get enableUnusedLocalVariable => false;
+
   ClassElement get intElement => typeProvider.intType.element;
 
   InterfaceType get intType => typeProvider.intType;
@@ -61,6 +65,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Whether `DartType.toString()` with nullability should be asked.
   bool get typeToStringWithNullability => false;
+
+  VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
     newFile('/test/lib/test.dart', content: content);
@@ -143,10 +149,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
     expect(element.enclosingElement, expectedEnclosing);
   }
-
-  bool get enableUnusedLocalVariable => false;
-
-  bool get enableUnusedElement => false;
 
   /**
    * Assert that the number of error codes in reported [errors] matches the
