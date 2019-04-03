@@ -116,6 +116,7 @@ class Linker {
     _resolveTypes();
     _performTopLevelInference();
     _resolveConstructors();
+    _resolveDefaultValues();
     _resolveMetadata();
   }
 
@@ -197,6 +198,12 @@ class Linker {
   void _resolveConstructors() {
     for (var library in builders.values) {
       library.resolveConstructors();
+    }
+  }
+
+  void _resolveDefaultValues() {
+    for (var library in builders.values) {
+      library.resolveDefaultValues();
     }
   }
 

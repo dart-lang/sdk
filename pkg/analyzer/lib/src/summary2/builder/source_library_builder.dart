@@ -10,6 +10,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
+import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -259,6 +260,10 @@ class SourceLibraryBuilder {
 
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, reference).resolve();
+  }
+
+  void resolveDefaultValues() {
+    DefaultValueResolver(linker, reference).resolve();
   }
 
   void resolveMetadata() {

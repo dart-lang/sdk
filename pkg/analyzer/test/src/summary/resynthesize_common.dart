@@ -4756,6 +4756,29 @@ void defaultF<T>(T v) {}
 ''');
   }
 
+  test_defaultValue_refersToGenericClass() async {
+    var library = await checkLibrary('''
+class B<T1, T2> {
+  const B();
+}
+class C {
+  void foo([B<int, double> b = const B()]) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class B<T1, T2> {
+  const B();
+}
+class C {
+  void foo([B<int, double> b = const /*typeArgs=int,double*/
+        B/*location: test.dart;B*/()]) {}
+}
+''',
+        withTypes: true);
+  }
+
   test_defaultValue_refersToGenericClass_constructor() async {
     var library = await checkLibrary('''
 class B<T> {
@@ -4765,7 +4788,21 @@ class C<T> {
   const C([B<T> b = const B()]);
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const /*typeArgs=Null*/
+        B/*location: test.dart;B*/()]);
+}
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -4774,6 +4811,7 @@ class C<T> {
         B/*location: test.dart;B*/()]);
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_constructor2() async {
@@ -4786,7 +4824,23 @@ class C<T> implements A<Iterable<T>> {
   const C([A<T> a = const B()]);
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          r'''
+abstract class A<T> {
+}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const /*typeArgs=Null*/
+        B/*location: test.dart;B*/()]);
+}
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, r'''
 abstract class A<T> {
 }
 class B<T> implements A<T> {
@@ -4797,6 +4851,7 @@ class C<T> implements A<Iterable<T>> {
         B/*location: test.dart;B*/()]);
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_functionG() async {
@@ -4806,13 +4861,26 @@ class B<T> {
 }
 void foo<T>([B<T> b = const B()]) {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+void foo<T>([B<T> b = const /*typeArgs=Null*/
+        B/*location: test.dart;B*/()]) {}
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
 void foo<T>([B<T> b = const
         B/*location: test.dart;B*/()]) {}
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodG() async {
@@ -4824,7 +4892,21 @@ class C {
   void foo<T>([B<T> b = const B()]) {}
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C {
+  void foo<T>([B<T> b = const /*typeArgs=Null*/
+        B/*location: test.dart;B*/()]) {}
+}
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -4833,6 +4915,7 @@ class C {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodG_classG() async {
@@ -4844,7 +4927,21 @@ class C<E1> {
   void foo<E2>([B<E1, E2> b = const B()]) {}
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          r'''
+class B<T1, T2> {
+  const B();
+}
+class C<E1> {
+  void foo<E2>([B<E1, E2> b = const /*typeArgs=Null,Null*/
+        B/*location: test.dart;B*/()]) {}
+}
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, r'''
 class B<T1, T2> {
   const B();
 }
@@ -4853,6 +4950,7 @@ class C<E1> {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
+    }
   }
 
   test_defaultValue_refersToGenericClass_methodNG() async {
@@ -4864,7 +4962,21 @@ class C<T> {
   void foo([B<T> b = const B()]) {}
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          r'''
+class B<T> {
+  const B();
+}
+class C<T> {
+  void foo([B<T> b = const /*typeArgs=Null*/
+        B/*location: test.dart;B*/()]) {}
+}
+''',
+          withTypes: true);
+    } else {
+      checkElementText(library, r'''
 class B<T> {
   const B();
 }
@@ -4873,6 +4985,7 @@ class C<T> {
         B/*location: test.dart;B*/()]) {}
 }
 ''');
+    }
   }
 
   test_enum_documented() async {
@@ -6845,11 +6958,19 @@ export 'b.dart';
 import 'c.dart';
 foo([p = V]) {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+import 'c.dart';
+dynamic foo([dynamic p =
+        V/*location: a.dart;V*/]) {}
+''');
+    } else {
+      checkElementText(library, r'''
 import 'c.dart';
 dynamic foo([dynamic p =
         V/*location: null*/]) {}
 ''');
+    }
   }
 
   test_invalid_nameConflict_local() async {
@@ -6858,12 +6979,21 @@ foo([p = V]) {}
 V() {}
 var V;
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+dynamic V;
+dynamic foo([dynamic p =
+        V/*location: test.dart;V?*/]) {}
+dynamic V() {}
+''');
+    } else {
+      checkElementText(library, r'''
 dynamic V;
 dynamic foo([dynamic p =
         V/*location: null*/]) {}
 dynamic V() {}
 ''');
+    }
   }
 
   test_invalid_setterParameter_fieldFormalParameter() async {

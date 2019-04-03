@@ -710,6 +710,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       instanceCreationExpression_keyword: _getToken(node.keyword),
       instanceCreationExpression_typeArguments:
           nodeImpl.typeArguments?.accept(this),
+      expression_type: _writeType(node.staticType),
     );
   }
 

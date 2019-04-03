@@ -40,6 +40,12 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
+  test_defaultValue_refersToGenericClass() async {
+    await super.test_defaultValue_refersToGenericClass();
+  }
+
+  @override
+  @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
   }
