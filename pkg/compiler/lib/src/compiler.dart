@@ -78,7 +78,7 @@ abstract class Compiler {
 
   api.CompilerOutput get outputProvider => _outputProvider;
 
-  Uri _mainLibraryUri;
+  List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
   JClosedWorld backendClosedWorldForTesting;
 
@@ -252,7 +252,6 @@ abstract class Compiler {
         return;
       }
       if (options.cfeOnly) return;
-      _mainLibraryUri = result.rootLibraryUri;
 
       frontendStrategy.registerLoadedLibraries(result);
       for (Uri uri in result.libraries) {
@@ -400,6 +399,7 @@ abstract class Compiler {
   }
 
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
+    _userCodeLocations.add(new CodeLocation(rootLibraryUri));
     selfTask.measureSubtask("compileFromKernel", () {
       JClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
@@ -571,23 +571,9 @@ abstract class Compiler {
     if (element == null) return assumeInUserCode;
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return false;
-    Iterable<CodeLocation> userCodeLocations =
-        computeUserCodeLocations(assumeInUserCode: assumeInUserCode);
-    return userCodeLocations.any(
+    if (_userCodeLocations.isEmpty && assumeInUserCode) return true;
+    return _userCodeLocations.any(
         (CodeLocation codeLocation) => codeLocation.inSameLocation(libraryUri));
-  }
-
-  Iterable<CodeLocation> computeUserCodeLocations(
-      {bool assumeInUserCode: false}) {
-    List<CodeLocation> userCodeLocations = <CodeLocation>[];
-    if (_mainLibraryUri != null) {
-      userCodeLocations.add(new CodeLocation(_mainLibraryUri));
-    }
-    if (userCodeLocations.isEmpty && assumeInUserCode) {
-      // Assume in user code since [mainApp] has not been set yet.
-      userCodeLocations.add(const AnyLocation());
-    }
-    return userCodeLocations;
   }
 
   /// Return a canonical URI for the source of [element].
