@@ -1,0 +1,92 @@
+diff --git a/lib/io/dart_io.cc b/lib/io/dart_io.cc
+index 1b1866b4e..74f8bfc20 100644
+--- a/lib/io/dart_io.cc
++++ b/lib/io/dart_io.cc
+@@ -12,6 +12,8 @@ using tonic::ToDart;
+ 
+ namespace blink {
+ 
++#define DART_CHECK_VALID(handle) if (Dart_IsError(handle)) { Dart_PropagateError(handle); }
++
+ void DartIO::InitForIsolate() {
+   DART_CHECK_VALID(Dart_SetNativeResolver(Dart_LookupLibrary(ToDart("dart:io")),
+                                           dart::bin::LookupIONative,
+diff --git a/lib/ui/dart_runtime_hooks.cc b/lib/ui/dart_runtime_hooks.cc
+index 5145f1110..f9173d384 100644
+--- a/lib/ui/dart_runtime_hooks.cc
++++ b/lib/ui/dart_runtime_hooks.cc
+@@ -56,6 +56,8 @@ namespace blink {
+ 
+ BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
+ 
++#define DART_CHECK_VALID(handle) if (Dart_IsError(handle)) { Dart_PropagateError(handle); }
++
+ void DartRuntimeHooks::RegisterNatives(tonic::DartLibraryNatives* natives) {
+   natives->Register({BUILTIN_NATIVE_LIST(REGISTER_FUNCTION)});
+ }
+diff --git a/lib/ui/dart_ui.cc b/lib/ui/dart_ui.cc
+index f6aa54c1c..723e70f51 100644
+--- a/lib/ui/dart_ui.cc
++++ b/lib/ui/dart_ui.cc
+@@ -99,6 +99,8 @@ void DartUI::InitForGlobal() {
+   }
+ }
+ 
++#define DART_CHECK_VALID(handle) if (Dart_IsError(handle)) { Dart_PropagateError(handle); }
++
+ void DartUI::InitForIsolate(bool is_root_isolate) {
+   FML_DCHECK(g_natives);
+   auto get_native_function =
+diff --git a/lib/ui/plugins/callback_cache.cc b/lib/ui/plugins/callback_cache.cc
+index b2d4cc0d7..9979858af 100644
+--- a/lib/ui/plugins/callback_cache.cc
++++ b/lib/ui/plugins/callback_cache.cc
+@@ -21,6 +21,8 @@ using tonic::ToDart;
+ 
+ namespace blink {
+ 
++#define DART_CHECK_VALID(handle) if (Dart_IsError(handle)) { Dart_PropagateError(handle); }
++
+ static const char* kHandleKey = "handle";
+ static const char* kRepresentationKey = "representation";
+ static const char* kNameKey = "name";
+diff --git a/lib/ui/window/platform_message_response_dart.cc b/lib/ui/window/platform_message_response_dart.cc
+index 3a4084958..9d22b5a0c 100644
+--- a/lib/ui/window/platform_message_response_dart.cc
++++ b/lib/ui/window/platform_message_response_dart.cc
+@@ -16,6 +16,8 @@ namespace blink {
+ 
+ namespace {
+ 
++#define DART_CHECK_VALID(handle) if (Dart_IsError(handle)) { Dart_PropagateError(handle); }
++
+ // Avoid copying the contents of messages beyond a certain size.
+ const int kMessageCopyThreshold = 1000;
+ 
+diff --git a/shell/platform/BUILD.gn b/shell/platform/BUILD.gn
+index aed4d561d..ca6f1c3fe 100644
+--- a/shell/platform/BUILD.gn
++++ b/shell/platform/BUILD.gn
+@@ -17,7 +17,7 @@ group("platform") {
+       deps = []
+     } else {
+       deps = [
+-        "linux",
++#        "linux",
+       ]
+     }
+   } else if (is_win) {
+diff --git a/tools/gn b/tools/gn
+index 7dacacf06..83bd7d9da 100755
+--- a/tools/gn
++++ b/tools/gn
+@@ -134,6 +134,9 @@ def to_gn_args(args):
+     else:
+         gn_args['dart_runtime_mode'] = runtime_mode
+ 
++    gn_args['is_release'] = gn_args['dart_runtime_mode'] == 'profile'
++    gn_args['is_product'] = gn_args['dart_runtime_mode'] == 'release'
++
+     if args.dart_debug:
+         gn_args['dart_debug'] = True
+ 
