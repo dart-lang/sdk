@@ -174,9 +174,6 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     List<CompletionPerformance> completions = performanceItems;
 
     if (completions.isEmpty) {
@@ -246,8 +243,6 @@ class AstPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String path = params['file'];
     if (path == null) {
       p('No file path provided.');
@@ -274,8 +269,6 @@ class AstPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       _description = params['file'];
       await super.generatePage(params);
@@ -293,9 +286,6 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     void writeRow(List<String> data, {List<String> classes}) {
       buf.write("<tr>");
       for (int i = 0; i < data.length; i++) {
@@ -420,8 +410,6 @@ class ContextsPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     Map<Folder, AnalysisDriver> driverMap = server.driverMap;
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
@@ -600,14 +588,10 @@ abstract class DiagnosticPage extends Page {
   AbstractAnalysisServer get server => site.socketServer.analysisServer;
 
   Future<void> generateContainer(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     buf.writeln('<div class="columns docs-layout">');
     buf.writeln('<div class="three-fourths column markdown-body">');
     h1(title, classes: 'page-title');
     await asyncDiv(() async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       p(description);
       await generateContent(params);
     }, classes: 'markdown-body');
@@ -646,8 +630,6 @@ abstract class DiagnosticPage extends Page {
   }
 
   Future<void> generatePage(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     buf.writeln('<!DOCTYPE html><html lang="en">');
     buf.write('<head>');
     buf.write('<meta charset="utf-8">');
@@ -686,8 +668,6 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
   bool get showInNav => true;
 
   Future<void> generateContainer(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     buf.writeln('<div class="columns docs-layout">');
 
     bool shouldShowInNav(Page page) {
@@ -711,8 +691,6 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     buf.writeln('<div class="four-fifths column markdown-body">');
     h1(title, classes: 'page-title');
     await asyncDiv(() async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       p(description);
       await generateContent(params);
     }, classes: 'markdown-body');
@@ -792,8 +770,6 @@ class ElementModelPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     String path = params['file'];
     if (path == null) {
       p('No file path provided.');
@@ -820,8 +796,6 @@ class ElementModelPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       _description = params['file'];
       await super.generatePage(params);
@@ -839,8 +813,6 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     buf.writeln('<table>');
     buf.writeln('<tr><th>Variable</th><th>Value</th></tr>');
     for (String key in Platform.environment.keys.toList()..sort()) {
@@ -858,8 +830,6 @@ class ExceptionPage extends DiagnosticPage {
       : super(site, '', '500 Oops', description: message);
 
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     p(trace.toString(), style: 'white-space: pre');
   }
 }
@@ -875,8 +845,6 @@ class ExceptionsPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (exceptions.isEmpty) {
       blankslate('No exceptions encountered!');
     } else {
@@ -899,12 +867,10 @@ class FeedbackPage extends DiagnosticPage {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     final String issuesUrl = 'https://github.com/dart-lang/sdk/issues';
     p(
       'To file issues or feature requests, see our '
-          '<a href="$issuesUrl">bug tracker</a>. When filing an issue, please describe:',
+      '<a href="$issuesUrl">bug tracker</a>. When filing an issue, please describe:',
       raw: true,
     );
     ul([
@@ -941,8 +907,6 @@ class InstrumentationPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     p(
         'Instrumentation can be enabled by starting the analysis server with the '
         '<code>--instrumentation-log-file=path/to/file</code> flag.',
@@ -1025,8 +989,6 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     UsageInfo usage = await profiler.getProcessUsage(pid);
 
     developer.ServiceProtocolInfo serviceProtocolInfo =
@@ -1090,8 +1052,6 @@ class NotFoundPage extends DiagnosticPage {
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
   }
 }
 
@@ -1181,8 +1141,6 @@ class ProfilePage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     h3('Profiling performance tag data');
 
     // prepare sorted tags
@@ -1330,9 +1288,6 @@ class StatusPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     buf.writeln('<div class="columns">');
 
     buf.writeln('<div class="column one-half">');
@@ -1369,9 +1324,6 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     // server domain
     h3('Server domain subscriptions');
     ul(ServerService.VALUES, (item) {
@@ -1390,5 +1342,18 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
         buf.write('$item');
       });
     }
+
+    // completion domain
+    CompletionDomainHandler handler = server.handlers.firstWhere(
+        (handler) => handler is CompletionDomainHandler,
+        orElse: () => null);
+    h3('Completion domain subscriptions');
+    ul(CompletionService.VALUES, (service) {
+      if (handler.subscriptions.contains(service)) {
+        buf.write('$service (has subscriptions)');
+      } else {
+        buf.write('$service (no subscriptions)');
+      }
+    });
   }
 }
