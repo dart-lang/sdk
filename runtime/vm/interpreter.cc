@@ -1988,7 +1988,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawString* target_name = static_cast<RawString*>(LOAD_CONSTANT(kidx));
+      RawString* target_name =
+          static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
       if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
                          &SP)) {

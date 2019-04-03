@@ -787,7 +787,9 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  const String& name = String::Cast(ConstantAt(DecodeOperandD()).value());
+  const Function& interface_target =
+      Function::Cast(ConstantAt(DecodeOperandD()).value());
+  const String& name = String::ZoneHandle(Z, interface_target.name());
   ASSERT(name.IsSymbol());
 
   const Array& arg_desc_array =
@@ -811,12 +813,10 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
 
   const ArgumentArray arguments = GetArguments(argc);
 
-  // TODO(alexmarkov): store interface_target in bytecode and pass it here.
-
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), checked_argument_count,
-      *ic_data_array_, B->GetNextDeoptId());
+      *ic_data_array_, B->GetNextDeoptId(), interface_target);
 
   // TODO(alexmarkov): add type info - call->SetResultType()
 
@@ -842,12 +842,12 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
 
   const ArgumentArray arguments = GetArguments(argc);
 
-  // TODO(alexmarkov): store interface_target in bytecode and pass it here.
+  const Function& interface_target = Function::null_function();
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), icdata.NumArgsTested(),
-      *ic_data_array_, icdata.deopt_id());
+      *ic_data_array_, icdata.deopt_id(), interface_target);
 
   ASSERT(call->ic_data() != nullptr);
   ASSERT(call->ic_data()->Original() == icdata.raw());

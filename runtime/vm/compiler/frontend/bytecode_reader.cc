@@ -770,21 +770,7 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
       case ConstantPoolTag::kInterfaceCallV1: {
-        helper_->ReadByte();  // TODO(regis): Remove, unneeded.
-        name ^= ReadObject();
-        ASSERT(name.IsSymbol());
-        intptr_t arg_desc_index = helper_->ReadUInt();
-        ASSERT(arg_desc_index < i);
-        array ^= pool.ObjectAt(arg_desc_index);
-        // InterfaceCall constant occupies 2 entries.
-        // The first entry is used for selector name.
-        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
-                       ObjectPool::Patchability::kNotPatchable);
-        pool.SetObjectAt(i, name);
-        ++i;
-        ASSERT(i < obj_count);
-        // The second entry is used for arguments descriptor.
-        obj = array.raw();
+        UNREACHABLE();
       } break;
       case ConstantPoolTag::kObjectRef:
         obj = ReadObject();
@@ -805,13 +791,11 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
       case ConstantPoolTag::kInterfaceCall: {
         elem = ReadObject();
         ASSERT(elem.IsFunction());
-        name = Function::Cast(elem).name();
-        ASSERT(name.IsSymbol());
         // InterfaceCall constant occupies 2 entries.
-        // The first entry is used for selector name.
+        // The first entry is used for interface target.
         pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
                        ObjectPool::Patchability::kNotPatchable);
-        pool.SetObjectAt(i, name);
+        pool.SetObjectAt(i, elem);
         ++i;
         ASSERT(i < obj_count);
         // The second entry is used for arguments descriptor.
