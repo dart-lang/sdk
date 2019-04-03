@@ -27,16 +27,6 @@ def BuildArchitectures():
  else:
    return ['ia32', 'x64']
 
-def BuildSDK():
-  with bot.BuildStep('Build SDK'):
-    if BUILD_OS == 'linux':
-      sysroot_env = dict(os.environ)
-      sysroot_env['DART_USE_WHEEZY'] = '1'
-      Run([sys.executable, './tools/generate_buildfiles.py'], env=sysroot_env)
-    for arch in BuildArchitectures():
-      Run([sys.executable, './tools/build.py', '--mode=release',
-           '--arch=' + arch, 'create_sdk'])
-
 def BuildDartdocAPIDocs(dirname):
   dart_sdk = os.path.join(bot_utils.DART_DIR,
                           utils.GetBuildRoot(BUILD_OS, 'release',
@@ -102,11 +92,6 @@ def DartArchiveUnstrippedBinaries():
     gs_path = namer.unstripped_filepath(revision, BUILD_OS, arch)
     DartArchiveFile(binary, gs_path)
 
-def CreateUploadSDK():
-  BuildSDK()
-  CreateUploadSDKZips()
-  DartArchiveUnstrippedBinaries()
-
 def CreateUploadAPIDocs():
   dartdoc_dir = os.path.join(bot_utils.DART_DIR,
                              utils.GetBuildRoot(BUILD_OS, 'release',
@@ -116,7 +101,7 @@ def CreateUploadAPIDocs():
                              utils.GetBuildRoot(BUILD_OS, 'release',
                                                 BUILD_ARCHITECTURE),
                              'dartdocs-api.zip')
-  if CHANNEL == 'try':
+  if CHANNEL == bot_utils.Channel.TRY:
     BuildDartdocAPIDocs(dartdoc_dir)
   else:
     UploadApiLatestFile()
@@ -226,11 +211,8 @@ if __name__ == '__main__':
   if len(sys.argv) > 1 and sys.argv[1] == 'api_docs':
     if BUILD_OS == 'linux':
       CreateUploadAPIDocs()
-  else:
-    # We always clobber the bot, to make sure releases are build from scratch
-    force = CHANNEL != bot_utils.Channel.BLEEDING_EDGE
-    bot.Clobber(force=force)
-
-    CreateUploadSDK()
+  elif CHANNEL != bot_utils.Channel.TRY:
+    CreateUploadSDKZips()
+    DartArchiveUnstrippedBinaries()
     if BUILD_OS == 'linux':
       CreateUploadVersionFile()

@@ -1324,8 +1324,13 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": []
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64,arm,arm64",
+                        "--mode=release", "create_sdk"]
+        },
+        {
+          "name": "upload sdk",
+          "script": "tools/bots/dart_sdk.py"
         },
         {
           "name": "build api docs",
@@ -1343,28 +1348,21 @@
       ]
     },
     {
-      "builders": ["dart-sdk-mac"],
+      "builders": ["dart-sdk-mac",
+                   "dart-sdk-win"],
       "meta": {
-        "description": "This configuration is used by the sdk-builder for mac."
+        "description": "This configuration is used by the sdk-builders for MacOS and Windows."
       },
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": []
-        }
-      ]
-    },
-    {
-      "builders": ["dart-sdk-win"],
-      "meta": {
-        "description": "This configuration is used by the sdk-builder for windows."
-      },
-      "steps": [
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64",
+                        "--mode=release", "create_sdk"]
+        },
         {
-          "name": "build dart",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": []
+          "name": "upload sdk",
+          "script": "tools/bots/dart_sdk.py"
         }
       ]
     },
