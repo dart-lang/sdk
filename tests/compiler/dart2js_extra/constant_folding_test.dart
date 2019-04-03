@@ -890,8 +890,7 @@ void main() {
   const Identity(false, true, false).check();
   const Identity(0, false, false).check();
   const Identity(true, 1, false).check();
-  // TODO(fishythefish, 36194)
-  //const Identity(double.nan, double.nan, false).check();
+  const Identity(double.nan, double.nan, false).check();
   const Identity(0, 0, true).check();
   const Identity(0.0, 0.0, true).check();
   const Identity(-0.0, -0.0, true).check();

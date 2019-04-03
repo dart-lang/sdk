@@ -845,7 +845,7 @@ class IdentityOperation implements BinaryOperation {
       // In order to preserve runtime semantics which says that NaN !== NaN
       // don't constant fold NaN === NaN. Otherwise the output depends on
       // inlined variables and other optimizations.
-      if (left.isNaN && right.isNaN) return null;
+      if (left.isNaN && right.isNaN) return new FalseConstantValue();
       return createBool(left == right);
     }
 

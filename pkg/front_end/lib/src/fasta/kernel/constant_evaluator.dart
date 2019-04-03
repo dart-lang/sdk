@@ -1953,6 +1953,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         final Constant right = positionals[1];
 
         if (targetingJavaScript) {
+          // In JavaScript, we lower [identical] to `===`, so any comparison
+          // against NaN yields `false`.
+          if (isNaN(left) || isNaN(right)) {
+            return falseConstant;
+          }
+
           // In JavaScript, `-0.0 === 0.0`.
           if (isZero(left)) {
             return makeBoolConstant(isZero(right));
