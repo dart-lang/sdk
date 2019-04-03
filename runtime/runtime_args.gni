@@ -3,6 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 declare_args() {
+  # Release build.
+  is_release = false
+
+  # Product build.
+  is_product = false
+
   # Instead of using is_debug, we introduce a different flag for specifying a
   # Debug build of Dart so that clients can still use a Release build of Dart
   # while themselves doing a Debug build.
