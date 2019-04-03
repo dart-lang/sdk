@@ -880,7 +880,7 @@ main() { // missing async
 
   void test_factory_issue_36400() {
     parseCompilationUnit('class T { T factory T() { return null; } }',
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1)]);
+        errors: [expectedError(ParserErrorCode.TYPE_BEFORE_FACTORY, 10, 1)]);
   }
 
   void test_getterNativeWithBody() {

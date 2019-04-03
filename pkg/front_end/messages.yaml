@@ -629,6 +629,14 @@ ConstAfterFactory:
   script:
     - "class C { factory const C() = prefix.B.foo; }"
 
+TypeBeforeFactory:
+  index: 97
+  template: "Factory constructors cannot have a return type."
+  tip: "Try removing the type appearing before 'factory'."
+  analyzerCode: ParserErrorCode.TYPE_BEFORE_FACTORY
+  script:
+    - "class C { T factory C() { return null; } }"
+
 ConstConstructorWithBody:
   template: "A const constructor can't have a body."
   tip: "Try removing either the 'const' keyword or the body."

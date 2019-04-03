@@ -2879,8 +2879,7 @@ class Parser {
         Token next2 = next.next;
         if (next2.isIdentifier || next2.isModifier) {
           if (beforeType != token) {
-            reportRecoverableErrorWithToken(
-                token, fasta.templateUnexpectedToken);
+            reportRecoverableError(token, fasta.messageTypeBeforeFactory);
           }
           token = parseFactoryMethod(token, beforeStart, externalToken,
               staticToken ?? covariantToken, varFinalOrConst);

@@ -9245,6 +9245,16 @@ Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypeBeforeFactory = messageTypeBeforeFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypeBeforeFactory = const MessageCode(
+    "TypeBeforeFactory",
+    index: 97,
+    message: r"""Factory constructors cannot have a return type.""",
+    tip: r"""Try removing the type appearing before 'factory'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateTypeNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Type '#name' not found.""",

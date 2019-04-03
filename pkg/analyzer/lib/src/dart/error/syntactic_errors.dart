@@ -693,6 +693,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode TYPE_ARGUMENTS_ON_TYPE_VARIABLE =
       _TYPE_ARGUMENTS_ON_TYPE_VARIABLE;
 
+  static const ParserErrorCode TYPE_BEFORE_FACTORY = _TYPE_BEFORE_FACTORY;
+
   static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
 
   /**
