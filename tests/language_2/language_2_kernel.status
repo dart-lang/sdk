@@ -188,8 +188,6 @@ constructor5_test: CompileTimeError # Verification error
 constructor6_test: CompileTimeError # Verification error
 control_flow_collections/await_for_inference_test: CompileTimeError
 control_flow_collections/await_for_test: CompileTimeError
-control_flow_collections/if_const_error_test/21: MissingCompileTimeError
-control_flow_collections/if_const_error_test/22: MissingCompileTimeError
 control_flow_collections/if_const_error_test/23: MissingCompileTimeError
 control_flow_collections/if_const_error_test/24: MissingCompileTimeError
 control_flow_collections/if_const_error_test/35: MissingCompileTimeError

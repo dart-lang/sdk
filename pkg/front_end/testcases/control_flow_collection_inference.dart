@@ -99,6 +99,13 @@ testIfElementErrors(Map<int, int> map) {
   <int>[if (oracle("foo")) 42 else ...map];
   <int>{if (oracle("foo")) ...map else 42, null};
   <String, int>{if (oracle("foo")) "bar": 42 else ...[42], "baz": null};
+
+  Set<dynamic> set10 = {if (oracle("foo")) 42 else "bar": 3.14};
+  Map<dynamic, dynamic> map10 = {if (oracle("foo")) 42 else "bar": 3.14};
+  Set<dynamic> set11 = {if (oracle("foo")) "bar": 3.14 else 42};
+  Map<dynamic, dynamic> map11 = {if (oracle("foo")) "bar": 3.14 else 42};
+  var map12 = {if (oracle("foo")) 42 else "bar": 3.14};
+  var map13 = {if (oracle("foo")) "bar": 3.14 else 42};
 }
 
 testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int

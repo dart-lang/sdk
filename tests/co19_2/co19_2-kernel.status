@@ -123,9 +123,6 @@ LanguageFeatures/Control-flow-collections/const_collections_A02_t02/03: MissingC
 LanguageFeatures/Control-flow-collections/const_collections_A02_t02/04: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/01: MissingCompileTimeError
 LanguageFeatures/Control-flow-collections/static_errors_A04_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/disambiguating_A06_t01/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/disambiguating_A06_t01/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/disambiguating_A06_t01/07: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A01_t03: Crash
 LanguageFeatures/Set-literals/type_inference_A01_t04: Crash
 LanguageFeatures/Set-literals/type_inference_A04_t02/02: MissingCompileTimeError
@@ -586,9 +583,6 @@ LanguageFeatures/Set-literals/disambiguating_A02_t02: CompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
 LanguageFeatures/Set-literals/disambiguating_A04_t02: Crash
 LanguageFeatures/Set-literals/disambiguating_A05_t02: Crash
-LanguageFeatures/Set-literals/disambiguating_A06_t01/02: Crash, MissingCompileTimeError
-LanguageFeatures/Set-literals/disambiguating_A06_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/disambiguating_A06_t01/05: MissingCompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A06_t02/01: Crash
 LanguageFeatures/Set-literals/disambiguating_A06_t02/02: Crash
 LanguageFeatures/Set-literals/disambiguating_A06_t02/03: Crash

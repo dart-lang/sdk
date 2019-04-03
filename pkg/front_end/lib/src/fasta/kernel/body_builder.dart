@@ -2320,10 +2320,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
-    if (entry == invalidCollectionElement) {
-      push(invalidCollectionElement);
-      return;
-    }
     transformCollections = true;
     List<VariableDeclaration> variables =
         buildVariableDeclarations(variableOrExpression);
@@ -3776,10 +3772,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
-    if (entry == invalidCollectionElement) {
-      push(invalidCollectionElement);
-      return;
-    }
     transformCollections = true;
     if (entry is MapEntry) {
       push(forest.ifMapEntry(toValue(condition), entry, null, ifToken));
@@ -3806,11 +3798,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
-    if (thenEntry == invalidCollectionElement ||
-        elseEntry == invalidCollectionElement) {
-      push(invalidCollectionElement);
-      return;
-    }
     transformCollections = true;
     if (thenEntry is MapEntry) {
       if (elseEntry is MapEntry) {
@@ -3823,7 +3810,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             new SpreadMapEntry(elseEntry.expression, elseEntry.isNullAware),
             ifToken));
       } else {
-        push(invalidCollectionElement);
+        int offset = elseEntry is Expression
+            ? elseEntry.fileOffset
+            : offsetForToken(ifToken);
+        push(new MapEntry(
+            desugarSyntheticExpression(buildProblem(
+                fasta.templateExpectedAfterButGot.withArguments(':'),
+                offset,
+                1)),
+            new NullLiteral())
+          ..fileOffset = offsetForToken(ifToken));
       }
     } else if (elseEntry is MapEntry) {
       if (thenEntry is SpreadElement) {
@@ -3833,7 +3829,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             elseEntry,
             ifToken));
       } else {
-        push(invalidCollectionElement);
+        int offset = thenEntry is Expression
+            ? thenEntry.fileOffset
+            : offsetForToken(ifToken);
+        push(new MapEntry(
+            desugarSyntheticExpression(buildProblem(
+                fasta.templateExpectedAfterButGot.withArguments(':'),
+                offset,
+                1)),
+            new NullLiteral())
+          ..fileOffset = offsetForToken(ifToken));
       }
     } else {
       push(forest.ifElement(
@@ -4161,10 +4166,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           fasta.templateUnexpectedToken.withArguments(forToken),
           forToken,
           forToken);
-      push(invalidCollectionElement);
-      return;
-    }
-    if (entry == invalidCollectionElement) {
       push(invalidCollectionElement);
       return;
     }
