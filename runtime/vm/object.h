@@ -3409,7 +3409,7 @@ class Field : public Object {
   // Returns false if any value read from this field is guaranteed to be
   // not null.
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
-  // any other value (non-nullable) instead of boolean. This is done to simplify
+  // kInvalidCid (non-nullable) instead of boolean. This is done to simplify
   // guarding sequence in the generated code.
   bool is_nullable() const { return raw_ptr()->is_nullable_ == kNullCid; }
   void set_is_nullable(bool val) const {

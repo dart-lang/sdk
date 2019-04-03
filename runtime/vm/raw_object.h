@@ -1066,7 +1066,7 @@ class RawField : public RawObject {
   TokenPosition end_token_pos_;
   classid_t guarded_cid_;
   classid_t is_nullable_;  // kNullCid if field can contain null value and
-                           // any other value otherwise.
+                           // kInvalidCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
