@@ -2088,25 +2088,22 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       //
       //    class A {}
       //    class B<T> {}
-      //    class C extends B<A> {}
+      //    class C implements B<A> {}
       //    main() => new C();
       //
       // Here `A` is live as a type argument through the liveness of `C`.
-      ClassEntity superclass = _elementEnvironment.getSuperClass(type.element);
-      while (superclass != null) {
-        if (!_elementEnvironment.isGenericClass(superclass) &&
-            visitedSuperClasses.contains(superclass)) {
+      for (InterfaceType supertype
+          in _closedWorld.dartTypes.getSupertypes(type.element)) {
+        if (supertype.typeArguments.isEmpty &&
+            visitedSuperClasses.contains(supertype.element)) {
           // If [superclass] is not generic then a second visit cannot add more
           // information that the first. In the example above, visiting `C`
           // twice can only result in a second registration of `A` as live
           // type argument.
           break;
         }
-        visitedSuperClasses.add(superclass);
-        InterfaceType supertype =
-            _closedWorld.dartTypes.asInstanceOf(type, superclass);
+        visitedSuperClasses.add(supertype.element);
         liveTypeVisitor.visitType(supertype, TypeVisitorState.direct);
-        superclass = _elementEnvironment.getSuperClass(superclass);
       }
     });
 

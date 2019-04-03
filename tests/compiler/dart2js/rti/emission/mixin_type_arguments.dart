@@ -4,19 +4,19 @@
 
 import 'package:expect/expect.dart' show Expect;
 
-/*class: A:checks=[]*/
+/*class: A:checks=[],typeArgument*/
 class A {}
 
-/*class: B:checks=[]*/
+/*class: B:checks=[],typeArgument*/
 class B {}
 
-/*class: C:checks=[]*/
+/*class: C:checks=[],typeArgument*/
 class C {}
 
-/*class: D:checks=[]*/
+/*class: D:checks=[],typeArgument*/
 class D {}
 
-/*class: E:checks=[]*/
+/*class: E:checks=[],typeArgument*/
 class E {}
 
 /*class: F:checks=[],typeArgument*/
