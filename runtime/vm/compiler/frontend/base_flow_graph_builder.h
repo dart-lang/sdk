@@ -280,6 +280,11 @@ class BaseFlowGraphBuilder {
   // enters the function through the unchecked entry.
   bool InliningUncheckedEntry() const { return inlining_unchecked_entry_; }
 
+  // Returns depth of expression stack.
+  intptr_t GetStackDepth() const {
+    return stack_ == nullptr ? 0 : stack_->definition()->temp_index() + 1;
+  }
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 

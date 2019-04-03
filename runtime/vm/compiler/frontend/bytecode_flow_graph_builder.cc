@@ -288,12 +288,12 @@ Value* BytecodeFlowGraphBuilder::Pop() {
 
 intptr_t BytecodeFlowGraphBuilder::GetStackDepth() const {
   ASSERT(!is_generating_interpreter());
-  return B->stack_ == nullptr ? 0 : B->stack_->definition()->temp_index() + 1;
+  return B->GetStackDepth();
 }
 
 bool BytecodeFlowGraphBuilder::IsStackEmpty() const {
   ASSERT(!is_generating_interpreter());
-  return B->stack_ == nullptr;
+  return B->GetStackDepth() == 0;
 }
 
 ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {

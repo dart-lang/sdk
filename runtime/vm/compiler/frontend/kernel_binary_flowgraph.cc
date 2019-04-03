@@ -4135,7 +4135,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
     // Avoid OSR point inside block-expressions.
     // TODO(ajcbik): make sure OSR works inside BE too
-    if (block_expression_depth() == 0) loop += CheckStackOverflow(position);
+    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
 
     if (condition.entry != nullptr) {
       loop <<= condition.entry;
@@ -4212,7 +4212,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
 
     // Avoid OSR point inside block-expressions.
     // TODO(ajcbik): make sure OSR works inside BE too
-    if (block_expression_depth() == 0) loop += CheckStackOverflow(position);
+    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
 
     loop += condition;
   } else {

@@ -406,10 +406,7 @@ Fragment BaseFlowGraphBuilder::NullConstant() {
 Fragment BaseFlowGraphBuilder::PushArgument() {
   PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());
   Push(argument);
-
-  argument->set_temp_index(argument->temp_index() - 1);
   ++pending_argument_count_;
-
   return Fragment(argument);
 }
 
@@ -549,7 +546,7 @@ Fragment BaseFlowGraphBuilder::StoreLocalRaw(TokenPosition position,
 LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   char name[64];
   intptr_t index = stack_->definition()->temp_index();
-  Utils::SNPrint(name, 64, ":temp%" Pd, index);
+  Utils::SNPrint(name, 64, ":t%" Pd, index);
   const String& symbol_name =
       String::ZoneHandle(Z, Symbols::New(thread_, name));
   LocalVariable* variable =
@@ -557,8 +554,8 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
                             symbol_name, Object::dynamic_type());
   // Set the index relative to the base of the expression stack including
   // outgoing arguments.
-  variable->set_index(VariableIndex(-parsed_function_->num_stack_locals() -
-                                    pending_argument_count_ - index));
+  variable->set_index(
+      VariableIndex(-parsed_function_->num_stack_locals() - index));
 
   // The value has uses as if it were a local variable.  Mark the definition
   // as used so that its temp index will not be cleared (causing it to never
