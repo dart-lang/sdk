@@ -89,7 +89,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       ..librariesSpecificationUri = librariesSpecificationUri
       ..target = target
       ..fileSystem = fileSystem
-      ..omitPlatform = true;
+      ..omitPlatform = true
+      ..environmentDefines = const {};
 
     processedOpts = new ProcessedOptions(options: options);
     cachedSdkInput = WorkerInputComponent(
@@ -190,7 +191,8 @@ Future<InitializedCompilerState> initializeCompiler(
     ..inputSummaries = summaryInputs
     ..linkedDependencies = linkedInputs
     ..target = target
-    ..fileSystem = fileSystem;
+    ..fileSystem = fileSystem
+    ..environmentDefines = const {};
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
