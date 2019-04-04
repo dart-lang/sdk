@@ -230,7 +230,9 @@ class NullableInference extends ExpressionVisitor<bool> {
   @override
   visitConstantExpression(ConstantExpression node) {
     var c = node.constant;
-    return c is PrimitiveConstant && c.value == null;
+    if (c is UnevaluatedConstant) return c.expression.accept(this);
+    if (c is PrimitiveConstant) return c.value == null;
+    return false;
   }
 
   @override
