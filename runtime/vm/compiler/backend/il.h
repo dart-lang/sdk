@@ -30,6 +30,7 @@ class BoxIntegerInstr;
 class BufferFormatter;
 class CallTargets;
 class CatchBlockEntryInstr;
+class CheckBoundBase;
 class ComparisonInstr;
 class Definition;
 class Environment;
@@ -759,6 +760,7 @@ class Instruction : public ZoneAllocated {
   DECLARE_INSTRUCTION_TYPE_CHECK(Definition, Definition)
   DECLARE_INSTRUCTION_TYPE_CHECK(BlockEntryWithInitialDefs,
                                  BlockEntryWithInitialDefs)
+  DECLARE_INSTRUCTION_TYPE_CHECK(CheckBoundBase, CheckBoundBase)
   FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
@@ -7406,23 +7408,40 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
 
-// Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
-// returns the "safe" index when
-//   0 <= index < length
-// or otherwise deoptimizes (viz. speculative).
-class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
+// Base class for speculative [CheckArrayBoundInstr] and
+// [GenericCheckBoundInstr]
+class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
  public:
-  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        generalized_(false),
-        licm_hoisted_(false) {
+  CheckBoundBase(Value* length, Value* index, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
   }
 
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
+
+  virtual bool IsCheckBoundBase() { return true; }
+  virtual CheckBoundBase* AsCheckBoundBase() { return this; }
+
+  // Give a name to the location/input indices.
+  enum { kLengthPos = 0, kIndexPos = 1 };
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CheckBoundBase);
+};
+
+// Performs an array bounds check, where
+//   safe_index := CheckArrayBound(length, index)
+// returns the "safe" index when
+//   0 <= index < length
+// or otherwise deoptimizes (viz. speculative).
+class CheckArrayBoundInstr : public CheckBoundBase {
+ public:
+  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
+      : CheckBoundBase(length, index, deopt_id),
+        generalized_(false),
+        licm_hoisted_(false) {}
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
@@ -7446,9 +7465,6 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
-  // Give a name to the location/input indices.
-  enum { kLengthPos = 0, kIndexPos = 1 };
-
  private:
   bool generalized_;
   bool licm_hoisted_;
@@ -7457,20 +7473,14 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 };
 
 // Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
+//   safe_index := GenericCheckBound(length, index)
 // returns the "safe" index when
 //   0 <= index < length
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
-class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, Pure> {
+class GenericCheckBoundInstr : public CheckBoundBase {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(kLengthPos, length);
-    SetInputAt(kIndexPos, index);
-  }
-
-  Value* length() const { return inputs_[kLengthPos]; }
-  Value* index() const { return inputs_[kIndexPos]; }
+      : CheckBoundBase(length, index, deopt_id) {}
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -7484,9 +7494,6 @@ class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, Pure> {
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
-
-  // Give a name to the location/input indices.
-  enum { kLengthPos = 0, kIndexPos = 1 };
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);

@@ -64,12 +64,8 @@ void RangeAnalysis::CollectValues() {
 
   for (intptr_t i = 0; i < graph_entry->SuccessorCount(); ++i) {
     auto successor = graph_entry->SuccessorAt(i);
-    if (successor->IsFunctionEntry() || successor->IsCatchBlockEntry()) {
-      auto function_entry = successor->AsFunctionEntry();
-      auto catch_entry = successor->AsCatchBlockEntry();
-      const auto& initial = function_entry != nullptr
-                                ? *function_entry->initial_definitions()
-                                : *catch_entry->initial_definitions();
+    if (auto entry = successor->AsBlockEntryWithInitialDefs()) {
+      const auto& initial = *entry->initial_definitions();
       for (intptr_t j = 0; j < initial.length(); ++j) {
         Definition* current = initial[j];
         if (IsIntegerDefinition(current)) {
@@ -215,31 +211,31 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
 void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
   for (Value* use = defn->input_use_list(); use != NULL;
        use = use->next_use()) {
-    if (use->instruction()->IsBranch()) {
+    if (auto branch = use->instruction()->AsBranch()) {
       if (ConstrainValueAfterBranch(use, defn)) {
-        Value* other_value = use->instruction()->InputAt(1 - use->use_index());
+        Value* other_value = branch->InputAt(1 - use->use_index());
         if (!IsIntegerDefinition(other_value->definition())) {
           ConstrainValueAfterBranch(other_value, other_value->definition());
         }
       }
-    } else if (use->instruction()->IsCheckArrayBound()) {
-      ConstrainValueAfterCheckArrayBound(use, defn);
+    } else if (auto check = use->instruction()->AsCheckBoundBase()) {
+      ConstrainValueAfterCheckBound(use, check, defn);
     }
   }
 }
 
-void RangeAnalysis::ConstrainValueAfterCheckArrayBound(Value* use,
-                                                       Definition* defn) {
-  CheckArrayBoundInstr* check = use->instruction()->AsCheckArrayBound();
-  intptr_t use_index = use->use_index();
+void RangeAnalysis::ConstrainValueAfterCheckBound(Value* use,
+                                                  CheckBoundBase* check,
+                                                  Definition* defn) {
+  const intptr_t use_index = use->use_index();
 
   Range* constraint_range = NULL;
-  if (use_index == CheckArrayBoundInstr::kIndexPos) {
+  if (use_index == CheckBoundBase::kIndexPos) {
     Definition* length = check->length()->definition();
     constraint_range = new (Z) Range(RangeBoundary::FromConstant(0),
                                      RangeBoundary::FromDefinition(length, -1));
   } else {
-    ASSERT(use_index == CheckArrayBoundInstr::kLengthPos);
+    ASSERT(use_index == CheckBoundBase::kLengthPos);
     Definition* index = check->index()->definition();
     constraint_range = new (Z)
         Range(RangeBoundary::FromDefinition(index, 1), RangeBoundary::MaxSmi());
