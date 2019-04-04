@@ -105,7 +105,8 @@ class KernelLoaderTask extends CompilerTask {
             _options.librariesSpecificationUri,
             dependencies,
             _options.packageConfig,
-            experimentalFlags: _options.languageExperiments);
+            experimentalFlags: _options.languageExperiments,
+            enableAsserts: _options.enableUserAssertions);
         component = await fe.compile(
             initializedCompilerState,
             false,

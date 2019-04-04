@@ -1122,6 +1122,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   visitConstructorInvocation(ConstructorInvocation node) {
     final Constructor constructor = node.target;
     final Class klass = constructor.enclosingClass;
+    bool isSymbol = klass == coreTypes.internalSymbolClass;
     if (!constructor.isConst) {
       return reportInvalid(node, 'Non-const constructor invocation.');
     }
@@ -1145,12 +1146,24 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         constructor.initializers.isEmpty &&
         constructor.enclosingClass.supertype != null;
 
-    if (isUnavailable || shouldBeUnevaluated) {
+    if (isUnavailable || (isSymbol && shouldBeUnevaluated)) {
       return unevaluated(
           node,
           new ConstructorInvocation(constructor,
               unevaluatedArguments(positionals, named, node.arguments.types),
               isConst: true));
+    }
+
+    // Special case the dart:core's Symbol class here and convert it to a
+    // [SymbolConstant].  For invalid values we report a compile-time error.
+    if (isSymbol) {
+      final Constant nameValue = positionals.single;
+
+      if (nameValue is StringConstant && isValidSymbolName(nameValue.value)) {
+        return canonicalize(new SymbolConstant(nameValue.value, null));
+      }
+      return report(node.arguments.positional.first,
+          templateConstEvalInvalidSymbolName.withArguments(nameValue));
     }
 
     final typeArguments = evaluateTypeArguments(node, node.arguments);
@@ -1165,30 +1178,36 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return runInsideContextIfNoContext(node, () {
         // "Run" the constructor (and any super constructor calls), which will
         // initialize the fields of the new instance.
+        if (shouldBeUnevaluated) {
+          enterLazy();
+          handleConstructorInvocation(
+              constructor, typeArguments, positionals, named);
+          leaveLazy();
+          return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
+        }
         handleConstructorInvocation(
             constructor, typeArguments, positionals, named);
-        final InstanceConstant result = instanceBuilder.buildInstance();
-
-        // Special case the dart:core's Symbol class here and convert it to a
-        // [SymbolConstant].  For invalid values we report a compile-time error.
-        if (result.classNode == coreTypes.internalSymbolClass) {
-          // The dart:_internal's Symbol class has only the name field.
-          assert(coreTypes.internalSymbolClass.fields
-                  .where((f) => !f.isStatic)
-                  .length ==
-              1);
-          final nameValue = result.fieldValues.values.single;
-
-          if (nameValue is StringConstant &&
-              isValidSymbolName(nameValue.value)) {
-            return canonicalize(new SymbolConstant(nameValue.value, null));
-          }
-          return report(node.arguments.positional.first,
-              templateConstEvalInvalidSymbolName.withArguments(nameValue));
+        if (shouldBeUnevaluated) {
+          return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
         }
-
-        return canonicalize(result);
+        return canonicalize(instanceBuilder.buildInstance());
       });
+    });
+  }
+
+  visitInstanceCreation(InstanceCreation node) {
+    return withNewInstanceBuilder(node.classNode, node.typeArguments, () {
+      for (AssertStatement statement in node.asserts) {
+        checkAssert(statement);
+      }
+      node.fieldValues.forEach((Reference fieldRef, Expression value) {
+        instanceBuilder.setFieldValue(
+            fieldRef.asField, _evaluateSubexpression(value));
+      });
+      if (shouldBeUnevaluated) {
+        return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
+      }
+      return canonicalize(instanceBuilder.buildInstance());
     });
   }
 
@@ -1377,40 +1396,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 evaluatePositionalArguments(init.arguments),
                 evaluateNamedArguments(init.arguments));
           } else if (init is AssertInitializer) {
-            if (enableAsserts) {
-              final Constant condition =
-                  _evaluateSubexpression(init.statement.condition);
-
-              if (condition is BoolConstant) {
-                if (!condition.value) {
-                  if (init.statement.message == null) {
-                    return report(init.statement.condition,
-                        messageConstEvalFailedAssertion);
-                  }
-                  final Constant message =
-                      _evaluateSubexpression(init.statement.message);
-                  if (message is StringConstant) {
-                    return report(
-                        init.statement.condition,
-                        templateConstEvalFailedAssertionWithMessage
-                            .withArguments(message.value));
-                  }
-                  return report(
-                      init.statement.message,
-                      templateConstEvalInvalidType.withArguments(
-                          message,
-                          typeEnvironment.stringType,
-                          message.getType(typeEnvironment)));
-                }
-              } else {
-                return report(
-                    init.statement.condition,
-                    templateConstEvalInvalidType.withArguments(
-                        condition,
-                        typeEnvironment.boolType,
-                        condition.getType(typeEnvironment)));
-              }
-            }
+            checkAssert(init.statement);
           } else {
             return reportInvalid(
                 constructor,
@@ -1420,6 +1406,55 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         }
       });
     });
+  }
+
+  void checkAssert(AssertStatement statement) {
+    if (enableAsserts) {
+      final Constant condition = _evaluateSubexpression(statement.condition);
+
+      if (shouldBeUnevaluated) {
+        Expression message = null;
+        if (statement.message != null) {
+          enterLazy();
+          message = extract(_evaluateSubexpression(statement.message));
+          leaveLazy();
+        }
+        instanceBuilder.asserts.add(new AssertStatement(extract(condition),
+            message: message,
+            conditionStartOffset: statement.conditionStartOffset,
+            conditionEndOffset: statement.conditionEndOffset));
+      } else if (condition is BoolConstant) {
+        if (!condition.value) {
+          if (statement.message == null) {
+            report(statement.condition, messageConstEvalFailedAssertion);
+          }
+          final Constant message = _evaluateSubexpression(statement.message);
+          if (shouldBeUnevaluated) {
+            instanceBuilder.asserts.add(new AssertStatement(extract(condition),
+                message: extract(message),
+                conditionStartOffset: statement.conditionStartOffset,
+                conditionEndOffset: statement.conditionEndOffset));
+          } else if (message is StringConstant) {
+            report(
+                statement.condition,
+                templateConstEvalFailedAssertionWithMessage
+                    .withArguments(message.value));
+          } else {
+            report(
+                statement.message,
+                templateConstEvalInvalidType.withArguments(
+                    message,
+                    typeEnvironment.stringType,
+                    message.getType(typeEnvironment)));
+          }
+        }
+      } else {
+        report(
+            statement.condition,
+            templateConstEvalInvalidType.withArguments(condition,
+                typeEnvironment.boolType, condition.getType(typeEnvironment)));
+      }
+    }
   }
 
   visitInvalidExpression(InvalidExpression node) {
@@ -2170,7 +2205,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   withNewInstanceBuilder(Class klass, List<DartType> typeArguments, fn()) {
     InstanceBuilder old = instanceBuilder;
     try {
-      instanceBuilder = new InstanceBuilder(klass, typeArguments);
+      instanceBuilder = new InstanceBuilder(this, klass, typeArguments);
       return fn();
     } finally {
       instanceBuilder = old;
@@ -2301,6 +2336,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 ///   * the [fields] the instance will obtain (all fields from the
 ///     instantiated [klass] up to the [Object] klass).
 class InstanceBuilder {
+  ConstantEvaluator evaluator;
+
   /// The class of the new instance.
   final Class klass;
 
@@ -2310,18 +2347,31 @@ class InstanceBuilder {
   /// The field values of the new instance.
   final Map<Field, Constant> fields = <Field, Constant>{};
 
-  InstanceBuilder(this.klass, this.typeArguments);
+  final List<AssertStatement> asserts = <AssertStatement>[];
+
+  InstanceBuilder(this.evaluator, this.klass, this.typeArguments);
 
   void setFieldValue(Field field, Constant constant) {
     fields[field] = constant;
   }
 
   InstanceConstant buildInstance() {
+    assert(asserts.isEmpty);
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     fields.forEach((Field field, Constant value) {
+      assert(value is! UnevaluatedConstant);
       fieldValues[field.reference] = value;
     });
     return new InstanceConstant(klass.reference, typeArguments, fieldValues);
+  }
+
+  InstanceCreation buildUnevaluatedInstance() {
+    final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
+    fields.forEach((Field field, Constant value) {
+      fieldValues[field.reference] = evaluator.extract(value);
+    });
+    return new InstanceCreation(
+        klass.reference, typeArguments, fieldValues, asserts);
   }
 }
 
