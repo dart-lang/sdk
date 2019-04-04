@@ -40,6 +40,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:path/path.dart' as pathPackage;
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -548,6 +549,13 @@ class ContextsPage extends DiagnosticPageWithNav {
         buf.write('</p>');
       }
     }
+
+    h3('Dartdoc template info');
+    DartdocDirectiveInfo info = (server as AnalysisServer).declarationsTracker
+        ?.getContext(driver.analysisContext)
+        ?.dartdocDirectiveInfo ??
+        new DartdocDirectiveInfo();
+    writeMap(info.templateMap);
   }
 
   void writeList<E>(List<E> list) {
