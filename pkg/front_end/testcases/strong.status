@@ -141,6 +141,7 @@ regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
+regress/issue_36400: RuntimeError
 reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
