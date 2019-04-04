@@ -325,7 +325,7 @@ bool Options::ProcessObserveOption(const char* arg,
   return true;
 }
 
-int Options::target_abi_version_ = AbiVersion::GetCurrent();
+int Options::target_abi_version_ = Options::kAbiVersionUnset;
 bool Options::ProcessAbiVersionOption(const char* arg,
                                       CommandLineOptions* vm_options) {
   const char* value = OptionProcessor::ProcessOption(arg, "--use_abi_version=");
