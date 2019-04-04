@@ -25,6 +25,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
+import 'rules/experiments/experiments.dart';
 
 main() {
   defineSanityTests();
@@ -53,6 +54,22 @@ defineRuleTests() {
         });
       }
     });
+    group('experiments', () {
+      registerLintRuleExperiments();
+
+      for (var entry
+          in new Directory(p.join(ruleDir, 'experiments')).listSync()) {
+        if (entry is! Directory) continue;
+        var analysisOptionsFile =
+            new File(p.join(entry.path, 'analysis_options.yaml'));
+        var analysisOptions = analysisOptionsFile.readAsStringSync();
+        var ruleName = p.basename(entry.path);
+        var testFile = new File(p.join(entry.path, '$ruleName.dart'));
+        testRule(p.basename(ruleName), testFile,
+            analysisOptions: analysisOptions);
+      }
+    });
+
     group('pub', () {
       for (var entry in new Directory(p.join(ruleDir, 'pub')).listSync()) {
         if (entry is! Directory) continue;
