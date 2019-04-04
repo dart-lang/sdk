@@ -33,11 +33,7 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
 
   void expectFileEdits(
       String originalSource, SourceFileEdit fileEdit, String expectedSource) {
-    String source = originalSource;
-    List<SourceEdit> edits = fileEdit.edits;
-    for (SourceEdit edit in edits) {
-      source = edit.apply(source);
-    }
+    String source = SourceEdit.applySequence(originalSource, fileEdit.edits);
     expect(source, expectedSource);
   }
 

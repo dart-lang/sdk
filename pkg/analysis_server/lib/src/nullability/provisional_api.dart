@@ -18,6 +18,10 @@ export 'package:analysis_server/src/nullability/transitional_api.dart'
 
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {
+  /// An import needs to be added.
+  static const addImport =
+      const NullabilityFixKind._(appliedMessage: 'Add an import');
+
   /// A formal parameter needs to have a required annotation added.
   static const addRequired =
       const NullabilityFixKind._(appliedMessage: 'Add a required annotation');
@@ -147,6 +151,8 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
       kind = potentialModification.discard.keepFalse.value
           ? NullabilityFixKind.discardThen
           : NullabilityFixKind.discardElse;
+    } else if (potentialModification is analyzer.PotentiallyAddImport) {
+      kind = NullabilityFixKind.addImport;
     } else if (potentialModification is analyzer.PotentiallyAddRequired) {
       kind = NullabilityFixKind.addRequired;
     } else {

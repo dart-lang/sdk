@@ -180,9 +180,7 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
       for (SourceFileEdit fileEdit in result.edits) {
         final file = new File(fileEdit.file);
         String code = file.existsSync() ? file.readAsStringSync() : '';
-        for (SourceEdit edit in fileEdit.edits) {
-          code = edit.apply(code);
-        }
+        code = SourceEdit.applySequence(code, fileEdit.edits);
         await file.writeAsString(code);
       }
       logger.stdout(ansi.emphasized('Changes applied.'));

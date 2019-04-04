@@ -463,6 +463,7 @@ main() {
 }
 ''';
     var expected = '''
+import 'package:meta/meta.dart';
 void f({@required String s}) {}
 main() {
   f(s: 'x');
