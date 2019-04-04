@@ -115,6 +115,7 @@ import 'package:linter/src/rules/recursive_getters.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
+import 'package:linter/src/rules/spread_collections.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
 import 'package:linter/src/rules/test_types_in_equals.dart';
 import 'package:linter/src/rules/throw_in_finally.dart';
@@ -258,6 +259,7 @@ void registerLintRules() {
     ..register(new SortConstructorsFirst())
     ..register(new SortPubDependencies())
     ..register(new SortUnnamedConstructorsFirst())
+    ..register(new SpreadCollections())
     ..register(new SuperGoesLast())
     ..register(new TestTypesInEquals())
     ..register(new ThrowInFinally())
