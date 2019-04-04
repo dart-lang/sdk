@@ -122,7 +122,8 @@ class DartAssistKind {
       "Convert to single quoted string",
       associatedErrorCodes: <String>['prefer_single_quotes']);
   static const CONVERT_TO_SPREAD = const AssistKind(
-      'dart.assist.convertToSpread', 30, "Convert to a spread");
+      'dart.assist.convertToSpread', 30, "Convert to a spread",
+      associatedErrorCodes: <String>['spread_collections']);
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
