@@ -1148,6 +1148,17 @@ int f(int p) {
     ]);
   }
 
+  test_topLevelVariable_withDocComment() async {
+    await expectTokens('''
+/// Doc comment [x] with reference.
+int x;
+''', [
+      token('int', 'dart:core;Type<dart:core;int>', ['reference']),
+      token('x', 'dart:core;int', ['declaration']),
+      token(';', null, null),
+    ]);
+  }
+
   TokenDetails token(String lexeme, String type, List<String> kinds) {
     return new TokenDetails(lexeme, type: type, validElementKinds: kinds);
   }

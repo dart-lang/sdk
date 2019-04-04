@@ -44,6 +44,8 @@ class TokenDetailBuilder {
         _createDetails(entity.literal, _getType(entity), null);
       } else if (entity is SimpleStringLiteral) {
         _createDetails(entity.literal, _getType(entity), null);
+      } else if (entity is Comment) {
+        // Ignore comments and the references within them.
       } else if (entity is AstNode) {
         visitNode(entity);
       }
