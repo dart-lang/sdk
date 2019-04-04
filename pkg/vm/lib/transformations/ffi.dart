@@ -89,6 +89,7 @@ class FfiTransformer extends Transformer {
   final Library ffiLibrary;
   final Class nativeFunctionClass;
   final Class pointerClass;
+  final Class structClass;
   final Procedure castMethod;
   final Procedure loadMethod;
   final Procedure storeMethod;
@@ -110,6 +111,7 @@ class FfiTransformer extends Transformer {
         ffiLibrary = index.getLibrary('dart:ffi'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
+        structClass = index.getClass('dart:ffi', 'Struct'),
         castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
         loadMethod = index.getMember('dart:ffi', 'Pointer', 'load'),
         storeMethod = index.getMember('dart:ffi', 'Pointer', 'store'),
