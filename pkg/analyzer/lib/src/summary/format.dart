@@ -2180,6 +2180,7 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
 class AvailableDeclarationBuilder extends Object
     with _AvailableDeclarationMixin
     implements idl.AvailableDeclaration {
+  List<AvailableDeclarationBuilder> _children;
   String _defaultArgumentListString;
   List<int> _defaultArgumentListTextRanges;
   String _docComplete;
@@ -2194,7 +2195,6 @@ class AvailableDeclarationBuilder extends Object
   int _locationStartColumn;
   int _locationStartLine;
   String _name;
-  String _name2;
   List<String> _parameterNames;
   String _parameters;
   List<String> _parameterTypes;
@@ -2202,6 +2202,14 @@ class AvailableDeclarationBuilder extends Object
   int _requiredParameterCount;
   String _returnType;
   String _typeParameters;
+
+  @override
+  List<AvailableDeclarationBuilder> get children =>
+      _children ??= <AvailableDeclarationBuilder>[];
+
+  set children(List<AvailableDeclarationBuilder> value) {
+    this._children = value;
+  }
 
   @override
   String get defaultArgumentListString => _defaultArgumentListString ??= '';
@@ -2312,15 +2320,6 @@ class AvailableDeclarationBuilder extends Object
   }
 
   @override
-  String get name2 => _name2 ??= '';
-
-  /// The second, optional, part of the declaration name.  For example enum
-  /// constants all have the same [name], but their own [name2].
-  set name2(String value) {
-    this._name2 = value;
-  }
-
-  @override
   List<String> get parameterNames => _parameterNames ??= <String>[];
 
   set parameterNames(List<String> value) {
@@ -2375,7 +2374,8 @@ class AvailableDeclarationBuilder extends Object
   }
 
   AvailableDeclarationBuilder(
-      {String defaultArgumentListString,
+      {List<AvailableDeclarationBuilder> children,
+      String defaultArgumentListString,
       List<int> defaultArgumentListTextRanges,
       String docComplete,
       String docSummary,
@@ -2389,7 +2389,6 @@ class AvailableDeclarationBuilder extends Object
       int locationStartColumn,
       int locationStartLine,
       String name,
-      String name2,
       List<String> parameterNames,
       String parameters,
       List<String> parameterTypes,
@@ -2397,7 +2396,8 @@ class AvailableDeclarationBuilder extends Object
       int requiredParameterCount,
       String returnType,
       String typeParameters})
-      : _defaultArgumentListString = defaultArgumentListString,
+      : _children = children,
+        _defaultArgumentListString = defaultArgumentListString,
         _defaultArgumentListTextRanges = defaultArgumentListTextRanges,
         _docComplete = docComplete,
         _docSummary = docSummary,
@@ -2411,7 +2411,6 @@ class AvailableDeclarationBuilder extends Object
         _locationStartColumn = locationStartColumn,
         _locationStartLine = locationStartLine,
         _name = name,
-        _name2 = name2,
         _parameterNames = parameterNames,
         _parameters = parameters,
         _parameterTypes = parameterTypes,
@@ -2421,10 +2420,20 @@ class AvailableDeclarationBuilder extends Object
         _typeParameters = typeParameters;
 
   /// Flush [informative] data recursively.
-  void flushInformative() {}
+  void flushInformative() {
+    _children?.forEach((b) => b.flushInformative());
+  }
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._children == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._children.length);
+      for (var x in this._children) {
+        x?.collectApiSignature(signature);
+      }
+    }
     signature.addString(this._defaultArgumentListString ?? '');
     if (this._defaultArgumentListTextRanges == null) {
       signature.addInt(0);
@@ -2446,7 +2455,6 @@ class AvailableDeclarationBuilder extends Object
     signature.addInt(this._locationStartColumn ?? 0);
     signature.addInt(this._locationStartLine ?? 0);
     signature.addString(this._name ?? '');
-    signature.addString(this._name2 ?? '');
     if (this._parameterNames == null) {
       signature.addInt(0);
     } else {
@@ -2478,18 +2486,22 @@ class AvailableDeclarationBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_children;
     fb.Offset offset_defaultArgumentListString;
     fb.Offset offset_defaultArgumentListTextRanges;
     fb.Offset offset_docComplete;
     fb.Offset offset_docSummary;
     fb.Offset offset_name;
-    fb.Offset offset_name2;
     fb.Offset offset_parameterNames;
     fb.Offset offset_parameters;
     fb.Offset offset_parameterTypes;
     fb.Offset offset_relevanceTags;
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
+    if (!(_children == null || _children.isEmpty)) {
+      offset_children = fbBuilder
+          .writeList(_children.map((b) => b.finish(fbBuilder)).toList());
+    }
     if (_defaultArgumentListString != null) {
       offset_defaultArgumentListString =
           fbBuilder.writeString(_defaultArgumentListString);
@@ -2507,9 +2519,6 @@ class AvailableDeclarationBuilder extends Object
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
-    }
-    if (_name2 != null) {
-      offset_name2 = fbBuilder.writeString(_name2);
     }
     if (!(_parameterNames == null || _parameterNames.isEmpty)) {
       offset_parameterNames = fbBuilder.writeList(
@@ -2533,50 +2542,50 @@ class AvailableDeclarationBuilder extends Object
       offset_typeParameters = fbBuilder.writeString(_typeParameters);
     }
     fbBuilder.startTable();
+    if (offset_children != null) {
+      fbBuilder.addOffset(0, offset_children);
+    }
     if (offset_defaultArgumentListString != null) {
-      fbBuilder.addOffset(0, offset_defaultArgumentListString);
+      fbBuilder.addOffset(1, offset_defaultArgumentListString);
     }
     if (offset_defaultArgumentListTextRanges != null) {
-      fbBuilder.addOffset(1, offset_defaultArgumentListTextRanges);
+      fbBuilder.addOffset(2, offset_defaultArgumentListTextRanges);
     }
     if (offset_docComplete != null) {
-      fbBuilder.addOffset(2, offset_docComplete);
+      fbBuilder.addOffset(3, offset_docComplete);
     }
     if (offset_docSummary != null) {
-      fbBuilder.addOffset(3, offset_docSummary);
+      fbBuilder.addOffset(4, offset_docSummary);
     }
     if (_fieldMask != null && _fieldMask != 0) {
-      fbBuilder.addUint32(4, _fieldMask);
+      fbBuilder.addUint32(5, _fieldMask);
     }
     if (_isAbstract == true) {
-      fbBuilder.addBool(5, true);
-    }
-    if (_isConst == true) {
       fbBuilder.addBool(6, true);
     }
-    if (_isDeprecated == true) {
+    if (_isConst == true) {
       fbBuilder.addBool(7, true);
     }
-    if (_isFinal == true) {
+    if (_isDeprecated == true) {
       fbBuilder.addBool(8, true);
     }
+    if (_isFinal == true) {
+      fbBuilder.addBool(9, true);
+    }
     if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(9, _kind.index);
+      fbBuilder.addUint8(10, _kind.index);
     }
     if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(10, _locationOffset);
+      fbBuilder.addUint32(11, _locationOffset);
     }
     if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(11, _locationStartColumn);
+      fbBuilder.addUint32(12, _locationStartColumn);
     }
     if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(12, _locationStartLine);
+      fbBuilder.addUint32(13, _locationStartLine);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(13, offset_name);
-    }
-    if (offset_name2 != null) {
-      fbBuilder.addOffset(14, offset_name2);
+      fbBuilder.addOffset(14, offset_name);
     }
     if (offset_parameterNames != null) {
       fbBuilder.addOffset(15, offset_parameterNames);
@@ -2620,6 +2629,7 @@ class _AvailableDeclarationImpl extends Object
 
   _AvailableDeclarationImpl(this._bc, this._bcOffset);
 
+  List<idl.AvailableDeclaration> _children;
   String _defaultArgumentListString;
   List<int> _defaultArgumentListTextRanges;
   String _docComplete;
@@ -2634,7 +2644,6 @@ class _AvailableDeclarationImpl extends Object
   int _locationStartColumn;
   int _locationStartLine;
   String _name;
-  String _name2;
   List<String> _parameterNames;
   String _parameters;
   List<String> _parameterTypes;
@@ -2644,99 +2653,101 @@ class _AvailableDeclarationImpl extends Object
   String _typeParameters;
 
   @override
+  List<idl.AvailableDeclaration> get children {
+    _children ??= const fb.ListReader<idl.AvailableDeclaration>(
+            const _AvailableDeclarationReader())
+        .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
+    return _children;
+  }
+
+  @override
   String get defaultArgumentListString {
     _defaultArgumentListString ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
     return _defaultArgumentListString;
   }
 
   @override
   List<int> get defaultArgumentListTextRanges {
     _defaultArgumentListTextRanges ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _defaultArgumentListTextRanges;
   }
 
   @override
   String get docComplete {
-    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
     return _docComplete;
   }
 
   @override
   String get docSummary {
-    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
     return _docSummary;
   }
 
   @override
   int get fieldMask {
-    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 4, 0);
+    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _fieldMask;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isAbstract;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
     return _isConst;
   }
 
   @override
   bool get isDeprecated {
-    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
+    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
     return _isDeprecated;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
     return _isFinal;
   }
 
   @override
   idl.AvailableDeclarationKind get kind {
     _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 9, idl.AvailableDeclarationKind.CLASS);
+        .vTableGet(_bc, _bcOffset, 10, idl.AvailableDeclarationKind.CLASS);
     return _kind;
   }
 
   @override
   int get locationOffset {
     _locationOffset ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
     return _locationOffset;
   }
 
   @override
   int get locationStartColumn {
     _locationStartColumn ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
     return _locationStartColumn;
   }
 
   @override
   int get locationStartLine {
     _locationStartLine ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
     return _locationStartLine;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 13, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
     return _name;
-  }
-
-  @override
-  String get name2 {
-    _name2 ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
-    return _name2;
   }
 
   @override
@@ -2791,6 +2802,8 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (children.isNotEmpty)
+      _result["children"] = children.map((_value) => _value.toJson()).toList();
     if (defaultArgumentListString != '')
       _result["defaultArgumentListString"] = defaultArgumentListString;
     if (defaultArgumentListTextRanges.isNotEmpty)
@@ -2810,7 +2823,6 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
     if (locationStartLine != 0)
       _result["locationStartLine"] = locationStartLine;
     if (name != '') _result["name"] = name;
-    if (name2 != '') _result["name2"] = name2;
     if (parameterNames.isNotEmpty) _result["parameterNames"] = parameterNames;
     if (parameters != '') _result["parameters"] = parameters;
     if (parameterTypes.isNotEmpty) _result["parameterTypes"] = parameterTypes;
@@ -2824,6 +2836,7 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
 
   @override
   Map<String, Object> toMap() => {
+        "children": children,
         "defaultArgumentListString": defaultArgumentListString,
         "defaultArgumentListTextRanges": defaultArgumentListTextRanges,
         "docComplete": docComplete,
@@ -2838,7 +2851,6 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
         "locationStartColumn": locationStartColumn,
         "locationStartLine": locationStartLine,
         "name": name,
-        "name2": name2,
         "parameterNames": parameterNames,
         "parameters": parameters,
         "parameterTypes": parameterTypes,
@@ -2855,20 +2867,12 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
 class AvailableFileBuilder extends Object
     with _AvailableFileMixin
     implements idl.AvailableFile {
-  DirectiveInfoBuilder _directiveInfo;
   List<AvailableDeclarationBuilder> _declarations;
+  DirectiveInfoBuilder _directiveInfo;
   List<AvailableFileExportBuilder> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
-
-  @override
-  DirectiveInfoBuilder get directiveInfo => _directiveInfo;
-
-  /// The Dartdoc directives in the file.
-  set directiveInfo(DirectiveInfoBuilder value) {
-    this._directiveInfo = value;
-  }
 
   @override
   List<AvailableDeclarationBuilder> get declarations =>
@@ -2877,6 +2881,14 @@ class AvailableFileBuilder extends Object
   /// Declarations of the file.
   set declarations(List<AvailableDeclarationBuilder> value) {
     this._declarations = value;
+  }
+
+  @override
+  DirectiveInfoBuilder get directiveInfo => _directiveInfo;
+
+  /// The Dartdoc directives in the file.
+  set directiveInfo(DirectiveInfoBuilder value) {
+    this._directiveInfo = value;
   }
 
   @override
@@ -2913,14 +2925,14 @@ class AvailableFileBuilder extends Object
   }
 
   AvailableFileBuilder(
-      {DirectiveInfoBuilder directiveInfo,
-      List<AvailableDeclarationBuilder> declarations,
+      {List<AvailableDeclarationBuilder> declarations,
+      DirectiveInfoBuilder directiveInfo,
       List<AvailableFileExportBuilder> exports,
       bool isLibrary,
       bool isLibraryDeprecated,
       List<String> parts})
-      : _directiveInfo = directiveInfo,
-        _declarations = declarations,
+      : _declarations = declarations,
+        _directiveInfo = directiveInfo,
         _exports = exports,
         _isLibrary = isLibrary,
         _isLibraryDeprecated = isLibraryDeprecated,
@@ -2928,8 +2940,8 @@ class AvailableFileBuilder extends Object
 
   /// Flush [informative] data recursively.
   void flushInformative() {
-    _directiveInfo?.flushInformative();
     _declarations?.forEach((b) => b.flushInformative());
+    _directiveInfo?.flushInformative();
     _exports?.forEach((b) => b.flushInformative());
   }
 
@@ -2971,16 +2983,16 @@ class AvailableFileBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_directiveInfo;
     fb.Offset offset_declarations;
+    fb.Offset offset_directiveInfo;
     fb.Offset offset_exports;
     fb.Offset offset_parts;
-    if (_directiveInfo != null) {
-      offset_directiveInfo = _directiveInfo.finish(fbBuilder);
-    }
     if (!(_declarations == null || _declarations.isEmpty)) {
       offset_declarations = fbBuilder
           .writeList(_declarations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_directiveInfo != null) {
+      offset_directiveInfo = _directiveInfo.finish(fbBuilder);
     }
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder
@@ -2991,11 +3003,11 @@ class AvailableFileBuilder extends Object
           .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
-    if (offset_directiveInfo != null) {
-      fbBuilder.addOffset(5, offset_directiveInfo);
-    }
     if (offset_declarations != null) {
       fbBuilder.addOffset(0, offset_declarations);
+    }
+    if (offset_directiveInfo != null) {
+      fbBuilder.addOffset(5, offset_directiveInfo);
     }
     if (offset_exports != null) {
       fbBuilder.addOffset(1, offset_exports);
@@ -3034,19 +3046,12 @@ class _AvailableFileImpl extends Object
 
   _AvailableFileImpl(this._bc, this._bcOffset);
 
-  idl.DirectiveInfo _directiveInfo;
   List<idl.AvailableDeclaration> _declarations;
+  idl.DirectiveInfo _directiveInfo;
   List<idl.AvailableFileExport> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
-
-  @override
-  idl.DirectiveInfo get directiveInfo {
-    _directiveInfo ??=
-        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 5, null);
-    return _directiveInfo;
-  }
 
   @override
   List<idl.AvailableDeclaration> get declarations {
@@ -3054,6 +3059,13 @@ class _AvailableFileImpl extends Object
             const _AvailableDeclarationReader())
         .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
     return _declarations;
+  }
+
+  @override
+  idl.DirectiveInfo get directiveInfo {
+    _directiveInfo ??=
+        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 5, null);
+    return _directiveInfo;
   }
 
   @override
@@ -3089,11 +3101,11 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (directiveInfo != null)
-      _result["directiveInfo"] = directiveInfo.toJson();
     if (declarations.isNotEmpty)
       _result["declarations"] =
           declarations.map((_value) => _value.toJson()).toList();
+    if (directiveInfo != null)
+      _result["directiveInfo"] = directiveInfo.toJson();
     if (exports.isNotEmpty)
       _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (isLibrary != false) _result["isLibrary"] = isLibrary;
@@ -3105,8 +3117,8 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
 
   @override
   Map<String, Object> toMap() => {
-        "directiveInfo": directiveInfo,
         "declarations": declarations,
+        "directiveInfo": directiveInfo,
         "exports": exports,
         "isLibrary": isLibrary,
         "isLibraryDeprecated": isLibraryDeprecated,

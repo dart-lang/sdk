@@ -288,54 +288,52 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
 /// Information about a single declaration.
 abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(0)
-  String get defaultArgumentListString;
+  List<AvailableDeclaration> get children;
 
   @Id(1)
-  List<int> get defaultArgumentListTextRanges;
+  String get defaultArgumentListString;
 
   @Id(2)
-  String get docComplete;
+  List<int> get defaultArgumentListTextRanges;
 
   @Id(3)
-  String get docSummary;
+  String get docComplete;
 
   @Id(4)
-  int get fieldMask;
+  String get docSummary;
 
   @Id(5)
-  bool get isAbstract;
+  int get fieldMask;
 
   @Id(6)
-  bool get isConst;
+  bool get isAbstract;
 
   @Id(7)
-  bool get isDeprecated;
+  bool get isConst;
 
   @Id(8)
+  bool get isDeprecated;
+
+  @Id(9)
   bool get isFinal;
 
   /// The kind of the declaration.
-  @Id(9)
+  @Id(10)
   AvailableDeclarationKind get kind;
 
-  @Id(10)
+  @Id(11)
   int get locationOffset;
 
-  @Id(11)
+  @Id(12)
   int get locationStartColumn;
 
-  @Id(12)
+  @Id(13)
   int get locationStartLine;
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(13)
-  String get name;
-
-  /// The second, optional, part of the declaration name.  For example enum
-  /// constants all have the same [name], but their own [name2].
   @Id(14)
-  String get name2;
+  String get name;
 
   @Id(15)
   List<String> get parameterNames;
@@ -384,13 +382,13 @@ abstract class AvailableFile extends base.SummaryClass {
   factory AvailableFile.fromBuffer(List<int> buffer) =>
       generated.readAvailableFile(buffer);
 
-  /// The Dartdoc directives in the file.
-  @Id(5)
-  DirectiveInfo get directiveInfo;
-
   /// Declarations of the file.
   @Id(0)
   List<AvailableDeclaration> get declarations;
+
+  /// The Dartdoc directives in the file.
+  @Id(5)
+  DirectiveInfo get directiveInfo;
 
   /// Exports directives of the file.
   @Id(1)

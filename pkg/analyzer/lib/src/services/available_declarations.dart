@@ -32,6 +32,7 @@ import 'package:yaml/yaml.dart';
 
 /// A top-level public declaration.
 class Declaration {
+  final List<Declaration> children;
   final String defaultArgumentListString;
   final List<int> defaultArgumentListTextRanges;
   final String docComplete;
@@ -45,18 +46,11 @@ class Declaration {
   final String locationPath;
   final int locationStartColumn;
   final int locationStartLine;
-
-  /// The name of the declaration.
-  /// For enum constants, the name of the constant.
   final String name;
-
-  /// Usually `null`.
-  /// For enum constants, the name of the enum.
-  final String name2;
-
   final String parameters;
   final List<String> parameterNames;
   final List<String> parameterTypes;
+  final Declaration parent;
   final int requiredParameterCount;
   final String returnType;
   final String typeParameters;
@@ -64,6 +58,7 @@ class Declaration {
   List<String> _relevanceTags;
 
   Declaration({
+    @required this.children,
     @required this.defaultArgumentListString,
     @required this.defaultArgumentListTextRanges,
     @required this.docComplete,
@@ -78,10 +73,10 @@ class Declaration {
     @required this.locationStartColumn,
     @required this.locationStartLine,
     @required this.name,
-    @required this.name2,
     @required this.parameters,
     @required this.parameterNames,
     @required this.parameterTypes,
+    @required this.parent,
     @required List<String> relevanceTags,
     @required this.requiredParameterCount,
     @required this.returnType,
@@ -92,11 +87,7 @@ class Declaration {
 
   @override
   String toString() {
-    if (name2 == null) {
-      return '($kind, $name)';
-    } else {
-      return '($kind, $name, $name2)';
-    }
+    return '($kind, $name)';
   }
 }
 
@@ -735,8 +726,8 @@ class RelevanceTags {
         var name = declaration.name;
         return <String>['$uriStr::$name'];
       case DeclarationKind.ENUM_CONSTANT:
-        var name2 = declaration.name2;
-        return <String>['$uriStr::$name2'];
+        var enumName = declaration.parent.name;
+        return <String>['$uriStr::$enumName'];
       default:
         return null;
     }
@@ -767,15 +758,14 @@ class RelevanceTags {
 
 class _DeclarationStorage {
   static const fieldDocMask = 1 << 0;
-  static const fieldName2Mask = 1 << 1;
-  static const fieldParametersMask = 1 << 2;
-  static const fieldReturnTypeMask = 1 << 3;
-  static const fieldTypeParametersMask = 1 << 4;
+  static const fieldParametersMask = 1 << 1;
+  static const fieldReturnTypeMask = 1 << 2;
+  static const fieldTypeParametersMask = 1 << 3;
 
-  static Declaration fromIdl(String path, idl.AvailableDeclaration d) {
+  static Declaration fromIdl(
+      String path, Declaration parent, idl.AvailableDeclaration d) {
     var fieldMask = d.fieldMask;
     var hasDoc = fieldMask & fieldDocMask != 0;
-    var hasName2 = fieldMask & fieldName2Mask != 0;
     var hasParameters = fieldMask & fieldParametersMask != 0;
     var hasReturnType = fieldMask & fieldReturnTypeMask != 0;
     var hasTypeParameters = fieldMask & fieldTypeParametersMask != 0;
@@ -787,7 +777,9 @@ class _DeclarationStorage {
       relevanceTags = null;
     }
 
-    return Declaration(
+    var children = <Declaration>[];
+    var declaration = Declaration(
+      children: children,
       defaultArgumentListString: d.defaultArgumentListString.isNotEmpty
           ? d.defaultArgumentListString
           : null,
@@ -806,15 +798,22 @@ class _DeclarationStorage {
       locationStartColumn: d.locationStartColumn,
       locationStartLine: d.locationStartLine,
       name: d.name,
-      name2: hasName2 ? d.name2 : null,
       parameters: hasParameters ? d.parameters : null,
       parameterNames: hasParameters ? d.parameterNames : null,
       parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
+      parent: parent,
       relevanceTags: relevanceTags,
       requiredParameterCount: hasParameters ? d.requiredParameterCount : null,
       returnType: hasReturnType ? d.returnType : null,
       typeParameters: hasTypeParameters ? d.typeParameters : null,
     );
+
+    for (var childIdl in d.children) {
+      var child = fromIdl(path, declaration, childIdl);
+      children.add(child);
+    }
+
+    return declaration;
   }
 
   static DeclarationKind kindFromIdl(idl.AvailableDeclarationKind kind) {
@@ -880,9 +879,6 @@ class _DeclarationStorage {
     if (d.docComplete != null) {
       fieldMask |= fieldDocMask;
     }
-    if (d.name2 != null) {
-      fieldMask |= fieldName2Mask;
-    }
     if (d.parameters != null) {
       fieldMask |= fieldParametersMask;
     }
@@ -895,6 +891,7 @@ class _DeclarationStorage {
 
     var idlKind = kindToIdl(d.kind);
     return idl.AvailableDeclarationBuilder(
+      children: d.children.map(toIdl).toList(),
       defaultArgumentListString: d.defaultArgumentListString,
       defaultArgumentListTextRanges: d.defaultArgumentListTextRanges,
       docComplete: d.docComplete,
@@ -909,7 +906,6 @@ class _DeclarationStorage {
       locationStartColumn: d.locationStartColumn,
       locationStartLine: d.locationStartLine,
       name: d.name,
-      name2: d.name2,
       parameters: d.parameters,
       parameterNames: d.parameterNames,
       parameterTypes: d.parameterTypes,
@@ -938,7 +934,7 @@ class _Export {
 
   Iterable<Declaration> filter(List<Declaration> declarations) {
     return declarations.where((d) {
-      var name = d.name2 ?? d.name;
+      var name = d.name;
       for (var combinator in combinators) {
         if (combinator.shows.isNotEmpty) {
           if (!combinator.shows.contains(name)) return false;
@@ -961,7 +957,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 10;
+  static const int DATA_VERSION = 11;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1083,7 +1079,7 @@ class _File {
       for (var part in parts) {
         libraryDeclarations.addAll(part.file.fileDeclarations);
       }
-      _computeRelevanceTagsForLibraryDeclarations();
+      _computeRelevanceTags(libraryDeclarations);
     }
   }
 
@@ -1093,6 +1089,8 @@ class _File {
     fileDeclarations = [];
     libraryDeclarations = null;
     exportedDeclarations = null;
+    templateNames = [];
+    templateValues = [];
 
     for (var astDirective in unit.directives) {
       if (astDirective is ExportDirective) {
@@ -1143,7 +1141,7 @@ class _File {
       }
     }
 
-    void addDeclaration({
+    Declaration addDeclaration({
       String defaultArgumentListString,
       List<int> defaultArgumentListTextRanges,
       bool isAbstract = false,
@@ -1152,23 +1150,23 @@ class _File {
       bool isFinal = false,
       @required DeclarationKind kind,
       @required Identifier name,
-      Identifier name2,
       String parameters,
       List<String> parameterNames,
       List<String> parameterTypes,
+      Declaration parent,
       List<String> relevanceTags,
       int requiredParameterCount,
       String returnType,
       String typeParameters,
     }) {
-      if (Identifier.isPrivateName(name.name) ||
-          name2 != null && Identifier.isPrivateName(name2.name)) {
-        return;
+      if (Identifier.isPrivateName(name.name)) {
+        return null;
       }
 
       var locationOffset = name.offset;
       var lineLocation = lineInfo.getLocation(locationOffset);
-      fileDeclarations.add(Declaration(
+      var declaration = Declaration(
+        children: <Declaration>[],
         defaultArgumentListString: defaultArgumentListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges,
         docComplete: docComplete,
@@ -1181,17 +1179,24 @@ class _File {
         locationOffset: locationOffset,
         locationPath: path,
         name: name.name,
-        name2: name2?.name,
         locationStartColumn: lineLocation.columnNumber,
         locationStartLine: lineLocation.lineNumber,
         parameters: parameters,
         parameterNames: parameterNames,
         parameterTypes: parameterTypes,
+        parent: parent,
         relevanceTags: relevanceTags,
         requiredParameterCount: requiredParameterCount,
         returnType: returnType,
         typeParameters: typeParameters,
-      ));
+      );
+
+      if (parent != null) {
+        parent.children.add(declaration);
+      } else {
+        fileDeclarations.add(declaration);
+      }
+      return declaration;
     }
 
     for (var node in unit.declarations) {
@@ -1199,12 +1204,15 @@ class _File {
       var isDeprecated = _hasDeprecatedAnnotation(node);
 
       if (node is ClassDeclaration) {
-        addDeclaration(
+        var classDeclaration = addDeclaration(
           isAbstract: node.isAbstract,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
           name: node.name,
         );
+        if (classDeclaration == null) continue;
+
+        var hasConstructor = false;
         for (var classMember in node.members) {
           if (classMember is ConstructorDeclaration) {
             setDartDoc(classMember);
@@ -1228,14 +1236,43 @@ class _File {
               isDeprecated: isDeprecated,
               kind: DeclarationKind.CONSTRUCTOR,
               name: constructorName,
-              name2: node.name,
               parameters: parameters.toSource(),
               parameterNames: _getFormalParameterNames(parameters),
               parameterTypes: _getFormalParameterTypes(parameters),
+              parent: classDeclaration,
               requiredParameterCount:
                   _getFormalParameterRequiredCount(parameters),
             );
+            hasConstructor = true;
           }
+        }
+
+        if (!hasConstructor) {
+          classDeclaration.children.add(Declaration(
+            children: [],
+            defaultArgumentListString: null,
+            defaultArgumentListTextRanges: null,
+            docComplete: null,
+            docSummary: null,
+            isAbstract: false,
+            isConst: false,
+            isDeprecated: false,
+            isFinal: false,
+            kind: DeclarationKind.CONSTRUCTOR,
+            locationOffset: -1,
+            locationPath: path,
+            name: '',
+            locationStartColumn: 0,
+            locationStartLine: 0,
+            parameters: '()',
+            parameterNames: [],
+            parameterTypes: [],
+            parent: classDeclaration,
+            relevanceTags: null,
+            requiredParameterCount: 0,
+            returnType: null,
+            typeParameters: null,
+          ));
         }
       } else if (node is ClassTypeAlias) {
         addDeclaration(
@@ -1244,11 +1281,13 @@ class _File {
           name: node.name,
         );
       } else if (node is EnumDeclaration) {
-        addDeclaration(
+        var enumDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.ENUM,
           name: node.name,
         );
+        if (enumDeclaration == null) continue;
+
         for (var constant in node.constants) {
           setDartDoc(constant);
           var isDeprecated = _hasDeprecatedAnnotation(constant);
@@ -1256,7 +1295,7 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.ENUM_CONSTANT,
             name: constant.name,
-            name2: node.name,
+            parent: enumDeclaration,
           );
         }
       } else if (node is FunctionDeclaration) {
@@ -1337,10 +1376,11 @@ class _File {
     }
   }
 
-  void _computeRelevanceTagsForLibraryDeclarations() {
-    for (var declaration in libraryDeclarations) {
+  void _computeRelevanceTags(List<Declaration> declarations) {
+    for (var declaration in declarations) {
       declaration._relevanceTags ??=
           RelevanceTags._forDeclaration(uriStr, declaration);
+      _computeRelevanceTags(declaration.children);
     }
   }
 
@@ -1431,11 +1471,11 @@ class _File {
     }).toList();
 
     fileDeclarations = idlFile.declarations.map((e) {
-      return _DeclarationStorage.fromIdl(path, e);
+      return _DeclarationStorage.fromIdl(path, null, e);
     }).toList();
 
-    templateNames = idlFile.directiveInfo.templateNames;
-    templateValues = idlFile.directiveInfo.templateValues;
+    templateNames = idlFile.directiveInfo.templateNames.toList();
+    templateValues = idlFile.directiveInfo.templateValues.toList();
   }
 
   static _DefaultArguments _computeDefaultArguments(
@@ -1651,7 +1691,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   static Set<Declaration> _newDeclarationSet() {
     return HashSet<Declaration>(
       hashCode: (e) => e.name.hashCode,
-      equals: (a, b) => a.name == b.name && a.name2 == b.name2,
+      equals: (a, b) => a.name == b.name,
     );
   }
 }
