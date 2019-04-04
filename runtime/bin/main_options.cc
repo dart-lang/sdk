@@ -120,13 +120,14 @@ void Options::PrintVersion() {
 // clang-format off
 void Options::PrintUsage() {
   Log::PrintErr(
-      "Usage: dart [<vm-flags>] <dart-script-file> [<dart-options>]\n"
+      "Usage: dart [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
       "\n"
-      "Executes the Dart script passed as <dart-script-file>.\n"
+      "Executes the Dart script <dart-script-file> with "
+      "the given list of <script-arguments>.\n"
       "\n");
   if (!Options::verbose_option()) {
     Log::PrintErr(
-"Common options:\n"
+"Common VM flags:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
 "--help or -h\n"
