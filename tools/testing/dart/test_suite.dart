@@ -468,9 +468,10 @@ class VMTestSuite extends TestSuite {
 
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
-      final dfePath = new Path("$buildDir/gen/kernel-service.dart.snapshot")
-          .absolute
-          .toNativePath();
+      final filename = configuration.architecture == Architecture.x64
+          ? '$buildDir/gen/kernel-service.dart.snapshot'
+          : '$buildDir/gen/kernel_service.dill';
+      final dfePath = new Path(filename).absolute.toNativePath();
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$dfePath');
     }

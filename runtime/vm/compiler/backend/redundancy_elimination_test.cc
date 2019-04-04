@@ -4,6 +4,7 @@
 
 #include "vm/compiler/backend/redundancy_elimination.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/type_propagator.h"
@@ -26,53 +27,6 @@ static Dart_NativeFunction NoopNativeLookup(Dart_Handle name,
   ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&NoopNative);
-}
-
-// Helper method to build CFG and run some preliminary optimizations on it.
-// TODO(vegorov) we should consider moving this function into utils to share
-// between all compiler tests.
-static FlowGraph* BuildOptimizedGraph(Thread* thread,
-                                      const char* script_chars) {
-  // Invoke the script.
-  Dart_Handle script =
-      TestCase::LoadTestScript(script_chars, &NoopNativeLookup);
-  Dart_Handle result = Dart_Invoke(script, NewString("main"), 0, nullptr);
-  EXPECT_VALID(result);
-
-  // Find parsed function "foo".
-  TransitionNativeToVM transition(thread);
-  Zone* zone = thread->zone();
-  Library& lib =
-      Library::ZoneHandle(Library::RawCast(Api::UnwrapHandle(script)));
-  RawFunction* raw_func =
-      lib.LookupLocalFunction(String::Handle(Symbols::New(thread, "foo")));
-  ParsedFunction* parsed_function =
-      new (zone) ParsedFunction(thread, Function::ZoneHandle(zone, raw_func));
-  EXPECT(parsed_function != nullptr);
-
-  // Build flow graph.
-  CompilerState state(thread);
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new (zone) ZoneGrowableArray<const ICData*>();
-  parsed_function->function().RestoreICDataMap(ic_data_array, true);
-  kernel::FlowGraphBuilder builder(parsed_function, ic_data_array, nullptr,
-                                   nullptr, true, DeoptId::kNone);
-  FlowGraph* flow_graph = builder.BuildGraph();
-  EXPECT(flow_graph != nullptr);
-
-  // Setup some pass data structures and perform minimum passes.
-  SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
-  CompilerPassState pass_state(thread, flow_graph, &speculative_policy);
-  JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
-  pass_state.call_specializer = &call_specializer;
-  flow_graph->ComputeSSA(0, nullptr);
-  FlowGraphTypePropagator::Propagate(flow_graph);
-  call_specializer.ApplyICData();
-  flow_graph->SelectRepresentations();
-  FlowGraphTypePropagator::Propagate(flow_graph);
-  flow_graph->Canonicalize();
-
-  return flow_graph;
 }
 
 // Flatten all non-captured LocalVariables from the given scope and its children
@@ -106,13 +60,25 @@ static void TryCatchOptimizerTest(
     Thread* thread,
     const char* script_chars,
     std::initializer_list<const char*> synchronized) {
-  FlowGraph* graph = BuildOptimizedGraph(thread, script_chars);
+  // Load the script and exercise the code once.
+  const auto& root_library =
+      Library::Handle(LoadTestScript(script_chars, &NoopNativeLookup));
+  Invoke(root_library, "main");
+
+  // Build the flow graph.
+  std::initializer_list<CompilerPass::Id> passes = {
+      CompilerPass::kComputeSSA,      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,     CompilerPass::kSelectRepresentations,
+      CompilerPass::kTypePropagation, CompilerPass::kCanonicalize,
+  };
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function);
+  FlowGraph* graph = pipeline.RunJITPasses(passes);
 
   // Finally run TryCatchAnalyzer on the graph (in AOT mode).
   OptimizeCatchEntryStates(graph, /*is_aot=*/true);
 
   EXPECT_EQ(1, graph->graph_entry()->catch_entries().length());
-
   auto scope = graph->parsed_function().node_sequence()->scope();
 
   GrowableArray<LocalVariable*> env;
@@ -146,7 +112,7 @@ static void TryCatchOptimizerTest(
 // Tests for TryCatchOptimizer.
 //
 
-TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple1) {
+ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple1) {
   const char* script_chars = R"(
       dynamic blackhole([dynamic val]) native 'BlackholeNative';
       foo(int p) {
@@ -165,7 +131,7 @@ TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple1) {
   TryCatchOptimizerTest(thread, script_chars, /*synchronized=*/{});
 }
 
-TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple2) {
+ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple2) {
   const char* script_chars = R"(
       dynamic blackhole([dynamic val]) native 'BlackholeNative';
       foo(int p) {
@@ -185,7 +151,7 @@ TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple2) {
   TryCatchOptimizerTest(thread, script_chars, /*synchronized=*/{"a"});
 }
 
-TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic1) {
+ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic1) {
   const char* script_chars = R"(
       dynamic blackhole([dynamic val]) native 'BlackholeNative';
       foo(int p) {
@@ -207,7 +173,7 @@ TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic1) {
   TryCatchOptimizerTest(thread, script_chars, /*synchronized=*/{"a", "i"});
 }
 
-TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic2) {
+ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic2) {
   const char* script_chars = R"(
       dynamic blackhole([dynamic val]) native 'BlackholeNative';
       foo(int p) {

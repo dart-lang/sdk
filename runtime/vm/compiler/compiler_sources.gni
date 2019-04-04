@@ -155,6 +155,8 @@ compiler_sources_tests = [
   "assembler/assembler_x64_test.cc",
   "assembler/disassembler_test.cc",
   "backend/il_test.cc",
+  "backend/il_test_helper.h",
+  "backend/il_test_helper.cc",
   "backend/locations_helpers_test.cc",
   "backend/loops_test.cc",
   "backend/range_analysis_test.cc",

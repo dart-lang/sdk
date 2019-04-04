@@ -7,6 +7,8 @@
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
+#include <initializer_list>
+
 #include "vm/growable_array.h"
 #include "vm/token_position.h"
 #include "vm/zone.h"
@@ -140,6 +142,10 @@ class CompilerPass {
   enum PipelineMode { kJIT, kAOT };
 
   static void RunPipeline(PipelineMode mode, CompilerPassState* state);
+
+  static void RunPipelineWithPasses(
+      CompilerPassState* state,
+      std::initializer_list<CompilerPass::Id> passes);
 
  protected:
   // This function executes the pass. If it returns true then

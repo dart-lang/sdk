@@ -138,6 +138,8 @@ template("build_gen_snapshot") {
     }
     deps = [ ":generate_abi_version_cc_file" ] + extra_deps
 
+    defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
+
     sources = [
       "address_sanitizer.cc",
       "builtin.cc",
@@ -897,6 +899,10 @@ executable("run_vm_tests") {
     "..:dart_os_config",
     "..:dart_maybe_product_config",
   ]
+
+  if (dart_target_arch != "ia32") {
+    configs += [ "..:dart_precompiler_config" ]
+  }
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
   }
@@ -909,7 +915,7 @@ executable("run_vm_tests") {
     ":generate_abi_version_cc_file",
     ":libdart_builtin",
     ":standalone_dart_io",
-    "..:libdart_jit",
+    "..:libdart_nosnapshot_with_precompiler",
     "//third_party/zlib",
   ]
   include_dirs = [

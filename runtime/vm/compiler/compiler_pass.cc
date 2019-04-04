@@ -270,6 +270,14 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(ReorderBlocks);
 }
 
+void CompilerPass::RunPipelineWithPasses(
+    CompilerPassState* state,
+    std::initializer_list<CompilerPass::Id> passes) {
+  for (auto pass_id : passes) {
+    passes_[pass_id]->Run(state);
+  }
+}
+
 COMPILER_PASS(ComputeSSA, {
   // Transform to SSA (virtual register 0 and no inlining arguments).
   flow_graph->ComputeSSA(0, NULL);

@@ -68,7 +68,13 @@ DFE::DFE()
       frontend_filename_(NULL),
       application_kernel_buffer_(NULL),
       application_kernel_buffer_size_(0) {
-#if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
+  // The run_vm_tests binary has the DART_PRECOMPILER set in order to allow unit
+  // tests to exercise JIT and AOT pipeline.
+  //
+  // Only on X64 do we have kernel-service.dart.snapshot available otherwise we
+  // need to fall back to the built-in one (if we have it).
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) || defined(DART_NO_SNAPSHOT) ||   \
+    (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
   kernel_service_dill_ = NULL;
   kernel_service_dill_size_ = 0;
   platform_strong_dill_ = NULL;

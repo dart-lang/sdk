@@ -156,6 +156,14 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
       free(*error);
       *error = NULL;
     }
+    // If a test does not actually require the kernel isolate the main thead can
+    // start calling Dart::Cleanup() while the kernel isolate is booting up.
+    // This can cause the isolate to be killed early which will return `nullptr`
+    // here.
+    if (isolate == nullptr) {
+      delete isolate_data;
+      return NULL;
+    }
   }
   if (isolate == NULL) {
     delete isolate_data;
