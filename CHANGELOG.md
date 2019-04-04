@@ -1,3 +1,9 @@
+# 0.1.84
+
+* new lint: `spread_collections`
+* (internal) update to analyzer 0.36.0 APIs
+* new lint: `prefer_asserts_with_message`
+
 # 0.1.83
 
 * updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
