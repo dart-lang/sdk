@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.5';
+const String version = '1.6';
 
 // Restriction on statement and expression depths.
 const int stmtDepth = 2;
@@ -101,10 +101,10 @@ class DartFuzz {
   void emitClasses() {
     assert(classFields.length == classMethods.length);
     for (int i = 0; i < classFields.length; i++) {
-      currentClass = i;
       emitLn('class X$i ${i == 0 ? "" : "extends X${i - 1}"} {');
       indent += 2;
       emitVarDecls('$fieldName${i}_', classFields[i]);
+      currentClass = i;
       emitMethods('$methodName${i}_', classMethods[i]);
       emitLn('void run() {');
       indent += 2;
@@ -156,7 +156,7 @@ class DartFuzz {
     for (int i = 0; i < vars.length; i++) {
       DartType tp = vars[i];
       emitLn('${tp.name} $name$i = ', newline: false);
-      emitLiteral(tp);
+      emitLiteral(0, tp);
       emit(';', newline: true);
     }
     emit('', newline: true);
@@ -534,39 +534,96 @@ class DartFuzz {
 
   void emitString() {
     emit("'");
-    int l = rand.nextInt(8);
-    for (int i = 0; i < l; i++) {
+    for (int i = 0, n = rand.nextInt(8); i < n; i++) {
       emitChar();
     }
     emit("'");
   }
 
-  void emitList(String open, String close) {
-    emit('$open ');
-    int l = 1 + rand.nextInt(4);
-    for (int i = 0; i < l; i++) {
-      emitInt();
-      if (i != (l - 1)) {
+  void emitElementExpr(int depth, DartType tp) {
+    if (currentMethod != null) {
+      emitExpr(depth, tp);
+    } else {
+      emitLiteral(depth, tp);
+    }
+  }
+
+  void emitElement(int depth, DartType tp) {
+    if (tp == DartType.INT_STRING_MAP) {
+      emitSmallPositiveInt();
+      emit(' : ');
+      emitElementExpr(depth, DartType.STRING);
+    } else {
+      emitElementExpr(depth, DartType.INT);
+    }
+  }
+
+  void emitCollectionElement(int depth, DartType tp) {
+    int r = depth <= exprDepth ? rand.nextInt(10) : 10;
+    switch (r + 3) {
+      // TODO(ajcbik): enable when on by default
+      // Favors elements over control-flow collections.
+      case 0:
+        emit('...'); // spread
+        emitCollection(depth + 1, tp);
+        break;
+      case 1:
+        emit('if (');
+        emitElementExpr(depth + 1, DartType.BOOL);
+        emit(') ');
+        emitCollectionElement(depth + 1, tp);
+        if (rand.nextBool()) {
+          emit(' else ');
+          emitCollectionElement(depth + 1, tp);
+        }
+        break;
+      case 2:
+        {
+          int i = localVars.length;
+          emit('for (int $localName$i ');
+          // For-loop (induction, list, set).
+          switch (rand.nextInt(3)) {
+            case 0:
+              emit('= 0; $localName$i < ');
+              emitSmallPositiveInt();
+              emit('; $localName$i++) ');
+              break;
+            case 1:
+              emit('in ');
+              emitCollection(depth + 1, DartType.INT_LIST);
+              emit(') ');
+              break;
+            default:
+              emit('in ');
+              emitCollection(depth + 1, DartType.INT_SET);
+              emit(') ');
+              break;
+          }
+          nest++;
+          localVars.add(DartType.INT);
+          emitCollectionElement(depth + 1, tp);
+          localVars.removeLast();
+          nest--;
+          break;
+        }
+      default:
+        emitElement(depth, tp);
+        break;
+    }
+  }
+
+  void emitCollection(int depth, DartType tp) {
+    emit(tp == DartType.INT_LIST ? '[ ' : '{ ');
+    for (int i = 0, n = 1 + rand.nextInt(8); i < n; i++) {
+      emitCollectionElement(depth, tp);
+      if (i != (n - 1)) {
         emit(', ');
       }
     }
-    emit(' $close');
+    emit(tp == DartType.INT_LIST ? ' ]' : ' }');
   }
 
-  void emitMap() {
-    emit('{ ');
-    int l = 1 + rand.nextInt(4);
-    for (int i = 0; i < l; i++) {
-      emit('$i : ');
-      emitString();
-      if (i != (l - 1)) {
-        emit(', ');
-      }
-    }
-    emit(' }');
-  }
-
-  void emitLiteral(DartType tp) {
+  void emitLiteral(int depth, DartType tp) {
     if (tp == DartType.BOOL) {
       emitBool();
     } else if (tp == DartType.INT) {
@@ -575,12 +632,10 @@ class DartFuzz {
       emitDouble();
     } else if (tp == DartType.STRING) {
       emitString();
-    } else if (tp == DartType.INT_LIST) {
-      emitList('[', ']');
-    } else if (tp == DartType.INT_SET) {
-      emitList('{', '}');
-    } else if (tp == DartType.INT_STRING_MAP) {
-      emitMap();
+    } else if (tp == DartType.INT_LIST ||
+        tp == DartType.INT_SET ||
+        tp == DartType.INT_STRING_MAP) {
+      emitCollection(depth, tp);
     } else {
       assert(false);
     }
@@ -642,7 +697,7 @@ class DartFuzz {
   void emitTerminal(int depth, DartType tp) {
     switch (rand.nextInt(2)) {
       case 0:
-        emitLiteral(tp);
+        emitLiteral(depth, tp);
         break;
       default:
         emitVar(depth, tp);
@@ -694,7 +749,7 @@ class DartFuzz {
       emit('(');
       emitExpr(depth + 1, tp);
       emitBinaryOp(tp);
-      emitLiteral(tp);
+      emitLiteral(depth + 1, tp);
       emit(')');
       return;
     }
@@ -774,8 +829,9 @@ class DartFuzz {
   void emitMethodCall(int depth, DartType tp) {
     // Only call backward to avoid infinite recursion.
     if (currentClass == null) {
-      // Outside a class: call backward in global methods.
-      if (pickedCall(depth, tp, methodName, globalMethods, currentMethod)) {
+      // Outside a class but inside a method: call backward in global methods.
+      if (currentMethod != null &&
+          pickedCall(depth, tp, methodName, globalMethods, currentMethod)) {
         return;
       }
     } else {
@@ -996,8 +1052,7 @@ class DartFuzz {
 
   List<DartType> fillTypes1() {
     List<DartType> list = new List<DartType>();
-    int n = 1 + rand.nextInt(4);
-    for (int i = 0; i < n; i++) {
+    for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
       list.add(getType());
     }
     return list;
@@ -1005,8 +1060,7 @@ class DartFuzz {
 
   List<List<DartType>> fillTypes2() {
     List<List<DartType>> list = new List<List<DartType>>();
-    int n = 1 + rand.nextInt(4);
-    for (int i = 0; i < n; i++) {
+    for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
       list.add(fillTypes1());
     }
     return list;
