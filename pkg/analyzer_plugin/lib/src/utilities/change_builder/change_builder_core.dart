@@ -21,15 +21,15 @@ class ChangeBuilderImpl implements ChangeBuilder {
   String eol = null;
 
   /**
-   * The change that is being built.
-   */
-  final SourceChange _change = new SourceChange('');
-
-  /**
    * A table mapping group ids to the associated linked edit groups.
    */
   final Map<String, LinkedEditGroup> _linkedEditGroups =
       <String, LinkedEditGroup>{};
+
+  /**
+   * The source change selection or `null` if none.
+   */
+  Position _selection;
 
   /**
    * The range of the selection for the change being built, or `null` if there
@@ -44,6 +44,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
   final Set<Position> _lockedPositions = new HashSet<Position>.identity();
 
   /**
+   * A map of absolute normalized path to file edit builder.
+   */
+  final _fileEditBuilders = <String, FileEditBuilderImpl>{};
+
+  /**
    * Initialize a newly created change builder.
    */
   ChangeBuilderImpl();
@@ -53,27 +58,34 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   @override
   SourceChange get sourceChange {
+    final SourceChange change = new SourceChange('');
+    for (var builder in _fileEditBuilders.values) {
+      if (builder.hasEdits) {
+        change.addFileEdit(builder.fileEdit);
+        builder.finalize();
+      }
+    }
     _linkedEditGroups.forEach((String name, LinkedEditGroup group) {
-      _change.addLinkedEditGroup(group);
+      change.addLinkedEditGroup(group);
     });
-    _linkedEditGroups.clear();
-    return _change;
+    if (_selection != null) {
+      change.selection = _selection;
+    }
+    return change;
   }
 
   @override
   Future<void> addFileEdit(
       String path, void buildFileEdit(FileEditBuilder builder)) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    FileEditBuilderImpl builder = await createFileEditBuilder(path);
+    FileEditBuilderImpl builder = _fileEditBuilders[path];
     if (builder == null) {
-      return;
+      builder = await createFileEditBuilder(path);
+      if (builder != null) {
+        _fileEditBuilders[path] = builder;
+      }
     }
-
-    buildFileEdit(builder);
-    if (builder.hasEdits) {
-      _change.addFileEdit(builder.fileEdit);
-      await builder.finalize();
+    if (builder != null) {
+      buildFileEdit(builder);
     }
   }
 
@@ -102,7 +114,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   @override
   void setSelection(Position position) {
-    _change.selection = position;
+    _selection = position;
   }
 
   void _setSelectionRange(SourceRange range) {
@@ -126,9 +138,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
         _updatePosition(position);
       }
     }
-    Position selection = _change.selection;
-    if (selection != null) {
-      _updatePosition(selection);
+    if (_selection != null) {
+      _updatePosition(_selection);
     }
   }
 }
@@ -349,9 +360,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /**
    * Finalize the source file edit that is being built.
    */
-  Future<void> finalize() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  void finalize() {
     // Nothing to do.
   }
 

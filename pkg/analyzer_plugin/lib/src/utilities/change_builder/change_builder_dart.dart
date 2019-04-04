@@ -72,7 +72,24 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
       throw new AnalysisException('Cannot analyze "$path"');
     }
     int timeStamp = state == ResultState.VALID ? 0 : -1;
-    return DartFileEditBuilderImpl(this, path, timeStamp, session, result.unit);
+
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement declaredUnit = unit.declaredElement;
+    CompilationUnitElement libraryUnit =
+        declaredUnit.library.definingCompilationUnit;
+
+    DartFileEditBuilderImpl libraryEditBuilder;
+    if (libraryUnit != declaredUnit) {
+      // If the receiver is a part file builder, then proactively cache the
+      // library file builder so that imports can be finalized synchronously.
+      await addFileEdit(libraryUnit.source.fullName,
+          (DartFileEditBuilder builder) {
+        libraryEditBuilder = builder as DartFileEditBuilderImpl;
+      });
+    }
+
+    return DartFileEditBuilderImpl(
+        this, path, timeStamp, session, unit, libraryEditBuilder);
   }
 }
 
@@ -1123,6 +1140,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   final LibraryElement libraryElement;
 
   /**
+   * The change builder for the library
+   * or `null` if the receiver is the builder for the library.
+   */
+  final DartFileEditBuilderImpl libraryChangeBuilder;
+
+  /**
    * The optional generator of prefixes for new imports.
    */
   ImportPrefixGenerator importPrefixGenerator;
@@ -1139,7 +1162,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    * the given [path] and [timeStamp], and the given fully resolved [unit].
    */
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
-      int timeStamp, this.session, this.unit)
+      int timeStamp, this.session, this.unit, this.libraryChangeBuilder)
       : libraryElement = unit.declaredElement.library,
         super(changeBuilder, path, timeStamp);
 
@@ -1181,21 +1204,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  Future<void> finalize() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  void finalize() {
     if (librariesToImport.isNotEmpty) {
-      CompilationUnitElement definingUnitElement =
-          libraryElement.definingCompilationUnit;
-      if (definingUnitElement == unit.declaredElement) {
-        _addLibraryImports(librariesToImport.values);
-      } else {
-        await (changeBuilder as DartChangeBuilder).addFileEdit(
-            definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
-          (builder as DartFileEditBuilderImpl)
-              ._addLibraryImports(librariesToImport.values);
-        });
-      }
+      _addLibraryImports(librariesToImport.values);
     }
   }
 
@@ -1227,7 +1238,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     var prefix = request.prefix;
     if (request.uri != null) {
       var uriText = _getLibraryUriText(request.uri);
-      librariesToImport[request.uri] = _LibraryToImport(uriText, prefix);
+      (libraryChangeBuilder ?? this).librariesToImport[request.uri] =
+          _LibraryToImport(uriText, prefix);
     }
 
     return ImportLibraryElementResultImpl(prefix);
@@ -1480,13 +1492,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    * Arrange to have an import added for the library with the given [uri].
    */
   _LibraryToImport _importLibrary(Uri uri) {
-    var import = librariesToImport[uri];
+    var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
     if (import == null) {
       String uriText = _getLibraryUriText(uri);
       String prefix =
           importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
       import = new _LibraryToImport(uriText, prefix);
-      librariesToImport[uri] = import;
+      (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
     return import;
   }
