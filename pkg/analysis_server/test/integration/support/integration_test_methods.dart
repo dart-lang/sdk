@@ -2026,6 +2026,13 @@ abstract class IntegrationTestMixin {
    *
    *   The elements to be made accessible in the specified file.
    *
+   * offset: int (optional)
+   *
+   *   The offset at which the specified elements need to be made accessible.
+   *   If provided, this is used to guard against adding imports for text that
+   *   would be inserted into a comment, string literal, or other location
+   *   where the imports would not be necessary.
+   *
    * Returns
    *
    * edit: SourceFileEdit (optional)
@@ -2038,8 +2045,10 @@ abstract class IntegrationTestMixin {
    *   that need to be applied.
    */
   Future<EditImportElementsResult> sendEditImportElements(
-      String file, List<ImportedElements> elements) async {
-    var params = new EditImportElementsParams(file, elements).toJson();
+      String file, List<ImportedElements> elements,
+      {int offset}) async {
+    var params =
+        new EditImportElementsParams(file, elements, offset: offset).toJson();
     var result = await server.send("edit.importElements", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new EditImportElementsResult.fromJson(decoder, 'result', result);

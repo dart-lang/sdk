@@ -624,8 +624,12 @@ public interface AnalysisServer {
    *
    * @param file The file in which the specified elements are to be made accessible.
    * @param elements The elements to be made accessible in the specified file.
+   * @param offset The offset at which the specified elements need to be made accessible. If
+   *         provided, this is used to guard against adding imports for text that would be inserted
+   *         into a comment, string literal, or other location where the imports would not be
+   *         necessary.
    */
-  public void edit_importElements(String file, List<ImportedElements> elements, ImportElementsConsumer consumer);
+  public void edit_importElements(String file, List<ImportedElements> elements, int offset, ImportElementsConsumer consumer);
 
   /**
    * {@code edit.isPostfixCompletionApplicable}

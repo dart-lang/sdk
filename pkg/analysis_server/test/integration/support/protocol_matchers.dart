@@ -2620,11 +2620,13 @@ final Matcher isEditGetStatementCompletionResult = new LazyMatcher(() =>
  * {
  *   "file": FilePath
  *   "elements": List<ImportedElements>
+ *   "offset": optional int
  * }
  */
 final Matcher isEditImportElementsParams = new LazyMatcher(() =>
     new MatchesJsonObject("edit.importElements params",
-        {"file": isFilePath, "elements": isListOf(isImportedElements)}));
+        {"file": isFilePath, "elements": isListOf(isImportedElements)},
+        optionalFields: {"offset": isInt}));
 
 /**
  * edit.importElements result

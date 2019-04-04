@@ -2534,15 +2534,26 @@
           The elements to be made accessible in the specified file.
         </p>
       </field>
+      <field name="offset" optional="true">
+        <ref>int</ref>
+        <p>
+          The offset at which the specified elements need to be made accessible.
+          If provided, this is used to guard against adding imports for text
+          that would be inserted into a comment, string literal, or other
+          location where the imports would not be necessary.
+        </p>
+      </field>
     </params>
     <result>
       <field name="edit" optional="true">
         <ref>SourceFileEdit</ref>
         <p>
-          The edits to be applied in order to make the specified elements accessible. The file to be edited will be the
-          defining compilation unit of the library containing the file specified in the request, which can be different
-          than the file specified in the request if the specified file is a part file. This field will be omitted if
-          there are no edits that need to be applied.
+          The edits to be applied in order to make the specified elements
+          accessible. The file to be edited will be the defining compilation
+          unit of the library containing the file specified in the request,
+          which can be different than the file specified in the request if the
+          specified file is a part file. This field will be omitted if there are
+          no edits that need to be applied.
         </p>
       </field>
     </result>

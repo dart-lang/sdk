@@ -201,6 +201,7 @@ const String EDIT_REQUEST_GET_STATEMENT_COMPLETION_OFFSET = 'offset';
 const String EDIT_REQUEST_IMPORT_ELEMENTS = 'edit.importElements';
 const String EDIT_REQUEST_IMPORT_ELEMENTS_ELEMENTS = 'elements';
 const String EDIT_REQUEST_IMPORT_ELEMENTS_FILE = 'file';
+const String EDIT_REQUEST_IMPORT_ELEMENTS_OFFSET = 'offset';
 const String EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE =
     'edit.isPostfixCompletionApplicable';
 const String EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE_FILE = 'file';
