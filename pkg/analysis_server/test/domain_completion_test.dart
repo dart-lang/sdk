@@ -868,6 +868,8 @@ class B extends A {m() {^}}
 @reflectiveTest
 class CompletionDomainHandlerListTokenDetailsTest
     extends AbstractCompletionDomainTest {
+  String testFileUri;
+
   void expectTokens(String content, List<TokenDetails> expectedTokens) async {
     newFile(testFile, content: content);
     Request request =
@@ -875,6 +877,12 @@ class CompletionDomainHandlerListTokenDetailsTest
     Response response = await waitResponse(request);
     List<Map<String, dynamic>> tokens = response.result['tokens'];
     _compareTokens(tokens, expectedTokens);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testFileUri = toUriStr(testFile);
   }
 
   test_classDeclaration() async {
@@ -891,22 +899,19 @@ class D with C {}
       token('class', null, null),
       token('B', 'dart:core;Type', ['declaration']),
       token('extends', null, null),
-      token('A', 'dart:core;Type<file:///project/bin/test.dart;A>',
-          ['reference']),
+      token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
       token('{', null, null),
       token('}', null, null),
       token('class', null, null),
       token('C', 'dart:core;Type', ['declaration']),
       token('implements', null, null),
-      token('B', 'dart:core;Type<file:///project/bin/test.dart;B>',
-          ['reference']),
+      token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
       token('{', null, null),
       token('}', null, null),
       token('class', null, null),
       token('D', 'dart:core;Type', ['declaration']),
       token('with', null, null),
-      token('C', 'dart:core;Type<file:///project/bin/test.dart;C>',
-          ['reference']),
+      token('C', 'dart:core;Type<$testFileUri;C>', ['reference']),
       token('{', null, null),
       token('}', null, null),
     ]);
@@ -1115,11 +1120,9 @@ mixin D on A implements B {}
       token('mixin', null, null),
       token('D', 'dart:core;Type', ['declaration']),
       token('on', null, null),
-      token('A', 'dart:core;Type<file:///project/bin/test.dart;A>',
-          ['reference']),
+      token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
       token('implements', null, null),
-      token('B', 'dart:core;Type<file:///project/bin/test.dart;B>',
-          ['reference']),
+      token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
       token('{', null, null),
       token('}', null, null),
     ]);
