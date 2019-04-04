@@ -331,7 +331,7 @@ class CompileTimeErrorCode extends ErrorCode {
           "Class '{0}' can't define field '{1}' and have method '{2}.{1}' "
           "with the same name.",
           correction: "Try converting the getter to a method, or "
-              "renaming the field to a name that doesn't conflit.");
+              "renaming the field to a name that doesn't conflict.");
 
   /**
    * 10.10 Superinterfaces: It is a compile-time error if a class `C` has two
@@ -366,7 +366,7 @@ class CompileTimeErrorCode extends ErrorCode {
           "Class '{0}' can't define method '{1}' and have field '{2}.{1}' "
           "with the same name.",
           correction: "Try converting the method to a getter, or "
-              "renaming the method to a name that doesn't conflit.");
+              "renaming the method to a name that doesn't conflict.");
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -384,7 +384,7 @@ class CompileTimeErrorCode extends ErrorCode {
           "Class '{0}' can't define static member '{1}' and have instance "
           "member '{2}.{1}' with the same name.",
           correction:
-              "Try renaming the member to a name that doesn't conflit.");
+              "Try renaming the member to a name that doesn't conflict.");
 
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
@@ -761,7 +761,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR =
       const CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR',
           "The class '{0}' doesn't have a constant constructor '{1}'.",
-          correction: "Try calling a different contructor.");
+          correction: "Try calling a different constructor.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
@@ -773,7 +773,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       const CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
           "The class '{0}' doesn't have a default constant constructor.",
-          correction: "Try calling a different contructor.");
+          correction: "Try calling a different constructor.");
 
   /**
    * 15.3.1 Typedef: It is a compile-time error if any default values are
@@ -1173,7 +1173,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode IMPLEMENTS_REPEATED =
       const CompileTimeErrorCode(
           'IMPLEMENTS_REPEATED', "'{0}' can only be implemented once.",
-          correction: "Try removing all but one occurance of the class name.");
+          correction: "Try removing all but one occurrence of the class name.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the superclass of a
@@ -1186,7 +1186,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode IMPLEMENTS_SUPER_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_SUPER_CLASS',
           "'{0}' can't be used in both 'extends' and 'implements' clauses.",
-          correction: "Try removing one of the occurances.");
+          correction: "Try removing one of the occurrences.");
 
   /**
    * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the
@@ -2217,7 +2217,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode ON_REPEATED = const CompileTimeErrorCode(
       'ON_REPEATED',
       "'{0}' can only be used in super-class constraints only once.",
-      correction: "Try removing all but one occurance of the class name.");
+      correction: "Try removing all but one occurrence of the class name.");
 
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional

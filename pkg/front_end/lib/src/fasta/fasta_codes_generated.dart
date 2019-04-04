@@ -2573,7 +2573,7 @@ Message _withArgumentsDuplicatedLibraryImportContext(String name) {
 const Template<Message Function(Token token)> templateDuplicatedModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""The modifier '#lexeme' was already specified.""",
-        tipTemplate: r"""Try removing all but one occurance of the modifier.""",
+        tipTemplate: r"""Try removing all but one occurence of the modifier.""",
         withArguments: _withArgumentsDuplicatedModifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2587,7 +2587,7 @@ Message _withArgumentsDuplicatedModifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeDuplicatedModifier,
       message: """The modifier '${lexeme}' was already specified.""",
-      tip: """Try removing all but one occurance of the modifier.""",
+      tip: """Try removing all but one occurence of the modifier.""",
       arguments: {'token': token});
 }
 
@@ -3193,7 +3193,7 @@ const Code<Null> codeExportAfterPart = messageExportAfterPart;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExportAfterPart = const MessageCode("ExportAfterPart",
     index: 75,
-    message: r"""Export directives must preceed part directives.""",
+    message: r"""Export directives must precede part directives.""",
     tip: r"""Try moving the export directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4449,7 +4449,7 @@ const Code<Null> codeImportAfterPart = messageImportAfterPart;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
     index: 10,
-    message: r"""Import directives must preceed part directives.""",
+    message: r"""Import directives must precede part directives.""",
     tip: r"""Try moving the import directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6727,7 +6727,7 @@ const MessageCode messageMissingOperatorKeyword = const MessageCode(
     "MissingOperatorKeyword",
     index: 31,
     message:
-        r"""Operator declarations must be preceeded by the keyword 'operator'.""",
+        r"""Operator declarations must be preceded by the keyword 'operator'.""",
     tip: r"""Try adding the keyword 'operator'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

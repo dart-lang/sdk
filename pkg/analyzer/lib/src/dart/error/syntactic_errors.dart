@@ -718,7 +718,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER =
       const ParserErrorCode('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
-          "The default value of a positional parameter should be preceeded by '='.",
+          "The default value of a positional parameter should be preceded by '='.",
           correction: "Try replacing the ':' with '='.");
 
   /**

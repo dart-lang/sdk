@@ -680,7 +680,7 @@ CovariantAndStatic:
 DuplicatedModifier:
   index: 70
   template: "The modifier '#lexeme' was already specified."
-  tip: "Try removing all but one occurance of the modifier."
+  tip: "Try removing all but one occurence of the modifier."
   analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
   script:
     - "class C { const const m; }"
@@ -2176,7 +2176,7 @@ LibraryDirectiveNotFirst:
 
 ImportAfterPart:
   index: 10
-  template: "Import directives must preceed part directives."
+  template: "Import directives must precede part directives."
   tip: "Try moving the import directives before the part directives."
   analyzerCode: ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
@@ -2184,7 +2184,7 @@ ImportAfterPart:
 
 ExportAfterPart:
   index: 75
-  template: "Export directives must preceed part directives."
+  template: "Export directives must precede part directives."
   tip: "Try moving the export directives before the part directives."
   analyzerCode: ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
@@ -2474,7 +2474,7 @@ EnumConstantSameNameAsEnclosing:
 
 MissingOperatorKeyword:
   index: 31
-  template: "Operator declarations must be preceeded by the keyword 'operator'."
+  template: "Operator declarations must be preceded by the keyword 'operator'."
   tip: "Try adding the keyword 'operator'."
   analyzerCode: ParserErrorCode.MISSING_KEYWORD_OPERATOR
   script:
