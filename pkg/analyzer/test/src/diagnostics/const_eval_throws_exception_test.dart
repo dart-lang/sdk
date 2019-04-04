@@ -13,6 +13,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
+    defineReflectiveTests(ConstEvalThrowsExceptionWithConstantUpdateTest);
     defineReflectiveTests(ConstEvalThrowsExceptionWithUIAsCodeTest);
   });
 }
@@ -127,6 +128,26 @@ class C {
     expect(otherFileResult.errors, isEmpty);
     await resolveTestFile();
     assertNoTestErrors();
+  }
+}
+
+@reflectiveTest
+class ConstEvalThrowsExceptionWithConstantUpdateTest
+    extends ConstEvalThrowsExceptionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.constant_update_2018,
+    ];
+
+  test_eqEq_nonPrimitiveRightOperand() async {
+    await assertNoErrorsInCode('''
+const c = const T.eq(1, const Object());
+class T {
+  final Object value;
+  const T.eq(Object o1, Object o2) : value = o1 == o2;
+}
+''');
   }
 }
 
