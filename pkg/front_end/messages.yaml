@@ -93,6 +93,14 @@ ConstEvalDuplicateKey:
   template: "The key '#constant' conflicts with another existing key in the map."
   analyzerCode: EQUAL_KEYS_IN_CONST_MAP
 
+ConstEvalElementImplementsEqual:
+  template: "The element '#constant' does not have a primitive operator '=='."
+  analyzerCode: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
+
+ConstEvalKeyImplementsEqual:
+  template: "The key '#constant' does not have a primitive operator '=='."
+  analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+
 ConstEvalNonConstantLiteral:
   template: "Can't have a non-constant #string literal within a const context."
   analyzerCode: NON_CONSTANT_DEFAULT_VALUE

@@ -1102,6 +1102,36 @@ Message _withArgumentsConstEvalDuplicateKey(Constant _constant) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant
+            _constant)> templateConstEvalElementImplementsEqual = const Template<
+        Message Function(Constant _constant)>(
+    messageTemplate:
+        r"""The element '#constant' does not have a primitive operator '=='.""",
+    withArguments: _withArgumentsConstEvalElementImplementsEqual);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)>
+    codeConstEvalElementImplementsEqual =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalElementImplementsEqual",
+        templateConstEvalElementImplementsEqual,
+        analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalElementImplementsEqual(Constant _constant) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalElementImplementsEqual,
+      message:
+          """The element '${constant}' does not have a primitive operator '=='.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalFailedAssertion = messageConstEvalFailedAssertion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1461,6 +1491,35 @@ const MessageCode messageConstEvalIterationInConstSet = const MessageCode(
     "ConstEvalIterationInConstSet",
     analyzerCodes: <String>["NON_CONSTANT_SET_ELEMENT"],
     message: r"""Iteration can't be used in a constant set.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Constant _constant)>
+    templateConstEvalKeyImplementsEqual =
+    const Template<Message Function(Constant _constant)>(
+        messageTemplate:
+            r"""The key '#constant' does not have a primitive operator '=='.""",
+        withArguments: _withArgumentsConstEvalKeyImplementsEqual);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)>
+    codeConstEvalKeyImplementsEqual =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalKeyImplementsEqual", templateConstEvalKeyImplementsEqual,
+        analyzerCodes: <String>[
+      "CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalKeyImplementsEqual(Constant _constant) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalKeyImplementsEqual,
+      message:
+          """The key '${constant}' does not have a primitive operator '=='.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

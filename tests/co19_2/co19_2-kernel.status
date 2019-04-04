@@ -65,9 +65,6 @@ Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.d
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/none: CompileTimeError
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: CompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A02_t02/01: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A02_t02/03: MissingCompileTimeError
-LanguageFeatures/Control-flow-collections/const_collections_A02_t02/04: MissingCompileTimeError
 LanguageFeatures/Set-literals/type_inference_A01_t03: Crash
 LanguageFeatures/Set-literals/type_inference_A01_t04: Crash
 LanguageFeatures/Set-literals/type_inference_A04_t02/02: MissingCompileTimeError

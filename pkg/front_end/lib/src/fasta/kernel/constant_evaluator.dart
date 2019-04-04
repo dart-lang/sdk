@@ -49,6 +49,7 @@ import '../fasta_codes.dart'
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateElement,
         templateConstEvalDuplicateKey,
+        templateConstEvalElementImplementsEqual,
         templateConstEvalFailedAssertionWithMessage,
         templateConstEvalFreeTypeParameter,
         templateConstEvalInvalidType,
@@ -59,6 +60,7 @@ import '../fasta_codes.dart'
         templateConstEvalInvalidStaticInvocation,
         templateConstEvalInvalidStringInterpolationOperand,
         templateConstEvalInvalidSymbolName,
+        templateConstEvalKeyImplementsEqual,
         templateConstEvalNegativeShift,
         templateConstEvalNonConstantLiteral,
         templateConstEvalNonConstantVariableGet,
@@ -461,6 +463,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final Map<Node, Object> nodeCache;
   final CloneVisitor cloner = new CloneVisitor();
 
+  final Map<Class, bool> primitiveEqualCache = new Map<Class, bool>.identity();
+
   final NullConstant nullConstant = new NullConstant();
   final BoolConstant trueConstant = new BoolConstant(true);
   final BoolConstant falseConstant = new BoolConstant(false);
@@ -490,7 +494,16 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         unmodifiableSetMap = desugarSets
             ? typeEnvironment.coreTypes.index
                 .getMember('dart:collection', '_UnmodifiableSet', '_map')
-            : null;
+            : null {
+    primitiveEqualCache[coreTypes.boolClass] = true;
+    primitiveEqualCache[coreTypes.intClass] = true;
+    primitiveEqualCache[coreTypes.internalSymbolClass] = true;
+    primitiveEqualCache[coreTypes.nullClass] = true;
+    primitiveEqualCache[coreTypes.objectClass] = true;
+    primitiveEqualCache[coreTypes.stringClass] = true;
+    primitiveEqualCache[coreTypes.symbolClass] = true;
+    primitiveEqualCache[coreTypes.typeClass] = true;
+  }
 
   Uri getFileUri(TreeNode node) {
     while (node != null && node is! FileUriNode) {
@@ -835,12 +848,19 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         } else {
           parts.add(listOrSet = <Constant>[]);
         }
-        if (isSet && !seen.add(constant)) {
-          report(element,
-              templateConstEvalDuplicateElement.withArguments(constant));
-        } else {
-          listOrSet.add(ensureIsSubtype(constant, elementType, element));
+        if (isSet) {
+          if (!hasPrimitiveEqual(constant)) {
+            report(
+                element,
+                templateConstEvalElementImplementsEqual
+                    .withArguments(constant));
+          }
+          if (!seen.add(constant)) {
+            report(element,
+                templateConstEvalDuplicateElement.withArguments(constant));
+          }
         }
+        listOrSet.add(ensureIsSubtype(constant, elementType, element));
       }
     }
   }
@@ -1058,13 +1078,16 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         } else {
           parts.add(entries = <ConstantMapEntry>[]);
         }
+        if (!hasPrimitiveEqual(key)) {
+          report(
+              element, templateConstEvalKeyImplementsEqual.withArguments(key));
+        }
         if (!seenKeys.add(key)) {
           report(element.key, templateConstEvalDuplicateKey.withArguments(key));
-        } else {
-          entries.add(new ConstantMapEntry(
-              ensureIsSubtype(key, keyType, element.key),
-              ensureIsSubtype(value, valueType, element.value)));
         }
+        entries.add(new ConstantMapEntry(
+            ensureIsSubtype(key, keyType, element.key),
+            ensureIsSubtype(value, valueType, element.value)));
       }
     }
   }
@@ -2104,6 +2127,28 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       (value is DoubleConstant && value.value == 0);
 
   bool isNaN(Constant value) => value is DoubleConstant && value.value.isNaN;
+
+  bool hasPrimitiveEqual(Constant constant) {
+    // TODO(askesc, fishythefish): Make sure the correct class is inferred
+    // when we clean up JavaScript int constant handling.
+    DartType type = constant.getType(typeEnvironment);
+    return !(type is InterfaceType && !classHasPrimitiveEqual(type.classNode));
+  }
+
+  bool classHasPrimitiveEqual(Class klass) {
+    bool cached = primitiveEqualCache[klass];
+    if (cached != null) return cached;
+    for (Procedure procedure in klass.procedures) {
+      if (procedure.kind == ProcedureKind.Operator &&
+          procedure.name.name == '==' &&
+          !procedure.isForwardingStub) {
+        return primitiveEqualCache[klass] = false;
+      }
+    }
+    if (klass.supertype == null) return true; // To be on the safe side
+    return primitiveEqualCache[klass] =
+        classHasPrimitiveEqual(klass.supertype.classNode);
+  }
 
   BoolConstant makeBoolConstant(bool value) =>
       value ? trueConstant : falseConstant;

@@ -66,6 +66,7 @@ ConstEvalContext/example: Fail # This is just used for displaying the context.
 ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
+ConstEvalElementImplementsEqual/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail
@@ -84,6 +85,7 @@ ConstEvalInvalidType/example: Fail
 ConstEvalIterationInConstList/example: Fail
 ConstEvalIterationInConstMap/example: Fail
 ConstEvalIterationInConstSet/example: Fail
+ConstEvalKeyImplementsEqual/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantLiteral/example: Fail
