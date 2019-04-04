@@ -3314,6 +3314,56 @@ class MapConcatenation extends Expression {
   }
 }
 
+/// Create an instance directly from the field values.
+///
+/// This expression arises from const constructor calls when one or more field
+/// initializing expressions, field initializers or assert initializers contain
+/// unevaluated expressions. They only ever occur within unevaluated constants
+/// in constant expressions.
+class InstanceCreation extends Expression {
+  final Reference classReference;
+  final List<DartType> typeArguments;
+  final Map<Reference, Expression> fieldValues;
+  final List<AssertStatement> asserts;
+
+  InstanceCreation(
+      this.classReference, this.typeArguments, this.fieldValues, this.asserts);
+
+  Class get classNode => classReference.asClass;
+
+  DartType getStaticType(TypeEnvironment types) {
+    return typeArguments.isEmpty
+        ? classNode.rawType
+        : new InterfaceType(classNode, typeArguments);
+  }
+
+  accept(ExpressionVisitor v) => v.visitInstanceCreation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInstanceCreation(this, arg);
+
+  visitChildren(Visitor v) {
+    classReference.asClass.acceptReference(v);
+    visitList(typeArguments, v);
+    for (final Reference reference in fieldValues.keys) {
+      reference.asField.acceptReference(v);
+    }
+    for (final Expression value in fieldValues.values) {
+      value.accept(v);
+    }
+    visitList(asserts, v);
+  }
+
+  transformChildren(Transformer v) {
+    fieldValues.forEach((Reference fieldRef, Expression value) {
+      Expression transformed = value.accept(v);
+      if (transformed != null && !identical(value, transformed)) {
+        fieldValues[fieldRef] = transformed;
+        transformed.parent = this;
+      }
+    });
+    transformList(asserts, v, this);
+  }
+}
+
 /// Expression of form `x is T`.
 class IsExpression extends Expression {
   Expression operand;

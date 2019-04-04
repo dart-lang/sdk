@@ -390,6 +390,12 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
+  void visitInstanceCreation(InstanceCreation node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitSymbolConstant(SymbolConstant node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);

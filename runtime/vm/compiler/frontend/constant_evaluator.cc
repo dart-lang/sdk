@@ -97,6 +97,7 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kListConcatenation:
       case kSetConcatenation:
       case kMapConcatenation:
+      case kInstanceCreation:
         // These only occur inside unevaluated constants, so if we decide to
         // remove support for late evaluation of environment constants from
         // dill files in the VM, an implementation here will not be necessary.

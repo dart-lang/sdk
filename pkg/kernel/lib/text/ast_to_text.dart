@@ -1302,6 +1302,39 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  visitInstanceCreation(InstanceCreation node) {
+    write('${node.classNode}');
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+    }
+    write(' {');
+    bool first = true;
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      if (!first) {
+        writeComma();
+      }
+      write('${fieldRef.asField.name}: ');
+      writeExpression(value);
+      first = false;
+    });
+    for (AssertStatement assert_ in node.asserts) {
+      if (!first) {
+        writeComma();
+      }
+      write('assert(');
+      writeExpression(assert_.condition);
+      if (assert_.message != null) {
+        writeComma();
+        writeExpression(assert_.message);
+      }
+      write(')');
+    }
+
+    write('}');
+  }
+
   visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
     writeSpaced('is');
@@ -2014,10 +2047,10 @@ class Printer extends Visitor<Null> {
     node.fieldValues.forEach((Reference fieldRef, Constant constant) {
       final String name = syntheticNames.nameConstant(constant);
       if (!first) {
-        first = false;
         sb.write(', ');
       }
       sb.write('${fieldRef.asField.name}: $name');
+      first = false;
     });
     sb.write('}');
     endLine(sb.toString());

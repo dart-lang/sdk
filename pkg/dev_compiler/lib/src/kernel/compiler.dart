@@ -4745,6 +4745,12 @@ class ProgramCompiler extends Object
   }
 
   @override
+  visitInstanceCreation(InstanceCreation node) {
+    // Only occurs inside unevaluated constants.
+    throw new UnsupportedError("Instance creation");
+  }
+
+  @override
   visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }
