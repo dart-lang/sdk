@@ -11,7 +11,6 @@
 #include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/file.h"
-#include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
@@ -100,7 +99,7 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  Init(Options::kAbiVersionUnset);
+  Init(AbiVersion::GetCurrent());
 }
 
 void DFE::Init(int target_abi_version) {
@@ -129,7 +128,7 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
   auto dir_prefix = std::unique_ptr<char, void (*)(void*)>(
       GetDirectoryPrefixFromExeName(), free);
 
-  if (target_abi_version != Options::kAbiVersionUnset) {
+  if (target_abi_version != AbiVersion::GetCurrent()) {
     kernel_service_dill_ = NULL;
     kernel_service_dill_size_ = 0;
     platform_strong_dill_ = NULL;

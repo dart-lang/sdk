@@ -116,7 +116,6 @@ class Options {
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
 
-  static constexpr int kAbiVersionUnset = -1;
   static int target_abi_version() { return target_abi_version_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
