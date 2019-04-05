@@ -128,6 +128,9 @@ void transformLibraries(
 class JavaScriptIntConstant extends DoubleConstant {
   final BigInt bigIntValue;
   JavaScriptIntConstant(int value) : this.fromBigInt(BigInt.from(value));
+  JavaScriptIntConstant.fromDouble(double value)
+      : bigIntValue = BigInt.from(value),
+        super(value);
   JavaScriptIntConstant.fromBigInt(this.bigIntValue)
       : super(bigIntValue.toDouble());
   JavaScriptIntConstant.fromUInt64(int value)
@@ -720,6 +723,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       result = runInsideContext(constant.expression, () {
         return _evaluateSubexpression(constant.expression);
       });
+    } else if (targetingJavaScript) {
+      if (constant is DoubleConstant) {
+        double value = constant.value;
+        // TODO(askesc, fishythefish): Handle infinite integers.
+        if (value.isFinite && value.truncateToDouble() == value) {
+          result = new JavaScriptIntConstant.fromDouble(value);
+        }
+      }
     }
     // If there were already constants in the AST then we make sure we
     // re-canonicalize them.  After running the transformer we will therefore
