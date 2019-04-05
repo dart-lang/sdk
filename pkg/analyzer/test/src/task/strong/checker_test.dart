@@ -4997,7 +4997,7 @@ void main() {
 
   @failingTest
   test_spread_dynamicInList_disableImplicitCasts() async {
-    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
     addFile(r'''
 dynamic dyn;
 void main() {
@@ -5019,7 +5019,7 @@ void main() {
 
   @failingTest
   test_spread_dynamicInMap_disableImplicitCasts() async {
-    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
     addFile(r'''
 dynamic dyn;
 void main() {
@@ -5041,7 +5041,7 @@ void main() {
 
   @failingTest
   test_spread_dynamicInSet_disableImplicitCasts() async {
-    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/35569
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
     addFile(r'''
 dynamic dyn;
 void main() {
