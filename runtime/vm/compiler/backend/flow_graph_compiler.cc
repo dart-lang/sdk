@@ -215,7 +215,7 @@ void FlowGraphCompiler::InitCompiler() {
     }
   }
 
-  if (!is_optimizing()) {
+  if (!is_optimizing() && FLAG_reorder_basic_blocks) {
     // Initialize edge counter array.
     const intptr_t num_counters = flow_graph_.preorder().length();
     const Array& edge_counters =
