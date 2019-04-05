@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
+import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -272,5 +273,26 @@ const double myDouble = 42.0;
 part of lib2;
 const double myDouble = 42;
     ''');
+  }
+
+  test_dartfix_spread_collections() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+var l = ['a']..addAll(['b']);
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['use-spread-collections']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+var l = ['a', ...['b']];
+''');
   }
 }

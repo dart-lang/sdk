@@ -169,6 +169,10 @@ class AssistProcessor {
       await _addProposal_convertClassToMixin();
     } else if (assistKind == DartAssistKind.CONVERT_TO_INT_LITERAL) {
       await _addProposal_convertToIntLiteral();
+    } else if (assistKind == DartAssistKind.CONVERT_TO_SPREAD) {
+      if (experimentStatus.spread_collections) {
+        await _addProposal_convertAddAllToSpread();
+      }
     }
     return assists;
   }
