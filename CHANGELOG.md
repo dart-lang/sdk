@@ -1,3 +1,12 @@
+## 2.2.1-dev.3.1
+
+#### dartfmt
+
+*   Tweak set literal formatting to follow other collection literals.
+*   Add support for "UI as code" features.
+*   Properly format trailing commas in assertions.
+*   Improve indentation of adjacent strings in argument lists.
+
 ## 2.2.1-dev.3.0
 
 ### Core library changes
