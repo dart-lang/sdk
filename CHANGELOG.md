@@ -74,8 +74,10 @@
 
 #### Linter
 
-The Linter was updated to `0.1.83` which includes the following changes:
+The Linter was updated to `0.1.84` which includes the following changes:
 
+* new lint: `spread_collections`
+* new lint: `prefer_asserts_with_message`
 * updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
 * miscellaneous rule documentation fixes
 * fixed NPE in `avoid_shadowing_type_parameters`
