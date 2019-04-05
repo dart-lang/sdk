@@ -442,12 +442,7 @@
         {
           "name": "vm mixed mode tests",
           "arguments": [
-            "-ndartkb-mixed-linux-${mode}-${arch}",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2",
-            "ffi"
+            "-ndartkb-mixed-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -455,12 +450,7 @@
         {
           "name": "vm bytecode compiler tests",
           "arguments": [
-            "-ndartkb-compile-linux-${mode}-${arch}",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2",
-            "ffi"
+            "-ndartkb-compile-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -468,12 +458,7 @@
         {
           "name": "vm interpreter tests",
           "arguments": [
-            "-ndartkb-interpret-linux-${mode}-${arch}",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2",
-            "ffi"
+            "-ndartkb-interpret-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10

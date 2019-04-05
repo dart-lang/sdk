@@ -16,6 +16,9 @@ async/stream_distinct_test: RuntimeError
 async/timer_not_available_test: RuntimeError
 isolate/ping_pause_test: Skip # Timeout
 
+[ $compiler == dartkb ]
+mirrors/*: Skip # Mirrors are not yet supported in bytecode modes.
+
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
 isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
