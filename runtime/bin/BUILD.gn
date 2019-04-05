@@ -848,6 +848,20 @@ dart_executable("dart_precompiled_runtime_for_linking") {
   target_type = "static_library"
 }
 
+dart_executable("dartaotruntime") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  extra_sources = [
+    "builtin.cc",
+    "snapshot_empty.cc",
+    "loader.cc",
+    "loader.h",
+    "gzip.cc",
+    "gzip.h",
+    "observatory_assets_empty.cc",
+  ]
+}
+
 executable("process_test") {
   sources = [
     "process_test.cc",

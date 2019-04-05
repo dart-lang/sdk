@@ -1329,6 +1329,18 @@
                         "--mode=release", "create_sdk"]
         },
         {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64,arm,arm64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64,arm,arm64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
+        },
+        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
         },
@@ -1359,6 +1371,18 @@
           "script": "tools/build.py",
           "arguments": ["--arch=ia32,x64",
                         "--mode=release", "create_sdk"]
+        },
+        {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
         },
         {
           "name": "upload sdk",
