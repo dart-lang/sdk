@@ -14,13 +14,14 @@ import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
-import 'package:analyzer/src/summary2/simply_bounded.dart';
+import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 LinkResult link(
@@ -38,10 +39,9 @@ class Linker {
   final Reference rootReference = Reference.root();
   LinkedElementFactory elementFactory;
 
-  LinkingBundleContext linkingBundleContext;
-  List<LinkedNodeLibraryBuilder> linkingLibraries = [];
   LinkedNodeBundleBuilder linkingBundle;
   LinkedBundleContext bundleContext;
+  LinkingBundleContext linkingBundleContext;
 
   /// Libraries that are being linked.
   final Map<Uri, SourceLibraryBuilder> builders = {};
@@ -68,32 +68,28 @@ class Linker {
       rootReference,
     );
 
-    linkingBundle = LinkedNodeBundleBuilder(
-      references: linkingBundleContext.referencesBuilder,
-      libraries: linkingLibraries,
-    );
-
-    bundleContext = LinkedBundleContext(
+    bundleContext = LinkedBundleContext.forAst(
       elementFactory,
-      linkingBundle.references,
+      linkingBundleContext.references,
     );
-    bundleContext.linking = linkingBundleContext;
   }
 
   void link(List<LinkedNodeBundle> inputs,
       Map<Source, Map<Source, CompilationUnit>> unitMap) {
     for (var input in inputs) {
-      elementFactory.addBundle(input);
+      var inputBundleContext = LinkedBundleContext(elementFactory, input);
+      elementFactory.addBundle(inputBundleContext);
     }
 
     for (var librarySource in unitMap.keys) {
       SourceLibraryBuilder.build(this, librarySource, unitMap[librarySource]);
     }
-
-    // Add libraries being linked, so we can ask for their elements as well.
-    elementFactory.addBundle(linkingBundle, context: bundleContext);
+    // TODO(scheglov) do in build() ?
+    elementFactory.addBundle(bundleContext);
 
     _buildOutlines();
+
+    _createLinkingBundle();
   }
 
   void _addExporters() {
@@ -163,12 +159,42 @@ class Linker {
     }
 
     for (var library in builders.values) {
-      library.addImportsToScope();
+      library.storeExportScope();
     }
 
     for (var library in builders.values) {
-      library.storeExportScope();
+      library.buildElement();
     }
+  }
+
+  void _createLinkingBundle() {
+    var linkingLibraries = <LinkedNodeLibraryBuilder>[];
+    for (var builder in builders.values) {
+      linkingLibraries.add(builder.node);
+
+      for (var unit2 in builder.context.units) {
+        var unit = unit2.unit;
+        var tokensResult = TokensWriter().writeTokens(
+          unit.beginToken,
+          unit.endToken,
+        );
+        var tokensContext = tokensResult.toContext();
+
+        var writer = new AstBinaryWriter(linkingBundleContext, tokensContext);
+        var unitLinkedNode = writer.writeNode(unit);
+        builder.node.units.add(
+          LinkedNodeUnitBuilder(
+            uriStr: unit2.uriStr,
+            tokens: tokensResult.tokens,
+            node: unitLinkedNode,
+          ),
+        );
+      }
+    }
+    linkingBundle = LinkedNodeBundleBuilder(
+      references: linkingBundleContext.referencesBuilder,
+      libraries: linkingLibraries,
+    );
   }
 
   void _createTypeSystem() {
@@ -190,27 +216,27 @@ class Linker {
   }
 
   void _performTopLevelInference() {
-    for (var library in builders.values) {
-      library.performTopLevelInference();
-    }
+//    for (var library in builders.values) {
+//      library.performTopLevelInference();
+//    }
   }
 
   void _resolveConstructors() {
-    for (var library in builders.values) {
-      library.resolveConstructors();
-    }
+//    for (var library in builders.values) {
+//      library.resolveConstructors();
+//    }
   }
 
   void _resolveDefaultValues() {
-    for (var library in builders.values) {
-      library.resolveDefaultValues();
-    }
+//    for (var library in builders.values) {
+//      library.resolveDefaultValues();
+//    }
   }
 
   void _resolveMetadata() {
-    for (var library in builders.values) {
-      library.resolveMetadata();
-    }
+//    for (var library in builders.values) {
+//      library.resolveMetadata();
+//    }
   }
 
   void _resolveTypes() {
@@ -218,7 +244,7 @@ class Linker {
     for (var library in builders.values) {
       library.resolveTypes(typesToBuild);
     }
-    computeSimplyBounded(bundleContext, builders.values);
+//    computeSimplyBounded(bundleContext, builders.values);
     TypeBuilder(bundleContext).build(typesToBuild);
   }
 }

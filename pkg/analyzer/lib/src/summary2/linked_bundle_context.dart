@@ -2,29 +2,54 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/linking_bundle_context.dart';
+import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 /// The context of a linked bundle, with shared references.
 class LinkedBundleContext {
   final LinkedElementFactory elementFactory;
-  final LinkedNodeReferences referencesData;
+  final LinkedNodeBundle _bundle;
   final List<Reference> _references;
+  final Map<String, LinkedLibraryContext> libraryMap = {};
 
-  /// If the bundle is being linked, the reference to the linking context.
-  /// Otherwise `null`, and we are not expected to access it.
-  LinkingBundleContext linking;
+  LinkedBundleContext(this.elementFactory, this._bundle)
+      : _references = List<Reference>(_bundle.references.name.length) {
+    for (var library in _bundle.libraries) {
+      var libraryDesc = LinkedLibraryContext(library.uriStr, this, library);
+      libraryMap[library.uriStr] = libraryDesc;
 
-  LinkedBundleContext(this.elementFactory, this.referencesData)
-      : _references = List<Reference>.filled(referencesData.name.length, null,
-            growable: true);
+      for (var unit in library.units) {
+        var unitContext = LinkedUnitContext(this, unit.uriStr, unit);
+        libraryDesc.units.add(unitContext);
+      }
+    }
+  }
+
+  LinkedBundleContext.forAst(this.elementFactory, this._references)
+      : _bundle = null;
+
+  LinkedLibraryContext addLinkingLibrary(String uriStr,
+      LinkedNodeLibraryBuilder data, Map<String, CompilationUnit> unitMap) {
+    var uriStr = data.uriStr;
+    var libraryContext = LinkedLibraryContext(uriStr, this, data);
+    libraryMap[uriStr] = libraryContext;
+
+    for (var unitUriStr in unitMap.keys) {
+      var unit = unitMap[unitUriStr];
+      var unitContext = LinkedUnitContext(this, uriStr, null, unit: unit);
+      libraryContext.units.add(unitContext);
+    }
+    return libraryContext;
+  }
 
   T elementOfIndex<T extends Element>(int index) {
     var reference = referenceOfIndex(index);
@@ -87,14 +112,6 @@ class LinkedBundleContext {
   }
 
   Reference referenceOfIndex(int index) {
-    // When we are linking a bundle, we add new references.
-    // So, grow the list of references when we have data for them.
-    if (index >= _references.length) {
-      if (referencesData.name.length > _references.length) {
-        _references.length = referencesData.name.length;
-      }
-    }
-
     var reference = _references[index];
     if (reference != null) return reference;
 
@@ -104,10 +121,10 @@ class LinkedBundleContext {
       return reference;
     }
 
-    var parentIndex = referencesData.parent[index];
+    var parentIndex = _bundle.references.parent[index];
     var parent = referenceOfIndex(parentIndex);
 
-    var name = referencesData.name[index];
+    var name = _bundle.references.name[index];
     reference = parent.getChild(name);
     _references[index] = reference;
 
@@ -123,4 +140,15 @@ class LinkedBundleContext {
     }
     return ParameterKind.REQUIRED;
   }
+}
+
+class LinkedLibraryContext {
+  final String uriStr;
+  final LinkedBundleContext context;
+  final LinkedNodeLibrary node;
+  final List<LinkedUnitContext> units = [];
+
+  LinkedLibraryContext(this.uriStr, this.context, this.node);
+
+  LinkedUnitContext get definingUnit => units.first;
 }

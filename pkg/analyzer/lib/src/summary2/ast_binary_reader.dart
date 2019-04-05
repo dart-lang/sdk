@@ -24,6 +24,12 @@ class AstBinaryReader {
   int _localRefNextId;
   List<ParameterElement> _localParameters;
 
+  /// Set to `true` when reading a [CompilationUnit] and for top-level
+  /// declarations only names should be read.  So, we can index declarations,
+  /// and be able to resolve references to them, but don't attempt to read
+  /// nodes that might reference anything while indexing declarations.
+  bool lazyNamesOnly = false;
+
   AstBinaryReader(this._unitContext);
 
   AstNode readNode(LinkedNode data) {
@@ -223,36 +229,41 @@ class AstBinaryReader {
   }
 
   ClassDeclaration _read_classDeclaration(LinkedNode data) {
-    return astFactory.classDeclaration(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.classDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.classDeclaration_abstractKeyword),
       _getToken(data.classDeclaration_classKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.classOrMixinDeclaration_typeParameters),
-      _readNode(data.classDeclaration_extendsClause),
-      _readNode(data.classDeclaration_withClause),
-      _readNode(data.classOrMixinDeclaration_implementsClause),
+      _readNodeLazy(data.classOrMixinDeclaration_typeParameters),
+      _readNodeLazy(data.classDeclaration_extendsClause),
+      _readNodeLazy(data.classDeclaration_withClause),
+      _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
       _getToken(data.classOrMixinDeclaration_leftBracket),
-      _readNodeList(data.classOrMixinDeclaration_members),
+      _readNodeListLazy(data.classOrMixinDeclaration_members),
       _getToken(data.classOrMixinDeclaration_rightBracket),
-    )..nativeClause = _readNode(data.classDeclaration_nativeClause);
+    );
+    node.nativeClause = _readNodeLazy(data.classDeclaration_nativeClause);
+    LazyAst.setData(node, data);
+    return node;
   }
 
   ClassTypeAlias _read_classTypeAlias(LinkedNode data) {
-    return astFactory.classTypeAlias(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.classTypeAlias(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.typeAlias_typedefKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.classTypeAlias_typeParameters),
+      _readNodeLazy(data.classTypeAlias_typeParameters),
       _getToken(data.classTypeAlias_equals),
       _getToken(data.classTypeAlias_abstractKeyword),
-      _readNode(data.classTypeAlias_superclass),
-      _readNode(data.classTypeAlias_withClause),
-      _readNode(data.classTypeAlias_implementsClause),
+      _readNodeLazy(data.classTypeAlias_superclass),
+      _readNodeLazy(data.classTypeAlias_withClause),
+      _readNodeLazy(data.classTypeAlias_implementsClause),
       _getToken(data.typeAlias_semicolon),
     );
+    LazyAst.setData(node, data);
+    return node;
   }
 
   Comment _read_comment(LinkedNode data) {
@@ -1503,6 +1514,11 @@ class AstBinaryReader {
     }
   }
 
+  AstNode _readNodeLazy(LinkedNode data) {
+    if (lazyNamesOnly) return null;
+    return _readNode(data);
+  }
+
   List<T> _readNodeList<T>(List<LinkedNode> nodeList) {
     var result = List<T>.filled(nodeList.length, null);
     for (var i = 0; i < nodeList.length; ++i) {
@@ -1510,6 +1526,13 @@ class AstBinaryReader {
       result[i] = _readNode(linkedNode) as T;
     }
     return result;
+  }
+
+  List<T> _readNodeListLazy<T>(List<LinkedNode> nodeList) {
+    if (lazyNamesOnly) {
+      return List<T>.filled(nodeList.length, null);
+    }
+    return _readNodeList(nodeList);
   }
 
   DartType _readType(LinkedNodeType data) {
@@ -1565,5 +1588,32 @@ class AstBinaryReader {
       result[i] = _readType(data);
     }
     return result;
+  }
+}
+
+/// Accessor for reading AST lazily, or read data that is stored in IDL, but
+/// cannot be stored in AST, like inferred types.
+class LazyAst {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  bool has_classDeclaration_extendsClause = false;
+  bool has_classDeclaration_implementsClause = false;
+  bool has_classDeclaration_typeParameters = false;
+  bool has_classDeclaration_withClause = false;
+  bool has_classTypeAlias_implementsClause = false;
+  bool has_classTypeAlias_superclass = false;
+  bool has_classTypeAlias_typeParameters = false;
+  bool has_classTypeAlias_withClause = false;
+
+  LazyAst(this.data);
+
+  static LazyAst get(AstNode node) {
+    return node.getProperty(_key);
+  }
+
+  static void setData(AstNode node, LinkedNode data) {
+    node.setProperty(_key, LazyAst(data));
   }
 }

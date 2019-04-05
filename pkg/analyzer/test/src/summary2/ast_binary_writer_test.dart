@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -142,9 +143,18 @@ var a = [1, 2, 3];
 
     var bundleContext = LinkedBundleContext(
       LinkedElementFactory(null, null, rootReference),
-      linkingBundleContext.referencesBuilder,
+      LinkedNodeBundleBuilder(
+        references: LinkedNodeReferencesBuilder(name: ['']),
+      ),
     );
-    var unitContext = LinkedUnitContext(bundleContext, tokensContext);
+    var unitContext = LinkedUnitContext(
+      bundleContext,
+      null,
+      LinkedNodeUnitBuilder(
+        node: builder,
+        tokens: tokensResult.tokens,
+      ),
+    );
 
     var reader = AstBinaryReader(unitContext);
     var deserializedUnit = reader.readNode(builder);

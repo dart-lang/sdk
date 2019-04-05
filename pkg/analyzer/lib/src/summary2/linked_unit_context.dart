@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
@@ -15,9 +16,44 @@ import 'package:analyzer/src/summary2/tokens_context.dart';
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
   final LinkedBundleContext bundleContext;
+  final String uriStr;
+  final LinkedNodeUnit data;
   final TokensContext tokensContext;
 
-  LinkedUnitContext(this.bundleContext, this.tokensContext);
+  AstBinaryReader _astReader;
+  CompilationUnit _unit;
+  bool _hasDirectivesRead = false;
+
+  LinkedUnitContext(this.bundleContext, this.uriStr, this.data,
+      {CompilationUnit unit})
+      : tokensContext = data != null ? TokensContext(data.tokens) : null {
+    _astReader = AstBinaryReader(this);
+    _unit = unit;
+    _hasDirectivesRead = _unit != null;
+  }
+
+  CompilationUnit get unit => _unit;
+
+  CompilationUnit get unit_withDeclarations {
+    if (_unit == null) {
+      _astReader.lazyNamesOnly = true;
+      _unit = _astReader.readNode(data.node);
+      _astReader.lazyNamesOnly = false;
+    }
+    return _unit;
+  }
+
+  CompilationUnit get unit_withDirectives {
+    if (!_hasDirectivesRead) {
+      var directiveDataList = data.node.compilationUnit_directives;
+      for (var i = 0; i < directiveDataList.length; ++i) {
+        var directiveData = directiveDataList[i];
+        _unit.directives[i] = _astReader.readNode(directiveData);
+      }
+      _hasDirectivesRead = true;
+    }
+    return _unit;
+  }
 
   Iterable<LinkedNode> classFields(LinkedNode class_) sync* {
     for (var declaration in class_.classOrMixinDeclaration_members) {
@@ -28,6 +64,12 @@ class LinkedUnitContext {
         }
       }
     }
+  }
+
+  Uri directiveUri(Uri libraryUri, UriBasedDirective directive) {
+    var relativeUriStr = directive.uri.stringValue;
+    var relativeUri = Uri.parse(relativeUriStr);
+    return resolveRelativeUri(libraryUri, relativeUri);
   }
 
   String getCommentText(LinkedNode comment) {
@@ -86,16 +128,15 @@ class LinkedUnitContext {
     throw UnimplementedError('$kind');
   }
 
-  LinkedNode getImplementsClause(LinkedNode node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.classDeclaration) {
-      return node.classOrMixinDeclaration_implementsClause;
-    } else if (kind == LinkedNodeKind.classTypeAlias) {
-      return node.classTypeAlias_implementsClause;
-    } else if (kind == LinkedNodeKind.mixinDeclaration) {
-      return node.classOrMixinDeclaration_implementsClause;
+  ImplementsClause getImplementsClause(AstNode node) {
+    if (node is ClassDeclaration) {
+      _ensure_classDeclaration_implementsClause(node);
+      return node.implementsClause;
+    } else if (node is ClassTypeAlias) {
+      _ensure_classTypeAlias_implementsClause(node);
+      return node.implementsClause;
     } else {
-      throw UnimplementedError('$kind');
+      throw UnimplementedError('${node.runtimeType}');
     }
   }
 
@@ -177,6 +218,18 @@ class LinkedUnitContext {
     return node.simpleStringLiteral_value;
   }
 
+  TypeName getSuperclass(AstNode node) {
+    if (node is ClassDeclaration) {
+      _ensure_classDeclaration_extendsClause(node);
+      return node.extendsClause?.superclass;
+    } else if (node is ClassTypeAlias) {
+      _ensure_classTypeAlias_superclass(node);
+      return node.superclass;
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
   String getTokenLexeme(int token) {
     return tokensContext.lexeme(token);
   }
@@ -200,12 +253,36 @@ class LinkedUnitContext {
     }
   }
 
+  TypeParameterList getTypeParameters2(AstNode node) {
+    if (node is ClassDeclaration) {
+      _ensure_classDeclaration_typeParameters(node);
+      return node.typeParameters;
+    } else if (node is ClassTypeAlias) {
+      _ensure_classTypeAlias_typeParameters(node);
+      return node.typeParameters;
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
+  }
+
   String getUnitMemberName(LinkedNode node) {
     return getSimpleName(node.namedCompilationUnitMember_name);
   }
 
   String getVariableName(LinkedNode node) {
     return getSimpleName(node.variableDeclaration_name);
+  }
+
+  WithClause getWithClause(AstNode node) {
+    if (node is ClassDeclaration) {
+      _ensure_classDeclaration_withClause(node);
+      return node.withClause;
+    } else if (node is ClassTypeAlias) {
+      _ensure_classTypeAlias_withClause(node);
+      return node.withClause;
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
   }
 
   bool isAbstract(LinkedNode node) {
@@ -395,30 +472,30 @@ class LinkedUnitContext {
   }
 
   Expression readInitializer(ElementImpl enclosing, LinkedNode linkedNode) {
-    var reader = AstBinaryReader(this);
-    return reader.withLocalScope(enclosing, () {
+    return _astReader.withLocalScope(enclosing, () {
       if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
         var data = linkedNode.defaultFormalParameter_defaultValue;
-        return reader.readNode(data);
+        return _astReader.readNode(data);
       }
       var data = linkedNode.variableDeclaration_initializer;
-      return reader.readNode(data);
+      return _astReader.readNode(data);
     });
   }
 
   AstNode readNode(LinkedNode linkedNode) {
-    var reader = AstBinaryReader(this);
-    return reader.readNode(linkedNode);
+    return _astReader.readNode(linkedNode);
   }
 
   void setReturnType(LinkedNodeBuilder node, DartType type) {
-    var typeData = bundleContext.linking.writeType(type);
-    node.functionDeclaration_returnType2 = typeData;
+    throw UnimplementedError();
+//    var typeData = bundleContext.linking.writeType(type);
+//    node.functionDeclaration_returnType2 = typeData;
   }
 
   void setVariableType(LinkedNodeBuilder node, DartType type) {
-    var typeData = bundleContext.linking.writeType(type);
-    node.simpleFormalParameter_type2 = typeData;
+    throw UnimplementedError();
+//    var typeData = bundleContext.linking.writeType(type);
+//    node.simpleFormalParameter_type2 = typeData;
   }
 
   Iterable<LinkedNode> topLevelVariables(LinkedNode unit) sync* {
@@ -429,6 +506,86 @@ class LinkedUnitContext {
           yield variable;
         }
       }
+    }
+  }
+
+  void _ensure_classDeclaration_extendsClause(ClassDeclaration node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classDeclaration_extendsClause) {
+      node.extendsClause = _astReader.readNode(
+        lazy.data.classDeclaration_extendsClause,
+      );
+      lazy.has_classDeclaration_extendsClause = true;
+    }
+  }
+
+  void _ensure_classDeclaration_implementsClause(ClassDeclaration node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classDeclaration_implementsClause) {
+      node.implementsClause = _astReader.readNode(
+        lazy.data.classOrMixinDeclaration_implementsClause,
+      );
+      lazy.has_classDeclaration_implementsClause = true;
+    }
+  }
+
+  void _ensure_classDeclaration_typeParameters(ClassDeclaration node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classDeclaration_typeParameters) {
+      node.typeParameters = _astReader.readNode(
+        lazy.data.classOrMixinDeclaration_typeParameters,
+      );
+      lazy.has_classDeclaration_typeParameters = true;
+    }
+  }
+
+  void _ensure_classDeclaration_withClause(ClassDeclaration node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classDeclaration_withClause) {
+      node.withClause = _astReader.readNode(
+        lazy.data.classDeclaration_withClause,
+      );
+      lazy.has_classDeclaration_withClause = true;
+    }
+  }
+
+  void _ensure_classTypeAlias_implementsClause(ClassTypeAlias node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classTypeAlias_implementsClause) {
+      node.implementsClause = _astReader.readNode(
+        lazy.data.classTypeAlias_implementsClause,
+      );
+      lazy.has_classTypeAlias_implementsClause = true;
+    }
+  }
+
+  void _ensure_classTypeAlias_superclass(ClassTypeAlias node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classTypeAlias_superclass) {
+      node.superclass = _astReader.readNode(
+        lazy.data.classTypeAlias_superclass,
+      );
+      lazy.has_classTypeAlias_superclass = true;
+    }
+  }
+
+  void _ensure_classTypeAlias_typeParameters(ClassTypeAlias node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classTypeAlias_typeParameters) {
+      node.typeParameters = _astReader.readNode(
+        lazy.data.classTypeAlias_typeParameters,
+      );
+      lazy.has_classTypeAlias_typeParameters = true;
+    }
+  }
+
+  void _ensure_classTypeAlias_withClause(ClassTypeAlias node) {
+    var lazy = LazyAst.get(node);
+    if (lazy != null && !lazy.has_classTypeAlias_withClause) {
+      node.withClause = _astReader.readNode(
+        lazy.data.classTypeAlias_withClause,
+      );
+      lazy.has_classTypeAlias_withClause = true;
     }
   }
 

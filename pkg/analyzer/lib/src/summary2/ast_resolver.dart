@@ -52,11 +52,12 @@ class AstResolver {
 
     node.accept(resolverVisitor);
 
-    var writer = AstBinaryWriter(
-      _linker.linkingBundleContext,
-      context.tokensContext,
-    );
-    return writer.writeNode(node);
+    throw UnimplementedError();
+//    var writer = AstBinaryWriter(
+//      _linker.linkingBundleContext,
+//      context.tokensContext,
+//    );
+//    return writer.writeNode(node);
   }
 }
 

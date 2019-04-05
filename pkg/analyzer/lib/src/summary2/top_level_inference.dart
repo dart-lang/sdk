@@ -158,10 +158,11 @@ class TopLevelInference {
       var initializerType = expression.staticType;
       initializerType = _dynamicIfNull(initializerType);
 
-      var linkingBundleContext = linker.linkingBundleContext;
-      node.variableDeclaration_type2 = linkingBundleContext.writeType(
-        initializerType,
-      );
+      throw UnimplementedError();
+//      var linkingBundleContext = linker.linkingBundleContext;
+//      node.variableDeclaration_type2 = linkingBundleContext.writeType(
+//        initializerType,
+//      );
     }
   }
 

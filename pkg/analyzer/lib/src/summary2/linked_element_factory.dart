@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -11,22 +12,18 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
 
 class LinkedElementFactory {
   final AnalysisContext analysisContext;
   final AnalysisSession analysisSession;
   final Reference rootReference;
-  final Map<String, _Library> libraryMap = {};
+  final Map<String, LinkedLibraryContext> libraryMap = {};
 
   LinkedElementFactory(
       this.analysisContext, this.analysisSession, this.rootReference);
 
-  void addBundle(LinkedNodeBundle bundle, {LinkedBundleContext context}) {
-    context ??= LinkedBundleContext(this, bundle.references);
-    for (var library in bundle.libraries) {
-      libraryMap[library.uriStr] = _Library(context, library);
-    }
+  void addBundle(LinkedBundleContext context) {
+    libraryMap.addAll(context.libraryMap);
   }
 
   Namespace buildExportNamespace(Uri uri) {
@@ -70,28 +67,28 @@ class LinkedElementFactory {
   }
 
   LinkedNode nodeOfReference(Reference reference) {
-    if (reference.node != null) {
-      return reference.node;
-    }
-
-    var unitRef = reference.parent?.parent;
-    var unitContainer = unitRef?.parent;
-    if (unitContainer?.name == '@unit') {
-      var libraryUriStr = unitContainer.parent.name;
-      var libraryData = libraryMap[libraryUriStr];
-      for (var unitData in libraryData.node.units) {
-        var definingUnitContext = LinkedUnitContext(
-          libraryData.context,
-          TokensContext(unitData.tokens),
-        );
-        _ElementRequest._indexUnitDeclarations(
-          definingUnitContext,
-          unitRef,
-          unitData.node,
-        );
-        return reference.node;
-      }
-    }
+//    if (reference.node != null) {
+//      return reference.node;
+//    }
+//
+//    var unitRef = reference.parent?.parent;
+//    var unitContainer = unitRef?.parent;
+//    if (unitContainer?.name == '@unit') {
+//      var libraryUriStr = unitContainer.parent.name;
+//      var libraryData = libraryMap[libraryUriStr];
+//      for (var unitData in libraryData.node.units) {
+//        var definingUnitContext = LinkedUnitContext(
+//          libraryData.context,
+//          TokensContext(unitData.tokens),
+//        );
+//        _ElementRequest._indexUnitDeclarations(
+//          definingUnitContext,
+//          unitRef,
+//          unitData.node,
+//        );
+//        return reference.node;
+//      }
+//    }
 
     throw UnimplementedError('$reference');
   }
@@ -198,7 +195,7 @@ class _ElementRequest {
     return reference.element = ClassElementImpl.forLinkedNode(
       unit,
       reference,
-      reference.node,
+      reference.node2, // TODO(scheglov)
     );
   }
 
@@ -217,42 +214,42 @@ class _ElementRequest {
     var sourceFactory = elementFactory.analysisContext.sourceFactory;
     var librarySource = sourceFactory.forUri(uriStr);
 
-    var libraryData = elementFactory.libraryMap[uriStr];
-    var node = libraryData.node;
-    var hasName = node.name.isNotEmpty;
+    var libraryContext = elementFactory.libraryMap[uriStr];
+    // TODO(scheglov) don't use node
+    var node2 = libraryContext.node;
+    var hasName = node2.name.isNotEmpty;
 
-    var definingUnitData = node.units[0];
-    var definingUnitContext = LinkedUnitContext(
-      libraryData.context,
-      TokensContext(definingUnitData.tokens),
-    );
+    var definingUnitContext = libraryContext.definingUnit;
 
     var libraryElement = LibraryElementImpl.forLinkedNode(
       elementFactory.analysisContext,
       elementFactory.analysisSession,
-      node.name,
-      hasName ? node.nameOffset : -1,
-      node.name.length,
+      node2.name,
+      hasName ? node2.nameOffset : -1,
+      node2.name.length,
       definingUnitContext,
+      definingUnitContext.unit,
       reference,
-      definingUnitData.node,
+      null, // TODO(scheglov) remove
     );
 
     var units = <CompilationUnitElementImpl>[];
     var unitContainerRef = reference.getChild('@unit');
-    for (var unitData in node.units) {
-      var unitSource = sourceFactory.forUri(unitData.uriStr);
-      var tokensContext = TokensContext(unitData.tokens);
+    for (var unitContext in libraryContext.units) {
+      var unitNode = unitContext.unit_withDeclarations;
+
+      var unitSource = sourceFactory.forUri(unitContext.uriStr);
       var unitElement = CompilationUnitElementImpl.forLinkedNode(
         libraryElement,
-        LinkedUnitContext(libraryData.context, tokensContext),
-        unitContainerRef.getChild(unitData.uriStr),
-        unitData.node,
+        unitContext,
+        unitContainerRef.getChild(unitContext.uriStr),
+        null, // TODO(scheglov) remove
+        unitNode,
       );
       unitElement.source = unitSource;
       unitElement.librarySource = librarySource;
       units.add(unitElement);
-      unitContainerRef.getChild(unitData.uriStr).element = unitElement;
+      unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
     }
 
     libraryElement.definingCompilationUnit = units[0];
@@ -281,7 +278,7 @@ class _ElementRequest {
   void _indexUnitElementDeclarations(CompilationUnitElementImpl unit) {
     var unitContext = unit.linkedContext;
     var unitRef = unit.reference;
-    var unitNode = unit.linkedNode;
+    var unitNode = unit.linkedNode2;
     _indexUnitDeclarations(unitContext, unitRef, unitNode);
   }
 
@@ -322,48 +319,48 @@ class _ElementRequest {
   static void _indexUnitDeclarations(
     LinkedUnitContext unitContext,
     Reference unitRef,
-    LinkedNode unitNode,
+    CompilationUnit unitNode,
   ) {
     var classRef = unitRef.getChild('@class');
-    var enumRef = unitRef.getChild('@enum');
-    var functionRef = unitRef.getChild('@function');
-    var typeAliasRef = unitRef.getChild('@typeAlias');
-    var variableRef = unitRef.getChild('@variable');
-    for (var declaration in unitNode.compilationUnit_declarations) {
-      var kind = declaration.kind;
-      if (kind == LinkedNodeKind.classDeclaration ||
-          kind == LinkedNodeKind.classTypeAlias) {
-        var name = unitContext.getUnitMemberName(declaration);
-        classRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.enumDeclaration) {
-        var name = unitContext.getUnitMemberName(declaration);
-        enumRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.functionDeclaration) {
-        var name = unitContext.getUnitMemberName(declaration);
-        functionRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.functionTypeAlias) {
-        var name = unitContext.getUnitMemberName(declaration);
-        typeAliasRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.genericTypeAlias) {
-        var name = unitContext.getUnitMemberName(declaration);
-        typeAliasRef.getChild(name).node = declaration;
-      } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
-        var variables = declaration.topLevelVariableDeclaration_variableList;
-        for (var variable in variables.variableDeclarationList_variables) {
-          var name =
-              unitContext.getSimpleName(variable.variableDeclaration_name);
-          variableRef.getChild(name).node = variable;
-        }
+//    var enumRef = unitRef.getChild('@enum');
+//    var functionRef = unitRef.getChild('@function');
+//    var typeAliasRef = unitRef.getChild('@typeAlias');
+//    var variableRef = unitRef.getChild('@variable');
+    for (var declaration in unitNode.declarations) {
+      if (declaration is ClassDeclaration) {
+        var name = declaration.name.name;
+        classRef.getChild(name).node2 = declaration;
       } else {
-        throw UnimplementedError('$kind');
+        // TODO(scheglov) enforce
+//        throw UnimplementedError('${declaration.runtimeType}');
       }
+//      var kind = declaration.kind;
+//      if (kind == LinkedNodeKind.classDeclaration ||
+//          kind == LinkedNodeKind.classTypeAlias) {
+//        var name = unitContext.getUnitMemberName(declaration);
+//        classRef.getChild(name).node = declaration;
+//      } else if (kind == LinkedNodeKind.enumDeclaration) {
+//        var name = unitContext.getUnitMemberName(declaration);
+//        enumRef.getChild(name).node = declaration;
+//      } else if (kind == LinkedNodeKind.functionDeclaration) {
+//        var name = unitContext.getUnitMemberName(declaration);
+//        functionRef.getChild(name).node = declaration;
+//      } else if (kind == LinkedNodeKind.functionTypeAlias) {
+//        var name = unitContext.getUnitMemberName(declaration);
+//        typeAliasRef.getChild(name).node = declaration;
+//      } else if (kind == LinkedNodeKind.genericTypeAlias) {
+//        var name = unitContext.getUnitMemberName(declaration);
+//        typeAliasRef.getChild(name).node = declaration;
+//      } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
+//        var variables = declaration.topLevelVariableDeclaration_variableList;
+//        for (var variable in variables.variableDeclarationList_variables) {
+//          var name =
+//              unitContext.getSimpleName(variable.variableDeclaration_name);
+//          variableRef.getChild(name).node = variable;
+//        }
+//      } else {
+//        throw UnimplementedError('$kind');
+//      }
     }
   }
-}
-
-class _Library {
-  final LinkedBundleContext context;
-  final LinkedNodeLibrary node;
-
-  _Library(this.context, this.node);
 }
