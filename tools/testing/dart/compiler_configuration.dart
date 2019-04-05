@@ -109,7 +109,14 @@ abstract class CompilerConfiguration {
   CompilerConfiguration._subclass(this._configuration);
 
   /// A multiplier used to give tests longer time to run.
-  int get timeoutMultiplier => 1;
+  int get timeoutMultiplier {
+    if (_configuration.configuration.vmOptions
+        .any((s) => s.contains("optimization-counter-threshold"))) {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
 
   // TODO(ahe): It shouldn't be necessary to pass [buildDir] to any of these
   // functions. It is fixed for a given configuration.

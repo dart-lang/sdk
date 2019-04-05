@@ -125,6 +125,9 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Initial size of new gen semi space in MB")                                \
   P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
+  R(randomize_optimization_counter, false, bool, false,                        \
+    "Randomize optimization counter thresholds on a per-function basis (for "  \
+    "testing).")                                                               \
   P(optimization_level, int, 2,                                                \
     "Optimization level: 1 (favor size), 2 (default), 3 (favor speed)")        \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \

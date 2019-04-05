@@ -14,6 +14,7 @@
  */
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import "package:status_file/expectation.dart";
 
@@ -871,6 +872,11 @@ class StandardTestSuite extends TestSuite {
       // error should be reported by the compilation command.
       return commands;
     }
+
+    vmOptions = vmOptions
+        .map((s) =>
+            s.replaceAll("__RANDOM__", "${Random().nextInt(0x7fffffff)}"))
+        .toList();
 
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(

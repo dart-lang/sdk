@@ -701,6 +701,13 @@ class Isolate : public BaseIsolate {
     return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
   }
 
+  // Whether it's possible for unoptimized code to optimize immediately on entry
+  // (can happen with random or very low optimization counter thresholds)
+  bool CanOptimizeImmediately() const {
+    return FLAG_optimization_counter_threshold < 2 ||
+           FLAG_randomize_optimization_counter;
+  }
+
   bool should_load_vmservice() const {
     return ShouldLoadVmServiceBit::decode(isolate_flags_);
   }

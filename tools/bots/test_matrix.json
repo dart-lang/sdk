@@ -324,7 +324,7 @@
     "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
-        "vm-options": ["--optimization-counter-threshold=5"]
+        "vm-options": ["--optimization-counter-threshold=5", "--random-seed=__RANDOM__"]
     }},
     "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {

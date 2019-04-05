@@ -271,6 +271,14 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     // so do not optimize the function. Bump usage counter down to avoid
     // repeatedly entering the runtime for an optimization attempt.
     function.SetUsageCounter(0);
+
+    // If the optimization counter = 1, the unoptimized code will come back here
+    // immediately, causing an infinite compilation loop. The compiler raises
+    // the threshold for functions with breakpoints, so we drop the unoptimized
+    // to force it to be recompiled.
+    if (thread->isolate()->CanOptimizeImmediately()) {
+      function.ClearCode();
+    }
     return false;
   }
 #endif
