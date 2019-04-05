@@ -2373,7 +2373,8 @@ class FixProcessor {
         DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async'));
   }
 
-  Future<void> _addFix_importLibrary(FixKind kind, Uri library) async {
+  Future<void> _addFix_importLibrary(FixKind kind, Uri library,
+      [String relativeURI = null]) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String uriText;
@@ -2382,6 +2383,16 @@ class FixProcessor {
       uriText = builder.importLibrary(library);
     });
     _addFixFromBuilder(changeBuilder, kind, args: [uriText]);
+
+    if (relativeURI != null && relativeURI.isNotEmpty) {
+      var changeBuilder2 = _newDartChangeBuilder();
+      await changeBuilder2.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (builder is DartFileEditBuilderImpl) {
+          builder.importLibraryWithRelativeUri(relativeURI);
+        }
+      });
+      _addFixFromBuilder(changeBuilder2, kind, args: [relativeURI]);
+    }
   }
 
   Future<void> _addFix_importLibrary_withElement(
@@ -2486,7 +2497,9 @@ class FixProcessor {
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
         }
         // Add the fix.
-        await _addFix_importLibrary(fixKind, librarySource.uri);
+        var relativeURI =
+            _getRelativeURIFromLibrary(unitLibraryElement, librarySource);
+        await _addFix_importLibrary(fixKind, librarySource.uri, relativeURI);
       }
     }
   }
@@ -4358,6 +4371,25 @@ class FixProcessor {
     }
 
     return true;
+  }
+
+  /**
+   * Return the relative uri from the passed [library] to the passed
+   * [source]. If the [source] is not in the LibraryElement, `null` is returned.
+   */
+  String _getRelativeURIFromLibrary(LibraryElement library, Source source) {
+    var librarySource = library?.librarySource;
+    if (librarySource == null) {
+      return null;
+    }
+    var pathCtx = resourceProvider.pathContext;
+    var libraryDirectory = pathCtx.dirname(librarySource.fullName);
+    var sourceDirectory = pathCtx.dirname(source.fullName);
+    if (pathCtx.isWithin(libraryDirectory, source.fullName) ||
+        pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
+      return pathCtx.relative(source.fullName, from: libraryDirectory);
+    }
+    return null;
   }
 
   bool _isToListMethodElement(MethodElement method) {

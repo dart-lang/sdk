@@ -1157,6 +1157,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   Map<Uri, _LibraryToImport> librariesToImport = {};
 
   /**
+   * A mapping from libraries that need to be imported relatively in order to
+   * make visible the names used in generated code, to information about these
+   * imports.
+   */
+  Map<String, _LibraryToImport> librariesToRelativelyImport = {};
+
+  /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
    * the given [path] and [timeStamp], and the given fully resolved [unit].
@@ -1167,7 +1174,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         super(changeBuilder, path, timeStamp);
 
   @override
-  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
+  bool get hasEdits =>
+      super.hasEdits ||
+      librariesToImport.isNotEmpty ||
+      librariesToRelativelyImport.isNotEmpty;
 
   @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
@@ -1208,11 +1218,18 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (librariesToImport.isNotEmpty) {
       _addLibraryImports(librariesToImport.values);
     }
+    if (librariesToRelativelyImport.isNotEmpty) {
+      _addLibraryImports(librariesToRelativelyImport.values);
+    }
   }
 
   @override
   String importLibrary(Uri uri) {
     return _importLibrary(uri).uriText;
+  }
+
+  String importLibraryWithRelativeUri(String uriText, [String prefix = null]) {
+    return _importLibraryWithRelativeUri(uriText, prefix).uriText;
   }
 
   @override
@@ -1223,7 +1240,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     @required LibraryElement requestedLibrary,
     @required Element requestedElement,
   }) {
-    if (librariesToImport.isNotEmpty) {
+    if (librariesToImport.isNotEmpty ||
+        librariesToRelativelyImport.isNotEmpty) {
       throw StateError('Only one library can be safely imported.');
     }
 
@@ -1474,18 +1492,18 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Computes the best URI to import [what] into the target library.
+   * Computes the best URI to import [uri] into the target library.
    */
-  String _getLibraryUriText(Uri what) {
-    if (what.scheme == 'file') {
+  String _getLibraryUriText(Uri uri) {
+    if (uri.scheme == 'file') {
       var pathContext = session.resourceProvider.pathContext;
-      String whatPath = pathContext.fromUri(what);
+      String whatPath = pathContext.fromUri(uri);
       String libraryPath = libraryElement.source.fullName;
       String libraryFolder = pathContext.dirname(libraryPath);
       String relativeFile = pathContext.relative(whatPath, from: libraryFolder);
       return pathContext.split(relativeFile).join('/');
     }
-    return what.toString();
+    return uri.toString();
   }
 
   /**
@@ -1499,6 +1517,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
       import = new _LibraryToImport(uriText, prefix);
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
+    }
+    return import;
+  }
+
+  /**
+   * Arrange to have an import added for the library with the given relative
+   * [uriText].
+   */
+  _LibraryToImport _importLibraryWithRelativeUri(String uriText,
+      [String prefix = null]) {
+    var import = librariesToRelativelyImport[uriText];
+    if (import == null) {
+      import = new _LibraryToImport(uriText, prefix);
+      librariesToRelativelyImport[uriText] = import;
     }
     return import;
   }

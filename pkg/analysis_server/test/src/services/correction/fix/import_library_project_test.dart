@@ -65,7 +65,7 @@ main() {
   Test test = null;
   print(test);
 }
-''');
+''', expectedNumberOfFixesForKind: 1);
   }
 
   test_preferDirectOverExport_src() async {
@@ -83,7 +83,65 @@ main() {
   Test test = null;
   print(test);
 }
+''', expectedNumberOfFixesForKind: 1);
+  }
+
+  test_relativeDirective() async {
+    addSource('/home/test/lib/a.dart', '''
+import "b.dart";
 ''');
+    addSource('/home/test/lib/b.dart', '''
+class Foo {}
+''');
+    await resolveTestUnit('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'b.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'b.dart'");
+  }
+
+  test_relativeDirective_upOneDirectory() async {
+    addSource('/home/test/lib/a.dart', '''
+import "b.dart";
+''');
+    addSource('/home/test/lib/b.dart', '''
+class Foo {}
+''');
+    testFile = convertPath('/home/test/lib/dir/test.dart');
+    await resolveTestUnit('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import '../b.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library '../b.dart'");
+  }
+
+  test_relativeDirective_downOneDirectory() async {
+    addSource('/home/test/lib/dir/a.dart', '''
+import "b.dart";
+''');
+    addSource('/home/test/lib/dir/b.dart', '''
+class Foo {}
+''');
+    await resolveTestUnit('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'dir/b.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'dir/b.dart'");
   }
 
   test_withClass_annotation() async {
