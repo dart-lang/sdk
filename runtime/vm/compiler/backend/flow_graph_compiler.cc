@@ -1259,7 +1259,7 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:
 #if defined(TARGET_ARCH_X64)
-      if (ic_data.IsTrackingExactness()) {
+      if (ic_data.is_tracking_exactness()) {
         if (optimized) {
           return StubCode::OneArgOptimizedCheckInlineCacheWithExactnessCheck();
         } else {
@@ -1268,12 +1268,12 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
       }
 #else
       // TODO(dartbug.com/34170) Port exactness tracking to other platforms.
-      ASSERT(!ic_data.IsTrackingExactness());
+      ASSERT(!ic_data.is_tracking_exactness());
 #endif
       return optimized ? StubCode::OneArgOptimizedCheckInlineCache()
                        : StubCode::OneArgCheckInlineCache();
     case 2:
-      ASSERT(!ic_data.IsTrackingExactness());
+      ASSERT(!ic_data.is_tracking_exactness());
       return optimized ? StubCode::TwoArgsOptimizedCheckInlineCache()
                        : StubCode::TwoArgsCheckInlineCache();
     default:
@@ -1759,7 +1759,7 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->TypeArgsLen() ==
            ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(!res->is_static_call());
-    ASSERT(res->StaticReceiverType() == receiver_type.raw());
+    ASSERT(res->receivers_static_type() == receiver_type.raw());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(

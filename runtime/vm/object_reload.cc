@@ -703,7 +703,7 @@ void ICData::Reset(Zone* zone) const {
   RebindRule rule = rebind_rule();
   if (rule == kInstance) {
     const intptr_t num_args = NumArgsTested();
-    const bool tracking_exactness = IsTrackingExactness();
+    const bool tracking_exactness = is_tracking_exactness();
     const intptr_t len = Length();
     // We need at least one non-sentinel entry to require a check
     // for the smi fast path case.

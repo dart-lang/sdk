@@ -1142,14 +1142,14 @@ static RawFunction* InlineCacheMissHandler(
     return target_function.raw();
   }
   if (args.length() == 1) {
-    if (ic_data.IsTrackingExactness()) {
+    if (ic_data.is_tracking_exactness()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       const auto& receiver = *args[0];
       const auto state = receiver.IsNull()
                              ? StaticTypeExactnessState::NotExact()
                              : StaticTypeExactnessState::Compute(
                                    Type::Cast(AbstractType::Handle(
-                                       ic_data.StaticReceiverType())),
+                                       ic_data.receivers_static_type())),
                                    receiver);
       ic_data.AddReceiverCheck(
           receiver.GetClassId(), target_function,

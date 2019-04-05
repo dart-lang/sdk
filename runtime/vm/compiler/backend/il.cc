@@ -4107,26 +4107,14 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Array& arguments_descriptor =
         Array::Handle(zone, GetArgumentsDescriptor());
 
-    AbstractType& static_receiver_type = AbstractType::Handle(zone);
-
-#if defined(TARGET_ARCH_X64)
-    // Enable static type exactness tracking for the callsite by setting
-    // static receiver type on the ICData.
-    if (checked_argument_count() == 1) {
-      if (static_receiver_type_ != nullptr &&
-          static_receiver_type_->HasTypeClass()) {
-        const Class& cls =
-            Class::Handle(zone, static_receiver_type_->type_class());
-        if (cls.IsGeneric() && !cls.IsFutureOrClass()) {
-          static_receiver_type = static_receiver_type_->raw();
-        }
-      }
+    AbstractType& receivers_static_type = AbstractType::Handle(zone);
+    if (receivers_static_type_ != nullptr) {
+      receivers_static_type = receivers_static_type_->raw();
     }
-#endif
 
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
-        checked_argument_count(), static_receiver_type);
+        checked_argument_count(), receivers_static_type);
   } else {
     call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }

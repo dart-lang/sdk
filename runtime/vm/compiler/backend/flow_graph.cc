@@ -567,7 +567,7 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
   InsertBefore(call, load_type_args, call->env(), FlowGraph::kValue);
 
   const AbstractType& type =
-      AbstractType::Handle(zone(), call->ic_data()->StaticReceiverType());
+      AbstractType::Handle(zone(), call->ic_data()->receivers_static_type());
   ASSERT(!type.IsNull());
   const TypeArguments& args = TypeArguments::Handle(zone(), type.arguments());
   Instruction* guard = new (zone()) CheckConditionInstr(

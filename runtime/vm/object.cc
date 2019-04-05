@@ -13146,14 +13146,24 @@ RawUnlinkedCall* UnlinkedCall::New() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void ICData::SetStaticReceiverType(const AbstractType& type) const {
-  StorePointer(&raw_ptr()->static_receiver_type_, type.raw());
+void ICData::SetReceiversStaticType(const AbstractType& type) const {
+  StorePointer(&raw_ptr()->receivers_static_type_, type.raw());
+
+#if defined(TARGET_ARCH_X64)
+  if (!type.IsNull() && type.HasTypeClass() && (NumArgsTested() == 1) &&
+      type.IsInstantiated()) {
+    const Class& cls = Class::Handle(type.type_class());
+    if (cls.IsGeneric() && !cls.IsFutureOrClass()) {
+      set_tracking_exactness(true);
+    }
+  }
+#endif  // defined(TARGET_ARCH_X64)
 }
 #endif
 
 void ICData::ResetSwitchable(Zone* zone) const {
   ASSERT(NumArgsTested() == 1);
-  ASSERT(!IsTrackingExactness());
+  ASSERT(!is_tracking_exactness());
   set_entries(Array::Handle(zone, CachedEmptyICDataArray(1, false)));
 }
 
@@ -13298,7 +13308,7 @@ intptr_t ICData::TestEntryLengthFor(intptr_t num_args,
 }
 
 intptr_t ICData::TestEntryLength() const {
-  return TestEntryLengthFor(NumArgsTested(), IsTrackingExactness());
+  return TestEntryLengthFor(NumArgsTested(), is_tracking_exactness());
 }
 
 intptr_t ICData::Length() const {
@@ -13535,7 +13545,7 @@ bool ICData::ValidateInterceptor(const Function& target) const {
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target,
                       intptr_t count) const {
-  ASSERT(!IsTrackingExactness());
+  ASSERT(!is_tracking_exactness());
   ASSERT(!target.IsNull());
   ASSERT((target.name() == target_name()) || ValidateInterceptor(target));
   DEBUG_ASSERT(!HasCheck(class_ids));
@@ -13648,7 +13658,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   if (Isolate::Current()->compilation_allowed()) {
     data.SetAt(data_pos + 1, target);
     data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
-    if (IsTrackingExactness()) {
+    if (is_tracking_exactness()) {
       data.SetAt(data_pos + 3, Smi::Handle(Smi::New(exactness.Encode())));
     }
   } else {
@@ -13666,7 +13676,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
 }
 
 StaticTypeExactnessState ICData::GetExactnessAt(intptr_t index) const {
-  if (!IsTrackingExactness()) {
+  if (!is_tracking_exactness()) {
     return StaticTypeExactnessState::NotTracking();
   }
   const Array& data = Array::Handle(entries());
@@ -14086,7 +14096,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  intptr_t deopt_id,
                                  intptr_t num_args_tested,
                                  RebindRule rebind_rule,
-                                 const AbstractType& static_receiver_type) {
+                                 const AbstractType& receivers_static_type) {
   ASSERT(!owner.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
@@ -14107,7 +14117,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
   result.set_state_bits(0);
   result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
-  NOT_IN_PRECOMPILED(result.SetStaticReceiverType(static_receiver_type));
+  NOT_IN_PRECOMPILED(result.SetReceiversStaticType(receivers_static_type));
   return result.raw();
 }
 
@@ -14136,15 +14146,15 @@ RawICData* ICData::New(const Function& owner,
                        intptr_t deopt_id,
                        intptr_t num_args_tested,
                        RebindRule rebind_rule,
-                       const AbstractType& static_receiver_type) {
+                       const AbstractType& receivers_static_type) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(
       zone,
       NewDescriptor(zone, owner, target_name, arguments_descriptor, deopt_id,
-                    num_args_tested, rebind_rule, static_receiver_type));
+                    num_args_tested, rebind_rule, receivers_static_type));
   result.set_entries(Array::Handle(
       zone,
-      CachedEmptyICDataArray(num_args_tested, result.IsTrackingExactness())));
+      CachedEmptyICDataArray(num_args_tested, result.is_tracking_exactness())));
   return result.raw();
 }
 
@@ -14154,7 +14164,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       Function::Handle(from.Owner()), String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()), from.deopt_id(),
       num_args_tested, from.rebind_rule(),
-      AbstractType::Handle(from.StaticReceiverType())));
+      AbstractType::Handle(from.receivers_static_type())));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -14162,12 +14172,13 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 
 RawICData* ICData::Clone(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
-  const ICData& result = ICData::Handle(ICData::NewDescriptor(
-      zone, Function::Handle(zone, from.Owner()),
-      String::Handle(zone, from.target_name()),
-      Array::Handle(zone, from.arguments_descriptor()), from.deopt_id(),
-      from.NumArgsTested(), from.rebind_rule(),
-      AbstractType::Handle(from.StaticReceiverType())));
+  const ICData& result = ICData::Handle(
+      zone, ICData::NewDescriptor(
+                zone, Function::Handle(zone, from.Owner()),
+                String::Handle(zone, from.target_name()),
+                Array::Handle(zone, from.arguments_descriptor()),
+                from.deopt_id(), from.NumArgsTested(), from.rebind_rule(),
+                AbstractType::Handle(zone, from.receivers_static_type())));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.entries());
   const intptr_t len = from_array.Length();

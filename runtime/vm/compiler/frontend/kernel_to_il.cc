@@ -357,7 +357,12 @@ Fragment FlowGraphBuilder::InstanceCall(
   }
   if (call_site_attrs != nullptr && call_site_attrs->receiver_type != nullptr &&
       call_site_attrs->receiver_type->IsInstantiated()) {
-    call->set_static_receiver_type(call_site_attrs->receiver_type);
+    call->set_receivers_static_type(call_site_attrs->receiver_type);
+  } else if (!interface_target.IsNull()) {
+    const Class& owner = Class::Handle(Z, interface_target.Owner());
+    const AbstractType& type =
+        AbstractType::ZoneHandle(Z, owner.DeclarationType());
+    call->set_receivers_static_type(&type);
   }
   Push(call);
   return Fragment(call);

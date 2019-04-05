@@ -2017,10 +2017,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ j(EQUAL, &call_target_function_through_unchecked_entry);
 
     // Check trivial exactness.
-    // Note: RawICData::static_receiver_type_ is guaranteed to be not null
+    // Note: RawICData::receivers_static_type_ is guaranteed to be not null
     // because we only emit calls to this stub when it is not null.
     __ movq(RCX,
-            FieldAddress(RBX, target::ICData::static_receiver_type_offset()));
+            FieldAddress(RBX, target::ICData::receivers_static_type_offset()));
     __ movq(RCX, FieldAddress(RCX, target::Type::arguments_offset()));
     // RAX contains an offset to type arguments in words as a smi,
     // hence TIMES_4. RDX is guaranteed to be non-smi because it is expected to

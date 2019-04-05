@@ -3327,9 +3327,9 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
   const Function& interface_target() const { return interface_target_; }
 
-  void set_static_receiver_type(const AbstractType* receiver_type) {
-    ASSERT(receiver_type != nullptr && receiver_type->IsInstantiated());
-    static_receiver_type_ = receiver_type;
+  void set_receivers_static_type(const AbstractType* receiver_type) {
+    ASSERT(receiver_type != nullptr);
+    receivers_static_type_ = receiver_type;
   }
 
   bool has_unique_selector() const { return has_unique_selector_; }
@@ -3390,7 +3390,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
 
-  const AbstractType* static_receiver_type_ = nullptr;
+  const AbstractType* receivers_static_type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };

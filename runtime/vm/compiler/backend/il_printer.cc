@@ -252,9 +252,9 @@ static void PrintICDataHelper(BufferFormatter* f,
                               const ICData& ic_data,
                               intptr_t num_checks_to_print) {
   f->Print(" IC[");
-  if (ic_data.IsTrackingExactness()) {
+  if (ic_data.is_tracking_exactness()) {
     f->Print("(%s) ",
-             AbstractType::Handle(ic_data.StaticReceiverType()).ToCString());
+             AbstractType::Handle(ic_data.receivers_static_type()).ToCString());
   }
   f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
@@ -278,7 +278,7 @@ static void PrintICDataHelper(BufferFormatter* f,
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
-    if (ic_data.IsTrackingExactness()) {
+    if (ic_data.is_tracking_exactness()) {
       f->Print(" %s", ic_data.GetExactnessAt(i).ToCString());
     }
   }
