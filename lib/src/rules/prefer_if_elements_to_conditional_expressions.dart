@@ -38,12 +38,6 @@ Widget build(BuildContext context) {
 }
 ''';
 
-
-// spread_collections => prefer_spread_collections (?)
-
-// prefer_if_elements_to_map_literals
-// prefer_if_elements_to_conditional_expressions
-
 class PreferIfElementsToConditionalExpressions extends LintRule implements NodeLintRule {
   PreferIfElementsToConditionalExpressions()
       : super(
