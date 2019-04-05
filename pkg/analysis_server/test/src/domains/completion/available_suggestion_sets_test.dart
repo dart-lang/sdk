@@ -86,7 +86,7 @@ class A {
     "kind": "CONSTRUCTOR",
     "name": "a",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(path)},
       "offset": 14,
       "length": 0,
       "startLine": 2,
