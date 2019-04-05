@@ -2870,11 +2870,6 @@ class NullState extends InstanceState {
   }
 
   @override
-  BoolState listEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
-  }
-
-  @override
   BoolState logicalNot() {
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
