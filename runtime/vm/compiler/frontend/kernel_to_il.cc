@@ -224,16 +224,6 @@ Fragment FlowGraphBuilder::AllocateObject(TokenPosition position,
   return Fragment(allocate);
 }
 
-Fragment FlowGraphBuilder::AllocateObject(const Class& klass,
-                                          const Function& closure_function) {
-  ArgumentArray arguments = new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 0);
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(TokenPosition::kNoSource, klass, arguments);
-  allocate->set_closure_function(closure_function);
-  Push(allocate);
-  return Fragment(allocate);
-}
-
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                            intptr_t handler_index,
                                            bool needs_stacktrace,
@@ -1068,9 +1058,7 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     const Function& target) {
   Fragment fragment;
-  const Class& closure_class =
-      Class::ZoneHandle(Z, I->object_store()->closure_class());
-  fragment += AllocateObject(closure_class, target);
+  fragment += AllocateClosure(TokenPosition::kNoSource, target);
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.

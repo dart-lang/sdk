@@ -389,6 +389,10 @@ namespace dart {
 //    Receiver and argument should have static type int.
 //    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0] ? true : false.
 //
+//  - AllocateClosure D
+//
+//    Allocate closure object for closure function ConstantPool[D].
+//
 // BYTECODE LIST FORMAT
 //
 // KernelBytecode list below is specified using the following format:
@@ -485,6 +489,7 @@ namespace dart {
   V(CompareIntGe,                          0, ___, ___, ___)                   \
   V(CompareIntLe,                          0, ___, ___, ___)                   \
   V(DirectCall,                          A_D, num, num, ___)                   \
+  V(AllocateClosure,                       D, lit, ___, ___)                   \
 
   // These bytecodes are only generated within the VM. Reassinging their
   // opcodes is not a breaking change.
@@ -509,7 +514,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 3;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 4;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,

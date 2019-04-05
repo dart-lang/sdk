@@ -1625,12 +1625,6 @@ Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
   return flow_graph_builder_->AllocateObject(position, klass, argument_count);
 }
 
-Fragment StreamingFlowGraphBuilder::AllocateObject(
-    const Class& klass,
-    const Function& closure_function) {
-  return flow_graph_builder_->AllocateObject(klass, closure_function);
-}
-
 Fragment StreamingFlowGraphBuilder::AllocateContext(
     const GrowableArray<LocalVariable*>& context_variables) {
   return flow_graph_builder_->AllocateContext(context_variables);
@@ -4956,11 +4950,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
-  const Class& closure_class =
-      Class::ZoneHandle(Z, I->object_store()->closure_class());
-  ASSERT(!closure_class.IsNull());
   Fragment instructions =
-      flow_graph_builder_->AllocateObject(closure_class, function);
+      flow_graph_builder_->AllocateClosure(TokenPosition::kNoSource, function);
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.

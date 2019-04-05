@@ -2857,6 +2857,19 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(AllocateClosure, A_D);
+    SP[1] = 0;  // Space for the result.
+    SP[2] =
+        thread->isolate()->object_store()->closure_class();  // Class object.
+    SP[3] = null_value;                                      // Type arguments.
+    Exit(thread, FP, SP + 4, pc);
+    NativeArguments args(thread, 2, SP + 2, SP + 1);
+    INVOKE_RUNTIME(DRT_AllocateObject, args);
+    ++SP;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Trap, 0);
     UNIMPLEMENTED();
     DISPATCH();

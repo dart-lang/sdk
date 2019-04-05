@@ -1745,10 +1745,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genAllocateClosureInstance(
       TreeNode node, int closureFunctionIndex, FunctionNode function) {
-    // TODO(alexmarkov): Consider adding a bytecode to allocate closure.
-
-    assert(closureClass.typeParameters.isEmpty);
-    asm.emitAllocate(cp.addClass(closureClass));
+    asm.emitAllocateClosure(closureFunctionIndex);
 
     final int temp = locals.tempIndexInFrame(node);
     asm.emitStoreLocal(temp);

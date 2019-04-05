@@ -1632,6 +1632,15 @@ void BytecodeFlowGraphBuilder::BuildCompareIntLe() {
   BuildIntOp(Symbols::LessEqualOperator(), Token::kLTE, 2);
 }
 
+void BytecodeFlowGraphBuilder::BuildAllocateClosure() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
+  code_ += B->AllocateClosure(position_, target);
+}
+
 static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
   if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
     return false;

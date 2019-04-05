@@ -7,6 +7,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
+#include "vm/object_store.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -733,6 +734,18 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
     const GrowableArray<LocalVariable*>& context_variables) {
   AllocateContextInstr* allocate =
       new (Z) AllocateContextInstr(TokenPosition::kNoSource, context_variables);
+  Push(allocate);
+  return Fragment(allocate);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateClosure(
+    TokenPosition position,
+    const Function& closure_function) {
+  const Class& cls = Class::ZoneHandle(Z, I->object_store()->closure_class());
+  ArgumentArray arguments = new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 0);
+  AllocateObjectInstr* allocate =
+      new (Z) AllocateObjectInstr(position, cls, arguments);
+  allocate->set_closure_function(closure_function);
   Push(allocate);
   return Fragment(allocate);
 }

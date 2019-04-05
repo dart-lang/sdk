@@ -423,4 +423,9 @@ class BytecodeAssembler {
   void emitEntryOptional(int ra, int rb, int rc) {
     emitWord(_encodeABC(Opcode.kEntryOptional, ra, rb, rc));
   }
+
+  void emitAllocateClosure(int rd) {
+    emitSourcePosition();
+    emitWord(_encodeD(Opcode.kAllocateClosure, rd));
+  }
 }
