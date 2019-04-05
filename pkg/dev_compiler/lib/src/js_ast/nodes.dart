@@ -889,6 +889,8 @@ class DestructuredVariable extends Expression implements Parameter {
   @override
   int get precedenceLevel => PRIMARY;
   @override
+  String get parameterName => name.name;
+  @override
   Node _clone() => DestructuredVariable(
       name: name,
       property: property,
@@ -1146,7 +1148,9 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-abstract class Parameter implements Expression, VariableBinding {}
+abstract class Parameter implements Expression, VariableBinding {
+  String get parameterName;
+}
 
 class Identifier extends Expression implements Parameter {
   final String name;
@@ -1164,6 +1168,7 @@ class Identifier extends Expression implements Parameter {
   Identifier _clone() => Identifier(name, allowRename: allowRename);
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitIdentifier(this);
   int get precedenceLevel => PRIMARY;
+  String get parameterName => name;
   void visitChildren(NodeVisitor visitor) {}
 }
 
@@ -1182,6 +1187,7 @@ class RestParameter extends Expression implements Parameter {
   }
 
   int get precedenceLevel => PRIMARY;
+  String get parameterName => parameter.parameterName;
 }
 
 class This extends Expression {
@@ -1641,6 +1647,10 @@ class InterpolatedParameter extends Expression
     throw "InterpolatedParameter.name must not be invoked";
   }
 
+  String get parameterName {
+    throw "InterpolatedParameter.parameterName must not be invoked";
+  }
+
   bool shadows(Set<String> names) => false;
 
   bool get allowRename => false;
@@ -1718,6 +1728,8 @@ class InterpolatedIdentifier extends Expression
 
   int get precedenceLevel => PRIMARY;
   String get name => throw '$runtimeType does not support this member.';
+  String get parameterName =>
+      throw '$runtimeType does not support this member.';
   bool get allowRename => false;
 }
 

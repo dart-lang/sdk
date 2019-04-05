@@ -1811,8 +1811,20 @@ class ProgramCompiler extends Object
     if (isUnsupportedFactoryConstructor(node)) return null;
 
     var function = node.function;
+
+    /// Note: factory constructors can't use `sync*`/`async*`/`async` bodies
+    /// because it would return the wrong type, so we can assume `sync` here.
+    ///
+    /// We can also skip the logic in [_emitFunction] related to operator
+    /// methods like ==, as well as generic method parameters.
+    ///
+    /// If a future Dart version allows factory constructors to take their
+    /// own type parameters, this will need to be changed to call
+    /// [_emitFunction] instead.
+    var jsBody = _emitSyncFunctionBody(function);
+
     return JS.Method(_constructorName(node.name.name),
-        JS.Fun(_emitParameters(function), _emitFunctionBody(function)),
+        JS.Fun(_emitParameters(function), jsBody),
         isStatic: true)
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
   }
@@ -2653,16 +2665,11 @@ class ProgramCompiler extends Object
     // potentially mutated in Kernel. For now we assume all parameters are.
     super.enterFunction(name, formals, () => true);
 
-    JS.Block code = isSync
-        ? _emitFunctionBody(f)
-        : JS.Block([
-            _emitGeneratorFunction(f, name).toReturn()
-              ..sourceInformation = _nodeStart(f)
-          ]);
+    JS.Block block =
+        isSync ? _emitSyncFunctionBody(f) : _emitGeneratorFunctionBody(f, name);
 
-    code = super.exitFunction(name, formals, code);
-
-    return JS.Fun(formals, code);
+    block = super.exitFunction(name, formals, block);
+    return JS.Fun(formals, block);
   }
 
   List<JS.Parameter> _emitParameters(FunctionNode f) {
@@ -2692,10 +2699,13 @@ class ProgramCompiler extends Object
         .toList();
   }
 
-  JS.Expression _emitGeneratorFunction(FunctionNode function, String name) {
-    // Transforms `sync*` `async` and `async*` function bodies
-    // using ES6 generators.
-
+  /// Transforms `sync*` `async` and `async*` function bodies
+  /// using ES6 generators.
+  ///
+  /// This is an internal part of [_emitGeneratorFunctionBody] and should not be
+  /// called directly.
+  JS.Expression _emitGeneratorFunctionExpression(
+      FunctionNode function, String name) {
     emitGeneratorFn(List<JS.Parameter> getParameters(JS.Block jsBody)) {
       var savedController = _asyncStarController;
       _asyncStarController = function.asyncMarker == AsyncMarker.AsyncStar
@@ -2706,9 +2716,10 @@ class ProgramCompiler extends Object
       _superDisallowed(() {
         // Visit the body with our async* controller set.
         //
-        // TODO(jmesserly): this will emit argument initializers (for default
-        // values) inside the generator function body. Is that the best place?
-        var jsBody = _emitFunctionBody(function);
+        // Note: we intentionally don't emit argument initializers here, because
+        // they were already emitted outside of the generator expression.
+        var jsBody = JS.Block(_withCurrentFunction(
+            function, () => [_emitFunctionScopedBody(function)]));
         var genFn = JS.Fun(getParameters(jsBody), jsBody, isGenerator: true);
 
         // Name the function if possible, to get better stack traces.
@@ -2746,9 +2757,16 @@ class ProgramCompiler extends Object
       // In the future, we might be able to simplify this, see:
       // https://github.com/dart-lang/sdk/issues/28320
       var jsParams = _emitParameters(function);
-      var gen = emitGeneratorFn((fnBody) => jsParams =
-          jsParams.where(JS.findMutatedVariables(fnBody).contains).toList());
-      if (jsParams.isNotEmpty) gen = js.call('() => #(#)', [gen, jsParams]);
+      var mutatedParams = jsParams;
+      var gen = emitGeneratorFn((fnBody) {
+        var mutatedVars = JS.findMutatedVariables(fnBody);
+        mutatedParams = jsParams
+            .where((id) => mutatedVars.contains(id.parameterName))
+            .toList();
+        return mutatedParams;
+      });
+      if (mutatedParams.isNotEmpty)
+        gen = js.call('() => #(#)', [gen, mutatedParams]);
 
       var returnType =
           _getExpectedReturnType(function, coreTypes.iterableClass);
@@ -2801,14 +2819,43 @@ class ProgramCompiler extends Object
     return const DynamicType();
   }
 
-  JS.Block _emitFunctionBody(FunctionNode f) {
+  /// Emits a `sync` function body (the default in Dart)
+  ///
+  /// To emit an `async`, `sync*`, or `async*` function body, use
+  /// [_emitGeneratorFunctionBody] instead.
+  JS.Block _emitSyncFunctionBody(FunctionNode f) {
+    assert(f.asyncMarker == AsyncMarker.Sync);
+
     var block = _withCurrentFunction(f, () {
+      /// For (normal) `sync` bodies, execute the function body immediately
+      /// after the argument initializers.
       var block = _emitArgumentInitializers(f);
       block.add(_emitFunctionScopedBody(f));
       return block;
     });
 
     return JS.Block(block);
+  }
+
+  /// Emits an `async`, `sync*`, or `async*` function body.
+  ///
+  /// The body will perform these steps:
+  ///
+  /// - Run the argument initializers. These must be run synchronously
+  ///   (e.g. covariance checks), and this helps performance.
+  /// - Return the generator function, wrapped with the appropriate type
+  ///   (`Future`, `Itearble`, and `Stream` respectively).
+  ///
+  /// To emit a `sync` function body (the default in Dart), use
+  /// [_emitSyncFunctionBody] instead.
+  JS.Block _emitGeneratorFunctionBody(FunctionNode f, String name) {
+    assert(f.asyncMarker != AsyncMarker.Sync);
+
+    var statements =
+        _withCurrentFunction(f, () => _emitArgumentInitializers(f));
+    statements.add(_emitGeneratorFunctionExpression(f, name).toReturn()
+      ..sourceInformation = _nodeStart(f));
+    return JS.Block(statements);
   }
 
   List<JS.Statement> _withCurrentFunction(
@@ -3093,7 +3140,7 @@ class ProgramCompiler extends Object
     //
     // NOTE: we do sometimes need to handle this because Dart and JS rules are
     // slightly different (in Dart, there is a nested scope), but that's handled
-    // by _emitFunctionBody.
+    // by _emitSyncFunctionBody.
     var isScope = !identical(node.parent, _currentFunction);
     return JS.Block(node.statements.map(_visitStatement).toList(),
         isScope: isScope);
