@@ -96,6 +96,8 @@ import 'package:linter/src/rules/prefer_final_locals.dart';
 import 'package:linter/src/rules/prefer_foreach.dart';
 import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
 import 'package:linter/src/rules/prefer_generic_function_type_aliases.dart';
+import 'package:linter/src/rules/prefer_if_elements_to_conditional_expressions.dart';
+import 'package:linter/src/rules/prefer_if_elements_to_map_literals.dart';
 import 'package:linter/src/rules/prefer_initializing_formals.dart';
 import 'package:linter/src/rules/prefer_int_literals.dart';
 import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
@@ -240,6 +242,8 @@ void registerLintRules() {
     ..register(new PreferForeach())
     ..register(new PreferFunctionDeclarationsOverVariables())
     ..register(new PreferGenericFunctionTypeAliases())
+    ..register(new PreferIfElementsToConditionalExpressions())
+    ..register(new PreferIfElementsToMapLiterals())
     ..register(new PreferInitializingFormals())
     ..register(new PreferIntLiterals())
     ..register(new PreferInterpolationToComposeStrings())
