@@ -225,7 +225,8 @@ class Dart2TypeSystem extends TypeSystem {
       DartType returnContextType,
       {ErrorReporter errorReporter,
       AstNode errorNode,
-      bool downwards: false}) {
+      bool downwards: false,
+      bool isConst: false}) {
     // TODO(jmesserly): expose typeFormals on ParameterizedType.
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(genericType);
     if (typeFormals.isEmpty) {
@@ -242,6 +243,9 @@ class Dart2TypeSystem extends TypeSystem {
         genericType is FunctionType ? genericType.returnType : genericType;
 
     if (returnContextType != null) {
+      if (isConst) {
+        returnContextType = _eliminateTypeVariables(returnContextType);
+      }
       inferrer.constrainReturnType(declaredReturnType, returnContextType);
     }
 
@@ -652,6 +656,30 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   /**
+   * Eliminates type variables from the context [type], replacing them with
+   * `Null` or `Object` as appropriate.
+   *
+   * For example in `List<T> list = const []`, the context type for inferring
+   * the list should be changed from `List<T>` to `List<Null>` so the constant
+   * doesn't depend on the type variables `T` (because it can't be canonicalized
+   * at compile time, as `T` is unknown).
+   *
+   * Conceptually this is similar to the "least closure", except instead of
+   * eliminating `?` ([UnknownInferredType]) it eliminates all type variables
+   * ([TypeParameterType]).
+   *
+   * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
+   */
+  DartType _eliminateTypeVariables(DartType type) {
+    return _substituteType(type, true, (type, lowerBound) {
+      if (type is TypeParameterType) {
+        return lowerBound ? typeProvider.nullType : typeProvider.objectType;
+      }
+      return type;
+    });
+  }
+
+  /**
    * Compute the greatest lower bound of function types [f] and [g].
    *
    * The spec rules for GLB on function types, informally, are pretty simple:
@@ -891,19 +919,43 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
+  /**
+   * Returns the greatest or least closure of [type], which replaces `?`
+   * ([UnknownInferredType]) with `dynamic` or `Null` as appropriate.
+   *
+   * If [lowerBound] is true, this will return the "least closure", otherwise
+   * it returns the "greatest closure".
+   */
   DartType _substituteForUnknownType(DartType type, {bool lowerBound: false}) {
-    if (identical(type, UnknownInferredType.instance)) {
-      if (lowerBound) {
-        // TODO(jmesserly): this should be the bottom type, once it can be
-        // reified.
-        return typeProvider.nullType;
+    return _substituteType(type, lowerBound, (type, lowerBound) {
+      if (identical(type, UnknownInferredType.instance)) {
+        return lowerBound ? typeProvider.nullType : typeProvider.dynamicType;
       }
-      return typeProvider.dynamicType;
+      return type;
+    });
+  }
+
+  /**
+   * Apply the [visitType] substitution to [type], using the result value if
+   * different, otherwise recursively apply the substitution.
+   *
+   * This method is used for substituting `?` ([UnknownInferredType]) with its
+   * greatest/least closure, and for eliminating type parameters for inference
+   * of `const` objects.
+   *
+   * See also [_eliminateTypeVariables] and [_substituteForUnknownType].
+   */
+  DartType _substituteType(DartType type, bool lowerBound,
+      DartType Function(DartType, bool) visitType) {
+    // Apply the substitution to this type, and return the result if different.
+    var newType = visitType(type, lowerBound);
+    if (!identical(newType, type)) {
+      return newType;
     }
     if (type is InterfaceTypeImpl) {
       // Generic types are covariant, so keep the constraint direction.
-      var newTypeArgs = _transformList(type.typeArguments,
-          (t) => _substituteForUnknownType(t, lowerBound: lowerBound));
+      var newTypeArgs = _transformList(
+          type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
       return new InterfaceTypeImpl(
           type.element, type.prunedTypedefs, type.nullability)
@@ -914,8 +966,7 @@ class Dart2TypeSystem extends TypeSystem {
       var returnType = type.returnType;
       var newParameters = _transformList(parameters, (ParameterElement p) {
         // Parameters are contravariant, so flip the constraint direction.
-        var newType =
-            _substituteForUnknownType(p.type, lowerBound: !lowerBound);
+        var newType = _substituteType(p.type, !lowerBound, visitType);
         return new ParameterElementImpl.synthetic(
             p.name,
             newType,
@@ -923,8 +974,7 @@ class Dart2TypeSystem extends TypeSystem {
             p.parameterKind);
       });
       // Return type is covariant.
-      var newReturnType =
-          _substituteForUnknownType(returnType, lowerBound: lowerBound);
+      var newReturnType = _substituteType(returnType, lowerBound, visitType);
       if (identical(parameters, newParameters) &&
           identical(returnType, newReturnType)) {
         return type;
@@ -1179,8 +1229,8 @@ class GenericInferrer {
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
           ' Inferred candidate type $inferred has type parameters'
-              ' ${(inferred as FunctionType).typeFormals}, but a function with'
-              ' type parameters cannot be used as a type argument.'
+          ' ${(inferred as FunctionType).typeFormals}, but a function with'
+          ' type parameters cannot be used as a type argument.'
         ]);
 
         // Heuristic: Using a generic function type as a bound makes subtyping
@@ -1211,8 +1261,8 @@ class GenericInferrer {
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
           "\nRecursive bound cannot be instantiated: '$typeParamBound'."
-              "\nConsider passing explicit type argument(s) "
-              "to the generic.\n\n'"
+          "\nConsider passing explicit type argument(s) "
+          "to the generic.\n\n'"
         ]);
       }
     }

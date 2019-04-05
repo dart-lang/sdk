@@ -375,7 +375,6 @@ main() {
     ''');
   }
 
-  @failingTest // See dartbug.com/32918
   test_constantGenericTypeArg_infer() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26141
     await checkFile('''

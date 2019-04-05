@@ -5164,7 +5164,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   FunctionType _inferArgumentTypesForGeneric(AstNode inferenceNode,
       DartType uninstantiatedType, TypeArgumentList typeArguments,
-      {AstNode errorNode}) {
+      {AstNode errorNode, bool isConst: false}) {
     errorNode ??= inferenceNode;
     TypeSystem ts = typeSystem;
     if (typeArguments == null &&
@@ -5177,6 +5177,7 @@ class ResolverVisitor extends ScopedVisitor {
           const <DartType>[],
           InferenceContext.getContext(inferenceNode),
           downwards: true,
+          isConst: isConst,
           errorReporter: errorReporter,
           errorNode: errorNode);
     }
@@ -5218,7 +5219,7 @@ class ResolverVisitor extends ScopedVisitor {
 
       inferred = _inferArgumentTypesForGeneric(
           node, constructorType, constructor.type.typeArguments,
-          errorNode: node.constructorName);
+          isConst: node.isConst, errorNode: node.constructorName);
 
       if (inferred != null) {
         ArgumentList arguments = node.argumentList;

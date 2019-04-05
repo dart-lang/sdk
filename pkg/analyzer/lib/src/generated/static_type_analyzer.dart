@@ -175,6 +175,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     InterfaceType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
         _typeProvider.listType, parameters, elementTypes, contextType,
         downwards: downwards,
+        isConst: node.isConst,
         errorReporter: _resolver.errorReporter,
         errorNode: node);
     return inferred;
@@ -190,6 +191,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     ParameterizedType inferred = ts.inferGenericFunctionOrType(
         _typeProvider.mapType, [], [], contextType,
         downwards: true,
+        isConst: node.isConst,
         errorReporter: _resolver.errorReporter,
         errorNode: node);
     return inferred;
@@ -204,6 +206,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     DartType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
         _typeProvider.setType, [], [], contextType,
         downwards: true,
+        isConst: node.isConst,
         errorReporter: _resolver.errorReporter,
         errorNode: node);
     return inferred;
@@ -1546,7 +1549,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       DartType fnType,
       TypeArgumentList typeArguments,
       ArgumentList argumentList,
-      AstNode errorNode) {
+      AstNode errorNode,
+      {bool isConst: false}) {
     TypeSystem ts = _typeSystem;
     if (typeArguments == null &&
         fnType is FunctionType &&
@@ -1568,7 +1572,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       return ts.inferGenericFunctionOrType(
           fnType, params, argTypes, InferenceContext.getContext(node),
-          errorReporter: _resolver.errorReporter, errorNode: errorNode);
+          isConst: isConst,
+          errorReporter: _resolver.errorReporter,
+          errorNode: errorNode);
     }
     return null;
   }
@@ -1606,7 +1612,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     ArgumentList arguments = node.argumentList;
     FunctionType inferred = _inferGenericInvoke(node, constructorType,
-        constructor.type.typeArguments, arguments, node.constructorName);
+        constructor.type.typeArguments, arguments, node.constructorName,
+        isConst: node.isConst);
 
     if (inferred != null && inferred != originalElement.type) {
       // Fix up the parameter elements based on inferred method.
@@ -1888,7 +1895,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       ..addAll(valueTypes);
     return (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
         _typeProvider.mapType, typeParameters, elementTypes, contextType,
-        errorReporter: _resolver.errorReporter, errorNode: node);
+        isConst: node.isConst,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
   }
 
   DartType _toSetType(SetOrMapLiteral node, DartType contextType,
@@ -1908,7 +1917,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         growable: true);
     return (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
         _typeProvider.setType, parameters, elementTypes, contextType,
-        errorReporter: _resolver.errorReporter, errorNode: node);
+        isConst: node.isConst,
+        errorReporter: _resolver.errorReporter,
+        errorNode: node);
   }
 
   /**
