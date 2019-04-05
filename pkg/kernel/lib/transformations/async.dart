@@ -90,13 +90,11 @@ class ExpressionLifter extends Transformer {
   /// surrounding context.
   Expression rewrite(Expression expression, List<Statement> outer) {
     assert(statements.isEmpty);
-    assert(nameIndex == 0);
     var saved = seenAwait;
     seenAwait = false;
     Expression result = expression.accept(this);
     outer.addAll(statements.reversed);
     statements.clear();
-    nameIndex = 0;
     seenAwait = seenAwait || saved;
     return result;
   }

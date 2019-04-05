@@ -1070,7 +1070,7 @@ Function 'tryCatchRethrow', static, reflectable, async
 Bytecode {
   Entry                4
   CheckStack           0
-  AllocateContext      0, 16
+  AllocateContext      0, 18
   PopLocal             r0
   Push                 r0
   Push                 FP[-7]
@@ -1126,6 +1126,12 @@ Bytecode {
   PushNull
   StoreContextVar      0, 14
   Push                 r0
+  PushNull
+  StoreContextVar      0, 15
+  Push                 r0
+  PushNull
+  StoreContextVar      0, 16
+  Push                 r0
   AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2
@@ -1143,25 +1149,25 @@ Bytecode {
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
-  StoreContextVar      0, 15
+  StoreContextVar      0, 17
   Push                 r0
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           1, CP#33
   PopLocal             r3
   Push                 r0
   Push                 r0
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           1, CP#35
   StoreContextVar      0, 5
   Push                 r0
   Push                 r0
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           1, CP#37
   StoreContextVar      0, 6
   Push                 r0
   LoadContextVar       0, 3
   Push                 r0
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DynamicCall          2, CP#40
   Drop1
   Push                 r0
@@ -1277,7 +1283,7 @@ Try #2 start:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r13
   PushNull
@@ -1334,7 +1340,7 @@ L4:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 15
   Push                 r4
   LoadContextParent
   PushInt              2
@@ -1354,7 +1360,7 @@ L4:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r13
   PushNull
@@ -1369,7 +1375,7 @@ L6:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 15
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -1408,7 +1414,7 @@ Try #1 handler:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 16
   Push                 r4
   LoadContextParent
   PushInt              3
@@ -1428,7 +1434,7 @@ Try #1 handler:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r12
   PushNull
@@ -1443,7 +1449,7 @@ L8:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 16
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -1470,7 +1476,7 @@ L5:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 16
   Push                 r4
   LoadContextParent
   PushInt              4
@@ -1490,7 +1496,7 @@ L5:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r12
   PushNull
@@ -1505,7 +1511,7 @@ L10:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 16
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -1532,7 +1538,7 @@ L7:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 16
   Push                 r4
   LoadContextParent
   PushInt              5
@@ -1552,7 +1558,7 @@ L7:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r12
   PushNull
@@ -1567,7 +1573,7 @@ L11:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 16
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -2360,6 +2366,8 @@ ConstantPool {
     dynamic :exception0;
     dynamic :stack_trace0;
     dynamic :async_temporary_0;
+    dynamic :async_temporary_1;
+    dynamic :async_temporary_2;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L5:
@@ -2376,16 +2384,16 @@ ConstantPool {
                 :return_value = 42;
                 break #L5;
               }
-              :async_temporary_0 = x;
+              :async_temporary_1 = x;
               [yield] let dynamic #t6 = dart.async::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
-              x = :async_temporary_0.{dart.core::num::+}(:result);
+              x = :async_temporary_1.{dart.core::num::+}(:result);
               rethrow;
             }
           finally {
             dart.core::print("fin");
-            :async_temporary_0 = x;
+            :async_temporary_2 = x;
             [yield] let dynamic #t7 = dart.async::_awaitHelper(c, :async_op_then, :async_op_error, :async_op) in null;
-            x = :async_temporary_0.{dart.core::num::+}(:result);
+            x = :async_temporary_2.{dart.core::num::+}(:result);
             :return_value = x;
             break #L5;
           }
