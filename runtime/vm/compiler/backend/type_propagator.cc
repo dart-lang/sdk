@@ -1458,6 +1458,10 @@ CompileType CheckedSmiOpInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
+bool CheckedSmiOpInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
 CompileType CheckedSmiComparisonInstr::ComputeType() const {
   if (Isolate::Current()->can_use_strong_mode_types()) {
     CompileType* type = call()->Type();

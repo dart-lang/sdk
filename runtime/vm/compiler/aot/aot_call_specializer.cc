@@ -767,8 +767,6 @@ static void EnsureICData(Zone* zone,
 // TODO(dartbug.com/30635) Evaluate how much this can be shared with
 // JitCallSpecializer.
 void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
-  ASSERT(FLAG_precompiled_mode);
-
   // Type test is special as it always gets converted into inlined code.
   const Token::Kind op_kind = instr->token_kind();
   if (Token::IsTypeTestOperator(op_kind)) {

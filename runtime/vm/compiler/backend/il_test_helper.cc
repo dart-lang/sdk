@@ -9,6 +9,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/call_specializer.h"
 #include "vm/compiler/compiler_pass.h"
@@ -21,11 +22,12 @@
 namespace dart {
 
 RawLibrary* LoadTestScript(const char* script,
-                           Dart_NativeEntryResolver resolver) {
+                           Dart_NativeEntryResolver resolver,
+                           const char* lib_uri) {
   Dart_Handle api_lib;
   {
     TransitionVMToNative transition(Thread::Current());
-    api_lib = TestCase::LoadTestScript(script, resolver);
+    api_lib = TestCase::LoadTestScript(script, resolver, lib_uri);
   }
   auto& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
@@ -59,64 +61,248 @@ FlowGraph* TestPipeline::Run(bool is_aot,
 
   auto pipeline = CompilationPipeline::New(zone, function_);
 
-  auto parsed_function = new (zone)
+  parsed_function_ = new (zone)
       ParsedFunction(thread, Function::ZoneHandle(zone, function_.raw()));
-  pipeline->ParseFunction(parsed_function);
+  pipeline->ParseFunction(parsed_function_);
 
   // Extract type feedback before the graph is built, as the graph
   // builder uses it to attach it to nodes.
-  auto ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
+  ic_data_array_ = new (zone) ZoneGrowableArray<const ICData*>();
   if (!is_aot) {
-    function_.RestoreICDataMap(ic_data_array, /*clone_ic_data=*/false);
+    function_.RestoreICDataMap(ic_data_array_, /*clone_ic_data=*/false);
   }
 
-  FlowGraph* flow_graph = pipeline->BuildFlowGraph(
-      zone, parsed_function, ic_data_array, osr_id, optimized);
+  flow_graph_ = pipeline->BuildFlowGraph(zone, parsed_function_, ic_data_array_,
+                                         osr_id, optimized);
 
   if (is_aot) {
-    flow_graph->PopulateWithICData(function_);
+    flow_graph_->PopulateWithICData(function_);
   }
 
-  BlockScheduler block_scheduler(flow_graph);
+  BlockScheduler block_scheduler(flow_graph_);
   const bool reorder_blocks =
       FlowGraph::ShouldReorderBlocks(function_, optimized);
-  if (reorder_blocks) {
+  if (!is_aot && reorder_blocks) {
     block_scheduler.AssignEdgeWeights();
   }
 
   SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
-  CompilerPassState pass_state(thread, flow_graph, &speculative_policy);
-  pass_state.block_scheduler = &block_scheduler;
-  pass_state.reorder_blocks = reorder_blocks;
+  pass_state_ = new CompilerPassState(thread, flow_graph_, &speculative_policy);
+  pass_state_->block_scheduler = &block_scheduler;
+  pass_state_->reorder_blocks = reorder_blocks;
 
   if (optimized) {
-    pass_state.inline_id_to_function.Add(&function_);
+    pass_state_->inline_id_to_function.Add(&function_);
     // We do not add the token position now because we don't know the
     // position of the inlined call until later. A side effect of this
     // is that the length of |inline_id_to_function| is always larger
     // than the length of |inline_id_to_token_pos| by one.
     // Top scope function has no caller (-1). We do this because we expect
     // all token positions to be at an inlined call.
-    pass_state.caller_inline_id.Add(-1);
+    pass_state_->caller_inline_id.Add(-1);
 
-    JitCallSpecializer jit_call_specializer(flow_graph, &speculative_policy);
-    AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr, flow_graph,
-                                            &speculative_policy);
+    JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
+    AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr,
+                                            flow_graph_, &speculative_policy);
     if (is_aot) {
-      pass_state.call_specializer = &aot_call_specializer;
+      pass_state_->call_specializer = &aot_call_specializer;
     } else {
-      pass_state.call_specializer = &jit_call_specializer;
+      pass_state_->call_specializer = &jit_call_specializer;
     }
 
-    const auto mode = is_aot ? CompilerPass::kJIT : CompilerPass::kAOT;
+    const auto mode = is_aot ? CompilerPass::kAOT : CompilerPass::kJIT;
     if (passes.size() > 0) {
-      CompilerPass::RunPipelineWithPasses(&pass_state, passes);
+      CompilerPass::RunPipelineWithPasses(pass_state_, passes);
     } else {
-      CompilerPass::RunPipeline(mode, &pass_state);
+      CompilerPass::RunPipeline(mode, pass_state_);
     }
   }
 
-  return flow_graph;
+  return flow_graph_;
+}
+
+void TestPipeline::CompileGraphAndAttachFunction() {
+  Zone* zone = thread_->zone();
+  const bool optimized = true;
+
+  SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
+
+  ASSERT(pass_state_->inline_id_to_function.length() ==
+         pass_state_->caller_inline_id.length());
+  ObjectPoolBuilder object_pool_builder;
+  Assembler assembler(&object_pool_builder, /*use_far_branches=*/true);
+  FlowGraphCompiler graph_compiler(
+      &assembler, flow_graph_, *parsed_function_, optimized,
+      &speculative_policy, pass_state_->inline_id_to_function,
+      pass_state_->inline_id_to_token_pos, pass_state_->caller_inline_id,
+      ic_data_array_);
+
+  graph_compiler.CompileGraph();
+
+  const auto& deopt_info_array =
+      Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
+  const auto pool_attachment = Code::PoolAttachment::kAttachPool;
+  const auto& code = Code::Handle(Code::FinalizeCode(
+      &graph_compiler, &assembler, pool_attachment, optimized, nullptr));
+  code.set_is_optimized(optimized);
+  code.set_owner(function_);
+
+  graph_compiler.FinalizePcDescriptors(code);
+  code.set_deopt_info_array(deopt_info_array);
+
+  graph_compiler.FinalizeStackMaps(code);
+  graph_compiler.FinalizeVarDescriptors(code);
+  graph_compiler.FinalizeExceptionHandlers(code);
+  graph_compiler.FinalizeCatchEntryMovesMap(code);
+  graph_compiler.FinalizeStaticCallTargetsTable(code);
+  graph_compiler.FinalizeCodeSourceMap(code);
+
+  if (optimized) {
+    function_.InstallOptimizedCode(code);
+  } else {
+    function_.set_unoptimized_code(code);
+    function_.AttachCode(code);
+  }
+}
+
+bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes) {
+  std::vector<MatchCode> qcodes = match_codes;
+
+  if (trace_) {
+    OS::PrintErr("ILMatcher: Matching the following graph\n");
+    FlowGraphPrinter::PrintGraph("ILMatcher", flow_graph_);
+    OS::PrintErr("ILMatcher: Starting match at %s:\n", cursor_->ToCString());
+  }
+
+  Instruction* cursor = cursor_;
+  for (size_t i = 0; i < qcodes.size(); ++i) {
+    Instruction** capture = qcodes[i].capture_;
+    if (trace_) {
+      OS::PrintErr("  matching %30s @ %s\n",
+                   MatchOpCodeToCString(qcodes[i].opcode()),
+                   cursor->ToCString());
+    }
+
+    auto next = MatchInternal(qcodes, i, cursor);
+    if (next == nullptr) {
+      if (trace_) {
+        OS::PrintErr("  -> Match failed\n");
+      }
+      cursor = next;
+      break;
+    }
+    if (capture != nullptr) {
+      *capture = cursor;
+    }
+    cursor = next;
+  }
+  if (cursor != nullptr) {
+    cursor_ = cursor;
+    return true;
+  }
+  return false;
+}
+
+Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
+                                      size_t i,
+                                      Instruction* cursor) {
+  const MatchOpCode opcode = match_codes[i].opcode();
+  if (opcode == kMatchAndMoveBranchTrue) {
+    auto branch = cursor->AsBranch();
+    if (branch == nullptr) return nullptr;
+    return branch->true_successor();
+  }
+  if (opcode == kMatchAndMoveBranchFalse) {
+    auto branch = cursor->AsBranch();
+    if (branch == nullptr) return nullptr;
+    return branch->false_successor();
+  }
+  if (opcode == kMoveAny) {
+    return cursor->next();
+  }
+  if (opcode == kMoveParallelMoves) {
+    while (cursor != nullptr && cursor->IsParallelMove()) {
+      cursor = cursor->next();
+    }
+    return cursor;
+  }
+
+  if (opcode == kMoveGlob) {
+    ASSERT((i + 1) < match_codes.size());
+    while (true) {
+      if (cursor == nullptr) return nullptr;
+      if (MatchInternal(match_codes, i + 1, cursor) != nullptr) {
+        return cursor;
+      }
+      if (auto as_goto = cursor->AsGoto()) {
+        cursor = as_goto->successor();
+      } else {
+        cursor = cursor->next();
+      }
+    }
+  }
+
+  if (opcode == kMatchAndMoveGoto) {
+    if (auto goto_instr = cursor->AsGoto()) {
+      return goto_instr->successor();
+    }
+  }
+
+  switch (opcode) {
+#define EMIT_CASE(Instruction, _)                                              \
+  case kMatch##Instruction: {                                                  \
+    if (cursor->Is##Instruction()) {                                           \
+      return cursor;                                                           \
+    }                                                                          \
+    return nullptr;                                                            \
+  }                                                                            \
+  case kMatchAndMove##Instruction: {                                           \
+    if (cursor->Is##Instruction()) {                                           \
+      return cursor->next();                                                   \
+    }                                                                          \
+    return nullptr;                                                            \
+  }
+    FOR_EACH_INSTRUCTION(EMIT_CASE)
+#undef EMIT_CASE
+    default:
+      UNREACHABLE();
+  }
+
+  UNREACHABLE();
+  return nullptr;
+}
+
+const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
+  if (opcode == kMatchAndMoveBranchTrue) {
+    return "kMatchAndMoveBranchTrue";
+  }
+  if (opcode == kMatchAndMoveBranchFalse) {
+    return "kMatchAndMoveBranchFalse";
+  }
+  if (opcode == kMoveAny) {
+    return "kMoveAny";
+  }
+  if (opcode == kMoveParallelMoves) {
+    return "kMoveParallelMoves";
+  }
+  if (opcode == kMoveGlob) {
+    return "kMoveGlob";
+  }
+
+  switch (opcode) {
+#define EMIT_CASE(Instruction, _)                                              \
+  case kMatch##Instruction:                                                    \
+    return "kMatch" #Instruction;                                              \
+  case kMatchAndMove##Instruction:                                             \
+    return "kMatchAndMove" #Instruction;
+    FOR_EACH_INSTRUCTION(EMIT_CASE)
+#undef EMIT_CASE
+    default:
+      UNREACHABLE();
+  }
+
+  UNREACHABLE();
+  return nullptr;
 }
 
 }  // namespace dart

@@ -241,6 +241,9 @@ void CompilerPass::RunPipeline(PipelineMode mode,
     // unreachable code.
     INVOKE_PASS(ApplyICData);
   }
+  if (mode == kAOT) {
+    INVOKE_PASS(OptimizeTypedDataAccesses);
+  }
 #endif
   INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
@@ -370,6 +373,9 @@ COMPILER_PASS(OptimizeBranches, {
   // the same true- and false-target.
   ConstantPropagator::OptimizeBranches(flow_graph);
 });
+
+COMPILER_PASS(OptimizeTypedDataAccesses,
+              { TypedDataSpecializer::Optimize(flow_graph); });
 
 COMPILER_PASS(TryCatchOptimization, {
   OptimizeCatchEntryStates(flow_graph, /*is_aot=*/FLAG_precompiled_mode);

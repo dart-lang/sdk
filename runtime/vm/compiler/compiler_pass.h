@@ -36,6 +36,7 @@ namespace dart {
   V(LICM)                                                                      \
   V(OptimisticallySpecializeSmiPhis)                                           \
   V(OptimizeBranches)                                                          \
+  V(OptimizeTypedDataAccesses)                                                 \
   V(RangeAnalysis)                                                             \
   V(ReorderBlocks)                                                             \
   V(SelectRepresentations)                                                     \

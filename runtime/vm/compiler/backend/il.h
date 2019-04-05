@@ -4723,7 +4723,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
                     intptr_t class_id,
                     AlignmentType alignment,
                     intptr_t deopt_id,
-                    TokenPosition token_pos);
+                    TokenPosition token_pos,
+                    SpeculativeMode speculative_mode = kGuardInputs);
   DECLARE_INSTRUCTION(StoreIndexed)
 
   enum { kArrayPos = 0, kIndexPos = 1, kValuePos = 2 };
@@ -4746,6 +4747,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
     return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
+
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -4773,6 +4776,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   const intptr_t class_id_;
   const AlignmentType alignment_;
   const TokenPosition token_pos_;
+  const SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
@@ -6275,6 +6279,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -7022,8 +7027,10 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  DoubleToFloatInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
+  DoubleToFloatInstr(Value* value,
+                     intptr_t deopt_id,
+                     SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateDefinition(deopt_id), speculative_mode_(speculative_mode) {
     SetInputAt(0, value);
   }
 
@@ -7048,6 +7055,8 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
@@ -7055,6 +7064,8 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
+  const SpeculativeMode speculative_mode_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
 };
 

@@ -163,5 +163,6 @@ compiler_sources_tests = [
   "backend/redundancy_elimination_test.cc",
   "backend/slot_test.cc",
   "backend/type_propagator_test.cc",
+  "backend/typed_data_aot_test.cc",
   "cha_test.cc",
 ]
