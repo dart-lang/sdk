@@ -46,8 +46,38 @@ class A {
 }
 class B extends A {
   @override
-  void a()
-  {}
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_fromExtendingClass_abstractImplementation() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  @mustCallSuper
+  void a();
+}
+class B extends A {
+  @override
+  void a() {}
+}
+''');
+  }
+
+  test_fromExtendingClass_separateImplementation() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  @mustCallSuper
+  void a();
+}
+class B implements A {
+  void a() {}
+}
+class C extends B {
+  @override
+  void a() {}
 }
 ''', [HintCode.MUST_CALL_SUPER]);
   }
@@ -66,6 +96,20 @@ class C implements A {
 ''');
   }
 
+  test_fromMixin() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class Mixin {
+  @mustCallSuper
+  void a() {}
+}
+class C with Mixin {
+  @override
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
   test_indirectlyInherited() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -80,6 +124,98 @@ class C extends A {
   }
 }
 class D extends C {
+  @override
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_indirectlyInheritedFromInterface() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C implements A {
+  @override
+  void a() {}
+}
+class D extends C {
+  @override
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_indirectlyInheritedMultiply_fromFirstInterface() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class B {
+  void a() {}
+}
+// Here's the crux: D needs to call super because of C's _first_ interface.
+class C implements A, B {
+  @override
+  void a() {}
+}
+class D extends C {
+  @override
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_indirectlyInheritedMultiply_fromInterfaceAfterFirst() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class B {
+  void a() {}
+}
+// Here's the crux: D needs to call super because of one of C's interfaces, but
+// not the first.
+class C implements B, A {
+  @override
+  void a() {}
+}
+class D extends C {
+  @override
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_indirectlyInheritedFromMixin() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class Mixin {
+  @mustCallSuper
+  void b() {}
+}
+class C extends Object with Mixin {}
+class D extends C {
+  @override
+  void b() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_indirectlyInheritedFromMixinConstraint() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+mixin C on A {
   @override
   void a() {}
 }

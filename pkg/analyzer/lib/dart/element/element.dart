@@ -520,8 +520,11 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@JS(..)`.
   bool get hasJS;
 
-  /// Return `true` if this element has an annotation of the form '@literal'.
+  /// Return `true` if this element has an annotation of the form `@literal`.
   bool get hasLiteral;
+
+  /// Return  `true` if this element has an annotation of the form `@mustCallSuper`.
+  bool get hasMustCallSuper;
 
   /// Return `true` if this element has an annotation of the form `@override`.
   bool get hasOverride;
@@ -529,10 +532,10 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@protected`.
   bool get hasProtected;
 
-  /// Return `true` if this element has an annotation of the form '@required'.
+  /// Return `true` if this element has an annotation of the form `@required`.
   bool get hasRequired;
 
-  /// Return `true` if this element has an annotation of the form '@sealed'.
+  /// Return `true` if this element has an annotation of the form `@sealed`.
   bool get hasSealed;
 
   /// Return `true` if this element has an annotation of the form
