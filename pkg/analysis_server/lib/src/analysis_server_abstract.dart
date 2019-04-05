@@ -70,7 +70,8 @@ abstract class AbstractAnalysisServer {
     '**/*.${AnalysisEngine.SUFFIX_HTM}',
     '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
     '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
-    '**/${AnalysisEngine.PUBSPEC_YAML_FILE}'
+    '**/${AnalysisEngine.PUBSPEC_YAML_FILE}',
+    '**/${AnalysisEngine.ANDROID_MANIFEST_FILE}'
   ];
 
   /// The [ResourceProvider] using which paths are converted into [Resource]s.

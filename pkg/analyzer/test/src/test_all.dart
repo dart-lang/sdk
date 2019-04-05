@@ -12,6 +12,7 @@ import 'diagnostics/test_all.dart' as diagnostics;
 import 'fasta/test_all.dart' as fasta;
 import 'hint/test_all.dart' as hint;
 import 'lint/test_all.dart' as lint;
+import 'manifest/test_all.dart' as manifest;
 import 'options/test_all.dart' as options;
 import 'pubspec/test_all.dart' as pubspec;
 import 'services/test_all.dart' as services;
@@ -32,6 +33,7 @@ main() {
     fasta.main();
     hint.main();
     lint.main();
+    manifest.main();
     options.main();
     pubspec.main();
     services.main();

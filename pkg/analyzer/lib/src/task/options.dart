@@ -121,8 +121,12 @@ class AnalyzerOptions {
   static const String exclude = 'exclude';
   static const String include = 'include';
   static const String language = 'language';
+  static const String optionalChecks = 'optional-checks';
   static const String plugins = 'plugins';
   static const String strong_mode = 'strong-mode';
+
+  // Optional checks options.
+  static const String chromeOsManifestChecks = 'chrome-os-manifest-checks';
 
   // Strong mode options (see AnalysisOptionsImpl for documentation).
   static const String declarationCasts = 'declaration-casts';
@@ -152,6 +156,7 @@ class AnalyzerOptions {
     errors,
     exclude,
     language,
+    optionalChecks,
     plugins,
     strong_mode,
   ];
@@ -168,6 +173,11 @@ class AnalyzerOptions {
     strictInference,
     strictRawTypes
   ];
+
+  // Supported 'analyzer' optional checks options.
+  static const List<String> optionalCecksOptions = const [
+    chromeOsManifestChecks,
+  ];
 }
 
 /// Validates `analyzer` options.
@@ -178,7 +188,8 @@ class AnalyzerOptionsValidator extends CompositeValidator {
           new StrongModeOptionValueValidator(),
           new ErrorFilterOptionValidator(),
           new EnabledExperimentsValidator(),
-          new LanguageOptionValidator()
+          new LanguageOptionValidator(),
+          new OptionalChecksValueValidator()
         ]);
 }
 
@@ -484,6 +495,43 @@ class StrongModeOptionValueValidator extends OptionsValidator {
   }
 }
 
+/// Validates `analyzer` optional-checks value configuration options.
+class OptionalChecksValueValidator extends OptionsValidator {
+  ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.optionalCecksOptions);
+  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    if (analyzer is YamlMap) {
+      var v = getValue(analyzer, AnalyzerOptions.optionalChecks);
+      if (v is YamlScalar) {
+        var value = toLowerCase(v.value);
+        if (value != AnalyzerOptions.chromeOsManifestChecks) {
+          builder.reportError(
+              reporter, AnalyzerOptions.chromeOsManifestChecks, v);
+        }
+      } else if (v is YamlMap) {
+        v.nodes.forEach((k, v) {
+          String key, value;
+          if (k is YamlScalar) {
+            key = k.value?.toString();
+            if (key != AnalyzerOptions.chromeOsManifestChecks) {
+              builder.reportError(
+                  reporter, AnalyzerOptions.chromeOsManifestChecks, k);
+            } else {
+              value = toLowerCase(v.value);
+              if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+                trueOrFalseBuilder.reportError(reporter, key, v);
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+}
+
 /// Validates `analyzer` top-level options.
 class TopLevelAnalyzerOptionsValidator extends TopLevelOptionValidator {
   TopLevelAnalyzerOptionsValidator()
@@ -571,6 +619,10 @@ class _OptionsProcessor {
         }
         options.enabledExperiments = enabledExperiments;
       }
+
+      // Process optional checks options.
+      var optionalChecks = getValue(analyzer, AnalyzerOptions.optionalChecks);
+      _applyOptionalChecks(options, optionalChecks);
 
       // Process language options.
       var language = getValue(analyzer, AnalyzerOptions.language);
@@ -672,6 +724,31 @@ class _OptionsProcessor {
           _applyStrongModeOption(options, k.value?.toString(), v.value);
         }
       });
+    }
+  }
+
+  void _applyOptionalChecksOption(
+      AnalysisOptionsImpl options, String feature, Object value) {
+    bool boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.chromeOsManifestChecks) {
+        options.chromeOsManifestChecks = boolValue;
+      }
+    }
+  }
+
+  void _applyOptionalChecks(AnalysisOptionsImpl options, YamlNode config) {
+    if (config is YamlMap) {
+      config.nodes.forEach((k, v) {
+        if (k is YamlScalar && v is YamlScalar) {
+          _applyOptionalChecksOption(options, k.value?.toString(), v.value);
+        }
+      });
+    }
+    if (config is YamlScalar) {
+      if (config.value?.toString() == AnalyzerOptions.chromeOsManifestChecks) {
+        options.chromeOsManifestChecks = true;
+      }
     }
   }
 

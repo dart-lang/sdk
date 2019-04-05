@@ -733,6 +733,11 @@ class AnalysisEngine {
   static const String PUBSPEC_YAML_FILE = 'pubspec.yaml';
 
   /**
+   * The file name used for Android manifest files.
+   */
+  static const String ANDROID_MANIFEST_FILE = 'AndroidManifest.xml';
+
+  /**
    * The unique instance of this class.
    */
   static final AnalysisEngine instance = new AnalysisEngine._();
@@ -1022,6 +1027,12 @@ abstract class AnalysisOptions {
    */
   @deprecated
   int get cacheSize;
+
+  /*
+   * A flag indicating whether to run checks on AndroidManifest.xml file to
+   * see if it is complaint with Chrome OS.
+   */
+  bool get chromeOsManifestChecks;
 
   /**
    * Return `true` if analysis is to generate dart2js related hint results.
@@ -1390,6 +1401,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * This often leads to cast failures later on in the program.
    */
   bool strictRawTypes = false;
+
+  @override
+  bool chromeOsManifestChecks = false;
 
   /**
    * Initialize a newly created set of analysis options to have their default
