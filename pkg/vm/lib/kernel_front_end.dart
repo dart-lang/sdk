@@ -118,6 +118,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
+  args.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Print this help message.');
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -135,6 +137,11 @@ const int compileTimeErrorExitCode = 254;
 /// and return exit code.
 Future<int> runCompiler(ArgResults options, String usage) async {
   final String platformKernel = options['platform'];
+
+  if (options['help']) {
+    print(usage);
+    return successExitCode;
+  }
 
   if ((options.rest.length != 1) || (platformKernel == null)) {
     print(usage);
