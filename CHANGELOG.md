@@ -67,8 +67,10 @@
 
 #### dartfmt
 
-* Tweak set literal formatting to follow other collection literals.
-* Add support for "UI as code" features.
+*   Tweak set literal formatting to follow other collection literals.
+*   Add support for "UI as code" features.
+*   Properly format trailing commas in assertions.
+*   Improve indentation of adjacent strings in argument lists.
 
 #### Linter
 
