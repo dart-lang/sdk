@@ -209,6 +209,11 @@ class InterpreterHelpers {
     // Everything matches.
     return false;
   }
+
+  DART_FORCE_INLINE static bool IsFinalized(RawClass* cls) {
+    return Class::ClassFinalizedBits::decode(cls->ptr()->state_bits_) ==
+           RawClass::kFinalized;
+  }
 };
 
 DART_FORCE_INLINE static uint32_t* SavedCallerPC(RawObject** FP) {
@@ -220,6 +225,21 @@ DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
   ASSERT(InterpreterHelpers::GetClassId(function) == kFunctionCid ||
          InterpreterHelpers::GetClassId(function) == kNullCid);
   return function;
+}
+
+DART_FORCE_INLINE static RawObject* InitializeHeader(uword addr,
+                                                     intptr_t class_id,
+                                                     intptr_t instance_size) {
+  uint32_t tags = 0;
+  tags = RawObject::ClassIdTag::update(class_id, tags);
+  tags = RawObject::SizeTag::update(instance_size, tags);
+  tags = RawObject::OldBit::update(false, tags);
+  tags = RawObject::OldAndNotMarkedBit::update(false, tags);
+  tags = RawObject::OldAndNotRememberedBit::update(false, tags);
+  tags = RawObject::NewBit::update(true, tags);
+  // Also writes zero in the hash_ field.
+  *reinterpret_cast<uword*>(addr + Object::tags_offset()) = tags;
+  return RawObject::FromAddr(addr);
 }
 
 void LookupCache::Clear() {
@@ -1178,7 +1198,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #define BOX_INT64_RESULT(result)                                               \
   if (LIKELY(Smi::IsValid(result))) {                                          \
     SP[0] = Smi::New(static_cast<intptr_t>(result));                           \
-  } else if (!AllocateInt64Box(thread, result, pc, FP, SP)) {                  \
+  } else if (!AllocateMint(thread, result, pc, FP, SP)) {                      \
     HANDLE_EXCEPTION;                                                          \
   }                                                                            \
   ASSERT(Integer::GetInt64Value(RAW_CAST(Integer, SP[0])) == result);
@@ -1274,26 +1294,22 @@ RawObject* Interpreter::Call(const Function& function,
               arguments.raw_ptr()->data(), thread);
 }
 
-// Allocate _Mint box for the given int64_t value and puts it into SP[0].
+// Allocate a _Mint for the given int64_t value and puts it into SP[0].
 // Returns false on exception.
-DART_NOINLINE bool Interpreter::AllocateInt64Box(Thread* thread,
-                                                 int64_t value,
-                                                 uint32_t* pc,
-                                                 RawObject** FP,
-                                                 RawObject** SP) {
+DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
+                                             int64_t value,
+                                             uint32_t* pc,
+                                             RawObject** FP,
+                                             RawObject** SP) {
   ASSERT(!Smi::IsValid(value));
   const intptr_t instance_size = Mint::InstanceSize();
-  const uword start =
-      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-  if (LIKELY(start != 0)) {
-    uword tags = 0;
-    tags = RawObject::ClassIdTag::update(kMintCid, tags);
-    tags = RawObject::SizeTag::update(instance_size, tags);
-    tags = RawObject::NewBit::update(true, tags);
-    // Also writes zero in the hash_ field.
-    *reinterpret_cast<uword*>(start + Mint::tags_offset()) = tags;
-    *reinterpret_cast<int64_t*>(start + Mint::value_offset()) = value;
-    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+  const uword start = thread->top();
+  if (LIKELY((start + instance_size) < thread->end())) {
+    thread->set_top(start + instance_size);
+    RawMint* result =
+        Mint::RawCast(InitializeHeader(start, kMintCid, instance_size));
+    result->ptr()->value_ = value;
+    SP[0] = result;
     return true;
   } else {
     SP[0] = 0;  // Space for the result.
@@ -1309,108 +1325,130 @@ DART_NOINLINE bool Interpreter::AllocateInt64Box(Thread* thread,
   }
 }
 
-// Allocate _Double box for the given double value and puts it into SP[0].
+// Allocate a _Double for the given double value and put it into SP[0].
 // Returns false on exception.
-DART_NOINLINE bool Interpreter::AllocateDoubleBox(Thread* thread,
-                                                  double value,
+DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
+                                               double value,
+                                               uint32_t* pc,
+                                               RawObject** FP,
+                                               RawObject** SP) {
+  const intptr_t instance_size = Double::InstanceSize();
+  const uword start = thread->top();
+  if (LIKELY((start + instance_size) < thread->end())) {
+    thread->set_top(start + instance_size);
+    RawDouble* result =
+        Double::RawCast(InitializeHeader(start, kDoubleCid, instance_size));
+    result->ptr()->value_ = value;
+    SP[0] = result;
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = thread->isolate()->object_store()->double_class();
+    SP[2] = Object::null();  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    Double::RawCast(SP[0])->ptr()->value_ = value;
+    return true;
+  }
+}
+
+// Allocate a _Float32x4 for the given simd value and put it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
+                                                  simd128_value_t value,
                                                   uint32_t* pc,
                                                   RawObject** FP,
                                                   RawObject** SP) {
-  const intptr_t instance_size = Double::InstanceSize();
-  const uword start =
-      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-  if (LIKELY(start != 0)) {
-    uword tags = 0;
-    tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
-    tags = RawObject::SizeTag::update(instance_size, tags);
-    tags = RawObject::NewBit::update(true, tags);
-    // Also writes zero in the hash_ field.
-    *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
-    *reinterpret_cast<double*>(start + Double::value_offset()) = value;
-    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-    return true;
-  } else {
-    SP[0] = 0;  // Space for the result.
-    SP[1] = thread->isolate()->object_store()->double_class();  // Class object.
-    SP[2] = Object::null();  // Type arguments.
-    Exit(thread, FP, SP + 3, pc);
-    NativeArguments args(thread, 2, SP + 1, SP);
-    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
-      return false;
-    }
-    reinterpret_cast<RawDouble*>(SP[0])->ptr()->value_ = value;
-    return true;
-  }
-}
-
-// Allocate _Float32x4 box for the given simd value and puts it into SP[0].
-// Returns false on exception.
-DART_NOINLINE bool Interpreter::AllocateFloat32x4Box(Thread* thread,
-                                                     simd128_value_t value,
-                                                     uint32_t* pc,
-                                                     RawObject** FP,
-                                                     RawObject** SP) {
   const intptr_t instance_size = Float32x4::InstanceSize();
-  const uword start =
-      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-  if (LIKELY(start != 0)) {
-    uword tags = 0;
-    tags = RawObject::ClassIdTag::update(kFloat32x4Cid, tags);
-    tags = RawObject::SizeTag::update(instance_size, tags);
-    tags = RawObject::NewBit::update(true, tags);
-    // Also writes zero in the hash_ field.
-    *reinterpret_cast<uword*>(start + Float32x4::tags_offset()) = tags;
-    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-    value.writeTo(reinterpret_cast<RawFloat32x4*>(SP[0])->ptr()->value_);
+  const uword start = thread->top();
+  if (LIKELY((start + instance_size) < thread->end())) {
+    thread->set_top(start + instance_size);
+    RawFloat32x4* result = Float32x4::RawCast(
+        InitializeHeader(start, kFloat32x4Cid, instance_size));
+    value.writeTo(result->ptr()->value_);
+    SP[0] = result;
     return true;
   } else {
     SP[0] = 0;  // Space for the result.
-    SP[1] =
-        thread->isolate()->object_store()->float32x4_class();  // Class object.
+    SP[1] = thread->isolate()->object_store()->float32x4_class();
     SP[2] = Object::null();  // Type arguments.
     Exit(thread, FP, SP + 3, pc);
     NativeArguments args(thread, 2, SP + 1, SP);
     if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
       return false;
     }
-    value.writeTo(reinterpret_cast<RawFloat32x4*>(SP[0])->ptr()->value_);
+    value.writeTo(Float32x4::RawCast(SP[0])->ptr()->value_);
     return true;
   }
 }
 
-// Allocate _Float64x2 box for the given simd value and puts it into SP[0].
+// Allocate _Float64x2 box for the given simd value and put it into SP[0].
 // Returns false on exception.
-DART_NOINLINE bool Interpreter::AllocateFloat64x2Box(Thread* thread,
-                                                     simd128_value_t value,
-                                                     uint32_t* pc,
-                                                     RawObject** FP,
-                                                     RawObject** SP) {
+DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
+                                                  simd128_value_t value,
+                                                  uint32_t* pc,
+                                                  RawObject** FP,
+                                                  RawObject** SP) {
   const intptr_t instance_size = Float64x2::InstanceSize();
-  const uword start =
-      thread->heap()->new_space()->TryAllocateInTLAB(thread, instance_size);
-  if (LIKELY(start != 0)) {
-    uword tags = 0;
-    tags = RawObject::ClassIdTag::update(kFloat64x2Cid, tags);
-    tags = RawObject::SizeTag::update(instance_size, tags);
-    tags = RawObject::NewBit::update(true, tags);
-    // Also writes zero in the hash_ field.
-    *reinterpret_cast<uword*>(start + Float64x2::tags_offset()) = tags;
-    SP[0] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
-    value.writeTo(reinterpret_cast<RawFloat64x2*>(SP[0])->ptr()->value_);
+  const uword start = thread->top();
+  if (LIKELY((start + instance_size) < thread->end())) {
+    thread->set_top(start + instance_size);
+    RawFloat64x2* result = Float64x2::RawCast(
+        InitializeHeader(start, kFloat64x2Cid, instance_size));
+    value.writeTo(result->ptr()->value_);
+    SP[0] = result;
     return true;
   } else {
     SP[0] = 0;  // Space for the result.
-    SP[1] =
-        thread->isolate()->object_store()->float64x2_class();  // Class object.
+    SP[1] = thread->isolate()->object_store()->float64x2_class();
     SP[2] = Object::null();  // Type arguments.
     Exit(thread, FP, SP + 3, pc);
     NativeArguments args(thread, 2, SP + 1, SP);
     if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
       return false;
     }
-    value.writeTo(reinterpret_cast<RawFloat32x4*>(SP[0])->ptr()->value_);
+    value.writeTo(Float64x2::RawCast(SP[0])->ptr()->value_);
     return true;
   }
+}
+
+// Allocate a _List with the given type arguments and length and put it into
+// SP[0]. Returns false on exception.
+bool Interpreter::AllocateArray(Thread* thread,
+                                RawTypeArguments* type_args,
+                                RawObject* length_object,
+                                uint32_t* pc,
+                                RawObject** FP,
+                                RawObject** SP) {
+  if (LIKELY(!length_object->IsHeapObject())) {
+    const intptr_t length = Smi::Value(Smi::RawCast(length_object));
+    if (LIKELY((0 <= length) && (length <= Array::kMaxElements))) {
+      const intptr_t instance_size = Array::InstanceSize(length);
+      const uword start = thread->top();
+      if (LIKELY((start + instance_size) < thread->end())) {
+        thread->set_top(start + instance_size);
+        RawArray* result =
+            Array::RawCast(InitializeHeader(start, kArrayCid, instance_size));
+        result->ptr()->type_arguments_ = type_args;
+        result->ptr()->length_ = Smi::New(length);
+        for (intptr_t i = 0; i < length; i++) {
+          result->ptr()->data()[i] = Object::null();
+        }
+        SP[0] = result;
+        return true;
+      }
+    }
+  }
+
+  SP[0] = 0;  // Space for the result;
+  SP[1] = length_object;
+  SP[2] = type_args;
+  Exit(thread, FP, SP + 3, pc);
+  NativeArguments args(thread, 2, SP + 1, SP);
+  return InvokeRuntime(thread, this, DRT_AllocateArray, args);
 }
 
 RawObject* Interpreter::Call(RawFunction* function,
@@ -2093,12 +2131,12 @@ SwitchDispatch:
         //                                            : new _GrowableList<E>(0);
         // }
         if (InterpreterHelpers::ArgDescPosCount(argdesc_) == 2) {
-          SP[1] = SP[0];   // length
-          SP[2] = SP[-1];  // type
-          Exit(thread, FP, SP + 3, pc);
-          NativeArguments native_args(thread, 2, SP + 1, SP - 1);
-          INVOKE_RUNTIME(DRT_AllocateArray, native_args);
-          SP -= 1;  // Result is in SP - 1.
+          RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
+          RawObject* length = SP[0];
+          SP--;
+          if (!AllocateArray(thread, type_args, length, pc, FP, SP)) {
+            HANDLE_EXCEPTION;
+          }
         } else {
           ASSERT(InterpreterHelpers::ArgDescPosCount(argdesc_) == 1);
           // SP[-1] is type.
@@ -2116,12 +2154,12 @@ SwitchDispatch:
         }
       } break;
       case MethodRecognizer::kObjectArrayAllocate: {
-        SP[1] = SP[0];   // length
-        SP[2] = SP[-1];  // type
-        Exit(thread, FP, SP + 3, pc);
-        NativeArguments native_args(thread, 2, SP + 1, SP - 1);
-        INVOKE_RUNTIME(DRT_AllocateArray, native_args);
-        SP -= 1;  // Result is in SP - 1.
+        RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
+        RawObject* length = SP[0];
+        SP--;
+        if (!AllocateArray(thread, type_args, length, pc, FP, SP)) {
+          HANDLE_EXCEPTION;
+        }
       } break;
       case MethodRecognizer::kLinkedHashMap_getIndex: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
@@ -2316,7 +2354,7 @@ SwitchDispatch:
       double raw_value = Double::RawCast(value)->ptr()->value_;
       ASSERT(*(reinterpret_cast<RawDouble**>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
-      if (!AllocateDoubleBox(thread, raw_value, pc, FP, SP)) {
+      if (!AllocateDouble(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
       RawDouble* box = Double::RawCast(SP[0]);
@@ -2329,7 +2367,7 @@ SwitchDispatch:
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
       ASSERT(*(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
-      if (!AllocateFloat32x4Box(thread, raw_value, pc, FP, SP)) {
+      if (!AllocateFloat32x4(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
       RawFloat32x4* box = Float32x4::RawCast(SP[0]);
@@ -2342,7 +2380,7 @@ SwitchDispatch:
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
       ASSERT(*(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
-      if (!AllocateFloat64x2Box(thread, raw_value, pc, FP, SP)) {
+      if (!AllocateFloat64x2(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
       RawFloat64x2* box = Float64x2::RawCast(SP[0]);
@@ -2437,17 +2475,32 @@ SwitchDispatch:
     DISPATCH();
   }
 
-  // TODO(vegorov) allocation bytecodes can benefit from the new-space
-  // allocation fast-path that does not transition into the runtime system.
   {
     BYTECODE(AllocateContext, A_D);
     const uint16_t num_context_variables = rD;
     {
-      *++SP = 0;
-      SP[1] = Smi::New(num_context_variables);
-      Exit(thread, FP, SP + 2, pc);
-      NativeArguments args(thread, 1, SP + 1, SP);
-      INVOKE_RUNTIME(DRT_AllocateContext, args);
+      const intptr_t instance_size =
+          Context::InstanceSize(num_context_variables);
+      ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+      const uword start = thread->top();
+      if (LIKELY((start + instance_size) < thread->end())) {
+        thread->set_top(start + instance_size);
+        RawContext* result = Context::RawCast(
+            InitializeHeader(start, kContextCid, instance_size));
+        result->ptr()->num_variables_ = num_context_variables;
+        result->ptr()->parent_ = static_cast<RawContext*>(null_value);
+        for (intptr_t offset = sizeof(RawContext); offset < instance_size;
+             offset += kWordSize) {
+          *reinterpret_cast<RawObject**>(start + offset) = null_value;
+        }
+        *++SP = result;
+      } else {
+        *++SP = 0;
+        SP[1] = Smi::New(num_context_variables);
+        Exit(thread, FP, SP + 2, pc);
+        NativeArguments args(thread, 1, SP + 1, SP);
+        INVOKE_RUNTIME(DRT_AllocateContext, args);
+      }
     }
     DISPATCH();
   }
@@ -2465,9 +2518,27 @@ SwitchDispatch:
 
   {
     BYTECODE(Allocate, A_D);
-    SP[1] = 0;                  // Space for the result.
-    SP[2] = LOAD_CONSTANT(rD);  // Class object.
-    SP[3] = null_value;         // Type arguments.
+    RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
+    if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
+      const intptr_t class_id = cls->ptr()->id_;
+      const intptr_t instance_size = cls->ptr()->instance_size_in_words_
+                                     << kWordSizeLog2;
+      const uword start = thread->top();
+      if (LIKELY((start + instance_size) < thread->end())) {
+        thread->set_top(start + instance_size);
+        RawObject* result = InitializeHeader(start, class_id, instance_size);
+        for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
+             offset += kWordSize) {
+          *reinterpret_cast<RawObject**>(start + offset) = null_value;
+        }
+        *++SP = result;
+        DISPATCH();
+      }
+    }
+
+    SP[1] = 0;           // Space for the result.
+    SP[2] = cls;         // Class object.
+    SP[3] = null_value;  // Type arguments.
     Exit(thread, FP, SP + 4, pc);
     NativeArguments args(thread, 2, SP + 2, SP + 1);
     INVOKE_RUNTIME(DRT_AllocateObject, args);
@@ -2477,8 +2548,30 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateT, 0);
-    SP[1] = SP[-0];  // Class object.
-    SP[2] = SP[-1];  // Type arguments
+    RawClass* cls = Class::RawCast(SP[0]);
+    RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
+    if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
+      const intptr_t class_id = cls->ptr()->id_;
+      const intptr_t instance_size = cls->ptr()->instance_size_in_words_
+                                     << kWordSizeLog2;
+      const uword start = thread->top();
+      if (LIKELY((start + instance_size) < thread->end())) {
+        thread->set_top(start + instance_size);
+        RawObject* result = InitializeHeader(start, class_id, instance_size);
+        for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
+             offset += kWordSize) {
+          *reinterpret_cast<RawObject**>(start + offset) = null_value;
+        }
+        const intptr_t type_args_offset =
+            cls->ptr()->type_arguments_field_offset_in_words_ << kWordSizeLog2;
+        *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
+        *--SP = result;
+        DISPATCH();
+      }
+    }
+
+    SP[1] = cls;
+    SP[2] = type_args;
     Exit(thread, FP, SP + 3, pc);
     NativeArguments args(thread, 2, SP + 1, SP - 1);
     INVOKE_RUNTIME(DRT_AllocateObject, args);
@@ -2488,12 +2581,12 @@ SwitchDispatch:
 
   {
     BYTECODE(CreateArrayTOS, 0);
-    SP[1] = SP[-0];  // Length.
-    SP[2] = SP[-1];  // Type.
-    Exit(thread, FP, SP + 3, pc);
-    NativeArguments args(thread, 2, SP + 1, SP - 1);
-    INVOKE_RUNTIME(DRT_AllocateArray, args);
-    SP -= 1;
+    RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
+    RawObject* length = SP[0];
+    SP--;
+    if (!AllocateArray(thread, type_args, length, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
     DISPATCH();
   }
 
@@ -2858,14 +2951,27 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateClosure, A_D);
-    SP[1] = 0;  // Space for the result.
-    SP[2] =
-        thread->isolate()->object_store()->closure_class();  // Class object.
-    SP[3] = null_value;                                      // Type arguments.
-    Exit(thread, FP, SP + 4, pc);
-    NativeArguments args(thread, 2, SP + 2, SP + 1);
-    INVOKE_RUNTIME(DRT_AllocateObject, args);
-    ++SP;
+    const intptr_t instance_size = Closure::InstanceSize();
+    const uword start = thread->top();
+    if (LIKELY((start + instance_size) < thread->end())) {
+      thread->set_top(start + instance_size);
+      RawClosure* result =
+          Closure::RawCast(InitializeHeader(start, kClosureCid, instance_size));
+      for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
+           offset += kWordSize) {
+        *reinterpret_cast<RawObject**>(start + offset) = null_value;
+      }
+      SP[1] = result;
+      ++SP;
+    } else {
+      SP[1] = 0;  // Space for the result.
+      SP[2] = thread->isolate()->object_store()->closure_class();
+      SP[3] = null_value;  // Type arguments.
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments args(thread, 2, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_AllocateObject, args);
+      ++SP;
+    }
     DISPATCH();
   }
 
@@ -2909,22 +3015,22 @@ SwitchDispatch:
     classid_t guarded_cid = field->ptr()->guarded_cid_;
     if (unboxing && (guarded_cid == kDoubleCid)) {
       double raw_value = Double::RawCast(value)->ptr()->value_;
-      // AllocateDoubleBox places result at SP[0]
-      if (!AllocateDoubleBox(thread, raw_value, pc, FP, SP)) {
+      // AllocateDouble places result at SP[0]
+      if (!AllocateDouble(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
     } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
-      // AllocateFloat32x4Box places result at SP[0]
-      if (!AllocateFloat32x4Box(thread, raw_value, pc, FP, SP)) {
+      // AllocateFloat32x4 places result at SP[0]
+      if (!AllocateFloat32x4(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
     } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
-      // AllocateFloat64x2Box places result at SP[0]
-      if (!AllocateFloat64x2Box(thread, raw_value, pc, FP, SP)) {
+      // AllocateFloat64x2 places result at SP[0]
+      if (!AllocateFloat64x2(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
     }

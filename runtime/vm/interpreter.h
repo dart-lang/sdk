@@ -26,6 +26,7 @@ class RawObjectPool;
 class RawFunction;
 class RawString;
 class RawSubtypeTestCache;
+class RawTypeArguments;
 class ObjectPointerVisitor;
 
 class LookupCache : public ValueObject {
@@ -205,26 +206,32 @@ class Interpreter {
                         RawObject** args,
                         RawSubtypeTestCache* cache);
 
-  bool AllocateInt64Box(Thread* thread,
-                        int64_t value,
-                        uint32_t* pc,
-                        RawObject** FP,
-                        RawObject** SP);
-  bool AllocateDoubleBox(Thread* thread,
-                         double value,
+  bool AllocateMint(Thread* thread,
+                    int64_t value,
+                    uint32_t* pc,
+                    RawObject** FP,
+                    RawObject** SP);
+  bool AllocateDouble(Thread* thread,
+                      double value,
+                      uint32_t* pc,
+                      RawObject** FP,
+                      RawObject** SP);
+  bool AllocateFloat32x4(Thread* thread,
+                         simd128_value_t value,
                          uint32_t* pc,
                          RawObject** FP,
                          RawObject** SP);
-  bool AllocateFloat32x4Box(Thread* thread,
-                            simd128_value_t value,
-                            uint32_t* pc,
-                            RawObject** FP,
-                            RawObject** SP);
-  bool AllocateFloat64x2Box(Thread* thread,
-                            simd128_value_t value,
-                            uint32_t* pc,
-                            RawObject** FP,
-                            RawObject** SP);
+  bool AllocateFloat64x2(Thread* thread,
+                         simd128_value_t value,
+                         uint32_t* pc,
+                         RawObject** FP,
+                         RawObject** SP);
+  bool AllocateArray(Thread* thread,
+                     RawTypeArguments* type_args,
+                     RawObject* length,
+                     uint32_t* pc,
+                     RawObject** FP,
+                     RawObject** SP);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

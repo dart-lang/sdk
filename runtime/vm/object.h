@@ -1441,6 +1441,7 @@ class Class : public Object {
   friend class Instance;
   friend class Object;
   friend class Type;
+  friend class InterpreterHelpers;
   friend class Intrinsifier;
   friend class ClassFunctionVisitor;
 };
