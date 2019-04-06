@@ -7,12 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Prefer if elements to map literals where possible.';
+const _desc = r'Prefer for elements when building maps from iterables.';
 
 const _details = r'''
-When building maps from iterables, it is preferable to use `if` and `for` 
-elements rather than conditionals and repetition.
-
+When building maps from iterables, it is preferable to use for elements.
 
 **BAD:**
 ```
@@ -33,10 +31,11 @@ return {
 ```
 ''';
 
-class PreferIfElementsToMapLiterals extends LintRule implements NodeLintRule {
-  PreferIfElementsToMapLiterals()
+class PreferForElementsToMapFromIterable extends LintRule
+    implements NodeLintRule {
+  PreferForElementsToMapFromIterable()
       : super(
-            name: 'prefer_if_elements_to_map_literals',
+            name: 'prefer_for_elements_to_map_fromIterable',
             description: _desc,
             details: _details,
             group: Group.style);

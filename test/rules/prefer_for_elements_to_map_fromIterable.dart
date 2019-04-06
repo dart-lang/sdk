@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: prefer_expression_function_bodies
-// ignore_for_file: avoid_positional_boolean_parameters
 
 f(Iterable<int> i) {
   var k = 3;
@@ -16,7 +15,7 @@ g(Iterable<int> i) {
 
 h(Iterable<int> i) {
   var e = 2;
-  return Map.fromIterable(i, key: (k) => k * e, value: (v) => v + e);  // LINT
+  return Map.fromIterable(i, key: (k) => k * e, value: (v) => v + e); // LINT
 }
 
 i(Iterable<int> i) {
