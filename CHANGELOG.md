@@ -1,3 +1,10 @@
+# 0.1.85
+
+* (**BREAKING**) renamed `spread_collections` to `prefer_spread_collections`
+* new lint: `prefer_for_elements_to_map_fromIterable`
+* new lint: `prefer_if_elements_to_conditional_expressions`
+* new lint: `diagnostic_describe_all_properties`
+
 # 0.1.84
 
 * new lint: `spread_collections`
