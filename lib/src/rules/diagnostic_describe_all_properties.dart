@@ -83,10 +83,10 @@ class DiagnosticsDescribeAllProperties extends LintRule
   }
 }
 
-// todo (pq): for experiments and book-keeping; remove before landing
-int fileCount = 0;
-int debugPropertyCount = 0;
-int classesWithPropertiesButNoDebugFill = 0;
+// for experiments and book-keeping
+//int fileCount = 0;
+//int debugPropertyCount = 0;
+//int classesWithPropertiesButNoDebugFill = 0;
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
@@ -103,8 +103,8 @@ class _Visitor extends SimpleAstVisitor {
     lineInfo = node.lineInfo;
   }
 
-  static int noMethods = 0;
-  static int totalClasses = 0;
+//  static int noMethods = 0;
+//  static int totalClasses = 0;
 
   bool _isOverridingMember(Element member) {
     if (member == null) {
@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    ++totalClasses;
+//    ++totalClasses;
 
     // We only care about Diagnosticables.
     var type = node.declaredElement.type;
@@ -163,9 +163,9 @@ class _Visitor extends SimpleAstVisitor {
 
     // todo (pq): move up to top when we're not counting anymore.
     var debugFillProperties = node.getMethod('debugFillProperties');
-    if (debugFillProperties == null) {
-      ++classesWithPropertiesButNoDebugFill;
-    }
+//    if (debugFillProperties == null) {
+//      ++classesWithPropertiesButNoDebugFill;
+//    }
 
     var debugDescribeChildren = node.getMethod('debugDescribeChildren');
     if (debugFillProperties == null && debugDescribeChildren == null) {
@@ -181,7 +181,7 @@ class _Visitor extends SimpleAstVisitor {
     // Flag the rest.
     properties.forEach(rule.reportLint);
 
-//    // todo (pq): remove before landing
+// uncomment for data gathering
 //    for (var prop in properties) {
 //      var line = lineInfo.getLocation(prop.offset).lineNumber;
 //      var prefix =
