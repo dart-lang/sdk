@@ -28,6 +28,14 @@ symbolic imports.
 
 * `SliderMenu.dart`
 * `filesystem.dart`
+* `file-system.dart`
+
+Files without a strict `.dart` extension are ignored.  For example:
+
+**OK:**
+
+* `file-system.g.dart`
+* `SliderMenu.css.dart`
 
 The lint `library_names` can be used to enforce the same kind of naming on the
 library.
@@ -57,7 +65,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    if (!isLowerCaseUnderScoreWithDots(node.declaredElement.source.shortName)) {
+    var fileName = node.declaredElement.source.shortName;
+    if (isStrictDartFileName(fileName) &&
+        !isLowerCaseUnderScoreWithDots(fileName)) {
       rule.reportLint(node);
     }
   }

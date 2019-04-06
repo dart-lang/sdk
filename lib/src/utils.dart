@@ -4,6 +4,8 @@
 
 import 'package:linter/src/ast.dart';
 
+const _dot = '\.';
+
 final _identifier = new RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
 
 final _lowerCamelCase = new RegExp(
@@ -47,6 +49,12 @@ bool isLowerCaseUnderScoreWithDots(String id) =>
 
 /// Returns `true` if this [fileName] is a Pubspec file.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
+
+/// Returns true if this is a non-prefixed `.dart extension file.
+/// * `foo.dart` => true
+/// * `foo.css.dart => false
+bool isStrictDartFileName(String fileName) =>
+    isDartFileName(fileName) && _dot.allMatches(fileName).length == 1;
 
 /// Returns `true` if the given code unit [c] is upper case.
 bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;

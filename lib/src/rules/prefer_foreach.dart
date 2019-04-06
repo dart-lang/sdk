@@ -55,14 +55,14 @@ class PreferForeach extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
     final visitor = new _Visitor(this);
-    registry.addForEachStatement(this, visitor);
+    registry.addForStatement(this, visitor);
   }
 }
 
 class _PreferForEachVisitor extends SimpleAstVisitor {
   final LintRule rule;
   LocalVariableElement element;
-  ForEachStatement forEachStatement;
+  ForStatement forEachStatement;
 
   _PreferForEachVisitor(this.rule);
 
@@ -79,12 +79,15 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
-    final element = node.loopVariable?.declaredElement;
-    if (element != null) {
-      forEachStatement = node;
-      this.element = element;
-      node.body.accept(this);
+  visitForStatement2(ForStatement node) {
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForEachPartsWithDeclaration) {
+      final element = loopParts.loopVariable?.declaredElement;
+      if (element != null) {
+        forEachStatement = node;
+        this.element = element;
+        node.body.accept(this);
+      }
     }
   }
 
@@ -125,8 +128,11 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitForEachStatement(ForEachStatement node) {
-    final visitor = new _PreferForEachVisitor(rule);
-    node.accept(visitor);
+  visitForStatement2(ForStatement node) {
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForEachParts) {
+      final visitor = new _PreferForEachVisitor(rule);
+      node.accept(visitor);
+    }
   }
 }

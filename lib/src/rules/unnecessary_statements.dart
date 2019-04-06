@@ -213,10 +213,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
-    node.initialization?.accept(reportNoClearEffect);
-    node.updaters?.forEach((u) {
-      u.accept(reportNoClearEffect);
-    });
+  void visitForStatement2(ForStatement node) {
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForPartsWithExpression) {
+      loopParts.initialization?.accept(reportNoClearEffect);
+      loopParts.updaters?.forEach((u) {
+        u.accept(reportNoClearEffect);
+      });
+    }
   }
 }

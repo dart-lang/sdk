@@ -26,7 +26,7 @@ void someFunction4() {
 
 void someFunction4_1() {
   List list;
-  if(list.contains(null)) print('someFucntion4_1');
+  if (list.contains(null)) print('someFucntion4_1');
 }
 
 void someFunction5_1() {
@@ -97,7 +97,8 @@ void someFunction12() {
 }
 
 void bug_267(list) {
-  if (list.contains('1')) print('someFunction'); // https://github.com/dart-lang/linter/issues/267
+  if (list.contains('1')) // https://github.com/dart-lang/linter/issues/267
+    print('someFunction');
 }
 
 abstract class ClassBase {}
@@ -133,22 +134,32 @@ bool takesIterable2(Iterable<String> iterable) => iterable.contains('a'); // OK
 bool takesIterable3(Iterable iterable) => iterable.contains('a'); // OK
 
 abstract class A implements Iterable<int> {}
+
 abstract class B extends A {}
+
 bool takesB(B b) => b.contains('a'); // LINT
 
 abstract class A1 implements Iterable<String> {}
+
 abstract class B1 extends A1 {}
+
 bool takesB1(B1 b) => b.contains('a'); // OK
 
 abstract class A3 implements Iterable {}
+
 abstract class B3 extends A3 {}
+
 bool takesB3(B3 b) => b.contains('a'); // OK
 
 abstract class A2 implements Iterable<String> {}
+
 abstract class B2 extends A2 {}
+
 bool takesB2(B2 b) => b.contains('a'); // OK
 
-abstract class SomeIterable<E> implements Iterable<E> {}
+abstract class AddlInterface {}
+
+abstract class SomeIterable<E> implements Iterable<E>, AddlInterface {}
 
 abstract class MyClass implements SomeIterable<int> {
   bool badMethod(String thing) => this.contains(thing); // LINT

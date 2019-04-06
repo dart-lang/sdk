@@ -10,7 +10,7 @@ const _desc = r'Separate the control structure expression from its statement.';
 
 const _details = r'''
 
-From the [flutter style guide](https://flutter.io/style-guide/):
+From the [flutter style guide](https://flutter.dev/style-guide/):
 
 **DO** separate the control structure expression from its statement.
 
@@ -58,7 +58,6 @@ class AlwaysPutControlBodyOnNewLine extends LintRule implements NodeLintRule {
       [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
-    registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addIfStatement(this, visitor);
     registry.addWhileStatement(this, visitor);
@@ -73,11 +72,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitDoStatement(DoStatement node) {
     _checkNodeOnNextLine(node.body, node.doKeyword.end);
-  }
-
-  @override
-  void visitForEachStatement(ForEachStatement node) {
-    _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
   }
 
   @override

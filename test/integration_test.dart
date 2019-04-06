@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'mocks.dart';
+import 'rules/experiments/experiments.dart';
 
 main() {
   defineTests();
@@ -375,14 +376,22 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('on bad file names', () async {
-        await cli.run(['test/_data/file_names', '--rules=file_names']);
+      test('bad', () async {
+        await cli.run(['test/_data/file_names/a-b.dart', '--rules=file_names']);
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
               'a-b.dart 1:1 [lint] Name source files using `lowercase_with_underscores`.'
             ]));
         expect(exitCode, 1);
+      });
+
+      test('ok', () async {
+        await cli.run([
+          'test/_data/file_names/non-strict.css.dart',
+          '--rules=file_names'
+        ]);
+        expect(exitCode, 0);
       });
     });
 
@@ -706,72 +715,6 @@ defineTests() {
       });
     });
 
-    // TODO(a14n) move to unit test once previewDart2 disappears
-    group('unnecessary_const', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
-
-      setUp(() {
-        exitCode = 0;
-        outSink = collectingOut;
-      });
-
-      tearDown(() {
-        collectingOut.buffer.clear();
-        outSink = currentOut;
-        exitCode = 0;
-      });
-
-      test('avoid keyword to create instances', () async {
-        await cli.runLinter(
-            ['test/_data/unnecessary_const', '--rules=unnecessary_const'],
-            new LinterOptions());
-        expect(
-            collectingOut.trim(),
-            stringContainsInOrder([
-              'a.dart 24:14 [lint] Avoid const keyword.',
-              'a.dart 27:14 [lint] Avoid const keyword.',
-              'a.dart 30:22 [lint] Avoid const keyword.',
-              'a.dart 32:23 [lint] Avoid const keyword.',
-              '1 file analyzed, 4 issues found',
-            ]));
-        expect(exitCode, 1);
-      });
-    });
-
-    // TODO(a14n) move to unit test once previewDart2 disappears
-    group('unnecessary_new', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
-
-      setUp(() {
-        exitCode = 0;
-        outSink = collectingOut;
-      });
-
-      tearDown(() {
-        collectingOut.buffer.clear();
-        outSink = currentOut;
-        exitCode = 0;
-      });
-
-      test('avoid keyword to create instances', () async {
-        await cli.runLinter(
-            ['test/_data/unnecessary_new', '--rules=unnecessary_new'],
-            new LinterOptions());
-        expect(
-            collectingOut.trim(),
-            stringContainsInOrder([
-              'a.dart 14:3 [lint] Unnecessary new keyword.',
-              'a.dart 17:3 [lint] Unnecessary new keyword.',
-              'a.dart 20:3 [lint] Unnecessary new keyword.',
-              'a.dart 24:14 [lint] Unnecessary new keyword.',
-              '1 file analyzed, 4 issues found',
-            ]));
-        expect(exitCode, 1);
-      });
-    });
-
     group('sort_pub_dependencies', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
@@ -820,7 +763,9 @@ defineTests() {
         expect(
             configuredLints,
             unorderedEquals(Analyzer.facade.registeredRules
-                .where((r) => r.maturity != Maturity.deprecated)
+                .where((r) =>
+                    r.maturity != Maturity.deprecated &&
+                    !experiments.contains(r))
                 .map((r) => r.name)));
       });
     });

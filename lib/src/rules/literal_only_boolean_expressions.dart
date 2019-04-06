@@ -130,9 +130,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitForStatement(ForStatement node) {
-    if (_onlyLiterals(node.condition)) {
-      rule.reportLint(node);
+  void visitForStatement2(ForStatement node) {
+    final loopParts = node.forLoopParts;
+    if (loopParts is ForParts) {
+      if (_onlyLiterals(loopParts.condition)) {
+        rule.reportLint(node);
+      }
     }
   }
 

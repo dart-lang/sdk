@@ -79,6 +79,7 @@ linter:
     - parameter_assignments
     - prefer_adjacent_string_concatenation
     - prefer_asserts_in_initializer_lists
+    - prefer_asserts_with_message
     - prefer_collection_literals
     - prefer_conditional_assignment
     - prefer_const_constructors
@@ -92,9 +93,11 @@ linter:
     - prefer_final_fields
     - prefer_final_in_for_each
     - prefer_final_locals
+    - prefer_for_elements_to_map_fromIterable
     - prefer_foreach
     - prefer_function_declarations_over_variables
     - prefer_generic_function_type_aliases
+    - prefer_if_elements_to_conditional_expressions
     - prefer_initializing_formals
     - prefer_int_literals
     - prefer_interpolation_to_compose_strings
@@ -113,6 +116,7 @@ linter:
     - sort_constructors_first
     - sort_pub_dependencies
     - sort_unnamed_constructors_first
+    - spread_collections
     - test_types_in_equals
     - throw_in_finally
     - type_annotate_public_apis

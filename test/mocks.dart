@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -216,18 +215,6 @@ class MockRule implements LintRule {
 
   @override
   noSuchMethod(Invocation invocation) => null;
-
-  @override
-  void reportLint(AstNode node,
-      {List<Object> arguments = const [],
-      ErrorCode errorCode,
-      bool ignoreSyntheticNodes = true}) {}
-
-  @override
-  void reportLintForToken(Token token,
-      {List<Object> arguments = const [],
-      ErrorCode errorCode,
-      bool ignoreSyntheticTokens = true}) {}
 
   @override
   void reportPubLint(PSNode node) {}

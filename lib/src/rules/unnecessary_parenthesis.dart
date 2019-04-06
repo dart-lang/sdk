@@ -67,6 +67,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    // Constructor field initializers are rather unguarded by delimiting
+    // tokens, which can get confused with a function expression. See test
+    // cases for issues #1395 and #1473.
+    if (parent is ConstructorFieldInitializer &&
+        _containsFunctionExpression(node)) {
+      return;
+    }
+
     if (parent is Expression) {
       if (parent is BinaryExpression) return;
       if (parent is ConditionalExpression) return;
@@ -99,6 +107,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
+  bool _containsFunctionExpression(ParenthesizedExpression node) {
+    final containsFunctionExpressionVisitor =
+        _ContainsFunctionExpressionVisitor();
+    node.accept(containsFunctionExpressionVisitor);
+    return containsFunctionExpressionVisitor.hasFunctionExpression;
+  }
+
   /// Returns whether [node] "starts" with whitespace.
   ///
   /// That is, is there definitely whitespace after the first token in [node]?
@@ -118,4 +133,20 @@ class _Visitor extends SimpleAstVisitor<void> {
       // As in, `-(new List(3).length)`, and chains like
       // `-(new List(3).length.bitLength.bitLength)`.
       (node is PropertyAccess && _expressionStartsWithWhitespace(node.target));
+}
+
+class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
+  bool hasFunctionExpression = false;
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    hasFunctionExpression = true;
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    if (!hasFunctionExpression) {
+      node.visitChildren(this);
+    }
+  }
 }

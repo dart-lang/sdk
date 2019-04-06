@@ -15,7 +15,7 @@ const _details = r'''
 
 **BAD:**
 ```
-class A() { A(); }
+class A { A(); }
 m(){
   final a = new A();
 }
@@ -23,7 +23,7 @@ m(){
 
 **GOOD:**
 ```
-class A() { A(); }
+class A { A(); }
 m(){
   final a = A();
 }

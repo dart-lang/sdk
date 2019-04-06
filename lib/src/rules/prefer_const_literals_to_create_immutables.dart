@@ -15,7 +15,7 @@ const desc =
 
 const details = '''
 
-**PREFER** using `const` for instantiating list and map literal used as
+**PREFER** using `const` for instantiating list, map and set literals used as
 parameters in immutable class instantiations.
 
 **BAD:**
@@ -63,7 +63,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule
       [LinterContext context]) {
     final visitor = new _Visitor(this, context);
     registry.addListLiteral(this, visitor);
-    registry.addMapLiteral(this, visitor);
+    registry.addSetOrMapLiteral(this, visitor);
   }
 }
 
@@ -78,7 +78,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
 
   @override
-  void visitMapLiteral(MapLiteral node) => _visitTypedLiteral(node);
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    _visitTypedLiteral(node);
+  }
 
   Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
     InterfaceType current = type;
@@ -113,7 +115,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         (node is ParenthesizedExpression ||
             node is ArgumentList ||
             node is ListLiteral ||
-            node is MapLiteral ||
+            node is SetOrMapLiteral ||
             node is MapLiteralEntry ||
             node is NamedExpression)) {
       node = node.parent;

@@ -2,5 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Package version.  Synchronized w/ pubspec.yaml.
-const String version = '0.1.84';
+import 'package:linter/src/analyzer.dart';
+
+final experiments = <LintRule>[];
+
+void registerLintRuleExperiments() {
+  experiments.forEach(Analyzer.facade.register);
+}

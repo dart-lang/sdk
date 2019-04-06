@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (node.functionType.typeParameters == null) {
+    if (node.functionType?.typeParameters == null) {
       return;
     }
     _checkForShadowing(node.functionType.typeParameters, node.typeParameters);

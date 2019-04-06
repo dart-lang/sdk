@@ -63,7 +63,6 @@ class CurlyBracesInFlowControlStructures extends LintRule
       [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
-    registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addIfStatement(this, visitor);
     registry.addWhileStatement(this, visitor);
@@ -81,12 +80,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    _check(node.body);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement2(ForStatement node) {
     _check(node.body);
   }
 

@@ -88,8 +88,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     final parameters = _getParameters(node);
-    final parametersUsedOnce = new Set<Element>();
-    final parametersUsedMoreThanOnce = new Set<Element>();
+    final parametersUsedOnce = <Element>{};
+    final parametersUsedMoreThanOnce = <Element>{};
 
     bool isAssignmentExpressionToLint(AssignmentExpression assignment) {
       final leftElement = _getLeftElement(assignment);

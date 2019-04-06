@@ -69,7 +69,6 @@ class UseStringBuffers extends LintRule implements NodeLintRule {
       [LinterContext context]) {
     final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
-    registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addWhileStatement(this, visitor);
   }
@@ -116,7 +115,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
 
 class _UseStringBufferVisitor extends SimpleAstVisitor {
   final LintRule rule;
-  final localElements = new Set<Element>();
+  final localElements = <Element>{};
 
   _UseStringBufferVisitor(this.rule);
 
@@ -176,13 +175,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
-    node.body.accept(visitor);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement2(ForStatement node) {
     final visitor = new _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }

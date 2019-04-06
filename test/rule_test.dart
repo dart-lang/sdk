@@ -13,16 +13,19 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/services/lint.dart' as lint_service;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
+import 'package:linter/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
+import 'rules/experiments/experiments.dart';
 
 main() {
   defineSanityTests();
@@ -35,25 +38,38 @@ final String testConfigDir = p.join('test', 'configs');
 
 /// Rule tests
 defineRuleTests() {
-  // TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
     group('dart', () {
       // Rule tests run with default analysis options.
       testRules(ruleDir, analysisOptions: null);
 
-// todo (pq): enable when experimental feature implementations are far enough along
-// see: https://github.com/dart-lang/linter/issues/1438
-//      // Rule tests run against specific configurations.
-//      for (var entry in new Directory(testConfigDir).listSync()) {
-//        if (entry is! Directory) continue;
-//        group('(config: ${p.basename(entry.path)})', () {
-//          var analysisOptionsFile =
-//              new File(p.join(entry.path, 'analysis_options.yaml'));
-//          var analysisOptions = analysisOptionsFile.readAsStringSync();
-//          testRules(ruleDir, analysisOptions: analysisOptions);
-//        });
-//      }
+      // Rule tests run against specific configurations.
+      for (var entry in new Directory(testConfigDir).listSync()) {
+        if (entry is! Directory) continue;
+        group('(config: ${p.basename(entry.path)})', () {
+          var analysisOptionsFile =
+              new File(p.join(entry.path, 'analysis_options.yaml'));
+          var analysisOptions = analysisOptionsFile.readAsStringSync();
+          testRules(ruleDir, analysisOptions: analysisOptions);
+        });
+      }
     });
+    group('experiments', () {
+      registerLintRuleExperiments();
+
+      for (var entry
+          in new Directory(p.join(ruleDir, 'experiments')).listSync()) {
+        if (entry is! Directory) continue;
+        var analysisOptionsFile =
+            new File(p.join(entry.path, 'analysis_options.yaml'));
+        var analysisOptions = analysisOptionsFile.readAsStringSync();
+        var ruleName = p.basename(entry.path);
+        var testFile = new File(p.join(entry.path, '$ruleName.dart'));
+        testRule(p.basename(ruleName), testFile,
+            analysisOptions: analysisOptions);
+      }
+    });
+
     group('pub', () {
       for (var entry in new Directory(p.join(ruleDir, 'pub')).listSync()) {
         if (entry is! Directory) continue;
@@ -244,6 +260,11 @@ defineSanityTests() {
       File file = new File(path);
       testRule('non_constant_identifier_names', file);
     });
+  });
+
+  test('linter version caching', () {
+    registerLintRules();
+    expect(lint_service.linterVersion, version);
   });
 }
 

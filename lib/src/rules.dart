@@ -56,7 +56,6 @@ import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/file_names.dart';
 import 'package:linter/src/rules/flutter_style_todos.dart';
-import 'package:linter/src/rules/provide_deprecation_message.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/invariant_booleans.dart';
@@ -80,6 +79,7 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/parameter_assignments.dart';
 import 'package:linter/src/rules/prefer_adjacent_string_concatenation.dart';
 import 'package:linter/src/rules/prefer_asserts_in_initializer_lists.dart';
+import 'package:linter/src/rules/prefer_asserts_with_message.dart';
 import 'package:linter/src/rules/prefer_bool_in_asserts.dart';
 import 'package:linter/src/rules/prefer_collection_literals.dart';
 import 'package:linter/src/rules/prefer_conditional_assignment.dart';
@@ -94,9 +94,11 @@ import 'package:linter/src/rules/prefer_expression_function_bodies.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
 import 'package:linter/src/rules/prefer_final_in_for_each.dart';
 import 'package:linter/src/rules/prefer_final_locals.dart';
+import 'package:linter/src/rules/prefer_for_elements_to_map_fromIterable.dart';
 import 'package:linter/src/rules/prefer_foreach.dart';
 import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
 import 'package:linter/src/rules/prefer_generic_function_type_aliases.dart';
+import 'package:linter/src/rules/prefer_if_elements_to_conditional_expressions.dart';
 import 'package:linter/src/rules/prefer_initializing_formals.dart';
 import 'package:linter/src/rules/prefer_int_literals.dart';
 import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
@@ -108,6 +110,7 @@ import 'package:linter/src/rules/prefer_null_aware_operators.dart';
 import 'package:linter/src/rules/prefer_single_quotes.dart';
 import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
 import 'package:linter/src/rules/prefer_void_to_null.dart';
+import 'package:linter/src/rules/provide_deprecation_message.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/pub/sort_pub_dependencies.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
@@ -115,6 +118,7 @@ import 'package:linter/src/rules/recursive_getters.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
+import 'package:linter/src/rules/spread_collections.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
 import 'package:linter/src/rules/test_types_in_equals.dart';
 import 'package:linter/src/rules/throw_in_finally.dart';
@@ -144,6 +148,7 @@ import 'package:linter/src/rules/valid_regexps.dart';
 import 'package:linter/src/rules/void_checks.dart';
 
 void registerLintRules() {
+  Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
     ..register(new AlwaysDeclareReturnTypes())
     ..register(new AlwaysPutControlBodyOnNewLine())
@@ -220,6 +225,7 @@ void registerLintRules() {
     ..register(new PackagePrefixedLibraryNames())
     ..register(new ParameterAssignments())
     ..register(new PreferAdjacentStringConcatenation())
+    ..register(new PreferAssertsWithMessage())
     ..register(new PreferBoolInAsserts())
     ..register(new PreferCollectionLiterals())
     ..register(new PreferConditionalAssignment())
@@ -236,8 +242,10 @@ void registerLintRules() {
     ..register(new PreferFinalInForEach())
     ..register(new PreferFinalLocals())
     ..register(new PreferForeach())
+    ..register(new PreferForElementsToMapFromIterable())
     ..register(new PreferFunctionDeclarationsOverVariables())
     ..register(new PreferGenericFunctionTypeAliases())
+    ..register(new PreferIfElementsToConditionalExpressions())
     ..register(new PreferInitializingFormals())
     ..register(new PreferIntLiterals())
     ..register(new PreferInterpolationToComposeStrings())
@@ -257,6 +265,7 @@ void registerLintRules() {
     ..register(new SortConstructorsFirst())
     ..register(new SortPubDependencies())
     ..register(new SortUnnamedConstructorsFirst())
+    ..register(new SpreadCollections())
     ..register(new SuperGoesLast())
     ..register(new TestTypesInEquals())
     ..register(new ThrowInFinally())
