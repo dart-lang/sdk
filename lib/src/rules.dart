@@ -108,6 +108,7 @@ import 'package:linter/src/rules/prefer_iterable_whereType.dart';
 import 'package:linter/src/rules/prefer_mixin.dart';
 import 'package:linter/src/rules/prefer_null_aware_operators.dart';
 import 'package:linter/src/rules/prefer_single_quotes.dart';
+import 'package:linter/src/rules/prefer_spread_collections.dart';
 import 'package:linter/src/rules/prefer_typing_uninitialized_variables.dart';
 import 'package:linter/src/rules/prefer_void_to_null.dart';
 import 'package:linter/src/rules/provide_deprecation_message.dart';
@@ -118,7 +119,6 @@ import 'package:linter/src/rules/recursive_getters.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
-import 'package:linter/src/rules/spread_collections.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
 import 'package:linter/src/rules/test_types_in_equals.dart';
 import 'package:linter/src/rules/throw_in_finally.dart';
@@ -255,6 +255,7 @@ void registerLintRules() {
     ..register(new PreferMixin())
     ..register(new PreferNullAwareOperators())
     ..register(new PreferSingleQuotes())
+    ..register(new PreferSpreadCollections())
     ..register(new PreferTypingUninitializedVariables())
     ..register(new PreferVoidToNull())
     ..register(new ProvideDeprecationMessage())
@@ -265,7 +266,6 @@ void registerLintRules() {
     ..register(new SortConstructorsFirst())
     ..register(new SortPubDependencies())
     ..register(new SortUnnamedConstructorsFirst())
-    ..register(new SpreadCollections())
     ..register(new SuperGoesLast())
     ..register(new TestTypesInEquals())
     ..register(new ThrowInFinally())
