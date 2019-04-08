@@ -173,6 +173,11 @@ class AssistProcessor {
       if (experimentStatus.spread_collections) {
         await _addProposal_convertAddAllToSpread();
       }
+    } else if (assistKind == DartAssistKind.CONVERT_TO_IF_ELEMENT) {
+      if (experimentStatus.control_flow_collections) {
+        await _addProposal_convertConditionalExpressionToIfElement();
+        await _addProposal_convertMapFromIterableToIfLiteral();
+      }
     }
     return assists;
   }

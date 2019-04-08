@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
-import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -293,6 +292,58 @@ var l = ['a']..addAll(['b']);
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''
 var l = ['a', ...['b']];
+''');
+  }
+
+  test_dartfix_collection_if_elements() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+f(bool b) {
+  return ['a', b ? 'c' : 'd', 'e'];
+}
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['collection-if-elements']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+f(bool b) {
+  return ['a', if (b) 'c' else 'd', 'e'];
+}
+''');
+  }
+
+  test_dartfix_map_for_elements() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+f(Iterable<int> i) {
+  var k = 3;
+  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
+}
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['map-for-elements']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+f(Iterable<int> i) {
+  var k = 3;
+  return { for (var e in i) e * 2 : k };
+}
 ''');
   }
 }
