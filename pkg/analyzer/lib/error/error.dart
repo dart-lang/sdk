@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/scanner/errors.dart';
 
@@ -355,6 +356,9 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.UNUSED_LABEL,
   HintCode.UNUSED_LOCAL_VARIABLE,
   HintCode.UNUSED_SHOWN_NAME,
+  ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+  ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
+  ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE,
   ParserErrorCode.ABSTRACT_CLASS_MEMBER,
   ParserErrorCode.ABSTRACT_ENUM,
   ParserErrorCode.ABSTRACT_STATIC_METHOD,

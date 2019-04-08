@@ -37,7 +37,7 @@ class ManifestWarningCode extends ErrorCode {
    */
   static const ManifestWarningCode CAMERA_PERMISSIONS_INCOMPATIBLE =
       const ManifestWarningCode(
-          'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
+          'CAMERA_PERMISSIONS_INCOMPATIBLE',
           "Permission exists without corresponding hardware `<uses-feature " +
               "android:name=\"android.hardware.camera\"  android:required=\"false\">` " +
               "`<uses-feature " +
