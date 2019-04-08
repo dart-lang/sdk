@@ -4674,12 +4674,13 @@ class ExportElementImpl extends UriReferencedElementImpl
   List<NamespaceCombinator> get combinators {
     if (_combinators != null) return _combinators;
 
-//    if (linkedNode != null) {
-//      return _combinators = ImportElementImpl._buildCombinators2(
-//        enclosingUnit.linkedContext,
-//        linkedNode,
-//      );
-//    }
+    if (linkedNode != null) {
+      ExportDirective node = linkedNode;
+      return _combinators = ImportElementImpl._buildCombinators2(
+        enclosingUnit.linkedContext,
+        node.combinators,
+      );
+    }
 
     if (_unlinkedExportPublic != null) {
       return _combinators = ImportElementImpl._buildCombinators(
@@ -4704,16 +4705,12 @@ class ExportElementImpl extends UriReferencedElementImpl
   LibraryElement get exportedLibrary {
     if (_exportedLibrary != null) return _exportedLibrary;
 
-//    if (linkedNode != null) {
-//      var context = enclosingUnit.linkedContext;
-//      var relativeUriStr = context.getStringContent(
-//        linkedNode.uriBasedDirective_uri,
-//      );
-//      var relativeUri = Uri.parse(relativeUriStr);
-//      var uri = resolveRelativeUri(librarySource.uri, relativeUri);
-//      var elementFactory = context.bundleContext.elementFactory;
-//      return _exportedLibrary = elementFactory.libraryOfUri('$uri');
-//    }
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var uri = context.directiveUri(librarySource.uri, linkedNode);
+      var elementFactory = context.bundleContext.elementFactory;
+      return _exportedLibrary = elementFactory.libraryOfUri('$uri');
+    }
 
     if (_unlinkedExportNonPublic != null) {
       LibraryElementImpl library = enclosingElement as LibraryElementImpl;
@@ -5756,7 +5753,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   final UnlinkedCombinator _unlinkedCombinator;
 
   final LinkedUnitContext linkedContext;
-  final LinkedNode linkedNode;
+  final HideCombinator linkedNode;
 
   /// The names that are not to be made visible in the importing library even if
   /// they are defined in the imported library.
@@ -5780,9 +5777,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
     if (_hiddenNames != null) return _hiddenNames;
 
     if (linkedNode != null) {
-      return _hiddenNames = linkedNode.hideCombinator_hiddenNames
-          .map((node) => linkedContext.getSimpleName(node))
-          .toList();
+      return _hiddenNames = linkedNode.hiddenNames.map((i) => i.name).toList();
     }
 
     if (_unlinkedCombinator != null) {
@@ -5864,12 +5859,13 @@ class ImportElementImpl extends UriReferencedElementImpl
   List<NamespaceCombinator> get combinators {
     if (_combinators != null) return _combinators;
 
-//    if (linkedNode != null) {
-//      return _combinators = _buildCombinators2(
-//        enclosingUnit.linkedContext,
-//        linkedNode,
-//      );
-//    }
+    if (linkedNode != null) {
+      ImportDirective node = linkedNode;
+      return _combinators = ImportElementImpl._buildCombinators2(
+        enclosingUnit.linkedContext,
+        node.combinators,
+      );
+    }
 
     if (_unlinkedImport != null) {
       return _combinators = _buildCombinators(_unlinkedImport.combinators);
@@ -5908,6 +5904,7 @@ class ImportElementImpl extends UriReferencedElementImpl
       var elementFactory = context.bundleContext.elementFactory;
       return _importedLibrary = elementFactory.libraryOfUri('$uri');
     }
+
     if (_linkedDependency != null) {
       if (_importedLibrary == null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
@@ -5919,6 +5916,7 @@ class ImportElementImpl extends UriReferencedElementImpl
         }
       }
     }
+
     return _importedLibrary;
   }
 
@@ -6118,16 +6116,15 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   static List<NamespaceCombinator> _buildCombinators2(
-      LinkedUnitContext context, LinkedNode linkedNode) {
-    return linkedNode.namespaceDirective_combinators.map((node) {
-      var kind = node.kind;
-      if (kind == LinkedNodeKind.hideCombinator) {
+      LinkedUnitContext context, List<Combinator> combinators) {
+    return combinators.map((node) {
+      if (node is HideCombinator) {
         return HideElementCombinatorImpl.forLinkedNode(context, node);
       }
-      if (kind == LinkedNodeKind.showCombinator) {
+      if (node is ShowCombinator) {
         return ShowElementCombinatorImpl.forLinkedNode(context, node);
       }
-      throw UnimplementedError('$kind');
+      throw UnimplementedError('${node.runtimeType}');
     }).toList();
   }
 }
@@ -6380,41 +6377,42 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ExportElement> get exports {
-    if (_exports == null) {
-//      if (linkedNode != null) {
-//        return _exports = linkedNode.compilationUnit_directives
-//            .where((node) => node.kind == LinkedNodeKind.exportDirective)
-//            .map((node) {
-//          return ExportElementImpl.forLinkedNode(this, node);
-//        }).toList();
-//      }
-      if (unlinkedDefiningUnit != null) {
-        List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
-            unlinkedDefiningUnit.exports;
-        List<UnlinkedExportPublic> unlinkedPublicExports =
-            unlinkedDefiningUnit.publicNamespace.exports;
-        assert(unlinkedDefiningUnit.exports.length ==
-            unlinkedPublicExports.length);
-        int length = unlinkedNonPublicExports.length;
-        if (length != 0) {
-          List<ExportElement> exports = new List<ExportElement>();
-          for (int i = 0; i < length; i++) {
-            UnlinkedExportPublic serializedExportPublic =
-                unlinkedPublicExports[i];
-            UnlinkedExportNonPublic serializedExportNonPublic =
-                unlinkedNonPublicExports[i];
-            ExportElementImpl exportElement =
-                new ExportElementImpl.forSerialized(
-                    serializedExportPublic, serializedExportNonPublic, library);
-            exports.add(exportElement);
-          }
-          _exports = exports;
-        } else {
-          _exports = const <ExportElement>[];
+    if (_exports != null) return _exports;
+
+    if (linkedNode != null) {
+      var unit = linkedContext.unit_withDirectives;
+      return _exports = unit.directives
+          .whereType<ExportDirective>()
+          .map((node) => ExportElementImpl.forLinkedNode(this, node))
+          .toList();
+    }
+
+    if (unlinkedDefiningUnit != null) {
+      List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
+          unlinkedDefiningUnit.exports;
+      List<UnlinkedExportPublic> unlinkedPublicExports =
+          unlinkedDefiningUnit.publicNamespace.exports;
+      assert(
+          unlinkedDefiningUnit.exports.length == unlinkedPublicExports.length);
+      int length = unlinkedNonPublicExports.length;
+      if (length != 0) {
+        List<ExportElement> exports = new List<ExportElement>();
+        for (int i = 0; i < length; i++) {
+          UnlinkedExportPublic serializedExportPublic =
+              unlinkedPublicExports[i];
+          UnlinkedExportNonPublic serializedExportNonPublic =
+              unlinkedNonPublicExports[i];
+          ExportElementImpl exportElement = new ExportElementImpl.forSerialized(
+              serializedExportPublic, serializedExportNonPublic, library);
+          exports.add(exportElement);
         }
+        _exports = exports;
+      } else {
+        _exports = const <ExportElement>[];
       }
     }
-    return _exports ?? const <ExportElement>[];
+
+    return _exports ??= const <ExportElement>[];
   }
 
   /// Set the specifications of all of the exports defined in this library to
@@ -8959,7 +8957,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   final UnlinkedCombinator _unlinkedCombinator;
 
   final LinkedUnitContext linkedContext;
-  final LinkedNode linkedNode;
+  final ShowCombinator linkedNode;
 
   /// The names that are to be made visible in the importing library if they are
   /// defined in the imported library.
@@ -9001,7 +8999,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   @override
   int get offset {
     if (linkedNode != null) {
-      return linkedContext.getTokenOffset(linkedNode.combinator_keyword);
+      return linkedNode.keyword.offset;
     }
     if (_unlinkedCombinator != null) {
       return _unlinkedCombinator.offset;
@@ -9019,9 +9017,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
     if (_shownNames != null) return _shownNames;
 
     if (linkedNode != null) {
-      return _shownNames = linkedNode.showCombinator_shownNames
-          .map((node) => linkedContext.getSimpleName(node))
-          .toList();
+      return _shownNames = linkedNode.shownNames.map((i) => i.name).toList();
     }
 
     if (_unlinkedCombinator != null) {

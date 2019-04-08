@@ -58,6 +58,7 @@ class LinkedUnitContext {
     return _unit;
   }
 
+  /// Return the absolute URI referenced in the [directive].
   Uri directiveUri(Uri libraryUri, UriBasedDirective directive) {
     var relativeUriStr = directive.uri.stringValue;
     var relativeUri = Uri.parse(relativeUriStr);

@@ -659,20 +659,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_export_class() async {
-    await super.test_export_class();
-  }
-
-  @override
-  @failingTest
   test_export_class_type_alias() async {
     await super.test_export_class_type_alias();
-  }
-
-  @override
-  @failingTest
-  test_export_configurations_useDefault() async {
-    await super.test_export_configurations_useDefault();
   }
 
   @override
@@ -689,18 +677,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_export_function() async {
-    await super.test_export_function();
-  }
-
-  @override
-  @failingTest
-  test_export_getter() async {
-    await super.test_export_getter();
-  }
-
-  @override
-  @failingTest
   test_export_hide() async {
     await super.test_export_hide();
   }
@@ -713,50 +689,14 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_export_setter() async {
-    await super.test_export_setter();
-  }
-
-  @override
-  @failingTest
   test_export_show() async {
     await super.test_export_show();
   }
 
   @override
   @failingTest
-  test_export_typedef() async {
-    await super.test_export_typedef();
-  }
-
-  @override
-  @failingTest
-  test_export_variable() async {
-    await super.test_export_variable();
-  }
-
-  @override
-  @failingTest
-  test_export_variable_const() async {
-    await super.test_export_variable_const();
-  }
-
-  @override
-  @failingTest
-  test_export_variable_final() async {
-    await super.test_export_variable_final();
-  }
-
-  @override
-  @failingTest
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
-  }
-
-  @override
-  @failingTest
-  test_exports() async {
-    await super.test_exports();
   }
 
   @override
@@ -793,18 +733,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_field_propagatedType_final_dep_inPart() async {
     await super.test_field_propagatedType_final_dep_inPart();
-  }
-
-  @override
-  @failingTest
-  test_function_entry_point_in_export() async {
-    await super.test_function_entry_point_in_export();
-  }
-
-  @override
-  @failingTest
-  test_function_entry_point_in_export_hidden() async {
-    await super.test_function_entry_point_in_export_hidden();
   }
 
   @override
@@ -1148,36 +1076,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_library_documented_stars() async {
     await super.test_library_documented_stars();
-  }
-
-  @override
-  @failingTest
-  test_main_class_alias_via_export() async {
-    await super.test_main_class_alias_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_class_via_export() async {
-    await super.test_main_class_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_getter_via_export() async {
-    await super.test_main_getter_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_typedef_via_export() async {
-    await super.test_main_typedef_via_export();
-  }
-
-  @override
-  @failingTest
-  test_main_variable_via_export() async {
-    await super.test_main_variable_via_export();
   }
 
   @override
