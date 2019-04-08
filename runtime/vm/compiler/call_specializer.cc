@@ -1867,11 +1867,13 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
                                        Instruction::kNotSpeculative);
     flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
   } else if (cid == kTypedDataInt32ArrayCid) {
-    value = new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
-                                    new (Z) Value(value), deopt_id);
+    value = new (Z)
+        UnboxInt32Instr(UnboxInt32Instr::kTruncate, new (Z) Value(value),
+                        deopt_id, Instruction::kNotSpeculative);
     flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
   } else if (cid == kTypedDataUint32ArrayCid) {
-    value = new (Z) UnboxUint32Instr(new (Z) Value(value), deopt_id);
+    value = new (Z) UnboxUint32Instr(new (Z) Value(value), deopt_id,
+                                     Instruction::kNotSpeculative);
     ASSERT(value->AsUnboxInteger()->is_truncating());
     flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
   }

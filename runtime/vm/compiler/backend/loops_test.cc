@@ -73,8 +73,8 @@ static const char* ComputeInduction(Thread* thread, const char* script_chars) {
       CompilerPass::kTypePropagation, CompilerPass::kCanonicalize,
   };
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  TestPipeline pipeline(function);
-  FlowGraph* flow_graph = pipeline.RunJITPasses(passes);
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses(passes);
 
   // Build loop hierarchy and find induction.
   const LoopHierarchy& hierarchy = flow_graph->GetLoopHierarchy();

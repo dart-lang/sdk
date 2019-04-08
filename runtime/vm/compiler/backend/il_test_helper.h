@@ -52,7 +52,7 @@ class RawLibrary;
 
 RawLibrary* LoadTestScript(const char* script,
                            Dart_NativeEntryResolver resolver = nullptr,
-                           const char* lib_uri = USER_TEST_URI);
+                           const char* lib_uri = RESOLVED_USER_TEST_URI);
 
 RawFunction* GetFunction(const Library& lib, const char* name);
 
@@ -60,32 +60,28 @@ void Invoke(const Library& lib, const char* name);
 
 class TestPipeline : public ValueObject {
  public:
-  explicit TestPipeline(const Function& function)
+  explicit TestPipeline(const Function& function,
+                        CompilerPass::PipelineMode mode)
       : function_(function),
         thread_(Thread::Current()),
-        compiler_state_(thread_) {}
+        compiler_state_(thread_),
+        mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }
 
-  FlowGraph* RunJITPasses(std::initializer_list<CompilerPass::Id> passes) {
-    return Run(/*is_aot=*/false, passes);
-  }
-  FlowGraph* RunAOTPasses(std::initializer_list<CompilerPass::Id> passes) {
-    return Run(/*is_aot=*/true, passes);
-  }
-
-  void CompileGraphAndAttachFunction();
-
- private:
   // As a side-effect this will populate
   //   - [ic_data_array_]
   //   - [parsed_function_]
   //   - [pass_state_]
   //   - [flow_graph_]
-  FlowGraph* Run(bool is_aot, std::initializer_list<CompilerPass::Id> passes);
+  FlowGraph* RunPasses(std::initializer_list<CompilerPass::Id> passes);
 
+  void CompileGraphAndAttachFunction();
+
+ private:
   const Function& function_;
   Thread* thread_;
   CompilerState compiler_state_;
+  CompilerPass::PipelineMode mode_;
   ZoneGrowableArray<const ICData*>* ic_data_array_ = nullptr;
   ParsedFunction* parsed_function_ = nullptr;
   CompilerPassState* pass_state_ = nullptr;
@@ -96,7 +92,8 @@ class TestPipeline : public ValueObject {
 enum MatchOpCode {
 // Emit a match and match-and-move code for every instruction.
 #define DEFINE_MATCH_OPCODES(Instruction, _)                                   \
-  kMatch##Instruction, kMatchAndMove##Instruction,
+  kMatch##Instruction, kMatchAndMove##Instruction,                             \
+      kMatchAndMoveOptional##Instruction,
   FOR_EACH_INSTRUCTION(DEFINE_MATCH_OPCODES)
 #undef DEFINE_MATCH_OPCODES
 

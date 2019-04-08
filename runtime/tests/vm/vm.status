@@ -301,3 +301,6 @@ dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invokin
 
 [ $compiler == dartkb ]
 cc/*: Skip # Bytecode modes are not properly hooked up in run_vm_tests.
+
+[ $mode == debug ]
+cc/IRTest_TypedDataAOT_FunctionalGetSet: Skip # run_vm_tests contains JIT/AOT but FLAG_precompiled_mode is not always correct. This causes this test to fail in debug mode, hitting an assertion. See http://dartbug.com/36521

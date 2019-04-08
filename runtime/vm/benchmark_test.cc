@@ -313,7 +313,7 @@ BENCHMARK(UseDartApi) {
 
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup),
-      USER_TEST_URI, false);
+      RESOLVED_USER_TEST_URI, false);
   Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 

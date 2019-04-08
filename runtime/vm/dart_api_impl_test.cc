@@ -5374,7 +5374,7 @@ TEST_CASE(DartAPI_InvokeNoSuchMethod) {
   Dart_Handle instance;
   // Create a test library and Load up a test script in it.
   // The test library must have a dart: url so it can import dart:_internal.
-  Dart_Handle lib = TestCase::LoadCoreTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
   EXPECT_VALID(type);
 

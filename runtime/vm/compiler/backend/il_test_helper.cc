@@ -52,8 +52,8 @@ void Invoke(const Library& lib, const char* name) {
   EXPECT_VALID(result);
 }
 
-FlowGraph* TestPipeline::Run(bool is_aot,
-                             std::initializer_list<CompilerPass::Id> passes) {
+FlowGraph* TestPipeline::RunPasses(
+    std::initializer_list<CompilerPass::Id> passes) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const bool optimized = true;
@@ -68,21 +68,21 @@ FlowGraph* TestPipeline::Run(bool is_aot,
   // Extract type feedback before the graph is built, as the graph
   // builder uses it to attach it to nodes.
   ic_data_array_ = new (zone) ZoneGrowableArray<const ICData*>();
-  if (!is_aot) {
+  if (mode_ == CompilerPass::kJIT) {
     function_.RestoreICDataMap(ic_data_array_, /*clone_ic_data=*/false);
   }
 
   flow_graph_ = pipeline->BuildFlowGraph(zone, parsed_function_, ic_data_array_,
                                          osr_id, optimized);
 
-  if (is_aot) {
+  if (mode_ == CompilerPass::kAOT) {
     flow_graph_->PopulateWithICData(function_);
   }
 
   BlockScheduler block_scheduler(flow_graph_);
   const bool reorder_blocks =
       FlowGraph::ShouldReorderBlocks(function_, optimized);
-  if (!is_aot && reorder_blocks) {
+  if (mode_ == CompilerPass::kJIT && reorder_blocks) {
     block_scheduler.AssignEdgeWeights();
   }
 
@@ -104,17 +104,16 @@ FlowGraph* TestPipeline::Run(bool is_aot,
     JitCallSpecializer jit_call_specializer(flow_graph_, &speculative_policy);
     AotCallSpecializer aot_call_specializer(/*precompiler=*/nullptr,
                                             flow_graph_, &speculative_policy);
-    if (is_aot) {
+    if (mode_ == CompilerPass::kAOT) {
       pass_state_->call_specializer = &aot_call_specializer;
     } else {
       pass_state_->call_specializer = &jit_call_specializer;
     }
 
-    const auto mode = is_aot ? CompilerPass::kAOT : CompilerPass::kJIT;
     if (passes.size() > 0) {
       CompilerPass::RunPipelineWithPasses(pass_state_, passes);
     } else {
-      CompilerPass::RunPipeline(mode, pass_state_);
+      CompilerPass::RunPipeline(mode_, pass_state_);
     }
   }
 
@@ -127,10 +126,17 @@ void TestPipeline::CompileGraphAndAttachFunction() {
 
   SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
 
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                   \
+    defined(TARGET_ARCH_DBC)
+  const bool use_far_branches = false;
+#else
+  const bool use_far_branches = true;
+#endif
+
   ASSERT(pass_state_->inline_id_to_function.length() ==
          pass_state_->caller_inline_id.length());
   ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder, /*use_far_branches=*/true);
+  Assembler assembler(&object_pool_builder, use_far_branches);
   FlowGraphCompiler graph_compiler(
       &assembler, flow_graph_, *parsed_function_, optimized,
       &speculative_policy, pass_state_->inline_id_to_function,
@@ -162,6 +168,12 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   } else {
     function_.set_unoptimized_code(code);
     function_.AttachCode(code);
+  }
+
+  // We expect there to be no deoptimizations.
+  if (mode_ == CompilerPass::kAOT) {
+    // TODO(kustermann): Enable this once we get rid of [CheckedSmiSlowPath]s.
+    // EXPECT(deopt_info_array.IsNull() || deopt_info_array.Length() == 0);
   }
 }
 
@@ -261,6 +273,12 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
       return cursor->next();                                                   \
     }                                                                          \
     return nullptr;                                                            \
+  }                                                                            \
+  case kMatchAndMoveOptional##Instruction: {                                   \
+    if (cursor->Is##Instruction()) {                                           \
+      return cursor->next();                                                   \
+    }                                                                          \
+    return cursor;                                                             \
   }
     FOR_EACH_INSTRUCTION(EMIT_CASE)
 #undef EMIT_CASE
@@ -294,7 +312,9 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   case kMatch##Instruction:                                                    \
     return "kMatch" #Instruction;                                              \
   case kMatchAndMove##Instruction:                                             \
-    return "kMatchAndMove" #Instruction;
+    return "kMatchAndMove" #Instruction;                                       \
+  case kMatchAndMoveOptional##Instruction:                                     \
+    return "kMatchAndMoveOptional" #Instruction;
     FOR_EACH_INSTRUCTION(EMIT_CASE)
 #undef EMIT_CASE
     default:

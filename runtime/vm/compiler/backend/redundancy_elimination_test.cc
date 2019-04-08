@@ -72,8 +72,8 @@ static void TryCatchOptimizerTest(
       CompilerPass::kTypePropagation, CompilerPass::kCanonicalize,
   };
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  TestPipeline pipeline(function);
-  FlowGraph* graph = pipeline.RunJITPasses(passes);
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* graph = pipeline.RunPasses(passes);
 
   // Finally run TryCatchAnalyzer on the graph (in AOT mode).
   OptimizeCatchEntryStates(graph, /*is_aot=*/true);

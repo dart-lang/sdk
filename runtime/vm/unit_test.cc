@@ -429,8 +429,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
 }
 
-static intptr_t BuildSourceFilesArray(Dart_SourceFile** sourcefiles,
-                                      const char* script) {
+static intptr_t BuildSourceFilesArray(
+    Dart_SourceFile** sourcefiles,
+    const char* script,
+    const char* script_url = RESOLVED_USER_TEST_URI) {
   ASSERT(sourcefiles != NULL);
   ASSERT(script != NULL);
 
@@ -440,7 +442,7 @@ static intptr_t BuildSourceFilesArray(Dart_SourceFile** sourcefiles,
   }
 
   *sourcefiles = new Dart_SourceFile[num_test_libs + 1];
-  (*sourcefiles)[0].uri = RESOLVED_USER_TEST_URI;
+  (*sourcefiles)[0].uri = script_url;
   (*sourcefiles)[0].source = script;
   for (intptr_t i = 0; i < num_test_libs; ++i) {
     (*sourcefiles)[i + 1].uri = test_libs_->At(i).url;
@@ -469,7 +471,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
     }
 #endif  // ifndef PRODUCT
     Dart_SourceFile* sourcefiles = NULL;
-    intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script);
+    intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
     Dart_Handle result =
         LoadTestScriptWithDFE(num_sources, sourcefiles, resolver,
                               finalize_classes, true, allow_compile_errors);

@@ -32,8 +32,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
 
-  TestPipeline pipeline(function);
-  FlowGraph* flow_graph = pipeline.RunAOTPasses({});
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -91,8 +91,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_NotInlining) {
   // Now we ensure that we don't perform the inlining of the `list[from]`
   // access.
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  TestPipeline pipeline(function);
-  FlowGraph* flow_graph = pipeline.RunAOTPasses({});
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -130,7 +130,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
       R"(
       import 'dart:typed_data';
 
-      void reverseList(%s list) {
+      void reverse%s(%s list) {
         final length = list.length;
         final halfLength = length ~/ 2;
         for (int i = 0; i < halfLength; ++i) {
@@ -187,6 +187,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
   };
 
   char script_buffer[1024];
+  char uri_buffer[1024];
+  char function_name[1024];
   auto& lib = Library::Handle();
   auto& function = Function::Handle();
   auto& view = TypedDataView::Handle();
@@ -195,19 +197,25 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
 
   auto run_reverse_list = [&](const char* name, const TypedDataBase& data) {
     // Fill in the template with the [name].
-    Utils::SNPrint(script_buffer, sizeof(script_buffer), kTemplate, name);
+    Utils::SNPrint(script_buffer, sizeof(script_buffer), kTemplate, name, name);
+    Utils::SNPrint(uri_buffer, sizeof(uri_buffer), "file:///reverse-%s.dart",
+                   name);
+    Utils::SNPrint(function_name, sizeof(function_name), "reverse%s", name);
 
     // Create a new library, load the function and compile it using our AOT
     // pipeline.
-    lib = LoadTestScript(script_buffer, nullptr, name);
-    function = GetFunction(lib, "reverseList");
-    TestPipeline pipeline(function);
-    FlowGraph* flow_graph = pipeline.RunAOTPasses({});
+    lib = LoadTestScript(script_buffer, nullptr, uri_buffer);
+    function = GetFunction(lib, function_name);
+    TestPipeline pipeline(function, CompilerPass::kAOT);
+    FlowGraph* flow_graph = pipeline.RunPasses({});
     auto entry = flow_graph->graph_entry()->normal_entry();
 
     // Ensure the IL matches what we expect.
     ILMatcher cursor(flow_graph, entry);
     EXPECT(cursor.TryMatch(expected_il));
+
+    // Compile the graph and attach the code.
+    pipeline.CompileGraphAndAttachFunction();
 
     // Class ids are numbered from internal/view/external.
     const classid_t view_cid = data.GetClassId() + 1;
@@ -225,6 +233,9 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
     arguments.SetAt(0, view);
     result = DartEntry::InvokeFunction(function, arguments);
     EXPECT(result.IsNull());
+
+    // Ensure we didn't deoptimize to unoptimized code.
+    EXPECT(function.unoptimized_code() == Code::null());
   };
 
   const auto& uint8_list =
@@ -301,7 +312,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
   const char* kTemplate =
       R"(
       import 'dart:typed_data';
-      void getList(%s list, int index, %s value) {
+      void set%s(%s list, int index, %s value) {
         list[index] = value;
       }
       )";
@@ -331,6 +342,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
       kMoveGlob,
       kMatchAndMoveLoadUntagged,
       kMoveParallelMoves,
+      kMatchAndMoveOptionalUnbox,
+      kMoveParallelMoves,
       kMatchAndMoveStoreIndexed,
 
       // Return
@@ -339,6 +352,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
   };
 
   char script_buffer[1024];
+  char uri_buffer[1024];
+  char function_name[1024];
   auto& lib = Library::Handle();
   auto& function = Function::Handle();
   auto& arguments = Array::Handle();
@@ -351,19 +366,25 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
                       const TypedDataBase& data, const Object& value,
                       int stage) {
     // Fill in the template with the [name].
-    Utils::SNPrint(script_buffer, sizeof(script_buffer), kTemplate, name, type);
+    Utils::SNPrint(script_buffer, sizeof(script_buffer), kTemplate, name, name,
+                   type);
+    Utils::SNPrint(uri_buffer, sizeof(uri_buffer), "file:///set-%s.dart", name);
+    Utils::SNPrint(function_name, sizeof(function_name), "set%s", name);
 
     // Create a new library, load the function and compile it using our AOT
     // pipeline.
-    lib = LoadTestScript(script_buffer, nullptr, name);
-    function = GetFunction(lib, "getList");
-    TestPipeline pipeline(function);
-    FlowGraph* flow_graph = pipeline.RunAOTPasses({});
+    lib = LoadTestScript(script_buffer, nullptr, uri_buffer);
+    function = GetFunction(lib, function_name);
+    TestPipeline pipeline(function, CompilerPass::kAOT);
+    FlowGraph* flow_graph = pipeline.RunPasses({});
     auto entry = flow_graph->graph_entry()->normal_entry();
 
     // Ensure the IL matches what we expect.
-    ILMatcher cursor(flow_graph, entry, /*trace=*/false);
+    ILMatcher cursor(flow_graph, entry, /*trace=*/true);
     EXPECT(cursor.TryMatch(expected_il));
+
+    // Compile the graph and attach the code.
+    pipeline.CompileGraphAndAttachFunction();
 
     arguments = Array::New(3);
     arguments.SetAt(0, stage == 0 ? Object::null_object() : data);
@@ -371,6 +392,9 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
         1, stage == 1 ? Object::null_object() : Smi::Handle(Smi::New(kIndex)));
     arguments.SetAt(2, stage == 2 ? Object::null_object() : value);
     result = DartEntry::InvokeFunction(function, arguments);
+
+    // Ensure we didn't deoptimize to unoptimized code.
+    EXPECT(function.unoptimized_code() == Code::null());
 
     if (stage == kLastStage) {
       // The last stage must be successful
