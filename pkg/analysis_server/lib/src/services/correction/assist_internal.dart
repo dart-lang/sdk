@@ -150,7 +150,7 @@ class AssistProcessor {
 
     if (experimentStatus.control_flow_collections) {
       await _addProposal_convertConditionalExpressionToIfElement();
-      await _addProposal_convertMapFromIterableToIfLiteral();
+      await _addProposal_convertMapFromIterableToForLiteral();
     }
     if (experimentStatus.spread_collections) {
       await _addProposal_convertAddAllToSpread();
@@ -173,10 +173,13 @@ class AssistProcessor {
       if (experimentStatus.spread_collections) {
         await _addProposal_convertAddAllToSpread();
       }
+    } else if (assistKind == DartAssistKind.CONVERT_TO_FOR_ELEMENT) {
+      if (experimentStatus.control_flow_collections) {
+        await _addProposal_convertMapFromIterableToForLiteral();
+      }
     } else if (assistKind == DartAssistKind.CONVERT_TO_IF_ELEMENT) {
       if (experimentStatus.control_flow_collections) {
         await _addProposal_convertConditionalExpressionToIfElement();
-        await _addProposal_convertMapFromIterableToIfLiteral();
       }
     }
     return assists;
@@ -932,7 +935,7 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_MAP_LITERAL);
   }
 
-  Future<void> _addProposal_convertMapFromIterableToIfLiteral() async {
+  Future<void> _addProposal_convertMapFromIterableToForLiteral() async {
     //
     // Ensure that the selection is inside an invocation of Map.fromIterable.
     //
@@ -1086,7 +1089,7 @@ class AssistProcessor {
         builder.write(' }');
       });
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_FOR_ELEMENT);
   }
 
   Future<void> _addProposal_convertPartOfToUri() async {

@@ -32,7 +32,7 @@ class PreferForElementsToMapFromIterableFix extends FixLintTask {
             node.length),
       );
       List<Assist> assists =
-          await processor.computeAssist(DartAssistKind.CONVERT_TO_IF_ELEMENT);
+          await processor.computeAssist(DartAssistKind.CONVERT_TO_FOR_ELEMENT);
 
       final location = listener.locationFor(result, node.offset, node.length);
       if (assists.isNotEmpty) {

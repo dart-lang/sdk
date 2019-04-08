@@ -88,11 +88,15 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorFieldParameter',
       30,
       "Convert to field formal parameter");
+  static const CONVERT_TO_FOR_ELEMENT = const AssistKind(
+      'dart.assist.convertToForElement', 30, "Convert to a 'for' element",
+      associatedErrorCodes: <String>[
+        'prefer_for_elements_to_map_fromIterable'
+      ]);
   static const CONVERT_TO_IF_ELEMENT = const AssistKind(
       'dart.assist.convertToIfElement', 30, "Convert to an 'if' element",
       associatedErrorCodes: <String>[
-        'prefer_if_elements_to_conditional_expressions',
-        'prefer_for_elements_to_map_fromIterable'
+        'prefer_if_elements_to_conditional_expressions'
       ]);
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal",
