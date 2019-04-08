@@ -156,7 +156,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.2.1-dev.3.0",
+          "version": "version:2.2.1-dev.3.1",
       }],
       "dep_type": "cipd",
   },
