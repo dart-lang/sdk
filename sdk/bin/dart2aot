@@ -10,7 +10,7 @@
 # Parse incoming arguments and extract the value of --packages option if any
 # was passed. Split options (--xyz) and non-options into two separate arrays.
 # All options will be passed to gen_snapshot, while --packages will be
-# passed to Fasta.
+# passed to the CFE (Common Front-End).
 
 set -e
 
@@ -47,7 +47,7 @@ for arg in "$@"; do
 done
 
 if [ "${#ARGV[@]}" -ne 2 ]; then
-    echo "Usage: $0 [options] <source> <snapshot>"
+    echo "Usage: $0 [options] <dart-source-file> <dart-aot-file>"
     exit 1
 fi
 
