@@ -61,12 +61,12 @@ class DecoratedType {
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
   /// presumed to have come from code that is already migrated.
-  factory DecoratedType.forElement(Element element) {
+  factory DecoratedType.forElement(Element element, Variables variables) {
     DecoratedType decorate(DartType type) {
       assert((type as TypeImpl).nullability ==
           Nullability.indeterminate); // TODO(paulberry)
       if (type is FunctionType) {
-        var decoratedType = DecoratedType(type, NullabilityNode(null),
+        var decoratedType = DecoratedType(type, variables.neverNullable,
             returnType: decorate(type.returnType), positionalParameters: []);
         for (var parameter in type.parameters) {
           assert(parameter.isPositional); // TODO(paulberry)
@@ -75,7 +75,7 @@ class DecoratedType {
         return decoratedType;
       } else if (type is InterfaceType) {
         assert(type.typeParameters.isEmpty); // TODO(paulberry)
-        return DecoratedType(type, NullabilityNode(null));
+        return DecoratedType(type, variables.neverNullable);
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }

@@ -7,6 +7,7 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -266,10 +267,15 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
+  final _neverNullable = NullabilityNode(null);
+
+  @override
+  NullabilityNode get neverNullable => _neverNullable;
+
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element)
+          ? DecoratedType.forElement(element, this)
           : throw StateError('No element found');
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>

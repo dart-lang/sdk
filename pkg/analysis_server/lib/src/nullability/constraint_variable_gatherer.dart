@@ -170,7 +170,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
     var functionType = DecoratedType(
-        declaredElement.type, NullabilityNode(null),
+        declaredElement.type, _variables.neverNullable,
         returnType: decoratedReturnType,
         positionalParameters: [],
         namedParameters: {},
@@ -192,6 +192,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 /// ([ConstraintVariableGatherer], which finds all the variables that need to be
 /// constrained).
 abstract class VariableRecorder {
+  NullabilityNode get neverNullable;
+
   /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type);
 
@@ -214,6 +216,8 @@ abstract class VariableRecorder {
 /// results of the first ([ConstraintVariableGatherer], which finds all the
 /// variables that need to be constrained).
 abstract class VariableRepository {
+  NullabilityNode get neverNullable;
+
   /// Retrieves the [DecoratedType] associated with the static type of the given
   /// [element].
   ///
