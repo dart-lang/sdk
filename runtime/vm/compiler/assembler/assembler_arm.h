@@ -379,6 +379,10 @@ class Assembler : public AssemblerBase {
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
+  static const char* RegisterName(Register reg);
+
+  static const char* FpuRegisterName(FpuRegister reg);
+
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
 

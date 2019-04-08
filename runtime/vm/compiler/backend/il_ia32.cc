@@ -140,7 +140,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
   const intptr_t stack_index =
       compiler::target::frame_layout.FrameSlotForVariable(&local());
   return LocationSummary::Make(zone, kNumInputs,
-                               Location::StackSlot(stack_index, FPREG),
+                               Location::StackSlot(stack_index),
                                LocationSummary::kNoCall);
 }
 

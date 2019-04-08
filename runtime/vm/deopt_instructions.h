@@ -19,6 +19,7 @@
 
 namespace dart {
 
+class Location;
 class Value;
 class MaterializeObjectInstr;
 class StackFrame;
@@ -461,12 +462,10 @@ class RegisterSource {
 
   RegisterType reg() const { return static_cast<RegisterType>(raw_index()); }
 
-  static const char* Name(Register reg) {
-    return RegisterNames::RegisterName(reg);
-  }
+  static const char* Name(Register reg) { return Assembler::RegisterName(reg); }
 
   static const char* Name(FpuRegister fpu_reg) {
-    return RegisterNames::FpuRegisterName(fpu_reg);
+    return Assembler::FpuRegisterName(fpu_reg);
   }
 
   const intptr_t source_index_;
@@ -602,6 +601,7 @@ class DeoptTable : public AllStatic {
   static const intptr_t kEntrySize = 3;
 };
 
+
 // Holds deopt information at one deoptimization point. The information consists
 // of two parts:
 //  - first a prefix consisting of kMaterializeObject instructions describing
@@ -637,6 +637,7 @@ class DeoptInfo : public AllStatic {
   static bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
                                   const Array& deopt_table,
                                   const TypedData& packed);
+
 
  private:
   static void UnpackInto(const Array& table,

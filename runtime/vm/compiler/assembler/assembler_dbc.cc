@@ -71,6 +71,14 @@ void Assembler::Emit(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
+const char* Assembler::RegisterName(Register reg) {
+  return ThreadState::Current()->zone()->PrintToString("R%d", reg);
+}
+
+const char* Assembler::FpuRegisterName(FpuRegister reg) {
+  return ThreadState::Current()->zone()->PrintToString("F%d", reg);
+}
+
 static int32_t EncodeJump(int32_t relative_pc) {
   return SimulatorBytecode::kJump | (relative_pc << 8);
 }

@@ -811,6 +811,9 @@ class Assembler : public AssemblerBase {
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
+  static const char* RegisterName(Register reg);
+  static const char* FpuRegisterName(FpuRegister reg);
+
   // Check if the given value is an integer value that can be directly
   // emdedded into the code without additional XORing with jit_cookie.
   // We consider 16-bit integers, powers of two and corresponding masks

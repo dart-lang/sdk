@@ -2049,7 +2049,7 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   if (register_kind_ == Location::kRegister) {
     const intptr_t slot_index =
         compiler::target::frame_layout.FrameSlotForVariableIndex(-idx);
-    range->set_spill_slot(Location::StackSlot(slot_index, FPREG));
+    range->set_spill_slot(Location::StackSlot(slot_index));
   } else {
     // We use the index of the slot with the lowest address as an index for the
     // FPU register spill slot. In terms of indexes this relation is inverted:
@@ -2064,11 +2064,11 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
         (range->representation() == kUnboxedInt32x4) ||
         (range->representation() == kUnboxedFloat64x2)) {
       ASSERT(need_quad);
-      location = Location::QuadStackSlot(slot_idx, FPREG);
+      location = Location::QuadStackSlot(slot_idx);
     } else {
       ASSERT(range->representation() == kUnboxedFloat ||
              range->representation() == kUnboxedDouble);
-      location = Location::DoubleStackSlot(slot_idx, FPREG);
+      location = Location::DoubleStackSlot(slot_idx);
     }
     range->set_spill_slot(location);
   }

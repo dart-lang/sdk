@@ -473,6 +473,10 @@ class Assembler : public AssemblerBase {
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
+  static const char* RegisterName(Register reg);
+
+  static const char* FpuRegisterName(FpuRegister reg);
+
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {
       prologue_offset_ = CodeSize();

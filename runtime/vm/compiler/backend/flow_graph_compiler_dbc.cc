@@ -113,8 +113,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
         NULL,
         Location::StackSlot(
             compiler::target::frame_layout.FrameSlotForVariableIndex(
-                -stack_height),
-            FPREG),
+                -stack_height)),
         slot_ix++);
   }
 
