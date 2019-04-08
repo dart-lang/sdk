@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -15,18 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 class DecoratedType {
   final DartType type;
 
-  /// [ConstraintVariable] whose value will be set to `true` if this type needs
-  /// to be nullable.
-  ///
-  /// If `null`, that means that an external constraint (outside the code being
-  /// migrated) forces this type to be non-nullable.
-  final ConstraintVariable nullable;
-
-  /// [ConstraintVariable] whose value will be set to `true` if the usage of
-  /// this type suggests that it is intended to be non-null (because of the
-  /// presence of a statement or expression that would unconditionally lead to
-  /// an exception being thrown in the case of a `null` value at runtime).
-  ConstraintVariable nonNullIntent;
+  final NullabilityNode node;
 
   /// If `this` is a function type, the [DecoratedType] of its return type.
   final DecoratedType returnType;
@@ -56,15 +46,17 @@ class DecoratedType {
   /// TODO(paulberry): how should we handle generic typedefs?
   final List<DecoratedType> typeArguments;
 
-  DecoratedType(this.type, this.nullable,
+  DecoratedType(this.type, this.node,
       {this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
       this.namedParameterOptionalVariables = const {},
       this.typeArguments = const []}) {
+    assert(node != null);
     // The type system doesn't have a non-nullable version of `dynamic`.  So if
     // the type is `dynamic`, verify that `nullable` is `always`.
-    assert(!type.isDynamic || identical(nullable, ConstraintVariable.always));
+    assert(
+        !type.isDynamic || identical(node.nullable, ConstraintVariable.always));
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
@@ -74,7 +66,7 @@ class DecoratedType {
       assert((type as TypeImpl).nullability ==
           Nullability.indeterminate); // TODO(paulberry)
       if (type is FunctionType) {
-        var decoratedType = DecoratedType(type, null,
+        var decoratedType = DecoratedType(type, NullabilityNode(null),
             returnType: decorate(type.returnType), positionalParameters: []);
         for (var parameter in type.parameters) {
           assert(parameter.isPositional); // TODO(paulberry)
@@ -83,7 +75,7 @@ class DecoratedType {
         return decoratedType;
       } else if (type is InterfaceType) {
         assert(type.typeParameters.isEmpty); // TODO(paulberry)
-        return DecoratedType(type, null);
+        return DecoratedType(type, NullabilityNode(null));
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }
@@ -112,7 +104,7 @@ class DecoratedType {
 
   @override
   String toString() {
-    var trailing = nullable == null ? '' : '?($nullable)';
+    var trailing = node.nullable == null ? '' : '?(${node.nullable})';
     var type = this.type;
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
@@ -155,14 +147,16 @@ class DecoratedType {
         newPositionalParameters.add(positionalParameters[i]
             ._substitute(constraints, substitution, undecoratedParameterType));
       }
-      return DecoratedType(undecoratedResult, nullable,
+      return DecoratedType(undecoratedResult, NullabilityNode(node.nullable),
           returnType: returnType._substitute(
               constraints, substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
-      return DecoratedType(undecoratedResult,
-          ConstraintVariable.or(constraints, inner?.nullable, nullable));
+      return DecoratedType(
+          undecoratedResult,
+          NullabilityNode(ConstraintVariable.or(
+              constraints, inner?.node?.nullable, node.nullable)));
     } else if (type is VoidType) {
       return this;
     }
@@ -182,11 +176,12 @@ class DecoratedTypeAnnotation extends DecoratedType
   DecoratedTypeAnnotation(
       DartType type, ConstraintVariable nullable, this._offset,
       {List<DecoratedType> typeArguments = const []})
-      : super(type, nullable, typeArguments: typeArguments);
+      : super(type, NullabilityNode(nullable), typeArguments: typeArguments);
 
   @override
   bool get isEmpty =>
-      identical(nullable, ConstraintVariable.always) || !nullable.value;
+      identical(node.nullable, ConstraintVariable.always) ||
+      !node.nullable.value;
 
   @override
   Iterable<SourceEdit> get modifications =>

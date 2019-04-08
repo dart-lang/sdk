@@ -6,6 +6,7 @@ import 'package:analysis_server/src/nullability/conditional_discard.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -79,11 +80,14 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   ConstraintGatherer(TypeProvider typeProvider, this._variables,
       this._constraints, this._source, this._permissive, this.assumptions)
-      : _notNullType = DecoratedType(typeProvider.objectType, null),
-        _nonNullableBoolType = DecoratedType(typeProvider.boolType, null),
-        _nonNullableTypeType = DecoratedType(typeProvider.typeType, null),
-        _nullType =
-            DecoratedType(typeProvider.nullType, ConstraintVariable.always);
+      : _notNullType =
+            DecoratedType(typeProvider.objectType, NullabilityNode(null)),
+        _nonNullableBoolType =
+            DecoratedType(typeProvider.boolType, NullabilityNode(null)),
+        _nonNullableTypeType =
+            DecoratedType(typeProvider.typeType, NullabilityNode(null)),
+        _nullType = DecoratedType(
+            typeProvider.nullType, NullabilityNode(ConstraintVariable.always));
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -154,8 +158,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
           bool isPure = node.leftOperand is SimpleIdentifier;
           var conditionInfo = _ConditionInfo(node,
               isPure: isPure,
-              trueGuard: leftType.nullable,
-              falseDemonstratesNonNullIntent: leftType.nonNullIntent);
+              trueGuard: leftType.node.nullable,
+              falseDemonstratesNonNullIntent: leftType.node.nonNullIntent);
           _conditionInfo = node.operator.type == TokenType.EQ_EQ
               ? conditionInfo
               : conditionInfo.not(node);
@@ -182,7 +186,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
-    return DecoratedType(node.staticType, null);
+    return DecoratedType(node.staticType, NullabilityNode(null));
   }
 
   @override
@@ -199,8 +203,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_isSimple(thenType)); // TODO(paulberry)
     var elseType = node.elseExpression.accept(this);
     assert(_isSimple(elseType)); // TODO(paulberry)
-    var overallType = DecoratedType(node.staticType,
-        _joinNullabilities(node, thenType.nullable, elseType.nullable));
+    var overallType = DecoratedType(
+        node.staticType,
+        NullabilityNode(_joinNullabilities(
+            node, thenType.node.nullable, elseType.node.nullable)));
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
@@ -215,7 +221,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       } else if (node.declaredElement.isOptionalPositional ||
           assumptions.namedNoDefaultParameterHeuristic ==
               NamedNoDefaultParameterHeuristic.assumeNullable) {
-        _recordFact(getOrComputeElementType(node.declaredElement).nullable);
+        _recordFact(
+            getOrComputeElementType(node.declaredElement).node.nullable);
       } else {
         assert(assumptions.namedNoDefaultParameterHeuristic ==
             NamedNoDefaultParameterHeuristic.assumeRequired);
@@ -291,7 +298,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
-    return DecoratedType(node.staticType, null);
+    return DecoratedType(node.staticType, NullabilityNode(null));
   }
 
   @override
@@ -393,24 +400,24 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
-    return DecoratedType(node.staticType, null);
+    return DecoratedType(node.staticType, NullabilityNode(null));
   }
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, null);
+    return DecoratedType(node.staticType, NullabilityNode(null));
   }
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
-    return DecoratedType(node.staticType, null);
+    return DecoratedType(node.staticType, NullabilityNode(null));
   }
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
-    return DecoratedType(typeName.type, null);
+    return DecoratedType(typeName.type, NullabilityNode(null));
   }
 
   /// Creates the necessary constraint(s) for an assignment from [sourceType] to
@@ -419,9 +426,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// where a nullable source is assigned to a non-nullable destination.
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
       Expression expression) {
-    if (sourceType.nullable != null) {
-      _guards.add(sourceType.nullable);
-      var destinationNonNullIntent = destinationType.nonNullIntent;
+    if (sourceType.node.nullable != null) {
+      _guards.add(sourceType.node.nullable);
+      var destinationNonNullIntent = destinationType.node.nonNullIntent;
       try {
         CheckExpression checkNotNull;
         if (expression != null) {
@@ -431,7 +438,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         }
         // nullable_src => nullable_dst | check_expr
         _recordFact(ConstraintVariable.or(
-            _constraints, destinationType.nullable, checkNotNull));
+            _constraints, destinationType.node.nullable, checkNotNull));
         if (checkNotNull != null) {
           // nullable_src & nonNullIntent_dst => check_expr
           if (destinationNonNullIntent != null) {
@@ -441,9 +448,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       } finally {
         _guards.removeLast();
       }
-      var sourceNonNullIntent = sourceType.nonNullIntent;
+      var sourceNonNullIntent = sourceType.node.nonNullIntent;
       if (!_inConditionalControlFlow && sourceNonNullIntent != null) {
-        if (destinationType.nullable == null) {
+        if (destinationType.node.nullable == null) {
           // The destination type can never be nullable so this demonstrates
           // non-null intent.
           _recordFact(sourceNonNullIntent);
