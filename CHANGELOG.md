@@ -1,3 +1,16 @@
+## 2.2.1-dev.3.1
+
+* Cherry-pick 245576a096a2da54ef21d664d37d1f50f6f8dbb7 to dev
+* Cherry-pick a47b4ad2b8683cc8a82aa0ff89da2db7a3be27a3 to dev
+* Cherry-pick 9a2b222cba94126591b5d985a42d40c704a73c90 to dev
+
+#### dartfmt
+
+*   Tweak set literal formatting to follow other collection literals.
+*   Add support for "UI as code" features.
+*   Properly format trailing commas in assertions.
+*   Improve indentation of adjacent strings in argument lists.
+
 ## 2.2.1-dev.3.0
 
 ### Core library changes
