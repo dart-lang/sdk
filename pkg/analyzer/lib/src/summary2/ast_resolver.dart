@@ -8,7 +8,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 
