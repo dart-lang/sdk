@@ -40,6 +40,8 @@ void main(List<String> args) {
         abbr: 'p',
         help: 'Run with the corresponding chrome/V8 debugging port open.',
         defaultsTo: '9222')
+    ..addOption('enable-experiment',
+        help: 'Run with specified experiments enabled.', defaultsTo: '')
     ..addOption('binary', abbr: 'b', help: 'Runtime binary path.');
 
   var options = parser.parse(args);
@@ -53,6 +55,7 @@ void main(List<String> args) {
   var debug = options['debug'] as bool;
   var kernel = options['kernel'] as bool;
   var binary = options['binary'] as String;
+  var experiment = options['enable-experiment'] as String;
   var port = int.parse(options['port'] as String);
 
   var dartBinary = Platform.resolvedExecutable;
@@ -121,6 +124,7 @@ void main(List<String> args) {
       '--kernel',
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
+      '--enable-experiment=$experiment',
       '-o',
       '$libRoot/$basename.js',
       entry
@@ -130,6 +134,7 @@ void main(List<String> args) {
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
       '--library-root=$libRoot',
+      '--enable-experiment=$experiment',
       '-o',
       '$libRoot/$basename.js',
       entry
