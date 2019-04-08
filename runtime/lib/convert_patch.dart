@@ -1857,8 +1857,7 @@ int _scanOneByteCharacters(List<int> units, int from, int endIndex) {
   final to = endIndex;
 
   // Special case for _Uint8ArrayView.
-  final cid = ClassID.getID(units);
-  if (identical(cid, ClassID.cidUint8ArrayView)) {
+  if (units is Uint8List) {
     if (from >= 0 && to >= 0 && to <= units.length) {
       for (int i = from; i < to; i++) {
         final unit = units[i];
