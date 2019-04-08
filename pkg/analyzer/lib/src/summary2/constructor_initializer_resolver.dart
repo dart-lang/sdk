@@ -46,66 +46,70 @@ class ConstructorInitializerResolver {
   void _constructor(ConstructorElementImpl constructorElement) {
     if (constructorElement.isSynthetic) return;
 
-    _constructorElement = constructorElement;
-    _constructorNode = constructorElement.linkedNode;
-
-    var functionScope = FunctionScope(_classScope, constructorElement);
-    functionScope.defineParameters();
-
-    var nameScope = ConstructorInitializerScope(
-      functionScope,
-      constructorElement,
-    );
-
-    _astResolver = AstResolver(_linker, _libraryElement, nameScope);
-
-    _initializers();
-    _redirectedConstructor();
+//    _constructorElement = constructorElement;
+//    _constructorNode = constructorElement.linkedNode;
+//
+//    var functionScope = FunctionScope(_classScope, constructorElement);
+//    functionScope.defineParameters();
+//
+//    var nameScope = ConstructorInitializerScope(
+//      functionScope,
+//      constructorElement,
+//    );
+//
+//    _astResolver = AstResolver(_linker, _libraryElement, nameScope);
+//
+//    _initializers();
+//    _redirectedConstructor();
   }
 
   void _initializers() {
-    bool isConst = _constructorNode.constructorDeclaration_constKeyword != 0;
+    throw UnimplementedError();
 
-    var initializers = _constructorNode.constructorDeclaration_initializers;
-    var resolvedList = List<LinkedNodeBuilder>();
-    for (var i = 0; i < initializers.length; ++i) {
-      var unresolvedNode = initializers[i];
-
-      // Keep only initializers of constant constructors; or redirects.
-      if (!isConst &&
-          unresolvedNode.kind !=
-              LinkedNodeKind.redirectingConstructorInvocation) {
-        continue;
-      }
-
-      var reader = AstBinaryReader(_linkedContext);
-      var unresolvedAst = reader.readNode(unresolvedNode);
-
-      var resolvedNode = _astResolver.resolve(
-        _linkedContext,
-        unresolvedAst,
-        enclosingClassElement: _constructorElement.enclosingElement,
-        enclosingExecutableElement: _constructorElement,
-      );
-      resolvedList.add(resolvedNode);
-    }
-    _constructorNode.constructorDeclaration_initializers = resolvedList;
+//    bool isConst = _constructorNode.constructorDeclaration_constKeyword != 0;
+//
+//    var initializers = _constructorNode.constructorDeclaration_initializers;
+//    var resolvedList = List<LinkedNodeBuilder>();
+//    for (var i = 0; i < initializers.length; ++i) {
+//      var unresolvedNode = initializers[i];
+//
+//      // Keep only initializers of constant constructors; or redirects.
+//      if (!isConst &&
+//          unresolvedNode.kind !=
+//              LinkedNodeKind.redirectingConstructorInvocation) {
+//        continue;
+//      }
+//
+//      var reader = AstBinaryReader(_linkedContext);
+//      var unresolvedAst = reader.readNode(unresolvedNode);
+//
+//      var resolvedNode = _astResolver.resolve(
+//        _linkedContext,
+//        unresolvedAst,
+//        enclosingClassElement: _constructorElement.enclosingElement,
+//        enclosingExecutableElement: _constructorElement,
+//      );
+//      resolvedList.add(resolvedNode);
+//    }
+//    _constructorNode.constructorDeclaration_initializers = resolvedList;
   }
 
   void _redirectedConstructor() {
-    var redirectedConstructorNode =
-        _constructorNode.constructorDeclaration_redirectedConstructor;
-    if (redirectedConstructorNode == null) return;
+    throw UnimplementedError();
 
-    var reader = AstBinaryReader(_linkedContext);
-    var unresolvedAst = reader.readNode(redirectedConstructorNode);
-    var resolvedNode = _astResolver.resolve(
-      _linkedContext,
-      unresolvedAst,
-      enclosingClassElement: _constructorElement.enclosingElement,
-      enclosingExecutableElement: _constructorElement,
-    );
-    _constructorNode.constructorDeclaration_redirectedConstructor =
-        resolvedNode;
+//    var redirectedConstructorNode =
+//        _constructorNode.constructorDeclaration_redirectedConstructor;
+//    if (redirectedConstructorNode == null) return;
+//
+//    var reader = AstBinaryReader(_linkedContext);
+//    var unresolvedAst = reader.readNode(redirectedConstructorNode);
+//    var resolvedNode = _astResolver.resolve(
+//      _linkedContext,
+//      unresolvedAst,
+//      enclosingClassElement: _constructorElement.enclosingElement,
+//      enclosingExecutableElement: _constructorElement,
+//    );
+//    _constructorNode.constructorDeclaration_redirectedConstructor =
+//        resolvedNode;
   }
 }

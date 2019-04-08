@@ -188,24 +188,20 @@ class _ElementRequest {
 
   ClassElementImpl _class(
       CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
+    if (reference.node2 == null) {
       _indexUnitElementDeclarations(unit);
-      assert(reference.node != 0, '$reference');
+      assert(reference.node2 != null, '$reference');
     }
-    return reference.element = ClassElementImpl.forLinkedNode(
-      unit,
-      reference,
-      reference.node2, // TODO(scheglov)
-    );
+    ClassElementImpl.forLinkedNode(unit, reference, reference.node2);
+    return reference.element;
   }
 
   ConstructorElementImpl _constructor(
-      ClassElementImpl class_, Reference reference) {
-    return reference.element = ConstructorElementImpl.forLinkedNode(
-      reference,
-      reference.node,
-      class_,
-    );
+      ClassElementImpl enclosing, Reference reference) {
+    enclosing.constructors;
+    // Requesting constructors sets elements for all of them.
+    assert(reference.element != null);
+    return reference.element;
   }
 
   LibraryElementImpl _createLibraryElement(Reference reference) {
@@ -228,9 +224,8 @@ class _ElementRequest {
       hasName ? node2.nameOffset : -1,
       node2.name.length,
       definingUnitContext,
-      definingUnitContext.unit,
       reference,
-      null, // TODO(scheglov) remove
+      definingUnitContext.unit_withDeclarations,
     );
 
     var units = <CompilationUnitElementImpl>[];
@@ -243,7 +238,6 @@ class _ElementRequest {
         libraryElement,
         unitContext,
         unitContainerRef.getChild(unitContext.uriStr),
-        null, // TODO(scheglov) remove
         unitNode,
       );
       unitElement.source = unitSource;
@@ -258,15 +252,12 @@ class _ElementRequest {
   }
 
   EnumElementImpl _enum(CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
+    if (reference.node2 == null) {
       _indexUnitElementDeclarations(unit);
-      assert(reference.node != 0, '$reference');
+      assert(reference.node2 != null, '$reference');
     }
-    return reference.element = EnumElementImpl.forLinkedNode(
-      unit,
-      reference,
-      reference.node,
-    );
+    EnumElementImpl.forLinkedNode(unit, reference, reference.node2);
+    return reference.element;
   }
 
   Element _function(CompilationUnitElementImpl enclosing, Reference reference) {
@@ -278,7 +269,7 @@ class _ElementRequest {
   void _indexUnitElementDeclarations(CompilationUnitElementImpl unit) {
     var unitContext = unit.linkedContext;
     var unitRef = unit.reference;
-    var unitNode = unit.linkedNode2;
+    var unitNode = unit.linkedNode;
     _indexUnitDeclarations(unitContext, unitRef, unitNode);
   }
 
@@ -297,15 +288,12 @@ class _ElementRequest {
 
   GenericTypeAliasElementImpl _typeAlias(
       CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node == null) {
+    if (reference.node2 == null) {
       _indexUnitElementDeclarations(unit);
-      assert(reference.node != 0, '$reference');
+      assert(reference.node2 != null, '$reference');
     }
-    return reference.element = GenericTypeAliasElementImpl.forLinkedNode(
-      unit,
-      reference,
-      reference.node,
-    );
+    GenericTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node2);
+    return reference.element;
   }
 
   Element _typeParameter(

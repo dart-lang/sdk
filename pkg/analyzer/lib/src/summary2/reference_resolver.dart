@@ -5,120 +5,31 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
-/// Recursive visitor of [LinkedNode]s that resolves explicit type annotations
-/// in outlines.  This includes resolving element references in identifiers
-/// in type annotation, and setting [LinkedNodeType]s for corresponding type
-/// annotation nodes.
-///
-/// Declarations that have type annotations, e.g. return types of methods, get
-/// the corresponding type set (so, if there is an explicit type annotation,
-/// the type is set, otherwise we keep it empty, so we will attempt to infer
-/// it later).
-class ReferenceResolver extends ThrowingAstVisitor<void> {
-  final TypesToBuild typesToBuild;
-  final LinkedElementFactory elementFactory;
-  final LibraryElement _libraryElement;
+// TODO(scheglov) This class is not used, not [get] yet.
+class LinkingNodeContext {
+  static const _key = 'linkingNodeContext';
 
-  Reference reference;
-  Scope scope;
+  final Scope scope;
 
-  ReferenceResolver(
-    this.typesToBuild,
-    this.elementFactory,
-    this._libraryElement,
-    this.reference,
-    this.scope,
-  );
+  LinkingNodeContext(this.scope);
 
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {}
-
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    // TODO(scheglov) scope
-    node.typeParameters?.accept(this);
-    node.extendsClause?.accept(this);
-    node.implementsClause?.accept(this);
-    node.withClause?.accept(this);
-  }
-
-  @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    // TODO(scheglov) scope
-    node.typeParameters?.accept(this);
-    node.superclass?.accept(this);
-    node.withClause?.accept(this);
-    node.implementsClause?.accept(this);
-  }
-
-  @override
-  void visitWithClause(WithClause node) {
-    node.mixinTypes.accept(this);
-  }
-
-  @override
-  void visitTypeArgumentList(TypeArgumentList node) {
-    node.arguments.accept(this);
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    node.declarations.accept(this);
-  }
-
-  @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {}
-
-  @override
-  void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    // TODO: implement visitFunctionDeclaration
-//    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitImplementsClause(ImplementsClause node) {
-    node.interfaces.accept(this);
-    // TODO: implement visitImplementsClause
-//    super.visitImplementsClause(node);
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    // TODO: implement visitTopLevelVariableDeclaration
-//    super.visitTopLevelVariableDeclaration(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-//    print('[visitTypeName][$node]');
-    var nameNode = node.name;
-    if (nameNode is SimpleIdentifier) {
-      var element = scope.lookup(nameNode, _libraryElement);
-      nameNode.staticElement = element;
-//      print(element);
-    } else {
-      throw UnimplementedError();
+  static LinkingNodeContext get(AstNode node) {
+    LinkingNodeContext context = node.getProperty(_key);
+    if (context == null) {
+      throw StateError('No context for: $node');
     }
-
-    node.typeArguments?.accept(this);
-
-    typesToBuild.typeAnnotations.add(node);
+    return context;
   }
 
-  @override
-  void visitTypeParameterList(TypeParameterList node) {
-    // TODO: implement visitTypeParameterList
-//    super.visitTypeParameterList(node);
+  static void set(AstNode node, LinkingNodeContext context) {
+    node.setProperty(_key, context);
   }
 }
 
@@ -607,6 +518,305 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 //    }
 //  }
 //}
+
+/// Recursive visitor of [LinkedNode]s that resolves explicit type annotations
+/// in outlines.  This includes resolving element references in identifiers
+/// in type annotation, and setting [LinkedNodeType]s for corresponding type
+/// annotation nodes.
+///
+/// Declarations that have type annotations, e.g. return types of methods, get
+/// the corresponding type set (so, if there is an explicit type annotation,
+/// the type is set, otherwise we keep it empty, so we will attempt to infer
+/// it later).
+class ReferenceResolver extends ThrowingAstVisitor<void> {
+  final TypesToBuild typesToBuild;
+  final LinkedElementFactory elementFactory;
+  final LibraryElement _libraryElement;
+
+  Reference reference;
+  Scope scope;
+
+  ReferenceResolver(
+    this.typesToBuild,
+    this.elementFactory,
+    this._libraryElement,
+    this.reference,
+    this.scope,
+  );
+
+  @override
+  void visitBlockFunctionBody(BlockFunctionBody node) {}
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@class').getChild(name);
+
+    var element = ClassElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.name.staticElement = element;
+    scope = new TypeParameterScope(scope, element);
+    scope = new ClassScope(scope, element);
+    LinkingNodeContext.set(node, LinkingNodeContext(scope));
+
+    node.typeParameters?.accept(this);
+    node.extendsClause?.accept(this);
+    node.implementsClause?.accept(this);
+    node.withClause?.accept(this);
+    node.members.accept(this);
+
+    scope = outerScope;
+    reference = outerReference;
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    // TODO(scheglov) scope
+    node.typeParameters?.accept(this);
+    node.superclass?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    LinkingNodeContext.set(node, LinkingNodeContext(scope));
+    node.declarations.accept(this);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    node.parameters?.accept(this);
+  }
+
+  @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    node.parameter.accept(this);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {}
+
+  @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {}
+
+  @override
+  void visitExtendsClause(ExtendsClause node) {
+    node.superclass.accept(this);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    node.type?.accept(this);
+    typesToBuild.declarations.add(node);
+  }
+
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    node.parameters.accept(this);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    node.returnType?.accept(this);
+    node.functionExpression.accept(this);
+    typesToBuild.declarations.add(node);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    node.parameters?.accept(this);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@typeAlias').getChild(name);
+
+    var element = GenericTypeAliasElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.name.staticElement = element;
+    scope = FunctionTypeScope(outerScope, element);
+
+    node.returnType?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+    typesToBuild.declarations.add(node);
+
+    scope = outerScope;
+    reference = outerReference;
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = '${outerReference.numOfChildren}';
+    reference = reference.getChild(name);
+
+    var element = GenericFunctionTypeElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    scope = TypeParameterScope(outerScope, element);
+
+    node.returnType?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+    typesToBuild.typeAnnotations.add(node);
+    typesToBuild.declarations.add(node);
+
+    scope = outerScope;
+    reference = outerReference;
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@typeAlias').getChild(name);
+
+    var element = GenericTypeAliasElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.name.staticElement = element;
+    scope = TypeParameterScope(outerScope, element);
+
+    node.typeParameters?.accept(this);
+    node.functionType.accept(this);
+
+    scope = outerScope;
+    reference = outerReference;
+  }
+
+  @override
+  void visitImplementsClause(ImplementsClause node) {
+    node.interfaces.accept(this);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    node.returnType?.accept(this);
+    node.parameters?.accept(this);
+    node.typeParameters?.accept(this);
+    typesToBuild.declarations.add(node);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@class').getChild(name);
+
+    var element = ClassElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.name.staticElement = element;
+    scope = new TypeParameterScope(scope, element);
+    scope = new ClassScope(scope, element);
+
+    node.typeParameters?.accept(this);
+    node.onClause?.accept(this);
+    node.implementsClause?.accept(this);
+    node.members.accept(this);
+
+    scope = outerScope;
+    reference = outerReference;
+  }
+
+  @override
+  void visitOnClause(OnClause node) {
+    node.superclassConstraints.accept(this);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    node.type?.accept(this);
+    typesToBuild.declarations.add(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    node.variables.accept(this);
+  }
+
+  @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    node.arguments.accept(this);
+  }
+
+  @override
+  void visitTypeName(TypeName node) {
+//    print('[visitTypeName][$node]');
+    var nameNode = node.name;
+    if (nameNode is SimpleIdentifier) {
+      var name = nameNode.name;
+
+      if (name == 'void') {
+        node.type = VoidTypeImpl.instance;
+        return;
+      }
+
+      var element = scope.lookup(nameNode, _libraryElement);
+      nameNode.staticElement = element;
+//      print(element?.name);
+    } else {
+      throw UnimplementedError();
+    }
+
+    node.typeArguments?.accept(this);
+
+    typesToBuild.typeAnnotations.add(node);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    node.bound?.accept(this);
+  }
+
+  @override
+  void visitTypeParameterList(TypeParameterList node) {
+    node.typeParameters.accept(this);
+  }
+
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    node.type?.accept(this);
+    typesToBuild.declarations.add(node);
+  }
+
+  @override
+  void visitWithClause(WithClause node) {
+    node.mixinTypes.accept(this);
+  }
+}
 
 /// Type annotations and declarations to build types for.
 ///

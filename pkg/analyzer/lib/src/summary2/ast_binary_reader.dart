@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
@@ -23,6 +24,9 @@ class AstBinaryReader {
   Reference _localRef;
   int _localRefNextId;
   List<ParameterElement> _localParameters;
+
+  /// Set to `true` when this reader is used to lazily read its unit.
+  bool isLazy = false;
 
   /// Set to `true` when reading a [CompilationUnit] and for top-level
   /// declarations only names should be read.  So, we can index declarations,
@@ -38,6 +42,10 @@ class AstBinaryReader {
 
     _unitContext.tokensContext.linkTokens(node.beginToken, node.endToken);
     return node;
+  }
+
+  DartType readType(LinkedNodeType data) {
+    return _readType(data);
   }
 
   /// Run [f] that reads nodes with local declarations, making sure that
@@ -244,7 +252,7 @@ class AstBinaryReader {
       _getToken(data.classOrMixinDeclaration_rightBracket),
     );
     node.nativeClause = _readNodeLazy(data.classDeclaration_nativeClause);
-    LazyAst.setData(node, data);
+    LazyClassDeclaration.setData(node, data);
     return node;
   }
 
@@ -262,7 +270,7 @@ class AstBinaryReader {
       _readNodeLazy(data.classTypeAlias_implementsClause),
       _getToken(data.typeAlias_semicolon),
     );
-    LazyAst.setData(node, data);
+    LazyClassTypeAlias.setData(node, data);
     return node;
   }
 
@@ -320,21 +328,23 @@ class AstBinaryReader {
   }
 
   ConstructorDeclaration _read_constructorDeclaration(LinkedNode data) {
-    return astFactory.constructorDeclaration(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.constructorDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.constructorDeclaration_externalKeyword),
       _getToken(data.constructorDeclaration_constKeyword),
       _getToken(data.constructorDeclaration_factoryKeyword),
       _readNode(data.constructorDeclaration_returnType),
       _getToken(data.constructorDeclaration_period),
       _readNode(data.constructorDeclaration_name),
-      _readNode(data.constructorDeclaration_parameters),
+      _readNodeLazy(data.constructorDeclaration_parameters),
       _getToken(data.constructorDeclaration_separator),
-      _readNodeList(data.constructorDeclaration_initializers),
-      _readNode(data.constructorDeclaration_redirectedConstructor),
+      _readNodeListLazy(data.constructorDeclaration_initializers),
+      _readNodeLazy(data.constructorDeclaration_redirectedConstructor),
       _readNode(data.constructorDeclaration_body),
     );
+    LazyConstructorDeclaration.setData(node, data);
+    return node;
   }
 
   ConstructorFieldInitializer _read_constructorFieldInitializer(
@@ -375,14 +385,16 @@ class AstBinaryReader {
   }
 
   DefaultFormalParameter _read_defaultFormalParameter(LinkedNode data) {
-    return astFactory.defaultFormalParameter(
+    var node = astFactory.defaultFormalParameter(
       _readNode(data.defaultFormalParameter_parameter),
       data.defaultFormalParameter_isNamed
           ? ParameterKind.NAMED
           : ParameterKind.POSITIONAL,
       _getToken(data.defaultFormalParameter_separator),
-      _readNode(data.defaultFormalParameter_defaultValue),
+      _readNodeLazy(data.defaultFormalParameter_defaultValue),
     );
+    LazyFormalParameter.setData(node, data);
+    return node;
   }
 
   DoStatement _read_doStatement(LinkedNode data) {
@@ -423,23 +435,27 @@ class AstBinaryReader {
   }
 
   EnumConstantDeclaration _read_enumConstantDeclaration(LinkedNode data) {
-    return astFactory.enumConstantDeclaration(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.enumConstantDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _readNode(data.enumConstantDeclaration_name),
     );
+    LazyEnumConstantDeclaration.setData(node, data);
+    return node;
   }
 
   EnumDeclaration _read_enumDeclaration(LinkedNode data) {
-    return astFactory.enumDeclaration(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.enumDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.enumDeclaration_enumKeyword),
       _readNode(data.namedCompilationUnitMember_name),
       _getToken(data.enumDeclaration_leftBracket),
-      _readNodeList(data.enumDeclaration_constants),
+      _readNodeListLazy(data.enumDeclaration_constants),
       _getToken(data.enumDeclaration_rightBracket),
     );
+    LazyEnumDeclaration.setData(node, data);
+    return node;
   }
 
   ExportDirective _read_exportDirective(LinkedNode data) {
@@ -478,18 +494,20 @@ class AstBinaryReader {
   }
 
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
-    return astFactory.fieldDeclaration2(
-      comment: _readNode(data.annotatedNode_comment),
+    var node = astFactory.fieldDeclaration2(
+      comment: _readNodeLazy(data.annotatedNode_comment),
       covariantKeyword: _getToken(data.fieldDeclaration_covariantKeyword),
       fieldList: _readNode(data.fieldDeclaration_fields),
-      metadata: _readNodeList(data.annotatedNode_metadata),
+      metadata: _readNodeListLazy(data.annotatedNode_metadata),
       semicolon: _getToken(data.fieldDeclaration_semicolon),
       staticKeyword: _getToken(data.fieldDeclaration_staticKeyword),
     );
+    LazyFieldDeclaration.setData(node, data);
+    return node;
   }
 
   FieldFormalParameter _read_fieldFormalParameter(LinkedNode data) {
-    return astFactory.fieldFormalParameter2(
+    var node = astFactory.fieldFormalParameter2(
       identifier: _readNode(data.normalFormalParameter_identifier),
       period: _getToken(data.fieldFormalParameter_period),
       thisKeyword: _getToken(data.fieldFormalParameter_thisKeyword),
@@ -501,6 +519,8 @@ class AstBinaryReader {
       type: _readNode(data.fieldFormalParameter_type),
       parameters: _readNode(data.fieldFormalParameter_formalParameters),
     );
+    LazyFormalParameter.setData(node, data);
+    return node;
   }
 
   ForEachPartsWithDeclaration _read_forEachPartsWithDeclaration(
@@ -573,15 +593,17 @@ class AstBinaryReader {
   }
 
   FunctionDeclaration _read_functionDeclaration(LinkedNode data) {
-    return astFactory.functionDeclaration(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.functionDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.functionDeclaration_externalKeyword),
-      _readNode(data.functionDeclaration_returnType),
+      _readNodeLazy(data.functionDeclaration_returnType),
       _getToken(data.functionDeclaration_propertyKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.functionDeclaration_functionExpression),
+      _readNodeLazy(data.functionDeclaration_functionExpression),
     );
+    LazyFunctionDeclaration.setData(node, data);
+    return node;
   }
 
   FunctionDeclarationStatement _read_functionDeclarationStatement(
@@ -604,23 +626,24 @@ class AstBinaryReader {
     _localParameters = prevLocalParameters;
 
     if (_localRef != null) {
-      var element = FunctionElementImpl.forLinkedNode(
-        _enclosingElement,
-        _localRef.getChild('${_localRefNextId++}'),
-        data,
-      );
-      element.parameters = thisLocalParameters;
-
-      var body = node.body;
-      if (body.isAsynchronous) {
-        element.asynchronous = true;
-      }
-      if (body.isGenerator) {
-        element.generator = true;
-      }
-
-      element.type = new FunctionTypeImpl(element);
-      (node as FunctionExpressionImpl).declaredElement = element;
+      throw UnimplementedError();
+//      var element = FunctionElementImpl.forLinkedNode(
+//        _enclosingElement,
+//        _localRef.getChild('${_localRefNextId++}'),
+//        data,
+//      );
+//      element.parameters = thisLocalParameters;
+//
+//      var body = node.body;
+//      if (body.isAsynchronous) {
+//        element.asynchronous = true;
+//      }
+//      if (body.isGenerator) {
+//        element.generator = true;
+//      }
+//
+//      element.type = new FunctionTypeImpl(element);
+//      (node as FunctionExpressionImpl).declaredElement = element;
     }
     return node;
   }
@@ -635,16 +658,18 @@ class AstBinaryReader {
   }
 
   FunctionTypeAlias _read_functionTypeAlias(LinkedNode data) {
-    return astFactory.functionTypeAlias(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.functionTypeAlias(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.typeAlias_typedefKeyword),
-      _readNode(data.functionTypeAlias_returnType),
+      _readNodeLazy(data.functionTypeAlias_returnType),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.functionTypeAlias_typeParameters),
-      _readNode(data.functionTypeAlias_formalParameters),
+      _readNodeLazy(data.functionTypeAlias_typeParameters),
+      _readNodeLazy(data.functionTypeAlias_formalParameters),
       _getToken(data.typeAlias_semicolon),
     );
+    LazyFunctionTypeAlias.setData(node, data);
+    return node;
   }
 
   FunctionTypedFormalParameter _read_functionTypedFormalParameter(
@@ -661,40 +686,47 @@ class AstBinaryReader {
     );
 
     if (_localRef != null) {
-      var name = node.identifier.name;
-      var element = ParameterElementImpl.forLinkedNodeFactory(
-        _enclosingElement,
-        _localRef.getChild('${_localRefNextId++}').getChild(name),
-        data,
-      );
-      _localParameters.add(element);
-      node.identifier.staticElement = element;
+      throw UnimplementedError();
+//      var name = node.identifier.name;
+//      var element = ParameterElementImpl.forLinkedNodeFactory(
+//        _enclosingElement,
+//        _localRef.getChild('${_localRefNextId++}').getChild(name),
+//        data,
+//      );
+//      _localParameters.add(element);
+//      node.identifier.staticElement = element;
     }
 
+    LazyFormalParameter.setData(node, data);
     return node;
   }
 
   GenericFunctionType _read_genericFunctionType(LinkedNode data) {
-    return astFactory.genericFunctionType(
-      _readNode(data.genericFunctionType_returnType),
+    GenericFunctionTypeImpl node = astFactory.genericFunctionType(
+      _readNodeLazy(data.genericFunctionType_returnType),
       _getToken(data.genericFunctionType_functionKeyword),
-      _readNode(data.genericFunctionType_typeParameters),
-      _readNode(data.genericFunctionType_formalParameters),
+      _readNodeLazy(data.genericFunctionType_typeParameters),
+      _readNodeLazy(data.genericFunctionType_formalParameters),
       question: _getToken(data.genericFunctionType_question),
     );
+    node.type = _readType(data.genericFunctionType_type);
+    LazyGenericFunctionType.setData(node, data);
+    return node;
   }
 
   GenericTypeAlias _read_genericTypeAlias(LinkedNode data) {
-    return astFactory.genericTypeAlias(
-      _readNode(data.annotatedNode_comment),
+    var node = astFactory.genericTypeAlias(
+      _readNodeLazy(data.annotatedNode_comment),
       _readNodeList(data.annotatedNode_metadata),
       _getToken(data.typeAlias_typedefKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.genericTypeAlias_typeParameters),
+      _readNodeLazy(data.genericTypeAlias_typeParameters),
       _getToken(data.genericTypeAlias_equals),
-      _readNode(data.genericTypeAlias_functionType),
+      _readNodeLazy(data.genericTypeAlias_functionType),
       _getToken(data.typeAlias_semicolon),
     );
+    LazyGenericTypeAlias.setData(node, data);
+    return node;
   }
 
   HideCombinator _read_hideCombinator(LinkedNode data) {
@@ -851,19 +883,21 @@ class AstBinaryReader {
   }
 
   MethodDeclaration _read_methodDeclaration(LinkedNode data) {
-    return astFactory.methodDeclaration(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.methodDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.methodDeclaration_externalKeyword),
       _getToken(data.methodDeclaration_modifierKeyword),
-      _readNode(data.methodDeclaration_returnType),
+      _readNodeLazy(data.methodDeclaration_returnType),
       _getToken(data.methodDeclaration_propertyKeyword),
       _getToken(data.methodDeclaration_operatorKeyword),
       _readNode(data.methodDeclaration_name),
-      _readNode(data.methodDeclaration_typeParameters),
-      _readNode(data.methodDeclaration_formalParameters),
-      _readNode(data.methodDeclaration_body),
+      _readNodeLazy(data.methodDeclaration_typeParameters),
+      _readNodeLazy(data.methodDeclaration_formalParameters),
+      _readNodeLazy(data.methodDeclaration_body),
     );
+    LazyMethodDeclaration.setData(node, data);
+    return node;
   }
 
   MethodInvocation _read_methodInvocation(LinkedNode data) {
@@ -877,18 +911,20 @@ class AstBinaryReader {
   }
 
   MixinDeclaration _read_mixinDeclaration(LinkedNode data) {
-    return astFactory.mixinDeclaration(
-      _readNode(data.annotatedNode_comment),
+    var node = astFactory.mixinDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
       _readNodeList(data.annotatedNode_metadata),
       _getToken(data.mixinDeclaration_mixinKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.classOrMixinDeclaration_typeParameters),
-      _readNode(data.mixinDeclaration_onClause),
-      _readNode(data.classOrMixinDeclaration_implementsClause),
+      _readNodeLazy(data.classOrMixinDeclaration_typeParameters),
+      _readNodeLazy(data.mixinDeclaration_onClause),
+      _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
       _getToken(data.classOrMixinDeclaration_leftBracket),
-      _readNodeList(data.classOrMixinDeclaration_members),
+      _readNodeListLazy(data.classOrMixinDeclaration_members),
       _getToken(data.classOrMixinDeclaration_rightBracket),
     );
+    LazyMixinDeclaration.setData(node, data);
+    return node;
   }
 
   NamedExpression _read_namedExpression(LinkedNode data) {
@@ -1055,17 +1091,19 @@ class AstBinaryReader {
     );
 
     if (_localRef != null) {
-      var name = node.identifier.name;
-      var element = ParameterElementImpl.forLinkedNodeFactory(
-        _enclosingElement,
-        _localRef.getChild('${_localRefNextId++}').getChild(name),
-        data,
-      );
-      _localParameters.add(element);
-      node.identifier.staticElement = element;
-      node.declaredElement = element;
+      throw UnimplementedError();
+//      var name = node.identifier.name;
+//      var element = ParameterElementImpl.forLinkedNodeFactory(
+//        _enclosingElement,
+//        _localRef.getChild('${_localRefNextId++}').getChild(name),
+//        data,
+//      );
+//      _localParameters.add(element);
+//      node.identifier.staticElement = element;
+//      node.declaredElement = element;
     }
 
+    LazyFormalParameter.setData(node, data);
     return node;
   }
 
@@ -1165,12 +1203,14 @@ class AstBinaryReader {
 
   TopLevelVariableDeclaration _read_topLevelVariableDeclaration(
       LinkedNode data) {
-    return astFactory.topLevelVariableDeclaration(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.topLevelVariableDeclaration(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _readNode(data.topLevelVariableDeclaration_variableList),
       _getToken(data.topLevelVariableDeclaration_semicolon),
     );
+    LazyTopLevelVariableDeclaration.setData(node, data);
+    return node;
   }
 
   TryStatement _read_tryStatement(LinkedNode data) {
@@ -1200,13 +1240,15 @@ class AstBinaryReader {
   }
 
   TypeParameter _read_typeParameter(LinkedNode data) {
-    return astFactory.typeParameter(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+    var node = astFactory.typeParameter(
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _readNode(data.typeParameter_name),
       _getToken(data.typeParameter_extendsKeyword),
-      _readNode(data.typeParameter_bound),
+      _readNodeLazy(data.typeParameter_bound),
     );
+    LazyTypeParameter.setData(node, data);
+    return node;
   }
 
   TypeParameterList _read_typeParameterList(LinkedNode data) {
@@ -1218,19 +1260,21 @@ class AstBinaryReader {
   }
 
   VariableDeclaration _read_variableDeclaration(LinkedNode data) {
-    return astFactory.variableDeclaration(
+    var node = astFactory.variableDeclaration(
       _readNode(data.variableDeclaration_name),
       _getToken(data.variableDeclaration_equals),
-      _readNode(data.variableDeclaration_initializer),
+      _readNodeLazy(data.variableDeclaration_initializer),
     );
+    LazyVariableDeclaration.setData(node, data);
+    return node;
   }
 
   VariableDeclarationList _read_variableDeclarationList(LinkedNode data) {
     return astFactory.variableDeclarationList(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeLazy(data.annotatedNode_comment),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.variableDeclarationList_keyword),
-      _readNode(data.variableDeclarationList_type),
+      _readNodeLazy(data.variableDeclarationList_type),
       _readNodeList(data.variableDeclarationList_variables),
     );
   }
@@ -1588,32 +1632,5 @@ class AstBinaryReader {
       result[i] = _readType(data);
     }
     return result;
-  }
-}
-
-/// Accessor for reading AST lazily, or read data that is stored in IDL, but
-/// cannot be stored in AST, like inferred types.
-class LazyAst {
-  static const _key = 'lazyAst';
-
-  final LinkedNode data;
-
-  bool has_classDeclaration_extendsClause = false;
-  bool has_classDeclaration_implementsClause = false;
-  bool has_classDeclaration_typeParameters = false;
-  bool has_classDeclaration_withClause = false;
-  bool has_classTypeAlias_implementsClause = false;
-  bool has_classTypeAlias_superclass = false;
-  bool has_classTypeAlias_typeParameters = false;
-  bool has_classTypeAlias_withClause = false;
-
-  LazyAst(this.data);
-
-  static LazyAst get(AstNode node) {
-    return node.getProperty(_key);
-  }
-
-  static void setData(AstNode node, LinkedNode data) {
-    node.setProperty(_key, LazyAst(data));
   }
 }

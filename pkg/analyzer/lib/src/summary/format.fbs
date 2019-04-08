@@ -1836,6 +1836,9 @@ table LinkedLibrary {
 
 /// Information about a linked AST node.
 table LinkedNode {
+  /// The explicit or inferred return type of a function typed node.
+  variantField_24:LinkedNodeType (id: 24);
+
   variantField_2:[LinkedNode] (id: 2);
 
   variantField_11:LinkedNode (id: 11);
@@ -1857,8 +1860,6 @@ table LinkedNode {
   variantField_18:uint (id: 18);
 
   variantField_19:uint (id: 19);
-
-  variantField_24:LinkedNodeType (id: 24);
 
   variantField_27:bool (id: 27);
 

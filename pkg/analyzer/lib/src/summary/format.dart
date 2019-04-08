@@ -4646,6 +4646,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
 class LinkedNodeBuilder extends Object
     with _LinkedNodeMixin
     implements idl.LinkedNode {
+  LinkedNodeTypeBuilder _variantField_24;
   List<LinkedNodeBuilder> _variantField_2;
   LinkedNodeBuilder _variantField_11;
   List<LinkedNodeBuilder> _variantField_4;
@@ -4657,7 +4658,6 @@ class LinkedNodeBuilder extends Object
   int _variantField_17;
   int _variantField_18;
   int _variantField_19;
-  LinkedNodeTypeBuilder _variantField_24;
   bool _variantField_27;
   LinkedNodeBuilder _variantField_9;
   LinkedNodeBuilder _variantField_12;
@@ -4681,6 +4681,78 @@ class LinkedNodeBuilder extends Object
   String _variantField_20;
   String _variantField_22;
   LinkedNodeVariablesDeclarationBuilder _variantField_32;
+
+  @override
+  LinkedNodeTypeBuilder get actualReturnType {
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericFunctionType ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get actualType {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get binaryExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get invocationExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
+        kind == idl.LinkedNodeKind.methodInvocation);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get typeName_type {
+    assert(kind == idl.LinkedNodeKind.typeName);
+    return _variantField_24;
+  }
+
+  /// The explicit or inferred return type of a function typed node.
+  set actualReturnType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericFunctionType ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_24 = value;
+  }
+
+  set actualType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_24 = value;
+  }
+
+  set binaryExpression_invokeType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_24 = value;
+  }
+
+  set invocationExpression_invokeType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
+        kind == idl.LinkedNodeKind.methodInvocation);
+    _variantField_24 = value;
+  }
+
+  set typeName_type(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.typeName);
+    _variantField_24 = value;
+  }
 
   @override
   List<LinkedNodeBuilder> get adjacentStrings_strings {
@@ -9071,131 +9143,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  LinkedNodeTypeBuilder get binaryExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get fieldFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
-        kind == idl.LinkedNodeKind.functionExpression);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get functionTypeAlias_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get functionTypedFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get genericFunctionType_returnType2 {
-    assert(kind == idl.LinkedNodeKind.genericFunctionType);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get invocationExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
-        kind == idl.LinkedNodeKind.methodInvocation);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get methodDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get simpleFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get typeName_type {
-    assert(kind == idl.LinkedNodeKind.typeName);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get variableDeclaration_type2 {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
-    return _variantField_24;
-  }
-
-  set binaryExpression_invokeType(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    _variantField_24 = value;
-  }
-
-  set fieldFormalParameter_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
-    _variantField_24 = value;
-  }
-
-  set functionDeclaration_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
-        kind == idl.LinkedNodeKind.functionExpression);
-    _variantField_24 = value;
-  }
-
-  set functionTypeAlias_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
-    _variantField_24 = value;
-  }
-
-  set functionTypedFormalParameter_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
-    _variantField_24 = value;
-  }
-
-  set genericFunctionType_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.genericFunctionType);
-    _variantField_24 = value;
-  }
-
-  set invocationExpression_invokeType(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
-        kind == idl.LinkedNodeKind.methodInvocation);
-    _variantField_24 = value;
-  }
-
-  set methodDeclaration_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
-    _variantField_24 = value;
-  }
-
-  set simpleFormalParameter_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
-    _variantField_24 = value;
-  }
-
-  set typeName_type(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.typeName);
-    _variantField_24 = value;
-  }
-
-  set variableDeclaration_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
-    _variantField_24 = value;
-  }
-
-  @override
   bool get booleanLiteral_value {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     return _variantField_27 ??= false;
@@ -9882,6 +9829,279 @@ class LinkedNodeBuilder extends Object
     _variantField_32 = value;
   }
 
+  LinkedNodeBuilder.functionDeclaration({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder functionDeclaration_functionExpression,
+    int functionDeclaration_externalKeyword,
+    LinkedNodeBuilder functionDeclaration_returnType,
+    int functionDeclaration_propertyKeyword,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeBuilder namedCompilationUnitMember_name,
+  })  : _kind = idl.LinkedNodeKind.functionDeclaration,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = functionDeclaration_functionExpression,
+        _variantField_15 = functionDeclaration_externalKeyword,
+        _variantField_7 = functionDeclaration_returnType,
+        _variantField_16 = functionDeclaration_propertyKeyword,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_14 = namedCompilationUnitMember_name;
+
+  LinkedNodeBuilder.functionExpression({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder functionExpression_body,
+    LinkedNodeBuilder functionExpression_formalParameters,
+    LinkedNodeBuilder functionExpression_typeParameters,
+  })  : _kind = idl.LinkedNodeKind.functionExpression,
+        _variantField_24 = actualReturnType,
+        _variantField_6 = functionExpression_body,
+        _variantField_7 = functionExpression_formalParameters,
+        _variantField_8 = functionExpression_typeParameters;
+
+  LinkedNodeBuilder.functionTypeAlias({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder functionTypeAlias_formalParameters,
+    LinkedNodeBuilder functionTypeAlias_returnType,
+    LinkedNodeBuilder functionTypeAlias_typeParameters,
+    int typeAlias_typedefKeyword,
+    int typeAlias_semicolon,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
+  })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = functionTypeAlias_formalParameters,
+        _variantField_7 = functionTypeAlias_returnType,
+        _variantField_8 = functionTypeAlias_typeParameters,
+        _variantField_18 = typeAlias_typedefKeyword,
+        _variantField_19 = typeAlias_semicolon,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
+
+  LinkedNodeBuilder.genericFunctionType({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder genericFunctionType_typeParameters,
+    int genericFunctionType_functionKeyword,
+    LinkedNodeBuilder genericFunctionType_returnType,
+    LinkedNodeBuilder genericFunctionType_formalParameters,
+    int genericFunctionType_question,
+    LinkedNodeTypeBuilder genericFunctionType_type,
+  })  : _kind = idl.LinkedNodeKind.genericFunctionType,
+        _variantField_24 = actualReturnType,
+        _variantField_6 = genericFunctionType_typeParameters,
+        _variantField_15 = genericFunctionType_functionKeyword,
+        _variantField_7 = genericFunctionType_returnType,
+        _variantField_8 = genericFunctionType_formalParameters,
+        _variantField_16 = genericFunctionType_question,
+        _variantField_25 = genericFunctionType_type;
+
+  LinkedNodeBuilder.methodDeclaration({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder methodDeclaration_body,
+    int methodDeclaration_externalKeyword,
+    LinkedNodeBuilder methodDeclaration_formalParameters,
+    LinkedNodeBuilder methodDeclaration_returnType,
+    int methodDeclaration_modifierKeyword,
+    int methodDeclaration_operatorKeyword,
+    int methodDeclaration_propertyKeyword,
+    int methodDeclaration_actualProperty,
+    LinkedNodeBuilder methodDeclaration_typeParameters,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeBuilder methodDeclaration_name,
+  })  : _kind = idl.LinkedNodeKind.methodDeclaration,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = methodDeclaration_body,
+        _variantField_15 = methodDeclaration_externalKeyword,
+        _variantField_7 = methodDeclaration_formalParameters,
+        _variantField_8 = methodDeclaration_returnType,
+        _variantField_16 = methodDeclaration_modifierKeyword,
+        _variantField_17 = methodDeclaration_operatorKeyword,
+        _variantField_18 = methodDeclaration_propertyKeyword,
+        _variantField_19 = methodDeclaration_actualProperty,
+        _variantField_9 = methodDeclaration_typeParameters,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_10 = methodDeclaration_name;
+
+  LinkedNodeBuilder.fieldFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder fieldFormalParameter_type,
+    int fieldFormalParameter_keyword,
+    LinkedNodeBuilder fieldFormalParameter_typeParameters,
+    LinkedNodeBuilder fieldFormalParameter_formalParameters,
+    int fieldFormalParameter_period,
+    int fieldFormalParameter_thisKeyword,
+    int normalFormalParameter_covariantKeyword,
+    bool normalFormalParameter_isCovariant,
+    LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
+    idl.LinkedNodeFormalParameterKind formalParameter_kind,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = fieldFormalParameter_type,
+        _variantField_15 = fieldFormalParameter_keyword,
+        _variantField_7 = fieldFormalParameter_typeParameters,
+        _variantField_8 = fieldFormalParameter_formalParameters,
+        _variantField_16 = fieldFormalParameter_period,
+        _variantField_17 = fieldFormalParameter_thisKeyword,
+        _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_26 = formalParameter_kind,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.functionTypedFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder functionTypedFormalParameter_formalParameters,
+    LinkedNodeBuilder functionTypedFormalParameter_returnType,
+    LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
+    int normalFormalParameter_covariantKeyword,
+    bool normalFormalParameter_isCovariant,
+    LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
+    idl.LinkedNodeFormalParameterKind formalParameter_kind,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = functionTypedFormalParameter_formalParameters,
+        _variantField_7 = functionTypedFormalParameter_returnType,
+        _variantField_8 = functionTypedFormalParameter_typeParameters,
+        _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_26 = formalParameter_kind,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.simpleFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder simpleFormalParameter_type,
+    int simpleFormalParameter_keyword,
+    int normalFormalParameter_covariantKeyword,
+    bool normalFormalParameter_isCovariant,
+    LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
+    idl.LinkedNodeFormalParameterKind formalParameter_kind,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = simpleFormalParameter_type,
+        _variantField_15 = simpleFormalParameter_keyword,
+        _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_26 = formalParameter_kind,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.variableDeclaration({
+    LinkedNodeTypeBuilder actualType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder variableDeclaration_initializer,
+    int variableDeclaration_equals,
+    LinkedNodeBuilder variableDeclaration_name,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeVariablesDeclarationBuilder variableDeclaration_declaration,
+  })  : _kind = idl.LinkedNodeKind.variableDeclaration,
+        _variantField_24 = actualType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = variableDeclaration_initializer,
+        _variantField_15 = variableDeclaration_equals,
+        _variantField_7 = variableDeclaration_name,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_32 = variableDeclaration_declaration;
+
+  LinkedNodeBuilder.binaryExpression({
+    LinkedNodeTypeBuilder binaryExpression_invokeType,
+    LinkedNodeBuilder binaryExpression_leftOperand,
+    int binaryExpression_element,
+    LinkedNodeBuilder binaryExpression_rightOperand,
+    int binaryExpression_operator,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.binaryExpression,
+        _variantField_24 = binaryExpression_invokeType,
+        _variantField_6 = binaryExpression_leftOperand,
+        _variantField_15 = binaryExpression_element,
+        _variantField_7 = binaryExpression_rightOperand,
+        _variantField_16 = binaryExpression_operator,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.functionExpressionInvocation({
+    LinkedNodeTypeBuilder invocationExpression_invokeType,
+    LinkedNodeBuilder functionExpressionInvocation_function,
+    LinkedNodeBuilder invocationExpression_typeArguments,
+    LinkedNodeTypeBuilder expression_type,
+    LinkedNodeBuilder invocationExpression_arguments,
+  })  : _kind = idl.LinkedNodeKind.functionExpressionInvocation,
+        _variantField_24 = invocationExpression_invokeType,
+        _variantField_6 = functionExpressionInvocation_function,
+        _variantField_12 = invocationExpression_typeArguments,
+        _variantField_25 = expression_type,
+        _variantField_14 = invocationExpression_arguments;
+
+  LinkedNodeBuilder.methodInvocation({
+    LinkedNodeTypeBuilder invocationExpression_invokeType,
+    LinkedNodeBuilder methodInvocation_methodName,
+    int methodInvocation_operator,
+    LinkedNodeBuilder methodInvocation_target,
+    LinkedNodeBuilder invocationExpression_typeArguments,
+    LinkedNodeTypeBuilder expression_type,
+    LinkedNodeBuilder invocationExpression_arguments,
+  })  : _kind = idl.LinkedNodeKind.methodInvocation,
+        _variantField_24 = invocationExpression_invokeType,
+        _variantField_6 = methodInvocation_methodName,
+        _variantField_15 = methodInvocation_operator,
+        _variantField_7 = methodInvocation_target,
+        _variantField_12 = invocationExpression_typeArguments,
+        _variantField_25 = expression_type,
+        _variantField_14 = invocationExpression_arguments;
+
+  LinkedNodeBuilder.typeName({
+    LinkedNodeTypeBuilder typeName_type,
+    LinkedNodeBuilder typeName_name,
+    int typeName_question,
+    LinkedNodeBuilder typeName_typeArguments,
+  })  : _kind = idl.LinkedNodeKind.typeName,
+        _variantField_24 = typeName_type,
+        _variantField_6 = typeName_name,
+        _variantField_15 = typeName_question,
+        _variantField_7 = typeName_typeArguments;
+
   LinkedNodeBuilder.adjacentStrings({
     List<LinkedNodeBuilder> adjacentStrings_strings,
     LinkedNodeTypeBuilder expression_type,
@@ -10307,56 +10527,6 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = fieldDeclaration_semicolon,
         _variantField_17 = fieldDeclaration_staticKeyword;
 
-  LinkedNodeBuilder.functionDeclaration({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder functionDeclaration_functionExpression,
-    int functionDeclaration_externalKeyword,
-    LinkedNodeBuilder functionDeclaration_returnType,
-    int functionDeclaration_propertyKeyword,
-    LinkedNodeTypeBuilder functionDeclaration_returnType2,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeBuilder namedCompilationUnitMember_name,
-  })  : _kind = idl.LinkedNodeKind.functionDeclaration,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = functionDeclaration_functionExpression,
-        _variantField_15 = functionDeclaration_externalKeyword,
-        _variantField_7 = functionDeclaration_returnType,
-        _variantField_16 = functionDeclaration_propertyKeyword,
-        _variantField_24 = functionDeclaration_returnType2,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
-
-  LinkedNodeBuilder.functionTypeAlias({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder functionTypeAlias_formalParameters,
-    LinkedNodeBuilder functionTypeAlias_returnType,
-    LinkedNodeBuilder functionTypeAlias_typeParameters,
-    int typeAlias_typedefKeyword,
-    int typeAlias_semicolon,
-    LinkedNodeTypeBuilder functionTypeAlias_returnType2,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeBuilder namedCompilationUnitMember_name,
-    bool simplyBoundable_isSimplyBounded,
-  })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = functionTypeAlias_formalParameters,
-        _variantField_7 = functionTypeAlias_returnType,
-        _variantField_8 = functionTypeAlias_typeParameters,
-        _variantField_18 = typeAlias_typedefKeyword,
-        _variantField_19 = typeAlias_semicolon,
-        _variantField_24 = functionTypeAlias_returnType2,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name,
-        _variantField_31 = simplyBoundable_isSimplyBounded;
-
   LinkedNodeBuilder.genericTypeAlias({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -10394,39 +10564,6 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = libraryDirective_name,
         _variantField_18 = directive_keyword,
         _variantField_33 = directive_semicolon;
-
-  LinkedNodeBuilder.methodDeclaration({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder methodDeclaration_body,
-    int methodDeclaration_externalKeyword,
-    LinkedNodeBuilder methodDeclaration_formalParameters,
-    LinkedNodeBuilder methodDeclaration_returnType,
-    int methodDeclaration_modifierKeyword,
-    int methodDeclaration_operatorKeyword,
-    int methodDeclaration_propertyKeyword,
-    int methodDeclaration_actualProperty,
-    LinkedNodeTypeBuilder methodDeclaration_returnType2,
-    LinkedNodeBuilder methodDeclaration_typeParameters,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeBuilder methodDeclaration_name,
-  })  : _kind = idl.LinkedNodeKind.methodDeclaration,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = methodDeclaration_body,
-        _variantField_15 = methodDeclaration_externalKeyword,
-        _variantField_7 = methodDeclaration_formalParameters,
-        _variantField_8 = methodDeclaration_returnType,
-        _variantField_16 = methodDeclaration_modifierKeyword,
-        _variantField_17 = methodDeclaration_operatorKeyword,
-        _variantField_18 = methodDeclaration_propertyKeyword,
-        _variantField_19 = methodDeclaration_actualProperty,
-        _variantField_24 = methodDeclaration_returnType2,
-        _variantField_9 = methodDeclaration_typeParameters,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_10 = methodDeclaration_name;
 
   LinkedNodeBuilder.mixinDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10522,112 +10659,6 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = typeParameter_name,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset;
-
-  LinkedNodeBuilder.variableDeclaration({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder variableDeclaration_initializer,
-    int variableDeclaration_equals,
-    LinkedNodeBuilder variableDeclaration_name,
-    LinkedNodeTypeBuilder variableDeclaration_type2,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeVariablesDeclarationBuilder variableDeclaration_declaration,
-  })  : _kind = idl.LinkedNodeKind.variableDeclaration,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = variableDeclaration_initializer,
-        _variantField_15 = variableDeclaration_equals,
-        _variantField_7 = variableDeclaration_name,
-        _variantField_24 = variableDeclaration_type2,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_32 = variableDeclaration_declaration;
-
-  LinkedNodeBuilder.fieldFormalParameter({
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder fieldFormalParameter_type,
-    int fieldFormalParameter_keyword,
-    LinkedNodeBuilder fieldFormalParameter_typeParameters,
-    LinkedNodeBuilder fieldFormalParameter_formalParameters,
-    int fieldFormalParameter_period,
-    int fieldFormalParameter_thisKeyword,
-    int normalFormalParameter_covariantKeyword,
-    LinkedNodeTypeBuilder fieldFormalParameter_type2,
-    bool normalFormalParameter_isCovariant,
-    LinkedNodeBuilder normalFormalParameter_identifier,
-    int codeLength,
-    int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = fieldFormalParameter_type,
-        _variantField_15 = fieldFormalParameter_keyword,
-        _variantField_7 = fieldFormalParameter_typeParameters,
-        _variantField_8 = fieldFormalParameter_formalParameters,
-        _variantField_16 = fieldFormalParameter_period,
-        _variantField_17 = fieldFormalParameter_thisKeyword,
-        _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_24 = fieldFormalParameter_type2,
-        _variantField_27 = normalFormalParameter_isCovariant,
-        _variantField_12 = normalFormalParameter_identifier,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
-        _variantField_14 = normalFormalParameter_comment;
-
-  LinkedNodeBuilder.functionTypedFormalParameter({
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder functionTypedFormalParameter_formalParameters,
-    LinkedNodeBuilder functionTypedFormalParameter_returnType,
-    LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
-    int normalFormalParameter_covariantKeyword,
-    LinkedNodeTypeBuilder functionTypedFormalParameter_type2,
-    bool normalFormalParameter_isCovariant,
-    LinkedNodeBuilder normalFormalParameter_identifier,
-    int codeLength,
-    int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = functionTypedFormalParameter_formalParameters,
-        _variantField_7 = functionTypedFormalParameter_returnType,
-        _variantField_8 = functionTypedFormalParameter_typeParameters,
-        _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_24 = functionTypedFormalParameter_type2,
-        _variantField_27 = normalFormalParameter_isCovariant,
-        _variantField_12 = normalFormalParameter_identifier,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
-        _variantField_14 = normalFormalParameter_comment;
-
-  LinkedNodeBuilder.simpleFormalParameter({
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder simpleFormalParameter_type,
-    int simpleFormalParameter_keyword,
-    int normalFormalParameter_covariantKeyword,
-    LinkedNodeTypeBuilder simpleFormalParameter_type2,
-    bool normalFormalParameter_isCovariant,
-    LinkedNodeBuilder normalFormalParameter_identifier,
-    int codeLength,
-    int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = simpleFormalParameter_type,
-        _variantField_15 = simpleFormalParameter_keyword,
-        _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_24 = simpleFormalParameter_type2,
-        _variantField_27 = normalFormalParameter_isCovariant,
-        _variantField_12 = normalFormalParameter_identifier,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
-        _variantField_14 = normalFormalParameter_comment;
 
   LinkedNodeBuilder.switchCase({
     List<LinkedNodeBuilder> switchMember_statements,
@@ -10729,21 +10760,6 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.awaitExpression,
         _variantField_6 = awaitExpression_expression,
         _variantField_15 = awaitExpression_awaitKeyword,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.binaryExpression({
-    LinkedNodeBuilder binaryExpression_leftOperand,
-    int binaryExpression_element,
-    LinkedNodeBuilder binaryExpression_rightOperand,
-    int binaryExpression_operator,
-    LinkedNodeTypeBuilder binaryExpression_invokeType,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.binaryExpression,
-        _variantField_6 = binaryExpression_leftOperand,
-        _variantField_15 = binaryExpression_element,
-        _variantField_7 = binaryExpression_rightOperand,
-        _variantField_16 = binaryExpression_operator,
-        _variantField_24 = binaryExpression_invokeType,
         _variantField_25 = expression_type;
 
   LinkedNodeBuilder.blockFunctionBody({
@@ -10986,47 +11002,6 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.functionDeclarationStatement,
         _variantField_6 = functionDeclarationStatement_functionDeclaration;
 
-  LinkedNodeBuilder.functionExpression({
-    LinkedNodeBuilder functionExpression_body,
-    LinkedNodeBuilder functionExpression_formalParameters,
-    LinkedNodeBuilder functionExpression_typeParameters,
-    LinkedNodeTypeBuilder functionDeclaration_returnType2,
-  })  : _kind = idl.LinkedNodeKind.functionExpression,
-        _variantField_6 = functionExpression_body,
-        _variantField_7 = functionExpression_formalParameters,
-        _variantField_8 = functionExpression_typeParameters,
-        _variantField_24 = functionDeclaration_returnType2;
-
-  LinkedNodeBuilder.functionExpressionInvocation({
-    LinkedNodeBuilder functionExpressionInvocation_function,
-    LinkedNodeTypeBuilder invocationExpression_invokeType,
-    LinkedNodeBuilder invocationExpression_typeArguments,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder invocationExpression_arguments,
-  })  : _kind = idl.LinkedNodeKind.functionExpressionInvocation,
-        _variantField_6 = functionExpressionInvocation_function,
-        _variantField_24 = invocationExpression_invokeType,
-        _variantField_12 = invocationExpression_typeArguments,
-        _variantField_25 = expression_type,
-        _variantField_14 = invocationExpression_arguments;
-
-  LinkedNodeBuilder.genericFunctionType({
-    LinkedNodeBuilder genericFunctionType_typeParameters,
-    int genericFunctionType_functionKeyword,
-    LinkedNodeBuilder genericFunctionType_returnType,
-    LinkedNodeBuilder genericFunctionType_formalParameters,
-    int genericFunctionType_question,
-    LinkedNodeTypeBuilder genericFunctionType_returnType2,
-    LinkedNodeTypeBuilder genericFunctionType_type,
-  })  : _kind = idl.LinkedNodeKind.genericFunctionType,
-        _variantField_6 = genericFunctionType_typeParameters,
-        _variantField_15 = genericFunctionType_functionKeyword,
-        _variantField_7 = genericFunctionType_returnType,
-        _variantField_8 = genericFunctionType_formalParameters,
-        _variantField_16 = genericFunctionType_question,
-        _variantField_24 = genericFunctionType_returnType2,
-        _variantField_25 = genericFunctionType_type;
-
   LinkedNodeBuilder.ifElement({
     LinkedNodeBuilder ifMixin_condition,
     int ifMixin_elseKeyword,
@@ -11128,23 +11103,6 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = mapLiteralEntry_key,
         _variantField_15 = mapLiteralEntry_separator,
         _variantField_7 = mapLiteralEntry_value;
-
-  LinkedNodeBuilder.methodInvocation({
-    LinkedNodeBuilder methodInvocation_methodName,
-    int methodInvocation_operator,
-    LinkedNodeBuilder methodInvocation_target,
-    LinkedNodeTypeBuilder invocationExpression_invokeType,
-    LinkedNodeBuilder invocationExpression_typeArguments,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder invocationExpression_arguments,
-  })  : _kind = idl.LinkedNodeKind.methodInvocation,
-        _variantField_6 = methodInvocation_methodName,
-        _variantField_15 = methodInvocation_operator,
-        _variantField_7 = methodInvocation_target,
-        _variantField_24 = invocationExpression_invokeType,
-        _variantField_12 = invocationExpression_typeArguments,
-        _variantField_25 = expression_type,
-        _variantField_14 = invocationExpression_arguments;
 
   LinkedNodeBuilder.namedExpression({
     LinkedNodeBuilder namedExpression_expression,
@@ -11276,17 +11234,6 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = throwExpression_expression,
         _variantField_15 = throwExpression_throwKeyword,
         _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.typeName({
-    LinkedNodeBuilder typeName_name,
-    int typeName_question,
-    LinkedNodeBuilder typeName_typeArguments,
-    LinkedNodeTypeBuilder typeName_type,
-  })  : _kind = idl.LinkedNodeKind.typeName,
-        _variantField_6 = typeName_name,
-        _variantField_15 = typeName_question,
-        _variantField_7 = typeName_typeArguments,
-        _variantField_24 = typeName_type;
 
   LinkedNodeBuilder.variableDeclarationStatement({
     LinkedNodeBuilder variableDeclarationStatement_variables,
@@ -11432,13 +11379,13 @@ class LinkedNodeBuilder extends Object
 
   /// Flush [informative] data recursively.
   void flushInformative() {
+    _variantField_24?.flushInformative();
     _variantField_2?.forEach((b) => b.flushInformative());
     _variantField_11?.flushInformative();
     _variantField_4?.forEach((b) => b.flushInformative());
     _variantField_6?.flushInformative();
     _variantField_7?.flushInformative();
     _variantField_8?.flushInformative();
-    _variantField_24?.flushInformative();
     _variantField_9?.flushInformative();
     _variantField_12?.flushInformative();
     _variantField_5?.forEach((b) => b.flushInformative());
@@ -11539,13 +11486,13 @@ class LinkedNodeBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_variantField_24;
     fb.Offset offset_variantField_2;
     fb.Offset offset_variantField_11;
     fb.Offset offset_variantField_4;
     fb.Offset offset_variantField_6;
     fb.Offset offset_variantField_7;
     fb.Offset offset_variantField_8;
-    fb.Offset offset_variantField_24;
     fb.Offset offset_variantField_9;
     fb.Offset offset_variantField_12;
     fb.Offset offset_variantField_5;
@@ -11560,6 +11507,9 @@ class LinkedNodeBuilder extends Object
     fb.Offset offset_variantField_20;
     fb.Offset offset_variantField_22;
     fb.Offset offset_variantField_32;
+    if (_variantField_24 != null) {
+      offset_variantField_24 = _variantField_24.finish(fbBuilder);
+    }
     if (!(_variantField_2 == null || _variantField_2.isEmpty)) {
       offset_variantField_2 = fbBuilder
           .writeList(_variantField_2.map((b) => b.finish(fbBuilder)).toList());
@@ -11579,9 +11529,6 @@ class LinkedNodeBuilder extends Object
     }
     if (_variantField_8 != null) {
       offset_variantField_8 = _variantField_8.finish(fbBuilder);
-    }
-    if (_variantField_24 != null) {
-      offset_variantField_24 = _variantField_24.finish(fbBuilder);
     }
     if (_variantField_9 != null) {
       offset_variantField_9 = _variantField_9.finish(fbBuilder);
@@ -11628,6 +11575,9 @@ class LinkedNodeBuilder extends Object
       offset_variantField_32 = _variantField_32.finish(fbBuilder);
     }
     fbBuilder.startTable();
+    if (offset_variantField_24 != null) {
+      fbBuilder.addOffset(24, offset_variantField_24);
+    }
     if (offset_variantField_2 != null) {
       fbBuilder.addOffset(2, offset_variantField_2);
     }
@@ -11660,9 +11610,6 @@ class LinkedNodeBuilder extends Object
     }
     if (_variantField_19 != null && _variantField_19 != 0) {
       fbBuilder.addUint32(19, _variantField_19);
-    }
-    if (offset_variantField_24 != null) {
-      fbBuilder.addOffset(24, offset_variantField_24);
     }
     if (_variantField_27 == true) {
       fbBuilder.addBool(27, true);
@@ -11755,6 +11702,7 @@ class _LinkedNodeImpl extends Object
 
   _LinkedNodeImpl(this._bc, this._bcOffset);
 
+  idl.LinkedNodeType _variantField_24;
   List<idl.LinkedNode> _variantField_2;
   idl.LinkedNode _variantField_11;
   List<idl.LinkedNode> _variantField_4;
@@ -11766,7 +11714,6 @@ class _LinkedNodeImpl extends Object
   int _variantField_17;
   int _variantField_18;
   int _variantField_19;
-  idl.LinkedNodeType _variantField_24;
   bool _variantField_27;
   idl.LinkedNode _variantField_9;
   idl.LinkedNode _variantField_12;
@@ -11790,6 +11737,54 @@ class _LinkedNodeImpl extends Object
   String _variantField_20;
   String _variantField_22;
   idl.LinkedNodeVariablesDeclaration _variantField_32;
+
+  @override
+  idl.LinkedNodeType get actualReturnType {
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericFunctionType ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get actualType {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get binaryExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get invocationExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
+        kind == idl.LinkedNodeKind.methodInvocation);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get typeName_type {
+    assert(kind == idl.LinkedNodeKind.typeName);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
 
   @override
   List<idl.LinkedNode> get adjacentStrings_strings {
@@ -14833,96 +14828,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  idl.LinkedNodeType get binaryExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get fieldFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
-        kind == idl.LinkedNodeKind.functionExpression);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get functionTypeAlias_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get functionTypedFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get genericFunctionType_returnType2 {
-    assert(kind == idl.LinkedNodeKind.genericFunctionType);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get invocationExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
-        kind == idl.LinkedNodeKind.methodInvocation);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get methodDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get simpleFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get typeName_type {
-    assert(kind == idl.LinkedNodeKind.typeName);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get variableDeclaration_type2 {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
   bool get booleanLiteral_value {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     _variantField_27 ??=
@@ -15389,6 +15294,322 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
     if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
     if (kind != idl.LinkedNodeKind.adjacentStrings)
       _result["kind"] = kind.toString().split('.')[1];
+    if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (functionDeclaration_functionExpression != null)
+        _result["functionDeclaration_functionExpression"] =
+            functionDeclaration_functionExpression.toJson();
+      if (functionDeclaration_externalKeyword != 0)
+        _result["functionDeclaration_externalKeyword"] =
+            functionDeclaration_externalKeyword;
+      if (functionDeclaration_returnType != null)
+        _result["functionDeclaration_returnType"] =
+            functionDeclaration_returnType.toJson();
+      if (functionDeclaration_propertyKeyword != 0)
+        _result["functionDeclaration_propertyKeyword"] =
+            functionDeclaration_propertyKeyword;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (namedCompilationUnitMember_name != null)
+        _result["namedCompilationUnitMember_name"] =
+            namedCompilationUnitMember_name.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionExpression) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (functionExpression_body != null)
+        _result["functionExpression_body"] = functionExpression_body.toJson();
+      if (functionExpression_formalParameters != null)
+        _result["functionExpression_formalParameters"] =
+            functionExpression_formalParameters.toJson();
+      if (functionExpression_typeParameters != null)
+        _result["functionExpression_typeParameters"] =
+            functionExpression_typeParameters.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (functionTypeAlias_formalParameters != null)
+        _result["functionTypeAlias_formalParameters"] =
+            functionTypeAlias_formalParameters.toJson();
+      if (functionTypeAlias_returnType != null)
+        _result["functionTypeAlias_returnType"] =
+            functionTypeAlias_returnType.toJson();
+      if (functionTypeAlias_typeParameters != null)
+        _result["functionTypeAlias_typeParameters"] =
+            functionTypeAlias_typeParameters.toJson();
+      if (typeAlias_typedefKeyword != 0)
+        _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
+      if (typeAlias_semicolon != 0)
+        _result["typeAlias_semicolon"] = typeAlias_semicolon;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (namedCompilationUnitMember_name != null)
+        _result["namedCompilationUnitMember_name"] =
+            namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
+    }
+    if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (genericFunctionType_typeParameters != null)
+        _result["genericFunctionType_typeParameters"] =
+            genericFunctionType_typeParameters.toJson();
+      if (genericFunctionType_functionKeyword != 0)
+        _result["genericFunctionType_functionKeyword"] =
+            genericFunctionType_functionKeyword;
+      if (genericFunctionType_returnType != null)
+        _result["genericFunctionType_returnType"] =
+            genericFunctionType_returnType.toJson();
+      if (genericFunctionType_formalParameters != null)
+        _result["genericFunctionType_formalParameters"] =
+            genericFunctionType_formalParameters.toJson();
+      if (genericFunctionType_question != 0)
+        _result["genericFunctionType_question"] = genericFunctionType_question;
+      if (genericFunctionType_type != null)
+        _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (methodDeclaration_body != null)
+        _result["methodDeclaration_body"] = methodDeclaration_body.toJson();
+      if (methodDeclaration_externalKeyword != 0)
+        _result["methodDeclaration_externalKeyword"] =
+            methodDeclaration_externalKeyword;
+      if (methodDeclaration_formalParameters != null)
+        _result["methodDeclaration_formalParameters"] =
+            methodDeclaration_formalParameters.toJson();
+      if (methodDeclaration_returnType != null)
+        _result["methodDeclaration_returnType"] =
+            methodDeclaration_returnType.toJson();
+      if (methodDeclaration_modifierKeyword != 0)
+        _result["methodDeclaration_modifierKeyword"] =
+            methodDeclaration_modifierKeyword;
+      if (methodDeclaration_operatorKeyword != 0)
+        _result["methodDeclaration_operatorKeyword"] =
+            methodDeclaration_operatorKeyword;
+      if (methodDeclaration_propertyKeyword != 0)
+        _result["methodDeclaration_propertyKeyword"] =
+            methodDeclaration_propertyKeyword;
+      if (methodDeclaration_actualProperty != 0)
+        _result["methodDeclaration_actualProperty"] =
+            methodDeclaration_actualProperty;
+      if (methodDeclaration_typeParameters != null)
+        _result["methodDeclaration_typeParameters"] =
+            methodDeclaration_typeParameters.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (methodDeclaration_name != null)
+        _result["methodDeclaration_name"] = methodDeclaration_name.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (fieldFormalParameter_type != null)
+        _result["fieldFormalParameter_type"] =
+            fieldFormalParameter_type.toJson();
+      if (fieldFormalParameter_keyword != 0)
+        _result["fieldFormalParameter_keyword"] = fieldFormalParameter_keyword;
+      if (fieldFormalParameter_typeParameters != null)
+        _result["fieldFormalParameter_typeParameters"] =
+            fieldFormalParameter_typeParameters.toJson();
+      if (fieldFormalParameter_formalParameters != null)
+        _result["fieldFormalParameter_formalParameters"] =
+            fieldFormalParameter_formalParameters.toJson();
+      if (fieldFormalParameter_period != 0)
+        _result["fieldFormalParameter_period"] = fieldFormalParameter_period;
+      if (fieldFormalParameter_thisKeyword != 0)
+        _result["fieldFormalParameter_thisKeyword"] =
+            fieldFormalParameter_thisKeyword;
+      if (normalFormalParameter_covariantKeyword != 0)
+        _result["normalFormalParameter_covariantKeyword"] =
+            normalFormalParameter_covariantKeyword;
+      if (normalFormalParameter_isCovariant != false)
+        _result["normalFormalParameter_isCovariant"] =
+            normalFormalParameter_isCovariant;
+      if (normalFormalParameter_identifier != null)
+        _result["normalFormalParameter_identifier"] =
+            normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+        _result["formalParameter_kind"] =
+            formalParameter_kind.toString().split('.')[1];
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (functionTypedFormalParameter_formalParameters != null)
+        _result["functionTypedFormalParameter_formalParameters"] =
+            functionTypedFormalParameter_formalParameters.toJson();
+      if (functionTypedFormalParameter_returnType != null)
+        _result["functionTypedFormalParameter_returnType"] =
+            functionTypedFormalParameter_returnType.toJson();
+      if (functionTypedFormalParameter_typeParameters != null)
+        _result["functionTypedFormalParameter_typeParameters"] =
+            functionTypedFormalParameter_typeParameters.toJson();
+      if (normalFormalParameter_covariantKeyword != 0)
+        _result["normalFormalParameter_covariantKeyword"] =
+            normalFormalParameter_covariantKeyword;
+      if (normalFormalParameter_isCovariant != false)
+        _result["normalFormalParameter_isCovariant"] =
+            normalFormalParameter_isCovariant;
+      if (normalFormalParameter_identifier != null)
+        _result["normalFormalParameter_identifier"] =
+            normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+        _result["formalParameter_kind"] =
+            formalParameter_kind.toString().split('.')[1];
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (simpleFormalParameter_type != null)
+        _result["simpleFormalParameter_type"] =
+            simpleFormalParameter_type.toJson();
+      if (simpleFormalParameter_keyword != 0)
+        _result["simpleFormalParameter_keyword"] =
+            simpleFormalParameter_keyword;
+      if (normalFormalParameter_covariantKeyword != 0)
+        _result["normalFormalParameter_covariantKeyword"] =
+            normalFormalParameter_covariantKeyword;
+      if (normalFormalParameter_isCovariant != false)
+        _result["normalFormalParameter_isCovariant"] =
+            normalFormalParameter_isCovariant;
+      if (normalFormalParameter_identifier != null)
+        _result["normalFormalParameter_identifier"] =
+            normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+        _result["formalParameter_kind"] =
+            formalParameter_kind.toString().split('.')[1];
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (variableDeclaration_initializer != null)
+        _result["variableDeclaration_initializer"] =
+            variableDeclaration_initializer.toJson();
+      if (variableDeclaration_equals != 0)
+        _result["variableDeclaration_equals"] = variableDeclaration_equals;
+      if (variableDeclaration_name != null)
+        _result["variableDeclaration_name"] = variableDeclaration_name.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (variableDeclaration_declaration != null)
+        _result["variableDeclaration_declaration"] =
+            variableDeclaration_declaration.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.binaryExpression) {
+      if (binaryExpression_invokeType != null)
+        _result["binaryExpression_invokeType"] =
+            binaryExpression_invokeType.toJson();
+      if (binaryExpression_leftOperand != null)
+        _result["binaryExpression_leftOperand"] =
+            binaryExpression_leftOperand.toJson();
+      if (binaryExpression_element != 0)
+        _result["binaryExpression_element"] = binaryExpression_element;
+      if (binaryExpression_rightOperand != null)
+        _result["binaryExpression_rightOperand"] =
+            binaryExpression_rightOperand.toJson();
+      if (binaryExpression_operator != 0)
+        _result["binaryExpression_operator"] = binaryExpression_operator;
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      if (invocationExpression_invokeType != null)
+        _result["invocationExpression_invokeType"] =
+            invocationExpression_invokeType.toJson();
+      if (functionExpressionInvocation_function != null)
+        _result["functionExpressionInvocation_function"] =
+            functionExpressionInvocation_function.toJson();
+      if (invocationExpression_typeArguments != null)
+        _result["invocationExpression_typeArguments"] =
+            invocationExpression_typeArguments.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (invocationExpression_arguments != null)
+        _result["invocationExpression_arguments"] =
+            invocationExpression_arguments.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.methodInvocation) {
+      if (invocationExpression_invokeType != null)
+        _result["invocationExpression_invokeType"] =
+            invocationExpression_invokeType.toJson();
+      if (methodInvocation_methodName != null)
+        _result["methodInvocation_methodName"] =
+            methodInvocation_methodName.toJson();
+      if (methodInvocation_operator != 0)
+        _result["methodInvocation_operator"] = methodInvocation_operator;
+      if (methodInvocation_target != null)
+        _result["methodInvocation_target"] = methodInvocation_target.toJson();
+      if (invocationExpression_typeArguments != null)
+        _result["invocationExpression_typeArguments"] =
+            invocationExpression_typeArguments.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (invocationExpression_arguments != null)
+        _result["invocationExpression_arguments"] =
+            invocationExpression_arguments.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.typeName) {
+      if (typeName_type != null)
+        _result["typeName_type"] = typeName_type.toJson();
+      if (typeName_name != null)
+        _result["typeName_name"] = typeName_name.toJson();
+      if (typeName_question != 0)
+        _result["typeName_question"] = typeName_question;
+      if (typeName_typeArguments != null)
+        _result["typeName_typeArguments"] = typeName_typeArguments.toJson();
+    }
     if (kind == idl.LinkedNodeKind.adjacentStrings) {
       if (adjacentStrings_strings.isNotEmpty)
         _result["adjacentStrings_strings"] =
@@ -15900,64 +16121,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["fieldDeclaration_staticKeyword"] =
             fieldDeclaration_staticKeyword;
     }
-    if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionDeclaration_functionExpression != null)
-        _result["functionDeclaration_functionExpression"] =
-            functionDeclaration_functionExpression.toJson();
-      if (functionDeclaration_externalKeyword != 0)
-        _result["functionDeclaration_externalKeyword"] =
-            functionDeclaration_externalKeyword;
-      if (functionDeclaration_returnType != null)
-        _result["functionDeclaration_returnType"] =
-            functionDeclaration_returnType.toJson();
-      if (functionDeclaration_propertyKeyword != 0)
-        _result["functionDeclaration_propertyKeyword"] =
-            functionDeclaration_propertyKeyword;
-      if (functionDeclaration_returnType2 != null)
-        _result["functionDeclaration_returnType2"] =
-            functionDeclaration_returnType2.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (namedCompilationUnitMember_name != null)
-        _result["namedCompilationUnitMember_name"] =
-            namedCompilationUnitMember_name.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionTypeAlias_formalParameters != null)
-        _result["functionTypeAlias_formalParameters"] =
-            functionTypeAlias_formalParameters.toJson();
-      if (functionTypeAlias_returnType != null)
-        _result["functionTypeAlias_returnType"] =
-            functionTypeAlias_returnType.toJson();
-      if (functionTypeAlias_typeParameters != null)
-        _result["functionTypeAlias_typeParameters"] =
-            functionTypeAlias_typeParameters.toJson();
-      if (typeAlias_typedefKeyword != 0)
-        _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
-      if (typeAlias_semicolon != 0)
-        _result["typeAlias_semicolon"] = typeAlias_semicolon;
-      if (functionTypeAlias_returnType2 != null)
-        _result["functionTypeAlias_returnType2"] =
-            functionTypeAlias_returnType2.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (namedCompilationUnitMember_name != null)
-        _result["namedCompilationUnitMember_name"] =
-            namedCompilationUnitMember_name.toJson();
-      if (simplyBoundable_isSimplyBounded != false)
-        _result["simplyBoundable_isSimplyBounded"] =
-            simplyBoundable_isSimplyBounded;
-    }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
       if (annotatedNode_comment != null)
         _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
@@ -15997,46 +16160,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["directive_keyword"] = directive_keyword;
       if (directive_semicolon != 0)
         _result["directive_semicolon"] = directive_semicolon;
-    }
-    if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (methodDeclaration_body != null)
-        _result["methodDeclaration_body"] = methodDeclaration_body.toJson();
-      if (methodDeclaration_externalKeyword != 0)
-        _result["methodDeclaration_externalKeyword"] =
-            methodDeclaration_externalKeyword;
-      if (methodDeclaration_formalParameters != null)
-        _result["methodDeclaration_formalParameters"] =
-            methodDeclaration_formalParameters.toJson();
-      if (methodDeclaration_returnType != null)
-        _result["methodDeclaration_returnType"] =
-            methodDeclaration_returnType.toJson();
-      if (methodDeclaration_modifierKeyword != 0)
-        _result["methodDeclaration_modifierKeyword"] =
-            methodDeclaration_modifierKeyword;
-      if (methodDeclaration_operatorKeyword != 0)
-        _result["methodDeclaration_operatorKeyword"] =
-            methodDeclaration_operatorKeyword;
-      if (methodDeclaration_propertyKeyword != 0)
-        _result["methodDeclaration_propertyKeyword"] =
-            methodDeclaration_propertyKeyword;
-      if (methodDeclaration_actualProperty != 0)
-        _result["methodDeclaration_actualProperty"] =
-            methodDeclaration_actualProperty;
-      if (methodDeclaration_returnType2 != null)
-        _result["methodDeclaration_returnType2"] =
-            methodDeclaration_returnType2.toJson();
-      if (methodDeclaration_typeParameters != null)
-        _result["methodDeclaration_typeParameters"] =
-            methodDeclaration_typeParameters.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (methodDeclaration_name != null)
-        _result["methodDeclaration_name"] = methodDeclaration_name.toJson();
     }
     if (kind == idl.LinkedNodeKind.mixinDeclaration) {
       if (annotatedNode_comment != null)
@@ -16144,140 +16267,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeParameter_name"] = typeParameter_name.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (variableDeclaration_initializer != null)
-        _result["variableDeclaration_initializer"] =
-            variableDeclaration_initializer.toJson();
-      if (variableDeclaration_equals != 0)
-        _result["variableDeclaration_equals"] = variableDeclaration_equals;
-      if (variableDeclaration_name != null)
-        _result["variableDeclaration_name"] = variableDeclaration_name.toJson();
-      if (variableDeclaration_type2 != null)
-        _result["variableDeclaration_type2"] =
-            variableDeclaration_type2.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (variableDeclaration_declaration != null)
-        _result["variableDeclaration_declaration"] =
-            variableDeclaration_declaration.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (fieldFormalParameter_type != null)
-        _result["fieldFormalParameter_type"] =
-            fieldFormalParameter_type.toJson();
-      if (fieldFormalParameter_keyword != 0)
-        _result["fieldFormalParameter_keyword"] = fieldFormalParameter_keyword;
-      if (fieldFormalParameter_typeParameters != null)
-        _result["fieldFormalParameter_typeParameters"] =
-            fieldFormalParameter_typeParameters.toJson();
-      if (fieldFormalParameter_formalParameters != null)
-        _result["fieldFormalParameter_formalParameters"] =
-            fieldFormalParameter_formalParameters.toJson();
-      if (fieldFormalParameter_period != 0)
-        _result["fieldFormalParameter_period"] = fieldFormalParameter_period;
-      if (fieldFormalParameter_thisKeyword != 0)
-        _result["fieldFormalParameter_thisKeyword"] =
-            fieldFormalParameter_thisKeyword;
-      if (normalFormalParameter_covariantKeyword != 0)
-        _result["normalFormalParameter_covariantKeyword"] =
-            normalFormalParameter_covariantKeyword;
-      if (fieldFormalParameter_type2 != null)
-        _result["fieldFormalParameter_type2"] =
-            fieldFormalParameter_type2.toJson();
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
-      if (normalFormalParameter_identifier != null)
-        _result["normalFormalParameter_identifier"] =
-            normalFormalParameter_identifier.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (functionTypedFormalParameter_formalParameters != null)
-        _result["functionTypedFormalParameter_formalParameters"] =
-            functionTypedFormalParameter_formalParameters.toJson();
-      if (functionTypedFormalParameter_returnType != null)
-        _result["functionTypedFormalParameter_returnType"] =
-            functionTypedFormalParameter_returnType.toJson();
-      if (functionTypedFormalParameter_typeParameters != null)
-        _result["functionTypedFormalParameter_typeParameters"] =
-            functionTypedFormalParameter_typeParameters.toJson();
-      if (normalFormalParameter_covariantKeyword != 0)
-        _result["normalFormalParameter_covariantKeyword"] =
-            normalFormalParameter_covariantKeyword;
-      if (functionTypedFormalParameter_type2 != null)
-        _result["functionTypedFormalParameter_type2"] =
-            functionTypedFormalParameter_type2.toJson();
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
-      if (normalFormalParameter_identifier != null)
-        _result["normalFormalParameter_identifier"] =
-            normalFormalParameter_identifier.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (simpleFormalParameter_type != null)
-        _result["simpleFormalParameter_type"] =
-            simpleFormalParameter_type.toJson();
-      if (simpleFormalParameter_keyword != 0)
-        _result["simpleFormalParameter_keyword"] =
-            simpleFormalParameter_keyword;
-      if (normalFormalParameter_covariantKeyword != 0)
-        _result["normalFormalParameter_covariantKeyword"] =
-            normalFormalParameter_covariantKeyword;
-      if (simpleFormalParameter_type2 != null)
-        _result["simpleFormalParameter_type2"] =
-            simpleFormalParameter_type2.toJson();
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
-      if (normalFormalParameter_identifier != null)
-        _result["normalFormalParameter_identifier"] =
-            normalFormalParameter_identifier.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
     }
     if (kind == idl.LinkedNodeKind.switchCase) {
       if (switchMember_statements.isNotEmpty)
@@ -16388,23 +16377,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             awaitExpression_expression.toJson();
       if (awaitExpression_awaitKeyword != 0)
         _result["awaitExpression_awaitKeyword"] = awaitExpression_awaitKeyword;
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.binaryExpression) {
-      if (binaryExpression_leftOperand != null)
-        _result["binaryExpression_leftOperand"] =
-            binaryExpression_leftOperand.toJson();
-      if (binaryExpression_element != 0)
-        _result["binaryExpression_element"] = binaryExpression_element;
-      if (binaryExpression_rightOperand != null)
-        _result["binaryExpression_rightOperand"] =
-            binaryExpression_rightOperand.toJson();
-      if (binaryExpression_operator != 0)
-        _result["binaryExpression_operator"] = binaryExpression_operator;
-      if (binaryExpression_invokeType != null)
-        _result["binaryExpression_invokeType"] =
-            binaryExpression_invokeType.toJson();
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
@@ -16657,56 +16629,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["functionDeclarationStatement_functionDeclaration"] =
             functionDeclarationStatement_functionDeclaration.toJson();
     }
-    if (kind == idl.LinkedNodeKind.functionExpression) {
-      if (functionExpression_body != null)
-        _result["functionExpression_body"] = functionExpression_body.toJson();
-      if (functionExpression_formalParameters != null)
-        _result["functionExpression_formalParameters"] =
-            functionExpression_formalParameters.toJson();
-      if (functionExpression_typeParameters != null)
-        _result["functionExpression_typeParameters"] =
-            functionExpression_typeParameters.toJson();
-      if (functionDeclaration_returnType2 != null)
-        _result["functionDeclaration_returnType2"] =
-            functionDeclaration_returnType2.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
-      if (functionExpressionInvocation_function != null)
-        _result["functionExpressionInvocation_function"] =
-            functionExpressionInvocation_function.toJson();
-      if (invocationExpression_invokeType != null)
-        _result["invocationExpression_invokeType"] =
-            invocationExpression_invokeType.toJson();
-      if (invocationExpression_typeArguments != null)
-        _result["invocationExpression_typeArguments"] =
-            invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
-        _result["invocationExpression_arguments"] =
-            invocationExpression_arguments.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.genericFunctionType) {
-      if (genericFunctionType_typeParameters != null)
-        _result["genericFunctionType_typeParameters"] =
-            genericFunctionType_typeParameters.toJson();
-      if (genericFunctionType_functionKeyword != 0)
-        _result["genericFunctionType_functionKeyword"] =
-            genericFunctionType_functionKeyword;
-      if (genericFunctionType_returnType != null)
-        _result["genericFunctionType_returnType"] =
-            genericFunctionType_returnType.toJson();
-      if (genericFunctionType_formalParameters != null)
-        _result["genericFunctionType_formalParameters"] =
-            genericFunctionType_formalParameters.toJson();
-      if (genericFunctionType_question != 0)
-        _result["genericFunctionType_question"] = genericFunctionType_question;
-      if (genericFunctionType_returnType2 != null)
-        _result["genericFunctionType_returnType2"] =
-            genericFunctionType_returnType2.toJson();
-      if (genericFunctionType_type != null)
-        _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
-    }
     if (kind == idl.LinkedNodeKind.ifElement) {
       if (ifMixin_condition != null)
         _result["ifMixin_condition"] = ifMixin_condition.toJson();
@@ -16807,26 +16729,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["mapLiteralEntry_separator"] = mapLiteralEntry_separator;
       if (mapLiteralEntry_value != null)
         _result["mapLiteralEntry_value"] = mapLiteralEntry_value.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.methodInvocation) {
-      if (methodInvocation_methodName != null)
-        _result["methodInvocation_methodName"] =
-            methodInvocation_methodName.toJson();
-      if (methodInvocation_operator != 0)
-        _result["methodInvocation_operator"] = methodInvocation_operator;
-      if (methodInvocation_target != null)
-        _result["methodInvocation_target"] = methodInvocation_target.toJson();
-      if (invocationExpression_invokeType != null)
-        _result["invocationExpression_invokeType"] =
-            invocationExpression_invokeType.toJson();
-      if (invocationExpression_typeArguments != null)
-        _result["invocationExpression_typeArguments"] =
-            invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
-        _result["invocationExpression_arguments"] =
-            invocationExpression_arguments.toJson();
     }
     if (kind == idl.LinkedNodeKind.namedExpression) {
       if (namedExpression_expression != null)
@@ -16969,16 +16871,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.typeName) {
-      if (typeName_name != null)
-        _result["typeName_name"] = typeName_name.toJson();
-      if (typeName_question != 0)
-        _result["typeName_question"] = typeName_question;
-      if (typeName_typeArguments != null)
-        _result["typeName_typeArguments"] = typeName_typeArguments.toJson();
-      if (typeName_type != null)
-        _result["typeName_type"] = typeName_type.toJson();
-    }
     if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {
       if (variableDeclarationStatement_variables != null)
         _result["variableDeclarationStatement_variables"] =
@@ -17115,6 +17007,221 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
 
   @override
   Map<String, Object> toMap() {
+    if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "functionDeclaration_functionExpression":
+            functionDeclaration_functionExpression,
+        "functionDeclaration_externalKeyword":
+            functionDeclaration_externalKeyword,
+        "functionDeclaration_returnType": functionDeclaration_returnType,
+        "functionDeclaration_propertyKeyword":
+            functionDeclaration_propertyKeyword,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionExpression) {
+      return {
+        "actualReturnType": actualReturnType,
+        "functionExpression_body": functionExpression_body,
+        "functionExpression_formalParameters":
+            functionExpression_formalParameters,
+        "functionExpression_typeParameters": functionExpression_typeParameters,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "functionTypeAlias_formalParameters":
+            functionTypeAlias_formalParameters,
+        "functionTypeAlias_returnType": functionTypeAlias_returnType,
+        "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
+        "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
+        "typeAlias_semicolon": typeAlias_semicolon,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      return {
+        "actualReturnType": actualReturnType,
+        "genericFunctionType_typeParameters":
+            genericFunctionType_typeParameters,
+        "genericFunctionType_functionKeyword":
+            genericFunctionType_functionKeyword,
+        "genericFunctionType_returnType": genericFunctionType_returnType,
+        "genericFunctionType_formalParameters":
+            genericFunctionType_formalParameters,
+        "genericFunctionType_question": genericFunctionType_question,
+        "genericFunctionType_type": genericFunctionType_type,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "methodDeclaration_body": methodDeclaration_body,
+        "methodDeclaration_externalKeyword": methodDeclaration_externalKeyword,
+        "methodDeclaration_formalParameters":
+            methodDeclaration_formalParameters,
+        "methodDeclaration_returnType": methodDeclaration_returnType,
+        "methodDeclaration_modifierKeyword": methodDeclaration_modifierKeyword,
+        "methodDeclaration_operatorKeyword": methodDeclaration_operatorKeyword,
+        "methodDeclaration_propertyKeyword": methodDeclaration_propertyKeyword,
+        "methodDeclaration_actualProperty": methodDeclaration_actualProperty,
+        "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "methodDeclaration_name": methodDeclaration_name,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "fieldFormalParameter_type": fieldFormalParameter_type,
+        "fieldFormalParameter_keyword": fieldFormalParameter_keyword,
+        "fieldFormalParameter_typeParameters":
+            fieldFormalParameter_typeParameters,
+        "fieldFormalParameter_formalParameters":
+            fieldFormalParameter_formalParameters,
+        "fieldFormalParameter_period": fieldFormalParameter_period,
+        "fieldFormalParameter_thisKeyword": fieldFormalParameter_thisKeyword,
+        "normalFormalParameter_covariantKeyword":
+            normalFormalParameter_covariantKeyword,
+        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "formalParameter_kind": formalParameter_kind,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "functionTypedFormalParameter_formalParameters":
+            functionTypedFormalParameter_formalParameters,
+        "functionTypedFormalParameter_returnType":
+            functionTypedFormalParameter_returnType,
+        "functionTypedFormalParameter_typeParameters":
+            functionTypedFormalParameter_typeParameters,
+        "normalFormalParameter_covariantKeyword":
+            normalFormalParameter_covariantKeyword,
+        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "formalParameter_kind": formalParameter_kind,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "simpleFormalParameter_type": simpleFormalParameter_type,
+        "simpleFormalParameter_keyword": simpleFormalParameter_keyword,
+        "normalFormalParameter_covariantKeyword":
+            normalFormalParameter_covariantKeyword,
+        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "formalParameter_kind": formalParameter_kind,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      return {
+        "actualType": actualType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "variableDeclaration_initializer": variableDeclaration_initializer,
+        "variableDeclaration_equals": variableDeclaration_equals,
+        "variableDeclaration_name": variableDeclaration_name,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+        "variableDeclaration_declaration": variableDeclaration_declaration,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.binaryExpression) {
+      return {
+        "binaryExpression_invokeType": binaryExpression_invokeType,
+        "binaryExpression_leftOperand": binaryExpression_leftOperand,
+        "binaryExpression_element": binaryExpression_element,
+        "binaryExpression_rightOperand": binaryExpression_rightOperand,
+        "binaryExpression_operator": binaryExpression_operator,
+        "expression_type": expression_type,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      return {
+        "invocationExpression_invokeType": invocationExpression_invokeType,
+        "functionExpressionInvocation_function":
+            functionExpressionInvocation_function,
+        "invocationExpression_typeArguments":
+            invocationExpression_typeArguments,
+        "expression_type": expression_type,
+        "invocationExpression_arguments": invocationExpression_arguments,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.methodInvocation) {
+      return {
+        "invocationExpression_invokeType": invocationExpression_invokeType,
+        "methodInvocation_methodName": methodInvocation_methodName,
+        "methodInvocation_operator": methodInvocation_operator,
+        "methodInvocation_target": methodInvocation_target,
+        "invocationExpression_typeArguments":
+            invocationExpression_typeArguments,
+        "expression_type": expression_type,
+        "invocationExpression_arguments": invocationExpression_arguments,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.typeName) {
+      return {
+        "typeName_type": typeName_type,
+        "typeName_name": typeName_name,
+        "typeName_question": typeName_question,
+        "typeName_typeArguments": typeName_typeArguments,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
     if (kind == idl.LinkedNodeKind.adjacentStrings) {
       return {
         "adjacentStrings_strings": adjacentStrings_strings,
@@ -17482,44 +17589,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "kind": kind,
       };
     }
-    if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "functionDeclaration_functionExpression":
-            functionDeclaration_functionExpression,
-        "functionDeclaration_externalKeyword":
-            functionDeclaration_externalKeyword,
-        "functionDeclaration_returnType": functionDeclaration_returnType,
-        "functionDeclaration_propertyKeyword":
-            functionDeclaration_propertyKeyword,
-        "functionDeclaration_returnType2": functionDeclaration_returnType2,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "functionTypeAlias_formalParameters":
-            functionTypeAlias_formalParameters,
-        "functionTypeAlias_returnType": functionTypeAlias_returnType,
-        "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
-        "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
-        "typeAlias_semicolon": typeAlias_semicolon,
-        "functionTypeAlias_returnType2": functionTypeAlias_returnType2,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
-      };
-    }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
       return {
         "annotatedNode_comment": annotatedNode_comment,
@@ -17544,28 +17613,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "libraryDirective_name": libraryDirective_name,
         "directive_keyword": directive_keyword,
         "directive_semicolon": directive_semicolon,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "methodDeclaration_body": methodDeclaration_body,
-        "methodDeclaration_externalKeyword": methodDeclaration_externalKeyword,
-        "methodDeclaration_formalParameters":
-            methodDeclaration_formalParameters,
-        "methodDeclaration_returnType": methodDeclaration_returnType,
-        "methodDeclaration_modifierKeyword": methodDeclaration_modifierKeyword,
-        "methodDeclaration_operatorKeyword": methodDeclaration_operatorKeyword,
-        "methodDeclaration_propertyKeyword": methodDeclaration_propertyKeyword,
-        "methodDeclaration_actualProperty": methodDeclaration_actualProperty,
-        "methodDeclaration_returnType2": methodDeclaration_returnType2,
-        "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "methodDeclaration_name": methodDeclaration_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17644,86 +17691,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "typeParameter_name": typeParameter_name,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "variableDeclaration_initializer": variableDeclaration_initializer,
-        "variableDeclaration_equals": variableDeclaration_equals,
-        "variableDeclaration_name": variableDeclaration_name,
-        "variableDeclaration_type2": variableDeclaration_type2,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-        "variableDeclaration_declaration": variableDeclaration_declaration,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      return {
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "fieldFormalParameter_type": fieldFormalParameter_type,
-        "fieldFormalParameter_keyword": fieldFormalParameter_keyword,
-        "fieldFormalParameter_typeParameters":
-            fieldFormalParameter_typeParameters,
-        "fieldFormalParameter_formalParameters":
-            fieldFormalParameter_formalParameters,
-        "fieldFormalParameter_period": fieldFormalParameter_period,
-        "fieldFormalParameter_thisKeyword": fieldFormalParameter_thisKeyword,
-        "normalFormalParameter_covariantKeyword":
-            normalFormalParameter_covariantKeyword,
-        "fieldFormalParameter_type2": fieldFormalParameter_type2,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
-        "normalFormalParameter_identifier": normalFormalParameter_identifier,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      return {
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "functionTypedFormalParameter_formalParameters":
-            functionTypedFormalParameter_formalParameters,
-        "functionTypedFormalParameter_returnType":
-            functionTypedFormalParameter_returnType,
-        "functionTypedFormalParameter_typeParameters":
-            functionTypedFormalParameter_typeParameters,
-        "normalFormalParameter_covariantKeyword":
-            normalFormalParameter_covariantKeyword,
-        "functionTypedFormalParameter_type2":
-            functionTypedFormalParameter_type2,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
-        "normalFormalParameter_identifier": normalFormalParameter_identifier,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      return {
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "simpleFormalParameter_type": simpleFormalParameter_type,
-        "simpleFormalParameter_keyword": simpleFormalParameter_keyword,
-        "normalFormalParameter_covariantKeyword":
-            normalFormalParameter_covariantKeyword,
-        "simpleFormalParameter_type2": simpleFormalParameter_type2,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
-        "normalFormalParameter_identifier": normalFormalParameter_identifier,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17812,18 +17779,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "awaitExpression_expression": awaitExpression_expression,
         "awaitExpression_awaitKeyword": awaitExpression_awaitKeyword,
-        "expression_type": expression_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.binaryExpression) {
-      return {
-        "binaryExpression_leftOperand": binaryExpression_leftOperand,
-        "binaryExpression_element": binaryExpression_element,
-        "binaryExpression_rightOperand": binaryExpression_rightOperand,
-        "binaryExpression_operator": binaryExpression_operator,
-        "binaryExpression_invokeType": binaryExpression_invokeType,
         "expression_type": expression_type,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -18052,46 +18007,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "kind": kind,
       };
     }
-    if (kind == idl.LinkedNodeKind.functionExpression) {
-      return {
-        "functionExpression_body": functionExpression_body,
-        "functionExpression_formalParameters":
-            functionExpression_formalParameters,
-        "functionExpression_typeParameters": functionExpression_typeParameters,
-        "functionDeclaration_returnType2": functionDeclaration_returnType2,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
-      return {
-        "functionExpressionInvocation_function":
-            functionExpressionInvocation_function,
-        "invocationExpression_invokeType": invocationExpression_invokeType,
-        "invocationExpression_typeArguments":
-            invocationExpression_typeArguments,
-        "expression_type": expression_type,
-        "invocationExpression_arguments": invocationExpression_arguments,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.genericFunctionType) {
-      return {
-        "genericFunctionType_typeParameters":
-            genericFunctionType_typeParameters,
-        "genericFunctionType_functionKeyword":
-            genericFunctionType_functionKeyword,
-        "genericFunctionType_returnType": genericFunctionType_returnType,
-        "genericFunctionType_formalParameters":
-            genericFunctionType_formalParameters,
-        "genericFunctionType_question": genericFunctionType_question,
-        "genericFunctionType_returnType2": genericFunctionType_returnType2,
-        "genericFunctionType_type": genericFunctionType_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
     if (kind == idl.LinkedNodeKind.ifElement) {
       return {
         "ifMixin_condition": ifMixin_condition,
@@ -18182,20 +18097,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "mapLiteralEntry_key": mapLiteralEntry_key,
         "mapLiteralEntry_separator": mapLiteralEntry_separator,
         "mapLiteralEntry_value": mapLiteralEntry_value,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.methodInvocation) {
-      return {
-        "methodInvocation_methodName": methodInvocation_methodName,
-        "methodInvocation_operator": methodInvocation_operator,
-        "methodInvocation_target": methodInvocation_target,
-        "invocationExpression_invokeType": invocationExpression_invokeType,
-        "invocationExpression_typeArguments":
-            invocationExpression_typeArguments,
-        "expression_type": expression_type,
-        "invocationExpression_arguments": invocationExpression_arguments,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -18332,16 +18233,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "throwExpression_expression": throwExpression_expression,
         "throwExpression_throwKeyword": throwExpression_throwKeyword,
         "expression_type": expression_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.typeName) {
-      return {
-        "typeName_name": typeName_name,
-        "typeName_question": typeName_question,
-        "typeName_typeArguments": typeName_typeArguments,
-        "typeName_type": typeName_type,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };

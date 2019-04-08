@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 
@@ -19,8 +18,7 @@ class AstResolver {
 
   AstResolver(this._linker, this._library, this._nameScope);
 
-  LinkedNode resolve(
-    LinkedUnitContext context,
+  void resolve(
     AstNode node, {
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
@@ -50,13 +48,6 @@ class AstResolver {
     );
 
     node.accept(resolverVisitor);
-
-    throw UnimplementedError();
-//    var writer = AstBinaryWriter(
-//      _linker.linkingBundleContext,
-//      context.tokensContext,
-//    );
-//    return writer.writeNode(node);
   }
 }
 

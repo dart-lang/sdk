@@ -5,27 +5,30 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 
 /// Build types in a [TypesToBuild].
 class TypeBuilder {
-  final LinkedBundleContext bundleContext;
+  final LinkingBundleContext bundleContext;
 
   TypeBuilder(this.bundleContext);
 
-  LinkedNodeTypeBuilder get _dynamicType {
-    return LinkedNodeTypeBuilder(
-      kind: LinkedNodeTypeKind.dynamic_,
-    );
+  DynamicTypeImpl get _dynamicType {
+    return DynamicTypeImpl.instance;
   }
 
   void build(TypesToBuild typesToBuild) {
     for (var node in typesToBuild.typeAnnotations) {
-      if (node is TypeName) {
+      if (node is GenericFunctionType) {
+        _buildGenericFunctionType(node);
+      } else if (node is TypeName) {
         _buildTypeName(node);
       } else {
         throw StateError('${node.runtimeType}');
@@ -39,9 +42,9 @@ class TypeBuilder {
 //        throw StateError('$kind');
 //      }
     }
-//    for (var node in typesToBuild.declarations) {
-//      _setTypesForDeclaration(node);
-//    }
+    for (var node in typesToBuild.declarations) {
+      _setTypesForDeclaration(node);
+    }
   }
 
 //  LinkedNodeTypeBuilder _buildFunctionType(
@@ -65,13 +68,23 @@ class TypeBuilder {
 //    );
 //  }
 
-//  void _buildGenericFunctionType(LinkedNodeBuilder node) {
-//    // TODO(scheglov) Type parameters?
-//    node.genericFunctionType_type = _buildFunctionType(
-//      node.genericFunctionType_returnType,
-//      node.genericFunctionType_formalParameters,
-//    );
-//  }
+  void _buildGenericFunctionType(GenericFunctionTypeImpl node) {
+    // TODO(scheglov) Type parameters?
+    var typeFormals = <TypeParameterElement>[];
+    var parameters = node.parameters.parameters.map((p) {
+      // TODO(scheglov) other types and kinds
+      return ParameterElementImpl.synthetic(
+        (p as SimpleFormalParameter).identifier.name,
+        (p as SimpleFormalParameter).type.type,
+        ParameterKind.REQUIRED,
+      );
+    }).toList();
+    node.type = FunctionTypeImpl.synthetic(
+      node.returnType?.type ?? _dynamicType,
+      typeFormals,
+      parameters,
+    );
+  }
 
   void _buildTypeName(TypeName node) {
     var element = node.name.staticElement;
@@ -82,7 +95,7 @@ class TypeBuilder {
       typeArguments = typeArgumentList.arguments.map((a) => a.type).toList();
     }
 
-    if (element is ClassElement) {
+    if (element is ClassElement && !element.isEnum) {
       // TODO(scheglov) Use instantiate to bounds.
       var typeParametersLength = element.typeParameters.length;
       if (typeArguments == null ||
@@ -93,7 +106,10 @@ class TypeBuilder {
         );
       }
       node.type = InterfaceTypeImpl.explicit(element, typeArguments);
+    } else if (element is TypeParameterElement) {
+      node.type = TypeParameterTypeImpl(element);
     } else {
+//      throw UnimplementedError('${element.runtimeType}');
       // TODO(scheglov) implement
       node.type = DynamicTypeImpl.instance;
     }
@@ -205,7 +221,32 @@ class TypeBuilder {
 //    }
 //  }
 
-//  void _setTypesForDeclaration(LinkedNodeBuilder node) {
+  void _setTypesForDeclaration(AstNode node) {
+    if (node is FieldFormalParameter) {
+      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+    } else if (node is FunctionDeclaration) {
+      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+    } else if (node is FunctionTypeAlias) {
+      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+    } else if (node is GenericFunctionType) {
+      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+    } else if (node is MethodDeclaration) {
+      if (node.returnType != null) {
+        LazyAst.setReturnType(node, node.returnType.type);
+      }
+    } else if (node is SimpleFormalParameter) {
+      // TODO(scheglov) use top-level inference
+      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+    } else if (node is VariableDeclarationList) {
+      var type = node.type?.type;
+      if (type != null) {
+        for (var variable in node.variables) {
+          LazyAst.setType(variable, type);
+        }
+      }
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
 //    var kind = node.kind;
 //    if (kind == LinkedNodeKind.fieldFormalParameter) {
 //      _fieldFormalParameter(node);
@@ -239,8 +280,8 @@ class TypeBuilder {
 //    } else {
 //      throw UnimplementedError('$kind');
 //    }
-//  }
-//
+  }
+
 //  int _typeParametersLength(Reference reference) {
 //    var node = bundleContext.elementFactory.nodeOfReference(reference);
 //    return LinkedUnitContext.getTypeParameters(node)?.length ?? 0;

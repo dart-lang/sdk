@@ -216,9 +216,9 @@ class Linker {
   }
 
   void _performTopLevelInference() {
-//    for (var library in builders.values) {
-//      library.performTopLevelInference();
-//    }
+    for (var library in builders.values) {
+      library.performTopLevelInference();
+    }
   }
 
   void _resolveConstructors() {
@@ -234,9 +234,9 @@ class Linker {
   }
 
   void _resolveMetadata() {
-//    for (var library in builders.values) {
-//      library.resolveMetadata();
-//    }
+    for (var library in builders.values) {
+      library.resolveMetadata();
+    }
   }
 
   void _resolveTypes() {
@@ -245,7 +245,7 @@ class Linker {
       library.resolveTypes(typesToBuild);
     }
 //    computeSimplyBounded(bundleContext, builders.values);
-    TypeBuilder(bundleContext).build(typesToBuild);
+    TypeBuilder(linkingBundleContext).build(typesToBuild);
   }
 }
 

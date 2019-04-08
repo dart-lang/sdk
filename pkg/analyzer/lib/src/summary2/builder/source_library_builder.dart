@@ -14,6 +14,7 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
@@ -75,11 +76,11 @@ class SourceLibraryBuilder {
     for (var unitContext in context.units) {
       var unitRef = reference.getChild('@unit').getChild(unitContext.uriStr);
       var classRef = unitRef.getChild('@class');
-//      var enumRef = unitRef.getChild('@enum');
-//      var functionRef = unitRef.getChild('@function');
-//      var typeAliasRef = unitRef.getChild('@typeAlias');
-//      var getterRef = unitRef.getChild('@getter');
-//      var setterRef = unitRef.getChild('@setter');
+      var enumRef = unitRef.getChild('@enum');
+      var functionRef = unitRef.getChild('@function');
+      var typeAliasRef = unitRef.getChild('@typeAlias');
+      var getterRef = unitRef.getChild('@getter');
+      var setterRef = unitRef.getChild('@setter');
       var variableRef = unitRef.getChild('@variable');
       for (var node in unitContext.unit.declarations) {
         if (node is ast.ClassDeclaration) {
@@ -92,7 +93,39 @@ class SourceLibraryBuilder {
           var reference = classRef.getChild(name);
           reference.node2 = node;
           localScope.declare(name, reference);
+        } else if (node is ast.EnumDeclaration) {
+          var name = node.name.name;
+          var reference = enumRef.getChild(name);
+          reference.node2 = node;
+          localScope.declare(name, reference);
         } else if (node is ast.FunctionDeclaration) {
+          var name = node.name.name;
+
+          Reference containerRef;
+          if (node.isGetter) {
+            containerRef = getterRef;
+          } else if (node.isSetter) {
+            containerRef = setterRef;
+          } else {
+            containerRef = functionRef;
+          }
+
+          var reference = containerRef.getChild(name);
+          reference.node2 = node;
+          localScope.declare(name, reference);
+        } else if (node is ast.FunctionTypeAlias) {
+          var name = node.name.name;
+          var reference = typeAliasRef.getChild(name);
+          reference.node2 = node;
+
+          localScope.declare(name, reference);
+        } else if (node is ast.GenericTypeAlias) {
+          var name = node.name.name;
+          var reference = typeAliasRef.getChild(name);
+          reference.node2 = node;
+
+          localScope.declare(name, reference);
+        } else if (node is ast.MixinDeclaration) {
           var name = node.name.name;
           var reference = classRef.getChild(name);
           reference.node2 = node;
@@ -249,10 +282,10 @@ class SourceLibraryBuilder {
   }
 
   void resolveMetadata() {
-//    var metadataResolver = MetadataResolver(linker, reference);
-//    for (var unit in units) {
-//      metadataResolver.resolve(unit);
-//    }
+    var metadataResolver = MetadataResolver(linker, element);
+    for (var unitContext in context.units) {
+      unitContext.unit.accept(metadataResolver);
+    }
   }
 
   void resolveTypes(TypesToBuild typesToBuild) {
@@ -267,13 +300,6 @@ class SourceLibraryBuilder {
         libraryScope,
       );
       unitContext.unit.accept(resolver);
-//      ReferenceResolver(
-//        linker.linkingBundleContext,
-//        typesToBuild,
-//        unit,
-//        scope,
-//        unitReference,
-//      ).resolve();
     }
   }
 

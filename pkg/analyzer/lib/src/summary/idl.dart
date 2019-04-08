@@ -768,6 +768,25 @@ abstract class LinkedLibrary extends base.SummaryClass {
 /// Information about a linked AST node.
 @Variant('kind')
 abstract class LinkedNode extends base.SummaryClass {
+  /// The explicit or inferred return type of a function typed node.
+  @VariantId(24, variantList: [
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionExpression,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericFunctionType,
+    LinkedNodeKind.methodDeclaration,
+  ])
+  LinkedNodeType get actualReturnType;
+
+  /// The explicit or inferred type of a variable.
+  @VariantId(24, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  LinkedNodeType get actualType;
+
   @VariantId(2, variant: LinkedNodeKind.adjacentStrings)
   List<LinkedNode> get adjacentStrings_strings;
 
@@ -1405,9 +1424,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_type;
 
-  @VariantId(24, variant: LinkedNodeKind.fieldFormalParameter)
-  LinkedNodeType get fieldFormalParameter_type2;
-
   @VariantId(7, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_typeParameters;
 
@@ -1529,12 +1545,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionDeclaration)
   LinkedNode get functionDeclaration_returnType;
 
-  @VariantId(24, variantList: [
-    LinkedNodeKind.functionDeclaration,
-    LinkedNodeKind.functionExpression,
-  ])
-  LinkedNodeType get functionDeclaration_returnType2;
-
   @VariantId(6, variant: LinkedNodeKind.functionDeclarationStatement)
   LinkedNode get functionDeclarationStatement_functionDeclaration;
 
@@ -1556,9 +1566,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_returnType;
 
-  @VariantId(24, variant: LinkedNodeKind.functionTypeAlias)
-  LinkedNodeType get functionTypeAlias_returnType2;
-
   @VariantId(8, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_typeParameters;
 
@@ -1567,9 +1574,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_returnType;
-
-  @VariantId(24, variant: LinkedNodeKind.functionTypedFormalParameter)
-  LinkedNodeType get functionTypedFormalParameter_type2;
 
   @VariantId(8, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_typeParameters;
@@ -1585,9 +1589,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_returnType;
-
-  @VariantId(24, variant: LinkedNodeKind.genericFunctionType)
-  LinkedNodeType get genericFunctionType_returnType2;
 
   @VariantId(25, variant: LinkedNodeKind.genericFunctionType)
   LinkedNodeType get genericFunctionType_type;
@@ -1814,9 +1815,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_returnType;
 
-  @VariantId(24, variant: LinkedNodeKind.methodDeclaration)
-  LinkedNodeType get methodDeclaration_returnType2;
-
   @VariantId(9, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_typeParameters;
 
@@ -2038,9 +2036,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(6, variant: LinkedNodeKind.simpleFormalParameter)
   LinkedNode get simpleFormalParameter_type;
-
-  @VariantId(24, variant: LinkedNodeKind.simpleFormalParameter)
-  LinkedNodeType get simpleFormalParameter_type2;
 
   @VariantId(15, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_element;
@@ -2271,9 +2266,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.variableDeclaration)
   LinkedNode get variableDeclaration_name;
-
-  @VariantId(24, variant: LinkedNodeKind.variableDeclaration)
-  LinkedNodeType get variableDeclaration_type2;
 
   @VariantId(15, variant: LinkedNodeKind.variableDeclarationList)
   int get variableDeclarationList_keyword;

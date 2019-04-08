@@ -3,153 +3,123 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
-import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/reference.dart';
 
-class MetadataResolver {
-  AstResolver _astResolver;
+class MetadataResolver extends ThrowingAstVisitor<void> {
+  final Linker _linker;
+  final LibraryElement _libraryElement;
 
-  MetadataResolver(Linker linker, Reference libraryRef) {
-    var libraryElement = linker.elementFactory.elementOfReference(libraryRef);
-    var libraryScope = LibraryScope(libraryElement);
-    _astResolver = AstResolver(linker, libraryElement, libraryScope);
+  Scope scope;
+
+  MetadataResolver(this._linker, this._libraryElement);
+
+  @override
+  void visitAnnotation(Annotation node) {
+    // TODO(scheglov) get rid of?
+    node.elementAnnotation = ElementAnnotationImpl(null);
+
+    var astResolver = AstResolver(_linker, _libraryElement, scope);
+    // TODO(scheglov) enclosing elements?
+    astResolver.resolve(node);
   }
 
-  void resolve(UnitBuilder unit) {
-    var unitDirectives = unit.node.compilationUnit_directives;
-    for (var directive in unitDirectives) {
-      _annotatedNode(unit, directive);
-    }
-
-    var unitDeclarations = unit.node.compilationUnit_declarations;
-    for (LinkedNodeBuilder unitDeclaration in unitDeclarations) {
-      var kind = unitDeclaration.kind;
-      if (_isAnnotatedNode(kind)) {
-        _annotatedNode(unit, unitDeclaration);
-      }
-      if (kind == LinkedNodeKind.classDeclaration) {
-        _class(unit, unitDeclaration);
-      } else if (kind == LinkedNodeKind.enumDeclaration) {
-        _enumDeclaration(unit, unitDeclaration);
-      } else if (kind == LinkedNodeKind.functionDeclaration) {
-        var function = unitDeclaration.functionDeclaration_functionExpression;
-        _formalParameterList(
-          unit,
-          function.functionExpression_formalParameters,
-        );
-      } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
-        _variables(
-          unit,
-          unitDeclaration,
-          unitDeclaration.topLevelVariableDeclaration_variableList,
-        );
-      }
-    }
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
   }
 
-  void _annotatedNode(UnitBuilder unit, LinkedNodeBuilder node) {
-    var unresolved = node.annotatedNode_metadata;
-    var resolved = _list(unit, unresolved);
-    node.annotatedNode_metadata = resolved;
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
   }
 
-  void _class(UnitBuilder unit, LinkedNodeBuilder unitDeclaration) {
-    var members = unitDeclaration.classOrMixinDeclaration_members;
-    for (var classMember in members) {
-      var kind = classMember.kind;
-      if (_isAnnotatedNode(kind)) {
-        _annotatedNode(unit, classMember);
-      }
-      if (kind == LinkedNodeKind.constructorDeclaration) {
-        _formalParameterList(
-          unit,
-          classMember.constructorDeclaration_parameters,
-        );
-      } else if (kind == LinkedNodeKind.fieldDeclaration) {
-        _variables(
-          unit,
-          classMember,
-          classMember.fieldDeclaration_fields,
-        );
-      } else if (kind == LinkedNodeKind.methodDeclaration) {
-        _formalParameterList(
-          unit,
-          classMember.methodDeclaration_formalParameters,
-        );
-      }
-    }
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    node.declarations.accept(this);
   }
 
-  void _enumDeclaration(UnitBuilder unit, LinkedNodeBuilder node) {
-    for (var constant in node.enumDeclaration_constants) {
-      var kind = constant.kind;
-      if (kind == LinkedNodeKind.enumConstantDeclaration) {
-        _annotatedNode(unit, constant);
-      }
-    }
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    node.metadata.accept(this);
+    node.parameters.accept(this);
   }
 
-  void _formalParameterList(UnitBuilder unit, LinkedNodeBuilder node) {
-    if (node == null) return;
-
-    for (var parameter in node.formalParameterList_parameters) {
-      if (parameter.kind == LinkedNodeKind.defaultFormalParameter) {
-        var actual = parameter.defaultFormalParameter_parameter;
-        var unresolved = actual.normalFormalParameter_metadata;
-        var resolved = _list(unit, unresolved);
-        actual.normalFormalParameter_metadata = resolved;
-      } else {
-        var unresolved = parameter.normalFormalParameter_metadata;
-        var resolved = _list(unit, unresolved);
-        parameter.normalFormalParameter_metadata = resolved;
-      }
-    }
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    node.metadata.accept(this);
   }
 
-  List<LinkedNodeBuilder> _list(UnitBuilder unit, List<LinkedNode> unresolved) {
-    var resolved = List<LinkedNodeBuilder>(unresolved.length);
-    for (var i = 0; i < unresolved.length; ++i) {
-      var unresolvedNode = unresolved[i];
-
-      var reader = AstBinaryReader(unit.context);
-      var ast = reader.readNode(unresolvedNode) as Annotation;
-      ast.elementAnnotation = ElementAnnotationImpl(null);
-
-      // Set some parent, so that resolver does not bail out.
-      astFactory.libraryDirective(null, [ast], null, null, null);
-
-      var resolvedNode = _astResolver.resolve(unit.context, ast);
-      resolved[i] = resolvedNode;
-    }
-    return resolved;
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    node.metadata.accept(this);
+    node.constants.accept(this);
   }
 
-  /// Resolve annotations of the [declaration] (field or top-level variable),
-  /// and set them as metadata for each variable in the [variableList].
-  void _variables(UnitBuilder unit, LinkedNodeBuilder declaration,
-      LinkedNodeBuilder variableList) {
-    for (var variable in variableList.variableDeclarationList_variables) {
-      var unresolved = declaration.annotatedNode_metadata;
-      var resolved = _list(unit, unresolved);
-      variable.annotatedNode_metadata = resolved;
-    }
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    node.metadata.accept(this);
   }
 
-  static bool _isAnnotatedNode(LinkedNodeKind kind) {
-    return kind == LinkedNodeKind.classDeclaration ||
-        kind == LinkedNodeKind.classTypeAlias ||
-        kind == LinkedNodeKind.constructorDeclaration ||
-        kind == LinkedNodeKind.enumDeclaration ||
-        kind == LinkedNodeKind.functionDeclaration ||
-        kind == LinkedNodeKind.functionTypeAlias ||
-        kind == LinkedNodeKind.methodDeclaration;
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    // TODO: implement visitFormalParameterList
+//    super.visitFormalParameterList(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    node.metadata.accept(this);
+    node.functionExpression.accept(this);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    // TODO: implement visitFunctionExpression
+//    super.visitFunctionExpression(node);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    // TODO: implement visitGenericTypeAlias
+//    super.visitGenericTypeAlias(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    // TODO: implement visitMixinDeclaration
+//    super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitTypeParameterList(TypeParameterList node) {
+    // TODO: implement visitTypeParameterList
+//    super.visitTypeParameterList(node);
   }
 }

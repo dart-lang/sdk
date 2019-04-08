@@ -85,32 +85,32 @@ class DefaultValueResolver {
   void _parameter(ParameterElementImpl parameter) {
     if (parameter.isNotOptional) return;
 
-    LinkedNodeBuilder node = parameter.linkedNode;
-    var unresolvedNode = node.defaultFormalParameter_defaultValue;
-    if (unresolvedNode == null) return;
-
-    var reader = AstBinaryReader(_linkedContext);
-    var unresolvedAst = reader.readNode(unresolvedNode);
-
-    if (_astResolver == null) {
-      var scope = FunctionScope(
-        _classScope ?? _libraryScope,
-        _enclosingExecutableElement,
-      );
-      _astResolver = AstResolver(_linker, _libraryElement, scope);
-    }
-
-    var contextType = TypeVariableEliminator(_linker.typeProvider)
-        .substituteType(parameter.type);
-    InferenceContext.setType(unresolvedAst, contextType);
-
-    var resolvedNode = _astResolver.resolve(
-      _linkedContext,
-      unresolvedAst,
-      enclosingClassElement: _enclosingClassElement,
-      enclosingExecutableElement: _enclosingExecutableElement,
-    );
-    node.defaultFormalParameter_defaultValue = resolvedNode;
+//    LinkedNodeBuilder node = parameter.linkedNode;
+//    var unresolvedNode = node.defaultFormalParameter_defaultValue;
+//    if (unresolvedNode == null) return;
+//
+//    var reader = AstBinaryReader(_linkedContext);
+//    var unresolvedAst = reader.readNode(unresolvedNode);
+//
+//    if (_astResolver == null) {
+//      var scope = FunctionScope(
+//        _classScope ?? _libraryScope,
+//        _enclosingExecutableElement,
+//      );
+//      _astResolver = AstResolver(_linker, _libraryElement, scope);
+//    }
+//
+//    var contextType = TypeVariableEliminator(_linker.typeProvider)
+//        .substituteType(parameter.type);
+//    InferenceContext.setType(unresolvedAst, contextType);
+//
+//    var resolvedNode = _astResolver.resolve(
+//      _linkedContext,
+//      unresolvedAst,
+//      enclosingClassElement: _enclosingClassElement,
+//      enclosingExecutableElement: _enclosingExecutableElement,
+//    );
+//    node.defaultFormalParameter_defaultValue = resolvedNode;
   }
 
   void _parameters(List<ParameterElement> parameters) {
