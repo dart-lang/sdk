@@ -23,10 +23,10 @@ for %%i in ("%SDK_DIR%\..\") do set DART_ROOT=%%~fi
 rem Remove trailing backslash if there is one
 if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
-set DART=%BIN_DIR%\dart
+set DART=%BIN_DIR%\dart.exe
 set GEN_KERNEL=%BIN_DIR%\snapshots\gen_kernel.dart.snapshot
 set VM_PLATFORM_STRONG=%SDK_DIR%\lib\_internal\vm_platform_strong.dill
-set GEN_SNAPSHOT=%BIN_DIR%\utils\gen_snapshot
+set GEN_SNAPSHOT=%BIN_DIR%\utils\gen_snapshot.exe
 
 set SOURCE_FILE=%1
 set SNAPSHOT_FILE=%2

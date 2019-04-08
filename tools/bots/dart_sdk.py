@@ -76,8 +76,8 @@ def CreateUploadSDKZips():
       # We don't support precompilation on ia32.
       if arch != 'ia32':
         # Patch in all the PRODUCT built AOT binaries.
-        CopyBetween(product_sdk_path, sdk_path, 'bin', 'utils', 'gen_snapshot')
-        CopyBetween(product_sdk_path, sdk_path, 'bin', 'dartaotruntime')
+        CopyBetween(product_sdk_path, sdk_path, 'bin', 'utils', GuessExtension('gen_snapshot'))
+        CopyBetween(product_sdk_path, sdk_path, 'bin', GuessExtension('dartaotruntime'))
       # Zip it up.
       CreateZip(sdk_path, sdk_zip)
       DartArchiveUploadSDKs(BUILD_OS, arch, sdk_zip)
@@ -204,6 +204,11 @@ def CopyBetween(src_path, dst_path, *relatives):
   shutil.copy2(
       os.path.join(src_path, *relatives),
       os.path.join(dst_path, *relatives[:-1]))
+
+def GuessExtension(binary):
+  if 'win' in BUILD_OS:
+    return binary + '.exe'
+  return binary
 
 def DartArchiveFile(local_path, remote_path, checksum_files=False):
   gsutil = bot_utils.GSUtil()
