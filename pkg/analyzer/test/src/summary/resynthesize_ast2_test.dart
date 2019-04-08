@@ -416,12 +416,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
-    await super.test_constExpr_pushReference_staticMethod_simpleIdentifier();
-  }
-
-  @override
-  @failingTest
   test_constructor_initializers_assertInvocation() async {
     await super.test_constructor_initializers_assertInvocation();
   }
@@ -705,26 +699,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_function_type_parameter() async {
-    await super.test_function_type_parameter();
-  }
-
-  @override
-  @failingTest
-  test_function_type_parameter_with_function_typed_parameter() async {
-    await super.test_function_type_parameter_with_function_typed_parameter();
-  }
-
-  @override
-  @failingTest
   test_futureOr_inferred() async {
     await super.test_futureOr_inferred();
-  }
-
-  @override
-  @failingTest
-  test_generic_gClass_gMethodStatic() async {
-    await super.test_generic_gClass_gMethodStatic();
   }
 
   @override
@@ -1055,24 +1031,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_method_inferred_type_nonStatic_implicit_return() async {
     await super.test_method_inferred_type_nonStatic_implicit_return();
-  }
-
-  @override
-  @failingTest
-  test_method_type_parameter() async {
-    await super.test_method_type_parameter();
-  }
-
-  @override
-  @failingTest
-  test_method_type_parameter_in_generic_class() async {
-    await super.test_method_type_parameter_in_generic_class();
-  }
-
-  @override
-  @failingTest
-  test_method_type_parameter_with_function_typed_parameter() async {
-    await super.test_method_type_parameter_with_function_typed_parameter();
   }
 
   @override

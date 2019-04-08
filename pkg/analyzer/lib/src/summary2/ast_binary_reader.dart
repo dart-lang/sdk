@@ -28,19 +28,16 @@ class AstBinaryReader {
   /// Set to `true` when this reader is used to lazily read its unit.
   bool isLazy = false;
 
-  /// Set to `true` when reading a [CompilationUnit] and for top-level
-  /// declarations only names should be read.  So, we can index declarations,
-  /// and be able to resolve references to them, but don't attempt to read
-  /// nodes that might reference anything while indexing declarations.
-  bool lazyNamesOnly = false;
-
   AstBinaryReader(this._unitContext);
 
   AstNode readNode(LinkedNode data) {
     var node = _readNode(data);
     if (node == null) return null;
 
-    _unitContext.tokensContext.linkTokens(node.beginToken, node.endToken);
+    if (!isLazy) {
+      _unitContext.tokensContext.linkTokens(node.beginToken, node.endToken);
+    }
+
     return node;
   }
 
@@ -341,7 +338,7 @@ class AstBinaryReader {
       _getToken(data.constructorDeclaration_separator),
       _readNodeListLazy(data.constructorDeclaration_initializers),
       _readNodeLazy(data.constructorDeclaration_redirectedConstructor),
-      _readNode(data.constructorDeclaration_body),
+      _readNodeLazy(data.constructorDeclaration_body),
     );
     LazyConstructorDeclaration.setData(node, data);
     return node;
@@ -619,9 +616,9 @@ class AstBinaryReader {
     _localParameters = thisLocalParameters;
 
     var node = astFactory.functionExpression(
-      _readNode(data.functionExpression_typeParameters),
-      _readNode(data.functionExpression_formalParameters),
-      _readNode(data.functionExpression_body),
+      _readNodeLazy(data.functionExpression_typeParameters),
+      _readNodeLazy(data.functionExpression_formalParameters),
+      _readNodeLazy(data.functionExpression_body),
     );
     _localParameters = prevLocalParameters;
 
@@ -645,6 +642,7 @@ class AstBinaryReader {
 //      element.type = new FunctionTypeImpl(element);
 //      (node as FunctionExpressionImpl).declaredElement = element;
     }
+    LazyFunctionExpression.setData(node, data);
     return node;
   }
 
@@ -1559,7 +1557,7 @@ class AstBinaryReader {
   }
 
   AstNode _readNodeLazy(LinkedNode data) {
-    if (lazyNamesOnly) return null;
+    if (isLazy) return null;
     return _readNode(data);
   }
 
@@ -1573,7 +1571,7 @@ class AstBinaryReader {
   }
 
   List<T> _readNodeListLazy<T>(List<LinkedNode> nodeList) {
-    if (lazyNamesOnly) {
+    if (isLazy) {
       return List<T>.filled(nodeList.length, null);
     }
     return _readNodeList(nodeList);

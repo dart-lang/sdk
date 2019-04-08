@@ -264,6 +264,7 @@ class LazyConstructorDeclaration {
 
   final LinkedNode data;
 
+  bool _hasBody = false;
   bool _hasDocumentationComment = false;
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
@@ -272,6 +273,19 @@ class LazyConstructorDeclaration {
 
   static LazyConstructorDeclaration get(ConstructorDeclaration node) {
     return node.getProperty(_key);
+  }
+
+  static void readBody(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasBody) {
+      node.body = reader.readNode(
+        lazy.data.constructorDeclaration_body,
+      );
+      lazy._hasBody = true;
+    }
   }
 
   static void readDocumentationComment(
@@ -601,6 +615,65 @@ class LazyFunctionDeclaration {
   }
 }
 
+class LazyFunctionExpression {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  bool _hasBody = false;
+  bool _hasFormalParameters = false;
+  bool _hasTypeParameters = false;
+
+  LazyFunctionExpression(this.data);
+
+  static LazyFunctionExpression get(FunctionExpression node) {
+    return node.getProperty(_key);
+  }
+
+  static void readBody(
+    AstBinaryReader reader,
+    FunctionExpression node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasBody) {
+      node.body = reader.readNode(
+        lazy.data.functionExpression_body,
+      );
+      lazy._hasBody = true;
+    }
+  }
+
+  static void readFormalParameters(
+    AstBinaryReader reader,
+    FunctionExpression node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFormalParameters) {
+      node.parameters = reader.readNode(
+        lazy.data.functionExpression_formalParameters,
+      );
+      lazy._hasFormalParameters = true;
+    }
+  }
+
+  static void readTypeParameters(
+    AstBinaryReader reader,
+    FunctionExpression node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasTypeParameters) {
+      node.typeParameters = reader.readNode(
+        lazy.data.functionExpression_typeParameters,
+      );
+      lazy._hasTypeParameters = true;
+    }
+  }
+
+  static void setData(FunctionExpression node, LinkedNode data) {
+    node.setProperty(_key, LazyFunctionExpression(data));
+  }
+}
+
 class LazyFunctionTypeAlias {
   static const _key = 'lazyAst';
 
@@ -803,6 +876,7 @@ class LazyMethodDeclaration {
 
   final LinkedNode data;
 
+  bool _hasBody = false;
   bool _hasDocumentationComment = false;
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
@@ -828,6 +902,19 @@ class LazyMethodDeclaration {
       }
     }
     return LazyAst.getReturnType(node);
+  }
+
+  static void readBody(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasBody) {
+      node.body = reader.readNode(
+        lazy.data.methodDeclaration_body,
+      );
+      lazy._hasBody = true;
+    }
   }
 
   static void readDocumentationComment(

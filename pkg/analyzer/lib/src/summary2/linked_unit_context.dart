@@ -39,9 +39,7 @@ class LinkedUnitContext {
 
   CompilationUnit get unit_withDeclarations {
     if (_unit == null) {
-      _astReader.lazyNamesOnly = true;
       _unit = _astReader.readNode(data.node);
-      _astReader.lazyNamesOnly = false;
     }
     return _unit;
   }
@@ -146,7 +144,10 @@ class LinkedUnitContext {
       return node.parameters.parameters;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
-      return node.functionExpression.parameters?.parameters;
+      return getFormalParameters(node.functionExpression);
+    } else if (node is FunctionExpression) {
+      LazyFunctionExpression.readFormalParameters(_astReader, node);
+      return node.parameters?.parameters;
     } else if (node is FunctionTypeAlias) {
       LazyFunctionTypeAlias.readFormalParameters(_astReader, node);
       return node.parameters.parameters;
@@ -385,7 +386,10 @@ class LinkedUnitContext {
       return null;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
-      return node.functionExpression.typeParameters;
+      return getTypeParameters2(node.functionExpression);
+    } else if (node is FunctionExpression) {
+      LazyFunctionExpression.readTypeParameters(_astReader, node);
+      return node.typeParameters;
     } else if (node is FunctionTypeAlias) {
       LazyFunctionTypeAlias.readTypeParameters(_astReader, node);
       return node.typeParameters;
@@ -611,12 +615,16 @@ class LinkedUnitContext {
 
   FunctionBody _getFunctionBody(AstNode node) {
     if (node is ConstructorDeclaration) {
+      LazyConstructorDeclaration.readBody(_astReader, node);
       return node.body;
     } else if (node is FunctionDeclaration) {
+      LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return _getFunctionBody(node.functionExpression);
     } else if (node is FunctionExpression) {
+      LazyFunctionExpression.readBody(_astReader, node);
       return node.body;
     } else if (node is MethodDeclaration) {
+      LazyMethodDeclaration.readBody(_astReader, node);
       return node.body;
     } else {
       throw UnimplementedError('${node.runtimeType}');
