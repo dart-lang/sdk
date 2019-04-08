@@ -48,6 +48,8 @@ done
 
 if [ "${#ARGV[@]}" -ne 2 ]; then
     echo "Usage: $0 [options] <dart-source-file> <dart-aot-file>"
+    echo ""
+    echo "Dart AOT (ahead-of-time) compile Dart source code into native machine code."
     exit 1
 fi
 
