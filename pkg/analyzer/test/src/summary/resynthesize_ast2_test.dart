@@ -749,12 +749,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_exportImport_configurations_useDefault() async {
-    await super.test_exportImport_configurations_useDefault();
-  }
-
-  @override
-  @failingTest
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
   }
@@ -1284,12 +1278,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_nameConflict_exportedAndLocal_exported() async {
-    await super.test_nameConflict_exportedAndLocal_exported();
-  }
-
-  @override
-  @failingTest
   test_nameConflict_importWithRelativeUri_exportWithAbsolute() async {
     // TODO(scheglov) unexpectedly passes on Windows
     fail('unexpectedly passes on Windows');
@@ -1480,30 +1468,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_reference_part_to_part() async {
     await super.test_type_reference_part_to_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export() async {
-    await super.test_type_reference_to_import_export();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export_export() async {
-    await super.test_type_reference_to_import_export_export();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_export_in_subdirs();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_export_in_subdirs() async {
-    await super.test_type_reference_to_import_export_in_subdirs();
   }
 
   @override

@@ -6,8 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/export.dart';
@@ -42,33 +44,28 @@ class SourceLibraryBuilder {
   SourceLibraryBuilder(this.linker, this.uri, this.reference, this.node);
 
   void addExporters() {
-//    var unitContext = units[0].context;
-//    for (var directive in units[0].node.compilationUnit_directives) {
-//      if (directive.kind == LinkedNodeKind.exportDirective) {
-//        var relativeUriStr = unitContext.getStringContent(
-//          directive.uriBasedDirective_uri,
-//        );
-//        var relativeUri = Uri.parse(relativeUriStr);
-//        var uri = resolveRelativeUri(this.uri, relativeUri);
-//        var exported = linker.builders[uri];
-//        if (exported != null) {
-//          var combinatorNodeList = directive.namespaceDirective_combinators;
-//          var combinators = combinatorNodeList.map((node) {
-//            if (node.kind == LinkedNodeKind.showCombinator) {
-//              var nodeList = node.showCombinator_shownNames;
-//              var nameList = unitContext.getSimpleNameList(nodeList);
-//              return Combinator.show(nameList);
-//            } else {
-//              var nodeList = node.hideCombinator_hiddenNames;
-//              var nameList = unitContext.getSimpleNameList(nodeList);
-//              return Combinator.hide(nameList);
-//            }
-//          }).toList();
-//
-//          exported.exporters.add(new Export(this, exported, combinators));
-//        }
-//      }
-//    }
+    var unitContext = context.units[0];
+    for (var directive in unitContext.unit_withDirectives.directives) {
+      if (directive is ast.ExportDirective) {
+        var relativeUriStr = directive.uri.stringValue;
+        var relativeUri = Uri.parse(relativeUriStr);
+        var uri = resolveRelativeUri(this.uri, relativeUri);
+        var exported = linker.builders[uri];
+        if (exported != null) {
+          var combinators = directive.combinators.map((node) {
+            if (node is ast.ShowCombinator) {
+              var nameList = node.shownNames.map((i) => i.name).toList();
+              return Combinator.show(nameList);
+            } else if (node is ast.HideCombinator) {
+              var nameList = node.hiddenNames.map((i) => i.name).toList();
+              return Combinator.hide(nameList);
+            }
+          }).toList();
+
+          exported.exporters.add(new Export(this, exported, combinators));
+        }
+      }
+    }
   }
 
   /// Add top-level declaration of the library units to the local scope.
