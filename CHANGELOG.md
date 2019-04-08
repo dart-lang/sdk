@@ -6,13 +6,74 @@
 
 ### Core library changes
 
+### Dart VM
+
+### Tool Changes
+
+#### Linter
+
+The Linter was updated to `0.1.84` which includes the following changes:
+
+* new lint: `spread_collections`
+* new lint: `prefer_asserts_with_message`
+
+#### Other Tools
+
+## 2.2.1-dev.3.1
+
+* Cherry-pick 245576a096a2da54ef21d664d37d1f50f6f8dbb7 to dev
+* Cherry-pick a47b4ad2b8683cc8a82aa0ff89da2db7a3be27a3 to dev
+* Cherry-pick 9a2b222cba94126591b5d985a42d40c704a73c90 to dev
+
+### Tool Changes
+
+#### dartfmt
+
+*   Tweak set literal formatting to follow other collection literals.
+*   Add support for "UI as code" features.
+*   Properly format trailing commas in assertions.
+*   Improve indentation of adjacent strings in argument lists.
+
+## 2.2.1-dev.3.0
+
+### Dart VM
+
+* Support for deprecated flags '-c' and '--checked' has been removed
+
+### Core library changes
+
 #### `dart:isolate`
 
 * Added `debugName` property to `Isolate`.
 * Added `debugName` optional parameter to `Isolate.spawn` and
   `Isolate.spawnUri`.
 
-### Dart VM
+### Tool Changes
+
+#### dartfmt
+
+* Tweak set literal formatting to follow other collection literals.
+* Add support for "UI as code" features.
+
+#### Linter
+
+The Linter was updated to `0.1.83` which includes the following changes:
+
+* updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
+* miscellaneous rule documentation fixes
+* fixed NPE in `avoid_shadowing_type_parameters`
+* added linter version numbering for use in analyzer summaries
+* fixed type utilities to handle inheritance cycles
+* fixed `unnecessary_parenthesis` false positives
+
+## 2.2.1-dev.2.0
+
+## 2.2.1-dev.1.1
+
+* Cherry-pick 567d552de8ff93d704111467e7f3bf3b896ab684 to dev
+* Cherry-pick 4ca57befd707a0309e384472a566c084eef0e56e to dev
+
+## 2.2.1-dev.1.0
 
 * Support for deprecated flags '-c' and '--checked' has been removed
 * RegExp patterns can now use lookbehind assertions.
@@ -65,27 +126,11 @@
 
 [visualizer]: https://dart-lang.github.io/dump-info-visualizer/
 
-#### dartfmt
+## 2.2.1-dev.0.0
 
-*   Tweak set literal formatting to follow other collection literals.
-*   Add support for "UI as code" features.
-*   Properly format trailing commas in assertions.
-*   Improve indentation of adjacent strings in argument lists.
-
-#### Linter
-
-The Linter was updated to `0.1.84` which includes the following changes:
-
-* new lint: `spread_collections`
-* new lint: `prefer_asserts_with_message`
-* updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
-* miscellaneous rule documentation fixes
-* fixed NPE in `avoid_shadowing_type_parameters`
-* added linter version numbering for use in analyzer summaries
-* fixed type utilities to handle inheritance cycles
-* fixed `unnecessary_parenthesis` false positives
-
-#### Other Tools
+* Cherry-pick 6f8415245d4dd298730facf83e03de69fc29bbd3 to dev
+* Cherry-pick e7d263b05f7f66d15f778df60ee60625e9a3c5f4 to dev
+* Cherry-pick dc8a56bc0ece296915c7016e0a8241c7068eca18 to dev
 
 ## 2.2.0 - 2019-02-26
 
