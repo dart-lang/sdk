@@ -4387,7 +4387,9 @@ class FixProcessor {
     var sourceDirectory = pathCtx.dirname(source.fullName);
     if (pathCtx.isWithin(libraryDirectory, source.fullName) ||
         pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
-      return pathCtx.relative(source.fullName, from: libraryDirectory);
+      String relativeFile =
+          pathCtx.relative(source.fullName, from: libraryDirectory);
+      return pathCtx.split(relativeFile).join('/');
     }
     return null;
   }
