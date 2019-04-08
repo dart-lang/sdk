@@ -61,7 +61,7 @@ class PreferSpreadCollectionsFix extends FixLintTask {
 
   static void task(DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
-      Registry.ruleRegistry['spread_collections'],
+      Registry.ruleRegistry['prefer_spread_collections'],
       new PreferSpreadCollectionsFix(listener),
     );
   }

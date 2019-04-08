@@ -12,10 +12,12 @@
 
 #### Linter
 
-The Linter was updated to `0.1.84` which includes the following changes:
+The Linter was updated to `0.1.85` which includes the following changes:
 
-* new lint: `spread_collections`
-* new lint: `prefer_asserts_with_message`
+* (**BREAKING**) renamed `spread_collections` to `prefer_spread_collections`
+* new lint: `prefer_for_elements_to_map_fromIterable`
+* new lint: `prefer_if_elements_to_conditional_expressions`
+* new lint: `diagnostic_describe_all_properties`
 
 #### Other Tools
 
