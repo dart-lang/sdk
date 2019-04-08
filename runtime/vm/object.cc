@@ -2588,6 +2588,10 @@ void Class::set_library(const Library& value) const {
 }
 
 void Class::set_type_parameters(const TypeArguments& value) const {
+  ASSERT((num_own_type_arguments() == kUnknownNumTypeArguments) ||
+         is_prefinalized());
+  ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
+         is_prefinalized());
   StorePointer(&raw_ptr()->type_parameters_, value.raw());
 }
 
