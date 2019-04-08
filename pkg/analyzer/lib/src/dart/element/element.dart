@@ -751,6 +751,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         return _interfaces = implementsClause.interfaces
             .map((node) => node.type)
             .whereType<InterfaceType>()
+            .where(_isInterfaceTypeInterface)
             .toList();
       } else {
         return _interfaces = const [];
@@ -943,6 +944,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         return _mixins = withClause.mixinTypes
             .map((node) => node.type)
             .whereType<InterfaceType>()
+            .where(_isInterfaceTypeInterface)
             .toList();
       } else {
         return _mixins = const [];
@@ -1020,7 +1022,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
       var type = context.getSuperclass(linkedNode)?.type;
-      if (type is InterfaceType) {
+      if (_isInterfaceTypeClass(type)) {
         return _supertype = type;
       }
       return _supertype = this.context.typeProvider.objectType;

@@ -202,13 +202,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_alias_with_forwarding_constructors_type_substitution_complex() async {
-    await super
-        .test_class_alias_with_forwarding_constructors_type_substitution_complex();
-  }
-
-  @override
-  @failingTest
   test_class_constructor_field_formal_functionTyped_noReturnType() async {
     await super
         .test_class_constructor_field_formal_functionTyped_noReturnType();
@@ -400,18 +393,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_length_ofTopLevelVariable_imported() async {
-    await super.test_const_length_ofTopLevelVariable_imported();
-  }
-
-  @override
-  @failingTest
-  test_const_length_ofTopLevelVariable_imported_withPrefix() async {
-    await super.test_const_length_ofTopLevelVariable_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     await super
         .test_const_parameterDefaultValue_initializingFormal_functionTyped();
@@ -437,38 +418,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_reference_type_imported() async {
-    await super.test_const_reference_type_imported();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_type_imported_withPrefix() async {
-    await super.test_const_reference_type_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_typedList() async {
-    await super.test_const_topLevel_typedList();
-  }
-
-  @override
-  @failingTest
   test_const_topLevel_typedList_typedefArgument() async {
     await super.test_const_topLevel_typedList_typedefArgument();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_typedMap() async {
-    await super.test_const_topLevel_typedMap();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_typedSet() async {
-    await super.test_const_topLevel_typedSet();
   }
 
   @override
@@ -704,12 +655,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_defaultValue_refersToGenericClass_methodNG() async {
     await super.test_defaultValue_refersToGenericClass_methodNG();
-  }
-
-  @override
-  @failingTest
-  test_executable_parameter_type_typedef() async {
-    await super.test_executable_parameter_type_typedef();
   }
 
   @override
@@ -1291,12 +1236,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_metadata_prefixed_variable() async {
-    await super.test_metadata_prefixed_variable();
-  }
-
-  @override
-  @failingTest
   test_metadata_simpleFormalParameter() async {
     await super.test_metadata_simpleFormalParameter();
   }
@@ -1521,12 +1460,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_type_reference_lib_to_lib() async {
-    await super.test_type_reference_lib_to_lib();
-  }
-
-  @override
-  @failingTest
   test_type_reference_lib_to_part() async {
     await super.test_type_reference_lib_to_part();
   }
@@ -1547,18 +1480,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_reference_part_to_part() async {
     await super.test_type_reference_part_to_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_enum() async {
-    await super.test_type_reference_to_enum();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import() async {
-    await super.test_type_reference_to_import();
   }
 
   @override
@@ -1587,32 +1508,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_type_reference_to_import_part() async {
-    await super.test_type_reference_to_import_part();
-  }
-
-  @override
-  @failingTest
   test_type_reference_to_import_part2() async {
     await super.test_type_reference_to_import_part2();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_part_in_subdir() async {
-    await super.test_type_reference_to_import_part_in_subdir();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_relative() async {
-    await super.test_type_reference_to_import_relative();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_typedef() async {
-    await super.test_type_reference_to_typedef();
   }
 
   @override

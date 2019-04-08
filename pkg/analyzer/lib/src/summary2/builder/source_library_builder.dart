@@ -133,9 +133,17 @@ class SourceLibraryBuilder {
         } else if (node is ast.TopLevelVariableDeclaration) {
           for (var variable in node.variables.variables) {
             var name = variable.name.name;
+
             var reference = variableRef.getChild(name);
-            reference.node2 = variable;
-            localScope.declare(name, reference);
+            reference.node2 = node;
+
+            var getter = getterRef.getChild(name);
+            localScope.declare(name, getter);
+
+            if (!variable.isConst && !variable.isFinal) {
+              var setter = setterRef.getChild(name);
+              localScope.declare('$name=', setter);
+            }
           }
         } else {
           // TODO(scheglov) implement
@@ -216,9 +224,9 @@ class SourceLibraryBuilder {
 //        }
 //      }
 //    }
-//    if ('$uri' == 'dart:core') {
-//      scope.declare('dynamic', reference.getChild('dynamic'));
-//    }
+    if ('$uri' == 'dart:core') {
+      localScope.declare('dynamic', reference.getChild('dynamic'));
+    }
   }
 
   void addSyntheticConstructors() {

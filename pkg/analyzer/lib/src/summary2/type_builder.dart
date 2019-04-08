@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -95,7 +96,22 @@ class TypeBuilder {
       typeArguments = typeArgumentList.arguments.map((a) => a.type).toList();
     }
 
-    if (element is ClassElement && !element.isEnum) {
+    if (element is ClassElement) {
+      if (element.isEnum) {
+        node.type = InterfaceTypeImpl.explicit(element, const []);
+      } else {
+        // TODO(scheglov) Use instantiate to bounds.
+        var typeParametersLength = element.typeParameters.length;
+        if (typeArguments == null ||
+            typeArguments.length != typeParametersLength) {
+          typeArguments = List<DartType>.filled(
+            typeParametersLength,
+            DynamicTypeImpl.instance,
+          );
+        }
+        node.type = InterfaceTypeImpl.explicit(element, typeArguments);
+      }
+    } else if (element is GenericTypeAliasElement) {
       // TODO(scheglov) Use instantiate to bounds.
       var typeParametersLength = element.typeParameters.length;
       if (typeArguments == null ||
@@ -105,7 +121,15 @@ class TypeBuilder {
           DynamicTypeImpl.instance,
         );
       }
-      node.type = InterfaceTypeImpl.explicit(element, typeArguments);
+
+      var substitution = Substitution.fromPairs(
+        element.typeParameters,
+        typeArguments,
+      );
+
+      // TODO(scheglov) Not sure if I like this.
+      var type = substitution.substituteType(element.function.type);
+      node.type = type;
     } else if (element is TypeParameterElement) {
       node.type = TypeParameterTypeImpl(element);
     } else {

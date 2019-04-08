@@ -304,51 +304,31 @@ class _ElementRequest {
     return reference.element;
   }
 
+  /// Index nodes for which we choose to create elements individually,
+  /// for example [ClassDeclaration], so that its [Reference] has the node,
+  /// and we can call the [ClassElementImpl] constructor.
   static void _indexUnitDeclarations(
     LinkedUnitContext unitContext,
     Reference unitRef,
     CompilationUnit unitNode,
   ) {
     var classRef = unitRef.getChild('@class');
-//    var enumRef = unitRef.getChild('@enum');
-//    var functionRef = unitRef.getChild('@function');
-//    var typeAliasRef = unitRef.getChild('@typeAlias');
-//    var variableRef = unitRef.getChild('@variable');
+    var enumRef = unitRef.getChild('@enum');
+    var typeAliasRef = unitRef.getChild('@typeAlias');
     for (var declaration in unitNode.declarations) {
       if (declaration is ClassDeclaration) {
         var name = declaration.name.name;
         classRef.getChild(name).node2 = declaration;
-      } else {
-        // TODO(scheglov) enforce
-//        throw UnimplementedError('${declaration.runtimeType}');
+      } else if (declaration is EnumDeclaration) {
+        var name = declaration.name.name;
+        enumRef.getChild(name).node2 = declaration;
+      } else if (declaration is FunctionTypeAlias) {
+        var name = declaration.name.name;
+        typeAliasRef.getChild(name).node2 = declaration;
+      } else if (declaration is GenericTypeAlias) {
+        var name = declaration.name.name;
+        typeAliasRef.getChild(name).node2 = declaration;
       }
-//      var kind = declaration.kind;
-//      if (kind == LinkedNodeKind.classDeclaration ||
-//          kind == LinkedNodeKind.classTypeAlias) {
-//        var name = unitContext.getUnitMemberName(declaration);
-//        classRef.getChild(name).node = declaration;
-//      } else if (kind == LinkedNodeKind.enumDeclaration) {
-//        var name = unitContext.getUnitMemberName(declaration);
-//        enumRef.getChild(name).node = declaration;
-//      } else if (kind == LinkedNodeKind.functionDeclaration) {
-//        var name = unitContext.getUnitMemberName(declaration);
-//        functionRef.getChild(name).node = declaration;
-//      } else if (kind == LinkedNodeKind.functionTypeAlias) {
-//        var name = unitContext.getUnitMemberName(declaration);
-//        typeAliasRef.getChild(name).node = declaration;
-//      } else if (kind == LinkedNodeKind.genericTypeAlias) {
-//        var name = unitContext.getUnitMemberName(declaration);
-//        typeAliasRef.getChild(name).node = declaration;
-//      } else if (kind == LinkedNodeKind.topLevelVariableDeclaration) {
-//        var variables = declaration.topLevelVariableDeclaration_variableList;
-//        for (var variable in variables.variableDeclarationList_variables) {
-//          var name =
-//              unitContext.getSimpleName(variable.variableDeclaration_name);
-//          variableRef.getChild(name).node = variable;
-//        }
-//      } else {
-//        throw UnimplementedError('$kind');
-//      }
     }
   }
 }

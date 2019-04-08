@@ -577,11 +577,29 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    // TODO(scheglov) scope
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@class').getChild(name);
+
+    var element = ClassElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.name.staticElement = element;
+    scope = new TypeParameterScope(scope, element);
+    scope = new ClassScope(scope, element);
+    LinkingNodeContext.set(node, LinkingNodeContext(scope));
+
     node.typeParameters?.accept(this);
     node.superclass?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
+
+    scope = outerScope;
+    reference = outerReference;
   }
 
   @override
@@ -629,13 +647,32 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@function').getChild(name);
+
+    var element = FunctionElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.name.staticElement = element;
+    scope = new FunctionScope(scope, element);
+    LinkingNodeContext.set(node, LinkingNodeContext(scope));
+
     node.returnType?.accept(this);
     node.functionExpression.accept(this);
     typesToBuild.declarations.add(node);
+
+    scope = outerScope;
+    reference = outerReference;
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    node.typeParameters?.accept(this);
     node.parameters?.accept(this);
   }
 
@@ -719,10 +756,28 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@method').getChild(name);
+
+    var element = MethodElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.name.staticElement = element;
+    scope = new FunctionScope(scope, element);
+    LinkingNodeContext.set(node, LinkingNodeContext(scope));
+
     node.returnType?.accept(this);
     node.parameters?.accept(this);
     node.typeParameters?.accept(this);
     typesToBuild.declarations.add(node);
+
+    scope = outerScope;
+    reference = outerReference;
   }
 
   @override
