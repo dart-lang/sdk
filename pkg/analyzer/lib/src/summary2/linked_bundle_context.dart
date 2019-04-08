@@ -24,12 +24,20 @@ class LinkedBundleContext {
   LinkedBundleContext(this.elementFactory, this._bundle)
       : _references = List<Reference>(_bundle.references.name.length) {
     for (var library in _bundle.libraries) {
-      var libraryDesc = LinkedLibraryContext(library.uriStr, this, library);
-      libraryMap[library.uriStr] = libraryDesc;
+      var libraryContext = LinkedLibraryContext(library.uriStr, this, library);
+      libraryMap[library.uriStr] = libraryContext;
 
-      for (var unit in library.units) {
-        var unitContext = LinkedUnitContext(this, unit.uriStr, unit);
-        libraryDesc.units.add(unitContext);
+      var units = library.units;
+      for (var unitIndex = 0; unitIndex < units.length; ++unitIndex) {
+        var unit = units[unitIndex];
+        var unitContext = LinkedUnitContext(
+          this,
+          libraryContext,
+          unitIndex,
+          unit.uriStr,
+          unit,
+        );
+        libraryContext.units.add(unitContext);
       }
     }
   }
@@ -43,9 +51,18 @@ class LinkedBundleContext {
     var libraryContext = LinkedLibraryContext(uriStr, this, data);
     libraryMap[uriStr] = libraryContext;
 
-    for (var unitUriStr in unitMap.keys) {
+    var uriUriStrList = unitMap.keys.toList();
+    for (var unitIndex = 0; unitIndex < uriUriStrList.length; ++unitIndex) {
+      var unitUriStr = uriUriStrList[unitIndex];
       var unit = unitMap[unitUriStr];
-      var unitContext = LinkedUnitContext(this, unitUriStr, null, unit: unit);
+      var unitContext = LinkedUnitContext(
+        this,
+        libraryContext,
+        unitIndex,
+        unitUriStr,
+        null,
+        unit: unit,
+      );
       libraryContext.units.add(unitContext);
     }
     return libraryContext;

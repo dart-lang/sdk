@@ -150,6 +150,8 @@ var a = [1, 2, 3];
     var unitContext = LinkedUnitContext(
       bundleContext,
       null,
+      0,
+      null,
       LinkedNodeUnitBuilder(
         node: builder,
         tokens: tokensResult.tokens,

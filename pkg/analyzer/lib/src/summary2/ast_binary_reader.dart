@@ -456,15 +456,17 @@ class AstBinaryReader {
   }
 
   ExportDirective _read_exportDirective(LinkedNode data) {
-    return astFactory.exportDirective(
+    var node = astFactory.exportDirective(
       _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.directive_keyword),
       _readNode(data.uriBasedDirective_uri),
       _readNodeList(data.namespaceDirective_configurations),
       _readNodeList(data.namespaceDirective_combinators),
       _getToken(data.directive_semicolon),
     );
+    LazyDirective.setData(node, data);
+    return node;
   }
 
   ExpressionFunctionBody _read_expressionFunctionBody(LinkedNode data) {
@@ -766,9 +768,9 @@ class AstBinaryReader {
   }
 
   ImportDirective _read_importDirective(LinkedNode data) {
-    return astFactory.importDirective(
+    var node = astFactory.importDirective(
       _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.directive_keyword),
       _readNode(data.uriBasedDirective_uri),
       _readNodeList(data.namespaceDirective_configurations),
@@ -778,6 +780,8 @@ class AstBinaryReader {
       _readNodeList(data.namespaceDirective_combinators),
       _getToken(data.directive_semicolon),
     );
+    LazyDirective.setData(node, data);
+    return node;
   }
 
   IndexExpression _read_indexExpression(LinkedNode data) {
@@ -847,13 +851,15 @@ class AstBinaryReader {
   }
 
   LibraryDirective _read_libraryDirective(LinkedNode data) {
-    return astFactory.libraryDirective(
+    var node = astFactory.libraryDirective(
       _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.directive_keyword),
       _readNode(data.libraryDirective_name),
       _getToken(data.directive_semicolon),
     );
+    LazyDirective.setData(node, data);
+    return node;
   }
 
   LibraryIdentifier _read_libraryIdentifier(LinkedNode data) {
@@ -969,17 +975,19 @@ class AstBinaryReader {
   }
 
   PartDirective _read_partDirective(LinkedNode data) {
-    return astFactory.partDirective(
+    var node = astFactory.partDirective(
       _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.directive_keyword),
       _readNode(data.uriBasedDirective_uri),
       _getToken(data.directive_semicolon),
     );
+    LazyDirective.setData(node, data);
+    return node;
   }
 
   PartOfDirective _read_partOfDirective(LinkedNode data) {
-    return astFactory.partOfDirective(
+    var node = astFactory.partOfDirective(
       _readNode(data.annotatedNode_comment),
       _readNodeList(data.annotatedNode_metadata),
       _getToken(data.directive_keyword),
@@ -988,6 +996,8 @@ class AstBinaryReader {
       _readNode(data.partOfDirective_libraryName),
       _getToken(data.directive_semicolon),
     );
+    LazyDirective.setData(node, data);
+    return node;
   }
 
   PostfixExpression _read_postfixExpression(LinkedNode data) {

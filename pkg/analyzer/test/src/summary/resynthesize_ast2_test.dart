@@ -288,12 +288,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_codeRange_parameter_annotations() async {
-    await super.test_codeRange_parameter_annotations();
-  }
-
-  @override
-  @failingTest
   test_const_constructor_inferred_args() async {
     await super.test_const_constructor_inferred_args();
   }
@@ -875,72 +869,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_library_documented_stars() async {
     await super.test_library_documented_stars();
-  }
-
-  @override
-  @failingTest
-  test_metadata_exportDirective() async {
-    await super.test_metadata_exportDirective();
-  }
-
-  @override
-  @failingTest
-  test_metadata_fieldFormalParameter() async {
-    await super.test_metadata_fieldFormalParameter();
-  }
-
-  @override
-  @failingTest
-  test_metadata_fieldFormalParameter_withDefault() async {
-    await super.test_metadata_fieldFormalParameter_withDefault();
-  }
-
-  @override
-  @failingTest
-  test_metadata_functionTypedFormalParameter() async {
-    await super.test_metadata_functionTypedFormalParameter();
-  }
-
-  @override
-  @failingTest
-  test_metadata_functionTypedFormalParameter_withDefault() async {
-    await super.test_metadata_functionTypedFormalParameter_withDefault();
-  }
-
-  @override
-  @failingTest
-  test_metadata_importDirective() async {
-    await super.test_metadata_importDirective();
-  }
-
-  @override
-  @failingTest
-  test_metadata_libraryDirective() async {
-    await super.test_metadata_libraryDirective();
-  }
-
-  @override
-  @failingTest
-  test_metadata_partDirective() async {
-    await super.test_metadata_partDirective();
-  }
-
-  @override
-  @failingTest
-  test_metadata_simpleFormalParameter() async {
-    await super.test_metadata_simpleFormalParameter();
-  }
-
-  @override
-  @failingTest
-  test_metadata_simpleFormalParameter_method() async {
-    await super.test_metadata_simpleFormalParameter_method();
-  }
-
-  @override
-  @failingTest
-  test_metadata_simpleFormalParameter_withDefault() async {
-    await super.test_metadata_simpleFormalParameter_withDefault();
   }
 
   @override

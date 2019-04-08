@@ -334,6 +334,36 @@ class LazyConstructorDeclaration {
   }
 }
 
+class LazyDirective {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  bool _hasMetadata = false;
+
+  LazyDirective(this.data);
+
+  static LazyDirective get(Directive node) {
+    return node.getProperty(_key);
+  }
+
+  static void readMetadata(AstBinaryReader reader, Directive node) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void setData(Directive node, LinkedNode data) {
+    node.setProperty(_key, LazyDirective(data));
+  }
+}
+
 class LazyEnumConstantDeclaration {
   static const _key = 'lazyAst';
 
@@ -497,6 +527,7 @@ class LazyFormalParameter {
   final LinkedNode data;
 
   bool _hasDefaultValue = false;
+  bool _hasMetadata = false;
   bool _hasType = false;
 
   LazyFormalParameter(this.data);
@@ -532,6 +563,21 @@ class LazyFormalParameter {
         );
         lazy._hasDefaultValue = true;
       }
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.normalFormalParameter_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
     }
   }
 

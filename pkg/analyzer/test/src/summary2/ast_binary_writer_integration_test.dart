@@ -86,7 +86,13 @@ void _assertCode(ParseBase base, String code) {
       references: LinkedNodeReferencesBuilder(name: ['']),
     ),
   );
-  var unitContext = LinkedUnitContext(bundleContext, null, linkedNodeUnit);
+  var unitContext = LinkedUnitContext(
+    bundleContext,
+    null,
+    0,
+    null,
+    linkedNodeUnit,
+  );
 
   var reader = AstBinaryReader(unitContext);
   var deserializedUnit = reader.readNode(linkedNodeUnit.node);

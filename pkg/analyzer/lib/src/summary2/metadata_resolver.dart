@@ -43,6 +43,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
+    node.directives.accept(this);
     node.declarations.accept(this);
   }
 
@@ -50,6 +51,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     node.metadata.accept(this);
     node.parameters.accept(this);
+  }
+
+  @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    node.parameter.accept(this);
   }
 
   @override
@@ -64,14 +70,24 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExportDirective(ExportDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     node.metadata.accept(this);
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    node.metadata.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
-    // TODO: implement visitFormalParameterList
-//    super.visitFormalParameterList(node);
+    node.parameters.accept(this);
   }
 
   @override
@@ -82,8 +98,8 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    // TODO: implement visitFunctionExpression
-//    super.visitFunctionExpression(node);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
   }
 
   @override
@@ -94,9 +110,26 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+  }
+
+  @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     // TODO: implement visitGenericTypeAlias
 //    super.visitGenericTypeAlias(node);
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitLibraryDirective(LibraryDirective node) {
+    node.metadata.accept(this);
   }
 
   @override
@@ -110,6 +143,21 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     // TODO: implement visitMixinDeclaration
 //    super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitPartDirective(PartDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitPartOfDirective(PartOfDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    node.metadata.accept(this);
   }
 
   @override

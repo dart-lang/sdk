@@ -4733,11 +4733,6 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-//    if (linkedNode != null) {
-//      if (_metadata != null) return _metadata;
-//      var metadata = enclosingUnit.linkedContext.getMetadataOrEmpty(linkedNode);
-//      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
-//    }
     if (_metadata == null) {
       if (_unlinkedExportNonPublic != null) {
         return _metadata = _buildAnnotations(library.definingCompilationUnit,
@@ -5950,11 +5945,6 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-//    if (linkedNode != null) {
-//      if (_metadata != null) return _metadata;
-//      var metadata = enclosingUnit.linkedContext.getMetadataOrEmpty(linkedNode);
-//      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
-//    }
     if (_metadata == null) {
       if (_unlinkedImport != null) {
         return _metadata = _buildAnnotations(
@@ -6659,21 +6649,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ElementAnnotation> get metadata {
-//    if (linkedNode != null) {
-//      if (_metadata != null) return _metadata;
-//      CompilationUnitElementImpl enclosingUnit = _definingCompilationUnit;
-//      var context = enclosingUnit.linkedContext;
-//      var metadata = context.getLibraryMetadataOrEmpty(linkedNode);
-//      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
-//    }
-    if (_metadata == null) {
-      if (unlinkedDefiningUnit != null) {
-        _metadata = _buildAnnotations(
-            _definingCompilationUnit as CompilationUnitElementImpl,
-            unlinkedDefiningUnit.libraryAnnotations);
-        return _metadata;
-      }
+    if (_metadata != null) return _metadata;
+
+    if (linkedNode != null) {
+      var metadata = linkedContext.getLibraryMetadata(linkedNode);
+      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
     }
+
+    if (unlinkedDefiningUnit != null) {
+      return _metadata = _buildAnnotations(
+          _definingCompilationUnit as CompilationUnitElementImpl,
+          unlinkedDefiningUnit.libraryAnnotations);
+    }
+
     return super.metadata;
   }
 

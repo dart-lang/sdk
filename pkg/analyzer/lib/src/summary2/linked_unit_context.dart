@@ -16,6 +16,8 @@ import 'package:analyzer/src/summary2/tokens_context.dart';
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
   final LinkedBundleContext bundleContext;
+  final LinkedLibraryContext libraryContext;
+  final int indexInLibrary;
   final String uriStr;
   final LinkedNodeUnit data;
   final TokensContext tokensContext;
@@ -25,7 +27,8 @@ class LinkedUnitContext {
   CompilationUnit _unit;
   bool _hasDirectivesRead = false;
 
-  LinkedUnitContext(this.bundleContext, this.uriStr, this.data,
+  LinkedUnitContext(this.bundleContext, this.libraryContext,
+      this.indexInLibrary, this.uriStr, this.data,
       {CompilationUnit unit})
       : tokensContext = data != null ? TokensContext(data.tokens) : null {
     _astReader = AstBinaryReader(this);
@@ -257,14 +260,13 @@ class LinkedUnitContext {
     return bundleContext.getInterfaceType(linkedType);
   }
 
-  List<LinkedNode> getLibraryMetadataOrEmpty(LinkedNode unit) {
-    throw UnimplementedError();
-//    for (var directive in unit.compilationUnit_directives) {
-//      if (directive.kind == LinkedNodeKind.libraryDirective) {
-//        return getMetadataOrEmpty(directive);
-//      }
-//    }
-//    return const <LinkedNode>[];
+  List<Annotation> getLibraryMetadata(CompilationUnit unit) {
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        return getMetadata(directive);
+      }
+    }
+    return const <Annotation>[];
   }
 
   List<Annotation> getMetadata(AstNode node) {
@@ -274,14 +276,25 @@ class LinkedUnitContext {
     } else if (node is ClassTypeAlias) {
       LazyClassTypeAlias.readMetadata(_astReader, node);
       return node.metadata;
+    } else if (node is CompilationUnit) {
+      assert(node == _unit);
+      return _getPartDirectiveAnnotation();
     } else if (node is ConstructorDeclaration) {
       LazyConstructorDeclaration.readMetadata(_astReader, node);
+      return node.metadata;
+    } else if (node is DefaultFormalParameter) {
+      return getMetadata(node.parameter);
+    } else if (node is Directive) {
+      LazyDirective.readMetadata(_astReader, node);
       return node.metadata;
     } else if (node is EnumConstantDeclaration) {
       LazyEnumConstantDeclaration.readMetadata(_astReader, node);
       return node.metadata;
     } else if (node is EnumDeclaration) {
       LazyEnumDeclaration.readMetadata(_astReader, node);
+      return node.metadata;
+    } else if (node is FormalParameter) {
+      LazyFormalParameter.readMetadata(_astReader, node);
       return node.metadata;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readMetadata(_astReader, node);
@@ -687,6 +700,24 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  NodeList<Annotation> _getPartDirectiveAnnotation() {
+    if (indexInLibrary != 0) {
+      var definingContext = libraryContext.definingUnit;
+      var unit = definingContext.unit;
+      var partDirectiveIndex = 0;
+      for (var directive in unit.directives) {
+        if (directive is PartDirective) {
+          partDirectiveIndex++;
+          if (partDirectiveIndex == indexInLibrary) {
+            LazyDirective.readMetadata(definingContext._astReader, directive);
+            return directive.metadata;
+          }
+        }
+      }
+    }
+    throw StateError('Expected to find $indexInLibrary part directive.');
   }
 
   static List<LinkedNode> getTypeParameters(LinkedNode node) {
