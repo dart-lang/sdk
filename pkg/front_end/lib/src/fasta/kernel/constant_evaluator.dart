@@ -466,7 +466,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final Map<Node, Object> nodeCache;
   final CloneVisitor cloner = new CloneVisitor();
 
-  final Map<Class, bool> primitiveEqualCache = new Map<Class, bool>.identity();
+  Map<Class, bool> primitiveEqualCache;
 
   final NullConstant nullConstant = new NullConstant();
   final BoolConstant trueConstant = new BoolConstant(true);
@@ -498,14 +498,20 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             ? typeEnvironment.coreTypes.index
                 .getMember('dart:collection', '_UnmodifiableSet', '_map')
             : null {
-    primitiveEqualCache[coreTypes.boolClass] = true;
-    primitiveEqualCache[coreTypes.intClass] = true;
-    primitiveEqualCache[coreTypes.internalSymbolClass] = true;
-    primitiveEqualCache[coreTypes.nullClass] = true;
-    primitiveEqualCache[coreTypes.objectClass] = true;
-    primitiveEqualCache[coreTypes.stringClass] = true;
-    primitiveEqualCache[coreTypes.symbolClass] = true;
-    primitiveEqualCache[coreTypes.typeClass] = true;
+    primitiveEqualCache = <Class, bool>{
+      coreTypes.boolClass: true,
+      coreTypes.doubleClass: false,
+      coreTypes.intClass: true,
+      coreTypes.internalSymbolClass: true,
+      coreTypes.listClass: true,
+      coreTypes.mapClass: true,
+      coreTypes.nullClass: true,
+      coreTypes.objectClass: true,
+      coreTypes.setClass: true,
+      coreTypes.stringClass: true,
+      coreTypes.symbolClass: true,
+      coreTypes.typeClass: true,
+    };
   }
 
   Uri getFileUri(TreeNode node) {
@@ -2152,6 +2158,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     for (Procedure procedure in klass.procedures) {
       if (procedure.kind == ProcedureKind.Operator &&
           procedure.name.name == '==' &&
+          !procedure.isAbstract &&
           !procedure.isForwardingStub) {
         return primitiveEqualCache[klass] = false;
       }
