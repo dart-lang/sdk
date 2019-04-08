@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -78,7 +77,7 @@ ErrorSeverity _errorSeverity(
 }
 
 void _expectErrors(AnalysisOptions analysisOptions, CompilationUnit unit,
-    List<AnalysisError> actualErrors) {
+    Iterable<AnalysisError> actualErrors) {
   var expectedErrors = _findExpectedErrors(unit.beginToken);
 
   var actualMap = new SplayTreeMap<int, List<AnalysisError>>();
@@ -332,7 +331,23 @@ class AbstractStrongTest with ResourceProviderMixin {
       mainUnit = _context.resolveCompilationUnit2(mainSource, mainSource);
     }
 
-    var collector = new _ErrorCollector(analysisOptions);
+    bool isRelevantError(AnalysisError error) {
+      var code = error.errorCode;
+      // We don't care about these.
+      if (code == HintCode.UNUSED_ELEMENT ||
+          code == HintCode.UNUSED_FIELD ||
+          code == HintCode.UNUSED_IMPORT ||
+          code == HintCode.UNUSED_LOCAL_VARIABLE ||
+          code == TodoCode.TODO) {
+        return false;
+      }
+      if (strictRawTypes) {
+        // When testing strict-raw-types, ignore anything else.
+        return code.errorSeverity.ordinal > ErrorSeverity.INFO.ordinal ||
+            code == HintCode.STRICT_RAW_TYPE;
+      }
+      return true;
+    }
 
     // Extract expectations from the comments in the test files, and
     // check that all errors we emit are included in the expected map.
@@ -341,9 +356,6 @@ class AbstractStrongTest with ResourceProviderMixin {
     Set<LibraryElement> allLibraries = _reachableLibraries(mainLibrary);
     for (LibraryElement library in allLibraries) {
       for (CompilationUnitElement unit in library.units) {
-        var errors = <AnalysisError>[];
-        collector.errors = errors;
-
         var source = unit.source;
         if (source.uri.scheme == 'dart') {
           continue;
@@ -351,18 +363,8 @@ class AbstractStrongTest with ResourceProviderMixin {
 
         var analysisResult = await _resolve(source);
 
-        errors.addAll(analysisResult.errors.where((e) =>
-            // We don't care about any of these:
-            e.errorCode != HintCode.UNUSED_ELEMENT &&
-            e.errorCode != HintCode.UNUSED_FIELD &&
-            e.errorCode != HintCode.UNUSED_IMPORT &&
-            e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
-            e.errorCode != TodoCode.TODO &&
-            // If testing strict-raw-types, ignore other (unrelated) hints.
-            (!strictRawTypes ||
-                e.errorCode.errorSeverity.ordinal >
-                    ErrorSeverity.INFO.ordinal ||
-                e.errorCode == HintCode.STRICT_RAW_TYPE)));
+        Iterable<AnalysisError> errors =
+            analysisResult.errors.where(isRelevantError);
         _expectErrors(analysisOptions, analysisResult.unit, errors);
       }
     }
@@ -401,22 +403,6 @@ class AbstractStrongTest with ResourceProviderMixin {
       var unit = _context.resolveCompilationUnit2(source, libraries.single);
       var errors = _context.computeErrors(source);
       return new _TestAnalysisResult(source, unit, errors);
-    }
-  }
-}
-
-class _ErrorCollector implements AnalysisErrorListener {
-  final AnalysisOptions analysisOptions;
-  List<AnalysisError> errors;
-  final bool hints;
-
-  _ErrorCollector(this.analysisOptions, {this.hints: true});
-
-  void onError(AnalysisError error) {
-    // Unless DDC hints are requested, filter them out.
-    var HINT = ErrorSeverity.INFO.ordinal;
-    if (hints || _errorSeverity(analysisOptions, error).ordinal > HINT) {
-      errors.add(error);
     }
   }
 }
