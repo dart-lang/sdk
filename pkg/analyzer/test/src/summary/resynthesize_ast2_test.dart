@@ -288,80 +288,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_codeRange_class() async {
-    await super.test_codeRange_class();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_class_namedMixin() async {
-    await super.test_codeRange_class_namedMixin();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_constructor() async {
-    await super.test_codeRange_constructor();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_constructor_factory() async {
-    await super.test_codeRange_constructor_factory();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_field() async {
-    await super.test_codeRange_field();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_field_annotations() async {
-    await super.test_codeRange_field_annotations();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_function() async {
-    await super.test_codeRange_function();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_method() async {
-    await super.test_codeRange_method();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_parameter() async {
-    await super.test_codeRange_parameter();
-  }
-
-  @override
-  @failingTest
   test_codeRange_parameter_annotations() async {
     await super.test_codeRange_parameter_annotations();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_topLevelVariable() async {
-    await super.test_codeRange_topLevelVariable();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_topLevelVariable_annotations() async {
-    await super.test_codeRange_topLevelVariable_annotations();
-  }
-
-  @override
-  @failingTest
-  test_codeRange_type_parameter() async {
-    await super.test_codeRange_type_parameter();
   }
 
   @override
@@ -665,12 +593,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_field_covariant() async {
     await super.test_field_covariant();
-  }
-
-  @override
-  @failingTest
-  test_field_documented() async {
-    await super.test_field_documented();
   }
 
   @override
@@ -1055,12 +977,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_parameter() async {
-    await super.test_parameter();
-  }
-
-  @override
-  @failingTest
   test_parameter_covariant() async {
     await super.test_parameter_covariant();
   }
@@ -1278,12 +1194,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_unused_type_parameter() async {
     await super.test_unused_type_parameter();
-  }
-
-  @override
-  @failingTest
-  test_variable_documented() async {
-    await super.test_variable_documented();
   }
 
   @override

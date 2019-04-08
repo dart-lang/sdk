@@ -63,6 +63,48 @@ class LinkedUnitContext {
     return resolveRelativeUri(libraryUri, relativeUri);
   }
 
+  int getCodeLength(AstNode node) {
+    if (node is ClassDeclaration) {
+      return LazyClassDeclaration.get(node).data.codeLength;
+    } else if (node is ClassTypeAlias) {
+      return LazyClassTypeAlias.get(node).data.codeLength;
+    } else if (node is ConstructorDeclaration) {
+      return LazyConstructorDeclaration.get(node).data.codeLength;
+    } else if (node is FormalParameter) {
+      return LazyFormalParameter.get(node).data.codeLength;
+    } else if (node is FunctionDeclaration) {
+      return LazyFunctionDeclaration.get(node).data.codeLength;
+    } else if (node is MethodDeclaration) {
+      return LazyMethodDeclaration.get(node).data.codeLength;
+    } else if (node is TypeParameter) {
+      return LazyTypeParameter.get(node).data.codeLength;
+    } else if (node is VariableDeclaration) {
+      return LazyVariableDeclaration.get(node).data.codeLength;
+    }
+    throw UnimplementedError('${node.runtimeType}');
+  }
+
+  int getCodeOffset(AstNode node) {
+    if (node is ClassDeclaration) {
+      return LazyClassDeclaration.get(node).data.codeOffset;
+    } else if (node is ClassTypeAlias) {
+      return LazyClassTypeAlias.get(node).data.codeOffset;
+    } else if (node is ConstructorDeclaration) {
+      return LazyConstructorDeclaration.get(node).data.codeOffset;
+    } else if (node is FormalParameter) {
+      return LazyFormalParameter.get(node).data.codeOffset;
+    } else if (node is FunctionDeclaration) {
+      return LazyFunctionDeclaration.get(node).data.codeOffset;
+    } else if (node is MethodDeclaration) {
+      return LazyMethodDeclaration.get(node).data.codeOffset;
+    } else if (node is TypeParameter) {
+      return LazyTypeParameter.get(node).data.codeOffset;
+    } else if (node is VariableDeclaration) {
+      return LazyVariableDeclaration.get(node).data.codeOffset;
+    }
+    throw UnimplementedError('${node.runtimeType}');
+  }
+
   String getConstructorDeclarationName(LinkedNode node) {
     var name = node.constructorDeclaration_name;
     if (name != null) {
@@ -113,6 +155,20 @@ class LinkedUnitContext {
     } else if (node is MixinDeclaration) {
       LazyMixinDeclaration.readDocumentationComment(_astReader, node);
       return node.documentationComment;
+    } else if (node is VariableDeclaration) {
+      var parent2 = node.parent.parent;
+      if (parent2 is FieldDeclaration) {
+        LazyFieldDeclaration.readDocumentationComment(_astReader, parent2);
+        return parent2.documentationComment;
+      } else if (parent2 is TopLevelVariableDeclaration) {
+        LazyTopLevelVariableDeclaration.readDocumentationComment(
+          _astReader,
+          parent2,
+        );
+        return parent2.documentationComment;
+      } else {
+        throw UnimplementedError('${parent2.runtimeType}');
+      }
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
@@ -291,10 +347,12 @@ class LinkedUnitContext {
   }
 
   int getNameOffset(AstNode node) {
-    if (node is EnumConstantDeclaration) {
+    if (node is NamedCompilationUnitMember) {
       return node.name.offset;
-    } else if (node is FunctionDeclaration) {
+    } else if (node is EnumConstantDeclaration) {
       return node.name.offset;
+    } else if (node is FormalParameter) {
+      return node.identifier.offset;
     } else if (node is VariableDeclaration) {
       return node.name.offset;
     }
