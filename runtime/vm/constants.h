@@ -63,6 +63,28 @@ using namespace arch_arm64;  // NOLINT
 
 }  // namespace host
 
+class RegisterNames {
+ public:
+  static const char* RegisterName(Register reg) {
+    ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
+    return cpu_reg_names[reg];
+  }
+  static const char* FpuRegisterName(FpuRegister reg) {
+    ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
+    return fpu_reg_names[reg];
+  }
+#if !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
+  static const char* RegisterName(host::Register reg) {
+    ASSERT((0 <= reg) && (reg < host::kNumberOfCpuRegisters));
+    return host::cpu_reg_names[reg];
+  }
+  static const char* FpuRegisterName(host::FpuRegister reg) {
+    ASSERT((0 <= reg) && (reg < host::kNumberOfFpuRegisters));
+    return host::fpu_reg_names[reg];
+  }
+#endif  // !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_H_

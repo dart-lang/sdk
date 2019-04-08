@@ -81,7 +81,8 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
         it.CurrentValue()->definition()->IsPushArgument()) {
       it.SetCurrentLocation(Location::StackSlot(
           compiler::target::frame_layout.FrameSlotForVariableIndex(
-              -*stack_height)));
+              -*stack_height),
+          FPREG));
       (*stack_height)++;
     }
   }
