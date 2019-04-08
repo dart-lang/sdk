@@ -82,7 +82,9 @@ class TopLevelInference {
                 node = defaultParameter.parameter;
               }
 
-              if (node is FieldFormalParameter && node.type == null) {
+              if (node is FieldFormalParameter &&
+                  node.type == null &&
+                  node.parameters == null) {
                 var name = parameter.name;
                 var type = fields[name] ?? _dynamicType;
                 LazyAst.setType(node, type);

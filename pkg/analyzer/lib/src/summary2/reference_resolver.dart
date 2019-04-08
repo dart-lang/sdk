@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/type_builder.dart';
 
 // TODO(scheglov) This class is not used, not [get] yet.
 class LinkingNodeContext {
@@ -529,7 +530,7 @@ class LinkingNodeContext {
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
-  final TypesToBuild typesToBuild;
+  final NodesToBuildType nodesToBuildType;
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
 
@@ -537,7 +538,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   Scope scope;
 
   ReferenceResolver(
-    this.typesToBuild,
+    this.nodesToBuildType,
     this.elementFactory,
     this._libraryElement,
     this.reference,
@@ -637,7 +638,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     node.type?.accept(this);
-    typesToBuild.declarations.add(node);
+    node.parameters?.accept(this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -664,7 +666,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.functionExpression.accept(this);
-    typesToBuild.declarations.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -695,10 +697,19 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
-    typesToBuild.declarations.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    node.returnType?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -719,8 +730,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
-    typesToBuild.typeAnnotations.add(node);
-    typesToBuild.declarations.add(node);
+    nodesToBuildType.addTypeAnnotation(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -774,7 +785,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.parameters?.accept(this);
     node.typeParameters?.accept(this);
-    typesToBuild.declarations.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -814,7 +825,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.type?.accept(this);
-    typesToBuild.declarations.add(node);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -848,7 +859,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.typeArguments?.accept(this);
 
-    typesToBuild.typeAnnotations.add(node);
+    nodesToBuildType.addTypeAnnotation(node);
   }
 
   @override
@@ -864,37 +875,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.type?.accept(this);
-    typesToBuild.declarations.add(node);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
   void visitWithClause(WithClause node) {
     node.mixinTypes.accept(this);
   }
-}
-
-/// Type annotations and declarations to build types for.
-///
-/// Not all types can be build during reference resolution phase.
-/// For example `A` means `A<num>` if `class A<T extends num>`, but we don't
-/// know this until we resolved `A` declaration, and we might have not yet.
-/// So, we remember [LinkedNodeKind.typeName] nodes to resolve them later.
-///
-/// TODO(scheglov) update documentation
-class TypesToBuild {
-  /// Nodes with [LinkedNodeKind.typeName] (with type arguments, and without
-  /// them), and [LinkedNodeKind.genericFunctionType].  These nodes will be
-  /// resolved by [ReferenceResolver], so that they have their references set,
-  /// but their types will not be set yet.
-  ///
-  /// Types arguments, return types, and types of formal parameters must be
-  /// before the types that use them in this list.
-  final List<TypeAnnotation> typeAnnotations = [];
-
-  /// Nodes with type annotations, where we want not just resolve these types
-  /// annotations, but also set additional types.  For example instance method
-  /// return types might be specified, and then the method has the specified
-  /// return type.  But if the return type is not specified explicitly, the
-  /// method still might have a return type, inferred from a superclass.
-  final List<AstNode> declarations = [];
 }

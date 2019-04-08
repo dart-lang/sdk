@@ -13,9 +13,37 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
-import 'package:analyzer/src/summary2/reference_resolver.dart';
 
-/// Build types in a [TypesToBuild].
+/// Type annotations and declarations to build types for.
+///
+/// Not all types can be build during reference resolution phase.
+/// For example `A` means `A<num>` if `class A<T extends num>`, but we don't
+/// know this until we resolved `A` declaration, and we might have not yet.
+///
+/// So, we remember type annotations that should be resolved later, and
+/// declarations to set types from explicit type annotations.
+class NodesToBuildType {
+  final List<NodeToBuildType> items = [];
+
+  void addDeclaration(AstNode declaration) {
+    items.add(NodeToBuildType._(null, declaration));
+  }
+
+  void addTypeAnnotation(TypeAnnotation typeAnnotation) {
+    items.add(NodeToBuildType._(typeAnnotation, null));
+  }
+}
+
+/// A type annotation to build type for, or a declaration to set its explicitly
+/// declared type.
+class NodeToBuildType {
+  final TypeAnnotation typeAnnotation;
+  final AstNode declaration;
+
+  NodeToBuildType._(this.typeAnnotation, this.declaration);
+}
+
+/// Build types in a [NodesToBuildType].
 class TypeBuilder {
   final LinkingBundleContext bundleContext;
 
@@ -25,66 +53,51 @@ class TypeBuilder {
     return DynamicTypeImpl.instance;
   }
 
-  void build(TypesToBuild typesToBuild) {
-    for (var node in typesToBuild.typeAnnotations) {
-      if (node is GenericFunctionType) {
-        _buildGenericFunctionType(node);
-      } else if (node is TypeName) {
-        _buildTypeName(node);
-      } else {
-        throw StateError('${node.runtimeType}');
+  void build(NodesToBuildType nodesToBuildType) {
+    for (var item in nodesToBuildType.items) {
+      if (item.typeAnnotation != null) {
+        var node = item.typeAnnotation;
+        if (node is GenericFunctionType) {
+          _buildGenericFunctionType(node);
+        } else if (node is TypeName) {
+          _buildTypeName(node);
+        } else {
+          throw StateError('${node.runtimeType}');
+        }
+      } else if (item.declaration != null) {
+        _setTypesForDeclaration(item.declaration);
       }
-//      var kind = node.kind;
-//      if (kind == LinkedNodeKind.genericFunctionType) {
-//        _buildGenericFunctionType(node);
-//      } else if (kind == LinkedNodeKind.typeName) {
-//        _buildTypeName(node);
-//      } else {
-//        throw StateError('$kind');
-//      }
-    }
-    for (var node in typesToBuild.declarations) {
-      _setTypesForDeclaration(node);
     }
   }
 
-//  LinkedNodeTypeBuilder _buildFunctionType(
-//    LinkedNode returnTypeNode,
-//    LinkedNode parameterList,
-//  ) {
-//    var returnType = _getType(returnTypeNode);
-//
-//    var formalParameters = <LinkedNodeTypeFormalParameterBuilder>[];
-//    for (var parameter in parameterList.formalParameterList_parameters) {
-//      formalParameters.add(LinkedNodeTypeFormalParameterBuilder(
-//        kind: parameter.formalParameter_kind,
-//        type: _getFormalParameterType(parameter),
-//      ));
-//    }
-//
-//    return LinkedNodeTypeBuilder(
-//      kind: LinkedNodeTypeKind.function,
-//      functionFormalParameters: formalParameters,
-//      functionReturnType: returnType,
-//    );
-//  }
+  DartType _buildFunctionType(
+    TypeAnnotation returnTypeNode,
+    FormalParameterList parameterList,
+  ) {
+    var returnType = returnTypeNode?.type ?? _dynamicType;
 
-  void _buildGenericFunctionType(GenericFunctionTypeImpl node) {
-    // TODO(scheglov) Type parameters?
-    var typeFormals = <TypeParameterElement>[];
-    var parameters = node.parameters.parameters.map((p) {
+    // TODO(scheglov) type parameters
+    var typeParameters = const <TypeParameterElement>[];
+
+    var formalParameters = parameterList.parameters.map((p) {
       // TODO(scheglov) other types and kinds
       return ParameterElementImpl.synthetic(
         (p as SimpleFormalParameter).identifier.name,
-        (p as SimpleFormalParameter).type.type,
+        LazyAst.getType(p),
         ParameterKind.REQUIRED,
       );
     }).toList();
-    node.type = FunctionTypeImpl.synthetic(
-      node.returnType?.type ?? _dynamicType,
-      typeFormals,
-      parameters,
+
+    return FunctionTypeImpl.synthetic(
+      returnType,
+      typeParameters,
+      formalParameters,
     );
+  }
+
+  void _buildGenericFunctionType(GenericFunctionTypeImpl node) {
+    // TODO(scheglov) Type parameters?
+    node.type = _buildFunctionType(node.returnType, node.parameters);
   }
 
   void _buildTypeName(TypeName node) {
@@ -198,25 +211,20 @@ class TypeBuilder {
 //    }
   }
 
-//  void _fieldFormalParameter(LinkedNodeBuilder node) {
-//    var parameterList = node.fieldFormalParameter_formalParameters;
-//    if (parameterList != null) {
-//      node.fieldFormalParameter_type2 = _buildFunctionType(
-//        node.fieldFormalParameter_type,
-//        parameterList,
-//      );
-//    } else {
-//      var type = _getType(node.fieldFormalParameter_type);
-//      node.fieldFormalParameter_type2 = type;
-//    }
-//  }
-//
-//  void _functionTypedFormalParameter(LinkedNodeBuilder node) {
-//    node.functionTypedFormalParameter_type2 = _buildFunctionType(
-//      node.functionTypedFormalParameter_returnType,
-//      node.functionTypedFormalParameter_formalParameters,
-//    );
-//  }
+  void _fieldFormalParameter(FieldFormalParameter node) {
+    var parameterList = node.parameters;
+    if (parameterList != null) {
+      var type = _buildFunctionType(node.type, parameterList);
+      LazyAst.setType(node, type);
+    } else {
+      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+    }
+  }
+
+  void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    var type = _buildFunctionType(node.returnType, node.parameters);
+    LazyAst.setType(node, type);
+  }
 
 //  LinkedNodeTypeBuilder _getFormalParameterType(LinkedNode node) {
 //    var kind = node.kind;
@@ -247,11 +255,13 @@ class TypeBuilder {
 
   void _setTypesForDeclaration(AstNode node) {
     if (node is FieldFormalParameter) {
-      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+      _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
       LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
     } else if (node is FunctionTypeAlias) {
       LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+    } else if (node is FunctionTypedFormalParameter) {
+      _functionTypedFormalParameter(node);
     } else if (node is GenericFunctionType) {
       LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
     } else if (node is MethodDeclaration) {

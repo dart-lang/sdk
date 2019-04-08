@@ -475,7 +475,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       fieldFormalParameter_typeParameters: node.typeParameters?.accept(this),
     );
     _storeNormalFormalParameter(builder, node);
-    _writeActualType(builder, node);
     return builder;
   }
 
@@ -1040,7 +1039,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       simpleFormalParameter_type: node.type?.accept(this),
     );
     _storeNormalFormalParameter(builder, node);
-    _writeActualType(builder, node);
     return builder;
   }
 
@@ -1421,6 +1419,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     builder.formalParameter_kind = kind;
 
     _storeCodeOffsetLength(builder, node);
+    _writeActualType(builder, node);
   }
 
   void _storeForMixin(LinkedNodeBuilder builder, ForMixin node) {

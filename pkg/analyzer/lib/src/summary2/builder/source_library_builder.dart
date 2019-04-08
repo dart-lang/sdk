@@ -21,6 +21,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
+import 'package:analyzer/src/summary2/type_builder.dart';
 
 class SourceLibraryBuilder {
   final Linker linker;
@@ -293,12 +294,12 @@ class SourceLibraryBuilder {
     }
   }
 
-  void resolveTypes(TypesToBuild typesToBuild) {
+  void resolveTypes(NodesToBuildType nodesToBuildType) {
     for (var unitContext in context.units) {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);
       var resolver = ReferenceResolver(
-        typesToBuild,
+        nodesToBuildType,
         linker.elementFactory,
         element,
         unitReference,

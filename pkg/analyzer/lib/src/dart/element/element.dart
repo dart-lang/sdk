@@ -7922,28 +7922,12 @@ class ParameterElementImpl extends VariableElementImpl
         reference,
         node,
       );
-    } else if (node is SimpleFormalParameter) {
+    } else if (node is FunctionTypedFormalParameter ||
+        node is SimpleFormalParameter) {
       return ParameterElementImpl.forLinkedNode(enclosing, reference, node);
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
-//    var kind = linkedNode.kind;
-//    if (kind == LinkedNodeKind.fieldFormalParameter) {
-//      return FieldFormalParameterElementImpl.forLinkedNode(
-//        enclosing,
-//        reference,
-//        linkedNode,
-//      );
-//    } else if (kind == LinkedNodeKind.functionTypedFormalParameter ||
-//        kind == LinkedNodeKind.simpleFormalParameter) {
-//      return ParameterElementImpl.forLinkedNode(
-//        enclosing,
-//        reference,
-//        linkedNode,
-//      );
-//    } else {
-//      throw UnimplementedError('$kind');
-//    }
   }
 
   /// Initialize a newly created parameter element to have the given [name].

@@ -202,20 +202,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_constructor_field_formal_functionTyped_noReturnType() async {
-    await super
-        .test_class_constructor_field_formal_functionTyped_noReturnType();
-  }
-
-  @override
-  @failingTest
-  test_class_constructor_field_formal_functionTyped_withReturnType() async {
-    await super
-        .test_class_constructor_field_formal_functionTyped_withReturnType();
-  }
-
-  @override
-  @failingTest
   test_class_notSimplyBounded_circularity_via_typedef() async {
     await super.test_class_notSimplyBounded_circularity_via_typedef();
   }
@@ -677,24 +663,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_export_hide() async {
-    await super.test_export_hide();
-  }
-
-  @override
-  @failingTest
-  test_export_multiple_combinators() async {
-    await super.test_export_multiple_combinators();
-  }
-
-  @override
-  @failingTest
-  test_export_show() async {
-    await super.test_export_show();
-  }
-
-  @override
-  @failingTest
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
   }
@@ -737,24 +705,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_function_parameter_parameters() async {
-    await super.test_function_parameter_parameters();
-  }
-
-  @override
-  @failingTest
-  test_function_parameter_return_type() async {
-    await super.test_function_parameter_return_type();
-  }
-
-  @override
-  @failingTest
-  test_function_parameter_return_type_void() async {
-    await super.test_function_parameter_return_type_void();
-  }
-
-  @override
-  @failingTest
   test_function_type_parameter() async {
     await super.test_function_type_parameter();
   }
@@ -767,12 +717,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_function_typed_parameter_implicit() async {
-    await super.test_function_typed_parameter_implicit();
-  }
-
-  @override
-  @failingTest
   test_futureOr_inferred() async {
     await super.test_futureOr_inferred();
   }
@@ -781,12 +725,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_generic_gClass_gMethodStatic() async {
     await super.test_generic_gClass_gMethodStatic();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_asFunctionTypedParameterReturnType() async {
-    await super.test_genericFunction_asFunctionTypedParameterReturnType();
   }
 
   @override
@@ -809,26 +747,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_import_export() async {
-    await super.test_import_export();
-  }
-
-  @override
-  @failingTest
-  test_import_hide() async {
-    await super.test_import_hide();
-  }
-
-  @override
-  @failingTest
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @override
-  @failingTest
-  test_import_multiple_combinators() async {
-    await super.test_import_multiple_combinators();
   }
 
   @override
@@ -849,12 +769,6 @@ T max<T extends num>(T a, T b) => null;
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
 //    await super.test_import_short_absolute();
-  }
-
-  @override
-  @failingTest
-  test_import_show() async {
-    await super.test_import_show();
   }
 
   @override
@@ -950,13 +864,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_inferredType_implicitCreation() async {
     await super.test_inferredType_implicitCreation();
-  }
-
-  @override
-  @failingTest
-  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    await super
-        .test_inferredType_usesSyntheticFunctionType_functionTypedParam();
   }
 
   @override
@@ -1208,30 +1115,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_parameter_parameters() async {
-    await super.test_parameter_parameters();
-  }
-
-  @override
-  @failingTest
-  test_parameter_parameters_in_generic_class() async {
-    await super.test_parameter_parameters_in_generic_class();
-  }
-
-  @override
-  @failingTest
-  test_parameter_return_type() async {
-    await super.test_parameter_return_type();
-  }
-
-  @override
-  @failingTest
-  test_parameter_return_type_void() async {
-    await super.test_parameter_return_type_void();
-  }
-
-  @override
-  @failingTest
   test_parts_invalidUri_nullStringValue() async {
     await super.test_parts_invalidUri_nullStringValue();
   }
@@ -1328,18 +1211,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_type_reference_to_typedef_with_type_arguments() async {
-    await super.test_type_reference_to_typedef_with_type_arguments();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_typedef_with_type_arguments_implicit() async {
-    await super.test_type_reference_to_typedef_with_type_arguments_implicit();
-  }
-
-  @override
-  @failingTest
   test_type_unresolved_prefixed() async {
     await super.test_type_unresolved_prefixed();
   }
@@ -1389,24 +1260,6 @@ T max<T extends num>(T a, T b) => null;
   test_typedef_notSimplyBounded_dependency_via_return_type_old_style() async {
     await super
         .test_typedef_notSimplyBounded_dependency_via_return_type_old_style();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameter_parameters() async {
-    await super.test_typedef_parameter_parameters();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameter_parameters_in_generic_class() async {
-    await super.test_typedef_parameter_parameters_in_generic_class();
-  }
-
-  @override
-  @failingTest
-  test_typedef_parameter_return_type() async {
-    await super.test_typedef_parameter_return_type();
   }
 
   @override
