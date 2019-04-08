@@ -542,6 +542,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
 #else
       result = entrypoint(code, argdesc_, call_base, thread);
 #endif
+      fp_ = *FP;  // For the profiler. Compare HANDLE_RETURN.
       thread->set_top_exit_frame_info(0);
       ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
@@ -906,7 +907,10 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
     Exit(thread, *FP, top + 5, *pc);
     NativeArguments native_args(thread, 3, /* argv */ top + 1,
                                 /* result */ top + 4);
-    DRT_InterpretedInterfaceCallMissHandler(native_args);
+    if (!InvokeRuntime(thread, this, DRT_InterpretedInterfaceCallMissHandler,
+                       native_args)) {
+      return false;
+    }
 
     target = static_cast<RawFunction*>(top[4]);
     target_name = static_cast<RawString*>(top[2]);
