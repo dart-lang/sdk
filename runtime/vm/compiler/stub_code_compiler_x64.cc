@@ -13,7 +13,7 @@
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/constants_x64.h"
+#include "vm/constants.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if defined(TARGET_ARCH_X64)
-
+#define RUNTIME_VM_CONSTANTS_H_  // To work around include guard.
 #include "vm/constants_x64.h"
 
-namespace dart {
+namespace arch_x64 {
 
 #if defined(_WIN64)
 const Register CallingConventions::ArgumentRegisters[] = {
@@ -26,6 +25,4 @@ const XmmRegister CallingConventions::FpuArgumentRegisters[] = {
     XmmRegister::XMM4, XmmRegister::XMM5, XmmRegister::XMM6, XmmRegister::XMM7};
 #endif
 
-}  // namespace dart
-
-#endif
+}  // namespace arch_x64

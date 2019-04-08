@@ -15,7 +15,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
-#include "vm/constants_arm.h"
+#include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"

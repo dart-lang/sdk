@@ -11,7 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/constants_ia32.h"
+#include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/pointer_tagging.h"
 
@@ -466,7 +466,7 @@ class Assembler : public AssemblerBase {
   F(sub, 0x2b, 0x29, 5)                                                        \
   F(sbb, 0x1b, 0x19, 3)                                                        \
   F(cmp, 0x3b, 0x39, 7)
-// clang-format on
+  // clang-format on
 
 #define DECLARE_ALU(op, opcode, opcode2, modrm_opcode)                         \
   void op##l(Register dst, Register src) { Alu(4, opcode, dst, src); }         \

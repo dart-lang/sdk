@@ -9,7 +9,7 @@
 #include "vm/instructions_arm.h"
 
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/constants_arm.h"
+#include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
 #include "vm/reverse_pc_lookup_cache.h"

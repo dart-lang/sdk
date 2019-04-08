@@ -13,7 +13,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/constants_x64.h"
+#include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/hash_map.h"
 #include "vm/pointer_tagging.h"

@@ -14,7 +14,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
-#include "vm/constants_arm64.h"
+#include "vm/constants.h"
 #include "vm/hash_map.h"
 #include "vm/simulator.h"
 
