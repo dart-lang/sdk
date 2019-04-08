@@ -457,7 +457,7 @@ static void DumpStackFrame(intptr_t frame_index,
     return;
   }
 
-  OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " Uknown symbol\n", pc, fp);
+  OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " Unknown symbol\n", pc, fp);
 }
 
 class ProfilerStackWalker : public ValueObject {
