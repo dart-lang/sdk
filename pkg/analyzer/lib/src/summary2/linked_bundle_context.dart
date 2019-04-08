@@ -45,7 +45,7 @@ class LinkedBundleContext {
 
     for (var unitUriStr in unitMap.keys) {
       var unit = unitMap[unitUriStr];
-      var unitContext = LinkedUnitContext(this, uriStr, null, unit: unit);
+      var unitContext = LinkedUnitContext(this, unitUriStr, null, unit: unit);
       libraryContext.units.add(unitContext);
     }
     return libraryContext;

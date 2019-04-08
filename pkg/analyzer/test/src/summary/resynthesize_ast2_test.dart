@@ -737,12 +737,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_function_entry_point_in_part() async {
-    await super.test_function_entry_point_in_part();
-  }
-
-  @override
-  @failingTest
   test_function_parameter_parameters() async {
     await super.test_function_parameter_parameters();
   }
@@ -1238,18 +1232,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_parts() async {
-    await super.test_parts();
-  }
-
-  @override
-  @failingTest
-  test_parts_invalidUri() async {
-    await super.test_parts_invalidUri();
-  }
-
-  @override
-  @failingTest
   test_parts_invalidUri_nullStringValue() async {
     await super.test_parts_invalidUri_nullStringValue();
   }
@@ -1342,36 +1324,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_invalid_unresolvedPrefix() async {
     await super.test_type_invalid_unresolvedPrefix();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_lib_to_part() async {
-    await super.test_type_reference_lib_to_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_part_to_lib() async {
-    await super.test_type_reference_part_to_lib();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_part_to_other_part() async {
-    await super.test_type_reference_part_to_other_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_part_to_part() async {
-    await super.test_type_reference_part_to_part();
-  }
-
-  @override
-  @failingTest
-  test_type_reference_to_import_part2() async {
-    await super.test_type_reference_to_import_part2();
   }
 
   @override
@@ -1513,12 +1465,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_unresolved_part() async {
-    await super.test_unresolved_part();
-  }
-
-  @override
-  @failingTest
   test_unused_type_parameter() async {
     await super.test_unused_type_parameter();
   }
@@ -1531,24 +1477,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_variable_getterInLib_setterInPart() async {
-    await super.test_variable_getterInLib_setterInPart();
-  }
-
-  @override
-  @failingTest
-  test_variable_getterInPart_setterInLib() async {
-    await super.test_variable_getterInPart_setterInLib();
-  }
-
-  @override
-  @failingTest
-  test_variable_getterInPart_setterInPart() async {
-    await super.test_variable_getterInPart_setterInPart();
-  }
-
-  @override
-  @failingTest
   test_variable_propagatedType_final_dep_inLib() async {
     await super.test_variable_propagatedType_final_dep_inLib();
   }
@@ -1557,12 +1485,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_variable_propagatedType_final_dep_inPart() async {
     await super.test_variable_propagatedType_final_dep_inPart();
-  }
-
-  @override
-  @failingTest
-  test_variable_setterInPart_getterInPart() async {
-    await super.test_variable_setterInPart_getterInPart();
   }
 
   LinkResult _link(Map<Source, String> codeMap) {
