@@ -553,15 +553,22 @@ static void VerifyMethodKindShifts() {
   const Library& lib = Library::Handle(zone, Library::MirrorsLibrary());
   const Class& cls = Class::Handle(
       zone, lib.LookupClassAllowPrivate(Symbols::_LocalMethodMirror()));
-  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+  Error& error = Error::Handle(zone);
+  error ^= cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
 
-  Field& field = Field::Handle();
-  Smi& value = Smi::Handle();
+  Field& field = Field::Handle(zone);
+  Smi& value = Smi::Handle(zone);
+  String& fname = String::Handle(zone);
 
 #define CHECK_KIND_SHIFT(name)                                                 \
-  field = cls.LookupField(String::Handle(String::New(#name)));                 \
+  fname ^= String::New(#name);                                                 \
+  field = cls.LookupField(fname);                                              \
   ASSERT(!field.IsNull());                                                     \
+  if (field.IsUninitialized()) {                                               \
+    error ^= field.Initialize();                                               \
+    ASSERT(error.IsNull());                                                    \
+  }                                                                            \
   value ^= field.StaticValue();                                                \
   ASSERT(value.Value() == Mirrors::name);
   MIRRORS_KIND_SHIFT_LIST(CHECK_KIND_SHIFT)
