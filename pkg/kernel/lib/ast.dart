@@ -2211,6 +2211,9 @@ abstract class Expression extends TreeNode {
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).parameter.bound;
     }
+    if (type == types.nullType) {
+      return superclass.bottomType;
+    }
     if (type is InterfaceType) {
       var upcastType = types.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
@@ -3493,7 +3496,7 @@ class BoolLiteral extends BasicLiteral {
 class NullLiteral extends BasicLiteral {
   Object get value => null;
 
-  DartType getStaticType(TypeEnvironment types) => const BottomType();
+  DartType getStaticType(TypeEnvironment types) => types.nullType;
 
   accept(ExpressionVisitor v) => v.visitNullLiteral(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitNullLiteral(this, arg);

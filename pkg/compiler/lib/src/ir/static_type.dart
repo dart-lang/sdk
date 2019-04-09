@@ -164,6 +164,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
+    if (type == typeEnvironment.nullType) {
+      return superclass.bottomType;
+    }
     if (type is ir.InterfaceType) {
       ir.InterfaceType upcastType =
           typeEnvironment.getTypeAsInstanceOf(type, superclass);
@@ -171,6 +174,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     } else if (type is ir.BottomType) {
       return superclass.bottomType;
     }
+    // TODO(johnniwinther): Should we assert that this doesn't happen?
     return superclass.rawType;
   }
 
