@@ -112,7 +112,7 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   if (FLAG_enable_interpreter) {
     if (is_interpreted_frame) {
       // Recognize special marker set up by interpreter in entry frame.
-      return Interpreter::IsEntryFrameMarker(pc);
+      return Interpreter::IsEntryFrameMarker(reinterpret_cast<uint32_t*>(pc));
     }
     {
       uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();

@@ -80,8 +80,8 @@ class Profiler : public AllStatic {
   // SampleThread is called from inside the signal handler and hence it is very
   // critical that the implementation of SampleThread does not do any of the
   // following:
-  //   * Accessing TLS -- Because on Windows the callback will be running in a
-  //                      different thread.
+  //   * Accessing TLS -- Because on Windows and Fuchsia the callback will be
+  //                      running in a different thread.
   //   * Allocating memory -- Because this takes locks which may already be
   //                          held, resulting in a dead lock.
   //   * Taking a lock -- See above.

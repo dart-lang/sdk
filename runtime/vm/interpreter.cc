@@ -452,15 +452,30 @@ void Interpreter::Exit(Thread* thread,
   frame[1] = Bytecode::null();
   frame[2] = reinterpret_cast<RawObject*>(pc);
   frame[3] = reinterpret_cast<RawObject*>(base);
-  fp_ = frame + kKBCDartFrameFixedSize;
-  thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
+
+  RawObject** exit_fp = frame + kKBCDartFrameFixedSize;
+  thread->set_top_exit_frame_info(reinterpret_cast<uword>(exit_fp));
+  fp_ = exit_fp;
+
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
     THR_Print("Exiting interpreter 0x%" Px " at fp_ 0x%" Px "\n",
-              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(exit_fp));
   }
 #endif
+}
+
+void Interpreter::Unexit(Thread* thread) {
+#if !defined(PRODUCT)
+  // For the profiler.
+  RawObject** exit_fp =
+      reinterpret_cast<RawObject**>(thread->top_exit_frame_info());
+  ASSERT(exit_fp != 0);
+  pc_ = SavedCallerPC(exit_fp);
+  fp_ = SavedCallerFP(exit_fp);
+#endif
+  thread->set_top_exit_frame_info(0);
 }
 
 // Calling into runtime may trigger garbage collection and relocate objects,
@@ -478,7 +493,7 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
     thread->set_vm_tag(VMTag::kDartInterpretedTagId);
-    thread->set_top_exit_frame_info(0);
+    interpreter->Unexit(thread);
     return true;
   } else {
     return false;
@@ -495,7 +510,7 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
     thread->set_vm_tag(reinterpret_cast<uword>(function));
     wrapper(args, function);
     thread->set_vm_tag(VMTag::kDartInterpretedTagId);
-    thread->set_top_exit_frame_info(0);
+    interpreter->Unexit(thread);
     return true;
   } else {
     return false;
@@ -542,10 +557,9 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
 #else
       result = entrypoint(code, argdesc_, call_base, thread);
 #endif
-      fp_ = *FP;  // For the profiler. Compare HANDLE_RETURN.
-      thread->set_top_exit_frame_info(0);
       ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
+      Unexit(thread);
     } else {
       return false;
     }
@@ -574,10 +588,10 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     if (RawObject::IsErrorClassId(result_cid)) {
       // Unwind to entry frame.
       fp_ = *FP;
-      pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
+      pc_ = SavedCallerPC(fp_);
       while (!IsEntryFrameMarker(pc_)) {
         fp_ = SavedCallerFP(fp_);
-        pc_ = reinterpret_cast<uword>(SavedCallerPC(fp_));
+        pc_ = SavedCallerPC(fp_);
       }
       // Pop entry frame.
       fp_ = SavedCallerFP(fp_);
@@ -831,9 +845,9 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   callee_fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   pp_ = bytecode->ptr()->object_pool_;
   *pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
-  pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
+  NOT_IN_PRODUCT(pc_ = *pc);  // For the profiler.
   *FP = callee_fp;
-  fp_ = callee_fp;  // For the profiler.
+  NOT_IN_PRODUCT(fp_ = callee_fp);  // For the profiler.
   *SP = *FP - 1;
   return true;
 }
@@ -1115,9 +1129,9 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 
 #define HANDLE_EXCEPTION                                                       \
   do {                                                                         \
-    FP = reinterpret_cast<RawObject**>(fp_);                                   \
-    pc = reinterpret_cast<uint32_t*>(pc_);                                     \
-    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {                     \
+    FP = fp_;                                                                  \
+    pc = pc_;                                                                  \
+    if (IsEntryFrameMarker(pc)) {                                              \
       pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
       argdesc_ =                                                               \
           reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
@@ -1143,9 +1157,9 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 
 #define HANDLE_EXCEPTION                                                       \
   do {                                                                         \
-    FP = reinterpret_cast<RawObject**>(fp_);                                   \
-    pc = reinterpret_cast<uint32_t*>(pc_);                                     \
-    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {                     \
+    FP = fp_;                                                                  \
+    pc = pc_;                                                                  \
+    if (IsEntryFrameMarker(pc)) {                                              \
       pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
       argdesc_ =                                                               \
           reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
@@ -1164,7 +1178,6 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #define HANDLE_RETURN                                                          \
   do {                                                                         \
     pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;          \
-    fp_ = FP; /* For the profiler. */                                          \
   } while (0)
 
 // Runtime call helpers: handle invocation and potential exception after return.
@@ -1536,8 +1549,8 @@ RawObject* Interpreter::Call(RawFunction* function,
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
   pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
-  pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
-  fp_ = FP;                           // For the profiler.
+  NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
+  NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
   pp_ = bytecode->ptr()->object_pool_;
 
   // Save current VM tag and mark thread as executing Dart code. For the
@@ -2267,20 +2280,23 @@ SwitchDispatch:
     result = *SP;
     // Restore caller PC.
     pc = SavedCallerPC(FP);
-    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
-    if (IsEntryFrameMarker(reinterpret_cast<uword>(pc))) {
+    if (IsEntryFrameMarker(pc)) {
       // Pop entry frame.
-      fp_ = SavedCallerFP(FP);
+      RawObject** entry_fp = SavedCallerFP(FP);
       // Restore exit frame info saved in entry frame.
-      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]);
-      argdesc_ =
-          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);
-      uword exit_fp = reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);
+      pp_ = reinterpret_cast<RawObjectPool*>(
+          entry_fp[kKBCSavedPpSlotFromEntryFp]);
+      argdesc_ = reinterpret_cast<RawArray*>(
+          entry_fp[kKBCSavedArgDescSlotFromEntryFp]);
+      uword exit_fp =
+          reinterpret_cast<uword>(entry_fp[kKBCExitLinkSlotFromEntryFp]);
       thread->set_top_exit_frame_info(exit_fp);
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
+      fp_ = entry_fp;
+      NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
 #if defined(DEBUG)
       if (IsTracingExecution()) {
         THR_Print("%" Pu64 " ", icount_);
@@ -2305,7 +2321,8 @@ SwitchDispatch:
     // Restore SP, FP and PP. Push result and dispatch.
     SP = FrameArguments(FP, argc);
     FP = SavedCallerFP(FP);
-    fp_ = FP;  // For the profiler.
+    NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
+    NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
     pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     *SP = result;
     DISPATCH();
@@ -3189,8 +3206,7 @@ SwitchDispatch:
     // Restore caller context as we are going to throw NoSuchMethod.
     pc = SavedCallerPC(FP);
 
-    const bool has_dart_caller =
-        !IsEntryFrameMarker(reinterpret_cast<uword>(pc));
+    const bool has_dart_caller = !IsEntryFrameMarker(pc);
     const intptr_t argc = has_dart_caller ? KernelBytecode::DecodeArgc(pc[-1])
                                           : (reinterpret_cast<uword>(pc) >> 2);
     const intptr_t type_args_len =
@@ -3200,7 +3216,7 @@ SwitchDispatch:
     SP = FrameArguments(FP, 0);
     RawObject** args = SP - argc;
     FP = SavedCallerFP(FP);
-    fp_ = FP;  // For the profiler.
+    NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
     if (has_dart_caller) {
       pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     }
@@ -3309,9 +3325,9 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     thread->set_active_stacktrace(Object::null_object());
     special_[KernelBytecode::kExceptionSpecialIndex] = raw_exception;
     special_[KernelBytecode::kStackTraceSpecialIndex] = raw_stacktrace;
-    pc_ = thread->resume_pc();
+    pc_ = reinterpret_cast<uint32_t*>(thread->resume_pc());
   } else {
-    pc_ = pc;
+    pc_ = reinterpret_cast<uint32_t*>(pc);
   }
 
   // Set the tag.

@@ -94,7 +94,9 @@ class Interpreter {
   }
 
   // Identify an entry frame by looking at its pc marker value.
-  static bool IsEntryFrameMarker(uword pc) { return (pc & 2) != 0; }
+  static bool IsEntryFrameMarker(uint32_t* pc) {
+    return (reinterpret_cast<uword>(pc) & 2) != 0;
+  }
 
   RawObject* Call(const Function& function,
                   const Array& arguments_descriptor,
@@ -111,7 +113,9 @@ class Interpreter {
 
   uword get_sp() const { return reinterpret_cast<uword>(fp_); }  // Yes, fp_.
   uword get_fp() const { return reinterpret_cast<uword>(fp_); }
-  uword get_pc() const { return pc_; }
+  uword get_pc() const { return reinterpret_cast<uword>(pc_); }
+
+  void Unexit(Thread* thread);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
   void MajorGC() { lookup_cache_.Clear(); }
@@ -122,8 +126,8 @@ class Interpreter {
   uword overflow_stack_limit_;
   uword stack_limit_;
 
-  RawObject** fp_;
-  uword pc_;
+  RawObject** volatile fp_;
+  uint32_t* volatile pc_;
   DEBUG_ONLY(uint64_t icount_;)
 
   InterpreterSetjmpBuffer* last_setjmp_buffer_;

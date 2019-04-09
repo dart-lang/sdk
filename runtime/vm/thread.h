@@ -802,11 +802,11 @@ class Thread : public ThreadState {
   Heap* heap_;
   uword top_;
   uword end_;
-  uword top_exit_frame_info_;
+  uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
   MarkingStackBlock* deferred_marking_stack_block_;
-  uword vm_tag_;
+  uword volatile vm_tag_;
   RawStackTrace* async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
   // generated code to runtime.
