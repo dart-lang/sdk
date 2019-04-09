@@ -551,6 +551,14 @@ class LinkedUnitContext {
     return isConstKeyword(node.variableDeclarationList_keyword);
   }
 
+  bool isCovariantField(AstNode node) {
+    if (node is VariableDeclaration) {
+      var parent2 = node.parent.parent;
+      return parent2 is FieldDeclaration && parent2.covariantKeyword != null;
+    }
+    return false;
+  }
+
   bool isExternal(AstNode node) {
     if (node is ConstructorDeclaration) {
       return node.externalKeyword != null;

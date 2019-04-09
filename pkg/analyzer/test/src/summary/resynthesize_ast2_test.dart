@@ -585,12 +585,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_field_covariant() async {
-    await super.test_field_covariant();
-  }
-
-  @override
-  @failingTest
   test_field_formal_param_inferred_type_implicit() async {
     await super.test_field_formal_param_inferred_type_implicit();
   }
