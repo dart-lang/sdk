@@ -68,14 +68,10 @@ import '../type_inference/type_promotion.dart'
 
 import 'collections.dart'
     show
-        ForElement,
-        ForInElement,
-        ForInMapEntry,
-        ForMapEntry,
-        IfElement,
-        IfMapEntry,
         SpreadElement,
-        SpreadMapEntry;
+        SpreadMapEntry,
+        convertToMapEntry,
+        isConvertibleToMapEntry;
 
 import 'constness.dart' show Constness;
 
@@ -2553,7 +2549,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (setOrMapEntries[i] is MapEntry) {
           mapEntries[i] = setOrMapEntries[i];
         } else {
-          mapEntries[i] = convertToMapEntry(setOrMapEntries[i]);
+          mapEntries[i] = convertToMapEntry(setOrMapEntries[i], this);
         }
       }
       buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);
@@ -2578,57 +2574,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
     push(forest.literalNull(token));
-  }
-
-  bool isConvertibleToMapEntry(Expression element) {
-    if (element is SpreadElement) return true;
-    if (element is IfElement) {
-      return isConvertibleToMapEntry(element.then) &&
-          (element.otherwise == null ||
-              isConvertibleToMapEntry(element.otherwise));
-    }
-    if (element is ForElement) {
-      return isConvertibleToMapEntry(element.body);
-    }
-    if (element is ForInElement) {
-      return isConvertibleToMapEntry(element.body);
-    }
-    return false;
-  }
-
-  MapEntry convertToMapEntry(Expression element) {
-    if (element is SpreadElement) {
-      return new SpreadMapEntry(element.expression, element.isNullAware)
-        ..fileOffset = element.expression.fileOffset;
-    }
-    if (element is IfElement) {
-      return new IfMapEntry(
-          element.condition,
-          convertToMapEntry(element.then),
-          element.otherwise == null
-              ? null
-              : convertToMapEntry(element.otherwise))
-        ..fileOffset = element.fileOffset;
-    }
-    if (element is ForElement) {
-      return new ForMapEntry(element.variables, element.condition,
-          element.updates, convertToMapEntry(element.body))
-        ..fileOffset = element.fileOffset;
-    }
-    if (element is ForInElement) {
-      return new ForInMapEntry(element.variable, element.iterable,
-          element.prologue, convertToMapEntry(element.body), element.problem,
-          isAsync: element.isAsync)
-        ..fileOffset = element.fileOffset;
-    }
-    return new MapEntry(
-        desugarSyntheticExpression(buildProblem(
-          fasta.templateExpectedAfterButGot.withArguments(':'),
-          element.fileOffset,
-          // TODO(danrubel): what is the length of the expression?
-          1,
-        )),
-        new NullLiteral());
   }
 
   void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,

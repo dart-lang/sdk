@@ -7,6 +7,20 @@ part of "kernel_shadow_ast.dart";
 class InferenceVisitor extends BodyVisitor1<void, DartType> {
   final ShadowTypeInferrer inferrer;
 
+  Class mapEntryClass;
+
+  // Stores the offset of the map entry found by inferMapEntry.
+  int mapEntryOffset = null;
+
+  // Stores the offset of the map spread found by inferMapEntry.
+  int mapSpreadOffset = null;
+
+  // Stores the offset of the iterable spread found by inferMapEntry.
+  int iterableSpreadOffset = null;
+
+  // Stores the type of the iterable spread found by inferMapEntry.
+  DartType iterableSpreadType = null;
+
   InferenceVisitor(this.inferrer);
 
   @override
@@ -950,11 +964,10 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   }
 
   // Note that inferMapEntry adds exactly two elements to actualTypes -- the
-  // actual types of the key and the value.
-  int mapEntryOffset = null;
-  int mapSpreadOffset = null;
-  int iterableSpreadOffset = null;
-  DartType iterableSpreadType = null;
+  // actual types of the key and the value.  The same technique is used for
+  // actualTypesForSet, only inferMapEntry adds exactly one element to that
+  // list: the actual type of the iterable spread elements in case the map
+  // literal will be disambiguated as a set literal later.
   void inferMapEntry(
       MapEntry entry,
       TreeNode parent,
@@ -1050,7 +1063,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       // recovery.
       actualTypesForSet.add(actualElementType ?? const DynamicType());
 
-      Class mapEntryClass =
+      mapEntryClass ??=
           inferrer.coreTypes.index.getClass('dart:core', 'MapEntry');
       // TODO(dmitryas):  Handle the case of an ambiguous Set.
       entry.entryType = new InterfaceType(
@@ -1252,35 +1265,6 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
   }
 
-  Expression convertToElement(MapEntry entry) {
-    if (entry is SpreadMapEntry) {
-      return new SpreadElement(entry.expression, entry.isNullAware)
-        ..fileOffset = entry.expression.fileOffset;
-    }
-    if (entry is IfMapEntry) {
-      return new IfElement(entry.condition, convertToElement(entry.then),
-          entry.otherwise == null ? null : convertToElement(entry.otherwise))
-        ..fileOffset = entry.fileOffset;
-    }
-    if (entry is ForMapEntry) {
-      return new ForElement(entry.variables, entry.condition, entry.updates,
-          convertToElement(entry.body))
-        ..fileOffset = entry.fileOffset;
-    }
-    if (entry is ForInMapEntry) {
-      return new ForInElement(entry.variable, entry.iterable, entry.prologue,
-          convertToElement(entry.body), entry.problem,
-          isAsync: entry.isAsync)
-        ..fileOffset = entry.fileOffset;
-    }
-    return inferrer.helper
-        .desugarSyntheticExpression(inferrer.helper.buildProblem(
-      templateExpectedButGot.withArguments(','),
-      entry.fileOffset,
-      1,
-    ));
-  }
-
   void visitMapLiteralJudgment(MapLiteralJudgment node, DartType typeContext) {
     var mapClass = inferrer.coreTypes.mapClass;
     var mapType = mapClass.thisType;
@@ -1398,7 +1382,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         List<DartType> formalTypesForSet = <DartType>[];
         InterfaceType setType = inferrer.coreTypes.setClass.thisType;
         for (int i = 0; i < node.entries.length; ++i) {
-          setElements.add(convertToElement(node.entries[i]));
+          setElements.add(convertToElement(node.entries[i], inferrer.helper));
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 
