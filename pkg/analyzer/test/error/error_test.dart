@@ -6,14 +6,17 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../generated/parser_test.dart';
 
+List<String> _analyzerRootComponents;
+
 main() {
+  _analyzerRootComponents =
+      path.split(path.fromUri(Platform.script.resolve("../../")));
   defineReflectiveSuite(() {
     defineReflectiveTests(ErrorCodeValuesTest);
   });
@@ -21,17 +24,6 @@ main() {
 
 @reflectiveTest
 class ErrorCodeValuesTest extends ParserTestCase {
-  List<String> _rootComponents;
-
-  List<String> get rootComponents {
-    if (_rootComponents == null) {
-      List<String> components = path.split(package_root.packageRoot);
-      components.add('analyzer');
-      _rootComponents = components;
-    }
-    return _rootComponents;
-  }
-
   bool bad() {
     return false;
   }
@@ -77,7 +69,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
   }
 
   CompilationUnit parseFile(List<String> relativeComponents) {
-    List<String> pathComponents = rootComponents.toList()
+    List<String> pathComponents = _analyzerRootComponents.toList()
       ..addAll(relativeComponents);
     String filePath = path.normalize(path.joinAll(pathComponents));
     return parseCompilationUnit(new File(filePath).readAsStringSync());
