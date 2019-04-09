@@ -81,13 +81,13 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   ConstraintGatherer(TypeProvider typeProvider, this._variables,
       this._constraints, this._source, this._permissive, this.assumptions)
       : _notNullType =
-            DecoratedType(typeProvider.objectType, _variables.neverNullable),
+            DecoratedType(typeProvider.objectType, NullabilityNode.never),
         _nonNullableBoolType =
-            DecoratedType(typeProvider.boolType, _variables.neverNullable),
+            DecoratedType(typeProvider.boolType, NullabilityNode.never),
         _nonNullableTypeType =
-            DecoratedType(typeProvider.typeType, _variables.neverNullable),
+            DecoratedType(typeProvider.typeType, NullabilityNode.never),
         _nullType =
-            DecoratedType(typeProvider.nullType, _variables.alwaysNullable);
+            DecoratedType(typeProvider.nullType, NullabilityNode.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -186,7 +186,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
-    return DecoratedType(node.staticType, _variables.neverNullable);
+    return DecoratedType(node.staticType, NullabilityNode.never);
   }
 
   @override
@@ -205,8 +205,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_isSimple(elseType)); // TODO(paulberry)
     var overallType = DecoratedType(
         node.staticType,
-        NullabilityNode(_joinNullabilities(
-            node, thenType.node.nullable, elseType.node.nullable)));
+        NullabilityNode.forConditionalexpression(
+            node, thenType.node, elseType.node, _joinNullabilities));
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
@@ -298,7 +298,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
-    return DecoratedType(node.staticType, _variables.neverNullable);
+    return DecoratedType(node.staticType, NullabilityNode.never);
   }
 
   @override
@@ -400,24 +400,24 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
-    return DecoratedType(node.staticType, _variables.neverNullable);
+    return DecoratedType(node.staticType, NullabilityNode.never);
   }
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, _variables.neverNullable);
+    return DecoratedType(node.staticType, NullabilityNode.never);
   }
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
-    return DecoratedType(node.staticType, _variables.neverNullable);
+    return DecoratedType(node.staticType, NullabilityNode.never);
   }
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
-    return DecoratedType(typeName.type, _variables.neverNullable);
+    return DecoratedType(typeName.type, NullabilityNode.never);
   }
 
   /// Creates the necessary constraint(s) for an assignment from [sourceType] to

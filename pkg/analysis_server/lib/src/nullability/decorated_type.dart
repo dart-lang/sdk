@@ -61,12 +61,12 @@ class DecoratedType {
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
   /// presumed to have come from code that is already migrated.
-  factory DecoratedType.forElement(Element element, Variables variables) {
+  factory DecoratedType.forElement(Element element) {
     DecoratedType decorate(DartType type) {
       assert((type as TypeImpl).nullability ==
           Nullability.indeterminate); // TODO(paulberry)
       if (type is FunctionType) {
-        var decoratedType = DecoratedType(type, variables.neverNullable,
+        var decoratedType = DecoratedType(type, NullabilityNode.never,
             returnType: decorate(type.returnType), positionalParameters: []);
         for (var parameter in type.parameters) {
           assert(parameter.isPositional); // TODO(paulberry)
@@ -75,7 +75,7 @@ class DecoratedType {
         return decoratedType;
       } else if (type is InterfaceType) {
         assert(type.typeParameters.isEmpty); // TODO(paulberry)
-        return DecoratedType(type, variables.neverNullable);
+        return DecoratedType(type, NullabilityNode.never);
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }
@@ -147,16 +147,14 @@ class DecoratedType {
         newPositionalParameters.add(positionalParameters[i]
             ._substitute(constraints, substitution, undecoratedParameterType));
       }
-      return DecoratedType(undecoratedResult, NullabilityNode(node.nullable),
+      return DecoratedType(undecoratedResult, node,
           returnType: returnType._substitute(
               constraints, substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
-      return DecoratedType(
-          undecoratedResult,
-          NullabilityNode(ConstraintVariable.or(
-              constraints, inner?.node?.nullable, node.nullable)));
+      return DecoratedType(undecoratedResult,
+          NullabilityNode.forSubstitution(constraints, inner?.node, node));
     } else if (type is VoidType) {
       return this;
     }
@@ -174,9 +172,9 @@ class DecoratedTypeAnnotation extends DecoratedType
   final int _offset;
 
   DecoratedTypeAnnotation(
-      DartType type, ConstraintVariable nullable, this._offset,
+      DartType type, NullabilityNode nullabilityNode, this._offset,
       {List<DecoratedType> typeArguments = const []})
-      : super(type, NullabilityNode(nullable), typeArguments: typeArguments);
+      : super(type, nullabilityNode, typeArguments: typeArguments);
 
   @override
   bool get isEmpty =>

@@ -263,24 +263,14 @@ abstract class PotentialModification {
 }
 
 class Variables implements VariableRecorder, VariableRepository {
-  final _alwaysNullable = NullabilityNode(ConstraintVariable.always);
-
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
-  final _neverNullable = NullabilityNode(null);
-
-  @override
-  NullabilityNode get alwaysNullable => _alwaysNullable;
-
-  @override
-  NullabilityNode get neverNullable => _neverNullable;
-
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element, this)
+          ? DecoratedType.forElement(element)
           : throw StateError('No element found');
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>

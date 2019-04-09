@@ -51,7 +51,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         // TODO(danrubel): Return something other than this
         // to indicate that we should insert a type for the declaration
         // that is missing a type reference.
-        ? new DecoratedType(DynamicTypeImpl.instance, _variables.alwaysNullable)
+        ? new DecoratedType(
+            DynamicTypeImpl.instance, NullabilityNode.forInferredDynamicType())
         : type.accept(this);
   }
 
@@ -135,7 +136,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
     if (type.isVoid) {
-      return DecoratedType(type, _variables.alwaysNullable);
+      return DecoratedType(
+          type, NullabilityNode.forTypeAnnotation(node.end, always: true));
     }
     assert(
         type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
@@ -149,10 +151,11 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         assert(false); // TODO(paulberry): is this possible?
       }
     }
-    var nullable = node.question == null
-        ? TypeIsNullable(node.end)
-        : ConstraintVariable.always;
-    var decoratedType = DecoratedTypeAnnotation(type, nullable, node.end,
+    var decoratedType = DecoratedTypeAnnotation(
+        type,
+        NullabilityNode.forTypeAnnotation(node.end,
+            always: node.question != null),
+        node.end,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
     return decoratedType;
@@ -169,7 +172,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
     var functionType = DecoratedType(
-        declaredElement.type, _variables.neverNullable,
+        declaredElement.type, NullabilityNode.never,
         returnType: decoratedReturnType,
         positionalParameters: [],
         namedParameters: {},
@@ -191,10 +194,6 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 /// ([ConstraintVariableGatherer], which finds all the variables that need to be
 /// constrained).
 abstract class VariableRecorder {
-  NullabilityNode get alwaysNullable;
-
-  NullabilityNode get neverNullable;
-
   /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type);
 
@@ -217,10 +216,6 @@ abstract class VariableRecorder {
 /// results of the first ([ConstraintVariableGatherer], which finds all the
 /// variables that need to be constrained).
 abstract class VariableRepository {
-  NullabilityNode get alwaysNullable;
-
-  NullabilityNode get neverNullable;
-
   /// Retrieves the [DecoratedType] associated with the static type of the given
   /// [element].
   ///
