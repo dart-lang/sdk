@@ -95,15 +95,15 @@ class NullabilityNode {
   /// parameters, and the named parameter associated with this node was not
   /// supplied.
   void recordNamedParameterNotSupplied(
-      Constraints constraints, List<ConstraintVariable> guards) {
+      Constraints constraints, List<NullabilityNode> guards) {
     if (isPossiblyOptional) {
-      constraints.record(guards, nullable);
+      _recordConstraints(constraints, guards, const [], nullable);
     }
   }
 
   void recordNonNullIntent(
-      Constraints constraints, List<ConstraintVariable> guards) {
-    constraints.record(guards, nonNullIntent);
+      Constraints constraints, List<NullabilityNode> guards) {
+    _recordConstraints(constraints, guards, const [], nonNullIntent);
   }
 
   /// Tracks that the possibility that this nullability node might demonstrate
@@ -138,48 +138,53 @@ class NullabilityNode {
       NullabilityNode sourceNode,
       NullabilityNode destinationNode,
       CheckExpression checkNotNull,
-      List<ConstraintVariable> guards,
+      List<NullabilityNode> guards,
       Constraints constraints,
       bool inConditionalControlFlow) {
+    var additionalConditions = <ConstraintVariable>[];
     if (sourceNode.nullable != null) {
-      guards.add(sourceNode.nullable);
+      additionalConditions.add(sourceNode.nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;
-      try {
-        // nullable_src => nullable_dst | check_expr
-        constraints.record(
-            guards,
-            ConstraintVariable.or(
-                constraints, destinationNode.nullable, checkNotNull));
-        if (checkNotNull != null) {
-          // nullable_src & nonNullIntent_dst => check_expr
-          if (destinationNonNullIntent != null) {
-            guards.add(destinationNonNullIntent);
-            try {
-              constraints.record(guards, checkNotNull);
-            } finally {
-              guards.removeLast();
-            }
-          }
+      // nullable_src => nullable_dst | check_expr
+      _recordConstraints(
+          constraints,
+          guards,
+          additionalConditions,
+          ConstraintVariable.or(
+              constraints, destinationNode.nullable, checkNotNull));
+      if (checkNotNull != null) {
+        // nullable_src & nonNullIntent_dst => check_expr
+        if (destinationNonNullIntent != null) {
+          additionalConditions.add(destinationNonNullIntent);
+          _recordConstraints(
+              constraints, guards, additionalConditions, checkNotNull);
         }
-      } finally {
-        guards.removeLast();
       }
+      additionalConditions.clear();
       var sourceNonNullIntent = sourceNode.nonNullIntent;
       if (!inConditionalControlFlow && sourceNonNullIntent != null) {
         if (destinationNode.nullable == null) {
           // The destination type can never be nullable so this demonstrates
           // non-null intent.
-          constraints.record(guards, sourceNonNullIntent);
+          _recordConstraints(
+              constraints, guards, additionalConditions, sourceNonNullIntent);
         } else if (destinationNonNullIntent != null) {
           // Propagate non-null intent from the destination to the source.
-          guards.add(destinationNonNullIntent);
-          try {
-            constraints.record(guards, sourceNonNullIntent);
-          } finally {
-            guards.removeLast();
-          }
+          additionalConditions.add(destinationNonNullIntent);
+          _recordConstraints(
+              constraints, guards, additionalConditions, sourceNonNullIntent);
         }
       }
     }
+  }
+
+  static void _recordConstraints(
+      Constraints constraints,
+      List<NullabilityNode> guards,
+      List<ConstraintVariable> additionalConditions,
+      ConstraintVariable consequence) {
+    var conditions = guards.map((node) => node.nullable).toList();
+    conditions.addAll(additionalConditions);
+    constraints.record(conditions, consequence);
   }
 }

@@ -64,13 +64,13 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// boolean value could possibly affect nullability analysis.
   _ConditionInfo _conditionInfo;
 
-  /// The set of constraint variables that would have to be assigned the value
-  /// of `true` for the code currently being visited to be reachable.
+  /// The set of nullability nodes that would have to be `nullable` for the code
+  /// currently being visited to be reachable.
   ///
   /// Guard variables are attached to the left hand side of any generated
   /// constraints, so that constraints do not take effect if they come from
   /// code that can be proven unreachable by the migration tool.
-  final _guards = <ConstraintVariable>[];
+  final _guards = <NullabilityNode>[];
 
   /// Indicates whether the statement or expression being visited is within
   /// conditional control flow.  If `true`, this means that the enclosing
@@ -277,7 +277,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
           ConditionalDiscard(trueGuard, falseGuard, _conditionInfo.isPure));
     }
     if (trueGuard != null) {
-      _guards.add(trueGuard.nullable);
+      _guards.add(trueGuard);
     }
     try {
       node.thenStatement.accept(this);
@@ -287,7 +287,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       }
     }
     if (falseGuard != null) {
-      _guards.add(falseGuard.nullable);
+      _guards.add(falseGuard);
     }
     try {
       node.elseStatement?.accept(this);
@@ -507,30 +507,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       return ConstraintVariable.always;
     }
     var result = TypeIsNullable(node.offset);
-    _recordConstraint(a, result);
-    _recordConstraint(b, result);
-    _recordConstraint(result, ConstraintVariable.or(_constraints, a, b));
+    _constraints.record([a], result);
+    _constraints.record([b], result);
+    _constraints.record([result], ConstraintVariable.or(_constraints, a, b));
     return result;
-  }
-
-  /// Records a constraint having [condition] as its left hand side and
-  /// [consequence] as its right hand side.  Any [_guards] are included in the
-  /// left hand side.
-  void _recordConstraint(
-      ConstraintVariable condition, ConstraintVariable consequence) {
-    _guards.add(condition);
-    try {
-      _recordFact(consequence);
-    } finally {
-      _guards.removeLast();
-    }
-  }
-
-  /// Records a constraint having [consequence] as its right hand side.  Any
-  /// [_guards] are used as the right hand side.
-  void _recordFact(ConstraintVariable consequence) {
-    assert(consequence != null);
-    _constraints.record(_guards, consequence);
   }
 }
 
