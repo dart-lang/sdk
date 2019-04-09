@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -622,14 +623,18 @@ const c = const C();
   }
 
   test_constEvalTypeBoolNumString_equal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 class A {
   const A();
 }
 
 const num a = 0;
 const _ = a == const A();
-''', [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
+''',
+        IsEnabledByDefault.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING]);
   }
 
   test_constEvalTypeBoolNumString_notEqual() async {
