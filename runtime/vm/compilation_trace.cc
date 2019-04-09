@@ -388,7 +388,9 @@ RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
 void CompilationTraceLoader::SpeculateInstanceCallTargets(
     const Function& function) {
   sites_ = function.ic_data_array();
-  ASSERT(!sites_.IsNull());
+  if (sites_.IsNull()) {
+    return;
+  }
   for (intptr_t i = 1; i < sites_.Length(); i++) {
     site_ ^= sites_.At(i);
     if (site_.rebind_rule() != ICData::kInstance) {
