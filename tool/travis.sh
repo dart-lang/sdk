@@ -7,12 +7,19 @@
 # Fast fail the script on failures.
 set -e
 
-# Verify that the libraries are error free.
-dartanalyzer --fatal-warnings \
-  bin/linter.dart \
-  test/all.dart
 
-echo ""
+if [ "$LINTER_BOT" = "release" ]; then
+  echo "Validating release..."
+  dart tool/bot/version_check.dart
+
+else
+  # Verify that the libraries are error free.
+  dartanalyzer --fatal-warnings \
+    bin/linter.dart \
+    test/all.dart
+
+  echo ""
+fi
 
 if [ "$LINTER_BOT" = "benchmark" ]; then
   echo "Running the linter benchmark..."
