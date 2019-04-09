@@ -119,8 +119,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = decorateType(node.type);
     var declaredElement = node.declaredElement;
-    assert(type.node.nonNullIntent == null);
-    type.node.nonNullIntent = NonNullIntent(node.offset);
+    type.node.trackNonNullIntent(node.offset);
     _variables.recordDecoratedElementType(declaredElement, type);
     if (declaredElement.isNamed) {
       _currentFunctionType.namedParameters[declaredElement.name] = type;

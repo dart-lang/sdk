@@ -29,11 +29,7 @@ class NullabilityNode {
   /// migrated) forces this type to be non-nullable.
   final ConstraintVariable nullable;
 
-  /// [ConstraintVariable] whose value will be set to `true` if the usage of
-  /// this type suggests that it is intended to be non-null (because of the
-  /// presence of a statement or expression that would unconditionally lead to
-  /// an exception being thrown in the case of a `null` value at runtime).
-  ConstraintVariable nonNullIntent;
+  ConstraintVariable _nonNullIntent;
 
   /// Creates a [NullabilityNode] representing the nullability of a conditional
   /// expression which is nullable iff both [a] and [b] are nullable.
@@ -81,4 +77,21 @@ class NullabilityNode {
       : this._(always ? ConstraintVariable.always : TypeIsNullable(endOffset));
 
   NullabilityNode._(this.nullable);
+
+  /// [ConstraintVariable] whose value will be set to `true` if the usage of
+  /// this type suggests that it is intended to be non-null (because of the
+  /// presence of a statement or expression that would unconditionally lead to
+  /// an exception being thrown in the case of a `null` value at runtime).
+  ConstraintVariable get nonNullIntent => _nonNullIntent;
+
+  /// Tracks that the possibility that this nullability node might demonstrate
+  /// non-null intent, based on the fact that it corresponds to a formal
+  /// parameter declaration at location [offset].
+  ///
+  /// TODO(paulberry): consider eliminating this method altogether, and simply
+  /// allowing all nullability nodes to track non-null intent if necessary.
+  void trackNonNullIntent(int offset) {
+    assert(_nonNullIntent == null);
+    _nonNullIntent = NonNullIntent(offset);
+  }
 }
