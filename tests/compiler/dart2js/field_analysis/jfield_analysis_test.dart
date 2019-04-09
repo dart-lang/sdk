@@ -30,6 +30,7 @@ class Tags {
   static const String eagerCreationIndex = 'index';
   static const String isLazy = 'lazy';
   static const String isEffectivelyFinal = 'final';
+  static const String isElided = 'elided';
 }
 
 class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
@@ -45,6 +46,9 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
       Features features = new Features();
       FieldAnalysisData fieldData = fieldAnalysis.getFieldData(member);
+      if (fieldData.isElided && !fieldData.isEffectivelyConstant) {
+        features.add(Tags.isElided);
+      }
       if (fieldData.isInitializedInAllocator) {
         features.add(Tags.isInitializedInAllocator);
       }

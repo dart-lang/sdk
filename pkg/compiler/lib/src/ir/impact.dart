@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
+import 'constants.dart';
 import 'impact_data.dart';
 import 'runtime_type_analysis.dart';
 import 'scope.dart';
@@ -89,6 +90,9 @@ abstract class ImpactRegistry {
   void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import);
 
   void registerFieldInitialization(ir.Field node);
+
+  void registerFieldConstantInitialization(
+      ir.Field node, ConstantReference constant);
 
   void registerLoadLibrary();
 
@@ -655,7 +659,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handleConstantExpression(ir.ConstantExpression node) {
     ir.LibraryDependency import = getDeferredImport(node);
-    node.constant.accept(new ConstantImpactVisitor(this, import));
+    node.constant.accept(new ConstantImpactVisitor(this, import, node));
   }
 }
 
@@ -698,8 +702,9 @@ class ImpactBuilderData {
 class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
   final ImpactRegistry registry;
   final ir.LibraryDependency import;
+  final ir.ConstantExpression expression;
 
-  ConstantImpactVisitor(this.registry, this.import);
+  ConstantImpactVisitor(this.registry, this.import, this.expression);
 
   @override
   void defaultConstant(ir.Constant node) {
@@ -736,7 +741,8 @@ class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
         node.classNode, node.typeArguments, import);
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       ir.Field field = reference.asField;
-      registry.registerFieldInitialization(field);
+      registry.registerFieldConstantInitialization(
+          field, new ConstantReference(expression, value));
       value.accept(this);
     });
   }

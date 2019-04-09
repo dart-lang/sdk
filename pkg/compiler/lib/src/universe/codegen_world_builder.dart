@@ -400,7 +400,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.INVOKE:
       case StaticUseKind.GET:
       case StaticUseKind.SET:
-      case StaticUseKind.INIT:
+      case StaticUseKind.FIELD_INIT:
+      case StaticUseKind.FIELD_CONSTANT_INIT:
         break;
     }
   }
@@ -441,7 +442,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.SUPER_TEAR_OFF:
       case StaticUseKind.GET:
       case StaticUseKind.SET:
-      case StaticUseKind.INIT:
+      case StaticUseKind.FIELD_INIT:
+      case StaticUseKind.FIELD_CONSTANT_INIT:
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:

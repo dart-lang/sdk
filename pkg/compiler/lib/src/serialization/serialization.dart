@@ -15,7 +15,7 @@ import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
-import '../inferrer/builder_kernel.dart';
+import '../ir/constants.dart';
 import '../ir/static_type_base.dart';
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
@@ -138,6 +138,15 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readMemberNodes].
   void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull: false});
+
+  /// Writes the [map] from references to kernel member nodes to [V] values to
+  /// this data sink, calling [f] to write each value to the data sink. If
+  /// [allowNull] is `true`, [map] is allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readMemberNodeMap].
+  void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
+      {bool allowNull: false});
 
   /// Writes a kernel name node to this data sink.
   void writeName(ir.Name value);
@@ -478,6 +487,15 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeMemberNodes].
   List<ir.Member> readMemberNodes<E extends ir.Member>(
+      {bool emptyAsNull: false});
+
+  /// Reads a map from kernel member nodes to [V] values from this data source,
+  /// calling [f] to read each value from the data source. If [emptyAsNull] is
+  /// `true`, `null` is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeMemberNodeMap].
+  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
       {bool emptyAsNull: false});
 
   /// Reads a kernel name node from this data source.

@@ -102,7 +102,10 @@ stringMapLiteral() => const {'foo': false};
 setLiteral() => const {true, false};
 
 /*strong.element: instanceConstant:static=[Class.(2)],type=[inst:JSBool]*/
-/*strongConst.element: instanceConstant:static=[init:Class.field2,init:SuperClass.field1],type=[const:Class,inst:JSBool]*/
+/*strongConst.element: instanceConstant:
+ static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
+ type=[const:Class,inst:JSBool]
+*/
 instanceConstant() => const Class(true, false);
 
 /*element: typeLiteral:static=[createRuntimeType(1)],type=[inst:Type,inst:TypeImpl,lit:String]*/
@@ -170,7 +173,10 @@ stringMapLiteralRef() => stringMapLiteralField;
 setLiteralRef() => setLiteralField;
 
 /*strong.element: instanceConstantRef:static=[instanceConstantField]*/
-/*strongConst.element: instanceConstantRef:static=[init:Class.field2,init:SuperClass.field1],type=[const:Class,inst:JSBool]*/
+/*strongConst.element: instanceConstantRef:
+ static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
+ type=[const:Class,inst:JSBool]
+*/
 instanceConstantRef() => instanceConstantField;
 
 /*strong.element: typeLiteralRef:static=[typeLiteralField]*/
@@ -235,7 +241,10 @@ stringMapLiteralDeferred() => defer.stringMapLiteralField;
 setLiteralDeferred() => defer.setLiteralField;
 
 /*strong.element: instanceConstantDeferred:static=[instanceConstantField{defer}]*/
-/*strongConst.element: instanceConstantDeferred:static=[init:Class.field2,init:SuperClass.field1],type=[const:Class{defer},inst:JSBool]*/
+/*strongConst.element: instanceConstantDeferred:
+ static=[Class.field2=BoolConstant(false),SuperClass.field1=BoolConstant(true)],
+ type=[const:Class{defer},inst:JSBool]
+*/
 instanceConstantDeferred() => defer.instanceConstantField;
 
 /*strong.element: typeLiteralDeferred:static=[typeLiteralField{defer}]*/

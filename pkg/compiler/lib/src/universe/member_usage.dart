@@ -5,6 +5,7 @@
 import 'dart:math' as Math;
 
 import '../common.dart';
+import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js_model/elements.dart' show JSignatureMethod;
 import '../util/enumset.dart';
@@ -75,6 +76,8 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   /// `true` if [entity] has been initialized.
   bool get hasInit => true;
 
+  Iterable<ConstantValue> get initialConstants => null;
+
   /// `true` if [entity] has been read as a value. For a field this is a normal
   /// read access, for a function this is a closurization.
   bool get hasRead => false;
@@ -119,6 +122,13 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   /// For a field this is the initial write access, for a function this is a
   /// no-op.
   EnumSet<MemberUse> init() => MemberUses.NONE;
+
+  /// Registers the [entity] has been initialized with [constant] and returns
+  /// the new [MemberUse]s that it caused.
+  ///
+  /// For a field this is the initial write access, for a function this is a
+  /// no-op.
+  EnumSet<MemberUse> constantInit(ConstantValue constant) => MemberUses.NONE;
 
   /// Registers a read of the value of [entity] and returns the new [MemberUse]s
   /// that it caused.
@@ -183,6 +193,8 @@ class FieldUsage extends MemberUsage {
   @override
   bool hasWrite;
 
+  List<ConstantValue> _initialConstants;
+
   FieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
       {this.hasInit, this.hasRead, this.hasWrite})
       : super.cloned(field, pendingUse);
@@ -197,6 +209,9 @@ class FieldUsage extends MemberUsage {
       init();
     }
   }
+
+  @override
+  Iterable<ConstantValue> get initialConstants => _initialConstants ?? const [];
 
   @override
   bool get hasPendingNormalUse => !fullyUsed;
@@ -215,6 +230,13 @@ class FieldUsage extends MemberUsage {
       result = result.union(MemberUses.PARTIAL_USE_ONLY);
     }
     return result;
+  }
+
+  @override
+  EnumSet<MemberUse> constantInit(ConstantValue constant) {
+    _initialConstants ??= [];
+    _initialConstants.add(constant);
+    return init();
   }
 
   @override
@@ -263,7 +285,8 @@ class FieldUsage extends MemberUsage {
 
   @override
   String toString() => 'FieldUsage($entity,hasInit=$hasInit,hasRead=$hasRead,'
-      'hasWrite=$hasWrite,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
+      'hasWrite=$hasWrite,pendingUse=${_pendingUse.iterable(MemberUse.values)},'
+      'initialConstants=${initialConstants.map((c) => c.toStructuredText())})';
 }
 
 class FinalFieldUsage extends MemberUsage {
@@ -271,6 +294,8 @@ class FinalFieldUsage extends MemberUsage {
   bool hasInit;
   @override
   bool hasRead;
+
+  List<ConstantValue> _initialConstants;
 
   FinalFieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
       {this.hasInit, this.hasRead})
@@ -284,6 +309,9 @@ class FinalFieldUsage extends MemberUsage {
       init();
     }
   }
+
+  @override
+  Iterable<ConstantValue> get initialConstants => _initialConstants ?? const [];
 
   @override
   bool get hasPendingNormalUse => !fullyUsed;
@@ -302,6 +330,13 @@ class FinalFieldUsage extends MemberUsage {
       result = result.union(MemberUses.PARTIAL_USE_ONLY);
     }
     return result;
+  }
+
+  @override
+  EnumSet<MemberUse> constantInit(ConstantValue constant) {
+    _initialConstants ??= [];
+    _initialConstants.add(constant);
+    return init();
   }
 
   @override
@@ -337,7 +372,8 @@ class FinalFieldUsage extends MemberUsage {
 
   @override
   String toString() => 'FinalFieldUsage($entity,hasInit=$hasInit,'
-      'hasRead=$hasRead,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
+      'hasRead=$hasRead,pendingUse=${_pendingUse.iterable(MemberUse.values)},'
+      'initialConstants=${initialConstants.map((c) => c.toStructuredText())})';
 }
 
 class FunctionUsage extends MemberUsage {
@@ -817,6 +853,9 @@ abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
   EnumSet<MemberUse> init() => normalUse();
 
   @override
+  EnumSet<MemberUse> constantInit(ConstantValue constant) => normalUse();
+
+  @override
   EnumSet<MemberUse> read() => tearOff();
 
   @override
@@ -827,6 +866,9 @@ abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
 
   @override
   EnumSet<MemberUse> fullyUse() => normalUse();
+
+  @override
+  Iterable<ConstantValue> get initialConstants => null;
 
   @override
   bool get hasPendingNormalUse => _pendingUse.contains(MemberUse.NORMAL);

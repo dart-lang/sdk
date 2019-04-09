@@ -37,7 +37,6 @@ import '../../constants/values.dart'
 import '../../common_elements.dart' show CommonElements;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
-import '../../inferrer/trivial.dart';
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
