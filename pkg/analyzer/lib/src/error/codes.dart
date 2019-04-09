@@ -2184,6 +2184,10 @@ class CompileTimeErrorCode extends ErrorCode {
       'NOT_MAP_SPREAD',
       "Spread elements in map literals must implement 'Map'.");
 
+  static const CompileTimeErrorCode NOT_NULL_AWARE_NULL_SPREAD =
+      const CompileTimeErrorCode('NOT_NULL_AWARE_NULL_SPREAD',
+          "The Null typed expression can't be used with a non-null-aware spread.");
+
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
    * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.

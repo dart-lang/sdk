@@ -81,6 +81,7 @@ import 'non_constant_spread_expression_from_deferred_library_test.dart'
     as non_constant_spread_expression_from_deferred_library;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
+import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
 import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
 import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
 import 'null_aware_in_logical_operator_test.dart'
@@ -197,6 +198,7 @@ main() {
     non_constant_spread_expression_from_deferred_library.main();
     not_iterable_spread.main();
     not_map_spread.main();
+    not_null_aware_null_spread.main();
     null_aware_before_operator.main();
     null_aware_in_condition.main();
     null_aware_in_logical_operator.main();
