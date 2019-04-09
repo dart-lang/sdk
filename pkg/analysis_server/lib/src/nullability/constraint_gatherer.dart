@@ -136,7 +136,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     if (identical(_conditionInfo?.condition, node.condition)) {
       if (!_inConditionalControlFlow &&
           _conditionInfo.trueDemonstratesNonNullIntent != null) {
-        _recordFact(_conditionInfo.trueDemonstratesNonNullIntent);
+        _conditionInfo.trueDemonstratesNonNullIntent
+            ?.recordNonNullIntent(_constraints, _guards);
       }
     }
     node.message?.accept(this);
@@ -158,8 +159,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
           bool isPure = node.leftOperand is SimpleIdentifier;
           var conditionInfo = _ConditionInfo(node,
               isPure: isPure,
-              trueGuard: leftType.node.nullable,
-              falseDemonstratesNonNullIntent: leftType.node.nonNullIntent);
+              trueGuard: leftType.node,
+              falseDemonstratesNonNullIntent: leftType.node);
           _conditionInfo = node.operator.type == TokenType.EQ_EQ
               ? conditionInfo
               : conditionInfo.not(node);
@@ -221,8 +222,13 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       } else if (node.declaredElement.isOptionalPositional ||
           assumptions.namedNoDefaultParameterHeuristic ==
               NamedNoDefaultParameterHeuristic.assumeNullable) {
-        _recordFact(
-            getOrComputeElementType(node.declaredElement).node.nullable);
+        NullabilityNode.recordAssignment(
+            NullabilityNode.always,
+            getOrComputeElementType(node.declaredElement).node,
+            null,
+            _guards,
+            _constraints,
+            false);
       } else {
         assert(assumptions.namedNoDefaultParameterHeuristic ==
             NamedNoDefaultParameterHeuristic.assumeRequired);
@@ -262,19 +268,16 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // treated like an implicit `assert(b != null)`?  Probably.
     _handleAssignment(_notNullType, node.condition);
     _inConditionalControlFlow = true;
-    ConstraintVariable trueGuard;
-    ConstraintVariable falseGuard;
+    NullabilityNode trueGuard;
+    NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
       trueGuard = _conditionInfo.trueGuard;
       falseGuard = _conditionInfo.falseGuard;
-      _variables.recordConditionalDiscard(
-          _source,
-          node,
-          ConditionalDiscard(trueGuard ?? ConstraintVariable.always,
-              falseGuard ?? ConstraintVariable.always, _conditionInfo.isPure));
+      _variables.recordConditionalDiscard(_source, node,
+          ConditionalDiscard(trueGuard, falseGuard, _conditionInfo.isPure));
     }
     if (trueGuard != null) {
-      _guards.add(trueGuard);
+      _guards.add(trueGuard.nullable);
     }
     try {
       node.thenStatement.accept(this);
@@ -284,7 +287,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       }
     }
     if (falseGuard != null) {
-      _guards.add(falseGuard);
+      _guards.add(falseGuard.nullable);
     }
     try {
       node.elseStatement?.accept(this);
@@ -426,40 +429,14 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// where a nullable source is assigned to a non-nullable destination.
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
       Expression expression) {
-    if (sourceType.node.nullable != null) {
-      _guards.add(sourceType.node.nullable);
-      var destinationNonNullIntent = destinationType.node.nonNullIntent;
-      try {
-        CheckExpression checkNotNull;
-        if (expression != null) {
-          checkNotNull = CheckExpression(expression);
-          _variables.recordExpressionChecks(
-              _source, expression, ExpressionChecks(checkNotNull));
-        }
-        // nullable_src => nullable_dst | check_expr
-        _recordFact(ConstraintVariable.or(
-            _constraints, destinationType.node.nullable, checkNotNull));
-        if (checkNotNull != null) {
-          // nullable_src & nonNullIntent_dst => check_expr
-          if (destinationNonNullIntent != null) {
-            _recordConstraint(destinationNonNullIntent, checkNotNull);
-          }
-        }
-      } finally {
-        _guards.removeLast();
-      }
-      var sourceNonNullIntent = sourceType.node.nonNullIntent;
-      if (!_inConditionalControlFlow && sourceNonNullIntent != null) {
-        if (destinationType.node.nullable == null) {
-          // The destination type can never be nullable so this demonstrates
-          // non-null intent.
-          _recordFact(sourceNonNullIntent);
-        } else if (destinationNonNullIntent != null) {
-          // Propagate non-null intent from the destination to the source.
-          _recordConstraint(destinationNonNullIntent, sourceNonNullIntent);
-        }
-      }
+    CheckExpression checkNotNull;
+    if (expression != null) {
+      checkNotNull = CheckExpression(expression);
+      _variables.recordExpressionChecks(
+          _source, expression, ExpressionChecks(checkNotNull));
     }
+    NullabilityNode.recordAssignment(sourceType.node, destinationType.node,
+        checkNotNull, _guards, _constraints, _inConditionalControlFlow);
     // TODO(paulberry): it's a cheat to pass in expression=null for the
     // recursive checks.  Really we want to unify all the checks in a single
     // ExpressionChecks object.
@@ -571,21 +548,21 @@ class _ConditionInfo {
   /// effect other than returning a boolean value.
   final bool isPure;
 
-  /// If not `null`, the [ConstraintVariable] whose value must be `true` in
+  /// If not `null`, the [NullabilityNode] that would need to be nullable in
   /// order for [condition] to evaluate to `true`.
-  final ConstraintVariable trueGuard;
+  final NullabilityNode trueGuard;
 
-  /// If not `null`, the [ConstraintVariable] whose value must be `true` in
+  /// If not `null`, the [NullabilityNode] that would need to be nullable in
   /// order for [condition] to evaluate to `false`.
-  final ConstraintVariable falseGuard;
+  final NullabilityNode falseGuard;
 
-  /// If not `null`, the [ConstraintVariable] whose value should be set to
-  /// `true` if [condition] is asserted to be `true`.
-  final ConstraintVariable trueDemonstratesNonNullIntent;
+  /// If not `null`, the [NullabilityNode] that should be asserted to have
+  //  /// non-null intent if [condition] is asserted to be `true`.
+  final NullabilityNode trueDemonstratesNonNullIntent;
 
-  /// If not `null`, the [ConstraintVariable] whose value should be set to
-  /// `true` if [condition] is asserted to be `false`.
-  final ConstraintVariable falseDemonstratesNonNullIntent;
+  /// If not `null`, the [NullabilityNode] that should be asserted to have
+  /// non-null intent if [condition] is asserted to be `false`.
+  final NullabilityNode falseDemonstratesNonNullIntent;
 
   _ConditionInfo(this.condition,
       {@required this.isPure,

@@ -148,7 +148,7 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     } else if (potentialModification is analyzer.DecoratedTypeAnnotation) {
       kind = NullabilityFixKind.makeTypeNullable;
     } else if (potentialModification is analyzer.ConditionalModification) {
-      kind = potentialModification.discard.keepFalse.value
+      kind = potentialModification.discard.keepFalse
           ? NullabilityFixKind.discardThen
           : NullabilityFixKind.discardElse;
     } else if (potentialModification is analyzer.PotentiallyAddImport) {

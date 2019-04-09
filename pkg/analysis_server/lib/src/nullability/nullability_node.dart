@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/decorated_type.dart';
+import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
@@ -84,6 +85,11 @@ class NullabilityNode {
   /// an exception being thrown in the case of a `null` value at runtime).
   ConstraintVariable get nonNullIntent => _nonNullIntent;
 
+  void recordNonNullIntent(
+      Constraints constraints, List<ConstraintVariable> guards) {
+    constraints.record(guards, nonNullIntent);
+  }
+
   /// Tracks that the possibility that this nullability node might demonstrate
   /// non-null intent, based on the fact that it corresponds to a formal
   /// parameter declaration at location [offset].
@@ -93,5 +99,64 @@ class NullabilityNode {
   void trackNonNullIntent(int offset) {
     assert(_nonNullIntent == null);
     _nonNullIntent = NonNullIntent(offset);
+  }
+
+  /// Connect the nullability nodes [sourceNode] and [destinationNode]
+  /// appopriately to account for an assignment in the source code being
+  /// analyzed.  Any constraints generated are recorded in [constraints].
+  ///
+  /// If [checkNotNull] is non-null, then it tracks the expression that may
+  /// require null-checking.
+  ///
+  /// [inConditionalControlFlow] indicates whether the assignment being analyzed
+  /// is reachable conditionally or unconditionally from the entry point of the
+  /// function; this affects how non-null intent is back-propagated.
+  static void recordAssignment(
+      NullabilityNode sourceNode,
+      NullabilityNode destinationNode,
+      CheckExpression checkNotNull,
+      List<ConstraintVariable> guards,
+      Constraints constraints,
+      bool inConditionalControlFlow) {
+    if (sourceNode.nullable != null) {
+      guards.add(sourceNode.nullable);
+      var destinationNonNullIntent = destinationNode.nonNullIntent;
+      try {
+        // nullable_src => nullable_dst | check_expr
+        constraints.record(
+            guards,
+            ConstraintVariable.or(
+                constraints, destinationNode.nullable, checkNotNull));
+        if (checkNotNull != null) {
+          // nullable_src & nonNullIntent_dst => check_expr
+          if (destinationNonNullIntent != null) {
+            guards.add(destinationNonNullIntent);
+            try {
+              constraints.record(guards, checkNotNull);
+            } finally {
+              guards.removeLast();
+            }
+          }
+        }
+      } finally {
+        guards.removeLast();
+      }
+      var sourceNonNullIntent = sourceNode.nonNullIntent;
+      if (!inConditionalControlFlow && sourceNonNullIntent != null) {
+        if (destinationNode.nullable == null) {
+          // The destination type can never be nullable so this demonstrates
+          // non-null intent.
+          constraints.record(guards, sourceNonNullIntent);
+        } else if (destinationNonNullIntent != null) {
+          // Propagate non-null intent from the destination to the source.
+          guards.add(destinationNonNullIntent);
+          try {
+            constraints.record(guards, sourceNonNullIntent);
+          } finally {
+            guards.removeLast();
+          }
+        }
+      }
+    }
   }
 }

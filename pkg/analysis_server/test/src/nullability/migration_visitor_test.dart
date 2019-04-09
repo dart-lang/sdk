@@ -7,6 +7,7 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -48,6 +49,14 @@ class ConstraintGathererTest extends ConstraintsTestBase {
             predicate((_Clause clause) => clause.consequence == consequence))));
   }
 
+  void assertNonNullIntent(NullabilityNode node, bool expected) {
+    if (expected) {
+      assertConstraint([], node.nonNullIntent);
+    } else {
+      assertNoConstraints(node.nonNullIntent);
+    }
+  }
+
   /// Gets the [ExpressionChecks] associated with the expression whose text
   /// representation is [text], or `null` if the expression has no
   /// [ExpressionChecks] associated with it.
@@ -78,7 +87,7 @@ void f(int i) {
 }
 ''');
 
-    assertConstraint([], decoratedTypeAnnotation('int i').node.nonNullIntent);
+    assertNonNullIntent(decoratedTypeAnnotation('int i').node, true);
   }
 
   test_binaryExpression_add_left_check() async {
@@ -277,7 +286,8 @@ void f({int i}) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeNullable));
 
-    assertConstraint([], decoratedTypeAnnotation('int').node.nullable);
+    assertConstraint([ConstraintVariable.always],
+        decoratedTypeAnnotation('int').node.nullable);
   }
 
   test_functionDeclaration_parameter_named_no_default_assume_required() async {
@@ -339,7 +349,8 @@ void f([int i = null]) {}
 void f([int i]) {}
 ''');
 
-    assertConstraint([], decoratedTypeAnnotation('int').node.nullable);
+    assertConstraint([ConstraintVariable.always],
+        decoratedTypeAnnotation('int').node.nullable);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default_assume_required() async {
@@ -352,7 +363,8 @@ void f([int i]) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeRequired));
 
-    assertConstraint([], decoratedTypeAnnotation('int').node.nullable);
+    assertConstraint([ConstraintVariable.always],
+        decoratedTypeAnnotation('int').node.nullable);
   }
 
   test_functionDeclaration_resets_unconditional_control_flow() async {
@@ -366,9 +378,9 @@ void g(int k) {
   assert(k != null);
 }
 ''');
-    assertConstraint([], decoratedTypeAnnotation('int i').node.nonNullIntent);
-    assertNoConstraints(decoratedTypeAnnotation('int j').node.nonNullIntent);
-    assertConstraint([], decoratedTypeAnnotation('int k').node.nonNullIntent);
+    assertNonNullIntent(decoratedTypeAnnotation('int i').node, true);
+    assertNonNullIntent(decoratedTypeAnnotation('int j').node, false);
+    assertNonNullIntent(decoratedTypeAnnotation('int k').node, true);
   }
 
   test_functionInvocation_parameter_fromLocalParameter() async {
@@ -479,7 +491,7 @@ void f(bool b, int i) {
 }
 ''');
 
-    assertNoConstraints(decoratedTypeAnnotation('int i').node.nonNullIntent);
+    assertNonNullIntent(decoratedTypeAnnotation('int i').node, false);
   }
 
   test_if_conditional_control_flow_within() async {
@@ -494,7 +506,7 @@ void f(bool b, int i) {
 }
 ''');
 
-    assertNoConstraints(decoratedTypeAnnotation('int i').node.nonNullIntent);
+    assertNonNullIntent(decoratedTypeAnnotation('int i').node, false);
   }
 
   test_if_guard_equals_null() async {
@@ -516,8 +528,8 @@ int f(int i, int j, int k) {
     assertConstraint([nullable_k],
         _either(nullable_return, checkExpression('k/*check*/').nullCheck));
     var discard = statementDiscard('if (i == null)');
-    expect(discard.keepTrue, same(nullable_i));
-    expect(discard.keepFalse, same(ConstraintVariable.always));
+    expect(discard.trueGuard.nullable, same(nullable_i));
+    expect(discard.falseGuard, null);
     expect(discard.pureCondition, true);
   }
 
@@ -579,9 +591,9 @@ class C {
   }
 }
 ''');
-    assertConstraint([], decoratedTypeAnnotation('int i').node.nonNullIntent);
-    assertNoConstraints(decoratedTypeAnnotation('int j').node.nonNullIntent);
-    assertConstraint([], decoratedTypeAnnotation('int k').node.nonNullIntent);
+    assertNonNullIntent(decoratedTypeAnnotation('int i').node, true);
+    assertNonNullIntent(decoratedTypeAnnotation('int j').node, false);
+    assertNonNullIntent(decoratedTypeAnnotation('int k').node, true);
   }
 
   test_methodInvocation_parameter_contravariant() async {
@@ -661,7 +673,7 @@ void test(C c) {
 }
 ''');
 
-    assertConstraint([], decoratedTypeAnnotation('C c').node.nonNullIntent);
+    assertNonNullIntent(decoratedTypeAnnotation('C c').node, true);
   }
 
   test_parenthesizedExpression() async {

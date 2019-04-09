@@ -61,7 +61,7 @@ class ConditionalModification extends PotentialModification {
       this.discard, this.condition, this.thenStatement, this.elseStatement);
 
   @override
-  bool get isEmpty => discard.keepTrue.value && discard.keepFalse.value;
+  bool get isEmpty => discard.keepTrue && discard.keepFalse;
 
   @override
   Iterable<SourceEdit> get modifications {
@@ -73,10 +73,10 @@ class ConditionalModification extends PotentialModification {
     if (!discard.pureCondition) {
       keepNodes.add(condition); // TODO(paulberry): test
     }
-    if (discard.keepTrue.value) {
+    if (discard.keepTrue) {
       keepNodes.add(thenStatement); // TODO(paulberry): test
     }
-    if (discard.keepFalse.value) {
+    if (discard.keepFalse) {
       keepNodes.add(elseStatement); // TODO(paulberry): test
     }
     // TODO(paulberry): test thoroughly

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 
 /// Container for information gathered during nullability migration about a
@@ -11,15 +12,21 @@ import 'package:analysis_server/src/nullability/unit_propagation.dart';
 /// whose boolean value influences control flow (e.g. the condition of an `if`
 /// statement).
 class ConditionalDiscard {
-  /// Constraint variable whose value will be `true` if the code path that
-  /// results from the condition evaluating to `true` will be reachable after
+  /// Nullability node that will be `nullable` if the code path that results
+  /// from the condition evaluating to `true` will be reachable after
   /// nullability migration, and therefore should be kept.
-  final ConstraintVariable keepTrue;
+  ///
+  /// `null` if the code path should be kept regardless of the outcome of
+  /// migration.
+  final NullabilityNode trueGuard;
 
-  /// Constraint variable whose value will be `false` if the code path that
-  /// results from the condition evaluating to `false` will be reachable after
+  /// Nullability node that will be `nullable` if the code path that results
+  /// from the condition evaluating to `false` will be reachable after
   /// nullability migration, and therefore should be kept.
-  final ConstraintVariable keepFalse;
+  ///
+  /// `null` if the code path should be kept regardless of the outcome of
+  /// migration.
+  final NullabilityNode falseGuard;
 
   /// Indicates whether the condition is pure (free from side effects).
   ///
@@ -27,11 +34,19 @@ class ConditionalDiscard {
   /// variable or static variable), because evaluating it has no user-visible
   /// effect other than returning a boolean value.
   ///
-  /// If [pureCondition] is `false`, and either [keepTrue] or [keepFalse] is
+  /// If [pureCondition] is `false`, and either [trueGuard] or [falseGuard] is
   /// `false`, that it is safe to delete the condition expression as well as the
   /// dead code branch (e.g. it means that `if (x == null) f(); else g();` could
   /// be changed to simply `g();`).
   final bool pureCondition;
 
-  ConditionalDiscard(this.keepTrue, this.keepFalse, this.pureCondition);
+  ConditionalDiscard(this.trueGuard, this.falseGuard, this.pureCondition);
+
+  /// Indicates whether the code path that results from the condition evaluating
+  /// to `false` is reachable after migration.
+  bool get keepFalse => falseGuard == null || falseGuard.nullable.value;
+
+  /// Indicates whether the code path that results from the condition evaluating
+  /// to `true` is reachable after migration.
+  bool get keepTrue => trueGuard == null || trueGuard.nullable.value;
 }
