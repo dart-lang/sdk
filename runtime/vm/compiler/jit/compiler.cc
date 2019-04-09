@@ -775,18 +775,18 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         if (FLAG_trace_bailout) {
           THR_Print("%s\n", error.ToErrorCString());
         }
+        if (!Compiler::IsBackgroundCompilation() && error.IsLanguageError() &&
+            (LanguageError::Cast(error).kind() == Report::kBailout)) {
+          // If is is not a background compilation, discard the error if it was
+          // not a real error, but just a bailout. If we're it a background
+          // compilation this will be dealt with in the caller.
+        } else {
+          // Otherwise, continue propagating unless we will try again.
+          thread()->set_sticky_error(error);
+        }
         done = true;
       }
 
-      if (!Compiler::IsBackgroundCompilation() && error.IsLanguageError() &&
-          (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        // If is is not a background compilation, discard the error if it was
-        // not a real error, but just a bailout. If we're it a background
-        // compilation this will be dealt with in the caller.
-      } else {
-        // Otherwise, continue propagating.
-        thread()->set_sticky_error(error);
-      }
     }
   }
   return result->raw();
