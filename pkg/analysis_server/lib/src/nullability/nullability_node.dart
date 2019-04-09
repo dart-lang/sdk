@@ -81,6 +81,17 @@ class NullabilityNode {
 
   NullabilityNode._(this.nullable);
 
+  /// Gets a string that can be appended to a type name during debugging to help
+  /// annotate the nullability of that type.
+  String get debugSuffix => nullable == null ? '' : '?($nullable)';
+
+  /// Indicates whether this node is always nullable, by construction.
+  bool get isAlwaysNullable => identical(nullable, ConstraintVariable.always);
+
+  /// After constraint solving, this getter can be used to query whether the
+  /// type associated with this node should be considered nullable.
+  bool get isNullable => nullable.value;
+
   /// Indicates whether this node is associated with a named parameter for which
   /// nullability migration needs to decide whether it is optional or required.
   bool get isPossiblyOptional => _isPossiblyOptional;

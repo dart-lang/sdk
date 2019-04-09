@@ -236,16 +236,15 @@ class PotentiallyAddImport extends PotentialModification {
 /// Records information about the possible addition of a `@required` annotation
 /// to the source code.
 class PotentiallyAddRequired extends PotentialModification {
-  final ConstraintVariable _optionalVariable;
+  final NullabilityNode _node;
 
   final int _offset;
 
-  PotentiallyAddRequired(
-      DefaultFormalParameter parameter, this._optionalVariable)
+  PotentiallyAddRequired(DefaultFormalParameter parameter, this._node)
       : _offset = parameter.offset;
 
   @override
-  bool get isEmpty => _optionalVariable.value;
+  bool get isEmpty => _node.isNullable;
 
   @override
   Iterable<SourceEdit> get modifications =>
@@ -301,9 +300,9 @@ class Variables implements VariableRecorder, VariableRepository {
   }
 
   @override
-  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
-      ConstraintVariable variable) {
-    var modification = PotentiallyAddRequired(parameter, variable);
+  void recordPossiblyOptional(
+      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
+    var modification = PotentiallyAddRequired(parameter, node);
     _addPotentialModification(source, modification);
     _addPotentialImport(
         source, parameter, modification, 'package:meta/meta.dart');

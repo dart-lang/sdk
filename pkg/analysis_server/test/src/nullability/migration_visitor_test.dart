@@ -422,7 +422,7 @@ void g() {
 }
 ''');
     var optional_i = possiblyOptionalParameter('int i');
-    assertConstraint([], optional_i);
+    assertConstraint([], optional_i.nullable);
   }
 
   test_functionInvocation_parameter_named_missing_required() async {
@@ -919,7 +919,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     return _variables.decoratedTypeAnnotation(findNode.typeAnnotation(text));
   }
 
-  ConstraintVariable possiblyOptionalParameter(String text) {
+  NullabilityNode possiblyOptionalParameter(String text) {
     return _variables
         .possiblyOptionalParameter(findNode.defaultParameter(text));
   }
@@ -1000,7 +1000,7 @@ class _Variables extends Variables {
 
   final _expressionChecks = <Expression, ExpressionChecks>{};
 
-  final _possiblyOptional = <DefaultFormalParameter, ConstraintVariable>{};
+  final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>
@@ -1018,10 +1018,9 @@ class _Variables extends Variables {
   DecoratedType decoratedTypeAnnotation(TypeAnnotation typeAnnotation) =>
       _decoratedTypeAnnotations[typeAnnotation];
 
-  /// Gets the [ConstraintVariable] associated with the possibility that
+  /// Gets the [NullabilityNode] associated with the possibility that
   /// [parameter] may be optional.
-  ConstraintVariable possiblyOptionalParameter(
-          DefaultFormalParameter parameter) =>
+  NullabilityNode possiblyOptionalParameter(DefaultFormalParameter parameter) =>
       _possiblyOptional[parameter];
 
   @override
@@ -1050,10 +1049,10 @@ class _Variables extends Variables {
   }
 
   @override
-  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
-      ConstraintVariable variable) {
-    _possiblyOptional[parameter] = variable;
-    super.recordPossiblyOptional(source, parameter, variable);
+  void recordPossiblyOptional(
+      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
+    _possiblyOptional[parameter] = node;
+    super.recordPossiblyOptional(source, parameter, node);
   }
 
   /// Unwraps any parentheses surrounding [expression].

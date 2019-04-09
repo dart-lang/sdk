@@ -59,13 +59,11 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var decoratedType = node.parameter.accept(this);
-    ConstraintVariable optional;
     if (node.declaredElement.hasRequired || node.defaultValue != null) {
       return null;
     }
     decoratedType.node.trackPossiblyOptional();
-    optional = decoratedType.node.nullable;
-    _variables.recordPossiblyOptional(_source, node, optional);
+    _variables.recordPossiblyOptional(_source, node, decoratedType.node);
   }
 
   @override
@@ -191,11 +189,11 @@ abstract class VariableRecorder {
   void recordDecoratedTypeAnnotation(
       Source source, TypeAnnotation node, DecoratedTypeAnnotation type);
 
-  /// Associates a constraint variable with the question of whether the given
-  /// named parameter should be optional (should not have a `required`
+  /// Records that [node] is associated with the question of whether the named
+  /// [parameter] should be optional (should not have a `required`
   /// annotation added to it).
-  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
-      ConstraintVariable variable);
+  void recordPossiblyOptional(
+      Source source, DefaultFormalParameter parameter, NullabilityNode node);
 }
 
 /// Repository of constraint variables and decorated types corresponding to the

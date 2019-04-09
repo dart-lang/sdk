@@ -44,8 +44,7 @@ class DecoratedType {
     assert(node != null);
     // The type system doesn't have a non-nullable version of `dynamic`.  So if
     // the type is `dynamic`, verify that `nullable` is `always`.
-    assert(
-        !type.isDynamic || identical(node.nullable, ConstraintVariable.always));
+    assert(!type.isDynamic || node.isAlwaysNullable);
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
@@ -93,7 +92,7 @@ class DecoratedType {
 
   @override
   String toString() {
-    var trailing = node.nullable == null ? '' : '?(${node.nullable})';
+    var trailing = node.debugSuffix;
     var type = this.type;
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
@@ -166,9 +165,7 @@ class DecoratedTypeAnnotation extends DecoratedType
       : super(type, nullabilityNode, typeArguments: typeArguments);
 
   @override
-  bool get isEmpty =>
-      identical(node.nullable, ConstraintVariable.always) ||
-      !node.nullable.value;
+  bool get isEmpty => node.isAlwaysNullable || !node.isNullable;
 
   @override
   Iterable<SourceEdit> get modifications =>

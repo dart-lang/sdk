@@ -44,9 +44,9 @@ class ConditionalDiscard {
 
   /// Indicates whether the code path that results from the condition evaluating
   /// to `false` is reachable after migration.
-  bool get keepFalse => falseGuard == null || falseGuard.nullable.value;
+  bool get keepFalse => falseGuard == null || falseGuard.isNullable;
 
   /// Indicates whether the code path that results from the condition evaluating
   /// to `true` is reachable after migration.
-  bool get keepTrue => trueGuard == null || trueGuard.nullable.value;
+  bool get keepTrue => trueGuard == null || trueGuard.isNullable;
 }
