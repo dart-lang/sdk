@@ -304,6 +304,10 @@ class DartFixKind {
       'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, "Replace with ??=");
   static const REPLACE_WITH_IDENTIFIER =
       const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
+  static const REPLACE_WITH_IS_EMPTY =
+      const FixKind('REPLACE_WITH_IS_EMPTY', 50, "Replace with 'isEmpty'");
+  static const REPLACE_WITH_IS_NOT_EMPTY = const FixKind(
+      'REPLACE_WITH_IS_NOT_EMPTY', 50, "Replace with 'isNotEmpty'");
   static const REPLACE_WITH_NULL_AWARE = const FixKind(
       'REPLACE_WITH_NULL_AWARE',
       50,

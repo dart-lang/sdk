@@ -95,6 +95,8 @@ import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
+import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
@@ -188,6 +190,8 @@ main() {
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
     replace_with_identifier.main();
+    replace_with_is_empty.main();
+    replace_with_is_not_empty.main();
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     update_sdk_constraints.main();

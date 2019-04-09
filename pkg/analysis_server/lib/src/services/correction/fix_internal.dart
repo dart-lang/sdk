@@ -621,6 +621,9 @@ class FixProcessor {
       if (name == LintNames.prefer_final_locals) {
         await _addFix_makeVariableFinal();
       }
+      if (name == LintNames.prefer_is_empty) {
+        await _addFix_replaceWithIsEmpty();
+      }
       if (name == LintNames.prefer_is_not_empty) {
         await _addFix_isNotEmpty();
       }
@@ -3405,6 +3408,100 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_replaceWithIsEmpty() async {
+    /// Return the value of an integer literal or prefix expression with a
+    /// minus and then an integer literal. For anything else, returns `null`.
+    int getIntValue(Expression expressions) {
+      // Copied from package:linter/src/rules/prefer_is_empty.dart.
+      if (expressions is IntegerLiteral) {
+        return expressions.value;
+      } else if (expressions is PrefixExpression) {
+        var operand = expressions.operand;
+        if (expressions.operator.type == TokenType.MINUS &&
+            operand is IntegerLiteral) {
+          return -operand.value;
+        }
+      }
+      return null;
+    }
+
+    /// Return the expression producing the object on which `length` is being
+    /// invoked, or `null` if there is no such expression.
+    Expression getLengthTarget(Expression expression) {
+      if (expression is PropertyAccess &&
+          expression.propertyName.name == 'length') {
+        return expression.target;
+      } else if (expression is PrefixedIdentifier &&
+          expression.identifier.name == 'length') {
+        return expression.prefix;
+      }
+      return null;
+    }
+
+    BinaryExpression binary = node.thisOrAncestorOfType();
+    TokenType operator = binary.operator.type;
+    String getter;
+    FixKind kind;
+    Expression lengthTarget;
+    int rightValue = getIntValue(binary.rightOperand);
+    if (rightValue != null) {
+      lengthTarget = getLengthTarget(binary.leftOperand);
+      if (rightValue == 0) {
+        if (operator == TokenType.EQ_EQ || operator == TokenType.LT_EQ) {
+          getter = 'isEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+        } else if (operator == TokenType.GT || operator == TokenType.BANG_EQ) {
+          getter = 'isNotEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+        }
+      } else if (rightValue == 1) {
+        // 'length >= 1' is same as 'isNotEmpty',
+        // and 'length < 1' is same as 'isEmpty'
+        if (operator == TokenType.GT_EQ) {
+          getter = 'isNotEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+        } else if (operator == TokenType.LT) {
+          getter = 'isEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+        }
+      }
+    } else {
+      int leftValue = getIntValue(binary.leftOperand);
+      if (leftValue != null) {
+        lengthTarget = getLengthTarget(binary.rightOperand);
+        if (leftValue == 0) {
+          if (operator == TokenType.EQ_EQ || operator == TokenType.GT_EQ) {
+            getter = 'isEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+          } else if (operator == TokenType.LT ||
+              operator == TokenType.BANG_EQ) {
+            getter = 'isNotEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+          }
+        } else if (leftValue == 1) {
+          // '1 <= length' is same as 'isNotEmpty',
+          // and '1 > length' is same as 'isEmpty'
+          if (operator == TokenType.LT_EQ) {
+            getter = 'isNotEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+          } else if (operator == TokenType.GT) {
+            getter = 'isEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+          }
+        }
+      }
+    }
+    if (lengthTarget == null || getter == null || kind == null) {
+      return;
+    }
+    String target = utils.getNodeText(lengthTarget);
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.node(binary), '$target.$getter');
+    });
+    _addFixFromBuilder(changeBuilder, kind);
+  }
+
   Future<void> _addFix_replaceWithRethrow() async {
     if (coveredNode is ThrowExpression) {
       var changeBuilder = _newDartChangeBuilder();
@@ -4147,6 +4244,27 @@ class FixProcessor {
   }
 
   /**
+   * Return the relative uri from the passed [library] to the passed
+   * [source]. If the [source] is not in the LibraryElement, `null` is returned.
+   */
+  String _getRelativeURIFromLibrary(LibraryElement library, Source source) {
+    var librarySource = library?.librarySource;
+    if (librarySource == null) {
+      return null;
+    }
+    var pathCtx = resourceProvider.pathContext;
+    var libraryDirectory = pathCtx.dirname(librarySource.fullName);
+    var sourceDirectory = pathCtx.dirname(source.fullName);
+    if (pathCtx.isWithin(libraryDirectory, source.fullName) ||
+        pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
+      String relativeFile =
+          pathCtx.relative(source.fullName, from: libraryDirectory);
+      return pathCtx.split(relativeFile).join('/');
+    }
+    return null;
+  }
+
+  /**
    * Returns an expected [DartType] of [expression], may be `null` if cannot be
    * inferred.
    */
@@ -4373,27 +4491,6 @@ class FixProcessor {
     return true;
   }
 
-  /**
-   * Return the relative uri from the passed [library] to the passed
-   * [source]. If the [source] is not in the LibraryElement, `null` is returned.
-   */
-  String _getRelativeURIFromLibrary(LibraryElement library, Source source) {
-    var librarySource = library?.librarySource;
-    if (librarySource == null) {
-      return null;
-    }
-    var pathCtx = resourceProvider.pathContext;
-    var libraryDirectory = pathCtx.dirname(librarySource.fullName);
-    var sourceDirectory = pathCtx.dirname(source.fullName);
-    if (pathCtx.isWithin(libraryDirectory, source.fullName) ||
-        pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
-      String relativeFile =
-          pathCtx.relative(source.fullName, from: libraryDirectory);
-      return pathCtx.split(relativeFile).join('/');
-    }
-    return null;
-  }
-
   bool _isToListMethodElement(MethodElement method) {
     if (method.name != 'toList') {
       return false;
@@ -4519,6 +4616,7 @@ class LintNames {
       'prefer_equal_for_default_values';
   static const String prefer_final_fields = 'prefer_final_fields';
   static const String prefer_final_locals = 'prefer_final_locals';
+  static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String type_init_formals = 'type_init_formals';
   static const String unawaited_futures = 'unawaited_futures';
