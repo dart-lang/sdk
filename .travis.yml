@@ -7,6 +7,7 @@ env:
   - LINTER_BOT=main
   - LINTER_BOT=benchmark
   - LINTER_BOT=pana_baseline
+  - LINTER_BOT=release
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
