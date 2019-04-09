@@ -225,6 +225,20 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
     _visitClassOrMixinMembers(node);
   }
 
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    // `TypeName^` is recovered as `<noType> TypeName;`, remove the name.
+    var variableList = node.variables;
+    if (variableList.keyword == null && variableList.type == null) {
+      for (var variable in variableList.variables) {
+        names.remove(variable.name.name);
+      }
+      return;
+    }
+
+    super.visitTopLevelVariableDeclaration(node);
+  }
+
   void _addForLoopParts(ForLoopParts forLoopParts, AstNode body) {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       if (_isCoveredBy(body)) {
@@ -260,9 +274,10 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   }
 
   void _addName(SimpleIdentifier node) {
-    if (node != null) {
-      names.add(node.name);
-    }
+    if (node == null) return;
+    if (node.end == offset) return;
+
+    names.add(node.name);
   }
 
   void _addTypeParameters(TypeParameterList typeParameterList) {
