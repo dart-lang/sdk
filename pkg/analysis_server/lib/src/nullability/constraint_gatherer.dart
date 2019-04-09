@@ -86,8 +86,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
             DecoratedType(typeProvider.boolType, _variables.neverNullable),
         _nonNullableTypeType =
             DecoratedType(typeProvider.typeType, _variables.neverNullable),
-        _nullType = DecoratedType(
-            typeProvider.nullType, NullabilityNode(ConstraintVariable.always));
+        _nullType =
+            DecoratedType(typeProvider.nullType, _variables.alwaysNullable);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.

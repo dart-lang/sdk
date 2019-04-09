@@ -263,11 +263,16 @@ abstract class PotentialModification {
 }
 
 class Variables implements VariableRecorder, VariableRepository {
+  final _alwaysNullable = NullabilityNode(ConstraintVariable.always);
+
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
   final _neverNullable = NullabilityNode(null);
+
+  @override
+  NullabilityNode get alwaysNullable => _alwaysNullable;
 
   @override
   NullabilityNode get neverNullable => _neverNullable;
