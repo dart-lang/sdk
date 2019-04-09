@@ -39,6 +39,19 @@ f(bool b) {
 ''');
   }
 
+  test_conditional_list_caret_at_start_of_expression() async {
+    await resolveTestUnit('''
+f(bool b) {
+  return ['a', /*caret*/b ? 'c' : 'd', 'e'];
+}
+''');
+    await assertHasAssist('''
+f(bool b) {
+  return ['a', if (b) 'c' else 'd', 'e'];
+}
+''');
+  }
+
   test_conditional_list_withParentheses() async {
     await resolveTestUnit('''
 f(bool b) {

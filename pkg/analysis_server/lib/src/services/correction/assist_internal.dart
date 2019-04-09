@@ -559,8 +559,8 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_convertConditionalExpressionToIfElement() async {
-    AstNode node = this.node;
-    if (node is! ConditionalExpression) {
+    AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
+    if (node == null) {
       _coverageMarker();
       return;
     }
