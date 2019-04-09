@@ -22,11 +22,11 @@
 // NB: This utility assumes UN*X style line endings, \n, in the LaTeX
 // source file received as input; it will not work with other styles.
 
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:convert/convert.dart';
-import 'package:utf/utf.dart';
+import 'package:crypto/crypto.dart';
 
 // ----------------------------------------------------------------------
 // Normalization of the text: removal or normalization of parts that
@@ -491,7 +491,7 @@ computeHashValue(lines, startIndex, nextIndex, listSink) {
   final gatheredLine = gatherLines(lines, startIndex, nextIndex);
   final simplifiedLine = simplifyLine(gatheredLine);
   listSink.write("  % $simplifiedLine\n");
-  var digest = sha1.convert(encodeUtf8(simplifiedLine));
+  var digest = sha1.convert(utf8.encode(simplifiedLine));
   return digest.bytes;
 }
 

@@ -84,7 +84,7 @@ vars = {
   "dartdoc_tag" : "v0.28.2",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
-  "html_tag" : "0.13.4+1",
+  "html_tag" : "0.14.0",
   "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.3",
@@ -135,7 +135,6 @@ vars = {
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
-  "utf_tag": "0.9.0+5",
   "watcher_rev": "0.9.7+12",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
@@ -362,8 +361,6 @@ deps = {
       "@" + Var("unittest_rev"),
   Var("dart_root") + "/third_party/pkg/usage":
       Var("dart_git") + "usage.git" + "@" + Var("usage_tag"),
-  Var("dart_root") + "/third_party/pkg/utf":
-      Var("dart_git") + "utf.git" + "@" + Var("utf_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
       Var("dart_git") + "watcher.git" + "@" + Var("watcher_rev"),
   Var("dart_root") + "/third_party/pkg/web_components":
