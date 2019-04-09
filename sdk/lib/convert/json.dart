@@ -59,6 +59,9 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
 ///
 ///     var encoded = json.encode([1, 2, { "a": null }]);
 ///     var decoded = json.decode('["foo", { "bar": 499 }]');
+///
+/// The top-level [jsonEncode] and [jsonDecode] functions may be used instead if
+/// a local variable shadows the [json] constant.
 const JsonCodec json = JsonCodec();
 
 /// Converts [value] to a JSON string.
@@ -71,7 +74,8 @@ const JsonCodec json = JsonCodec();
 /// If [toEncodable] is omitted, it defaults to a function that returns the
 /// result of calling `.toJson()` on the unencodable object.
 ///
-/// Shorthand for [json.encode].
+/// Shorthand for [json.encode]. Useful if a local variable shadows the global
+/// [json] constant.
 String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
     json.encode(object, toEncodable: toEncodable);
 
@@ -84,7 +88,8 @@ String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
 ///
 /// The default [reviver] (when not provided) is the identity function.
 ///
-/// Shorthand for [json.decode].
+/// Shorthand for [json.decode]. Useful if a local variable shadows the global
+/// [json] constant.
 dynamic jsonDecode(String source, {Object reviver(Object key, Object value)}) =>
     json.decode(source, reviver: reviver);
 
