@@ -57,6 +57,8 @@ import 'transformations/mixin_deduplication.dart' as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
+import 'transformations/protobuf_aware_treeshaker/transformer.dart'
+    as protobuf_tree_shaker;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
@@ -93,6 +95,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addFlag('protobuf-tree-shaker',
+      help: 'Enable protobuf tree shaker transformation in AOT mode.',
+      defaultsTo: false);
   args.addMultiOption('define',
       abbr: 'D',
       help: 'The values for the environment constants (e.g. -Dkey=value).');
@@ -166,6 +171,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
+  final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final bool showBytecodeSizeStat = options['show-bytecode-size-stat'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -224,7 +230,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       dropAST: dropAST && !splitOutputByPackages,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,
-      enableConstantEvaluation: enableConstantEvaluation);
+      enableConstantEvaluation: enableConstantEvaluation,
+      useProtobufTreeShaker: useProtobufTreeShaker);
 
   errorPrinter.printCompilationMessages();
 
@@ -283,7 +290,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     bool dropAST: false,
     bool useFutureBytecodeFormat: false,
     bool enableAsserts: false,
-    bool enableConstantEvaluation: true}) async {
+    bool enableConstantEvaluation: true,
+    bool useProtobufTreeShaker: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
@@ -323,6 +331,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         environmentDefines,
         enableAsserts,
         enableConstantEvaluation,
+        useProtobufTreeShaker,
         errorDetector);
   }
 
@@ -354,6 +363,7 @@ Future _runGlobalTransformations(
     Map<String, String> environmentDefines,
     bool enableAsserts,
     bool enableConstantEvaluation,
+    bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
   if (errorDetector.hasCompilationErrors) return;
 
@@ -381,6 +391,18 @@ Future _runGlobalTransformations(
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
+  }
+
+  if (useProtobufTreeShaker) {
+    if (!useGlobalTypeFlowAnalysis) {
+      throw 'Protobuf tree shaker requires type flow analysis (--tfa)';
+    }
+
+    protobuf_tree_shaker.removeUnusedProtoReferences(
+        component, coreTypes, null);
+
+    globalTypeFlow.transformComponent(
+        compilerOptions.target, coreTypes, component);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
