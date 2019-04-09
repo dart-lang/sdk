@@ -712,6 +712,7 @@ class Server {
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
     }
+    arguments.add('--disable-service-auth-codes');
     //
     // Add the server executable.
     //

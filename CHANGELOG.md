@@ -8,6 +8,9 @@
 
 ### Dart VM
 
+* The VM service now requires an authentication code by default. This behavior
+  can be disabled by providing the `--disable-service-auth-codes` flag.
+
 ### Tool Changes
 
 #### Linter

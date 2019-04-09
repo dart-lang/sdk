@@ -41,9 +41,6 @@ String _makeAuthToken() {
 // The randomly generated auth token used to access the VM service.
 final String serviceAuthToken = _makeAuthToken();
 
-// TODO(johnmccutchan): Enable the auth token and drop the origin check.
-final bool useAuthToken = new bool.fromEnvironment('DART_SERVICE_USE_AUTH');
-
 // This is for use by the embedder. It is a map from the isolateId to
 // anything implementing IsolateEmbedderData. When an isolate goes away,
 // the cleanup method will be invoked after being removed from the map.

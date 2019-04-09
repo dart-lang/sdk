@@ -23,6 +23,9 @@ String _ip;
 // Should the HTTP server auto start?
 @pragma("vm:entry-point")
 bool _autoStart;
+// Should the HTTP server require an auth code?
+@pragma("vm:entry-point")
+bool _authCodesDisabled;
 // Should the HTTP server run in devmode?
 @pragma("vm:entry-point")
 bool _originCheckDisabled;
@@ -45,7 +48,8 @@ _lazyServerBoot() {
   // Lazily create service.
   var service = new VMService();
   // Lazily create server.
-  server = new Server(service, _ip, _port, _originCheckDisabled);
+  server =
+      new Server(service, _ip, _port, _originCheckDisabled, _authCodesDisabled);
 }
 
 Future cleanupCallback() async {

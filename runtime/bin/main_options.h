@@ -38,6 +38,7 @@ namespace bin {
   V(version, version_option)                                                   \
   V(compile_all, compile_all)                                                  \
   V(disable_service_origin_check, vm_service_dev_mode)                         \
+  V(disable_service_auth_codes, vm_service_auth_disabled)                      \
   V(deterministic, deterministic)                                              \
   V(trace_loading, trace_loading)                                              \
   V(short_socket_read, short_socket_read)                                      \

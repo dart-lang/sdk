@@ -509,10 +509,10 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
 
   // Load embedder specific bits and return.
-  if (!VmService::Setup(Options::vm_service_server_ip(),
-                        Options::vm_service_server_port(),
-                        Options::vm_service_dev_mode(),
-                        Options::trace_loading(), Options::deterministic())) {
+  if (!VmService::Setup(
+          Options::vm_service_server_ip(), Options::vm_service_server_port(),
+          Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
+          Options::trace_loading(), Options::deterministic())) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }

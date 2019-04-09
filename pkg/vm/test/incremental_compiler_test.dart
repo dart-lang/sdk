@@ -408,6 +408,7 @@ main() {
       vm = await Process.start(Platform.resolvedExecutable, <String>[
         "--pause-isolates-on-exit",
         "--enable-vm-service:0",
+        "--disable-service-auth-codes",
         list.path
       ]);
 
@@ -469,6 +470,7 @@ main() {
         '--trace_reload_verbose',
         '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
         '--pause_isolates_on_start',
+        '--disable-service-auth-codes',
         outputFile.path
       ];
       final vm = await Process.start(Platform.resolvedExecutable, vmArgs);

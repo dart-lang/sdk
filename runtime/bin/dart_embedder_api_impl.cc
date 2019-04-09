@@ -88,7 +88,8 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
   Dart_EnterScope();
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup(config.ip, config.port, config.dev_mode,
-                             /*trace_loading=*/false, config.deterministic)) {
+                             config.disable_auth_codes, /*trace_loading=*/false,
+                             config.deterministic)) {
     *error = strdup(bin::VmService::GetErrorMessage());
     return nullptr;
   }

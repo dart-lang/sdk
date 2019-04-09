@@ -52,9 +52,7 @@ class _IOWebSocket implements CommonWebSocket {
   }
 }
 
-/// The [WebSocketVM] communicates with a Dart VM over WebSocket. The Dart VM
-/// can be embedded in Chromium or standalone. In the case of Chromium, we
-/// make the service requests via the Chrome Remote Debugging Protocol.
+/// The [WebSocketVM] communicates with a Dart VM over WebSocket.
 class WebSocketVM extends CommonWebSocketVM {
   WebSocketVM(WebSocketVMTarget target) : super(target, new _IOWebSocket());
 }
