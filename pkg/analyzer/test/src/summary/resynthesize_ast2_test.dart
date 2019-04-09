@@ -645,18 +645,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_import_prefixed() async {
-    await super.test_import_prefixed();
-  }
-
-  @override
-  @failingTest
-  test_import_self() async {
-    await super.test_import_self();
-  }
-
-  @override
-  @failingTest
   test_import_short_absolute() async {
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
@@ -997,24 +985,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_inference_of_closure_with_default_value() async {
     await super.test_type_inference_of_closure_with_default_value();
-  }
-
-  @override
-  @failingTest
-  test_type_invalid_typeParameter_asPrefix() async {
-    await super.test_type_invalid_typeParameter_asPrefix();
-  }
-
-  @override
-  @failingTest
-  test_type_invalid_unresolvedPrefix() async {
-    await super.test_type_invalid_unresolvedPrefix();
-  }
-
-  @override
-  @failingTest
-  test_type_unresolved_prefixed() async {
-    await super.test_type_unresolved_prefixed();
   }
 
   @override

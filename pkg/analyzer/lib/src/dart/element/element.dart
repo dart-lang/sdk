@@ -8561,7 +8561,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   @override
   int get nameOffset {
     if (linkedNode != null) {
-      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+      return (linkedNode as SimpleIdentifier).offset;
     }
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedImport != null) {

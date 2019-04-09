@@ -840,21 +840,19 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-//    print('[visitTypeName][$node]');
-    var nameNode = node.name;
-    if (nameNode is SimpleIdentifier) {
-      var name = nameNode.name;
+    var typeName = node.name;
+    if (typeName is SimpleIdentifier && typeName.name == 'void') {
+      node.type = VoidTypeImpl.instance;
+      return;
+    }
 
-      if (name == 'void') {
-        node.type = VoidTypeImpl.instance;
-        return;
-      }
-
-      var element = scope.lookup(nameNode, _libraryElement);
-      nameNode.staticElement = element;
-//      print(element?.name);
-    } else {
-      throw UnimplementedError();
+    var element = scope.lookup(typeName, _libraryElement);
+    if (typeName is SimpleIdentifier) {
+      typeName.staticElement = element;
+    } else if (typeName is PrefixedIdentifier) {
+      typeName.identifier.staticElement = element;
+      SimpleIdentifier prefix = typeName.prefix;
+      prefix.staticElement = scope.lookup(prefix, _libraryElement);
     }
 
     node.typeArguments?.accept(this);
