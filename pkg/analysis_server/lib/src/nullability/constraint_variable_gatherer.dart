@@ -60,20 +60,12 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var decoratedType = node.parameter.accept(this);
     ConstraintVariable optional;
-    if (node.declaredElement.hasRequired) {
-      optional = null;
-    } else if (node.defaultValue != null) {
-      optional = ConstraintVariable.always;
-    } else {
-      optional = decoratedType.node.nullable;
-      _variables.recordPossiblyOptional(_source, node, optional);
+    if (node.declaredElement.hasRequired || node.defaultValue != null) {
+      return null;
     }
-    if (optional != null) {
-      _currentFunctionType
-              .namedParameterOptionalVariables[node.declaredElement.name] =
-          optional;
-    }
-    return null;
+    decoratedType.node.trackPossiblyOptional();
+    optional = decoratedType.node.nullable;
+    _variables.recordPossiblyOptional(_source, node, optional);
   }
 
   @override
@@ -174,8 +166,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         declaredElement.type, NullabilityNode.never,
         returnType: decoratedReturnType,
         positionalParameters: [],
-        namedParameters: {},
-        namedParameterOptionalVariables: {});
+        namedParameters: {});
     _currentFunctionType = functionType;
     try {
       parameters.accept(this);

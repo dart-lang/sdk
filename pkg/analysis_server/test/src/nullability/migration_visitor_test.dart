@@ -828,8 +828,7 @@ void f({String s}) {}
     expect(functionType.namedParameters['s'], same(decoratedType));
     expect(decoratedType.node.nullable, isNotNull);
     expect(decoratedType.node.nullable, isNot(same(ConstraintVariable.always)));
-    expect(functionType.namedParameterOptionalVariables['s'],
-        same(decoratedType.node.nullable));
+    expect(functionType.namedParameters['s'].node.isPossiblyOptional, true);
   }
 
   test_topLevelFunction_parameterType_named_no_default_required() async {
@@ -843,7 +842,7 @@ void f({@required String s}) {}
     expect(functionType.namedParameters['s'], same(decoratedType));
     expect(decoratedType.node.nullable, isNotNull);
     expect(decoratedType.node.nullable, isNot(same(ConstraintVariable.always)));
-    expect(functionType.namedParameterOptionalVariables['s'], isNull);
+    expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
   test_topLevelFunction_parameterType_named_with_default() async {
@@ -854,8 +853,7 @@ void f({String s: 'x'}) {}
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
     expect(decoratedType.node.nullable, isNotNull);
-    expect(functionType.namedParameterOptionalVariables['s'],
-        same(ConstraintVariable.always));
+    expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
   test_topLevelFunction_parameterType_positionalOptional() async {

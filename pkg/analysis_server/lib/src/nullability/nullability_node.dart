@@ -32,6 +32,8 @@ class NullabilityNode {
 
   ConstraintVariable _nonNullIntent;
 
+  bool _isPossiblyOptional = false;
+
   /// Creates a [NullabilityNode] representing the nullability of a conditional
   /// expression which is nullable iff both [a] and [b] are nullable.
   ///
@@ -79,11 +81,25 @@ class NullabilityNode {
 
   NullabilityNode._(this.nullable);
 
+  /// Indicates whether this node is associated with a named parameter for which
+  /// nullability migration needs to decide whether it is optional or required.
+  bool get isPossiblyOptional => _isPossiblyOptional;
+
   /// [ConstraintVariable] whose value will be set to `true` if the usage of
   /// this type suggests that it is intended to be non-null (because of the
   /// presence of a statement or expression that would unconditionally lead to
   /// an exception being thrown in the case of a `null` value at runtime).
   ConstraintVariable get nonNullIntent => _nonNullIntent;
+
+  /// Records the fact that an invocation was made to a function with named
+  /// parameters, and the named parameter associated with this node was not
+  /// supplied.
+  void recordNamedParameterNotSupplied(
+      Constraints constraints, List<ConstraintVariable> guards) {
+    if (isPossiblyOptional) {
+      constraints.record(guards, nullable);
+    }
+  }
 
   void recordNonNullIntent(
       Constraints constraints, List<ConstraintVariable> guards) {
@@ -99,6 +115,13 @@ class NullabilityNode {
   void trackNonNullIntent(int offset) {
     assert(_nonNullIntent == null);
     _nonNullIntent = NonNullIntent(offset);
+  }
+
+  /// Tracks the possibility that this node is associated with a named parameter
+  /// for which nullability migration needs to decide whether it is optional or
+  /// required.
+  void trackPossiblyOptional() {
+    _isPossiblyOptional = true;
   }
 
   /// Connect the nullability nodes [sourceNode] and [destinationNode]

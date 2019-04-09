@@ -347,10 +347,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       }
     }
     // Any parameters not supplied must be optional.
-    for (var entry in calleeType.namedParameterOptionalVariables.entries) {
-      assert(entry.value != null);
+    for (var entry in calleeType.namedParameters.entries) {
       if (suppliedNamedParameters.contains(entry.key)) continue;
-      _recordFact(entry.value);
+      entry.value.node.recordNamedParameterNotSupplied(_constraints, _guards);
     }
     return calleeType.returnType;
   }

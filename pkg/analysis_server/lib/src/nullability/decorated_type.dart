@@ -30,16 +30,6 @@ class DecoratedType {
   /// parameters.
   final Map<String, DecoratedType> namedParameters;
 
-  /// If `this` is a function type, [ConstraintVariable] for each of its named
-  /// parameters indicating whether the given named parameter needs to be
-  /// optional (no `required` annotation).
-  ///
-  /// If there is no entry in this map corresponding to a given named parameter,
-  /// that means that it has already been decided (prior to migration) that the
-  /// given named parameter is required.  TODO(paulberry): test that this works
-  /// for already-migrated code.
-  final Map<String, ConstraintVariable> namedParameterOptionalVariables;
-
   /// If `this` is a parameterized type, the [DecoratedType] of each of its
   /// type parameters.
   ///
@@ -50,7 +40,6 @@ class DecoratedType {
       {this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
-      this.namedParameterOptionalVariables = const {},
       this.typeArguments = const []}) {
     assert(node != null);
     // The type system doesn't have a non-nullable version of `dynamic`.  So if
