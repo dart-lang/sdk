@@ -496,7 +496,13 @@ class AssistProcessor {
     elementText ??= '...${utils.getNodeText(argument)}';
     DartChangeBuilder changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      // ['a']..addAll(['b', 'c']);
+      if (list.elements.isNotEmpty) {
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        //
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      } // []..addAll(['b', 'c']);
       builder.addDeletion(range.node(invocation));
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
