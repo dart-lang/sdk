@@ -12,16 +12,7 @@ if [ "$LINTER_BOT" = "release" ]; then
   echo "Validating release..."
   dart tool/bot/version_check.dart
 
-else
-  # Verify that the libraries are error free.
-  dartanalyzer --fatal-warnings \
-    bin/linter.dart \
-    test/all.dart
-
-  echo ""
-fi
-
-if [ "$LINTER_BOT" = "benchmark" ]; then
+elif [ "$LINTER_BOT" = "benchmark" ]; then
   echo "Running the linter benchmark..."
 
   # The actual lints can have errors - we don't want to fail the benchmark bot.
@@ -44,6 +35,13 @@ elif [ "$LINTER_BOT" = "pana_baseline" ]; then
 
 else
   echo "Running main linter bot"
+
+  # Verify that the libraries are error free.
+  dartanalyzer --fatal-warnings \
+    bin/linter.dart \
+    test/all.dart
+
+  echo ""
 
   # Run the tests.
   dart --enable-asserts test/all.dart
