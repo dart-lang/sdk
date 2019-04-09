@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'strong_test_helper.dart';
@@ -15,10 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class CheckerTest extends AbstractStrongTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class CheckerTest extends AbstractStrongTest with PackageMixin {
   test_awaitForInCastsStreamElementToVariable() async {
     await checkFile('''
 import 'dart:async';
@@ -3773,11 +3771,7 @@ main() {
   }
 
   test_strictRawTypes_classes_optionalTypeArgs() async {
-    addFile(r'''
-class _OptionalTypeArgs { const _OptionalTypeArgs(); }
-const optionalTypeArgs = _OptionalTypeArgs();
-    ''', name: 'package:meta/meta.dart');
-
+    addMetaPackage();
     addFile(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
@@ -3863,11 +3857,7 @@ testTypedefs() {
   }
 
   test_strictRawTypes_typedefs_optionalTypeArgs() async {
-    addFile(r'''
-class _OptionalTypeArgs { const _OptionalTypeArgs(); }
-const optionalTypeArgs = _OptionalTypeArgs();
-    ''', name: 'package:meta/meta.dart');
-
+    addMetaPackage();
     addFile(r'''
 import 'package:meta/meta.dart';
 
@@ -4518,9 +4508,6 @@ class CheckerWithUiAsCodeTest extends AbstractStrongTest {
   @override
   List<String> get enabledExperiments =>
       [EnableString.spread_collections, EnableString.control_flow_collections];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
 
   test_list_ifElement_dynamicCondition_disableImplicitCasts() async {
     addFile(r'''

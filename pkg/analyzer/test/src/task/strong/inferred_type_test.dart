@@ -4393,9 +4393,6 @@ main() {
 @reflectiveTest
 class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
   @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   bool get hasExtraTaskModelPass => false;
 
   @override
@@ -4425,9 +4422,6 @@ class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
 @reflectiveTest
 class InferredTypeTest_SetLiterals extends AbstractStrongTest
     with InferredTypeMixin {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   bool get hasExtraTaskModelPass => false;
 

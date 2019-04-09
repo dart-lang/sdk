@@ -22,6 +22,7 @@ const _Factory factory = const _Factory();
 const Immutable immutable = const Immutable();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
+const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 const _Protected protected = const _Protected();
 const Required required = const Required();
 const _Sealed sealed = const _Sealed();
@@ -42,6 +43,9 @@ class _Literal {
 }
 class _MustCallSuper {
   const _MustCallSuper();
+}
+class _OptionalTypeArgs {
+  const _OptionalTypeArgs();
 }
 class _Protected {
   const _Protected();

@@ -395,6 +395,9 @@ abstract class ElementHandle implements Element {
   bool get hasLiteral => actualElement.hasLiteral;
 
   @override
+  bool get hasOptionalTypeArgs => actualElement.hasOptionalTypeArgs;
+
+  @override
   bool get hasOverride => actualElement.hasOverride;
 
   @override

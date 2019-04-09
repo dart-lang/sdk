@@ -425,6 +425,9 @@ abstract class Member implements Element {
   bool get hasLiteral => _baseElement.hasLiteral;
 
   @override
+  bool get hasOptionalTypeArgs => _baseElement.hasOptionalTypeArgs;
+
+  @override
   bool get hasOverride => _baseElement.hasOverride;
 
   @override

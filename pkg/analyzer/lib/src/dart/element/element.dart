@@ -2966,6 +2966,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// literal.
   static String _LITERAL_VARIABLE_NAME = "literal";
 
+  /// The name of the top-level variable used to mark a type as having
+  /// "optional" type arguments.
+  static String _OPTIONAL_TYPE_ARGS_VARIABLE_NAME = "optionalTypeArgs";
+
   /// The name of the top-level variable used to mark a function as running
   /// a single test.
   static String _IS_TEST_VARIABLE_NAME = "isTest";
@@ -3112,6 +3116,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isMustCallSuper =>
       element is PropertyAccessorElement &&
       element.name == _MUST_CALL_SUPER_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isOptionalTypeArgs =>
+      element is PropertyAccessorElement &&
+      element.name == _OPTIONAL_TYPE_ARGS_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override
@@ -3379,6 +3389,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isLiteral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasOptionalTypeArgs {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isOptionalTypeArgs) {
         return true;
       }
     }
@@ -7478,6 +7500,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasLiteral => false;
+
+  @override
+  bool get hasOptionalTypeArgs => false;
 
   @override
   bool get hasOverride => false;

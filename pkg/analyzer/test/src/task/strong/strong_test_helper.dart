@@ -24,6 +24,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:source_span/source_span.dart';
@@ -244,7 +245,7 @@ class AbstractStrongTest with ResourceProviderMixin {
 
   List<String> get enabledExperiments => [];
 
-  bool get enableNewAnalysisDriver => false;
+  Map<String, List<Folder>> packageMap;
 
   /// Adds a file to check. The file should contain:
   ///
@@ -296,40 +297,29 @@ class AbstractStrongTest with ResourceProviderMixin {
     var mockSdk = new MockSdk(resourceProvider: resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
 
-    SourceFactory sourceFactory;
-    {
-      var uriResolver = new _TestUriResolver(resourceProvider);
-      sourceFactory =
-          new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
-    }
+    SourceFactory sourceFactory = new SourceFactory([
+      new DartUriResolver(mockSdk),
+      new PackageMapUriResolver(resourceProvider, packageMap),
+      new ResourceUriResolver(resourceProvider),
+    ]);
 
     CompilationUnit mainUnit;
-    if (enableNewAnalysisDriver) {
-      StringBuffer logBuffer = new StringBuffer();
-      FileContentOverlay fileContentOverlay = new FileContentOverlay();
-      PerformanceLog log = new PerformanceLog(logBuffer);
-      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-      _driver = new AnalysisDriver(
-          scheduler,
-          log,
-          resourceProvider,
-          new MemoryByteStore(),
-          fileContentOverlay,
-          null,
-          sourceFactory,
-          analysisOptions);
-      scheduler.start();
+    StringBuffer logBuffer = new StringBuffer();
+    FileContentOverlay fileContentOverlay = new FileContentOverlay();
+    PerformanceLog log = new PerformanceLog(logBuffer);
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    _driver = new AnalysisDriver(
+        scheduler,
+        log,
+        resourceProvider,
+        new MemoryByteStore(),
+        fileContentOverlay,
+        null,
+        sourceFactory,
+        analysisOptions);
+    scheduler.start();
 
-      mainUnit = (await _driver.getResult(mainFile.path)).unit;
-    } else {
-      _context = AnalysisEngine.instance.createAnalysisContext();
-      _context.analysisOptions = analysisOptions;
-      _context.sourceFactory = sourceFactory;
-
-      // Run the checker on /main.dart.
-      Source mainSource = sourceFactory.forUri2(mainFile.toUri());
-      mainUnit = _context.resolveCompilationUnit2(mainSource, mainSource);
-    }
+    mainUnit = (await _driver.getResult(mainFile.path)).unit;
 
     bool isRelevantError(AnalysisError error) {
       var code = error.errorCode;
@@ -384,7 +374,11 @@ class AbstractStrongTest with ResourceProviderMixin {
     );
   }
 
-  void setUp() {}
+  void setUp() {
+    packageMap = {
+      'meta': [getFolder('/.pub-cache/meta/lib')],
+    };
+  }
 
   void tearDown() {
     // This is a sanity check, in case only addFile is called.
@@ -395,15 +389,8 @@ class AbstractStrongTest with ResourceProviderMixin {
   }
 
   Future<_TestAnalysisResult> _resolve(Source source) async {
-    if (enableNewAnalysisDriver) {
-      var result = await _driver.getResult(source.fullName);
-      return new _TestAnalysisResult(source, result.unit, result.errors);
-    } else {
-      List<Source> libraries = _context.getLibrariesContaining(source);
-      var unit = _context.resolveCompilationUnit2(source, libraries.single);
-      var errors = _context.computeErrors(source);
-      return new _TestAnalysisResult(source, unit, errors);
-    }
+    var result = await _driver.getResult(source.fullName);
+    return new _TestAnalysisResult(source, result.unit, result.errors);
   }
 }
 
@@ -456,21 +443,4 @@ class _TestAnalysisResult {
   final CompilationUnit unit;
   final List<AnalysisError> errors;
   _TestAnalysisResult(this.source, this.unit, this.errors);
-}
-
-class _TestUriResolver extends ResourceUriResolver {
-  final MemoryResourceProvider provider;
-  _TestUriResolver(provider)
-      : provider = provider,
-        super(provider);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (uri.scheme == 'package') {
-      return (provider.getResource(
-              provider.convertPath('/packages/' + uri.path)) as File)
-          .createSource(uri);
-    }
-    return super.resolveAbsolute(uri, actualUri);
-  }
 }
