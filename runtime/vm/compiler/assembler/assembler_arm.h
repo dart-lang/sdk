@@ -1014,7 +1014,7 @@ class Assembler : public AssemblerBase {
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
-  void EnterDartFrame(intptr_t frame_size);
+  void EnterDartFrame(intptr_t frame_size, bool load_pool_pointer = true);
 
   void LeaveDartFrame();
 

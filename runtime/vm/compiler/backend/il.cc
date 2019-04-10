@@ -5201,8 +5201,19 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_ARM)
+
+LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  UNREACHABLE();
+}
+
+void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+#endif  // defined(TARGET_ARCH_ARM)
+
+#if !defined(TARGET_ARCH_DBC)
 
 #define Z zone_
 
@@ -5248,8 +5259,15 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
     // register or a contiguous 64-bit slot on the stack. Unboxed 64-bit integer
     // values, in contrast, can be split between any two registers on a 32-bit
     // system.
+    //
+    // There is an exception for iOS and Android 32-bit ARM, where
+    // floating-point values are treated as integers as far as the calling
+    // convention is concerned. However, the representation of these arguments
+    // are set to kUnboxedInt32 or kUnboxedInt64 already, so we don't have to
+    // account for that here.
     const bool is_atomic = arg_representations_[i] == kUnboxedFloat ||
                            arg_representations_[i] == kUnboxedDouble;
+
     // Since we have to move this input down to the stack, there's no point in
     // pinning it to any specific register.
     summary->set_in(i, UnallocateStackSlots(arg_locations_[i], is_atomic));
@@ -5295,7 +5313,7 @@ Representation FfiCallInstr::representation() const {
   UNREACHABLE();
 }
 
-#endif
+#endif  // !defined(TARGET_ARCH_DBC)
 
 // SIMD
 

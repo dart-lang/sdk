@@ -1006,6 +1006,12 @@ void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
+void BitCastInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(" (%s -> %s)", RepresentationToCString(from()),
+           RepresentationToCString(to()));
+}
+
 void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd, index());
 }

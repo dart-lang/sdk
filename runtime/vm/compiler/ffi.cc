@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/ffi.h"
+#include <algorithm>
+#include "platform/globals.h"
 #include "vm/compiler/runtime_api.h"
 
 namespace dart {
@@ -11,8 +13,7 @@ namespace compiler {
 
 namespace ffi {
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_DBC)
 
 static const size_t kSizeUnknown = 0;
 
@@ -106,7 +107,13 @@ ZoneGrowableArray<Representation>* ArgumentRepresentations(
   for (intptr_t i = 0; i < num_arguments; i++) {
     AbstractType& arg_type =
         AbstractType::Handle(signature.ParameterTypeAt(i + 1));
-    result->Add(TypeRepresentation(arg_type));
+    Representation rep = TypeRepresentation(arg_type);
+    if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
+      rep = kUnboxedInt32;
+    } else if (rep == kUnboxedDouble && CallingConventions::kAbiSoftFP) {
+      rep = kUnboxedInt64;
+    }
+    result->Add(rep);
   }
   return result;
 }
@@ -118,49 +125,96 @@ class ArgumentFrameState : public ValueObject {
  public:
   Location AllocateArgument(Representation rep) {
     switch (rep) {
+      case kUnboxedFloat:
+      case kUnboxedDouble: {
+        Location result = AllocateFpuRegister();
+        if (!result.IsUnallocated()) return result;
+        break;
+      }
       case kUnboxedInt64:
       case kUnboxedUint32:
-      case kUnboxedInt32:
-        if (rep == kUnboxedInt64) {
-          ASSERT(compiler::target::kWordSize == 8);
-        }
-        if (cpu_regs_used < CallingConventions::kNumArgRegs) {
-          Location result = Location::RegisterLocation(
-              CallingConventions::ArgumentRegisters[cpu_regs_used]);
-          cpu_regs_used++;
-          if (CallingConventions::kArgumentIntRegXorFpuReg) {
-            fpu_regs_used++;
-          }
-          return result;
-        }
+      case kUnboxedInt32: {
+        Location result = ((rep == kUnboxedInt64 || rep == kUnboxedDouble) &&
+                           compiler::target::kWordSize == 4)
+                              ? AllocateAlignedRegisterPair()
+                              : AllocateCpuRegister();
+        if (!result.IsUnallocated()) return result;
         break;
-      case kUnboxedFloat:
-      case kUnboxedDouble:
-        if (fpu_regs_used < CallingConventions::kNumFpuArgRegs) {
-          Location result = Location::FpuRegisterLocation(
-              CallingConventions::FpuArgumentRegisters[fpu_regs_used]);
-          fpu_regs_used++;
-          if (CallingConventions::kArgumentIntRegXorFpuReg) {
-            cpu_regs_used++;
-          }
-          return result;
-        }
-        break;
+      }
       default:
         UNREACHABLE();
     }
 
     // Argument must be spilled.
-    const intptr_t stack_slots_needed =
-        rep == kUnboxedDouble || rep == kUnboxedInt64
-            ? 8 / compiler::target::kWordSize
-            : 1;
-    Location result =
-        stack_slots_needed == 1
-            ? Location::StackSlot(stack_height_in_slots, SPREG)
-            : Location::DoubleStackSlot(stack_height_in_slots, SPREG);
-    stack_height_in_slots += stack_slots_needed;
+    if ((rep == kUnboxedInt64 || rep == kUnboxedDouble) &&
+        compiler::target::kWordSize == 4) {
+      return AllocateAlignedStackSlots(rep);
+    } else {
+      return AllocateStackSlot();
+    }
+  }
+
+ private:
+  Location AllocateStackSlot() {
+    return Location::StackSlot(stack_height_in_slots++, SPREG);
+  }
+
+  // Allocates a pair of stack slots where the first stack slot is aligned to an
+  // 8-byte boundary, if necessary.
+  Location AllocateAlignedStackSlots(Representation rep) {
+    if (CallingConventions::kAlignArguments &&
+        compiler::target::kWordSize == 4) {
+      stack_height_in_slots += stack_height_in_slots % 2;
+    }
+
+    Location result;
+    if (rep == kUnboxedDouble) {
+      result = Location::DoubleStackSlot(stack_height_in_slots, SPREG);
+      stack_height_in_slots += 2;
+    } else {
+      result = Location::Pair(AllocateStackSlot(), AllocateStackSlot());
+    }
     return result;
+  }
+
+  Location AllocateFpuRegister() {
+    if (fpu_regs_used == CallingConventions::kNumFpuArgRegs) {
+      return Location::RequiresFpuRegister();
+    }
+
+    const Location result = Location::FpuRegisterLocation(
+        CallingConventions::FpuArgumentRegisters[fpu_regs_used]);
+    fpu_regs_used++;
+    if (CallingConventions::kArgumentIntRegXorFpuReg) {
+      cpu_regs_used++;
+    }
+    return result;
+  }
+
+  Location AllocateCpuRegister() {
+    if (cpu_regs_used == CallingConventions::kNumArgRegs) {
+      return Location::RequiresRegister();
+    }
+
+    const Location result = Location::RegisterLocation(
+        CallingConventions::ArgumentRegisters[cpu_regs_used]);
+    cpu_regs_used++;
+    if (CallingConventions::kArgumentIntRegXorFpuReg) {
+      fpu_regs_used++;
+    }
+    return result;
+  }
+
+  // Allocates a pair of registers where the first register index is even, if
+  // necessary.
+  Location AllocateAlignedRegisterPair() {
+    if (CallingConventions::kAlignArguments) {
+      cpu_regs_used += cpu_regs_used % 2;
+    }
+    if (cpu_regs_used > CallingConventions::kNumArgRegs - 2) {
+      return Location::Any();
+    }
+    return Location::Pair(AllocateCpuRegister(), AllocateCpuRegister());
   }
 
   intptr_t cpu_regs_used = 0;
@@ -179,25 +233,33 @@ ZoneGrowableArray<Location>* ArgumentLocations(
   ArgumentFrameState frame_state;
   for (intptr_t i = 0; i < num_arguments; i++) {
     Representation rep = arg_reps[i];
-    if (rep == kUnboxedInt64 && compiler::target::kWordSize < 8) {
-      Location low_bits_loc = frame_state.AllocateArgument(kUnboxedInt32);
-      Location high_bits_loc = frame_state.AllocateArgument(kUnboxedInt32);
-      ASSERT(low_bits_loc.IsStackSlot() == high_bits_loc.IsStackSlot());
-      result->Add(Location::Pair(low_bits_loc, high_bits_loc));
-    } else {
-      result->Add(frame_state.AllocateArgument(rep));
-    }
+    result->Add(frame_state.AllocateArgument(rep));
   }
   return result;
 }
 
 Representation ResultRepresentation(const Function& signature) {
   AbstractType& arg_type = AbstractType::Handle(signature.result_type());
-  return TypeRepresentation(arg_type);
+  Representation rep = TypeRepresentation(arg_type);
+  if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
+    rep = kUnboxedInt32;
+  } else if (rep == kUnboxedDouble && CallingConventions::kAbiSoftFP) {
+    rep = kUnboxedInt64;
+  }
+  return rep;
 }
 
 Location ResultLocation(Representation result_rep) {
   switch (result_rep) {
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+#if defined(TARGET_ARCH_IA32)
+      // The result is returned in ST0, but we don't allocate ST registers, so
+      // the FFI trampoline will move it to XMM0.
+      return Location::FpuRegisterLocation(XMM0);
+#else
+      return Location::FpuRegisterLocation(CallingConventions::kReturnFpuReg);
+#endif
     case kUnboxedInt32:
     case kUnboxedUint32:
       return Location::RegisterLocation(CallingConventions::kReturnReg);
@@ -209,36 +271,30 @@ Location ResultLocation(Representation result_rep) {
       } else {
         return Location::RegisterLocation(CallingConventions::kReturnReg);
       }
-    case kUnboxedFloat:
-    case kUnboxedDouble:
-#if defined(TARGET_ARCH_IA32)
-      // The result is returned in ST0, but we don't allocate ST registers, so
-      // the FFI trampoline will move it to XMM0.
-      return Location::FpuRegisterLocation(XMM0);
-#else
-      return Location::FpuRegisterLocation(CallingConventions::kReturnFpuReg);
-#endif
     default:
       UNREACHABLE();
   }
 }
 
+// Accounts for alignment, where some stack slots are used as padding.
 intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
   intptr_t num_arguments = locations.length();
-  intptr_t num_stack_slots = 0;
+  intptr_t max_height_in_slots = 0;
   for (intptr_t i = 0; i < num_arguments; i++) {
+    intptr_t height = 0;
     if (locations.At(i).IsStackSlot()) {
-      num_stack_slots++;
+      height = locations.At(i).stack_index() + 1;
     } else if (locations.At(i).IsDoubleStackSlot()) {
-      num_stack_slots += 8 / compiler::target::kWordSize;
+      height = locations.At(i).stack_index() + 8 / compiler::target::kWordSize;
     } else if (locations.At(i).IsPairLocation()) {
-      num_stack_slots +=
-          locations.At(i).AsPairLocation()->At(0).IsStackSlot() ? 1 : 0;
-      num_stack_slots +=
-          locations.At(i).AsPairLocation()->At(1).IsStackSlot() ? 1 : 0;
+      const Location first = locations.At(i).AsPairLocation()->At(0);
+      const Location second = locations.At(i).AsPairLocation()->At(1);
+      height = std::max(first.IsStackSlot() ? first.stack_index() + 1 : 0,
+                        second.IsStackSlot() ? second.stack_index() + 1 : 0);
     }
+    max_height_in_slots = std::max(height, max_height_in_slots);
   }
-  return num_stack_slots;
+  return max_height_in_slots;
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -249,7 +305,7 @@ size_t ElementSizeInBytes(intptr_t class_id) {
   UNREACHABLE();
 }
 
-#endif  // defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+#endif  // !defined(TARGET_ARCH_DBC)
 
 }  // namespace ffi
 

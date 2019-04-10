@@ -983,7 +983,112 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
+
+  // Save frame pointer because we're going to update it when we enter the exit
+  // frame.
+  __ mov(saved_fp, Operand(FPREG));
+
+  // Make a space to put the return address.
+  __ PushImmediate(0);
+
+  // We need to create a dummy "exit frame". It will have a null code object.
+  __ LoadObject(CODE_REG, Object::null_object());
+  __ set_constant_pool_allowed(false);
+  __ EnterDartFrame(0, /*load_pool_pointer=*/false);
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
+                              kWordSize);
+
+  // Load a 32-bit argument, or a 32-bit component of a 64-bit argument.
+  auto load_single_slot = [&](Location from, Location to) {
+    if (!to.IsStackSlot()) return;
+    if (from.IsRegister()) {
+      __ str(from.reg(), to.ToStackSlotAddress());
+    } else if (from.IsFpuRegister()) {
+      __ vstrs(EvenSRegisterOf(EvenDRegisterOf(from.fpu_reg())),
+               to.ToStackSlotAddress());
+    } else if (from.IsStackSlot() || from.IsDoubleStackSlot()) {
+      ASSERT(from.base_reg() == FPREG);
+      __ ldr(TMP, Address(saved_fp, from.ToStackSlotOffset()));
+      __ str(TMP, to.ToStackSlotAddress());
+    } else {
+      UNREACHABLE();
+    }
+  };
+
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    Location origin = locs()->in(i);
+    Location target = arg_locations_[i];
+
+    if (target.IsStackSlot()) {
+      load_single_slot(origin, target);
+    } else if (target.IsDoubleStackSlot()) {
+      if (origin.IsFpuRegister()) {
+        __ vstrd(EvenDRegisterOf(origin.fpu_reg()),
+                 target.ToStackSlotAddress());
+      } else {
+        ASSERT(origin.IsDoubleStackSlot() && origin.base_reg() == FPREG);
+        __ vldrd(DTMP, Address(saved_fp, origin.ToStackSlotOffset()));
+        __ vstrd(DTMP, target.ToStackSlotAddress());
+      }
+    } else if (target.IsPairLocation()) {
+      ASSERT(origin.IsPairLocation());
+      load_single_slot(origin.AsPairLocation()->At(0),
+                       target.AsPairLocation()->At(0));
+      load_single_slot(origin.AsPairLocation()->At(1),
+                       target.AsPairLocation()->At(1));
+    }
+  }
+
+  // Mark that the thread is executing VM code.
+  __ StoreToOffset(kWord, R9, THR, Thread::vm_tag_offset());
+
+  // We need to copy the return address up into the dummy stack frame so the
+  // stack walker will know which safepoint to use.
+  constexpr intptr_t kCallSequenceLength = 16;
+  const intptr_t call_sequence_start = __ CodeSize();
+
+  __ mov(TMP, Operand(PC));
+
+  // For historical reasons, the PC on ARM points 8 bytes past the current
+  // instruction.
+  __ add(TMP, TMP, Operand(kCallSequenceLength - 8));
+
+  __ str(TMP, Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize));
+  __ blx(branch);
+
+  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
+
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+                                 RawPcDescriptors::Kind::kOther, locs());
+
+  // Mark that the thread is executing Dart code.
+  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ StoreToOffset(kWord, R2, THR, Thread::vm_tag_offset());
+
+  // Reset exit frame information in Isolate structure.
+  __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+  }
+
+  // Leave dummy exit frame.
+  __ LeaveDartFrame();
+  __ set_constant_pool_allowed(true);
+
+  // Instead of returning to the "fake" return address, we just pop it.
+  __ PopRegister(TMP);
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
@@ -6642,6 +6747,83 @@ void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kUnboxedUint32:  // Zero extend operand.
       __ Lsr(reg, reg, Operand(shift_length));
       break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/0, LocationSummary::kNoCall);
+  switch (from()) {
+    case kUnboxedInt32:
+      summary->set_in(0, Location::RequiresRegister());
+      break;
+    case kUnboxedInt64:
+      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+      break;
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      summary->set_in(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  switch (to()) {
+    case kUnboxedInt32:
+      summary->set_out(0, Location::RequiresRegister());
+      break;
+    case kUnboxedInt64:
+      summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                         Location::RequiresRegister()));
+      break;
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      summary->set_out(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return summary;
+}
+
+void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (from()) {
+    case kUnboxedInt32: {
+      ASSERT(to() == kUnboxedFloat);
+      const Register from_reg = locs()->in(0).reg();
+      const FpuRegister to_reg = locs()->out(0).fpu_reg();
+      __ vmovsr(EvenSRegisterOf(EvenDRegisterOf(to_reg)), from_reg);
+      break;
+    }
+    case kUnboxedFloat: {
+      ASSERT(to() == kUnboxedInt32);
+      const FpuRegister from_reg = locs()->in(0).fpu_reg();
+      const Register to_reg = locs()->out(0).reg();
+      __ vmovrs(to_reg, EvenSRegisterOf(EvenDRegisterOf(from_reg)));
+      break;
+    }
+    case kUnboxedInt64: {
+      ASSERT(to() == kUnboxedDouble);
+      const Register from_lo = locs()->in(0).AsPairLocation()->At(0).reg();
+      const Register from_hi = locs()->in(0).AsPairLocation()->At(1).reg();
+      const FpuRegister to_reg = locs()->out(0).fpu_reg();
+      __ vmovsr(EvenSRegisterOf(EvenDRegisterOf(to_reg)), from_lo);
+      __ vmovsr(OddSRegisterOf(EvenDRegisterOf(to_reg)), from_hi);
+      break;
+    }
+    case kUnboxedDouble: {
+      ASSERT(to() == kUnboxedInt64);
+      const FpuRegister from_reg = locs()->in(0).fpu_reg();
+      const Register to_lo = locs()->out(0).AsPairLocation()->At(0).reg();
+      const Register to_hi = locs()->out(0).AsPairLocation()->At(1).reg();
+      __ vmovrs(to_lo, EvenSRegisterOf(EvenDRegisterOf(from_reg)));
+      __ vmovrs(to_hi, OddSRegisterOf(EvenDRegisterOf(from_reg)));
+      break;
+    }
     default:
       UNREACHABLE();
   }

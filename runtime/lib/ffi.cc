@@ -230,15 +230,15 @@ DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
   CheckRange(argCount, 1, max_count, "count");
 
   size_t size = compiler::ffi::ElementSizeInBytes(type_cid) * count;
-  intptr_t memory = reinterpret_cast<intptr_t>(malloc(size));
+  uint64_t memory = reinterpret_cast<uint64_t>(malloc(size));
   if (memory == 0) {
     const String& error = String::Handle(String::NewFormatted(
         "allocating (%" Pd ") bytes of memory failed", size));
     Exceptions::ThrowArgumentError(error);
   }
 
-  RawPointer* result =
-      Pointer::New(type_arg, Integer::Handle(zone, Integer::New(memory)));
+  RawPointer* result = Pointer::New(
+      type_arg, Integer::Handle(zone, Integer::NewFromUint64(memory)));
   return result;
 }
 

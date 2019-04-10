@@ -453,6 +453,7 @@ struct InstrAttrs {
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
   M(IntConverter, _)                                                           \
+  M(BitCast, _)                                                                \
   M(UnboxedWidthExtender, _)                                                   \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
@@ -7619,6 +7620,56 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(IntConverterInstr);
+};
+
+// Moves a floating-point value between CPU and FPU registers. Used to implement
+// "softfp" calling conventions, where FPU arguments/return values are passed in
+// normal CPU registers.
+class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  BitCastInstr(Representation from, Representation to, Value* value)
+      : TemplateDefinition(DeoptId::kNone),
+        from_representation_(from),
+        to_representation_(to) {
+    ASSERT(from != to);
+    ASSERT(to == kUnboxedInt32 && from == kUnboxedFloat ||
+           to == kUnboxedFloat && from == kUnboxedInt32 ||
+           to == kUnboxedInt64 && from == kUnboxedDouble ||
+           to == kUnboxedDouble && from == kUnboxedInt64);
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Representation from() const { return from_representation_; }
+  Representation to() const { return to_representation_; }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return to(); }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return from();
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsBitCast());
+    BitCastInstr* converter = other->AsBitCast();
+    return converter->from() == from() && converter->to() == to();
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+
+  DECLARE_INSTRUCTION(BitCast);
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Representation from_representation_;
+  const Representation to_representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
 };
 
 // Sign- or zero-extends an integer in unboxed 32-bit representation.

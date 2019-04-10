@@ -135,6 +135,10 @@ class CallingConventions {
 
   static const bool kArgumentIntRegXorFpuReg = false;
 
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp").
+  static constexpr bool kAbiSoftFP = false;
+
   static constexpr Register kReturnReg = EAX;
   static constexpr Register kSecondReturnReg = EDX;
 
@@ -144,6 +148,11 @@ class CallingConventions {
   static constexpr Register kFirstCalleeSavedCpuReg = EBX;
   static constexpr Register kFirstNonArgumentRegister = EAX;
   static constexpr Register kSecondNonArgumentRegister = ECX;
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. On IA32, 64-bit integers and floating-point values do *not*
+  // need to be 8-byte aligned.
+  static constexpr bool kAlignArguments = false;
 };
 
 }  // namespace arch_ia32

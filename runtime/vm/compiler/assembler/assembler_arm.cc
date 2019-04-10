@@ -3202,7 +3202,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::EnterDartFrame(intptr_t frame_size) {
+void Assembler::EnterDartFrame(intptr_t frame_size, bool load_pool_pointer) {
   ASSERT(!constant_pool_allowed());
 
   // Registers are pushed in descending order: R5 | R6 | R7/R11 | R14.
@@ -3214,7 +3214,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
     EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
     // Setup pool pointer for this dart function.
-    LoadPoolPointer();
+    if (load_pool_pointer) LoadPoolPointer();
   } else {
     EnterFrame((1 << FP) | (1 << LR), 0);
   }

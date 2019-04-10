@@ -1326,6 +1326,10 @@ void ConstantPropagator::VisitUnboxedWidthExtender(
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitBitCast(BitCastInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
   // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);

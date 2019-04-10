@@ -332,6 +332,46 @@ const QRegister kDartFirstVolatileFpuReg = Q0;
 const QRegister kDartLastVolatileFpuReg = Q3;
 const int kDartVolatileFpuRegCount = 4;
 
+#define R(REG) (1 << REG)
+
+class CallingConventions {
+ public:
+  static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kNumArgRegs = 4;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters = 0;
+  static const intptr_t kNumFpuArgRegs = 0;
+
+  static constexpr bool kArgumentIntRegXorFpuReg = false;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp"). Android and iOS always use the "softfp" calling convention, even
+  // when hardfp support is present.
+#if defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_ANDROID)
+  static constexpr bool kAbiSoftFP = true;
+#else
+  static constexpr bool kAbiSoftFP = false;
+#endif
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. True for ARM 32-bit, see "Procedure Call Standard for the
+  // ARM Architecture".
+  static constexpr bool kAlignArguments = true;
+
+  static constexpr Register kReturnReg = R0;
+  static constexpr Register kSecondReturnReg = R1;
+  static constexpr FpuRegister kReturnFpuReg = kNoFpuRegister;
+
+  // We choose these to avoid overlap between themselves and reserved registers.
+  static constexpr Register kFirstNonArgumentRegister = R8;
+  static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kFirstCalleeSavedCpuReg = NOTFP;
+};
+
+#undef R
+
 // Values for the condition field as defined in section A3.2.
 enum Condition {
   kNoCondition = -1,

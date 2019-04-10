@@ -297,16 +297,15 @@ class Api : AllStatic {
 
   static bool IsFfiEnabled() {
     // dart:ffi is not implemented for the following configurations
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64) &&                \
-    !defined(TARGET_ARCH_IA32)
-    // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
-    // https://github.com/dart-lang/sdk/issues/35772 Arm64
+#if defined(TARGET_ARCH_DBC)
+    // https://github.com/dart-lang/sdk/issues/35773 DBC
+    return false;
+#elif defined(TARGET_ARCH_ARM) &&                                              \
+    !(defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS))
+    // TODO(36309): Support hardfp calling convention.
     return false;
 #elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
     !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_WINDOWS)
-    // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
-    // https://github.com/dart-lang/sdk/issues/35772 Arm64
-    // https://github.com/dart-lang/sdk/issues/35773 DBC
     return false;
 #else
     // dart:ffi is also not implemented for precompiled in which case
