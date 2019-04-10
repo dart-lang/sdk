@@ -68,6 +68,31 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     testFile = resourceProvider.convertPath('/project/lib/fileToBeFixed.dart');
   }
 
+  test_dartfix_collection_if_elements() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+f(bool b) {
+  return ['a', b ? 'c' : 'd', 'e'];
+}
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['collection-if-elements']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+f(bool b) {
+  return ['a', if (b) 'c' else 'd', 'e'];
+}
+''');
+  }
+
   test_dartfix_convertClassToMixin() async {
     addTestFile('''
 class A {}
@@ -96,6 +121,52 @@ const double myDouble = 42.0;
     expectEdits(result.edits, '''
 const double myDouble = 42;
     ''');
+  }
+
+  test_dartfix_excludedSource() async {
+    // Add analysis options to exclude the lib directory then reanalyze
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  exclude:
+    - lib/**
+''');
+
+    addTestFile('''
+const double myDouble = 42.0;
+    ''');
+    createProject();
+
+    // Assert no suggestions now that source has been excluded
+    final result = await performFix();
+    expect(result.suggestions, hasLength(0));
+    expect(result.edits, hasLength(0));
+  }
+
+  test_dartfix_map_for_elements() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+f(Iterable<int> i) {
+  var k = 3;
+  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
+}
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['map-for-elements']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+f(Iterable<int> i) {
+  var k = 3;
+  return { for (var e in i) e * 2 : k };
+}
+''');
   }
 
   test_dartfix_moveTypeArgumentToClass() async {
@@ -217,25 +288,6 @@ linter:
 ''');
   }
 
-  test_dartfix_excludedSource() async {
-    // Add analysis options to exclude the lib directory then reanalyze
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  exclude:
-    - lib/**
-''');
-
-    addTestFile('''
-const double myDouble = 42.0;
-    ''');
-    createProject();
-
-    // Assert no suggestions now that source has been excluded
-    final result = await performFix();
-    expect(result.suggestions, hasLength(0));
-    expect(result.edits, hasLength(0));
-  }
-
   test_dartfix_partFile() async {
     newFile('/project/lib/lib.dart', content: '''
 library lib2;
@@ -283,7 +335,8 @@ analyzer:
     - spread-collections
 ''');
     addTestFile('''
-var l = ['a']..addAll(['b']);
+var l1 = ['b'];
+var l2 = ['a']..addAll(l1);
 ''');
     createProject();
     EditDartfixResult result =
@@ -291,59 +344,8 @@ var l = ['a']..addAll(['b']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''
-var l = ['a', ...['b']];
-''');
-  }
-
-  test_dartfix_collection_if_elements() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
-''');
-    addTestFile('''
-f(bool b) {
-  return ['a', b ? 'c' : 'd', 'e'];
-}
-''');
-    createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['collection-if-elements']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expectEdits(result.edits, '''
-f(bool b) {
-  return ['a', if (b) 'c' else 'd', 'e'];
-}
-''');
-  }
-
-  test_dartfix_map_for_elements() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
-''');
-    addTestFile('''
-f(Iterable<int> i) {
-  var k = 3;
-  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
-}
-''');
-    createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['map-for-elements']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expectEdits(result.edits, '''
-f(Iterable<int> i) {
-  var k = 3;
-  return { for (var e in i) e * 2 : k };
-}
+var l1 = ['b'];
+var l2 = ['a', ...l1];
 ''');
   }
 }

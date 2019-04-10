@@ -170,6 +170,8 @@ class DartAssistKind {
       'dart.assist.flutter.wrap.streamBuilder', 30, "Wrap with StreamBuilder");
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
+  static const INLINE_INVOCATION =
+      const AssistKind('dart.assist.inline', 30, "Inline invocation of '{0}'");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
       'dart.assist.introduceLocalCast',
       30,

@@ -134,6 +134,7 @@ class AssistProcessor {
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
+    await _addProposal_inlineAdd();
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
     await _addProposal_joinIfStatementInner();
@@ -464,6 +465,7 @@ class AssistProcessor {
     NodeList<Expression> sections = cascade.cascadeSections;
     Expression target = cascade.target;
     if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
       _coverageMarker();
       return;
     }
@@ -474,6 +476,8 @@ class AssistProcessor {
     ListLiteral list = target;
     Expression argument = invocation.argumentList.arguments[0];
     String elementText;
+    AssistKind kind = DartAssistKind.CONVERT_TO_SPREAD;
+    List<String> args = null;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
       Expression right = argument.rightOperand;
@@ -492,20 +496,34 @@ class AssistProcessor {
         String thenText = utils.getNodeText(argument.thenExpression);
         elementText = 'if ($conditionText) ...$thenText';
       }
+    } else if (argument is ListLiteral) {
+      // ..addAll([ ... ])
+      NodeList<CollectionElement> elements = argument.elements;
+      if (elements.isEmpty) {
+        // TODO(brianwilkerson) Consider adding a cleanup for the empty list
+        //  case. We can essentially remove the whole invocation because it does
+        //  nothing.
+        return;
+      }
+      int startOffset = elements.first.offset;
+      int endOffset = elements.last.end;
+      elementText = utils.getText(startOffset, endOffset - startOffset);
+      kind = DartAssistKind.INLINE_INVOCATION;
+      args = ['addAll'];
     }
     elementText ??= '...${utils.getNodeText(argument)}';
     DartChangeBuilder changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      // ['a']..addAll(['b', 'c']);
       if (list.elements.isNotEmpty) {
+        // ['a']..addAll(['b', 'c']);
         builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
       } else {
-        //
+        // []..addAll(['b', 'c']);
         builder.addSimpleInsertion(list.leftBracket.end, elementText);
-      } // []..addAll(['b', 'c']);
+      }
       builder.addDeletion(range.node(invocation));
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
+    _addAssistFromBuilder(changeBuilder, kind, args: args);
   }
 
   Future<void> _addProposal_convertClassToMixin() async {
@@ -1211,6 +1229,29 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SET_LITERAL);
   }
 
+  Future<void> _addProposal_convertToAbsoluteImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is ImportDirective) {
+      var importDirective = node;
+      var importUri = node.uriSource?.uri;
+      if (importUri?.scheme != 'package') {
+        return;
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+            range.node(importDirective.uri), "'$importUri'");
+      });
+      _addAssistFromBuilder(
+        changeBuilder,
+        DartAssistKind.CONVERT_INTO_ABSOLUTE_IMPORT,
+      );
+    }
+  }
+
   Future<void> _addProposal_convertToAsyncFunctionBody() async {
     FunctionBody body = getEnclosingFunctionBody();
     if (body == null ||
@@ -1742,29 +1783,6 @@ class AssistProcessor {
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
-  }
-
-  Future<void> _addProposal_convertToAbsoluteImport() async {
-    var node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent;
-    }
-    if (node is ImportDirective) {
-      var importDirective = node;
-      var importUri = node.uriSource?.uri;
-      if (importUri?.scheme != 'package') {
-        return;
-      }
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.node(importDirective.uri), "'$importUri'");
-      });
-      _addAssistFromBuilder(
-        changeBuilder,
-        DartAssistKind.CONVERT_INTO_ABSOLUTE_IMPORT,
-      );
-    }
   }
 
   Future<void> _addProposal_convertToMultilineString() async {
@@ -2821,6 +2839,48 @@ class AssistProcessor {
       builder.addSimpleInsertion(importDirective.end - 1, showCombinator);
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.IMPORT_ADD_SHOW);
+  }
+
+  Future<void> _addProposal_inlineAdd() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'add' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      _coverageMarker();
+      return;
+    }
+    ListLiteral list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String elementText = utils.getNodeText(argument);
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (list.elements.isNotEmpty) {
+        // ['a']..add(e);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..add(e);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
+      builder.addDeletion(range.node(invocation));
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.INLINE_INVOCATION,
+        args: ['add']);
   }
 
   Future<void> _addProposal_introduceLocalTestedType() async {
