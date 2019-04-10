@@ -2193,6 +2193,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         // With JS semantics, an integer is also a double.
         return true;
       }
+
+      if (constantType == typeEnvironment.doubleType &&
+          type == typeEnvironment.intType) {
+        double value = (constant as DoubleConstant).value;
+        if (value.isFinite && value == value.truncateToDouble()) {
+          return true;
+        }
+      }
     }
     return typeEnvironment.isSubtypeOf(constantType, type);
   }
