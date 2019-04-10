@@ -23,6 +23,7 @@ import 'add_required_test.dart' as add_required;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'analysis_options/test_all.dart' as analysis_options;
 import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
     as change_to_nearest_precise_value;
@@ -124,6 +125,7 @@ main() {
     add_required.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    analysis_options.main();
     change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();

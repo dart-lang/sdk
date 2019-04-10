@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
@@ -33,16 +34,23 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/file_system/file_system.dart';
+// ignore: deprecated_member_use
+import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
+import 'package:yaml/yaml.dart';
 
 int test_resetCount = 0;
 
@@ -231,9 +239,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       new EditGetDartfixInfoResult(allFixes.map((i) => i.asDartFix()).toList())
           .toResponse(request.id);
 
-  Future getFixes(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  Future<void> getFixes(Request request) async {
     EditGetFixesParams params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -241,7 +247,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
-
     //
     // Allow plugins to start computing fixes.
     //
@@ -569,12 +574,49 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   /**
-   * Compute and return the fixes associated with server-generated errors.
+   * Compute and return the fixes associated with server-generated errors in
+   * analysis options files.
    */
-  Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
+  Future<List<AnalysisErrorFixes>> _computeAnalysisOptionsFixes(
       String file, int offset) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
+    File optionsFile = server.resourceProvider.getFile(file);
+    String content = _safelyRead(optionsFile);
+    if (content == null) {
+      return errorFixesList;
+    }
+    LineInfo lineInfo = new LineInfo.fromContent(content);
+    SourceFactory sourceFactory = server.getAnalysisDriver(file).sourceFactory;
+    List<engine.AnalysisError> errors = analyzeAnalysisOptions(
+        optionsFile.createSource(), content, sourceFactory);
+    YamlMap options = _getOptions(sourceFactory, content);
+    if (options == null) {
+      return errorFixesList;
+    }
+    for (engine.AnalysisError error in errors) {
+      AnalysisOptionsFixGenerator generator =
+          new AnalysisOptionsFixGenerator(error, content, options);
+      List<Fix> fixes = await generator.computeFixes();
+      if (fixes.isNotEmpty) {
+        fixes.sort(Fix.SORT_BY_RELEVANCE);
+        AnalysisError serverError =
+            newAnalysisError_fromEngine(lineInfo, error);
+        AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
+        errorFixesList.add(errorFixes);
+        fixes.forEach((fix) {
+          errorFixes.fixes.add(fix.change);
+        });
+      }
+    }
+    return errorFixesList;
+  }
+
+  /**
+   * Compute and return the fixes associated with server-generated errors in
+   * Dart files.
+   */
+  Future<List<AnalysisErrorFixes>> _computeDartFixes(
+      String file, int offset) async {
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     var result = await server.getResolvedUnit(file);
     if (result != null) {
@@ -601,6 +643,20 @@ class EditDomainHandler extends AbstractRequestHandler {
       }
     }
     return errorFixesList;
+  }
+
+  /**
+   * Compute and return the fixes associated with server-generated errors.
+   */
+  Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
+      String file, int offset) async {
+    if (AnalysisEngine.isDartFileName(file)) {
+      return _computeDartFixes(file, offset);
+    } else if (AnalysisEngine.isAnalysisOptionsFileName(
+        file, server.resourceProvider.pathContext)) {
+      return _computeAnalysisOptionsFixes(file, offset);
+    }
+    return <AnalysisErrorFixes>[];
   }
 
   Response _getAvailableRefactorings(Request request) {
@@ -676,6 +732,16 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.sendResponse(result.toResponse(request.id));
   }
 
+  YamlMap _getOptions(SourceFactory sourceFactory, String content) {
+    AnalysisOptionsProvider optionsProvider =
+        new AnalysisOptionsProvider(sourceFactory);
+    try {
+      return optionsProvider.getOptionsFromString(content);
+    } on OptionsFormatException {
+      return null;
+    }
+  }
+
   Response _getRefactoring(Request request) {
     if (refactoringManager.hasPendingRequest) {
       refactoringManager.cancel();
@@ -690,6 +756,16 @@ class EditDomainHandler extends AbstractRequestHandler {
    */
   void _newRefactoringManager() {
     refactoringManager = new _RefactoringManager(server, refactoringWorkspace);
+  }
+
+  /// Return the contents of the [file], or `null` if the file does not exist or
+  /// cannot be read.
+  String _safelyRead(File file) {
+    try {
+      return file.readAsStringSync();
+    } on FileSystemException {
+      return null;
+    }
   }
 
   static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
