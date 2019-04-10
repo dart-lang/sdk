@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 f() {
   var ints = [1, 2, 3];
   print(['a']..addAll(ints.map((i) => i.toString()))..addAll(['c'])); // LINT
 }
 
-var l = ['a']..addAll(['b']); // LINT
+var l = ['a']..addAll(['b']); // OK -- prefer_inlined_adds
 
 var l1 = [];
 var l2 = l1..addAll(['b']); //OK
