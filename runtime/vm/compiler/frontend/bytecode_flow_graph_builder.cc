@@ -666,11 +666,8 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
     ASSERT(IsStackEmpty());
     code_ += B->CheckStackOverflowInPrologue(position_);
   } else {
-    // Avoid OSR points inside block-expressions with pending stack slots.
-    // TODO(ajcbik): make sure OSR works for such cases too.
-    if (IsStackEmpty()) {
-      code_ += B->CheckStackOverflow(position_, loop_depth);
-    }
+    const intptr_t stack_depth = B->GetStackDepth();
+    code_ += B->CheckStackOverflow(position_, stack_depth, loop_depth);
   }
 }
 

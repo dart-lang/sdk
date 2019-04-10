@@ -190,9 +190,11 @@ Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
 }
 
 Fragment BaseFlowGraphBuilder::CheckStackOverflow(TokenPosition position,
+                                                  intptr_t stack_depth,
                                                   intptr_t loop_depth) {
-  return Fragment(
-      new (Z) CheckStackOverflowInstr(position, loop_depth, GetNextDeoptId()));
+  return Fragment(new (Z) CheckStackOverflowInstr(
+      position, stack_depth, loop_depth, GetNextDeoptId(),
+      CheckStackOverflowInstr::kOsrAndPreemption));
 }
 
 Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
@@ -200,10 +202,10 @@ Fragment BaseFlowGraphBuilder::CheckStackOverflowInPrologue(
   if (IsInlining()) {
     // If we are inlining don't actually attach the stack check.  We must still
     // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow(position, 0);
+    CheckStackOverflow(position, 0, 0);
     return Fragment();
   }
-  return CheckStackOverflow(position, 0);
+  return CheckStackOverflow(position, 0, 0);
 }
 
 Fragment BaseFlowGraphBuilder::Constant(const Object& value) {

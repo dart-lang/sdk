@@ -1028,7 +1028,7 @@ const char* SpecialParameterInstr::ToCString() const {
 }
 
 void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (in_loop()) f->Print("depth %" Pd, loop_depth());
+  f->Print("stack=%" Pd ", loop=%" Pd, stack_depth(), loop_depth());
 }
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
@@ -1045,7 +1045,8 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void OsrEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%" Pd "[osr entry]:%" Pd, block_id(), GetDeoptId());
+  f->Print("B%" Pd "[osr entry]:%" Pd " stack_depth=%" Pd, block_id(),
+           GetDeoptId(), stack_depth());
   if (HasParallelMove()) {
     f->Print("\n");
     parallel_move()->PrintTo(f);

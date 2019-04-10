@@ -1048,6 +1048,8 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
       }
     }
 
+    const intptr_t var_length =
+        IsCompiledForOsr() ? osr_variable_count() : variable_count();
     while (!worklist.is_empty()) {
       BlockEntryInstr* current = worklist.RemoveLast();
       // Ensure a phi for each block in the dominance frontier of current.
@@ -1058,7 +1060,7 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
           BlockEntryInstr* block = preorder[index];
           ASSERT(block->IsJoinEntry());
           PhiInstr* phi =
-              block->AsJoinEntry()->InsertPhi(var_index, variable_count());
+              block->AsJoinEntry()->InsertPhi(var_index, var_length);
           if (always_live) {
             phi->mark_alive();
             live_phis->Add(phi);
@@ -1083,8 +1085,13 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
 
+  // During regular execution, only the direct parameters appear in
+  // the fixed part of the environment. During OSR, however, all
+  // variables and possibly a non-empty stack are passed as
+  // parameters. The latter mimics the incoming expression stack
+  // that was set up prior to triggering OSR.
   const intptr_t parameter_count =
-      IsCompiledForOsr() ? variable_count() : num_direct_parameters_;
+      IsCompiledForOsr() ? osr_variable_count() : num_direct_parameters_;
 
   // Initial renaming environment.
   GrowableArray<Definition*> env(parameter_count + num_stack_locals());
@@ -1102,7 +1109,6 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
                                                : entry->SuccessorCount() == 1);
   }
-
   RenameRecursive(entry, &env, live_phis, variable_liveness,
                   inlining_parameters);
 }
@@ -1120,6 +1126,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
   const intptr_t inlined_type_args_param =
       ((inlining_parameters != NULL) && function().IsGeneric()) ? 1 : 0;
 
+  ASSERT(parameter_count <= env->length());
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, function_entry);
     param->set_ssa_temp_index(alloc_ssa_temp_index());
@@ -1177,12 +1184,25 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
     OsrEntryInstr* osr_entry,
     GrowableArray<Definition*>* env) {
   ASSERT(IsCompiledForOsr());
-  const intptr_t parameter_count = variable_count();
+  const intptr_t parameter_count = osr_variable_count();
+  // Initialize the initial enviroment.
+  ASSERT(parameter_count <= env->length());
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, osr_entry);
     param->set_ssa_temp_index(alloc_ssa_temp_index());
     AddToInitialDefinitions(osr_entry, param);
     (*env)[i] = param;
+  }
+  // For OSR on a non-emtpy stack, insert synthetic phis on the joining entry.
+  // These phis are synthetic since they are not driven by live variable
+  // analysis, but merely serve the purpose of merging stack slots from
+  // parameters and other predecessors at the block in which OSR occurred.
+  JoinEntryInstr* join =
+      osr_entry->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+  ASSERT(join != nullptr);
+  for (intptr_t i = variable_count(); i < parameter_count; i++) {
+    PhiInstr* phi = join->InsertPhi(i, parameter_count);
+    phi->mark_alive();
   }
 }
 
@@ -1199,7 +1219,8 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
           : -1;
 
   // Add real definitions for all locals and parameters.
-  for (intptr_t i = 0; i < variable_count(); ++i) {
+  ASSERT(variable_count() <= env->length());
+  for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
     // Replace usages of the raw exception/stacktrace variables with
     // [SpecialParameterInstr]s.
     Definition* param = nullptr;
@@ -1242,10 +1263,13 @@ void FlowGraph::RenameRecursive(
     ZoneGrowableArray<Definition*>* inlining_parameters) {
   // 1. Process phis first.
   if (auto join = block_entry->AsJoinEntry()) {
-    if (join->phis() != NULL) {
-      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+    if (join->phis() != nullptr) {
+      const intptr_t var_length =
+          IsCompiledForOsr() ? osr_variable_count() : variable_count();
+      ASSERT(join->phis()->length() == var_length);
+      for (intptr_t i = 0; i < var_length; ++i) {
         PhiInstr* phi = (*join->phis())[i];
-        if (phi != NULL) {
+        if (phi != nullptr) {
           (*env)[i] = phi;
           AllocateSSAIndexes(phi);  // New SSA temp.
           if (block_entry->InsideTryBlock() && !phi->is_alive()) {
@@ -1328,7 +1352,6 @@ void FlowGraph::RenameRecursive(
       Value* v = current->InputAt(i);
       // Update expression stack.
       ASSERT(env->length() > variable_count());
-
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
       if (input_defn != reaching_defn) {
@@ -1344,12 +1367,37 @@ void FlowGraph::RenameRecursive(
       input_defn->AddInputUse(v);
     }
 
-    // Drop pushed arguments for calls.
-    for (intptr_t j = 0; j < current->ArgumentCount(); j++) {
-      env->RemoveLast();
+    // 2b. Handle arguments. Usually this just consists of popping
+    // all consumed parameters from the expression stack. However,
+    // during OSR with a non-empty stack, PushArguments may have
+    // been lost (since the defining value resides in the now
+    // removed original entry).
+    Instruction* insert_at = current;  // keeps push arguments in order
+    for (intptr_t i = current->ArgumentCount() - 1; i >= 0; --i) {
+      // Update expression stack.
+      ASSERT(env->length() > variable_count());
+      Definition* reaching_defn = env->RemoveLast();
+      if (reaching_defn->IsPushArgument()) {
+        insert_at = reaching_defn;
+      } else {
+        // We lost the PushArgument! This situation can only happen
+        // during OSR with a non-empty stack: replace the argument
+        // with the incoming parameter that mimics the stack slot.
+        ASSERT(IsCompiledForOsr());
+        PushArgumentInstr* push_arg = current->PushArgumentAt(i);
+        ASSERT(push_arg->IsPushArgument());
+        ASSERT(reaching_defn->ssa_temp_index() != -1);
+        ASSERT(reaching_defn->IsPhi());
+        push_arg->previous()->LinkTo(push_arg->next());
+        push_arg->set_previous(nullptr);
+        push_arg->set_next(nullptr);
+        push_arg->value()->set_definition(reaching_defn);
+        InsertBefore(insert_at, push_arg, nullptr, FlowGraph::kEffect);
+        insert_at = push_arg;
+      }
     }
 
-    // 2b. Handle LoadLocal/StoreLocal/MakeTemp/DropTemps/Constant and
+    // 2c. Handle LoadLocal/StoreLocal/MakeTemp/DropTemps/Constant and
     // PushArgument specially. Other definitions are just pushed
     // to the environment directly.
     Definition* result = NULL;

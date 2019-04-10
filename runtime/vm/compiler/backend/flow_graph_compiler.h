@@ -635,7 +635,14 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
+  // Returns stack size (number of variables on stack for unoptimized
+  // code, or number of spill slots for optimized code).
   intptr_t StackSize() const;
+
+  // Returns the number of extra stack slots used during an Osr entry
+  // (values for all [ParameterInstr]s, representing local variables
+  // and expression stack values, are already on the stack).
+  intptr_t ExtraStackSlotsOnOsrEntry() const;
 
   // Returns assembler label associated with the given block entry.
   Label* GetJumpLabel(BlockEntryInstr* block_entry) const;

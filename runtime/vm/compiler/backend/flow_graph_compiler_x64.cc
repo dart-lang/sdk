@@ -854,7 +854,7 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
   if (flow_graph().IsCompiledForOsr()) {
-    intptr_t extra_slots = StackSize() - flow_graph().num_stack_locals();
+    const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
     ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {

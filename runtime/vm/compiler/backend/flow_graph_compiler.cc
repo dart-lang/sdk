@@ -614,6 +614,14 @@ intptr_t FlowGraphCompiler::StackSize() const {
   }
 }
 
+intptr_t FlowGraphCompiler::ExtraStackSlotsOnOsrEntry() const {
+  ASSERT(flow_graph().IsCompiledForOsr());
+  const intptr_t stack_depth =
+      flow_graph().graph_entry()->osr_entry()->stack_depth();
+  const intptr_t num_stack_locals = flow_graph().num_stack_locals();
+  return StackSize() - stack_depth - num_stack_locals;
+}
+
 Label* FlowGraphCompiler::GetJumpLabel(BlockEntryInstr* block_entry) const {
   const intptr_t block_index = block_entry->postorder_number();
   return block_info_[block_index]->jump_label();

@@ -1622,8 +1622,10 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
   OsrEntryInstr(GraphEntryInstr* graph_entry,
                 intptr_t block_id,
                 intptr_t try_index,
-                intptr_t deopt_id)
+                intptr_t deopt_id,
+                intptr_t stack_depth)
       : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
+        stack_depth_(stack_depth),
         graph_entry_(graph_entry) {}
 
   DECLARE_INSTRUCTION(OsrEntry)
@@ -1636,6 +1638,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     return graph_entry_;
   }
 
+  intptr_t stack_depth() const { return stack_depth_; }
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   PRINT_TO_SUPPORT
@@ -1647,6 +1650,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     graph_entry_ = predecessor->AsGraphEntry();
   }
 
+  const intptr_t stack_depth_;
   GraphEntryInstr* graph_entry_;
 
   DISALLOW_COPY_AND_ASSIGN(OsrEntryInstr);
@@ -6807,11 +6811,13 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   };
 
   CheckStackOverflowInstr(TokenPosition token_pos,
+                          intptr_t stack_depth,
                           intptr_t loop_depth,
                           intptr_t deopt_id,
-                          Kind kind = kOsrAndPreemption)
+                          Kind kind)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
+        stack_depth_(stack_depth),
         loop_depth_(loop_depth),
         kind_(kind) {
     ASSERT(kind != kOsrOnly || loop_depth > 0);
@@ -6819,6 +6825,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
+  intptr_t stack_depth() const { return stack_depth_; }
   intptr_t loop_depth() const { return loop_depth_; }
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
@@ -6837,6 +6844,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
+  const intptr_t stack_depth_;
   const intptr_t loop_depth_;
   const Kind kind_;
 

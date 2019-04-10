@@ -1682,7 +1682,8 @@ Fragment StreamingFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
 
 Fragment StreamingFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
   return flow_graph_builder_->CheckStackOverflow(
-      position, flow_graph_builder_->loop_depth_);
+      position, flow_graph_builder_->GetStackDepth(),
+      flow_graph_builder_->loop_depth_);
 }
 
 Fragment StreamingFlowGraphBuilder::CloneContext(
@@ -4038,6 +4039,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
     body_entry += Goto(join);
 
     Fragment loop(join);
+    ASSERT(B->GetStackDepth() == 0);
     loop += CheckStackOverflow(position);
     loop.current->LinkTo(condition.entry);
 
@@ -4066,6 +4068,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
 
   JoinEntryInstr* join = BuildJoinEntry();
   Fragment loop(join);
+  ASSERT(B->GetStackDepth() == 0);
   loop += CheckStackOverflow(position);
   loop += body;
   loop <<= condition.entry;
@@ -4134,11 +4137,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     body += Goto(join);
 
     Fragment loop(join);
-
-    // Avoid OSR point inside block-expressions.
-    // TODO(ajcbik): make sure OSR works inside BE too
-    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
-
+    loop += CheckStackOverflow(position);  // may have non-empty stack
     if (condition.entry != nullptr) {
       loop <<= condition.entry;
     } else {
@@ -4211,11 +4210,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
     body += Goto(join);
 
     Fragment loop(join);
-
-    // Avoid OSR point inside block-expressions.
-    // TODO(ajcbik): make sure OSR works inside BE too
-    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
-
+    loop += CheckStackOverflow(position);  // may have non-empty stack
     loop += condition;
   } else {
     instructions += condition;
