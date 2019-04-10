@@ -70,7 +70,7 @@ import '../messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
-import '../problems.dart' show unhandled, unimplemented;
+import '../problems.dart' show unhandled;
 
 import '../scope.dart' show AmbiguousBuilder;
 
@@ -790,10 +790,6 @@ class KernelTarget extends TargetImplementation {
   }
 
   void runProcedureTransformations(Procedure procedure) {
-    if (loader.target.enableConstantUpdate2018) {
-      unimplemented('constant evaluation during expression evaluation',
-          procedure.fileOffset, procedure.fileUri);
-    }
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));
