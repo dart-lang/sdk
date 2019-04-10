@@ -2663,11 +2663,9 @@ class JSName {
 /// and casts. We specialize each primitive type (eg int, bool), and use the
 /// compiler's convention to do is-checks on regular objects.
 boolConversionCheck(value) {
-  if (value is bool) return value;
-  // One of the following checks will always fail.
-  boolTypeCheck(value);
-  assert(value != null);
-  return false;
+  // The value from kernel should always be true, false, or null.
+  if (value == null) assertThrow('boolean expression must not be null');
+  return value;
 }
 
 stringTypeCheck(value) {

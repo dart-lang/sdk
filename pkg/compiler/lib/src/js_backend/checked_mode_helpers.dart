@@ -127,6 +127,7 @@ class CheckedModeHelpers {
     const CheckedModeHelper('doubleTypeCheck'),
     const CheckedModeHelper('numTypeCast'),
     const CheckedModeHelper('numTypeCheck'),
+    const CheckedModeHelper('boolConversionCheck'),
     const CheckedModeHelper('boolTypeCast'),
     const CheckedModeHelper('boolTypeCheck'),
     const CheckedModeHelper('intTypeCast'),

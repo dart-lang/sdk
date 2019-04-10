@@ -267,6 +267,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an internal configuration option derived from other flags.
   CheckPolicy implicitDowncastCheckPolicy;
 
+  /// What the compiler should do with a boolean value in a condition context
+  /// when the language specification says it is a runtime error for it to be
+  /// null.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy conditionCheckPolicy;
+
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
 
@@ -462,9 +469,11 @@ class CompilerOptions implements DiagnosticOptions {
     if (omitImplicitChecks) {
       parameterCheckPolicy = CheckPolicy.trusted;
       implicitDowncastCheckPolicy = CheckPolicy.trusted;
+      conditionCheckPolicy = CheckPolicy.trusted;
     } else {
       parameterCheckPolicy = CheckPolicy.checked;
       implicitDowncastCheckPolicy = CheckPolicy.checked;
+      conditionCheckPolicy = CheckPolicy.checked;
     }
 
     if (_disableMinification) {
