@@ -37,7 +37,6 @@ const_map4_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
-control_flow_collections/*: Skip
 covariant_subtyping_test: RuntimeError
 ct_const_test: RuntimeError
 cyclic_type2_test: CompileTimeError
@@ -49,7 +48,6 @@ deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
 deferred_static_seperate_test: RuntimeError
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
 example_constructor_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -124,12 +122,6 @@ regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_30339_test: CompileTimeError
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
 string_interpolation_and_buffer_test: RuntimeError
 super_bound_closure_test/none: CompileTimeError
 super_test: RuntimeError
@@ -146,32 +138,9 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 mixin_method_override_test/G5: Skip # Issue 34354
 private_method_tearoff_test: RuntimeError
 
-[ $compiler == dartk ]
-control_flow_collections/*: Skip
-
 [ $compiler == dartkp ]
-control_flow_collections/*: Skip
 covariant_subtyping_test: RuntimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-spread_collections/await_test: CompileTimeError
-spread_collections/const_error_test/02: MissingCompileTimeError
-spread_collections/const_error_test/03: MissingCompileTimeError
-spread_collections/const_error_test/05: MissingCompileTimeError
-spread_collections/const_error_test/06: MissingCompileTimeError
-spread_collections/const_error_test/07: MissingCompileTimeError
-spread_collections/const_error_test/08: MissingCompileTimeError
-spread_collections/const_error_test/10: MissingCompileTimeError
-spread_collections/const_error_test/11: MissingCompileTimeError
-spread_collections/const_error_test/12: MissingCompileTimeError
-spread_collections/const_error_test/13: MissingCompileTimeError
-spread_collections/const_error_test/14: MissingCompileTimeError
-spread_collections/const_error_test/15: MissingCompileTimeError
-spread_collections/const_error_test/16: MissingCompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
@@ -191,24 +160,6 @@ const_cast1_test/02: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 constructor5_test: CompileTimeError # Verification error
 constructor6_test: CompileTimeError # Verification error
-control_flow_collections/await_for_inference_test: CompileTimeError
-control_flow_collections/await_for_test: CompileTimeError
-control_flow_collections/if_const_error_test/21: MissingCompileTimeError
-control_flow_collections/if_const_error_test/22: MissingCompileTimeError
-control_flow_collections/if_const_error_test/23: MissingCompileTimeError
-control_flow_collections/if_const_error_test/24: MissingCompileTimeError
-control_flow_collections/if_const_error_test/35: MissingCompileTimeError
-control_flow_collections/if_const_error_test/36: MissingCompileTimeError
-control_flow_collections/if_const_error_test/37: MissingCompileTimeError
-control_flow_collections/if_promotion_test/none: CompileTimeError
-control_flow_collections/type_error_test/00: MissingCompileTimeError
-control_flow_collections/type_error_test/01: MissingCompileTimeError
-control_flow_collections/type_error_test/02: MissingCompileTimeError
-control_flow_collections/type_error_test/10: MissingCompileTimeError
-control_flow_collections/type_error_test/13: MissingCompileTimeError
-control_flow_collections/type_error_test/23: MissingCompileTimeError
-control_flow_collections/type_error_test/24: MissingCompileTimeError
-control_flow_collections/type_error_test/25: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e1: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e10: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e11: MissingCompileTimeError
@@ -230,10 +181,6 @@ implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
 mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
-spread_collections/const_error_test/12: MissingCompileTimeError
-spread_collections/const_error_test/13: Crash
-spread_collections/const_error_test/13: MissingCompileTimeError
-spread_collections/const_error_test/14: MissingCompileTimeError
 vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
@@ -247,10 +194,6 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
-constants_2018/equals_test/01: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
-constants_2018/equals_test/02: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
-constants_2018/equals_test/03: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
-constants_2018/equals_test/04: MissingCompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
 constants_2018/potential_const_dynamic_test/sh3: CompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
 constants_2018/potential_const_type_test/sh3: CompileTimeError # New test introduced in https://dart-review.googlesource.com/c/sdk/+/97510
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -447,22 +390,6 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test usi
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk ]
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
-
-[ $arch == simdbc64 && $compiler == dartk ]
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
-
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic_function_dcall_test/01: SkipByDesign # Prints type names
 invocation_mirror_test: RuntimeError # Issue 34911
@@ -555,33 +482,14 @@ assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
-
 [ $compiler == dartkb && $runtime == vm && $strong ]
 async_star_test/03: Pass, RuntimeError # Please triage
 async_star_test/04: Pass, RuntimeError # Please triage
 compile_time_constant_o_test/01: Pass
 compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
-control_flow_collections/*: Skip
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
-spread_collections/await_test: CompileTimeError
-spread_collections/const_test: CompileTimeError
-spread_collections/inference_test: CompileTimeError
-spread_collections/map_set_ambiguity_test: CompileTimeError
-spread_collections/spread_test: CompileTimeError
-spread_collections/syntax_test: CompileTimeError
-spread_collections/type_error_test/00: DartkCrash
-spread_collections/type_error_test/02: DartkCrash
-spread_collections/type_error_test/03: DartkCrash
-spread_collections/type_error_test/05: DartkCrash
 vm/bool_check_stack_traces_test/02: Pass
 vm/causal_async_exception_stack2_test: RuntimeError # Please triage
 vm/causal_async_exception_stack_test: RuntimeError # Please triage
@@ -744,7 +652,6 @@ deferred_redirecting_factory_test: CompileTimeError, Fail, Crash # Issue 23408, 
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError # Issue 31533
 enum_mirror_test: SkipByDesign
 example_constructor_test: Fail, OK
 export_ambiguous_main_test: Skip # Issue 29895 Fail Issue 14763
@@ -901,7 +808,6 @@ const_constructor3_test/04: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
@@ -1291,7 +1197,6 @@ deferred_redirecting_factory_test: RuntimeError # KernelVM bug: Deferred loading
 deferred_static_seperate_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 disassemble_test: Pass, Slow, Crash # dartbug.com/34971
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError # Issue 31533
 example_constructor_test: Fail, OK
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.

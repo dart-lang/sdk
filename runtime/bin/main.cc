@@ -12,6 +12,7 @@
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 
+#include "bin/abi_version.h"
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/crashpad.h"
@@ -508,10 +509,10 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
 
   // Load embedder specific bits and return.
-  if (!VmService::Setup(Options::vm_service_server_ip(),
-                        Options::vm_service_server_port(),
-                        Options::vm_service_dev_mode(),
-                        Options::trace_loading(), Options::deterministic())) {
+  if (!VmService::Setup(
+          Options::vm_service_server_ip(), Options::vm_service_server_port(),
+          Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
+          Options::trace_loading(), Options::deterministic())) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }
@@ -605,7 +606,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Isolate isolate = NULL;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) {
+  if ((!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) ||
+      (Options::target_abi_version() != Options::kAbiVersionUnset)) {
     const uint8_t* platform_kernel_buffer = NULL;
     intptr_t platform_kernel_buffer_size = 0;
     dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size);

@@ -1745,10 +1745,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genAllocateClosureInstance(
       TreeNode node, int closureFunctionIndex, FunctionNode function) {
-    // TODO(alexmarkov): Consider adding a bytecode to allocate closure.
-
-    assert(closureClass.typeParameters.isEmpty);
-    asm.emitAllocate(cp.addClass(closureClass));
+    asm.emitAllocateClosure(closureFunctionIndex);
 
     final int temp = locals.tempIndexInFrame(node);
     asm.emitStoreLocal(temp);
@@ -2151,19 +2148,22 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _genTypeArguments([node.typeArgument]);
 
-    _genDupTOS(locals.tempIndexInFrame(node));
+    if (node.expressions.isEmpty) {
+      asm.emitPushConstant(
+          cp.addObjectRef(new ListConstant(const DynamicType(), const [])));
+    } else {
+      _genDupTOS(locals.tempIndexInFrame(node));
+      _genPushInt(node.expressions.length);
+      asm.emitCreateArrayTOS();
+      final int temp = locals.tempIndexInFrame(node);
+      asm.emitStoreLocal(temp);
 
-    // TODO(alexmarkov): gen more efficient code for empty array
-    _genPushInt(node.expressions.length);
-    asm.emitCreateArrayTOS();
-    final int temp = locals.tempIndexInFrame(node);
-    asm.emitStoreLocal(temp);
-
-    for (int i = 0; i < node.expressions.length; i++) {
-      asm.emitPush(temp);
-      _genPushInt(i);
-      _generateNode(node.expressions[i]);
-      asm.emitStoreIndexedTOS();
+      for (int i = 0; i < node.expressions.length; i++) {
+        asm.emitPush(temp);
+        _genPushInt(i);
+        _generateNode(node.expressions[i]);
+        asm.emitStoreIndexedTOS();
+      }
     }
 
     // List._fromLiteral is a factory constructor.
@@ -2699,6 +2699,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _leaveScope();
 
     asm.bind(done);
+  }
+
+  @override
+  visitBlockExpression(BlockExpression node) {
+    _enterScope(node);
+    _generateNodeList(node.body.statements);
+    _generateNode(node.value);
+    _leaveScope();
   }
 
   @override

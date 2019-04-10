@@ -11,6 +11,7 @@
 #include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/file.h"
+#include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
@@ -68,7 +69,13 @@ DFE::DFE()
       frontend_filename_(NULL),
       application_kernel_buffer_(NULL),
       application_kernel_buffer_size_(0) {
-#if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
+  // The run_vm_tests binary has the DART_PRECOMPILER set in order to allow unit
+  // tests to exercise JIT and AOT pipeline.
+  //
+  // Only on X64 do we have kernel-service.dart.snapshot available otherwise we
+  // need to fall back to the built-in one (if we have it).
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) || defined(DART_NO_SNAPSHOT) ||   \
+    (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
   kernel_service_dill_ = NULL;
   kernel_service_dill_size_ = 0;
   platform_strong_dill_ = NULL;
@@ -93,7 +100,7 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  Init(AbiVersion::GetCurrent());
+  Init(Options::kAbiVersionUnset);
 }
 
 void DFE::Init(int target_abi_version) {
@@ -122,7 +129,7 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
   auto dir_prefix = std::unique_ptr<char, void (*)(void*)>(
       GetDirectoryPrefixFromExeName(), free);
 
-  if (target_abi_version != AbiVersion::GetCurrent()) {
+  if (target_abi_version != Options::kAbiVersionUnset) {
     kernel_service_dill_ = NULL;
     kernel_service_dill_size_ = 0;
     platform_strong_dill_ = NULL;

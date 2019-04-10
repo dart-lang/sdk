@@ -97,6 +97,7 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kListConcatenation:
       case kSetConcatenation:
       case kMapConcatenation:
+      case kInstanceCreation:
         // These only occur inside unevaluated constants, so if we decide to
         // remove support for late evaluation of environment constants from
         // dill files in the VM, an implementation here will not be necessary.
@@ -1037,7 +1038,8 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return false;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+      !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.
     return false;
@@ -1068,7 +1070,8 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+      !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.
     return;

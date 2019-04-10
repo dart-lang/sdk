@@ -405,20 +405,6 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   obj->AddProperty("promotedBytes", promoted_size);
 }
 
-void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
-  ClassHeapStats* stats = PreliminaryStatsAt(cid);
-  ASSERT(stats != NULL);
-  ASSERT(size != 0);
-  stats->recent.AddNew(size);
-}
-
-void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
-  ClassHeapStats* stats = PreliminaryStatsAt(cid);
-  ASSERT(stats != NULL);
-  ASSERT(size != 0);
-  stats->recent.AddOld(size);
-}
-
 void ClassTable::UpdateAllocatedOldGC(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);

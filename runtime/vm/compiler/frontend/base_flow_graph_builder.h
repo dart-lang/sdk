@@ -212,7 +212,7 @@ class BaseFlowGraphBuilder {
   Fragment NullConstant();
   Fragment SmiRelationalOp(Token::Kind kind);
   Fragment SmiBinaryOp(Token::Kind op, bool is_truncating = false);
-  Fragment LoadFpRelativeSlot(intptr_t offset);
+  Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
@@ -271,6 +271,8 @@ class BaseFlowGraphBuilder {
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
   Fragment AllocateContext(const GrowableArray<LocalVariable*>& scope);
+  Fragment AllocateClosure(TokenPosition position,
+                           const Function& closure_function);
   Fragment CreateArray();
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
@@ -279,6 +281,11 @@ class BaseFlowGraphBuilder {
   // Returns true if we are building a graph for inlining of a call site that
   // enters the function through the unchecked entry.
   bool InliningUncheckedEntry() const { return inlining_unchecked_entry_; }
+
+  // Returns depth of expression stack.
+  intptr_t GetStackDepth() const {
+    return stack_ == nullptr ? 0 : stack_->definition()->temp_index() + 1;
+  }
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

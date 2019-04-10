@@ -205,6 +205,18 @@ class CloneVisitor implements TreeVisitor {
         keyType: visitType(node.keyType), valueType: visitType(node.valueType));
   }
 
+  visitInstanceCreation(InstanceCreation node) {
+    final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      fieldValues[fieldRef] = clone(value);
+    });
+    return new InstanceCreation(
+        node.classReference,
+        node.typeArguments.map(visitType).toList(),
+        fieldValues,
+        node.asserts.map(clone).toList());
+  }
+
   visitIsExpression(IsExpression node) {
     return new IsExpression(clone(node.operand), visitType(node.type));
   }

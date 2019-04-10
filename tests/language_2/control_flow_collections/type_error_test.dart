@@ -34,9 +34,9 @@ void main() {
   var _ = <int>{for (int i in s) 1}; //# 22: compile-time error
 
   // Wrong for declaration element type.
-  var _ = <int>[for (int i = "s";;) 1]; //# 23: compile-time error
-  var _ = <int, int>{for (int i = "s";;) 1: 1}; //# 24: compile-time error
-  var _ = <int>{for (int i = "s";;) 1}; //# 25: compile-time error
+  var _ = <int>[for (int i = "s"; false;) 1]; //# 23: compile-time error
+  var _ = <int, int>{for (int i = "s"; false;) 1: 1}; //# 24: compile-time error
+  var _ = <int>{for (int i = "s"; false;) 1}; //# 25: compile-time error
 
   // Wrong for body element type.
   var _ = <int>[for (; false;) "s"]; //# 26: compile-time error

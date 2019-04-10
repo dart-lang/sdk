@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/duplicated_declarations.dart:7:1: Error: Import directives must preceed part directives.
+// pkg/front_end/testcases/duplicated_declarations.dart:7:1: Error: Import directives must precede part directives.
 // Try moving the import directives before the part directives.
 // import 'duplicated_declarations_lib.dart' as Typedef;
 // ^^^^^^
 //
-// pkg/front_end/testcases/duplicated_declarations.dart:9:1: Error: Import directives must preceed part directives.
+// pkg/front_end/testcases/duplicated_declarations.dart:9:1: Error: Import directives must precede part directives.
 // Try moving the import directives before the part directives.
 // import 'duplicated_declarations_lib.dart' as Typedef;
 // ^^^^^^

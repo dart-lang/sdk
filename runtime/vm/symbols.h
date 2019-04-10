@@ -209,6 +209,7 @@ class ObjectPointerVisitor;
   V(LanguageError, "LanguageError")                                            \
   V(LeftShiftOperator, "<<")                                                   \
   V(Length, "length")                                                          \
+  V(GetLength, "get:length")                                                   \
   V(LessEqualOperator, "<=")                                                   \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \

@@ -86,7 +86,7 @@ env_test: Skip # This is testing a vm command line parsing scenario.
 no_assert_test: Fail, OK # This is testing a vm flag.
 
 [ $mode == product && $runtime == dart_precompiled ]
-dwarf_stack_trace_test: Pass, RuntimeError
+dwarf_stack_trace_test: SkipByDesign # Due to instruction canonicalization we can end up having the wrong names in stack traces.
 
 [ $mode == release && $runtime == vm && $system == macos ]
 io/named_pipe_script_test: Pass, RuntimeError # Issue 28737

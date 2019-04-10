@@ -1441,6 +1441,7 @@ class Class : public Object {
   friend class Instance;
   friend class Object;
   friend class Type;
+  friend class InterpreterHelpers;
   friend class Intrinsifier;
   friend class ClassFunctionVisitor;
 };
@@ -1588,15 +1589,20 @@ class ICData : public Object {
   bool IsImmutable() const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  RawAbstractType* StaticReceiverType() const {
-    return raw_ptr()->static_receiver_type_;
+  RawAbstractType* receivers_static_type() const {
+    return raw_ptr()->receivers_static_type_;
   }
-  void SetStaticReceiverType(const AbstractType& type) const;
-  bool IsTrackingExactness() const {
-    return StaticReceiverType() != Object::null();
+  void SetReceiversStaticType(const AbstractType& type) const;
+  bool is_tracking_exactness() const {
+    return TrackingExactnessBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_tracking_exactness(bool value) const {
+    StoreNonPointer(
+        &raw_ptr()->state_bits_,
+        TrackingExactnessBit::update(value, raw_ptr()->state_bits_));
   }
 #else
-  bool IsTrackingExactness() const { return false; }
+  bool is_tracking_exactness() const { return false; }
 #endif
 
   void Reset(Zone* zone) const;
@@ -1702,8 +1708,8 @@ class ICData : public Object {
   static intptr_t owner_offset() { return OFFSET_OF(RawICData, owner_); }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static intptr_t static_receiver_type_offset() {
-    return OFFSET_OF(RawICData, static_receiver_type_);
+  static intptr_t receivers_static_type_offset() {
+    return OFFSET_OF(RawICData, receivers_static_type_);
   }
 #endif
 
@@ -1882,7 +1888,9 @@ class ICData : public Object {
   enum {
     kNumArgsTestedPos = 0,
     kNumArgsTestedSize = 2,
-    kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
+    kTrackingExactnessPos = kNumArgsTestedPos + kNumArgsTestedSize,
+    kTrackingExactnessSize = 1,
+    kDeoptReasonPos = kTrackingExactnessPos + kTrackingExactnessSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
     kRebindRulePos = kDeoptReasonPos + kDeoptReasonSize,
     kRebindRuleSize = 3
@@ -1894,6 +1902,10 @@ class ICData : public Object {
                                             uint32_t,
                                             kNumArgsTestedPos,
                                             kNumArgsTestedSize> {};
+  class TrackingExactnessBit : public BitField<uint32_t,
+                                               bool,
+                                               kTrackingExactnessPos,
+                                               kTrackingExactnessSize> {};
   class DeoptReasonBits : public BitField<uint32_t,
                                           uint32_t,
                                           ICData::kDeoptReasonPos,
@@ -3409,7 +3421,7 @@ class Field : public Object {
   // Returns false if any value read from this field is guaranteed to be
   // not null.
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
-  // any other value (non-nullable) instead of boolean. This is done to simplify
+  // kInvalidCid (non-nullable) instead of boolean. This is done to simplify
   // guarding sequence in the generated code.
   bool is_nullable() const { return raw_ptr()->is_nullable_ == kNullCid; }
   void set_is_nullable(bool val) const {

@@ -4739,17 +4739,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           return;
         }
       }
-      if (element.metadata.isNotEmpty) {
-        for (var annotation in element.metadata) {
-          var e = annotation.element;
-          // TODO(jmesserly): similar "package:meta" annotations are added to
-          // the element as boolean getters, that may be worth considering.
-          if (e?.name == 'optionalTypeArgs' &&
-              e.librarySource.uri.toString() == 'package:meta/meta.dart') {
-            // Type is marked with `@optionalTypeArgs`: not an error.
-            return;
-          }
-        }
+      if (element.hasOptionalTypeArgs) {
+        return;
       }
       _errorReporter.reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
     }

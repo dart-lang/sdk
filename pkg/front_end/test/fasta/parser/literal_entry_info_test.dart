@@ -206,6 +206,7 @@ class CollectionElementTest {
         'handleNoArguments )',
         'handleSend a )',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (b in c)
         'beginForControlFlow null for',
         'handleIdentifier b expression',
@@ -343,6 +344,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleLiteralInt 2',
         'endIfControlFlow 2',
         'handleLiteralList 1, [, null, ]',
@@ -357,6 +359,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleLiteralInt 2',
         'handleElseControlFlow else',
         'handleLiteralInt 5',
@@ -374,6 +377,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (x in y)
         'beginForControlFlow null for',
         'handleIdentifier x expression',
@@ -407,6 +411,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (a in b)
         'beginForControlFlow null for',
         'handleIdentifier a expression',
@@ -434,6 +439,7 @@ class CollectionElementTest {
         'handleNoArguments )',
         'handleSend c )',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (d in e)
         'beginForControlFlow null for',
         'handleIdentifier d expression',
@@ -468,6 +474,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleNoTypeArguments [',
         'handleLiteralInt 2',
         'handleLiteralList 1, [, null, ]',
@@ -485,6 +492,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleNoTypeArguments [',
         'handleLiteralInt 2',
         'handleLiteralList 1, [, null, ]',
@@ -764,6 +772,7 @@ class MapElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleLiteralInt 2',
         'handleLiteralInt 3',
         'handleLiteralMapEntry :, ',
@@ -779,6 +788,7 @@ class MapElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleNoTypeArguments {',
         'handleLiteralInt 2',
         'handleLiteralInt 3',
@@ -874,6 +884,11 @@ class TestInfoListener implements Listener {
   @override
   void beginIfControlFlow(Token ifToken) {
     calls.add('beginIfControlFlow $ifToken');
+  }
+
+  @override
+  void beginThenControlFlow(Token token) {
+    calls.add('beginThenControlFlow $token');
   }
 
   @override

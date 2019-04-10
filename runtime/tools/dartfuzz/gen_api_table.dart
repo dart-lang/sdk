@@ -127,6 +127,10 @@ visitCompilationUnit(CompilationUnitElement unit) {
 }
 
 void visitClass(ClassElement classElement) {
+  // Platform operations cause too many divergences.
+  if (classElement.name == 'Platform') {
+    return;
+  }
   // Every class element contains elements for the members, viz. `methods` visits
   // methods, `fields` visits fields, `accessors` visits getters and setters, etc.
   // There are also accessors to get the superclass, mixins, interfaces, type

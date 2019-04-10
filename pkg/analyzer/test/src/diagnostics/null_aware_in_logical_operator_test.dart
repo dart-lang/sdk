@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -64,14 +63,6 @@ m(x) {
 ''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
   }
 
-  test_not() async {
-    await assertErrorsInCode(r'''
-m(x) {
-  !x?.a;
-}
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
-  }
-
   test_for_noCondition() async {
     await assertNoErrorsInCode(r'''
 m(x) {
@@ -86,5 +77,13 @@ m(x) {
   if (x?.y == null) {}
 }
 ''');
+  }
+
+  test_not() async {
+    await assertErrorsInCode(r'''
+m(x) {
+  !x?.a;
+}
+''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
   }
 }

@@ -348,8 +348,8 @@ word ICData::entries_offset() {
   return dart::ICData::entries_offset();
 }
 
-word ICData::static_receiver_type_offset() {
-  return dart::ICData::static_receiver_type_offset();
+word ICData::receivers_static_type_offset() {
+  return dart::ICData::receivers_static_type_offset();
 }
 
 word ICData::state_bits_offset() {

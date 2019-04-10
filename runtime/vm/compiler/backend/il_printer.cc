@@ -155,12 +155,15 @@ static const char* TypeToUserVisibleName(const AbstractType& type) {
 
 void CompileType::PrintTo(BufferFormatter* f) const {
   const char* type_name = "?";
-  if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
+  if (IsNone()) {
+    f->Print("T{}");
+    return;
+  } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.ScrubbedName()).ToCString();
-  } else if (type_ != NULL && !type_->IsDynamicType()) {
-    type_name = TypeToUserVisibleName(*type_);
+  } else if (type_ != NULL) {
+    type_name = type_->IsDynamicType() ? "*" : TypeToUserVisibleName(*type_);
   } else if (!is_nullable()) {
     type_name = "!null";
   }
@@ -249,9 +252,9 @@ static void PrintICDataHelper(BufferFormatter* f,
                               const ICData& ic_data,
                               intptr_t num_checks_to_print) {
   f->Print(" IC[");
-  if (ic_data.IsTrackingExactness()) {
+  if (ic_data.is_tracking_exactness()) {
     f->Print("(%s) ",
-             AbstractType::Handle(ic_data.StaticReceiverType()).ToCString());
+             AbstractType::Handle(ic_data.receivers_static_type()).ToCString());
   }
   f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
@@ -275,7 +278,7 @@ static void PrintICDataHelper(BufferFormatter* f,
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
-    if (ic_data.IsTrackingExactness()) {
+    if (ic_data.is_tracking_exactness()) {
       f->Print(" %s", ic_data.GetExactnessAt(i).ToCString());
     }
   }
@@ -385,6 +388,13 @@ void Definition::PrintOperandsTo(BufferFormatter* f) const {
     if (InputAt(i) != NULL) {
       InputAt(i)->PrintTo(f);
     }
+  }
+}
+
+void RedefinitionInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  if (constrained_type_ != nullptr) {
+    f->Print(" ^ %s", constrained_type_->ToCString());
   }
 }
 
@@ -972,9 +982,8 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" %s", RepresentationToCString(representation()));
   }
 
-  if (type_ != NULL) {
-    f->Print(" ");
-    type_->PrintTo(f);
+  if (HasType()) {
+    f->Print(" %s", TypeAsCString());
   }
 }
 

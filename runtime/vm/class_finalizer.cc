@@ -1088,19 +1088,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     interface_class.AddDirectImplementor(cls,
                                          /* is_mixin = */ i == mixin_index);
   }
-
-  if (FLAG_use_cha_deopt) {
-    // Invalidate all CHA code which depends on knowing the implementors of any
-    // of the interfaces implemented by this new class.
-    ClassTable* class_table = thread->isolate()->class_table();
-    GrowableArray<intptr_t> cids;
-    InterfaceFinder finder(zone, class_table, &cids);
-    finder.FindAllInterfaces(cls);
-    for (intptr_t j = 0; j < cids.length(); ++j) {
-      interface_class = class_table->At(cids[j]);
-      interface_class.DisableCHAImplementorUsers();
-    }
-  }
 }
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
@@ -1167,6 +1154,22 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     CollectFinalizedSuperClasses(cls, &cids);
     CollectImmediateSuperInterfaces(cls, &cids);
     RemoveCHAOptimizedCode(cls, cids);
+  }
+
+  if (FLAG_use_cha_deopt) {
+    Zone* zone = thread->zone();
+    ClassTable* class_table = thread->isolate()->class_table();
+    auto& interface_class = Class::Handle(zone);
+
+    // We scan every interface this [cls] implements and invalidate all CHA code
+    // which depends on knowing the implementors of that interface.
+    GrowableArray<intptr_t> cids;
+    InterfaceFinder finder(zone, class_table, &cids);
+    finder.FindAllInterfaces(cls);
+    for (intptr_t j = 0; j < cids.length(); ++j) {
+      interface_class = class_table->At(cids[j]);
+      interface_class.DisableCHAImplementorUsers();
+    }
   }
 
   if (cls.is_enum_class()) {

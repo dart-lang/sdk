@@ -7993,7 +7993,12 @@ class ToSourceVisitor2
         if (i > 0) {
           sink.write(separator);
         }
-        nodes[i].accept(this);
+        var node = nodes[i];
+        if (node != null) {
+          node.accept(this);
+        } else {
+          sink.write('<null>');
+        }
       }
     }
   }

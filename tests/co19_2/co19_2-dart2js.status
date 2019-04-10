@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartdevk ]
-LanguageFeatures/Control-flow-collections/*: Skip
-
 [ $builder_tag != run_webgl_tests && $compiler == dart2js ]
 LayoutTests/fast/canvas/webgl*: Skip # Only run WebGL on special builders, issue 29961
 

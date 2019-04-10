@@ -410,9 +410,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      InterfaceType type = commonElements.boolType;
-      return typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type,
-          kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+      return typeBuilder.potentiallyCheckOrTrustTypeOfCondition(value);
     }
     HInstruction result = new HBoolify(value, abstractValueDomain.boolType);
     add(result);

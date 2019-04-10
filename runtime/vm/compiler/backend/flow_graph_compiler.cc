@@ -215,7 +215,7 @@ void FlowGraphCompiler::InitCompiler() {
     }
   }
 
-  if (!is_optimizing()) {
+  if (!is_optimizing() && FLAG_reorder_basic_blocks) {
     // Initialize edge counter array.
     const intptr_t num_counters = flow_graph_.preorder().length();
     const Array& edge_counters =
@@ -320,12 +320,12 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
-  // On ARM64 we cannot use the position of the label bound in the
-  // FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
-  // emit the monomorphic entry and frame entry (instead on ARM64 this is done
-  // in FlowGraphCompiler::CompileGraph()).
-  //
-  // See http://dartbug.com/34162
+// On ARM64 we cannot use the position of the label bound in the
+// FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
+// emit the monomorphic entry and frame entry (instead on ARM64 this is done
+// in FlowGraphCompiler::CompileGraph()).
+//
+// See http://dartbug.com/34162
 #if defined(TARGET_ARCH_ARM64)
   return 0;
 #endif
@@ -344,7 +344,7 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
     return target->Position();
   }
 
-  // Intrinsification happened.
+// Intrinsification happened.
 #ifdef DART_PRECOMPILER
   if (parsed_function().function().IsDynamicFunction()) {
     return Instructions::kMonomorphicEntryOffset;
@@ -1259,7 +1259,7 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:
 #if defined(TARGET_ARCH_X64)
-      if (ic_data.IsTrackingExactness()) {
+      if (ic_data.is_tracking_exactness()) {
         if (optimized) {
           return StubCode::OneArgOptimizedCheckInlineCacheWithExactnessCheck();
         } else {
@@ -1268,12 +1268,12 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
       }
 #else
       // TODO(dartbug.com/34170) Port exactness tracking to other platforms.
-      ASSERT(!ic_data.IsTrackingExactness());
+      ASSERT(!ic_data.is_tracking_exactness());
 #endif
       return optimized ? StubCode::OneArgOptimizedCheckInlineCache()
                        : StubCode::OneArgCheckInlineCache();
     case 2:
-      ASSERT(!ic_data.IsTrackingExactness());
+      ASSERT(!ic_data.is_tracking_exactness());
       return optimized ? StubCode::TwoArgsOptimizedCheckInlineCache()
                        : StubCode::TwoArgsCheckInlineCache();
     default:
@@ -1759,7 +1759,7 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->TypeArgsLen() ==
            ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(!res->is_static_call());
-    ASSERT(res->StaticReceiverType() == receiver_type.raw());
+    ASSERT(res->receivers_static_type() == receiver_type.raw());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(
@@ -1809,6 +1809,9 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
     threshold = FLAG_reoptimization_counter_threshold;
   } else if (parsed_function_.function().IsIrregexpFunction()) {
     threshold = FLAG_regexp_optimization_counter_threshold;
+  } else if (FLAG_randomize_optimization_counter) {
+    threshold = Thread::Current()->GetRandomUInt64() %
+                FLAG_optimization_counter_threshold;
   } else {
     const intptr_t basic_blocks = flow_graph().preorder().length();
     ASSERT(basic_blocks > 0);
@@ -1818,6 +1821,21 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
       threshold = FLAG_optimization_counter_threshold;
     }
   }
+
+  // Threshold = 0 doesn't make sense because we increment the counter before
+  // testing against the threshold. Perhaps we could interpret it to mean
+  // "generate optimized code immediately without unoptimized compilation
+  // first", but this isn't supported in our pipeline because there would be no
+  // code for the optimized code to deoptimize into.
+  if (threshold == 0) threshold = 1;
+
+  // See Compiler::CanOptimizeFunction. In short, we have to allow the
+  // unoptimized code to run at least once to prevent an infinite compilation
+  // loop.
+  if (threshold == 1 && parsed_function().function().HasBreakpoint()) {
+    threshold = 2;
+  }
+
   return threshold;
 }
 

@@ -245,6 +245,8 @@ def ToGnArgs(args, mode, arch, target_os):
   if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
     gn_args['dart_platform_sdk'] = args.platform_sdk
   gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
+  gn_args['dartaotruntime_stripped_binary'] = 'exe.stripped/dartaotruntime'
+  gn_args['gen_snapshot_stripped_binary'] = 'exe.stripped/gen_snapshot'
 
   # Setup the user-defined sysroot.
   if UseSysroot(args, gn_args):

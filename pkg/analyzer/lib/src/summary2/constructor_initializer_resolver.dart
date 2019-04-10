@@ -6,8 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -46,66 +44,70 @@ class ConstructorInitializerResolver {
   void _constructor(ConstructorElementImpl constructorElement) {
     if (constructorElement.isSynthetic) return;
 
-    _constructorElement = constructorElement;
-    _constructorNode = constructorElement.linkedNode;
-
-    var functionScope = FunctionScope(_classScope, constructorElement);
-    functionScope.defineParameters();
-
-    var nameScope = ConstructorInitializerScope(
-      functionScope,
-      constructorElement,
-    );
-
-    _astResolver = AstResolver(_linker, _libraryElement, nameScope);
-
-    _initializers();
-    _redirectedConstructor();
+//    _constructorElement = constructorElement;
+//    _constructorNode = constructorElement.linkedNode;
+//
+//    var functionScope = FunctionScope(_classScope, constructorElement);
+//    functionScope.defineParameters();
+//
+//    var nameScope = ConstructorInitializerScope(
+//      functionScope,
+//      constructorElement,
+//    );
+//
+//    _astResolver = AstResolver(_linker, _libraryElement, nameScope);
+//
+//    _initializers();
+//    _redirectedConstructor();
   }
 
   void _initializers() {
-    bool isConst = _constructorNode.constructorDeclaration_constKeyword != 0;
+    throw UnimplementedError();
 
-    var initializers = _constructorNode.constructorDeclaration_initializers;
-    var resolvedList = List<LinkedNodeBuilder>();
-    for (var i = 0; i < initializers.length; ++i) {
-      var unresolvedNode = initializers[i];
-
-      // Keep only initializers of constant constructors; or redirects.
-      if (!isConst &&
-          unresolvedNode.kind !=
-              LinkedNodeKind.redirectingConstructorInvocation) {
-        continue;
-      }
-
-      var reader = AstBinaryReader(_linkedContext);
-      var unresolvedAst = reader.readNode(unresolvedNode);
-
-      var resolvedNode = _astResolver.resolve(
-        _linkedContext,
-        unresolvedAst,
-        enclosingClassElement: _constructorElement.enclosingElement,
-        enclosingExecutableElement: _constructorElement,
-      );
-      resolvedList.add(resolvedNode);
-    }
-    _constructorNode.constructorDeclaration_initializers = resolvedList;
+//    bool isConst = _constructorNode.constructorDeclaration_constKeyword != 0;
+//
+//    var initializers = _constructorNode.constructorDeclaration_initializers;
+//    var resolvedList = List<LinkedNodeBuilder>();
+//    for (var i = 0; i < initializers.length; ++i) {
+//      var unresolvedNode = initializers[i];
+//
+//      // Keep only initializers of constant constructors; or redirects.
+//      if (!isConst &&
+//          unresolvedNode.kind !=
+//              LinkedNodeKind.redirectingConstructorInvocation) {
+//        continue;
+//      }
+//
+//      var reader = AstBinaryReader(_linkedContext);
+//      var unresolvedAst = reader.readNode(unresolvedNode);
+//
+//      var resolvedNode = _astResolver.resolve(
+//        _linkedContext,
+//        unresolvedAst,
+//        enclosingClassElement: _constructorElement.enclosingElement,
+//        enclosingExecutableElement: _constructorElement,
+//      );
+//      resolvedList.add(resolvedNode);
+//    }
+//    _constructorNode.constructorDeclaration_initializers = resolvedList;
   }
 
   void _redirectedConstructor() {
-    var redirectedConstructorNode =
-        _constructorNode.constructorDeclaration_redirectedConstructor;
-    if (redirectedConstructorNode == null) return;
+    throw UnimplementedError();
 
-    var reader = AstBinaryReader(_linkedContext);
-    var unresolvedAst = reader.readNode(redirectedConstructorNode);
-    var resolvedNode = _astResolver.resolve(
-      _linkedContext,
-      unresolvedAst,
-      enclosingClassElement: _constructorElement.enclosingElement,
-      enclosingExecutableElement: _constructorElement,
-    );
-    _constructorNode.constructorDeclaration_redirectedConstructor =
-        resolvedNode;
+//    var redirectedConstructorNode =
+//        _constructorNode.constructorDeclaration_redirectedConstructor;
+//    if (redirectedConstructorNode == null) return;
+//
+//    var reader = AstBinaryReader(_linkedContext);
+//    var unresolvedAst = reader.readNode(redirectedConstructorNode);
+//    var resolvedNode = _astResolver.resolve(
+//      _linkedContext,
+//      unresolvedAst,
+//      enclosingClassElement: _constructorElement.enclosingElement,
+//      enclosingExecutableElement: _constructorElement,
+//    );
+//    _constructorNode.constructorDeclaration_redirectedConstructor =
+//        resolvedNode;
   }
 }

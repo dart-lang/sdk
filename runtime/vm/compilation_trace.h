@@ -42,6 +42,7 @@ class CompilationTraceLoader : public ValueObject {
                            const char* cls_cstr,
                            const char* func_cstr);
   RawObject* CompileFunction(const Function& function);
+  void SpeculateInstanceCallTargets(const Function& function);
 
   Thread* thread_;
   Zone* zone_;
@@ -54,6 +55,13 @@ class CompilationTraceLoader : public ValueObject {
   Function& function_;
   Function& function2_;
   Field& field_;
+  Array& sites_;
+  ICData& site_;
+  AbstractType& static_type_;
+  Class& receiver_cls_;
+  Function& target_;
+  String& selector_;
+  Array& args_desc_;
   Object& error_;
 };
 

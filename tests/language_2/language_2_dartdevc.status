@@ -35,7 +35,6 @@ covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
 dynamic_prefix_core_test/01: MissingCompileTimeError
-emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
 execute_finally6_test: RuntimeError # Issue 29920
@@ -175,12 +174,10 @@ const_map3_test/00: MissingCompileTimeError
 const_optional_args_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-control_flow_collections/*: Skip
 covariant_subtyping_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError # Issue 31533
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 function_propagation_test: RuntimeError

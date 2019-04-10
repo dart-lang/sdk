@@ -566,7 +566,9 @@ class RangeAnalysis : public ValueObject {
                                        Instruction* after);
 
   bool ConstrainValueAfterBranch(Value* use, Definition* defn);
-  void ConstrainValueAfterCheckArrayBound(Value* use, Definition* defn);
+  void ConstrainValueAfterCheckBound(Value* use,
+                                     CheckBoundBase* check,
+                                     Definition* defn);
 
   // Infer ranges for integer (smi or mint) definitions.
   void InferRanges();

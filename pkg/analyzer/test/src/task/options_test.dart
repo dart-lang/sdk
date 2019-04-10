@@ -125,6 +125,24 @@ analyzer:
     List<String> names = analysisOptions.enabledPluginNames;
     expect(names, ['angular2']);
   }
+
+  test_configure_chromeos_checks() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks
+''');
+    expect(true, analysisOptions.chromeOsManifestChecks);
+  }
+
+  test_configure_chromeos_checks_map() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks : true
+''');
+    expect(true, analysisOptions.chromeOsManifestChecks);
+  }
 }
 
 @reflectiveTest
@@ -461,6 +479,22 @@ linter:
 linter:
   unsupported: true
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+  }
+
+  test_chromeos_manifest_checks() {
+    validate('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks
+''', []);
+  }
+
+  test_chromeos_manifest_checks_invalid() {
+    validate('''
+analyzer:
+  optional-checks:
+    chromeos-manifest
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   void validate(String source, List<ErrorCode> expected) {

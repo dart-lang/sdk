@@ -2878,6 +2878,9 @@ class Parser {
       } else if (identical(value, 'factory')) {
         Token next2 = next.next;
         if (next2.isIdentifier || next2.isModifier) {
+          if (beforeType != token) {
+            reportRecoverableError(token, fasta.messageTypeBeforeFactory);
+          }
           token = parseFactoryMethod(token, beforeStart, externalToken,
               staticToken ?? covariantToken, varFinalOrConst);
           listener.endMember();

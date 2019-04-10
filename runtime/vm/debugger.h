@@ -338,10 +338,7 @@ class ActivationFrame : public ZoneAllocated {
                                         const Array& type_definitions,
                                         const TypeArguments& type_arguments);
 
-  // Print the activation frame into |jsobj|. if |full| is false, script
-  // and local variable objects are only references. if |full| is true,
-  // the complete script, function, and, local variable objects are included.
-  void PrintToJSONObject(JSONObject* jsobj, bool full = false);
+  void PrintToJSONObject(JSONObject* jsobj);
 
   RawObject* GetAsyncAwaiter();
   RawObject* GetCausalStack();
@@ -349,10 +346,10 @@ class ActivationFrame : public ZoneAllocated {
   bool HandlesException(const Instance& exc_obj);
 
  private:
-  void PrintToJSONObjectRegular(JSONObject* jsobj, bool full);
-  void PrintToJSONObjectAsyncCausal(JSONObject* jsobj, bool full);
-  void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj, bool full);
-  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj, bool full);
+  void PrintToJSONObjectRegular(JSONObject* jsobj);
+  void PrintToJSONObjectAsyncCausal(JSONObject* jsobj);
+  void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj);
+  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj);
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);

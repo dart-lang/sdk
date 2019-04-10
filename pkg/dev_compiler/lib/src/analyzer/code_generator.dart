@@ -2754,17 +2754,18 @@ class CodeGenerator extends Object
             body, parameters.parameters.last.declaredElement));
 
     JS.Block code = isSync
-        ? _emitFunctionBody(element, parameters, body)
-        : JS.Block([
-            _emitGeneratorFunction(element, parameters, body).toReturn()
-              ..sourceInformation = _nodeStart(body)
-          ]);
+        ? _emitSyncFunctionBody(element, parameters, body)
+        : _emitGeneratorFunctionBody(element, parameters, body);
 
     code = super.exitFunction(element.name, formals, code);
     return JS.Fun(formals, code);
   }
 
-  JS.Block _emitFunctionBody(ExecutableElement element,
+  /// Emits a `sync` function body (the default in Dart)
+  ///
+  /// To emit an `async`, `sync*`, or `async*` function body, use
+  /// [_emitGeneratorFunctionBody] instead.
+  JS.Block _emitSyncFunctionBody(ExecutableElement element,
       FormalParameterList parameters, FunctionBody body) {
     var savedFunction = _currentFunction;
     _currentFunction = body;
@@ -2772,6 +2773,40 @@ class CodeGenerator extends Object
     var initArgs = _emitArgumentInitializers(element, parameters);
     var block = _emitFunctionScopedBody(body, element);
 
+    if (initArgs != null) block = JS.Block([initArgs, block]);
+
+    _currentFunction = savedFunction;
+
+    if (block.isScope) {
+      // TODO(jmesserly: JS AST printer does not understand the need to emit a
+      // nested scoped block in a JS function. So we need to add a non-scoped
+      // wrapper to ensure it gets printed.
+      block = JS.Block([block]);
+    }
+    return block;
+  }
+
+  /// Emits an `async`, `sync*`, or `async*` function body.
+  ///
+  /// The body will perform these steps:
+  ///
+  /// - Run the argument initializers. These must be run synchronously
+  ///   (e.g. covariance checks), and this helps performance.
+  /// - Return the generator function, wrapped with the appropriate type
+  ///   (`Future`, `Itearble`, and `Stream` respectively).
+  ///
+  /// To emit a `sync` function body (the default in Dart), use
+  /// [_emitSyncFunctionBody] instead.
+  JS.Block _emitGeneratorFunctionBody(ExecutableElement element,
+      FormalParameterList parameters, FunctionBody body) {
+    var savedFunction = _currentFunction;
+    _currentFunction = body;
+
+    var initArgs = _emitArgumentInitializers(element, parameters);
+    var block = JS.Block([
+      _emitGeneratorFunction(element, parameters, body).toReturn()
+        ..sourceInformation = _nodeStart(body)
+    ]);
     if (initArgs != null) block = JS.Block([initArgs, block]);
 
     _currentFunction = savedFunction;
@@ -2830,9 +2865,13 @@ class CodeGenerator extends Object
 
       // Visit the body with our async* controller set.
       //
-      // TODO(jmesserly): this will emit argument initializers (for default
-      // values) inside the generator function body. Is that the best place?
-      var jsBody = _emitFunctionBody(element, parameters, body);
+      // Note: we intentionally don't emit argument initializers here, because
+      // they were already emitted outside of the generator expression.
+      var savedFunction = _currentFunction;
+      _currentFunction = body;
+      var jsBody = _emitFunctionScopedBody(body, element);
+      _currentFunction = savedFunction;
+
       var genFn = JS.Fun(jsParams, jsBody, isGenerator: true);
 
       // Name the function if possible, to get better stack traces.

@@ -37,12 +37,13 @@ ISOLATE_UNIT_TEST_CASE(CompileFunction) {
       "    // A.foo();\n"
       "  }\n"
       "}\n";
-  String& url = String::Handle(String::New("dart-test:CompileFunction"));
-  String& source = String::Handle(String::New(kScriptChars));
-  Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
-  Library& lib = Library::Handle(Library::CoreLibrary());
-  EXPECT(CompilerTest::TestCompileScript(lib, script));
+  Dart_Handle library;
+  {
+    TransitionVMToNative transition(thread);
+    library = TestCase::LoadTestScript(kScriptChars, NULL);
+  }
+  const Library& lib =
+      Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
@@ -68,19 +69,19 @@ ISOLATE_UNIT_TEST_CASE(CompileFunction) {
                function_source.ToCString());
 }
 
-ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
+ISOLATE_UNIT_TEST_CASE(OptimizeCompileFunctionOnHelperThread) {
   // Create a simple function and compile it without optimization.
   const char* kScriptChars =
       "class A {\n"
       "  static foo() { return 42; }\n"
       "}\n";
-  String& url =
-      String::Handle(String::New("dart-test:CompileFunctionOnHelperThread"));
-  String& source = String::Handle(String::New(kScriptChars));
-  Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
-  Library& lib = Library::Handle(Library::CoreLibrary());
-  EXPECT(CompilerTest::TestCompileScript(lib, script));
+  Dart_Handle library;
+  {
+    TransitionVMToNative transition(thread);
+    library = TestCase::LoadTestScript(kScriptChars, NULL);
+  }
+  const Library& lib =
+      Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
@@ -98,11 +99,55 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
 #endif
   Isolate* isolate = thread->isolate();
   BackgroundCompiler::Start(isolate);
-  isolate->background_compiler()->CompileOptimized(func);
+  isolate->optimizing_background_compiler()->Compile(func);
   Monitor* m = new Monitor();
   {
     MonitorLocker ml(m);
     while (!func.HasOptimizedCode()) {
+      ml.WaitWithSafepointCheck(thread, 1);
+    }
+  }
+  delete m;
+  BackgroundCompiler::Stop(isolate);
+}
+
+ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
+  // Create a simple function and compile it without optimization.
+  const char* kScriptChars =
+      "class A {\n"
+      "  static foo() { return 42; }\n"
+      "}\n";
+  Dart_Handle library;
+  {
+    TransitionVMToNative transition(thread);
+    library = TestCase::LoadTestScript(kScriptChars, NULL);
+  }
+  const Library& lib =
+      Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  Class& cls =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+  EXPECT(!cls.IsNull());
+  String& function_foo_name = String::Handle(String::New("foo"));
+  Function& func =
+      Function::Handle(cls.LookupStaticFunction(function_foo_name));
+  EXPECT(!func.HasCode());
+  if (!FLAG_enable_interpreter) {
+    CompilerTest::TestCompileFunction(func);
+    EXPECT(func.HasCode());
+    return;
+  }
+#if !defined(PRODUCT)
+  // Constant in product mode.
+  FLAG_background_compilation = true;
+#endif
+  Isolate* isolate = thread->isolate();
+  BackgroundCompiler::Start(isolate);
+  isolate->background_compiler()->Compile(func);
+  Monitor* m = new Monitor();
+  {
+    MonitorLocker ml(m);
+    while (!func.HasCode()) {
       ml.WaitWithSafepointCheck(thread, 1);
     }
   }

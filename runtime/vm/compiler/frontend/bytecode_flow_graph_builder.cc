@@ -288,12 +288,12 @@ Value* BytecodeFlowGraphBuilder::Pop() {
 
 intptr_t BytecodeFlowGraphBuilder::GetStackDepth() const {
   ASSERT(!is_generating_interpreter());
-  return B->stack_ == nullptr ? 0 : B->stack_->definition()->temp_index() + 1;
+  return B->GetStackDepth();
 }
 
 bool BytecodeFlowGraphBuilder::IsStackEmpty() const {
   ASSERT(!is_generating_interpreter());
-  return B->stack_ == nullptr;
+  return B->GetStackDepth() == 0;
 }
 
 ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
@@ -327,12 +327,6 @@ void BytecodeFlowGraphBuilder::PropagateStackState(intptr_t target_pc) {
     return;
   }
 
-  // Stack state propagation is supported for forward branches only.
-  // Bytecode generation guarantees that expression stack is empty between
-  // statements and backward jumps are only used to transfer control between
-  // statements (e.g. in loop and continue statements).
-  RELEASE_ASSERT(target_pc > pc_);
-
   Value* current_stack = B->stack_;
   Value* target_stack = stack_states_.Lookup(target_pc);
 
@@ -341,6 +335,8 @@ void BytecodeFlowGraphBuilder::PropagateStackState(intptr_t target_pc) {
     // all incoming branches.
     RELEASE_ASSERT(target_stack == current_stack);
   } else {
+    // Stack state propagation is supported for forward branches only.
+    RELEASE_ASSERT(target_pc > pc_);
     stack_states_.Insert(target_pc, current_stack);
   }
 }
@@ -632,7 +628,8 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
     store_type_args += B->LoadArgDescriptor();
     store_type_args += B->LoadNativeField(Slot::ArgumentsDescriptor_count());
     store_type_args += B->LoadFpRelativeSlot(
-        kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp));
+        kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp),
+        CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
     store_type_args +=
         B->StoreLocalRaw(TokenPosition::kNoSource, type_args_var);
     store_type_args += B->Drop();
@@ -666,11 +663,15 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
   }
   const intptr_t loop_depth = DecodeOperandA().value();
   if (loop_depth == 0) {
+    ASSERT(IsStackEmpty());
     code_ += B->CheckStackOverflowInPrologue(position_);
   } else {
-    code_ += B->CheckStackOverflow(position_, loop_depth);
+    // Avoid OSR points inside block-expressions with pending stack slots.
+    // TODO(ajcbik): make sure OSR works for such cases too.
+    if (IsStackEmpty()) {
+      code_ += B->CheckStackOverflow(position_, loop_depth);
+    }
   }
-  ASSERT(IsStackEmpty());
 }
 
 void BytecodeFlowGraphBuilder::BuildPushConstant() {
@@ -787,7 +788,9 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  const String& name = String::Cast(ConstantAt(DecodeOperandD()).value());
+  const Function& interface_target =
+      Function::Cast(ConstantAt(DecodeOperandD()).value());
+  const String& name = String::ZoneHandle(Z, interface_target.name());
   ASSERT(name.IsSymbol());
 
   const Array& arg_desc_array =
@@ -811,12 +814,10 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
 
   const ArgumentArray arguments = GetArguments(argc);
 
-  // TODO(alexmarkov): store interface_target in bytecode and pass it here.
-
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), checked_argument_count,
-      *ic_data_array_, B->GetNextDeoptId());
+      *ic_data_array_, B->GetNextDeoptId(), interface_target);
 
   // TODO(alexmarkov): add type info - call->SetResultType()
 
@@ -842,12 +843,12 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
 
   const ArgumentArray arguments = GetArguments(argc);
 
-  // TODO(alexmarkov): store interface_target in bytecode and pass it here.
+  const Function& interface_target = Function::null_function();
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), icdata.NumArgsTested(),
-      *ic_data_array_, icdata.deopt_id());
+      *ic_data_array_, icdata.deopt_id(), interface_target);
 
   ASSERT(call->ic_data() != nullptr);
   ASSERT(call->ic_data()->Original() == icdata.raw());
@@ -1631,6 +1632,15 @@ void BytecodeFlowGraphBuilder::BuildCompareIntLe() {
   BuildIntOp(Symbols::LessEqualOperator(), Token::kLTE, 2);
 }
 
+void BytecodeFlowGraphBuilder::BuildAllocateClosure() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
+  code_ += B->AllocateClosure(position_, target);
+}
+
 static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
   if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
     return false;
@@ -1824,7 +1834,10 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     if (join != nullptr) {
       Value* stack_state = stack_states_.Lookup(pc_);
       if (code_.is_open()) {
-        ASSERT((stack_state == nullptr) || (stack_state == B->stack_));
+        if (stack_state != B->stack_) {
+          ASSERT(stack_state == nullptr);
+          stack_states_.Insert(pc_, B->stack_);
+        }
         code_ += B->Goto(join);
       } else {
         ASSERT(IsStackEmpty());

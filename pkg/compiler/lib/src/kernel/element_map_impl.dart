@@ -77,6 +77,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
   Dart2jsConstantEvaluator _constantEvaluator;
+  ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   KProgramEnv env = new KProgramEnv();
@@ -125,6 +126,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     _constantEnvironment = new KernelConstantEnvironment(this, _environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
+    _constantValuefier = new ConstantValuefier(this);
   }
 
   @override
@@ -1031,7 +1033,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         }
         return null;
       } else {
-        return constant.accept(new ConstantValuefier(this));
+        return constant.accept(_constantValuefier);
       }
     }
 
@@ -1370,12 +1372,18 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       }
       ImpactData impactData = impactBuilderData.impactData;
       memberData.staticTypes = impactBuilderData.cachedStaticTypes;
-      KernelImpactConverter converter =
-          new KernelImpactConverter(this, member, reporter, options);
+      KernelImpactConverter converter = new KernelImpactConverter(
+          this, member, reporter, options, _constantValuefier);
       return converter.convert(impactData);
     } else {
       KernelImpactBuilder builder = new KernelImpactBuilder(
-          this, member, reporter, options, variableScopeModel, annotations);
+          this,
+          member,
+          reporter,
+          options,
+          variableScopeModel,
+          annotations,
+          _constantValuefier);
       if (retainDataForTesting) {
         typeMapsForTesting ??= {};
         typeMapsForTesting[member] = builder.typeMapsForTesting = {};

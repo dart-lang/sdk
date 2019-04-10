@@ -224,16 +224,6 @@ Fragment FlowGraphBuilder::AllocateObject(TokenPosition position,
   return Fragment(allocate);
 }
 
-Fragment FlowGraphBuilder::AllocateObject(const Class& klass,
-                                          const Function& closure_function) {
-  ArgumentArray arguments = new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 0);
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(TokenPosition::kNoSource, klass, arguments);
-  allocate->set_closure_function(closure_function);
-  Push(allocate);
-  return Fragment(allocate);
-}
-
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                            intptr_t handler_index,
                                            bool needs_stacktrace,
@@ -367,7 +357,12 @@ Fragment FlowGraphBuilder::InstanceCall(
   }
   if (call_site_attrs != nullptr && call_site_attrs->receiver_type != nullptr &&
       call_site_attrs->receiver_type->IsInstantiated()) {
-    call->set_static_receiver_type(call_site_attrs->receiver_type);
+    call->set_receivers_static_type(call_site_attrs->receiver_type);
+  } else if (!interface_target.IsNull()) {
+    const Class& owner = Class::Handle(Z, interface_target.Owner());
+    const AbstractType& type =
+        AbstractType::ZoneHandle(Z, owner.DeclarationType());
+    call->set_receivers_static_type(&type);
   }
   Push(call);
   return Fragment(call);
@@ -1068,9 +1063,7 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
     const Function& target) {
   Fragment fragment;
-  const Class& closure_class =
-      Class::ZoneHandle(Z, I->object_store()->closure_class());
-  fragment += AllocateObject(closure_class, target);
+  fragment += AllocateClosure(TokenPosition::kNoSource, target);
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.
@@ -1773,7 +1766,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop_body += LoadLocal(index);
     loop_body += SmiBinaryOp(Token::kSUB, /*truncate=*/true);
     loop_body += LoadFpRelativeSlot(
-        kWordSize * compiler::target::frame_layout.param_end_from_fp);
+        kWordSize * compiler::target::frame_layout.param_end_from_fp,
+        CompileType::Dynamic());
     loop_body += StoreIndexed(kArrayCid);
 
     // ++i

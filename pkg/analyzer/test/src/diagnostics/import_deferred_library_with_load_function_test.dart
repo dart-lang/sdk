@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -32,6 +31,21 @@ main() { lib1.f(); }''');
     assertTestErrors([HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
   }
 
+  test_deferredImport_withoutLoadLibraryFunction() async {
+    newFile('/pkg1/lib/lib1.dart', content: r'''
+library lib1;
+f() {}''');
+
+    newFile('/pkg1/lib/lib2.dart', content: r'''
+library root;
+import 'lib1.dart' deferred as lib1;
+main() { lib1.f(); }''');
+
+    await _resolveTestFile('/pkg1/lib/lib1.dart');
+    await _resolveTestFile('/pkg1/lib/lib2.dart');
+    assertNoTestErrors();
+  }
+
   test_nonDeferredImport_withLoadLibraryFunction() async {
     newFile('/pkg1/lib/lib1.dart', content: r'''
 library lib1;
@@ -41,21 +55,6 @@ f() {}''');
     newFile('/pkg1/lib/lib2.dart', content: r'''
 library root;
 import 'lib1.dart' as lib1;
-main() { lib1.f(); }''');
-
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    await _resolveTestFile('/pkg1/lib/lib2.dart');
-    assertNoTestErrors();
-  }
-
-  test_deferredImport_withoutLoadLibraryFunction() async {
-    newFile('/pkg1/lib/lib1.dart', content: r'''
-library lib1;
-f() {}''');
-
-    newFile('/pkg1/lib/lib2.dart', content: r'''
-library root;
-import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }''');
 
     await _resolveTestFile('/pkg1/lib/lib1.dart');

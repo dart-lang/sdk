@@ -9,7 +9,7 @@
 #include "vm/cpu_ia32.h"
 
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/constants_ia32.h"
+#include "vm/constants.h"
 #include "vm/cpuinfo.h"
 #include "vm/heap/heap.h"
 #include "vm/isolate.h"

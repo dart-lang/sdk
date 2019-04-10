@@ -878,6 +878,11 @@ main() { // missing async
     //super.test_expectedStringLiteral();
   }
 
+  void test_factory_issue_36400() {
+    parseCompilationUnit('class T { T factory T() { return null; } }',
+        errors: [expectedError(ParserErrorCode.TYPE_BEFORE_FACTORY, 10, 1)]);
+  }
+
   void test_getterNativeWithBody() {
     createParser('String get m native "str" => 0;');
     parser.parseClassMember('C') as MethodDeclaration;

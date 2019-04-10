@@ -43,7 +43,7 @@ TransformationInfo transformComponent(
 void _treeshakeProtos(Target target, Component component, CoreTypes coreTypes,
     TransformationInfo info) {
   globalTypeFlow.transformComponent(target, coreTypes, component);
-  final collector = _removeUnusedProtoReferences(component, coreTypes, info);
+  final collector = removeUnusedProtoReferences(component, coreTypes, info);
   if (collector == null) {
     return;
   }
@@ -59,7 +59,7 @@ void _treeshakeProtos(Target target, Component component, CoreTypes coreTypes,
   component.metadata.clear();
 }
 
-InfoCollector _removeUnusedProtoReferences(
+InfoCollector removeUnusedProtoReferences(
     Component component, CoreTypes coreTypes, TransformationInfo info) {
   final protobufUri = Uri.parse('package:protobuf/protobuf.dart');
   final protobufLibs =

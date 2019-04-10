@@ -7,6 +7,7 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -60,7 +61,7 @@ class ConditionalModification extends PotentialModification {
       this.discard, this.condition, this.thenStatement, this.elseStatement);
 
   @override
-  bool get isEmpty => discard.keepTrue.value && discard.keepFalse.value;
+  bool get isEmpty => discard.keepTrue && discard.keepFalse;
 
   @override
   Iterable<SourceEdit> get modifications {
@@ -72,10 +73,10 @@ class ConditionalModification extends PotentialModification {
     if (!discard.pureCondition) {
       keepNodes.add(condition); // TODO(paulberry): test
     }
-    if (discard.keepTrue.value) {
+    if (discard.keepTrue) {
       keepNodes.add(thenStatement); // TODO(paulberry): test
     }
-    if (discard.keepFalse.value) {
+    if (discard.keepFalse) {
       keepNodes.add(elseStatement); // TODO(paulberry): test
     }
     // TODO(paulberry): test thoroughly
@@ -196,19 +197,54 @@ class NullabilityMigrationAssumptions {
           NamedNoDefaultParameterHeuristic.assumeNullable});
 }
 
+/// Records information about the possible addition of an import
+/// to the source code.
+class PotentiallyAddImport extends PotentialModification {
+  final _usages = <PotentialModification>[];
+
+  final int _offset;
+  final String _importPath;
+
+  PotentiallyAddImport(
+      AstNode beforeNode, this._importPath, PotentialModification usage)
+      : _offset = beforeNode.offset {
+    _usages.add(usage);
+  }
+
+  get importPath => _importPath;
+
+  @override
+  bool get isEmpty {
+    for (PotentialModification usage in _usages) {
+      if (!usage.isEmpty) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // TODO(danrubel): change all of dartfix NNBD to use DartChangeBuilder
+  @override
+  Iterable<SourceEdit> get modifications =>
+      isEmpty ? const [] : [SourceEdit(_offset, 0, "import '$_importPath';\n")];
+
+  void addUsage(PotentialModification usage) {
+    _usages.add(usage);
+  }
+}
+
 /// Records information about the possible addition of a `@required` annotation
 /// to the source code.
 class PotentiallyAddRequired extends PotentialModification {
-  final ConstraintVariable _optionalVariable;
+  final NullabilityNode _node;
 
   final int _offset;
 
-  PotentiallyAddRequired(
-      DefaultFormalParameter parameter, this._optionalVariable)
+  PotentiallyAddRequired(DefaultFormalParameter parameter, this._node)
       : _offset = parameter.offset;
 
   @override
-  bool get isEmpty => _optionalVariable.value;
+  bool get isEmpty => _node.isNullable;
 
   @override
   Iterable<SourceEdit> get modifications =>
@@ -264,10 +300,57 @@ class Variables implements VariableRecorder, VariableRepository {
   }
 
   @override
-  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
-      ConstraintVariable variable) {
+  void recordPossiblyOptional(
+      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
+    var modification = PotentiallyAddRequired(parameter, node);
+    _addPotentialModification(source, modification);
+    _addPotentialImport(
+        source, parameter, modification, 'package:meta/meta.dart');
+  }
+
+  void _addPotentialImport(Source source, AstNode node,
+      PotentialModification usage, String importPath) {
+    // Get the compilation unit - assume not null
+    while (node is! CompilationUnit) {
+      node = node.parent;
+    }
+    var unit = node as CompilationUnit;
+
+    // Find an existing import
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective) {
+        if (directive.uri.stringValue == importPath) {
+          return;
+        }
+      }
+    }
+
+    // Add the usage to an existing modification if possible
+    for (var modification in (_potentialModifications[source] ??= [])) {
+      if (modification is PotentiallyAddImport) {
+        if (modification.importPath == importPath) {
+          modification.addUsage(usage);
+          return;
+        }
+      }
+    }
+
+    // Create a new import modification
+    AstNode beforeNode;
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective || directive is ExportDirective) {
+        beforeNode = directive;
+        break;
+      }
+    }
+    if (beforeNode == null) {
+      for (var declaration in unit.declarations) {
+        beforeNode = declaration;
+        break;
+      }
+    }
     _addPotentialModification(
-        source, PotentiallyAddRequired(parameter, variable));
+        source, PotentiallyAddImport(beforeNode, importPath, usage));
   }
 
   void _addPotentialModification(

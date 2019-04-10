@@ -39,7 +39,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /**
    * The completion services that the client is currently subscribed.
    */
-  final Set<CompletionService> _subscriptions = Set<CompletionService>();
+  final Set<CompletionService> subscriptions = Set<CompletionService>();
 
   /**
    * The next completion response id.
@@ -365,7 +365,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // create the kinds set, so signal the completion manager about opt-in.
     Set<ElementKind> includedElementKinds;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
-    if (_subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+    if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
       includedElementKinds = Set<ElementKind>();
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
@@ -461,10 +461,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Response setSubscriptions(Request request) {
     var params = CompletionSetSubscriptionsParams.fromRequest(request);
 
-    _subscriptions.clear();
-    _subscriptions.addAll(params.subscriptions);
+    subscriptions.clear();
+    subscriptions.addAll(params.subscriptions);
 
-    if (_subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+    if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
       server.createDeclarationsTracker((change) {
         server.sendNotification(
           createCompletionAvailableSuggestionsNotification(change),

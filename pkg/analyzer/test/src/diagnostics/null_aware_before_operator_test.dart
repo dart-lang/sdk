@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -16,14 +15,6 @@ main() {
 
 @reflectiveTest
 class NullAwareBeforeOperatorTest extends DriverResolutionTest {
-  test_minus() async {
-    await assertErrorsInCode(r'''
-m(x) {
-  x?.a - '';
-}
-''', [HintCode.NULL_AWARE_BEFORE_OPERATOR]);
-  }
-
   test_assignment() async {
     await assertNoErrorsInCode(r'''
 m(x) {
@@ -54,6 +45,14 @@ m(x) {
   x?.a is! String;
 }
 ''');
+  }
+
+  test_minus() async {
+    await assertErrorsInCode(r'''
+m(x) {
+  x?.a - '';
+}
+''', [HintCode.NULL_AWARE_BEFORE_OPERATOR]);
   }
 
   test_not_equal() async {

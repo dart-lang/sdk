@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
@@ -41,9 +41,7 @@ void _assertCode(ParseBase base, String code) {
   code = code.replaceAll('\r', '\n');
 
   LineInfo lineInfo;
-  LinkedNodeReferences nodeReferences;
-  UnlinkedTokens unlinkedTokens;
-  LinkedNode unitLinkedNode;
+  LinkedNodeUnit linkedNodeUnit;
   {
     var path = base.newFile('/home/test/lib/test.dart', content: code).path;
 
@@ -73,22 +71,31 @@ void _assertCode(ParseBase base, String code) {
 
     var linkingBundleContext = LinkingBundleContext(dynamicRef);
     var writer = new AstBinaryWriter(linkingBundleContext, tokensContext);
-    unitLinkedNode = writer.writeNode(originalUnit);
+    var unitLinkedNode = writer.writeNode(originalUnit);
 
-    unlinkedTokens = tokensResult.tokens;
-    nodeReferences = linkingBundleContext.referencesBuilder;
+    linkedNodeUnit = LinkedNodeUnitBuilder(
+      node: unitLinkedNode,
+      tokens: tokensResult.tokens,
+    );
   }
 
   var rootReference = Reference.root();
   var bundleContext = LinkedBundleContext(
     LinkedElementFactory(null, null, rootReference),
-    nodeReferences,
+    LinkedNodeBundleBuilder(
+      references: LinkedNodeReferencesBuilder(name: ['']),
+    ),
   );
-  var tokensContext = TokensContext(unlinkedTokens);
-  var unitContext = LinkedUnitContext(bundleContext, tokensContext);
+  var unitContext = LinkedUnitContext(
+    bundleContext,
+    null,
+    0,
+    null,
+    linkedNodeUnit,
+  );
 
   var reader = AstBinaryReader(unitContext);
-  var deserializedUnit = reader.readNode(unitLinkedNode);
+  var deserializedUnit = reader.readNode(linkedNodeUnit.node);
 
   var buffer = StringBuffer();
   deserializedUnit.accept(

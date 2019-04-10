@@ -55,6 +55,7 @@ static const int kFunctionSlotFromFp = -4;
 // these indices during code generation in the backend.
 static const int kParamEndSlotFromFp = 4;  // One slot past last parameter.
 static const int kFirstLocalSlotFromFp = -1;
+static const int kLastParamSlotFromEntrySp = 0;  // Should not be used on DBC.
 
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
                                                 intptr_t var_index) {

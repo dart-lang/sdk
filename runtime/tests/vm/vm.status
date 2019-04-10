@@ -267,7 +267,6 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 # Tests that use functionality not supported in Dart 2.
 [ ($compiler == dartk || $compiler == dartkb) || $compiler == dartkp ]
 cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
-cc/CompileFunctionOnHelperThread: SkipByDesign
 cc/CompileFunction: SkipByDesign
 cc/InvokeDynamic_CompileError: SkipByDesign
 cc/InvokeStatic_CompileError: SkipByDesign
@@ -299,3 +298,9 @@ dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Does
 
 [ $compiler == dartkp ]
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
+
+[ $compiler == dartkb ]
+cc/*: Skip # Bytecode modes are not properly hooked up in run_vm_tests.
+
+[ $mode == debug ]
+cc/IRTest_TypedDataAOT_FunctionalGetSet: Skip # run_vm_tests contains JIT/AOT but FLAG_precompiled_mode is not always correct. This causes this test to fail in debug mode, hitting an assertion. See http://dartbug.com/36521

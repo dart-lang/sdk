@@ -5,9 +5,13 @@
 #ifndef RUNTIME_VM_CONSTANTS_IA32_H_
 #define RUNTIME_VM_CONSTANTS_IA32_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_ia32.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
 
-namespace dart {
+namespace arch_ia32 {
 
 enum Register {
   EAX = 0,
@@ -88,7 +92,7 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+  TIMES_HALF_WORD_SIZE = ::dart::kWordSizeLog2 - 1
 };
 
 class Instr {
@@ -107,7 +111,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -142,6 +146,6 @@ class CallingConventions {
   static constexpr Register kSecondNonArgumentRegister = ECX;
 };
 
-}  // namespace dart
+}  // namespace arch_ia32
 
 #endif  // RUNTIME_VM_CONSTANTS_IA32_H_

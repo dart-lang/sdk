@@ -30,6 +30,7 @@ class BoxIntegerInstr;
 class BufferFormatter;
 class CallTargets;
 class CatchBlockEntryInstr;
+class CheckBoundBase;
 class ComparisonInstr;
 class Definition;
 class Environment;
@@ -117,7 +118,8 @@ class Value : public ZoneAllocated {
 
   CompileType* Type();
 
-  void SetReachingType(CompileType* type) { reaching_type_ = type; }
+  CompileType* reaching_type() const { return reaching_type_; }
+  void SetReachingType(CompileType* type);
   void RefineReachingType(CompileType* type);
 
   void PrintTo(BufferFormatter* f) const;
@@ -758,6 +760,7 @@ class Instruction : public ZoneAllocated {
   DECLARE_INSTRUCTION_TYPE_CHECK(Definition, Definition)
   DECLARE_INSTRUCTION_TYPE_CHECK(BlockEntryWithInitialDefs,
                                  BlockEntryWithInitialDefs)
+  DECLARE_INSTRUCTION_TYPE_CHECK(CheckBoundBase, CheckBoundBase)
   FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
@@ -1839,7 +1842,9 @@ class Definition : public Instruction {
   // propagation during graph building.
   CompileType* Type() {
     if (type_ == NULL) {
-      type_ = new CompileType(ComputeType());
+      auto type = new CompileType(ComputeType());
+      type->set_owner(this);
+      set_type(type);
     }
     return type_;
   }
@@ -1865,8 +1870,10 @@ class Definition : public Instruction {
   PRINT_TO_SUPPORT
 
   bool UpdateType(CompileType new_type) {
-    if (type_ == NULL) {
-      type_ = new CompileType(new_type);
+    if (type_ == nullptr) {
+      auto type = new CompileType(new_type);
+      type->set_owner(this);
+      set_type(type);
       return true;
     }
 
@@ -1964,16 +1971,27 @@ class Definition : public Instruction {
   friend class RangeAnalysis;
   friend class Value;
 
-  Range* range_;
-  CompileType* type_;
+  Range* range_ = nullptr;
+
+  void set_type(CompileType* type) {
+    ASSERT(type->owner() == this);
+    type_ = type;
+  }
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  const char* TypeAsCString() const {
+    return HasType() ? type_->ToCString() : "";
+  }
+#endif
 
  private:
-  intptr_t temp_index_;
-  intptr_t ssa_temp_index_;
-  Value* input_use_list_;
-  Value* env_use_list_;
+  intptr_t temp_index_ = -1;
+  intptr_t ssa_temp_index_ = -1;
+  Value* input_use_list_ = nullptr;
+  Value* env_use_list_ = nullptr;
 
-  Object* constant_value_;
+  Object* constant_value_ = nullptr;
+  CompileType* type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -2111,6 +2129,12 @@ class PhiInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
 
+// This instruction represents an incomming parameter for a function entry,
+// or incomming value for OSR entry or incomming value for a catch entry.
+// When [base_reg] is set to FPREG [index] corresponds to environment
+// variable index (0 is the very first parameter, 1 is next and so on).
+// When [base_reg] is set to SPREG [index] corresponds to SP relative parameter
+// indices (0 is the very last parameter, 1 is next and so on).
 class ParameterInstr : public Definition {
  public:
   ParameterInstr(intptr_t index,
@@ -2220,7 +2244,9 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  LoadIndexedUnsafeInstr(Value* index, intptr_t offset) : offset_(offset) {
+  LoadIndexedUnsafeInstr(Value* index, intptr_t offset, CompileType result_type)
+      : offset_(offset) {
+    UpdateType(result_type);
     SetInputAt(0, index);
   }
 
@@ -2775,6 +2801,8 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
   CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
@@ -3299,9 +3327,9 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
   const Function& interface_target() const { return interface_target_; }
 
-  void set_static_receiver_type(const AbstractType* receiver_type) {
-    ASSERT(receiver_type != nullptr && receiver_type->IsInstantiated());
-    static_receiver_type_ = receiver_type;
+  void set_receivers_static_type(const AbstractType* receiver_type) {
+    ASSERT(receiver_type != nullptr);
+    receivers_static_type_ = receiver_type;
   }
 
   bool has_unique_selector() const { return has_unique_selector_; }
@@ -3362,7 +3390,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
 
-  const AbstractType* static_receiver_type_ = nullptr;
+  const AbstractType* receivers_static_type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -4695,7 +4723,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
                     intptr_t class_id,
                     AlignmentType alignment,
                     intptr_t deopt_id,
-                    TokenPosition token_pos);
+                    TokenPosition token_pos,
+                    SpeculativeMode speculative_mode = kGuardInputs);
   DECLARE_INSTRUCTION(StoreIndexed)
 
   enum { kArrayPos = 0, kIndexPos = 1, kValuePos = 2 };
@@ -4718,6 +4747,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
     return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
+
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -4745,6 +4776,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   const intptr_t class_id_;
   const AlignmentType alignment_;
   const TokenPosition token_pos_;
+  const SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
@@ -6247,6 +6279,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -6994,8 +7027,10 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  DoubleToFloatInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
+  DoubleToFloatInstr(Value* value,
+                     intptr_t deopt_id,
+                     SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateDefinition(deopt_id), speculative_mode_(speculative_mode) {
     SetInputAt(0, value);
   }
 
@@ -7020,6 +7055,8 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
@@ -7027,6 +7064,8 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
+  const SpeculativeMode speculative_mode_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
 };
 
@@ -7380,23 +7419,40 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
 
-// Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
-// returns the "safe" index when
-//   0 <= index < length
-// or otherwise deoptimizes (viz. speculative).
-class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
+// Base class for speculative [CheckArrayBoundInstr] and
+// [GenericCheckBoundInstr]
+class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
  public:
-  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        generalized_(false),
-        licm_hoisted_(false) {
+  CheckBoundBase(Value* length, Value* index, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
   }
 
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
+
+  virtual bool IsCheckBoundBase() { return true; }
+  virtual CheckBoundBase* AsCheckBoundBase() { return this; }
+
+  // Give a name to the location/input indices.
+  enum { kLengthPos = 0, kIndexPos = 1 };
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CheckBoundBase);
+};
+
+// Performs an array bounds check, where
+//   safe_index := CheckArrayBound(length, index)
+// returns the "safe" index when
+//   0 <= index < length
+// or otherwise deoptimizes (viz. speculative).
+class CheckArrayBoundInstr : public CheckBoundBase {
+ public:
+  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
+      : CheckBoundBase(length, index, deopt_id),
+        generalized_(false),
+        licm_hoisted_(false) {}
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
@@ -7420,9 +7476,6 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
-  // Give a name to the location/input indices.
-  enum { kLengthPos = 0, kIndexPos = 1 };
-
  private:
   bool generalized_;
   bool licm_hoisted_;
@@ -7431,20 +7484,14 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 };
 
 // Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
+//   safe_index := GenericCheckBound(length, index)
 // returns the "safe" index when
 //   0 <= index < length
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
-class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, Pure> {
+class GenericCheckBoundInstr : public CheckBoundBase {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(kLengthPos, length);
-    SetInputAt(kIndexPos, index);
-  }
-
-  Value* length() const { return inputs_[kLengthPos]; }
-  Value* index() const { return inputs_[kIndexPos]; }
+      : CheckBoundBase(length, index, deopt_id) {}
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -7458,9 +7505,6 @@ class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, Pure> {
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
-
-  // Give a name to the location/input indices.
-  enum { kLengthPos = 0, kIndexPos = 1 };
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);

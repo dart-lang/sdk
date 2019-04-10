@@ -322,7 +322,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
   String get exception => _exception ??= '';
 
   /// The exception string.
-  void set exception(String value) {
+  set exception(String value) {
     this._exception = value;
   }
 
@@ -331,7 +331,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
       _files ??= <AnalysisDriverExceptionFileBuilder>[];
 
   /// The state of files when the exception happened.
-  void set files(List<AnalysisDriverExceptionFileBuilder> value) {
+  set files(List<AnalysisDriverExceptionFileBuilder> value) {
     this._files = value;
   }
 
@@ -339,7 +339,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
   String get path => _path ??= '';
 
   /// The path of the file being analyzed when the exception happened.
-  void set path(String value) {
+  set path(String value) {
     this._path = value;
   }
 
@@ -347,7 +347,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
   String get stackTrace => _stackTrace ??= '';
 
   /// The exception stack trace string.
-  void set stackTrace(String value) {
+  set stackTrace(String value) {
     this._stackTrace = value;
   }
 
@@ -361,16 +361,12 @@ class AnalysisDriverExceptionContextBuilder extends Object
         _path = path,
         _stackTrace = stackTrace;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _files?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._path ?? '');
     signature.addString(this._exception ?? '');
@@ -517,7 +513,7 @@ class AnalysisDriverExceptionFileBuilder extends Object
   String get content => _content ??= '';
 
   /// The content of the file.
-  void set content(String value) {
+  set content(String value) {
     this._content = value;
   }
 
@@ -525,7 +521,7 @@ class AnalysisDriverExceptionFileBuilder extends Object
   String get path => _path ??= '';
 
   /// The path of the file.
-  void set path(String value) {
+  set path(String value) {
     this._path = value;
   }
 
@@ -533,14 +529,10 @@ class AnalysisDriverExceptionFileBuilder extends Object
       : _content = content,
         _path = path;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._path ?? '');
     signature.addString(this._content ?? '');
@@ -631,7 +623,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
       _errors ??= <AnalysisDriverUnitErrorBuilder>[];
 
   /// The full list of analysis errors, both syntactic and semantic.
-  void set errors(List<AnalysisDriverUnitErrorBuilder> value) {
+  set errors(List<AnalysisDriverUnitErrorBuilder> value) {
     this._errors = value;
   }
 
@@ -639,7 +631,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
   AnalysisDriverUnitIndexBuilder get index => _index;
 
   /// The index of the unit.
-  void set index(AnalysisDriverUnitIndexBuilder value) {
+  set index(AnalysisDriverUnitIndexBuilder value) {
     this._index = value;
   }
 
@@ -649,17 +641,13 @@ class AnalysisDriverResolvedUnitBuilder extends Object
       : _errors = errors,
         _index = index;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _errors?.forEach((b) => b.flushInformative());
     _index?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._errors == null) {
       signature.addInt(0);
@@ -775,7 +763,7 @@ class AnalysisDriverSubtypeBuilder extends Object
   /// The names of defined instance members.
   /// They are indexes into [AnalysisDriverUnitError.strings] list.
   /// The list is sorted in ascending order.
-  void set members(List<int> value) {
+  set members(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._members = value;
   }
@@ -785,7 +773,7 @@ class AnalysisDriverSubtypeBuilder extends Object
 
   /// The name of the class.
   /// It is an index into [AnalysisDriverUnitError.strings] list.
-  void set name(int value) {
+  set name(int value) {
     assert(value == null || value >= 0);
     this._name = value;
   }
@@ -794,14 +782,10 @@ class AnalysisDriverSubtypeBuilder extends Object
       : _members = members,
         _name = name;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._name ?? 0);
     if (this._members == null) {
@@ -897,7 +881,7 @@ class AnalysisDriverUnitErrorBuilder extends Object
   String get correction => _correction ??= '';
 
   /// The optional correction hint for the error.
-  void set correction(String value) {
+  set correction(String value) {
     this._correction = value;
   }
 
@@ -905,7 +889,7 @@ class AnalysisDriverUnitErrorBuilder extends Object
   int get length => _length ??= 0;
 
   /// The length of the error in the file.
-  void set length(int value) {
+  set length(int value) {
     assert(value == null || value >= 0);
     this._length = value;
   }
@@ -914,7 +898,7 @@ class AnalysisDriverUnitErrorBuilder extends Object
   String get message => _message ??= '';
 
   /// The message of the error.
-  void set message(String value) {
+  set message(String value) {
     this._message = value;
   }
 
@@ -922,7 +906,7 @@ class AnalysisDriverUnitErrorBuilder extends Object
   int get offset => _offset ??= 0;
 
   /// The offset from the beginning of the file.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value == null || value >= 0);
     this._offset = value;
   }
@@ -931,7 +915,7 @@ class AnalysisDriverUnitErrorBuilder extends Object
   String get uniqueName => _uniqueName ??= '';
 
   /// The unique name of the error code.
-  void set uniqueName(String value) {
+  set uniqueName(String value) {
     this._uniqueName = value;
   }
 
@@ -947,14 +931,10 @@ class AnalysisDriverUnitErrorBuilder extends Object
         _offset = offset,
         _uniqueName = uniqueName;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._offset ?? 0);
     signature.addInt(this._length ?? 0);
@@ -1106,7 +1086,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the kind of the synthetic element.
-  void set elementKinds(List<idl.IndexSyntheticElementKind> value) {
+  set elementKinds(List<idl.IndexSyntheticElementKind> value) {
     this._elementKinds = value;
   }
 
@@ -1119,7 +1099,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// is a top-level element.  The list is sorted in ascending order, so that
   /// the client can quickly check whether an element is referenced in this
   /// index.
-  void set elementNameClassMemberIds(List<int> value) {
+  set elementNameClassMemberIds(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementNameClassMemberIds = value;
   }
@@ -1131,7 +1111,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// the identifier of the named parameter name, or `null` if the element is
   /// not a named parameter.  The list is sorted in ascending order, so that the
   /// client can quickly check whether an element is referenced in this index.
-  void set elementNameParameterIds(List<int> value) {
+  set elementNameParameterIds(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementNameParameterIds = value;
   }
@@ -1144,7 +1124,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// the identifier of the top-level element name, or `null` if the element is
   /// the unit.  The list is sorted in ascending order, so that the client can
   /// quickly check whether an element is referenced in this index.
-  void set elementNameUnitMemberIds(List<int> value) {
+  set elementNameUnitMemberIds(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementNameUnitMemberIds = value;
   }
@@ -1155,7 +1135,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the index into [unitLibraryUris] and [unitUnitUris] for the library
   /// specific unit where the element is declared.
-  void set elementUnits(List<int> value) {
+  set elementUnits(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementUnits = value;
   }
@@ -1164,7 +1144,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   int get nullStringId => _nullStringId ??= 0;
 
   /// Identifier of the null string in [strings].
-  void set nullStringId(int value) {
+  set nullStringId(int value) {
     assert(value == null || value >= 0);
     this._nullStringId = value;
   }
@@ -1175,7 +1155,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// List of unique element strings used in this index.  The list is sorted in
   /// ascending order, so that the client can quickly check the presence of a
   /// string in this index.
-  void set strings(List<String> value) {
+  set strings(List<String> value) {
     this._strings = value;
   }
 
@@ -1184,7 +1164,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
       _subtypes ??= <AnalysisDriverSubtypeBuilder>[];
 
   /// The list of classes declared in the unit.
-  void set subtypes(List<AnalysisDriverSubtypeBuilder> value) {
+  set subtypes(List<AnalysisDriverSubtypeBuilder> value) {
     this._subtypes = value;
   }
 
@@ -1195,7 +1175,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// in [subtypes].  They are indexes into [strings] list. The list is sorted
   /// in ascending order.  There might be more than one element with the same
   /// value if there is more than one subtype of this supertype.
-  void set supertypes(List<int> value) {
+  set supertypes(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._supertypes = value;
   }
@@ -1206,7 +1186,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// Each item of this list corresponds to the library URI of a unique library
   /// specific unit referenced in the index.  It is an index into [strings]
   /// list.
-  void set unitLibraryUris(List<int> value) {
+  set unitLibraryUris(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._unitLibraryUris = value;
   }
@@ -1217,7 +1197,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// Each item of this list corresponds to the unit URI of a unique library
   /// specific unit referenced in the index.  It is an index into [strings]
   /// list.
-  void set unitUnitUris(List<int> value) {
+  set unitUnitUris(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._unitUnitUris = value;
   }
@@ -1228,7 +1208,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 
   /// Each item of this list is the `true` if the corresponding element usage
   /// is qualified with some prefix.
-  void set usedElementIsQualifiedFlags(List<bool> value) {
+  set usedElementIsQualifiedFlags(List<bool> value) {
     this._usedElementIsQualifiedFlags = value;
   }
 
@@ -1237,7 +1217,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
       _usedElementKinds ??= <idl.IndexRelationKind>[];
 
   /// Each item of this list is the kind of the element usage.
-  void set usedElementKinds(List<idl.IndexRelationKind> value) {
+  set usedElementKinds(List<idl.IndexRelationKind> value) {
     this._usedElementKinds = value;
   }
 
@@ -1245,7 +1225,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   List<int> get usedElementLengths => _usedElementLengths ??= <int>[];
 
   /// Each item of this list is the length of the element usage.
-  void set usedElementLengths(List<int> value) {
+  set usedElementLengths(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedElementLengths = value;
   }
@@ -1255,7 +1235,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 
   /// Each item of this list is the offset of the element usage relative to the
   /// beginning of the file.
-  void set usedElementOffsets(List<int> value) {
+  set usedElementOffsets(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedElementOffsets = value;
   }
@@ -1267,7 +1247,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// [elementNameUnitMemberIds], [elementNameClassMemberIds] and
   /// [elementNameParameterIds].  The list is sorted in ascending order, so
   /// that the client can quickly find element references in this index.
-  void set usedElements(List<int> value) {
+  set usedElements(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedElements = value;
   }
@@ -1278,7 +1258,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 
   /// Each item of this list is the `true` if the corresponding name usage
   /// is qualified with some prefix.
-  void set usedNameIsQualifiedFlags(List<bool> value) {
+  set usedNameIsQualifiedFlags(List<bool> value) {
     this._usedNameIsQualifiedFlags = value;
   }
 
@@ -1287,7 +1267,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
       _usedNameKinds ??= <idl.IndexRelationKind>[];
 
   /// Each item of this list is the kind of the name usage.
-  void set usedNameKinds(List<idl.IndexRelationKind> value) {
+  set usedNameKinds(List<idl.IndexRelationKind> value) {
     this._usedNameKinds = value;
   }
 
@@ -1296,7 +1276,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 
   /// Each item of this list is the offset of the name usage relative to the
   /// beginning of the file.
-  void set usedNameOffsets(List<int> value) {
+  set usedNameOffsets(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedNameOffsets = value;
   }
@@ -1307,7 +1287,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   /// Each item of this list is the index into [strings] for a used name.  The
   /// list is sorted in ascending order, so that the client can quickly find
   /// whether a name is used in this index.
-  void set usedNames(List<int> value) {
+  set usedNames(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedNames = value;
   }
@@ -1354,16 +1334,12 @@ class AnalysisDriverUnitIndexBuilder extends Object
         _usedNameOffsets = usedNameOffsets,
         _usedNames = usedNames;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _subtypes?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._strings == null) {
       signature.addInt(0);
@@ -1960,7 +1936,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
       _definedClassMemberNames ??= <String>[];
 
   /// List of class member names defined by the unit.
-  void set definedClassMemberNames(List<String> value) {
+  set definedClassMemberNames(List<String> value) {
     this._definedClassMemberNames = value;
   }
 
@@ -1968,7 +1944,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   List<String> get definedTopLevelNames => _definedTopLevelNames ??= <String>[];
 
   /// List of top-level names defined by the unit.
-  void set definedTopLevelNames(List<String> value) {
+  set definedTopLevelNames(List<String> value) {
     this._definedTopLevelNames = value;
   }
 
@@ -1976,7 +1952,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   List<String> get referencedNames => _referencedNames ??= <String>[];
 
   /// List of external names referenced by the unit.
-  void set referencedNames(List<String> value) {
+  set referencedNames(List<String> value) {
     this._referencedNames = value;
   }
 
@@ -1985,7 +1961,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
 
   /// List of names which are used in `extends`, `with` or `implements` clauses
   /// in the file. Import prefixes and type arguments are not included.
-  void set subtypedNames(List<String> value) {
+  set subtypedNames(List<String> value) {
     this._subtypedNames = value;
   }
 
@@ -1993,7 +1969,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   UnlinkedUnitBuilder get unit => _unit;
 
   /// Unlinked information for the unit.
-  void set unit(UnlinkedUnitBuilder value) {
+  set unit(UnlinkedUnitBuilder value) {
     this._unit = value;
   }
 
@@ -2009,16 +1985,12 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
         _subtypedNames = subtypedNames,
         _unit = unit;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _unit?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._referencedNames == null) {
       signature.addInt(0);
@@ -2208,6 +2180,7 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
 class AvailableDeclarationBuilder extends Object
     with _AvailableDeclarationMixin
     implements idl.AvailableDeclaration {
+  List<AvailableDeclarationBuilder> _children;
   String _defaultArgumentListString;
   List<int> _defaultArgumentListTextRanges;
   String _docComplete;
@@ -2222,7 +2195,6 @@ class AvailableDeclarationBuilder extends Object
   int _locationStartColumn;
   int _locationStartLine;
   String _name;
-  String _name2;
   List<String> _parameterNames;
   String _parameters;
   List<String> _parameterTypes;
@@ -2232,9 +2204,17 @@ class AvailableDeclarationBuilder extends Object
   String _typeParameters;
 
   @override
+  List<AvailableDeclarationBuilder> get children =>
+      _children ??= <AvailableDeclarationBuilder>[];
+
+  set children(List<AvailableDeclarationBuilder> value) {
+    this._children = value;
+  }
+
+  @override
   String get defaultArgumentListString => _defaultArgumentListString ??= '';
 
-  void set defaultArgumentListString(String value) {
+  set defaultArgumentListString(String value) {
     this._defaultArgumentListString = value;
   }
 
@@ -2242,7 +2222,7 @@ class AvailableDeclarationBuilder extends Object
   List<int> get defaultArgumentListTextRanges =>
       _defaultArgumentListTextRanges ??= <int>[];
 
-  void set defaultArgumentListTextRanges(List<int> value) {
+  set defaultArgumentListTextRanges(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._defaultArgumentListTextRanges = value;
   }
@@ -2250,21 +2230,21 @@ class AvailableDeclarationBuilder extends Object
   @override
   String get docComplete => _docComplete ??= '';
 
-  void set docComplete(String value) {
+  set docComplete(String value) {
     this._docComplete = value;
   }
 
   @override
   String get docSummary => _docSummary ??= '';
 
-  void set docSummary(String value) {
+  set docSummary(String value) {
     this._docSummary = value;
   }
 
   @override
   int get fieldMask => _fieldMask ??= 0;
 
-  void set fieldMask(int value) {
+  set fieldMask(int value) {
     assert(value == null || value >= 0);
     this._fieldMask = value;
   }
@@ -2272,28 +2252,28 @@ class AvailableDeclarationBuilder extends Object
   @override
   bool get isAbstract => _isAbstract ??= false;
 
-  void set isAbstract(bool value) {
+  set isAbstract(bool value) {
     this._isAbstract = value;
   }
 
   @override
   bool get isConst => _isConst ??= false;
 
-  void set isConst(bool value) {
+  set isConst(bool value) {
     this._isConst = value;
   }
 
   @override
   bool get isDeprecated => _isDeprecated ??= false;
 
-  void set isDeprecated(bool value) {
+  set isDeprecated(bool value) {
     this._isDeprecated = value;
   }
 
   @override
   bool get isFinal => _isFinal ??= false;
 
-  void set isFinal(bool value) {
+  set isFinal(bool value) {
     this._isFinal = value;
   }
 
@@ -2302,14 +2282,14 @@ class AvailableDeclarationBuilder extends Object
       _kind ??= idl.AvailableDeclarationKind.CLASS;
 
   /// The kind of the declaration.
-  void set kind(idl.AvailableDeclarationKind value) {
+  set kind(idl.AvailableDeclarationKind value) {
     this._kind = value;
   }
 
   @override
   int get locationOffset => _locationOffset ??= 0;
 
-  void set locationOffset(int value) {
+  set locationOffset(int value) {
     assert(value == null || value >= 0);
     this._locationOffset = value;
   }
@@ -2317,7 +2297,7 @@ class AvailableDeclarationBuilder extends Object
   @override
   int get locationStartColumn => _locationStartColumn ??= 0;
 
-  void set locationStartColumn(int value) {
+  set locationStartColumn(int value) {
     assert(value == null || value >= 0);
     this._locationStartColumn = value;
   }
@@ -2325,7 +2305,7 @@ class AvailableDeclarationBuilder extends Object
   @override
   int get locationStartLine => _locationStartLine ??= 0;
 
-  void set locationStartLine(int value) {
+  set locationStartLine(int value) {
     assert(value == null || value >= 0);
     this._locationStartLine = value;
   }
@@ -2335,37 +2315,28 @@ class AvailableDeclarationBuilder extends Object
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
-  }
-
-  @override
-  String get name2 => _name2 ??= '';
-
-  /// The second, optional, part of the declaration name.  For example enum
-  /// constants all have the same [name], but their own [name2].
-  void set name2(String value) {
-    this._name2 = value;
   }
 
   @override
   List<String> get parameterNames => _parameterNames ??= <String>[];
 
-  void set parameterNames(List<String> value) {
+  set parameterNames(List<String> value) {
     this._parameterNames = value;
   }
 
   @override
   String get parameters => _parameters ??= '';
 
-  void set parameters(String value) {
+  set parameters(String value) {
     this._parameters = value;
   }
 
   @override
   List<String> get parameterTypes => _parameterTypes ??= <String>[];
 
-  void set parameterTypes(List<String> value) {
+  set parameterTypes(List<String> value) {
     this._parameterTypes = value;
   }
 
@@ -2376,14 +2347,14 @@ class AvailableDeclarationBuilder extends Object
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  void set relevanceTags(List<String> value) {
+  set relevanceTags(List<String> value) {
     this._relevanceTags = value;
   }
 
   @override
   int get requiredParameterCount => _requiredParameterCount ??= 0;
 
-  void set requiredParameterCount(int value) {
+  set requiredParameterCount(int value) {
     assert(value == null || value >= 0);
     this._requiredParameterCount = value;
   }
@@ -2391,19 +2362,20 @@ class AvailableDeclarationBuilder extends Object
   @override
   String get returnType => _returnType ??= '';
 
-  void set returnType(String value) {
+  set returnType(String value) {
     this._returnType = value;
   }
 
   @override
   String get typeParameters => _typeParameters ??= '';
 
-  void set typeParameters(String value) {
+  set typeParameters(String value) {
     this._typeParameters = value;
   }
 
   AvailableDeclarationBuilder(
-      {String defaultArgumentListString,
+      {List<AvailableDeclarationBuilder> children,
+      String defaultArgumentListString,
       List<int> defaultArgumentListTextRanges,
       String docComplete,
       String docSummary,
@@ -2417,7 +2389,6 @@ class AvailableDeclarationBuilder extends Object
       int locationStartColumn,
       int locationStartLine,
       String name,
-      String name2,
       List<String> parameterNames,
       String parameters,
       List<String> parameterTypes,
@@ -2425,7 +2396,8 @@ class AvailableDeclarationBuilder extends Object
       int requiredParameterCount,
       String returnType,
       String typeParameters})
-      : _defaultArgumentListString = defaultArgumentListString,
+      : _children = children,
+        _defaultArgumentListString = defaultArgumentListString,
         _defaultArgumentListTextRanges = defaultArgumentListTextRanges,
         _docComplete = docComplete,
         _docSummary = docSummary,
@@ -2439,7 +2411,6 @@ class AvailableDeclarationBuilder extends Object
         _locationStartColumn = locationStartColumn,
         _locationStartLine = locationStartLine,
         _name = name,
-        _name2 = name2,
         _parameterNames = parameterNames,
         _parameters = parameters,
         _parameterTypes = parameterTypes,
@@ -2448,15 +2419,21 @@ class AvailableDeclarationBuilder extends Object
         _returnType = returnType,
         _typeParameters = typeParameters;
 
-  /**
-   * Flush [informative] data recursively.
-   */
-  void flushInformative() {}
+  /// Flush [informative] data recursively.
+  void flushInformative() {
+    _children?.forEach((b) => b.flushInformative());
+  }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._children == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._children.length);
+      for (var x in this._children) {
+        x?.collectApiSignature(signature);
+      }
+    }
     signature.addString(this._defaultArgumentListString ?? '');
     if (this._defaultArgumentListTextRanges == null) {
       signature.addInt(0);
@@ -2478,7 +2455,6 @@ class AvailableDeclarationBuilder extends Object
     signature.addInt(this._locationStartColumn ?? 0);
     signature.addInt(this._locationStartLine ?? 0);
     signature.addString(this._name ?? '');
-    signature.addString(this._name2 ?? '');
     if (this._parameterNames == null) {
       signature.addInt(0);
     } else {
@@ -2510,18 +2486,22 @@ class AvailableDeclarationBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_children;
     fb.Offset offset_defaultArgumentListString;
     fb.Offset offset_defaultArgumentListTextRanges;
     fb.Offset offset_docComplete;
     fb.Offset offset_docSummary;
     fb.Offset offset_name;
-    fb.Offset offset_name2;
     fb.Offset offset_parameterNames;
     fb.Offset offset_parameters;
     fb.Offset offset_parameterTypes;
     fb.Offset offset_relevanceTags;
     fb.Offset offset_returnType;
     fb.Offset offset_typeParameters;
+    if (!(_children == null || _children.isEmpty)) {
+      offset_children = fbBuilder
+          .writeList(_children.map((b) => b.finish(fbBuilder)).toList());
+    }
     if (_defaultArgumentListString != null) {
       offset_defaultArgumentListString =
           fbBuilder.writeString(_defaultArgumentListString);
@@ -2539,9 +2519,6 @@ class AvailableDeclarationBuilder extends Object
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
-    }
-    if (_name2 != null) {
-      offset_name2 = fbBuilder.writeString(_name2);
     }
     if (!(_parameterNames == null || _parameterNames.isEmpty)) {
       offset_parameterNames = fbBuilder.writeList(
@@ -2565,50 +2542,50 @@ class AvailableDeclarationBuilder extends Object
       offset_typeParameters = fbBuilder.writeString(_typeParameters);
     }
     fbBuilder.startTable();
+    if (offset_children != null) {
+      fbBuilder.addOffset(0, offset_children);
+    }
     if (offset_defaultArgumentListString != null) {
-      fbBuilder.addOffset(0, offset_defaultArgumentListString);
+      fbBuilder.addOffset(1, offset_defaultArgumentListString);
     }
     if (offset_defaultArgumentListTextRanges != null) {
-      fbBuilder.addOffset(1, offset_defaultArgumentListTextRanges);
+      fbBuilder.addOffset(2, offset_defaultArgumentListTextRanges);
     }
     if (offset_docComplete != null) {
-      fbBuilder.addOffset(2, offset_docComplete);
+      fbBuilder.addOffset(3, offset_docComplete);
     }
     if (offset_docSummary != null) {
-      fbBuilder.addOffset(3, offset_docSummary);
+      fbBuilder.addOffset(4, offset_docSummary);
     }
     if (_fieldMask != null && _fieldMask != 0) {
-      fbBuilder.addUint32(4, _fieldMask);
+      fbBuilder.addUint32(5, _fieldMask);
     }
     if (_isAbstract == true) {
-      fbBuilder.addBool(5, true);
-    }
-    if (_isConst == true) {
       fbBuilder.addBool(6, true);
     }
-    if (_isDeprecated == true) {
+    if (_isConst == true) {
       fbBuilder.addBool(7, true);
     }
-    if (_isFinal == true) {
+    if (_isDeprecated == true) {
       fbBuilder.addBool(8, true);
     }
+    if (_isFinal == true) {
+      fbBuilder.addBool(9, true);
+    }
     if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(9, _kind.index);
+      fbBuilder.addUint8(10, _kind.index);
     }
     if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(10, _locationOffset);
+      fbBuilder.addUint32(11, _locationOffset);
     }
     if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(11, _locationStartColumn);
+      fbBuilder.addUint32(12, _locationStartColumn);
     }
     if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(12, _locationStartLine);
+      fbBuilder.addUint32(13, _locationStartLine);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(13, offset_name);
-    }
-    if (offset_name2 != null) {
-      fbBuilder.addOffset(14, offset_name2);
+      fbBuilder.addOffset(14, offset_name);
     }
     if (offset_parameterNames != null) {
       fbBuilder.addOffset(15, offset_parameterNames);
@@ -2652,6 +2629,7 @@ class _AvailableDeclarationImpl extends Object
 
   _AvailableDeclarationImpl(this._bc, this._bcOffset);
 
+  List<idl.AvailableDeclaration> _children;
   String _defaultArgumentListString;
   List<int> _defaultArgumentListTextRanges;
   String _docComplete;
@@ -2666,7 +2644,6 @@ class _AvailableDeclarationImpl extends Object
   int _locationStartColumn;
   int _locationStartLine;
   String _name;
-  String _name2;
   List<String> _parameterNames;
   String _parameters;
   List<String> _parameterTypes;
@@ -2676,99 +2653,101 @@ class _AvailableDeclarationImpl extends Object
   String _typeParameters;
 
   @override
+  List<idl.AvailableDeclaration> get children {
+    _children ??= const fb.ListReader<idl.AvailableDeclaration>(
+            const _AvailableDeclarationReader())
+        .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
+    return _children;
+  }
+
+  @override
   String get defaultArgumentListString {
     _defaultArgumentListString ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
     return _defaultArgumentListString;
   }
 
   @override
   List<int> get defaultArgumentListTextRanges {
     _defaultArgumentListTextRanges ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _defaultArgumentListTextRanges;
   }
 
   @override
   String get docComplete {
-    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
     return _docComplete;
   }
 
   @override
   String get docSummary {
-    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
     return _docSummary;
   }
 
   @override
   int get fieldMask {
-    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 4, 0);
+    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _fieldMask;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isAbstract;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
     return _isConst;
   }
 
   @override
   bool get isDeprecated {
-    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
+    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
     return _isDeprecated;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
     return _isFinal;
   }
 
   @override
   idl.AvailableDeclarationKind get kind {
     _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 9, idl.AvailableDeclarationKind.CLASS);
+        .vTableGet(_bc, _bcOffset, 10, idl.AvailableDeclarationKind.CLASS);
     return _kind;
   }
 
   @override
   int get locationOffset {
     _locationOffset ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
     return _locationOffset;
   }
 
   @override
   int get locationStartColumn {
     _locationStartColumn ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
     return _locationStartColumn;
   }
 
   @override
   int get locationStartLine {
     _locationStartLine ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
     return _locationStartLine;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 13, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
     return _name;
-  }
-
-  @override
-  String get name2 {
-    _name2 ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
-    return _name2;
   }
 
   @override
@@ -2823,6 +2802,8 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (children.isNotEmpty)
+      _result["children"] = children.map((_value) => _value.toJson()).toList();
     if (defaultArgumentListString != '')
       _result["defaultArgumentListString"] = defaultArgumentListString;
     if (defaultArgumentListTextRanges.isNotEmpty)
@@ -2842,7 +2823,6 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
     if (locationStartLine != 0)
       _result["locationStartLine"] = locationStartLine;
     if (name != '') _result["name"] = name;
-    if (name2 != '') _result["name2"] = name2;
     if (parameterNames.isNotEmpty) _result["parameterNames"] = parameterNames;
     if (parameters != '') _result["parameters"] = parameters;
     if (parameterTypes.isNotEmpty) _result["parameterTypes"] = parameterTypes;
@@ -2856,6 +2836,7 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
 
   @override
   Map<String, Object> toMap() => {
+        "children": children,
         "defaultArgumentListString": defaultArgumentListString,
         "defaultArgumentListTextRanges": defaultArgumentListTextRanges,
         "docComplete": docComplete,
@@ -2870,7 +2851,6 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
         "locationStartColumn": locationStartColumn,
         "locationStartLine": locationStartLine,
         "name": name,
-        "name2": name2,
         "parameterNames": parameterNames,
         "parameters": parameters,
         "parameterTypes": parameterTypes,
@@ -2887,28 +2867,28 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
 class AvailableFileBuilder extends Object
     with _AvailableFileMixin
     implements idl.AvailableFile {
-  DirectiveInfoBuilder _directiveInfo;
   List<AvailableDeclarationBuilder> _declarations;
+  DirectiveInfoBuilder _directiveInfo;
   List<AvailableFileExportBuilder> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
 
   @override
-  DirectiveInfoBuilder get directiveInfo => _directiveInfo;
-
-  /// The Dartdoc directives in the file.
-  void set directiveInfo(DirectiveInfoBuilder value) {
-    this._directiveInfo = value;
-  }
-
-  @override
   List<AvailableDeclarationBuilder> get declarations =>
       _declarations ??= <AvailableDeclarationBuilder>[];
 
   /// Declarations of the file.
-  void set declarations(List<AvailableDeclarationBuilder> value) {
+  set declarations(List<AvailableDeclarationBuilder> value) {
     this._declarations = value;
+  }
+
+  @override
+  DirectiveInfoBuilder get directiveInfo => _directiveInfo;
+
+  /// The Dartdoc directives in the file.
+  set directiveInfo(DirectiveInfoBuilder value) {
+    this._directiveInfo = value;
   }
 
   @override
@@ -2916,7 +2896,7 @@ class AvailableFileBuilder extends Object
       _exports ??= <AvailableFileExportBuilder>[];
 
   /// Exports directives of the file.
-  void set exports(List<AvailableFileExportBuilder> value) {
+  set exports(List<AvailableFileExportBuilder> value) {
     this._exports = value;
   }
 
@@ -2924,7 +2904,7 @@ class AvailableFileBuilder extends Object
   bool get isLibrary => _isLibrary ??= false;
 
   /// Is `true` if this file is a library.
-  void set isLibrary(bool value) {
+  set isLibrary(bool value) {
     this._isLibrary = value;
   }
 
@@ -2932,7 +2912,7 @@ class AvailableFileBuilder extends Object
   bool get isLibraryDeprecated => _isLibraryDeprecated ??= false;
 
   /// Is `true` if this file is a library, and it is deprecated.
-  void set isLibraryDeprecated(bool value) {
+  set isLibraryDeprecated(bool value) {
     this._isLibraryDeprecated = value;
   }
 
@@ -2940,36 +2920,32 @@ class AvailableFileBuilder extends Object
   List<String> get parts => _parts ??= <String>[];
 
   /// URIs of `part` directives.
-  void set parts(List<String> value) {
+  set parts(List<String> value) {
     this._parts = value;
   }
 
   AvailableFileBuilder(
-      {DirectiveInfoBuilder directiveInfo,
-      List<AvailableDeclarationBuilder> declarations,
+      {List<AvailableDeclarationBuilder> declarations,
+      DirectiveInfoBuilder directiveInfo,
       List<AvailableFileExportBuilder> exports,
       bool isLibrary,
       bool isLibraryDeprecated,
       List<String> parts})
-      : _directiveInfo = directiveInfo,
-        _declarations = declarations,
+      : _declarations = declarations,
+        _directiveInfo = directiveInfo,
         _exports = exports,
         _isLibrary = isLibrary,
         _isLibraryDeprecated = isLibraryDeprecated,
         _parts = parts;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
-    _directiveInfo?.flushInformative();
     _declarations?.forEach((b) => b.flushInformative());
+    _directiveInfo?.flushInformative();
     _exports?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._declarations == null) {
       signature.addInt(0);
@@ -3007,16 +2983,16 @@ class AvailableFileBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_directiveInfo;
     fb.Offset offset_declarations;
+    fb.Offset offset_directiveInfo;
     fb.Offset offset_exports;
     fb.Offset offset_parts;
-    if (_directiveInfo != null) {
-      offset_directiveInfo = _directiveInfo.finish(fbBuilder);
-    }
     if (!(_declarations == null || _declarations.isEmpty)) {
       offset_declarations = fbBuilder
           .writeList(_declarations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_directiveInfo != null) {
+      offset_directiveInfo = _directiveInfo.finish(fbBuilder);
     }
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder
@@ -3027,11 +3003,11 @@ class AvailableFileBuilder extends Object
           .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
-    if (offset_directiveInfo != null) {
-      fbBuilder.addOffset(5, offset_directiveInfo);
-    }
     if (offset_declarations != null) {
       fbBuilder.addOffset(0, offset_declarations);
+    }
+    if (offset_directiveInfo != null) {
+      fbBuilder.addOffset(5, offset_directiveInfo);
     }
     if (offset_exports != null) {
       fbBuilder.addOffset(1, offset_exports);
@@ -3070,19 +3046,12 @@ class _AvailableFileImpl extends Object
 
   _AvailableFileImpl(this._bc, this._bcOffset);
 
-  idl.DirectiveInfo _directiveInfo;
   List<idl.AvailableDeclaration> _declarations;
+  idl.DirectiveInfo _directiveInfo;
   List<idl.AvailableFileExport> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
   List<String> _parts;
-
-  @override
-  idl.DirectiveInfo get directiveInfo {
-    _directiveInfo ??=
-        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 5, null);
-    return _directiveInfo;
-  }
 
   @override
   List<idl.AvailableDeclaration> get declarations {
@@ -3090,6 +3059,13 @@ class _AvailableFileImpl extends Object
             const _AvailableDeclarationReader())
         .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
     return _declarations;
+  }
+
+  @override
+  idl.DirectiveInfo get directiveInfo {
+    _directiveInfo ??=
+        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 5, null);
+    return _directiveInfo;
   }
 
   @override
@@ -3125,11 +3101,11 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (directiveInfo != null)
-      _result["directiveInfo"] = directiveInfo.toJson();
     if (declarations.isNotEmpty)
       _result["declarations"] =
           declarations.map((_value) => _value.toJson()).toList();
+    if (directiveInfo != null)
+      _result["directiveInfo"] = directiveInfo.toJson();
     if (exports.isNotEmpty)
       _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (isLibrary != false) _result["isLibrary"] = isLibrary;
@@ -3141,8 +3117,8 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
 
   @override
   Map<String, Object> toMap() => {
-        "directiveInfo": directiveInfo,
         "declarations": declarations,
+        "directiveInfo": directiveInfo,
         "exports": exports,
         "isLibrary": isLibrary,
         "isLibraryDeprecated": isLibraryDeprecated,
@@ -3164,7 +3140,7 @@ class AvailableFileExportBuilder extends Object
       _combinators ??= <AvailableFileExportCombinatorBuilder>[];
 
   /// Combinators contained in this export directive.
-  void set combinators(List<AvailableFileExportCombinatorBuilder> value) {
+  set combinators(List<AvailableFileExportCombinatorBuilder> value) {
     this._combinators = value;
   }
 
@@ -3172,7 +3148,7 @@ class AvailableFileExportBuilder extends Object
   String get uri => _uri ??= '';
 
   /// URI of the exported library.
-  void set uri(String value) {
+  set uri(String value) {
     this._uri = value;
   }
 
@@ -3181,16 +3157,12 @@ class AvailableFileExportBuilder extends Object
       : _combinators = combinators,
         _uri = uri;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _combinators?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._uri ?? '');
     if (this._combinators == null) {
@@ -3291,7 +3263,7 @@ class AvailableFileExportCombinatorBuilder extends Object
   List<String> get hides => _hides ??= <String>[];
 
   /// List of names which are hidden.  Empty if this is a `show` combinator.
-  void set hides(List<String> value) {
+  set hides(List<String> value) {
     this._hides = value;
   }
 
@@ -3299,7 +3271,7 @@ class AvailableFileExportCombinatorBuilder extends Object
   List<String> get shows => _shows ??= <String>[];
 
   /// List of names which are shown.  Empty if this is a `hide` combinator.
-  void set shows(List<String> value) {
+  set shows(List<String> value) {
     this._shows = value;
   }
 
@@ -3307,14 +3279,10 @@ class AvailableFileExportCombinatorBuilder extends Object
       : _hides = hides,
         _shows = shows;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._shows == null) {
       signature.addInt(0);
@@ -3422,7 +3390,7 @@ class CodeRangeBuilder extends Object
   int get length => _length ??= 0;
 
   /// Length of the element code.
-  void set length(int value) {
+  set length(int value) {
     assert(value == null || value >= 0);
     this._length = value;
   }
@@ -3431,7 +3399,7 @@ class CodeRangeBuilder extends Object
   int get offset => _offset ??= 0;
 
   /// Offset of the element code relative to the beginning of the file.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value == null || value >= 0);
     this._offset = value;
   }
@@ -3440,14 +3408,10 @@ class CodeRangeBuilder extends Object
       : _length = length,
         _offset = offset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._offset ?? 0);
     signature.addInt(this._length ?? 0);
@@ -3526,7 +3490,7 @@ class DirectiveInfoBuilder extends Object
   List<String> get templateNames => _templateNames ??= <String>[];
 
   /// The names of the defined templates.
-  void set templateNames(List<String> value) {
+  set templateNames(List<String> value) {
     this._templateNames = value;
   }
 
@@ -3534,7 +3498,7 @@ class DirectiveInfoBuilder extends Object
   List<String> get templateValues => _templateValues ??= <String>[];
 
   /// The values of the defined templates.
-  void set templateValues(List<String> value) {
+  set templateValues(List<String> value) {
     this._templateValues = value;
   }
 
@@ -3543,14 +3507,10 @@ class DirectiveInfoBuilder extends Object
       : _templateNames = templateNames,
         _templateValues = templateValues;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._templateNames == null) {
       signature.addInt(0);
@@ -3663,7 +3623,7 @@ class EntityRefBuilder extends Object
   idl.EntityRefKind get entityKind => _entityKind ??= idl.EntityRefKind.named;
 
   /// The kind of entity being represented.
-  void set entityKind(idl.EntityRefKind value) {
+  set entityKind(idl.EntityRefKind value) {
     this._entityKind = value;
   }
 
@@ -3697,7 +3657,7 @@ class EntityRefBuilder extends Object
   /// Note that if the entity being referred to is a generic method inside a
   /// generic class, then the type arguments in [typeArguments] are applied
   /// first to the class and then to the method.
-  void set implicitFunctionTypeIndices(List<int> value) {
+  set implicitFunctionTypeIndices(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._implicitFunctionTypeIndices = value;
   }
@@ -3722,7 +3682,7 @@ class EntityRefBuilder extends Object
   ///
   /// If the type being referred to is not a type parameter, [paramReference] is
   /// zero.
-  void set paramReference(int value) {
+  set paramReference(int value) {
     assert(value == null || value >= 0);
     this._paramReference = value;
   }
@@ -3732,7 +3692,7 @@ class EntityRefBuilder extends Object
 
   /// Index into [UnlinkedUnit.references] for the entity being referred to, or
   /// zero if this is a reference to a type parameter.
-  void set reference(int value) {
+  set reference(int value) {
     assert(value == null || value >= 0);
     this._reference = value;
   }
@@ -3750,7 +3710,7 @@ class EntityRefBuilder extends Object
   /// This is called `refinedSlot` to clarify that if it points to an inferred
   /// type, it points to a type that is a "refinement" of this one (one in which
   /// some type arguments have been inferred).
-  void set refinedSlot(int value) {
+  set refinedSlot(int value) {
     assert(value == null || value >= 0);
     this._refinedSlot = value;
   }
@@ -3763,7 +3723,7 @@ class EntityRefBuilder extends Object
   /// propagation or type inference with which this [EntityRef] is associated.
   ///
   /// Otherwise zero.
-  void set slot(int value) {
+  set slot(int value) {
     assert(value == null || value >= 0);
     this._slot = value;
   }
@@ -3776,7 +3736,7 @@ class EntityRefBuilder extends Object
   /// [FunctionElement] is not in any library (e.g. a function type that was
   /// synthesized by a LUB computation), the function parameters.  Otherwise
   /// empty.
-  void set syntheticParams(List<UnlinkedParamBuilder> value) {
+  set syntheticParams(List<UnlinkedParamBuilder> value) {
     this._syntheticParams = value;
   }
 
@@ -3787,7 +3747,7 @@ class EntityRefBuilder extends Object
   /// [FunctionElement] is not in any library (e.g. a function type that was
   /// synthesized by a LUB computation), the return type of the function.
   /// Otherwise `null`.
-  void set syntheticReturnType(EntityRefBuilder value) {
+  set syntheticReturnType(EntityRefBuilder value) {
     this._syntheticReturnType = value;
   }
 
@@ -3797,7 +3757,7 @@ class EntityRefBuilder extends Object
 
   /// If this is an instantiation of a generic type or generic executable, the
   /// type arguments used to instantiate it (if any).
-  void set typeArguments(List<EntityRefBuilder> value) {
+  set typeArguments(List<EntityRefBuilder> value) {
     this._typeArguments = value;
   }
 
@@ -3807,7 +3767,7 @@ class EntityRefBuilder extends Object
 
   /// If this is a function type, the type parameters defined for the function
   /// type (if any).
-  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+  set typeParameters(List<UnlinkedTypeParamBuilder> value) {
     this._typeParameters = value;
   }
 
@@ -3833,9 +3793,7 @@ class EntityRefBuilder extends Object
         _typeArguments = typeArguments,
         _typeParameters = typeParameters;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _syntheticParams?.forEach((b) => b.flushInformative());
     _syntheticReturnType?.flushInformative();
@@ -3843,9 +3801,7 @@ class EntityRefBuilder extends Object
     _typeParameters?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._reference ?? 0);
     if (this._typeArguments == null) {
@@ -4101,7 +4057,7 @@ class LinkedDependencyBuilder extends Object
 
   /// Absolute URI for the compilation units listed in the library's `part`
   /// declarations, empty string for invalid URI.
-  void set parts(List<String> value) {
+  set parts(List<String> value) {
     this._parts = value;
   }
 
@@ -4109,7 +4065,7 @@ class LinkedDependencyBuilder extends Object
   String get uri => _uri ??= '';
 
   /// The absolute URI of the dependent library, e.g. `package:foo/bar.dart`.
-  void set uri(String value) {
+  set uri(String value) {
     this._uri = value;
   }
 
@@ -4117,14 +4073,10 @@ class LinkedDependencyBuilder extends Object
       : _parts = parts,
         _uri = uri;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._uri ?? '');
     if (this._parts == null) {
@@ -4223,7 +4175,7 @@ class LinkedExportNameBuilder extends Object
 
   /// Index into [LinkedLibrary.dependencies] for the library in which the
   /// entity is defined.
-  void set dependency(int value) {
+  set dependency(int value) {
     assert(value == null || value >= 0);
     this._dependency = value;
   }
@@ -4232,7 +4184,7 @@ class LinkedExportNameBuilder extends Object
   idl.ReferenceKind get kind => _kind ??= idl.ReferenceKind.classOrEnum;
 
   /// The kind of the entity being referred to.
-  void set kind(idl.ReferenceKind value) {
+  set kind(idl.ReferenceKind value) {
     this._kind = value;
   }
 
@@ -4241,7 +4193,7 @@ class LinkedExportNameBuilder extends Object
 
   /// Name of the exported entity.  For an exported setter, this name includes
   /// the trailing '='.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -4252,7 +4204,7 @@ class LinkedExportNameBuilder extends Object
   /// definition of the entity.  As with indices into [LinkedLibrary.units],
   /// zero represents the defining compilation unit, and nonzero values
   /// represent parts in the order of the corresponding `part` declarations.
-  void set unit(int value) {
+  set unit(int value) {
     assert(value == null || value >= 0);
     this._unit = value;
   }
@@ -4264,14 +4216,10 @@ class LinkedExportNameBuilder extends Object
         _name = name,
         _unit = unit;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._dependency ?? 0);
     signature.addString(this._name ?? '');
@@ -4400,7 +4348,7 @@ class LinkedLibraryBuilder extends Object
   /// implicitly refers to an element declared in the library) or
   /// anti-dependency (e.g. the result of type propagation or type inference
   /// depends on the lack of a certain declaration in the library).
-  void set dependencies(List<LinkedDependencyBuilder> value) {
+  set dependencies(List<LinkedDependencyBuilder> value) {
     this._dependencies = value;
   }
 
@@ -4409,7 +4357,7 @@ class LinkedLibraryBuilder extends Object
 
   /// For each export in [UnlinkedUnit.exports], an index into [dependencies]
   /// of the library being exported.
-  void set exportDependencies(List<int> value) {
+  set exportDependencies(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._exportDependencies = value;
   }
@@ -4423,7 +4371,7 @@ class LinkedLibraryBuilder extends Object
   /// brought into the namespace via `export` directives).
   ///
   /// Sorted by name.
-  void set exportNames(List<LinkedExportNameBuilder> value) {
+  set exportNames(List<LinkedExportNameBuilder> value) {
     this._exportNames = value;
   }
 
@@ -4436,7 +4384,7 @@ class LinkedLibraryBuilder extends Object
 
   /// For each import in [UnlinkedUnit.imports], an index into [dependencies]
   /// of the library being imported.
-  void set importDependencies(List<int> value) {
+  set importDependencies(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._importDependencies = value;
   }
@@ -4447,7 +4395,7 @@ class LinkedLibraryBuilder extends Object
   /// The number of elements in [dependencies] which are not "linked"
   /// dependencies (that is, the number of libraries in the direct imports plus
   /// the transitive closure of exports, plus the library itself).
-  void set numPrelinkedDependencies(int value) {
+  set numPrelinkedDependencies(int value) {
     assert(value == null || value >= 0);
     this._numPrelinkedDependencies = value;
   }
@@ -4459,7 +4407,7 @@ class LinkedLibraryBuilder extends Object
   /// library.  The summary of the defining compilation unit is listed first,
   /// followed by the summary of each part, in the order of the `part`
   /// declarations in the defining compilation unit.
-  void set units(List<LinkedUnitBuilder> value) {
+  set units(List<LinkedUnitBuilder> value) {
     this._units = value;
   }
 
@@ -4477,18 +4425,14 @@ class LinkedLibraryBuilder extends Object
         _numPrelinkedDependencies = numPrelinkedDependencies,
         _units = units;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _dependencies?.forEach((b) => b.flushInformative());
     _exportNames?.forEach((b) => b.flushInformative());
     _units?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._dependencies == null) {
       signature.addInt(0);
@@ -4702,6 +4646,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
 class LinkedNodeBuilder extends Object
     with _LinkedNodeMixin
     implements idl.LinkedNode {
+  LinkedNodeTypeBuilder _variantField_24;
   List<LinkedNodeBuilder> _variantField_2;
   LinkedNodeBuilder _variantField_11;
   List<LinkedNodeBuilder> _variantField_4;
@@ -4713,7 +4658,6 @@ class LinkedNodeBuilder extends Object
   int _variantField_17;
   int _variantField_18;
   int _variantField_19;
-  LinkedNodeTypeBuilder _variantField_24;
   bool _variantField_27;
   LinkedNodeBuilder _variantField_9;
   LinkedNodeBuilder _variantField_12;
@@ -4737,6 +4681,78 @@ class LinkedNodeBuilder extends Object
   String _variantField_20;
   String _variantField_22;
   LinkedNodeVariablesDeclarationBuilder _variantField_32;
+
+  @override
+  LinkedNodeTypeBuilder get actualReturnType {
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericFunctionType ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get actualType {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get binaryExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get invocationExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
+        kind == idl.LinkedNodeKind.methodInvocation);
+    return _variantField_24;
+  }
+
+  @override
+  LinkedNodeTypeBuilder get typeName_type {
+    assert(kind == idl.LinkedNodeKind.typeName);
+    return _variantField_24;
+  }
+
+  /// The explicit or inferred return type of a function typed node.
+  set actualReturnType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericFunctionType ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_24 = value;
+  }
+
+  set actualType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_24 = value;
+  }
+
+  set binaryExpression_invokeType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_24 = value;
+  }
+
+  set invocationExpression_invokeType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
+        kind == idl.LinkedNodeKind.methodInvocation);
+    _variantField_24 = value;
+  }
+
+  set typeName_type(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.typeName);
+    _variantField_24 = value;
+  }
 
   @override
   List<LinkedNodeBuilder> get adjacentStrings_strings {
@@ -4889,128 +4905,128 @@ class LinkedNodeBuilder extends Object
     return _variantField_2 ??= <LinkedNodeBuilder>[];
   }
 
-  void set adjacentStrings_strings(List<LinkedNodeBuilder> value) {
+  set adjacentStrings_strings(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.adjacentStrings);
     _variantField_2 = value;
   }
 
-  void set argumentList_arguments(List<LinkedNodeBuilder> value) {
+  set argumentList_arguments(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.argumentList);
     _variantField_2 = value;
   }
 
-  void set block_statements(List<LinkedNodeBuilder> value) {
+  set block_statements(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.block);
     _variantField_2 = value;
   }
 
-  void set cascadeExpression_sections(List<LinkedNodeBuilder> value) {
+  set cascadeExpression_sections(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.cascadeExpression);
     _variantField_2 = value;
   }
 
-  void set compilationUnit_declarations(List<LinkedNodeBuilder> value) {
+  set compilationUnit_declarations(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     _variantField_2 = value;
   }
 
-  void set constructorDeclaration_initializers(List<LinkedNodeBuilder> value) {
+  set constructorDeclaration_initializers(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     _variantField_2 = value;
   }
 
-  void set dottedName_components(List<LinkedNodeBuilder> value) {
+  set dottedName_components(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.dottedName);
     _variantField_2 = value;
   }
 
-  void set enumDeclaration_constants(List<LinkedNodeBuilder> value) {
+  set enumDeclaration_constants(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
     _variantField_2 = value;
   }
 
-  void set formalParameterList_parameters(List<LinkedNodeBuilder> value) {
+  set formalParameterList_parameters(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.formalParameterList);
     _variantField_2 = value;
   }
 
-  void set hideCombinator_hiddenNames(List<LinkedNodeBuilder> value) {
+  set hideCombinator_hiddenNames(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.hideCombinator);
     _variantField_2 = value;
   }
 
-  void set implementsClause_interfaces(List<LinkedNodeBuilder> value) {
+  set implementsClause_interfaces(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.implementsClause);
     _variantField_2 = value;
   }
 
-  void set labeledStatement_labels(List<LinkedNodeBuilder> value) {
+  set labeledStatement_labels(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.labeledStatement);
     _variantField_2 = value;
   }
 
-  void set libraryIdentifier_components(List<LinkedNodeBuilder> value) {
+  set libraryIdentifier_components(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.libraryIdentifier);
     _variantField_2 = value;
   }
 
-  void set listLiteral_elements(List<LinkedNodeBuilder> value) {
+  set listLiteral_elements(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.listLiteral);
     _variantField_2 = value;
   }
 
-  void set namespaceDirective_combinators(List<LinkedNodeBuilder> value) {
+  set namespaceDirective_combinators(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
     _variantField_2 = value;
   }
 
-  void set onClause_superclassConstraints(List<LinkedNodeBuilder> value) {
+  set onClause_superclassConstraints(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.onClause);
     _variantField_2 = value;
   }
 
-  void set setOrMapLiteral_elements(List<LinkedNodeBuilder> value) {
+  set setOrMapLiteral_elements(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_2 = value;
   }
 
-  void set showCombinator_shownNames(List<LinkedNodeBuilder> value) {
+  set showCombinator_shownNames(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.showCombinator);
     _variantField_2 = value;
   }
 
-  void set stringInterpolation_elements(List<LinkedNodeBuilder> value) {
+  set stringInterpolation_elements(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.stringInterpolation);
     _variantField_2 = value;
   }
 
-  void set switchStatement_members(List<LinkedNodeBuilder> value) {
+  set switchStatement_members(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     _variantField_2 = value;
   }
 
-  void set tryStatement_catchClauses(List<LinkedNodeBuilder> value) {
+  set tryStatement_catchClauses(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.tryStatement);
     _variantField_2 = value;
   }
 
-  void set typeArgumentList_arguments(List<LinkedNodeBuilder> value) {
+  set typeArgumentList_arguments(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.typeArgumentList);
     _variantField_2 = value;
   }
 
-  void set typeParameterList_typeParameters(List<LinkedNodeBuilder> value) {
+  set typeParameterList_typeParameters(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.typeParameterList);
     _variantField_2 = value;
   }
 
-  void set variableDeclarationList_variables(List<LinkedNodeBuilder> value) {
+  set variableDeclarationList_variables(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.variableDeclarationList);
     _variantField_2 = value;
   }
 
-  void set withClause_mixinTypes(List<LinkedNodeBuilder> value) {
+  set withClause_mixinTypes(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.withClause);
     _variantField_2 = value;
   }
@@ -5041,7 +5057,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_11;
   }
 
-  void set annotatedNode_comment(LinkedNodeBuilder value) {
+  set annotatedNode_comment(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
@@ -5107,7 +5123,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_4 ??= <LinkedNodeBuilder>[];
   }
 
-  void set annotatedNode_metadata(List<LinkedNodeBuilder> value) {
+  set annotatedNode_metadata(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
@@ -5132,14 +5148,14 @@ class LinkedNodeBuilder extends Object
     _variantField_4 = value;
   }
 
-  void set normalFormalParameter_metadata(List<LinkedNodeBuilder> value) {
+  set normalFormalParameter_metadata(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
     _variantField_4 = value;
   }
 
-  void set switchMember_statements(List<LinkedNodeBuilder> value) {
+  set switchMember_statements(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.switchCase ||
         kind == idl.LinkedNodeKind.switchDefault);
     _variantField_4 = value;
@@ -5617,398 +5633,397 @@ class LinkedNodeBuilder extends Object
     return _variantField_6;
   }
 
-  void set annotation_arguments(LinkedNodeBuilder value) {
+  set annotation_arguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.annotation);
     _variantField_6 = value;
   }
 
-  void set asExpression_expression(LinkedNodeBuilder value) {
+  set asExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.asExpression);
     _variantField_6 = value;
   }
 
-  void set assertInitializer_condition(LinkedNodeBuilder value) {
+  set assertInitializer_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.assertInitializer);
     _variantField_6 = value;
   }
 
-  void set assertStatement_condition(LinkedNodeBuilder value) {
+  set assertStatement_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.assertStatement);
     _variantField_6 = value;
   }
 
-  void set assignmentExpression_leftHandSide(LinkedNodeBuilder value) {
+  set assignmentExpression_leftHandSide(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     _variantField_6 = value;
   }
 
-  void set awaitExpression_expression(LinkedNodeBuilder value) {
+  set awaitExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.awaitExpression);
     _variantField_6 = value;
   }
 
-  void set binaryExpression_leftOperand(LinkedNodeBuilder value) {
+  set binaryExpression_leftOperand(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.binaryExpression);
     _variantField_6 = value;
   }
 
-  void set blockFunctionBody_block(LinkedNodeBuilder value) {
+  set blockFunctionBody_block(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.blockFunctionBody);
     _variantField_6 = value;
   }
 
-  void set breakStatement_label(LinkedNodeBuilder value) {
+  set breakStatement_label(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.breakStatement);
     _variantField_6 = value;
   }
 
-  void set cascadeExpression_target(LinkedNodeBuilder value) {
+  set cascadeExpression_target(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.cascadeExpression);
     _variantField_6 = value;
   }
 
-  void set catchClause_body(LinkedNodeBuilder value) {
+  set catchClause_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     _variantField_6 = value;
   }
 
-  void set classDeclaration_extendsClause(LinkedNodeBuilder value) {
+  set classDeclaration_extendsClause(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
     _variantField_6 = value;
   }
 
-  void set classTypeAlias_typeParameters(LinkedNodeBuilder value) {
+  set classTypeAlias_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     _variantField_6 = value;
   }
 
-  void set compilationUnit_scriptTag(LinkedNodeBuilder value) {
+  set compilationUnit_scriptTag(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     _variantField_6 = value;
   }
 
-  void set conditionalExpression_condition(LinkedNodeBuilder value) {
+  set conditionalExpression_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.conditionalExpression);
     _variantField_6 = value;
   }
 
-  void set configuration_name(LinkedNodeBuilder value) {
+  set configuration_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.configuration);
     _variantField_6 = value;
   }
 
-  void set constructorDeclaration_body(LinkedNodeBuilder value) {
+  set constructorDeclaration_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     _variantField_6 = value;
   }
 
-  void set constructorFieldInitializer_expression(LinkedNodeBuilder value) {
+  set constructorFieldInitializer_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorFieldInitializer);
     _variantField_6 = value;
   }
 
-  void set constructorName_name(LinkedNodeBuilder value) {
+  set constructorName_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorName);
     _variantField_6 = value;
   }
 
-  void set continueStatement_label(LinkedNodeBuilder value) {
+  set continueStatement_label(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.continueStatement);
     _variantField_6 = value;
   }
 
-  void set declaredIdentifier_identifier(LinkedNodeBuilder value) {
+  set declaredIdentifier_identifier(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.declaredIdentifier);
     _variantField_6 = value;
   }
 
-  void set defaultFormalParameter_defaultValue(LinkedNodeBuilder value) {
+  set defaultFormalParameter_defaultValue(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
     _variantField_6 = value;
   }
 
-  void set doStatement_body(LinkedNodeBuilder value) {
+  set doStatement_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     _variantField_6 = value;
   }
 
-  void set enumConstantDeclaration_name(LinkedNodeBuilder value) {
+  set enumConstantDeclaration_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.enumConstantDeclaration);
     _variantField_6 = value;
   }
 
-  void set expressionFunctionBody_expression(LinkedNodeBuilder value) {
+  set expressionFunctionBody_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.expressionFunctionBody);
     _variantField_6 = value;
   }
 
-  void set expressionStatement_expression(LinkedNodeBuilder value) {
+  set expressionStatement_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.expressionStatement);
     _variantField_6 = value;
   }
 
-  void set extendsClause_superclass(LinkedNodeBuilder value) {
+  set extendsClause_superclass(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.extendsClause);
     _variantField_6 = value;
   }
 
-  void set fieldDeclaration_fields(LinkedNodeBuilder value) {
+  set fieldDeclaration_fields(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldDeclaration);
     _variantField_6 = value;
   }
 
-  void set fieldFormalParameter_type(LinkedNodeBuilder value) {
+  set fieldFormalParameter_type(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     _variantField_6 = value;
   }
 
-  void set forEachParts_iterable(LinkedNodeBuilder value) {
+  set forEachParts_iterable(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forEachPartsWithDeclaration ||
         kind == idl.LinkedNodeKind.forEachPartsWithIdentifier);
     _variantField_6 = value;
   }
 
-  void set forMixin_forLoopParts(LinkedNodeBuilder value) {
+  set forMixin_forLoopParts(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forElement ||
         kind == idl.LinkedNodeKind.forStatement);
     _variantField_6 = value;
   }
 
-  void set forParts_condition(LinkedNodeBuilder value) {
+  set forParts_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations ||
         kind == idl.LinkedNodeKind.forPartsWithExpression);
     _variantField_6 = value;
   }
 
-  void set functionDeclaration_functionExpression(LinkedNodeBuilder value) {
+  set functionDeclaration_functionExpression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionDeclaration);
     _variantField_6 = value;
   }
 
-  void set functionDeclarationStatement_functionDeclaration(
+  set functionDeclarationStatement_functionDeclaration(
       LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionDeclarationStatement);
     _variantField_6 = value;
   }
 
-  void set functionExpression_body(LinkedNodeBuilder value) {
+  set functionExpression_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionExpression);
     _variantField_6 = value;
   }
 
-  void set functionExpressionInvocation_function(LinkedNodeBuilder value) {
+  set functionExpressionInvocation_function(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionExpressionInvocation);
     _variantField_6 = value;
   }
 
-  void set functionTypeAlias_formalParameters(LinkedNodeBuilder value) {
+  set functionTypeAlias_formalParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypeAlias);
     _variantField_6 = value;
   }
 
-  void set functionTypedFormalParameter_formalParameters(
-      LinkedNodeBuilder value) {
+  set functionTypedFormalParameter_formalParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
     _variantField_6 = value;
   }
 
-  void set genericFunctionType_typeParameters(LinkedNodeBuilder value) {
+  set genericFunctionType_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_6 = value;
   }
 
-  void set genericTypeAlias_typeParameters(LinkedNodeBuilder value) {
+  set genericTypeAlias_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.genericTypeAlias);
     _variantField_6 = value;
   }
 
-  void set ifMixin_condition(LinkedNodeBuilder value) {
+  set ifMixin_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.ifElement ||
         kind == idl.LinkedNodeKind.ifStatement);
     _variantField_6 = value;
   }
 
-  void set importDirective_prefix(LinkedNodeBuilder value) {
+  set importDirective_prefix(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.importDirective);
     _variantField_6 = value;
   }
 
-  void set indexExpression_index(LinkedNodeBuilder value) {
+  set indexExpression_index(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     _variantField_6 = value;
   }
 
-  void set instanceCreationExpression_arguments(LinkedNodeBuilder value) {
+  set instanceCreationExpression_arguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.instanceCreationExpression);
     _variantField_6 = value;
   }
 
-  void set interpolationExpression_expression(LinkedNodeBuilder value) {
+  set interpolationExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.interpolationExpression);
     _variantField_6 = value;
   }
 
-  void set isExpression_expression(LinkedNodeBuilder value) {
+  set isExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.isExpression);
     _variantField_6 = value;
   }
 
-  void set label_label(LinkedNodeBuilder value) {
+  set label_label(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.label);
     _variantField_6 = value;
   }
 
-  void set labeledStatement_statement(LinkedNodeBuilder value) {
+  set labeledStatement_statement(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.labeledStatement);
     _variantField_6 = value;
   }
 
-  void set libraryDirective_name(LinkedNodeBuilder value) {
+  set libraryDirective_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.libraryDirective);
     _variantField_6 = value;
   }
 
-  void set mapLiteralEntry_key(LinkedNodeBuilder value) {
+  set mapLiteralEntry_key(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.mapLiteralEntry);
     _variantField_6 = value;
   }
 
-  void set methodDeclaration_body(LinkedNodeBuilder value) {
+  set methodDeclaration_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_6 = value;
   }
 
-  void set methodInvocation_methodName(LinkedNodeBuilder value) {
+  set methodInvocation_methodName(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodInvocation);
     _variantField_6 = value;
   }
 
-  void set mixinDeclaration_onClause(LinkedNodeBuilder value) {
+  set mixinDeclaration_onClause(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.mixinDeclaration);
     _variantField_6 = value;
   }
 
-  void set namedExpression_expression(LinkedNodeBuilder value) {
+  set namedExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.namedExpression);
     _variantField_6 = value;
   }
 
-  void set nativeClause_name(LinkedNodeBuilder value) {
+  set nativeClause_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.nativeClause);
     _variantField_6 = value;
   }
 
-  void set nativeFunctionBody_stringLiteral(LinkedNodeBuilder value) {
+  set nativeFunctionBody_stringLiteral(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
     _variantField_6 = value;
   }
 
-  void set parenthesizedExpression_expression(LinkedNodeBuilder value) {
+  set parenthesizedExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
     _variantField_6 = value;
   }
 
-  void set partOfDirective_libraryName(LinkedNodeBuilder value) {
+  set partOfDirective_libraryName(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.partOfDirective);
     _variantField_6 = value;
   }
 
-  void set postfixExpression_operand(LinkedNodeBuilder value) {
+  set postfixExpression_operand(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.postfixExpression);
     _variantField_6 = value;
   }
 
-  void set prefixedIdentifier_identifier(LinkedNodeBuilder value) {
+  set prefixedIdentifier_identifier(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.prefixedIdentifier);
     _variantField_6 = value;
   }
 
-  void set prefixExpression_operand(LinkedNodeBuilder value) {
+  set prefixExpression_operand(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.prefixExpression);
     _variantField_6 = value;
   }
 
-  void set propertyAccess_propertyName(LinkedNodeBuilder value) {
+  set propertyAccess_propertyName(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.propertyAccess);
     _variantField_6 = value;
   }
 
-  void set redirectingConstructorInvocation_arguments(LinkedNodeBuilder value) {
+  set redirectingConstructorInvocation_arguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
     _variantField_6 = value;
   }
 
-  void set returnStatement_expression(LinkedNodeBuilder value) {
+  set returnStatement_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.returnStatement);
     _variantField_6 = value;
   }
 
-  void set simpleFormalParameter_type(LinkedNodeBuilder value) {
+  set simpleFormalParameter_type(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
     _variantField_6 = value;
   }
 
-  void set spreadElement_expression(LinkedNodeBuilder value) {
+  set spreadElement_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.spreadElement);
     _variantField_6 = value;
   }
 
-  void set superConstructorInvocation_arguments(LinkedNodeBuilder value) {
+  set superConstructorInvocation_arguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
     _variantField_6 = value;
   }
 
-  void set switchCase_expression(LinkedNodeBuilder value) {
+  set switchCase_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.switchCase);
     _variantField_6 = value;
   }
 
-  void set throwExpression_expression(LinkedNodeBuilder value) {
+  set throwExpression_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.throwExpression);
     _variantField_6 = value;
   }
 
-  void set topLevelVariableDeclaration_variableList(LinkedNodeBuilder value) {
+  set topLevelVariableDeclaration_variableList(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.topLevelVariableDeclaration);
     _variantField_6 = value;
   }
 
-  void set tryStatement_body(LinkedNodeBuilder value) {
+  set tryStatement_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.tryStatement);
     _variantField_6 = value;
   }
 
-  void set typeName_name(LinkedNodeBuilder value) {
+  set typeName_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.typeName);
     _variantField_6 = value;
   }
 
-  void set typeParameter_bound(LinkedNodeBuilder value) {
+  set typeParameter_bound(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.typeParameter);
     _variantField_6 = value;
   }
 
-  void set variableDeclaration_initializer(LinkedNodeBuilder value) {
+  set variableDeclaration_initializer(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_6 = value;
   }
 
-  void set variableDeclarationList_type(LinkedNodeBuilder value) {
+  set variableDeclarationList_type(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.variableDeclarationList);
     _variantField_6 = value;
   }
 
-  void set variableDeclarationStatement_variables(LinkedNodeBuilder value) {
+  set variableDeclarationStatement_variables(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.variableDeclarationStatement);
     _variantField_6 = value;
   }
 
-  void set whileStatement_body(LinkedNodeBuilder value) {
+  set whileStatement_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.whileStatement);
     _variantField_6 = value;
   }
 
-  void set yieldStatement_expression(LinkedNodeBuilder value) {
+  set yieldStatement_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.yieldStatement);
     _variantField_6 = value;
   }
@@ -6570,558 +6585,558 @@ class LinkedNodeBuilder extends Object
     return _variantField_15 ??= 0;
   }
 
-  void set annotation_atSign(int value) {
+  set annotation_atSign(int value) {
     assert(kind == idl.LinkedNodeKind.annotation);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set argumentList_leftParenthesis(int value) {
+  set argumentList_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.argumentList);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set asExpression_asOperator(int value) {
+  set asExpression_asOperator(int value) {
     assert(kind == idl.LinkedNodeKind.asExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set assertInitializer_assertKeyword(int value) {
+  set assertInitializer_assertKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.assertInitializer);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set assertStatement_assertKeyword(int value) {
+  set assertStatement_assertKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.assertStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set assignmentExpression_element(int value) {
+  set assignmentExpression_element(int value) {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set awaitExpression_awaitKeyword(int value) {
+  set awaitExpression_awaitKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.awaitExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set binaryExpression_element(int value) {
+  set binaryExpression_element(int value) {
     assert(kind == idl.LinkedNodeKind.binaryExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set block_leftBracket(int value) {
+  set block_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.block);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set blockFunctionBody_keyword(int value) {
+  set blockFunctionBody_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.blockFunctionBody);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set booleanLiteral_literal(int value) {
+  set booleanLiteral_literal(int value) {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set breakStatement_breakKeyword(int value) {
+  set breakStatement_breakKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.breakStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set catchClause_catchKeyword(int value) {
+  set catchClause_catchKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set classDeclaration_abstractKeyword(int value) {
+  set classDeclaration_abstractKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set classTypeAlias_abstractKeyword(int value) {
+  set classTypeAlias_abstractKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set compilationUnit_beginToken(int value) {
+  set compilationUnit_beginToken(int value) {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set conditionalExpression_colon(int value) {
+  set conditionalExpression_colon(int value) {
     assert(kind == idl.LinkedNodeKind.conditionalExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set configuration_ifKeyword(int value) {
+  set configuration_ifKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.configuration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set constructorDeclaration_constKeyword(int value) {
+  set constructorDeclaration_constKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set constructorFieldInitializer_equals(int value) {
+  set constructorFieldInitializer_equals(int value) {
     assert(kind == idl.LinkedNodeKind.constructorFieldInitializer);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set constructorName_element(int value) {
+  set constructorName_element(int value) {
     assert(kind == idl.LinkedNodeKind.constructorName);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set continueStatement_continueKeyword(int value) {
+  set continueStatement_continueKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.continueStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set declaredIdentifier_keyword(int value) {
+  set declaredIdentifier_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.declaredIdentifier);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set defaultFormalParameter_separator(int value) {
+  set defaultFormalParameter_separator(int value) {
     assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set doStatement_leftParenthesis(int value) {
+  set doStatement_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set doubleLiteral_literal(int value) {
+  set doubleLiteral_literal(int value) {
     assert(kind == idl.LinkedNodeKind.doubleLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set emptyFunctionBody_semicolon(int value) {
+  set emptyFunctionBody_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.emptyFunctionBody);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set emptyStatement_semicolon(int value) {
+  set emptyStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.emptyStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set enumDeclaration_enumKeyword(int value) {
+  set enumDeclaration_enumKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set expressionFunctionBody_arrow(int value) {
+  set expressionFunctionBody_arrow(int value) {
     assert(kind == idl.LinkedNodeKind.expressionFunctionBody);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set expressionStatement_semicolon(int value) {
+  set expressionStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.expressionStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set extendsClause_extendsKeyword(int value) {
+  set extendsClause_extendsKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.extendsClause);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set fieldDeclaration_covariantKeyword(int value) {
+  set fieldDeclaration_covariantKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.fieldDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set fieldFormalParameter_keyword(int value) {
+  set fieldFormalParameter_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set forEachParts_inKeyword(int value) {
+  set forEachParts_inKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.forEachPartsWithDeclaration ||
         kind == idl.LinkedNodeKind.forEachPartsWithIdentifier);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set formalParameterList_leftDelimiter(int value) {
+  set formalParameterList_leftDelimiter(int value) {
     assert(kind == idl.LinkedNodeKind.formalParameterList);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set forMixin_awaitKeyword(int value) {
+  set forMixin_awaitKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.forElement ||
         kind == idl.LinkedNodeKind.forStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set forParts_leftSeparator(int value) {
+  set forParts_leftSeparator(int value) {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations ||
         kind == idl.LinkedNodeKind.forPartsWithExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set functionDeclaration_externalKeyword(int value) {
+  set functionDeclaration_externalKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.functionDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set genericFunctionType_functionKeyword(int value) {
+  set genericFunctionType_functionKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set ifMixin_elseKeyword(int value) {
+  set ifMixin_elseKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.ifElement ||
         kind == idl.LinkedNodeKind.ifStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set implementsClause_implementsKeyword(int value) {
+  set implementsClause_implementsKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.implementsClause);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set importDirective_asKeyword(int value) {
+  set importDirective_asKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.importDirective);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set indexExpression_element(int value) {
+  set indexExpression_element(int value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set instanceCreationExpression_keyword(int value) {
+  set instanceCreationExpression_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.instanceCreationExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set integerLiteral_literal(int value) {
+  set integerLiteral_literal(int value) {
     assert(kind == idl.LinkedNodeKind.integerLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set interpolationExpression_leftBracket(int value) {
+  set interpolationExpression_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.interpolationExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set interpolationString_token(int value) {
+  set interpolationString_token(int value) {
     assert(kind == idl.LinkedNodeKind.interpolationString);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set isExpression_isOperator(int value) {
+  set isExpression_isOperator(int value) {
     assert(kind == idl.LinkedNodeKind.isExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set label_colon(int value) {
+  set label_colon(int value) {
     assert(kind == idl.LinkedNodeKind.label);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set listLiteral_leftBracket(int value) {
+  set listLiteral_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.listLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set mapLiteralEntry_separator(int value) {
+  set mapLiteralEntry_separator(int value) {
     assert(kind == idl.LinkedNodeKind.mapLiteralEntry);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set methodDeclaration_externalKeyword(int value) {
+  set methodDeclaration_externalKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set methodInvocation_operator(int value) {
+  set methodInvocation_operator(int value) {
     assert(kind == idl.LinkedNodeKind.methodInvocation);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set mixinDeclaration_mixinKeyword(int value) {
+  set mixinDeclaration_mixinKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.mixinDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set nativeClause_nativeKeyword(int value) {
+  set nativeClause_nativeKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.nativeClause);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set nativeFunctionBody_nativeKeyword(int value) {
+  set nativeFunctionBody_nativeKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set nullLiteral_literal(int value) {
+  set nullLiteral_literal(int value) {
     assert(kind == idl.LinkedNodeKind.nullLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set onClause_onKeyword(int value) {
+  set onClause_onKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.onClause);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set parenthesizedExpression_leftParenthesis(int value) {
+  set parenthesizedExpression_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set postfixExpression_element(int value) {
+  set postfixExpression_element(int value) {
     assert(kind == idl.LinkedNodeKind.postfixExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set prefixedIdentifier_period(int value) {
+  set prefixedIdentifier_period(int value) {
     assert(kind == idl.LinkedNodeKind.prefixedIdentifier);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set prefixExpression_element(int value) {
+  set prefixExpression_element(int value) {
     assert(kind == idl.LinkedNodeKind.prefixExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set propertyAccess_operator(int value) {
+  set propertyAccess_operator(int value) {
     assert(kind == idl.LinkedNodeKind.propertyAccess);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set redirectingConstructorInvocation_element(int value) {
+  set redirectingConstructorInvocation_element(int value) {
     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set rethrowExpression_rethrowKeyword(int value) {
+  set rethrowExpression_rethrowKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.rethrowExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set returnStatement_returnKeyword(int value) {
+  set returnStatement_returnKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.returnStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set scriptTag_scriptTag(int value) {
+  set scriptTag_scriptTag(int value) {
     assert(kind == idl.LinkedNodeKind.scriptTag);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set setOrMapLiteral_leftBracket(int value) {
+  set setOrMapLiteral_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set simpleFormalParameter_keyword(int value) {
+  set simpleFormalParameter_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set simpleIdentifier_element(int value) {
+  set simpleIdentifier_element(int value) {
     assert(kind == idl.LinkedNodeKind.simpleIdentifier);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set simpleStringLiteral_token(int value) {
+  set simpleStringLiteral_token(int value) {
     assert(kind == idl.LinkedNodeKind.simpleStringLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set spreadElement_spreadOperator(int value) {
+  set spreadElement_spreadOperator(int value) {
     assert(kind == idl.LinkedNodeKind.spreadElement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set superConstructorInvocation_element(int value) {
+  set superConstructorInvocation_element(int value) {
     assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set superExpression_superKeyword(int value) {
+  set superExpression_superKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.superExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set switchMember_keyword(int value) {
+  set switchMember_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.switchCase ||
         kind == idl.LinkedNodeKind.switchDefault);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set switchStatement_leftParenthesis(int value) {
+  set switchStatement_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set symbolLiteral_poundSign(int value) {
+  set symbolLiteral_poundSign(int value) {
     assert(kind == idl.LinkedNodeKind.symbolLiteral);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set thisExpression_thisKeyword(int value) {
+  set thisExpression_thisKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.thisExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set throwExpression_throwKeyword(int value) {
+  set throwExpression_throwKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.throwExpression);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set topLevelVariableDeclaration_semicolon(int value) {
+  set topLevelVariableDeclaration_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.topLevelVariableDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set tryStatement_finallyKeyword(int value) {
+  set tryStatement_finallyKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.tryStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set typeArgumentList_leftBracket(int value) {
+  set typeArgumentList_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.typeArgumentList);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set typeName_question(int value) {
+  set typeName_question(int value) {
     assert(kind == idl.LinkedNodeKind.typeName);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set typeParameter_extendsKeyword(int value) {
+  set typeParameter_extendsKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.typeParameter);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set typeParameterList_leftBracket(int value) {
+  set typeParameterList_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.typeParameterList);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set variableDeclaration_equals(int value) {
+  set variableDeclaration_equals(int value) {
     assert(kind == idl.LinkedNodeKind.variableDeclaration);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set variableDeclarationList_keyword(int value) {
+  set variableDeclarationList_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.variableDeclarationList);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set variableDeclarationStatement_semicolon(int value) {
+  set variableDeclarationStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.variableDeclarationStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set whileStatement_leftParenthesis(int value) {
+  set whileStatement_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.whileStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set withClause_withKeyword(int value) {
+  set withClause_withKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.withClause);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
 
-  void set yieldStatement_yieldKeyword(int value) {
+  set yieldStatement_yieldKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.yieldStatement);
     assert(value == null || value >= 0);
     _variantField_15 = value;
@@ -7421,248 +7436,248 @@ class LinkedNodeBuilder extends Object
     return _variantField_7;
   }
 
-  void set annotation_constructorName(LinkedNodeBuilder value) {
+  set annotation_constructorName(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.annotation);
     _variantField_7 = value;
   }
 
-  void set asExpression_type(LinkedNodeBuilder value) {
+  set asExpression_type(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.asExpression);
     _variantField_7 = value;
   }
 
-  void set assertInitializer_message(LinkedNodeBuilder value) {
+  set assertInitializer_message(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.assertInitializer);
     _variantField_7 = value;
   }
 
-  void set assertStatement_message(LinkedNodeBuilder value) {
+  set assertStatement_message(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.assertStatement);
     _variantField_7 = value;
   }
 
-  void set assignmentExpression_rightHandSide(LinkedNodeBuilder value) {
+  set assignmentExpression_rightHandSide(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     _variantField_7 = value;
   }
 
-  void set binaryExpression_rightOperand(LinkedNodeBuilder value) {
+  set binaryExpression_rightOperand(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.binaryExpression);
     _variantField_7 = value;
   }
 
-  void set catchClause_exceptionParameter(LinkedNodeBuilder value) {
+  set catchClause_exceptionParameter(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     _variantField_7 = value;
   }
 
-  void set classDeclaration_withClause(LinkedNodeBuilder value) {
+  set classDeclaration_withClause(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
     _variantField_7 = value;
   }
 
-  void set classTypeAlias_superclass(LinkedNodeBuilder value) {
+  set classTypeAlias_superclass(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     _variantField_7 = value;
   }
 
-  void set conditionalExpression_elseExpression(LinkedNodeBuilder value) {
+  set conditionalExpression_elseExpression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.conditionalExpression);
     _variantField_7 = value;
   }
 
-  void set configuration_value(LinkedNodeBuilder value) {
+  set configuration_value(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.configuration);
     _variantField_7 = value;
   }
 
-  void set constructorDeclaration_name(LinkedNodeBuilder value) {
+  set constructorDeclaration_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     _variantField_7 = value;
   }
 
-  void set constructorFieldInitializer_fieldName(LinkedNodeBuilder value) {
+  set constructorFieldInitializer_fieldName(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorFieldInitializer);
     _variantField_7 = value;
   }
 
-  void set constructorName_type(LinkedNodeBuilder value) {
+  set constructorName_type(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorName);
     _variantField_7 = value;
   }
 
-  void set declaredIdentifier_type(LinkedNodeBuilder value) {
+  set declaredIdentifier_type(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.declaredIdentifier);
     _variantField_7 = value;
   }
 
-  void set defaultFormalParameter_parameter(LinkedNodeBuilder value) {
+  set defaultFormalParameter_parameter(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
     _variantField_7 = value;
   }
 
-  void set doStatement_condition(LinkedNodeBuilder value) {
+  set doStatement_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     _variantField_7 = value;
   }
 
-  void set fieldFormalParameter_typeParameters(LinkedNodeBuilder value) {
+  set fieldFormalParameter_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     _variantField_7 = value;
   }
 
-  void set forEachPartsWithDeclaration_loopVariable(LinkedNodeBuilder value) {
+  set forEachPartsWithDeclaration_loopVariable(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forEachPartsWithDeclaration);
     _variantField_7 = value;
   }
 
-  void set forEachPartsWithIdentifier_identifier(LinkedNodeBuilder value) {
+  set forEachPartsWithIdentifier_identifier(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forEachPartsWithIdentifier);
     _variantField_7 = value;
   }
 
-  void set forElement_body(LinkedNodeBuilder value) {
+  set forElement_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forElement);
     _variantField_7 = value;
   }
 
-  void set forPartsWithDeclarations_variables(LinkedNodeBuilder value) {
+  set forPartsWithDeclarations_variables(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations);
     _variantField_7 = value;
   }
 
-  void set forPartsWithExpression_initialization(LinkedNodeBuilder value) {
+  set forPartsWithExpression_initialization(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forPartsWithExpression);
     _variantField_7 = value;
   }
 
-  void set forStatement_body(LinkedNodeBuilder value) {
+  set forStatement_body(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.forStatement);
     _variantField_7 = value;
   }
 
-  void set functionDeclaration_returnType(LinkedNodeBuilder value) {
+  set functionDeclaration_returnType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionDeclaration);
     _variantField_7 = value;
   }
 
-  void set functionExpression_formalParameters(LinkedNodeBuilder value) {
+  set functionExpression_formalParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionExpression);
     _variantField_7 = value;
   }
 
-  void set functionTypeAlias_returnType(LinkedNodeBuilder value) {
+  set functionTypeAlias_returnType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypeAlias);
     _variantField_7 = value;
   }
 
-  void set functionTypedFormalParameter_returnType(LinkedNodeBuilder value) {
+  set functionTypedFormalParameter_returnType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
     _variantField_7 = value;
   }
 
-  void set genericFunctionType_returnType(LinkedNodeBuilder value) {
+  set genericFunctionType_returnType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_7 = value;
   }
 
-  void set genericTypeAlias_functionType(LinkedNodeBuilder value) {
+  set genericTypeAlias_functionType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.genericTypeAlias);
     _variantField_7 = value;
   }
 
-  void set ifStatement_elseStatement(LinkedNodeBuilder value) {
+  set ifStatement_elseStatement(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.ifStatement);
     _variantField_7 = value;
   }
 
-  void set indexExpression_target(LinkedNodeBuilder value) {
+  set indexExpression_target(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     _variantField_7 = value;
   }
 
-  void set instanceCreationExpression_constructorName(LinkedNodeBuilder value) {
+  set instanceCreationExpression_constructorName(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.instanceCreationExpression);
     _variantField_7 = value;
   }
 
-  void set isExpression_type(LinkedNodeBuilder value) {
+  set isExpression_type(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.isExpression);
     _variantField_7 = value;
   }
 
-  void set mapLiteralEntry_value(LinkedNodeBuilder value) {
+  set mapLiteralEntry_value(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.mapLiteralEntry);
     _variantField_7 = value;
   }
 
-  void set methodDeclaration_formalParameters(LinkedNodeBuilder value) {
+  set methodDeclaration_formalParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_7 = value;
   }
 
-  void set methodInvocation_target(LinkedNodeBuilder value) {
+  set methodInvocation_target(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodInvocation);
     _variantField_7 = value;
   }
 
-  void set namedExpression_name(LinkedNodeBuilder value) {
+  set namedExpression_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.namedExpression);
     _variantField_7 = value;
   }
 
-  void set partOfDirective_uri(LinkedNodeBuilder value) {
+  set partOfDirective_uri(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.partOfDirective);
     _variantField_7 = value;
   }
 
-  void set prefixedIdentifier_prefix(LinkedNodeBuilder value) {
+  set prefixedIdentifier_prefix(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.prefixedIdentifier);
     _variantField_7 = value;
   }
 
-  void set propertyAccess_target(LinkedNodeBuilder value) {
+  set propertyAccess_target(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.propertyAccess);
     _variantField_7 = value;
   }
 
-  void set redirectingConstructorInvocation_constructorName(
+  set redirectingConstructorInvocation_constructorName(
       LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
     _variantField_7 = value;
   }
 
-  void set superConstructorInvocation_constructorName(LinkedNodeBuilder value) {
+  set superConstructorInvocation_constructorName(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
     _variantField_7 = value;
   }
 
-  void set switchStatement_expression(LinkedNodeBuilder value) {
+  set switchStatement_expression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     _variantField_7 = value;
   }
 
-  void set tryStatement_finallyBlock(LinkedNodeBuilder value) {
+  set tryStatement_finallyBlock(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.tryStatement);
     _variantField_7 = value;
   }
 
-  void set typeName_typeArguments(LinkedNodeBuilder value) {
+  set typeName_typeArguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.typeName);
     _variantField_7 = value;
   }
 
-  void set typeParameter_name(LinkedNodeBuilder value) {
+  set typeParameter_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.typeParameter);
     _variantField_7 = value;
   }
 
-  void set variableDeclaration_name(LinkedNodeBuilder value) {
+  set variableDeclaration_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_7 = value;
   }
 
-  void set whileStatement_condition(LinkedNodeBuilder value) {
+  set whileStatement_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.whileStatement);
     _variantField_7 = value;
   }
@@ -7763,83 +7778,82 @@ class LinkedNodeBuilder extends Object
     return _variantField_8;
   }
 
-  void set annotation_name(LinkedNodeBuilder value) {
+  set annotation_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.annotation);
     _variantField_8 = value;
   }
 
-  void set catchClause_exceptionType(LinkedNodeBuilder value) {
+  set catchClause_exceptionType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     _variantField_8 = value;
   }
 
-  void set classDeclaration_nativeClause(LinkedNodeBuilder value) {
+  set classDeclaration_nativeClause(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
     _variantField_8 = value;
   }
 
-  void set classTypeAlias_withClause(LinkedNodeBuilder value) {
+  set classTypeAlias_withClause(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     _variantField_8 = value;
   }
 
-  void set conditionalExpression_thenExpression(LinkedNodeBuilder value) {
+  set conditionalExpression_thenExpression(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.conditionalExpression);
     _variantField_8 = value;
   }
 
-  void set configuration_uri(LinkedNodeBuilder value) {
+  set configuration_uri(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.configuration);
     _variantField_8 = value;
   }
 
-  void set constructorDeclaration_parameters(LinkedNodeBuilder value) {
+  set constructorDeclaration_parameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     _variantField_8 = value;
   }
 
-  void set fieldFormalParameter_formalParameters(LinkedNodeBuilder value) {
+  set fieldFormalParameter_formalParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     _variantField_8 = value;
   }
 
-  void set functionExpression_typeParameters(LinkedNodeBuilder value) {
+  set functionExpression_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionExpression);
     _variantField_8 = value;
   }
 
-  void set functionTypeAlias_typeParameters(LinkedNodeBuilder value) {
+  set functionTypeAlias_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypeAlias);
     _variantField_8 = value;
   }
 
-  void set functionTypedFormalParameter_typeParameters(
-      LinkedNodeBuilder value) {
+  set functionTypedFormalParameter_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
     _variantField_8 = value;
   }
 
-  void set genericFunctionType_formalParameters(LinkedNodeBuilder value) {
+  set genericFunctionType_formalParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_8 = value;
   }
 
-  void set ifElement_thenElement(LinkedNodeBuilder value) {
+  set ifElement_thenElement(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.ifElement);
     _variantField_8 = value;
   }
 
-  void set ifStatement_thenStatement(LinkedNodeBuilder value) {
+  set ifStatement_thenStatement(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.ifStatement);
     _variantField_8 = value;
   }
 
-  void set instanceCreationExpression_typeArguments(LinkedNodeBuilder value) {
+  set instanceCreationExpression_typeArguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.instanceCreationExpression);
     _variantField_8 = value;
   }
 
-  void set methodDeclaration_returnType(LinkedNodeBuilder value) {
+  set methodDeclaration_returnType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_8 = value;
   }
@@ -8178,335 +8192,335 @@ class LinkedNodeBuilder extends Object
     return _variantField_16 ??= 0;
   }
 
-  void set annotation_period(int value) {
+  set annotation_period(int value) {
     assert(kind == idl.LinkedNodeKind.annotation);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set argumentList_rightParenthesis(int value) {
+  set argumentList_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.argumentList);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set assertInitializer_comma(int value) {
+  set assertInitializer_comma(int value) {
     assert(kind == idl.LinkedNodeKind.assertInitializer);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set assertStatement_comma(int value) {
+  set assertStatement_comma(int value) {
     assert(kind == idl.LinkedNodeKind.assertStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set assignmentExpression_operator(int value) {
+  set assignmentExpression_operator(int value) {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set binaryExpression_operator(int value) {
+  set binaryExpression_operator(int value) {
     assert(kind == idl.LinkedNodeKind.binaryExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set block_rightBracket(int value) {
+  set block_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.block);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set blockFunctionBody_star(int value) {
+  set blockFunctionBody_star(int value) {
     assert(kind == idl.LinkedNodeKind.blockFunctionBody);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set breakStatement_semicolon(int value) {
+  set breakStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.breakStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set catchClause_comma(int value) {
+  set catchClause_comma(int value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set classDeclaration_classKeyword(int value) {
+  set classDeclaration_classKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set classTypeAlias_equals(int value) {
+  set classTypeAlias_equals(int value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set compilationUnit_endToken(int value) {
+  set compilationUnit_endToken(int value) {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set conditionalExpression_question(int value) {
+  set conditionalExpression_question(int value) {
     assert(kind == idl.LinkedNodeKind.conditionalExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set configuration_leftParenthesis(int value) {
+  set configuration_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.configuration);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set constructorDeclaration_externalKeyword(int value) {
+  set constructorDeclaration_externalKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set constructorFieldInitializer_period(int value) {
+  set constructorFieldInitializer_period(int value) {
     assert(kind == idl.LinkedNodeKind.constructorFieldInitializer);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set constructorName_period(int value) {
+  set constructorName_period(int value) {
     assert(kind == idl.LinkedNodeKind.constructorName);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set continueStatement_semicolon(int value) {
+  set continueStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.continueStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set doStatement_rightParenthesis(int value) {
+  set doStatement_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set enumDeclaration_leftBracket(int value) {
+  set enumDeclaration_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set expressionFunctionBody_keyword(int value) {
+  set expressionFunctionBody_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.expressionFunctionBody);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set fieldDeclaration_semicolon(int value) {
+  set fieldDeclaration_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.fieldDeclaration);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set fieldFormalParameter_period(int value) {
+  set fieldFormalParameter_period(int value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set formalParameterList_leftParenthesis(int value) {
+  set formalParameterList_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.formalParameterList);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set forMixin_forKeyword(int value) {
+  set forMixin_forKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.forElement ||
         kind == idl.LinkedNodeKind.forStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set forParts_rightSeparator(int value) {
+  set forParts_rightSeparator(int value) {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations ||
         kind == idl.LinkedNodeKind.forPartsWithExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set functionDeclaration_propertyKeyword(int value) {
+  set functionDeclaration_propertyKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.functionDeclaration);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set genericFunctionType_question(int value) {
+  set genericFunctionType_question(int value) {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set genericTypeAlias_equals(int value) {
+  set genericTypeAlias_equals(int value) {
     assert(kind == idl.LinkedNodeKind.genericTypeAlias);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set ifMixin_ifKeyword(int value) {
+  set ifMixin_ifKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.ifElement ||
         kind == idl.LinkedNodeKind.ifStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set importDirective_deferredKeyword(int value) {
+  set importDirective_deferredKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.importDirective);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set indexExpression_period(int value) {
+  set indexExpression_period(int value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set integerLiteral_value(int value) {
+  set integerLiteral_value(int value) {
     assert(kind == idl.LinkedNodeKind.integerLiteral);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set interpolationExpression_rightBracket(int value) {
+  set interpolationExpression_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.interpolationExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set isExpression_notOperator(int value) {
+  set isExpression_notOperator(int value) {
     assert(kind == idl.LinkedNodeKind.isExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set listLiteral_rightBracket(int value) {
+  set listLiteral_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.listLiteral);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set methodDeclaration_modifierKeyword(int value) {
+  set methodDeclaration_modifierKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set nativeFunctionBody_semicolon(int value) {
+  set nativeFunctionBody_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.nativeFunctionBody);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set parenthesizedExpression_rightParenthesis(int value) {
+  set parenthesizedExpression_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.parenthesizedExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set partOfDirective_ofKeyword(int value) {
+  set partOfDirective_ofKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.partOfDirective);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set postfixExpression_operator(int value) {
+  set postfixExpression_operator(int value) {
     assert(kind == idl.LinkedNodeKind.postfixExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set prefixExpression_operator(int value) {
+  set prefixExpression_operator(int value) {
     assert(kind == idl.LinkedNodeKind.prefixExpression);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set redirectingConstructorInvocation_period(int value) {
+  set redirectingConstructorInvocation_period(int value) {
     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set returnStatement_semicolon(int value) {
+  set returnStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.returnStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set setOrMapLiteral_rightBracket(int value) {
+  set setOrMapLiteral_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set simpleIdentifier_token(int value) {
+  set simpleIdentifier_token(int value) {
     assert(kind == idl.LinkedNodeKind.simpleIdentifier);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set superConstructorInvocation_period(int value) {
+  set superConstructorInvocation_period(int value) {
     assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set switchMember_colon(int value) {
+  set switchMember_colon(int value) {
     assert(kind == idl.LinkedNodeKind.switchCase ||
         kind == idl.LinkedNodeKind.switchDefault);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set switchStatement_rightParenthesis(int value) {
+  set switchStatement_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set tryStatement_tryKeyword(int value) {
+  set tryStatement_tryKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.tryStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set typeArgumentList_rightBracket(int value) {
+  set typeArgumentList_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.typeArgumentList);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set typeParameterList_rightBracket(int value) {
+  set typeParameterList_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.typeParameterList);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set whileStatement_rightParenthesis(int value) {
+  set whileStatement_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.whileStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
 
-  void set yieldStatement_star(int value) {
+  set yieldStatement_star(int value) {
     assert(kind == idl.LinkedNodeKind.yieldStatement);
     assert(value == null || value >= 0);
     _variantField_16 = value;
@@ -8640,129 +8654,129 @@ class LinkedNodeBuilder extends Object
     return _variantField_17 ??= 0;
   }
 
-  void set assertInitializer_leftParenthesis(int value) {
+  set assertInitializer_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.assertInitializer);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set assertStatement_leftParenthesis(int value) {
+  set assertStatement_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.assertStatement);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set catchClause_leftParenthesis(int value) {
+  set catchClause_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set configuration_rightParenthesis(int value) {
+  set configuration_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.configuration);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set constructorDeclaration_factoryKeyword(int value) {
+  set constructorDeclaration_factoryKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set constructorFieldInitializer_thisKeyword(int value) {
+  set constructorFieldInitializer_thisKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.constructorFieldInitializer);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set doStatement_doKeyword(int value) {
+  set doStatement_doKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set enumDeclaration_rightBracket(int value) {
+  set enumDeclaration_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set expressionFunctionBody_semicolon(int value) {
+  set expressionFunctionBody_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.expressionFunctionBody);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set fieldDeclaration_staticKeyword(int value) {
+  set fieldDeclaration_staticKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.fieldDeclaration);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set fieldFormalParameter_thisKeyword(int value) {
+  set fieldFormalParameter_thisKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set formalParameterList_rightDelimiter(int value) {
+  set formalParameterList_rightDelimiter(int value) {
     assert(kind == idl.LinkedNodeKind.formalParameterList);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set forMixin_leftParenthesis(int value) {
+  set forMixin_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.forElement ||
         kind == idl.LinkedNodeKind.forStatement);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set ifMixin_leftParenthesis(int value) {
+  set ifMixin_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.ifElement ||
         kind == idl.LinkedNodeKind.ifStatement);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set indexExpression_leftBracket(int value) {
+  set indexExpression_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set methodDeclaration_operatorKeyword(int value) {
+  set methodDeclaration_operatorKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set redirectingConstructorInvocation_thisKeyword(int value) {
+  set redirectingConstructorInvocation_thisKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set superConstructorInvocation_superKeyword(int value) {
+  set superConstructorInvocation_superKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set switchStatement_switchKeyword(int value) {
+  set switchStatement_switchKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set whileStatement_whileKeyword(int value) {
+  set whileStatement_whileKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.whileStatement);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
 
-  void set yieldStatement_semicolon(int value) {
+  set yieldStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.yieldStatement);
     assert(value == null || value >= 0);
     _variantField_17 = value;
@@ -8860,44 +8874,44 @@ class LinkedNodeBuilder extends Object
     return _variantField_18 ??= 0;
   }
 
-  void set assertInitializer_rightParenthesis(int value) {
+  set assertInitializer_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.assertInitializer);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set assertStatement_rightParenthesis(int value) {
+  set assertStatement_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.assertStatement);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set catchClause_onKeyword(int value) {
+  set catchClause_onKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set classOrMixinDeclaration_rightBracket(int value) {
+  set classOrMixinDeclaration_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set configuration_equalToken(int value) {
+  set configuration_equalToken(int value) {
     assert(kind == idl.LinkedNodeKind.configuration);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set constructorDeclaration_period(int value) {
+  set constructorDeclaration_period(int value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set directive_keyword(int value) {
+  set directive_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.libraryDirective ||
@@ -8907,44 +8921,44 @@ class LinkedNodeBuilder extends Object
     _variantField_18 = value;
   }
 
-  void set doStatement_semicolon(int value) {
+  set doStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set formalParameterList_rightParenthesis(int value) {
+  set formalParameterList_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.formalParameterList);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set ifMixin_rightParenthesis(int value) {
+  set ifMixin_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.ifElement ||
         kind == idl.LinkedNodeKind.ifStatement);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set indexExpression_rightBracket(int value) {
+  set indexExpression_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set methodDeclaration_propertyKeyword(int value) {
+  set methodDeclaration_propertyKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set switchStatement_leftBracket(int value) {
+  set switchStatement_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
 
-  void set typeAlias_typedefKeyword(int value) {
+  set typeAlias_typedefKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
         kind == idl.LinkedNodeKind.genericTypeAlias);
@@ -9040,58 +9054,58 @@ class LinkedNodeBuilder extends Object
     return _variantField_19 ??= 0;
   }
 
-  void set assertStatement_semicolon(int value) {
+  set assertStatement_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.assertStatement);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set catchClause_rightParenthesis(int value) {
+  set catchClause_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set classOrMixinDeclaration_leftBracket(int value) {
+  set classOrMixinDeclaration_leftBracket(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set combinator_keyword(int value) {
+  set combinator_keyword(int value) {
     assert(kind == idl.LinkedNodeKind.hideCombinator ||
         kind == idl.LinkedNodeKind.showCombinator);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set constructorDeclaration_separator(int value) {
+  set constructorDeclaration_separator(int value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set doStatement_whileKeyword(int value) {
+  set doStatement_whileKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set forMixin_rightParenthesis(int value) {
+  set forMixin_rightParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.forElement ||
         kind == idl.LinkedNodeKind.forStatement);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set methodDeclaration_actualProperty(int value) {
+  set methodDeclaration_actualProperty(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set normalFormalParameter_covariantKeyword(int value) {
+  set normalFormalParameter_covariantKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
@@ -9099,13 +9113,13 @@ class LinkedNodeBuilder extends Object
     _variantField_19 = value;
   }
 
-  void set switchStatement_rightBracket(int value) {
+  set switchStatement_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set typeAlias_semicolon(int value) {
+  set typeAlias_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
         kind == idl.LinkedNodeKind.genericTypeAlias);
@@ -9113,144 +9127,19 @@ class LinkedNodeBuilder extends Object
     _variantField_19 = value;
   }
 
-  void set typedLiteral_constKeyword(int value) {
+  set typedLiteral_constKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
         kind == idl.LinkedNodeKind.setOrMapLiteral);
     assert(value == null || value >= 0);
     _variantField_19 = value;
   }
 
-  void set uriBasedDirective_uriElement(int value) {
+  set uriBasedDirective_uriElement(int value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.partDirective);
     assert(value == null || value >= 0);
     _variantField_19 = value;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get binaryExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get fieldFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
-        kind == idl.LinkedNodeKind.functionExpression);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get functionTypeAlias_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get functionTypedFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get genericFunctionType_returnType2 {
-    assert(kind == idl.LinkedNodeKind.genericFunctionType);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get invocationExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
-        kind == idl.LinkedNodeKind.methodInvocation);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get methodDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get simpleFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get typeName_type {
-    assert(kind == idl.LinkedNodeKind.typeName);
-    return _variantField_24;
-  }
-
-  @override
-  LinkedNodeTypeBuilder get variableDeclaration_type2 {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
-    return _variantField_24;
-  }
-
-  void set binaryExpression_invokeType(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    _variantField_24 = value;
-  }
-
-  void set fieldFormalParameter_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
-    _variantField_24 = value;
-  }
-
-  void set functionDeclaration_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
-        kind == idl.LinkedNodeKind.functionExpression);
-    _variantField_24 = value;
-  }
-
-  void set functionTypeAlias_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
-    _variantField_24 = value;
-  }
-
-  void set functionTypedFormalParameter_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
-    _variantField_24 = value;
-  }
-
-  void set genericFunctionType_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.genericFunctionType);
-    _variantField_24 = value;
-  }
-
-  void set invocationExpression_invokeType(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
-        kind == idl.LinkedNodeKind.methodInvocation);
-    _variantField_24 = value;
-  }
-
-  void set methodDeclaration_returnType2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
-    _variantField_24 = value;
-  }
-
-  void set simpleFormalParameter_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
-    _variantField_24 = value;
-  }
-
-  void set typeName_type(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.typeName);
-    _variantField_24 = value;
-  }
-
-  void set variableDeclaration_type2(LinkedNodeTypeBuilder value) {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
-    _variantField_24 = value;
   }
 
   @override
@@ -9285,29 +9174,29 @@ class LinkedNodeBuilder extends Object
     return _variantField_27 ??= false;
   }
 
-  void set booleanLiteral_value(bool value) {
+  set booleanLiteral_value(bool value) {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     _variantField_27 = value;
   }
 
-  void set classDeclaration_isDartObject(bool value) {
+  set classDeclaration_isDartObject(bool value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
     _variantField_27 = value;
   }
 
-  void set defaultFormalParameter_isNamed(bool value) {
+  set defaultFormalParameter_isNamed(bool value) {
     assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
     _variantField_27 = value;
   }
 
-  void set normalFormalParameter_isCovariant(bool value) {
+  set normalFormalParameter_isCovariant(bool value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
     _variantField_27 = value;
   }
 
-  void set setOrMapLiteral_isMap(bool value) {
+  set setOrMapLiteral_isMap(bool value) {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_27 = value;
   }
@@ -9342,28 +9231,27 @@ class LinkedNodeBuilder extends Object
     return _variantField_9;
   }
 
-  void set catchClause_stackTraceParameter(LinkedNodeBuilder value) {
+  set catchClause_stackTraceParameter(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.catchClause);
     _variantField_9 = value;
   }
 
-  void set classTypeAlias_implementsClause(LinkedNodeBuilder value) {
+  set classTypeAlias_implementsClause(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
     _variantField_9 = value;
   }
 
-  void set constructorDeclaration_redirectedConstructor(
-      LinkedNodeBuilder value) {
+  set constructorDeclaration_redirectedConstructor(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     _variantField_9 = value;
   }
 
-  void set ifElement_elseElement(LinkedNodeBuilder value) {
+  set ifElement_elseElement(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.ifElement);
     _variantField_9 = value;
   }
 
-  void set methodDeclaration_typeParameters(LinkedNodeBuilder value) {
+  set methodDeclaration_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_9 = value;
   }
@@ -9390,19 +9278,19 @@ class LinkedNodeBuilder extends Object
     return _variantField_12;
   }
 
-  void set classOrMixinDeclaration_implementsClause(LinkedNodeBuilder value) {
+  set classOrMixinDeclaration_implementsClause(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration);
     _variantField_12 = value;
   }
 
-  void set invocationExpression_typeArguments(LinkedNodeBuilder value) {
+  set invocationExpression_typeArguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.methodInvocation);
     _variantField_12 = value;
   }
 
-  void set normalFormalParameter_identifier(LinkedNodeBuilder value) {
+  set normalFormalParameter_identifier(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
@@ -9423,13 +9311,13 @@ class LinkedNodeBuilder extends Object
     return _variantField_5 ??= <LinkedNodeBuilder>[];
   }
 
-  void set classOrMixinDeclaration_members(List<LinkedNodeBuilder> value) {
+  set classOrMixinDeclaration_members(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration);
     _variantField_5 = value;
   }
 
-  void set forParts_updaters(List<LinkedNodeBuilder> value) {
+  set forParts_updaters(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations ||
         kind == idl.LinkedNodeKind.forPartsWithExpression);
     _variantField_5 = value;
@@ -9442,7 +9330,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_13;
   }
 
-  void set classOrMixinDeclaration_typeParameters(LinkedNodeBuilder value) {
+  set classOrMixinDeclaration_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration);
     _variantField_13 = value;
@@ -9468,7 +9356,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_34 ??= 0;
   }
 
-  void set codeLength(int value) {
+  set codeLength(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
@@ -9518,7 +9406,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_33 ??= 0;
   }
 
-  void set codeOffset(int value) {
+  set codeOffset(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
@@ -9538,7 +9426,7 @@ class LinkedNodeBuilder extends Object
     _variantField_33 = value;
   }
 
-  void set directive_semicolon(int value) {
+  set directive_semicolon(int value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.libraryDirective ||
@@ -9560,13 +9448,13 @@ class LinkedNodeBuilder extends Object
     return _variantField_28 ??= <int>[];
   }
 
-  void set comment_tokens(List<int> value) {
+  set comment_tokens(List<int> value) {
     assert(kind == idl.LinkedNodeKind.comment);
     assert(value == null || value.every((e) => e >= 0));
     _variantField_28 = value;
   }
 
-  void set symbolLiteral_components(List<int> value) {
+  set symbolLiteral_components(List<int> value) {
     assert(kind == idl.LinkedNodeKind.symbolLiteral);
     assert(value == null || value.every((e) => e >= 0));
     _variantField_28 = value;
@@ -9578,7 +9466,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_29 ??= idl.LinkedNodeCommentType.block;
   }
 
-  void set comment_type(idl.LinkedNodeCommentType value) {
+  set comment_type(idl.LinkedNodeCommentType value) {
     assert(kind == idl.LinkedNodeKind.comment);
     _variantField_29 = value;
   }
@@ -9603,18 +9491,18 @@ class LinkedNodeBuilder extends Object
     return _variantField_3 ??= <LinkedNodeBuilder>[];
   }
 
-  void set compilationUnit_directives(List<LinkedNodeBuilder> value) {
+  set compilationUnit_directives(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     _variantField_3 = value;
   }
 
-  void set namespaceDirective_configurations(List<LinkedNodeBuilder> value) {
+  set namespaceDirective_configurations(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
     _variantField_3 = value;
   }
 
-  void set switchMember_labels(List<LinkedNodeBuilder> value) {
+  set switchMember_labels(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.switchCase ||
         kind == idl.LinkedNodeKind.switchDefault);
     _variantField_3 = value;
@@ -9632,12 +9520,12 @@ class LinkedNodeBuilder extends Object
     return _variantField_10;
   }
 
-  void set constructorDeclaration_returnType(LinkedNodeBuilder value) {
+  set constructorDeclaration_returnType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     _variantField_10 = value;
   }
 
-  void set methodDeclaration_name(LinkedNodeBuilder value) {
+  set methodDeclaration_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_10 = value;
   }
@@ -9648,7 +9536,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_21 ??= 0.0;
   }
 
-  void set doubleLiteral_value(double value) {
+  set doubleLiteral_value(double value) {
     assert(kind == idl.LinkedNodeKind.doubleLiteral);
     _variantField_21 = value;
   }
@@ -9696,7 +9584,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_25;
   }
 
-  void set expression_type(LinkedNodeTypeBuilder value) {
+  set expression_type(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.adjacentStrings ||
         kind == idl.LinkedNodeKind.assignmentExpression ||
         kind == idl.LinkedNodeKind.asExpression ||
@@ -9732,7 +9620,7 @@ class LinkedNodeBuilder extends Object
     _variantField_25 = value;
   }
 
-  void set genericFunctionType_type(LinkedNodeTypeBuilder value) {
+  set genericFunctionType_type(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_25 = value;
   }
@@ -9745,7 +9633,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_26 ??= idl.LinkedNodeFormalParameterKind.required;
   }
 
-  void set formalParameter_kind(idl.LinkedNodeFormalParameterKind value) {
+  set formalParameter_kind(idl.LinkedNodeFormalParameterKind value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
@@ -9758,7 +9646,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_30 ??= '';
   }
 
-  void set interpolationString_value(String value) {
+  set interpolationString_value(String value) {
     assert(kind == idl.LinkedNodeKind.interpolationString);
     _variantField_30 = value;
   }
@@ -9805,13 +9693,13 @@ class LinkedNodeBuilder extends Object
     return _variantField_14;
   }
 
-  void set invocationExpression_arguments(LinkedNodeBuilder value) {
+  set invocationExpression_arguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.methodInvocation);
     _variantField_14 = value;
   }
 
-  void set namedCompilationUnitMember_name(LinkedNodeBuilder value) {
+  set namedCompilationUnitMember_name(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
@@ -9822,20 +9710,20 @@ class LinkedNodeBuilder extends Object
     _variantField_14 = value;
   }
 
-  void set normalFormalParameter_comment(LinkedNodeBuilder value) {
+  set normalFormalParameter_comment(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
     _variantField_14 = value;
   }
 
-  void set typedLiteral_typeArguments(LinkedNodeBuilder value) {
+  set typedLiteral_typeArguments(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
         kind == idl.LinkedNodeKind.setOrMapLiteral);
     _variantField_14 = value;
   }
 
-  void set uriBasedDirective_uri(LinkedNodeBuilder value) {
+  set uriBasedDirective_uri(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.partDirective);
@@ -9845,14 +9733,14 @@ class LinkedNodeBuilder extends Object
   @override
   bool get isSynthetic => _isSynthetic ??= false;
 
-  void set isSynthetic(bool value) {
+  set isSynthetic(bool value) {
     this._isSynthetic = value;
   }
 
   @override
   idl.LinkedNodeKind get kind => _kind ??= idl.LinkedNodeKind.adjacentStrings;
 
-  void set kind(idl.LinkedNodeKind value) {
+  set kind(idl.LinkedNodeKind value) {
     this._kind = value;
   }
 
@@ -9865,7 +9753,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_23 ??= '';
   }
 
-  void set namespaceDirective_selectedUriContent(String value) {
+  set namespaceDirective_selectedUriContent(String value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.partDirective ||
@@ -9879,8 +9767,27 @@ class LinkedNodeBuilder extends Object
     return _variantField_31 ??= false;
   }
 
-  void set setOrMapLiteral_isSet(bool value) {
+  @override
+  bool get simplyBoundable_isSimplyBounded {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
+    return _variantField_31 ??= false;
+  }
+
+  set setOrMapLiteral_isSet(bool value) {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
+    _variantField_31 = value;
+  }
+
+  set simplyBoundable_isSimplyBounded(bool value) {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
     _variantField_31 = value;
   }
 
@@ -9890,7 +9797,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_20 ??= '';
   }
 
-  void set simpleStringLiteral_value(String value) {
+  set simpleStringLiteral_value(String value) {
     assert(kind == idl.LinkedNodeKind.simpleStringLiteral);
     _variantField_20 = value;
   }
@@ -9903,7 +9810,7 @@ class LinkedNodeBuilder extends Object
     return _variantField_22 ??= '';
   }
 
-  void set uriBasedDirective_uriContent(String value) {
+  set uriBasedDirective_uriContent(String value) {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.partDirective);
@@ -9916,11 +9823,284 @@ class LinkedNodeBuilder extends Object
     return _variantField_32;
   }
 
-  void set variableDeclaration_declaration(
+  set variableDeclaration_declaration(
       LinkedNodeVariablesDeclarationBuilder value) {
     assert(kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_32 = value;
   }
+
+  LinkedNodeBuilder.functionDeclaration({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder functionDeclaration_functionExpression,
+    int functionDeclaration_externalKeyword,
+    LinkedNodeBuilder functionDeclaration_returnType,
+    int functionDeclaration_propertyKeyword,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeBuilder namedCompilationUnitMember_name,
+  })  : _kind = idl.LinkedNodeKind.functionDeclaration,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = functionDeclaration_functionExpression,
+        _variantField_15 = functionDeclaration_externalKeyword,
+        _variantField_7 = functionDeclaration_returnType,
+        _variantField_16 = functionDeclaration_propertyKeyword,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_14 = namedCompilationUnitMember_name;
+
+  LinkedNodeBuilder.functionExpression({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder functionExpression_body,
+    LinkedNodeBuilder functionExpression_formalParameters,
+    LinkedNodeBuilder functionExpression_typeParameters,
+  })  : _kind = idl.LinkedNodeKind.functionExpression,
+        _variantField_24 = actualReturnType,
+        _variantField_6 = functionExpression_body,
+        _variantField_7 = functionExpression_formalParameters,
+        _variantField_8 = functionExpression_typeParameters;
+
+  LinkedNodeBuilder.functionTypeAlias({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder functionTypeAlias_formalParameters,
+    LinkedNodeBuilder functionTypeAlias_returnType,
+    LinkedNodeBuilder functionTypeAlias_typeParameters,
+    int typeAlias_typedefKeyword,
+    int typeAlias_semicolon,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
+  })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = functionTypeAlias_formalParameters,
+        _variantField_7 = functionTypeAlias_returnType,
+        _variantField_8 = functionTypeAlias_typeParameters,
+        _variantField_18 = typeAlias_typedefKeyword,
+        _variantField_19 = typeAlias_semicolon,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
+
+  LinkedNodeBuilder.genericFunctionType({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder genericFunctionType_typeParameters,
+    int genericFunctionType_functionKeyword,
+    LinkedNodeBuilder genericFunctionType_returnType,
+    LinkedNodeBuilder genericFunctionType_formalParameters,
+    int genericFunctionType_question,
+    LinkedNodeTypeBuilder genericFunctionType_type,
+  })  : _kind = idl.LinkedNodeKind.genericFunctionType,
+        _variantField_24 = actualReturnType,
+        _variantField_6 = genericFunctionType_typeParameters,
+        _variantField_15 = genericFunctionType_functionKeyword,
+        _variantField_7 = genericFunctionType_returnType,
+        _variantField_8 = genericFunctionType_formalParameters,
+        _variantField_16 = genericFunctionType_question,
+        _variantField_25 = genericFunctionType_type;
+
+  LinkedNodeBuilder.methodDeclaration({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder methodDeclaration_body,
+    int methodDeclaration_externalKeyword,
+    LinkedNodeBuilder methodDeclaration_formalParameters,
+    LinkedNodeBuilder methodDeclaration_returnType,
+    int methodDeclaration_modifierKeyword,
+    int methodDeclaration_operatorKeyword,
+    int methodDeclaration_propertyKeyword,
+    int methodDeclaration_actualProperty,
+    LinkedNodeBuilder methodDeclaration_typeParameters,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeBuilder methodDeclaration_name,
+  })  : _kind = idl.LinkedNodeKind.methodDeclaration,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = methodDeclaration_body,
+        _variantField_15 = methodDeclaration_externalKeyword,
+        _variantField_7 = methodDeclaration_formalParameters,
+        _variantField_8 = methodDeclaration_returnType,
+        _variantField_16 = methodDeclaration_modifierKeyword,
+        _variantField_17 = methodDeclaration_operatorKeyword,
+        _variantField_18 = methodDeclaration_propertyKeyword,
+        _variantField_19 = methodDeclaration_actualProperty,
+        _variantField_9 = methodDeclaration_typeParameters,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_10 = methodDeclaration_name;
+
+  LinkedNodeBuilder.fieldFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder fieldFormalParameter_type,
+    int fieldFormalParameter_keyword,
+    LinkedNodeBuilder fieldFormalParameter_typeParameters,
+    LinkedNodeBuilder fieldFormalParameter_formalParameters,
+    int fieldFormalParameter_period,
+    int fieldFormalParameter_thisKeyword,
+    int normalFormalParameter_covariantKeyword,
+    bool normalFormalParameter_isCovariant,
+    LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
+    idl.LinkedNodeFormalParameterKind formalParameter_kind,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = fieldFormalParameter_type,
+        _variantField_15 = fieldFormalParameter_keyword,
+        _variantField_7 = fieldFormalParameter_typeParameters,
+        _variantField_8 = fieldFormalParameter_formalParameters,
+        _variantField_16 = fieldFormalParameter_period,
+        _variantField_17 = fieldFormalParameter_thisKeyword,
+        _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_26 = formalParameter_kind,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.functionTypedFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder functionTypedFormalParameter_formalParameters,
+    LinkedNodeBuilder functionTypedFormalParameter_returnType,
+    LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
+    int normalFormalParameter_covariantKeyword,
+    bool normalFormalParameter_isCovariant,
+    LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
+    idl.LinkedNodeFormalParameterKind formalParameter_kind,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = functionTypedFormalParameter_formalParameters,
+        _variantField_7 = functionTypedFormalParameter_returnType,
+        _variantField_8 = functionTypedFormalParameter_typeParameters,
+        _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_26 = formalParameter_kind,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.simpleFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder simpleFormalParameter_type,
+    int simpleFormalParameter_keyword,
+    int normalFormalParameter_covariantKeyword,
+    bool normalFormalParameter_isCovariant,
+    LinkedNodeBuilder normalFormalParameter_identifier,
+    int codeLength,
+    int codeOffset,
+    idl.LinkedNodeFormalParameterKind formalParameter_kind,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = simpleFormalParameter_type,
+        _variantField_15 = simpleFormalParameter_keyword,
+        _variantField_19 = normalFormalParameter_covariantKeyword,
+        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_12 = normalFormalParameter_identifier,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_26 = formalParameter_kind,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.variableDeclaration({
+    LinkedNodeTypeBuilder actualType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder variableDeclaration_initializer,
+    int variableDeclaration_equals,
+    LinkedNodeBuilder variableDeclaration_name,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeVariablesDeclarationBuilder variableDeclaration_declaration,
+  })  : _kind = idl.LinkedNodeKind.variableDeclaration,
+        _variantField_24 = actualType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = variableDeclaration_initializer,
+        _variantField_15 = variableDeclaration_equals,
+        _variantField_7 = variableDeclaration_name,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
+        _variantField_32 = variableDeclaration_declaration;
+
+  LinkedNodeBuilder.binaryExpression({
+    LinkedNodeTypeBuilder binaryExpression_invokeType,
+    LinkedNodeBuilder binaryExpression_leftOperand,
+    int binaryExpression_element,
+    LinkedNodeBuilder binaryExpression_rightOperand,
+    int binaryExpression_operator,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.binaryExpression,
+        _variantField_24 = binaryExpression_invokeType,
+        _variantField_6 = binaryExpression_leftOperand,
+        _variantField_15 = binaryExpression_element,
+        _variantField_7 = binaryExpression_rightOperand,
+        _variantField_16 = binaryExpression_operator,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.functionExpressionInvocation({
+    LinkedNodeTypeBuilder invocationExpression_invokeType,
+    LinkedNodeBuilder functionExpressionInvocation_function,
+    LinkedNodeBuilder invocationExpression_typeArguments,
+    LinkedNodeTypeBuilder expression_type,
+    LinkedNodeBuilder invocationExpression_arguments,
+  })  : _kind = idl.LinkedNodeKind.functionExpressionInvocation,
+        _variantField_24 = invocationExpression_invokeType,
+        _variantField_6 = functionExpressionInvocation_function,
+        _variantField_12 = invocationExpression_typeArguments,
+        _variantField_25 = expression_type,
+        _variantField_14 = invocationExpression_arguments;
+
+  LinkedNodeBuilder.methodInvocation({
+    LinkedNodeTypeBuilder invocationExpression_invokeType,
+    LinkedNodeBuilder methodInvocation_methodName,
+    int methodInvocation_operator,
+    LinkedNodeBuilder methodInvocation_target,
+    LinkedNodeBuilder invocationExpression_typeArguments,
+    LinkedNodeTypeBuilder expression_type,
+    LinkedNodeBuilder invocationExpression_arguments,
+  })  : _kind = idl.LinkedNodeKind.methodInvocation,
+        _variantField_24 = invocationExpression_invokeType,
+        _variantField_6 = methodInvocation_methodName,
+        _variantField_15 = methodInvocation_operator,
+        _variantField_7 = methodInvocation_target,
+        _variantField_12 = invocationExpression_typeArguments,
+        _variantField_25 = expression_type,
+        _variantField_14 = invocationExpression_arguments;
+
+  LinkedNodeBuilder.typeName({
+    LinkedNodeTypeBuilder typeName_type,
+    LinkedNodeBuilder typeName_name,
+    int typeName_question,
+    LinkedNodeBuilder typeName_typeArguments,
+  })  : _kind = idl.LinkedNodeKind.typeName,
+        _variantField_24 = typeName_type,
+        _variantField_6 = typeName_name,
+        _variantField_15 = typeName_question,
+        _variantField_7 = typeName_typeArguments;
 
   LinkedNodeBuilder.adjacentStrings({
     List<LinkedNodeBuilder> adjacentStrings_strings,
@@ -10259,6 +10439,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.classDeclaration,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10275,7 +10456,8 @@ class LinkedNodeBuilder extends Object
         _variantField_13 = classOrMixinDeclaration_typeParameters,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.classTypeAlias({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10291,6 +10473,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.classTypeAlias,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10304,7 +10487,8 @@ class LinkedNodeBuilder extends Object
         _variantField_9 = classTypeAlias_implementsClause,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.declaredIdentifier({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10343,54 +10527,6 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = fieldDeclaration_semicolon,
         _variantField_17 = fieldDeclaration_staticKeyword;
 
-  LinkedNodeBuilder.functionDeclaration({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder functionDeclaration_functionExpression,
-    int functionDeclaration_externalKeyword,
-    LinkedNodeBuilder functionDeclaration_returnType,
-    int functionDeclaration_propertyKeyword,
-    LinkedNodeTypeBuilder functionDeclaration_returnType2,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeBuilder namedCompilationUnitMember_name,
-  })  : _kind = idl.LinkedNodeKind.functionDeclaration,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = functionDeclaration_functionExpression,
-        _variantField_15 = functionDeclaration_externalKeyword,
-        _variantField_7 = functionDeclaration_returnType,
-        _variantField_16 = functionDeclaration_propertyKeyword,
-        _variantField_24 = functionDeclaration_returnType2,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
-
-  LinkedNodeBuilder.functionTypeAlias({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder functionTypeAlias_formalParameters,
-    LinkedNodeBuilder functionTypeAlias_returnType,
-    LinkedNodeBuilder functionTypeAlias_typeParameters,
-    int typeAlias_typedefKeyword,
-    int typeAlias_semicolon,
-    LinkedNodeTypeBuilder functionTypeAlias_returnType2,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeBuilder namedCompilationUnitMember_name,
-  })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = functionTypeAlias_formalParameters,
-        _variantField_7 = functionTypeAlias_returnType,
-        _variantField_8 = functionTypeAlias_typeParameters,
-        _variantField_18 = typeAlias_typedefKeyword,
-        _variantField_19 = typeAlias_semicolon,
-        _variantField_24 = functionTypeAlias_returnType2,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
-
   LinkedNodeBuilder.genericTypeAlias({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -10402,6 +10538,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.genericTypeAlias,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10412,7 +10549,8 @@ class LinkedNodeBuilder extends Object
         _variantField_19 = typeAlias_semicolon,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.libraryDirective({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10427,39 +10565,6 @@ class LinkedNodeBuilder extends Object
         _variantField_18 = directive_keyword,
         _variantField_33 = directive_semicolon;
 
-  LinkedNodeBuilder.methodDeclaration({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder methodDeclaration_body,
-    int methodDeclaration_externalKeyword,
-    LinkedNodeBuilder methodDeclaration_formalParameters,
-    LinkedNodeBuilder methodDeclaration_returnType,
-    int methodDeclaration_modifierKeyword,
-    int methodDeclaration_operatorKeyword,
-    int methodDeclaration_propertyKeyword,
-    int methodDeclaration_actualProperty,
-    LinkedNodeTypeBuilder methodDeclaration_returnType2,
-    LinkedNodeBuilder methodDeclaration_typeParameters,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeBuilder methodDeclaration_name,
-  })  : _kind = idl.LinkedNodeKind.methodDeclaration,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = methodDeclaration_body,
-        _variantField_15 = methodDeclaration_externalKeyword,
-        _variantField_7 = methodDeclaration_formalParameters,
-        _variantField_8 = methodDeclaration_returnType,
-        _variantField_16 = methodDeclaration_modifierKeyword,
-        _variantField_17 = methodDeclaration_operatorKeyword,
-        _variantField_18 = methodDeclaration_propertyKeyword,
-        _variantField_19 = methodDeclaration_actualProperty,
-        _variantField_24 = methodDeclaration_returnType2,
-        _variantField_9 = methodDeclaration_typeParameters,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_10 = methodDeclaration_name;
-
   LinkedNodeBuilder.mixinDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -10473,6 +10578,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.mixinDeclaration,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
@@ -10485,7 +10591,8 @@ class LinkedNodeBuilder extends Object
         _variantField_13 = classOrMixinDeclaration_typeParameters,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_14 = namedCompilationUnitMember_name;
+        _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.partDirective({
     LinkedNodeBuilder annotatedNode_comment,
@@ -10552,112 +10659,6 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = typeParameter_name,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset;
-
-  LinkedNodeBuilder.variableDeclaration({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder variableDeclaration_initializer,
-    int variableDeclaration_equals,
-    LinkedNodeBuilder variableDeclaration_name,
-    LinkedNodeTypeBuilder variableDeclaration_type2,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeVariablesDeclarationBuilder variableDeclaration_declaration,
-  })  : _kind = idl.LinkedNodeKind.variableDeclaration,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = variableDeclaration_initializer,
-        _variantField_15 = variableDeclaration_equals,
-        _variantField_7 = variableDeclaration_name,
-        _variantField_24 = variableDeclaration_type2,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_32 = variableDeclaration_declaration;
-
-  LinkedNodeBuilder.fieldFormalParameter({
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder fieldFormalParameter_type,
-    int fieldFormalParameter_keyword,
-    LinkedNodeBuilder fieldFormalParameter_typeParameters,
-    LinkedNodeBuilder fieldFormalParameter_formalParameters,
-    int fieldFormalParameter_period,
-    int fieldFormalParameter_thisKeyword,
-    int normalFormalParameter_covariantKeyword,
-    LinkedNodeTypeBuilder fieldFormalParameter_type2,
-    bool normalFormalParameter_isCovariant,
-    LinkedNodeBuilder normalFormalParameter_identifier,
-    int codeLength,
-    int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = fieldFormalParameter_type,
-        _variantField_15 = fieldFormalParameter_keyword,
-        _variantField_7 = fieldFormalParameter_typeParameters,
-        _variantField_8 = fieldFormalParameter_formalParameters,
-        _variantField_16 = fieldFormalParameter_period,
-        _variantField_17 = fieldFormalParameter_thisKeyword,
-        _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_24 = fieldFormalParameter_type2,
-        _variantField_27 = normalFormalParameter_isCovariant,
-        _variantField_12 = normalFormalParameter_identifier,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
-        _variantField_14 = normalFormalParameter_comment;
-
-  LinkedNodeBuilder.functionTypedFormalParameter({
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder functionTypedFormalParameter_formalParameters,
-    LinkedNodeBuilder functionTypedFormalParameter_returnType,
-    LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
-    int normalFormalParameter_covariantKeyword,
-    LinkedNodeTypeBuilder functionTypedFormalParameter_type2,
-    bool normalFormalParameter_isCovariant,
-    LinkedNodeBuilder normalFormalParameter_identifier,
-    int codeLength,
-    int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = functionTypedFormalParameter_formalParameters,
-        _variantField_7 = functionTypedFormalParameter_returnType,
-        _variantField_8 = functionTypedFormalParameter_typeParameters,
-        _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_24 = functionTypedFormalParameter_type2,
-        _variantField_27 = normalFormalParameter_isCovariant,
-        _variantField_12 = normalFormalParameter_identifier,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
-        _variantField_14 = normalFormalParameter_comment;
-
-  LinkedNodeBuilder.simpleFormalParameter({
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder simpleFormalParameter_type,
-    int simpleFormalParameter_keyword,
-    int normalFormalParameter_covariantKeyword,
-    LinkedNodeTypeBuilder simpleFormalParameter_type2,
-    bool normalFormalParameter_isCovariant,
-    LinkedNodeBuilder normalFormalParameter_identifier,
-    int codeLength,
-    int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = simpleFormalParameter_type,
-        _variantField_15 = simpleFormalParameter_keyword,
-        _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_24 = simpleFormalParameter_type2,
-        _variantField_27 = normalFormalParameter_isCovariant,
-        _variantField_12 = normalFormalParameter_identifier,
-        _variantField_34 = codeLength,
-        _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
-        _variantField_14 = normalFormalParameter_comment;
 
   LinkedNodeBuilder.switchCase({
     List<LinkedNodeBuilder> switchMember_statements,
@@ -10759,21 +10760,6 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.awaitExpression,
         _variantField_6 = awaitExpression_expression,
         _variantField_15 = awaitExpression_awaitKeyword,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.binaryExpression({
-    LinkedNodeBuilder binaryExpression_leftOperand,
-    int binaryExpression_element,
-    LinkedNodeBuilder binaryExpression_rightOperand,
-    int binaryExpression_operator,
-    LinkedNodeTypeBuilder binaryExpression_invokeType,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.binaryExpression,
-        _variantField_6 = binaryExpression_leftOperand,
-        _variantField_15 = binaryExpression_element,
-        _variantField_7 = binaryExpression_rightOperand,
-        _variantField_16 = binaryExpression_operator,
-        _variantField_24 = binaryExpression_invokeType,
         _variantField_25 = expression_type;
 
   LinkedNodeBuilder.blockFunctionBody({
@@ -11016,47 +11002,6 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.functionDeclarationStatement,
         _variantField_6 = functionDeclarationStatement_functionDeclaration;
 
-  LinkedNodeBuilder.functionExpression({
-    LinkedNodeBuilder functionExpression_body,
-    LinkedNodeBuilder functionExpression_formalParameters,
-    LinkedNodeBuilder functionExpression_typeParameters,
-    LinkedNodeTypeBuilder functionDeclaration_returnType2,
-  })  : _kind = idl.LinkedNodeKind.functionExpression,
-        _variantField_6 = functionExpression_body,
-        _variantField_7 = functionExpression_formalParameters,
-        _variantField_8 = functionExpression_typeParameters,
-        _variantField_24 = functionDeclaration_returnType2;
-
-  LinkedNodeBuilder.functionExpressionInvocation({
-    LinkedNodeBuilder functionExpressionInvocation_function,
-    LinkedNodeTypeBuilder invocationExpression_invokeType,
-    LinkedNodeBuilder invocationExpression_typeArguments,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder invocationExpression_arguments,
-  })  : _kind = idl.LinkedNodeKind.functionExpressionInvocation,
-        _variantField_6 = functionExpressionInvocation_function,
-        _variantField_24 = invocationExpression_invokeType,
-        _variantField_12 = invocationExpression_typeArguments,
-        _variantField_25 = expression_type,
-        _variantField_14 = invocationExpression_arguments;
-
-  LinkedNodeBuilder.genericFunctionType({
-    LinkedNodeBuilder genericFunctionType_typeParameters,
-    int genericFunctionType_functionKeyword,
-    LinkedNodeBuilder genericFunctionType_returnType,
-    LinkedNodeBuilder genericFunctionType_formalParameters,
-    int genericFunctionType_question,
-    LinkedNodeTypeBuilder genericFunctionType_returnType2,
-    LinkedNodeTypeBuilder genericFunctionType_type,
-  })  : _kind = idl.LinkedNodeKind.genericFunctionType,
-        _variantField_6 = genericFunctionType_typeParameters,
-        _variantField_15 = genericFunctionType_functionKeyword,
-        _variantField_7 = genericFunctionType_returnType,
-        _variantField_8 = genericFunctionType_formalParameters,
-        _variantField_16 = genericFunctionType_question,
-        _variantField_24 = genericFunctionType_returnType2,
-        _variantField_25 = genericFunctionType_type;
-
   LinkedNodeBuilder.ifElement({
     LinkedNodeBuilder ifMixin_condition,
     int ifMixin_elseKeyword,
@@ -11158,23 +11103,6 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = mapLiteralEntry_key,
         _variantField_15 = mapLiteralEntry_separator,
         _variantField_7 = mapLiteralEntry_value;
-
-  LinkedNodeBuilder.methodInvocation({
-    LinkedNodeBuilder methodInvocation_methodName,
-    int methodInvocation_operator,
-    LinkedNodeBuilder methodInvocation_target,
-    LinkedNodeTypeBuilder invocationExpression_invokeType,
-    LinkedNodeBuilder invocationExpression_typeArguments,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder invocationExpression_arguments,
-  })  : _kind = idl.LinkedNodeKind.methodInvocation,
-        _variantField_6 = methodInvocation_methodName,
-        _variantField_15 = methodInvocation_operator,
-        _variantField_7 = methodInvocation_target,
-        _variantField_24 = invocationExpression_invokeType,
-        _variantField_12 = invocationExpression_typeArguments,
-        _variantField_25 = expression_type,
-        _variantField_14 = invocationExpression_arguments;
 
   LinkedNodeBuilder.namedExpression({
     LinkedNodeBuilder namedExpression_expression,
@@ -11306,17 +11234,6 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = throwExpression_expression,
         _variantField_15 = throwExpression_throwKeyword,
         _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.typeName({
-    LinkedNodeBuilder typeName_name,
-    int typeName_question,
-    LinkedNodeBuilder typeName_typeArguments,
-    LinkedNodeTypeBuilder typeName_type,
-  })  : _kind = idl.LinkedNodeKind.typeName,
-        _variantField_6 = typeName_name,
-        _variantField_15 = typeName_question,
-        _variantField_7 = typeName_typeArguments,
-        _variantField_24 = typeName_type;
 
   LinkedNodeBuilder.variableDeclarationStatement({
     LinkedNodeBuilder variableDeclarationStatement_variables,
@@ -11460,17 +11377,15 @@ class LinkedNodeBuilder extends Object
         _variantField_28 = comment_tokens,
         _variantField_29 = comment_type;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
+    _variantField_24?.flushInformative();
     _variantField_2?.forEach((b) => b.flushInformative());
     _variantField_11?.flushInformative();
     _variantField_4?.forEach((b) => b.flushInformative());
     _variantField_6?.flushInformative();
     _variantField_7?.flushInformative();
     _variantField_8?.flushInformative();
-    _variantField_24?.flushInformative();
     _variantField_9?.flushInformative();
     _variantField_12?.flushInformative();
     _variantField_5?.forEach((b) => b.flushInformative());
@@ -11482,9 +11397,7 @@ class LinkedNodeBuilder extends Object
     _variantField_32?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addBool(this._isSynthetic == true);
@@ -11573,13 +11486,13 @@ class LinkedNodeBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_variantField_24;
     fb.Offset offset_variantField_2;
     fb.Offset offset_variantField_11;
     fb.Offset offset_variantField_4;
     fb.Offset offset_variantField_6;
     fb.Offset offset_variantField_7;
     fb.Offset offset_variantField_8;
-    fb.Offset offset_variantField_24;
     fb.Offset offset_variantField_9;
     fb.Offset offset_variantField_12;
     fb.Offset offset_variantField_5;
@@ -11594,6 +11507,9 @@ class LinkedNodeBuilder extends Object
     fb.Offset offset_variantField_20;
     fb.Offset offset_variantField_22;
     fb.Offset offset_variantField_32;
+    if (_variantField_24 != null) {
+      offset_variantField_24 = _variantField_24.finish(fbBuilder);
+    }
     if (!(_variantField_2 == null || _variantField_2.isEmpty)) {
       offset_variantField_2 = fbBuilder
           .writeList(_variantField_2.map((b) => b.finish(fbBuilder)).toList());
@@ -11613,9 +11529,6 @@ class LinkedNodeBuilder extends Object
     }
     if (_variantField_8 != null) {
       offset_variantField_8 = _variantField_8.finish(fbBuilder);
-    }
-    if (_variantField_24 != null) {
-      offset_variantField_24 = _variantField_24.finish(fbBuilder);
     }
     if (_variantField_9 != null) {
       offset_variantField_9 = _variantField_9.finish(fbBuilder);
@@ -11662,6 +11575,9 @@ class LinkedNodeBuilder extends Object
       offset_variantField_32 = _variantField_32.finish(fbBuilder);
     }
     fbBuilder.startTable();
+    if (offset_variantField_24 != null) {
+      fbBuilder.addOffset(24, offset_variantField_24);
+    }
     if (offset_variantField_2 != null) {
       fbBuilder.addOffset(2, offset_variantField_2);
     }
@@ -11694,9 +11610,6 @@ class LinkedNodeBuilder extends Object
     }
     if (_variantField_19 != null && _variantField_19 != 0) {
       fbBuilder.addUint32(19, _variantField_19);
-    }
-    if (offset_variantField_24 != null) {
-      fbBuilder.addOffset(24, offset_variantField_24);
     }
     if (_variantField_27 == true) {
       fbBuilder.addBool(27, true);
@@ -11789,6 +11702,7 @@ class _LinkedNodeImpl extends Object
 
   _LinkedNodeImpl(this._bc, this._bcOffset);
 
+  idl.LinkedNodeType _variantField_24;
   List<idl.LinkedNode> _variantField_2;
   idl.LinkedNode _variantField_11;
   List<idl.LinkedNode> _variantField_4;
@@ -11800,7 +11714,6 @@ class _LinkedNodeImpl extends Object
   int _variantField_17;
   int _variantField_18;
   int _variantField_19;
-  idl.LinkedNodeType _variantField_24;
   bool _variantField_27;
   idl.LinkedNode _variantField_9;
   idl.LinkedNode _variantField_12;
@@ -11824,6 +11737,54 @@ class _LinkedNodeImpl extends Object
   String _variantField_20;
   String _variantField_22;
   idl.LinkedNodeVariablesDeclaration _variantField_32;
+
+  @override
+  idl.LinkedNodeType get actualReturnType {
+    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericFunctionType ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get actualType {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get binaryExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get invocationExpression_invokeType {
+    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
+        kind == idl.LinkedNodeKind.methodInvocation);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get typeName_type {
+    assert(kind == idl.LinkedNodeKind.typeName);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
 
   @override
   List<idl.LinkedNode> get adjacentStrings_strings {
@@ -14867,96 +14828,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  idl.LinkedNodeType get binaryExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get fieldFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get functionDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionDeclaration ||
-        kind == idl.LinkedNodeKind.functionExpression);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get functionTypeAlias_returnType2 {
-    assert(kind == idl.LinkedNodeKind.functionTypeAlias);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get functionTypedFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.functionTypedFormalParameter);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get genericFunctionType_returnType2 {
-    assert(kind == idl.LinkedNodeKind.genericFunctionType);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get invocationExpression_invokeType {
-    assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
-        kind == idl.LinkedNodeKind.methodInvocation);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get methodDeclaration_returnType2 {
-    assert(kind == idl.LinkedNodeKind.methodDeclaration);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get simpleFormalParameter_type2 {
-    assert(kind == idl.LinkedNodeKind.simpleFormalParameter);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get typeName_type {
-    assert(kind == idl.LinkedNodeKind.typeName);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
-  idl.LinkedNodeType get variableDeclaration_type2 {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
-    _variantField_24 ??=
-        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
-    return _variantField_24;
-  }
-
-  @override
   bool get booleanLiteral_value {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     _variantField_27 ??=
@@ -15378,6 +15249,18 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  bool get simplyBoundable_isSimplyBounded {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
+    _variantField_31 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 31, false);
+    return _variantField_31;
+  }
+
+  @override
   String get simpleStringLiteral_value {
     assert(kind == idl.LinkedNodeKind.simpleStringLiteral);
     _variantField_20 ??=
@@ -15411,6 +15294,322 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
     if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
     if (kind != idl.LinkedNodeKind.adjacentStrings)
       _result["kind"] = kind.toString().split('.')[1];
+    if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (functionDeclaration_functionExpression != null)
+        _result["functionDeclaration_functionExpression"] =
+            functionDeclaration_functionExpression.toJson();
+      if (functionDeclaration_externalKeyword != 0)
+        _result["functionDeclaration_externalKeyword"] =
+            functionDeclaration_externalKeyword;
+      if (functionDeclaration_returnType != null)
+        _result["functionDeclaration_returnType"] =
+            functionDeclaration_returnType.toJson();
+      if (functionDeclaration_propertyKeyword != 0)
+        _result["functionDeclaration_propertyKeyword"] =
+            functionDeclaration_propertyKeyword;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (namedCompilationUnitMember_name != null)
+        _result["namedCompilationUnitMember_name"] =
+            namedCompilationUnitMember_name.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionExpression) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (functionExpression_body != null)
+        _result["functionExpression_body"] = functionExpression_body.toJson();
+      if (functionExpression_formalParameters != null)
+        _result["functionExpression_formalParameters"] =
+            functionExpression_formalParameters.toJson();
+      if (functionExpression_typeParameters != null)
+        _result["functionExpression_typeParameters"] =
+            functionExpression_typeParameters.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (functionTypeAlias_formalParameters != null)
+        _result["functionTypeAlias_formalParameters"] =
+            functionTypeAlias_formalParameters.toJson();
+      if (functionTypeAlias_returnType != null)
+        _result["functionTypeAlias_returnType"] =
+            functionTypeAlias_returnType.toJson();
+      if (functionTypeAlias_typeParameters != null)
+        _result["functionTypeAlias_typeParameters"] =
+            functionTypeAlias_typeParameters.toJson();
+      if (typeAlias_typedefKeyword != 0)
+        _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
+      if (typeAlias_semicolon != 0)
+        _result["typeAlias_semicolon"] = typeAlias_semicolon;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (namedCompilationUnitMember_name != null)
+        _result["namedCompilationUnitMember_name"] =
+            namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
+    }
+    if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (genericFunctionType_typeParameters != null)
+        _result["genericFunctionType_typeParameters"] =
+            genericFunctionType_typeParameters.toJson();
+      if (genericFunctionType_functionKeyword != 0)
+        _result["genericFunctionType_functionKeyword"] =
+            genericFunctionType_functionKeyword;
+      if (genericFunctionType_returnType != null)
+        _result["genericFunctionType_returnType"] =
+            genericFunctionType_returnType.toJson();
+      if (genericFunctionType_formalParameters != null)
+        _result["genericFunctionType_formalParameters"] =
+            genericFunctionType_formalParameters.toJson();
+      if (genericFunctionType_question != 0)
+        _result["genericFunctionType_question"] = genericFunctionType_question;
+      if (genericFunctionType_type != null)
+        _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (methodDeclaration_body != null)
+        _result["methodDeclaration_body"] = methodDeclaration_body.toJson();
+      if (methodDeclaration_externalKeyword != 0)
+        _result["methodDeclaration_externalKeyword"] =
+            methodDeclaration_externalKeyword;
+      if (methodDeclaration_formalParameters != null)
+        _result["methodDeclaration_formalParameters"] =
+            methodDeclaration_formalParameters.toJson();
+      if (methodDeclaration_returnType != null)
+        _result["methodDeclaration_returnType"] =
+            methodDeclaration_returnType.toJson();
+      if (methodDeclaration_modifierKeyword != 0)
+        _result["methodDeclaration_modifierKeyword"] =
+            methodDeclaration_modifierKeyword;
+      if (methodDeclaration_operatorKeyword != 0)
+        _result["methodDeclaration_operatorKeyword"] =
+            methodDeclaration_operatorKeyword;
+      if (methodDeclaration_propertyKeyword != 0)
+        _result["methodDeclaration_propertyKeyword"] =
+            methodDeclaration_propertyKeyword;
+      if (methodDeclaration_actualProperty != 0)
+        _result["methodDeclaration_actualProperty"] =
+            methodDeclaration_actualProperty;
+      if (methodDeclaration_typeParameters != null)
+        _result["methodDeclaration_typeParameters"] =
+            methodDeclaration_typeParameters.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (methodDeclaration_name != null)
+        _result["methodDeclaration_name"] = methodDeclaration_name.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (fieldFormalParameter_type != null)
+        _result["fieldFormalParameter_type"] =
+            fieldFormalParameter_type.toJson();
+      if (fieldFormalParameter_keyword != 0)
+        _result["fieldFormalParameter_keyword"] = fieldFormalParameter_keyword;
+      if (fieldFormalParameter_typeParameters != null)
+        _result["fieldFormalParameter_typeParameters"] =
+            fieldFormalParameter_typeParameters.toJson();
+      if (fieldFormalParameter_formalParameters != null)
+        _result["fieldFormalParameter_formalParameters"] =
+            fieldFormalParameter_formalParameters.toJson();
+      if (fieldFormalParameter_period != 0)
+        _result["fieldFormalParameter_period"] = fieldFormalParameter_period;
+      if (fieldFormalParameter_thisKeyword != 0)
+        _result["fieldFormalParameter_thisKeyword"] =
+            fieldFormalParameter_thisKeyword;
+      if (normalFormalParameter_covariantKeyword != 0)
+        _result["normalFormalParameter_covariantKeyword"] =
+            normalFormalParameter_covariantKeyword;
+      if (normalFormalParameter_isCovariant != false)
+        _result["normalFormalParameter_isCovariant"] =
+            normalFormalParameter_isCovariant;
+      if (normalFormalParameter_identifier != null)
+        _result["normalFormalParameter_identifier"] =
+            normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+        _result["formalParameter_kind"] =
+            formalParameter_kind.toString().split('.')[1];
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (functionTypedFormalParameter_formalParameters != null)
+        _result["functionTypedFormalParameter_formalParameters"] =
+            functionTypedFormalParameter_formalParameters.toJson();
+      if (functionTypedFormalParameter_returnType != null)
+        _result["functionTypedFormalParameter_returnType"] =
+            functionTypedFormalParameter_returnType.toJson();
+      if (functionTypedFormalParameter_typeParameters != null)
+        _result["functionTypedFormalParameter_typeParameters"] =
+            functionTypedFormalParameter_typeParameters.toJson();
+      if (normalFormalParameter_covariantKeyword != 0)
+        _result["normalFormalParameter_covariantKeyword"] =
+            normalFormalParameter_covariantKeyword;
+      if (normalFormalParameter_isCovariant != false)
+        _result["normalFormalParameter_isCovariant"] =
+            normalFormalParameter_isCovariant;
+      if (normalFormalParameter_identifier != null)
+        _result["normalFormalParameter_identifier"] =
+            normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+        _result["formalParameter_kind"] =
+            formalParameter_kind.toString().split('.')[1];
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (simpleFormalParameter_type != null)
+        _result["simpleFormalParameter_type"] =
+            simpleFormalParameter_type.toJson();
+      if (simpleFormalParameter_keyword != 0)
+        _result["simpleFormalParameter_keyword"] =
+            simpleFormalParameter_keyword;
+      if (normalFormalParameter_covariantKeyword != 0)
+        _result["normalFormalParameter_covariantKeyword"] =
+            normalFormalParameter_covariantKeyword;
+      if (normalFormalParameter_isCovariant != false)
+        _result["normalFormalParameter_isCovariant"] =
+            normalFormalParameter_isCovariant;
+      if (normalFormalParameter_identifier != null)
+        _result["normalFormalParameter_identifier"] =
+            normalFormalParameter_identifier.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+        _result["formalParameter_kind"] =
+            formalParameter_kind.toString().split('.')[1];
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (variableDeclaration_initializer != null)
+        _result["variableDeclaration_initializer"] =
+            variableDeclaration_initializer.toJson();
+      if (variableDeclaration_equals != 0)
+        _result["variableDeclaration_equals"] = variableDeclaration_equals;
+      if (variableDeclaration_name != null)
+        _result["variableDeclaration_name"] = variableDeclaration_name.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (variableDeclaration_declaration != null)
+        _result["variableDeclaration_declaration"] =
+            variableDeclaration_declaration.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.binaryExpression) {
+      if (binaryExpression_invokeType != null)
+        _result["binaryExpression_invokeType"] =
+            binaryExpression_invokeType.toJson();
+      if (binaryExpression_leftOperand != null)
+        _result["binaryExpression_leftOperand"] =
+            binaryExpression_leftOperand.toJson();
+      if (binaryExpression_element != 0)
+        _result["binaryExpression_element"] = binaryExpression_element;
+      if (binaryExpression_rightOperand != null)
+        _result["binaryExpression_rightOperand"] =
+            binaryExpression_rightOperand.toJson();
+      if (binaryExpression_operator != 0)
+        _result["binaryExpression_operator"] = binaryExpression_operator;
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      if (invocationExpression_invokeType != null)
+        _result["invocationExpression_invokeType"] =
+            invocationExpression_invokeType.toJson();
+      if (functionExpressionInvocation_function != null)
+        _result["functionExpressionInvocation_function"] =
+            functionExpressionInvocation_function.toJson();
+      if (invocationExpression_typeArguments != null)
+        _result["invocationExpression_typeArguments"] =
+            invocationExpression_typeArguments.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (invocationExpression_arguments != null)
+        _result["invocationExpression_arguments"] =
+            invocationExpression_arguments.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.methodInvocation) {
+      if (invocationExpression_invokeType != null)
+        _result["invocationExpression_invokeType"] =
+            invocationExpression_invokeType.toJson();
+      if (methodInvocation_methodName != null)
+        _result["methodInvocation_methodName"] =
+            methodInvocation_methodName.toJson();
+      if (methodInvocation_operator != 0)
+        _result["methodInvocation_operator"] = methodInvocation_operator;
+      if (methodInvocation_target != null)
+        _result["methodInvocation_target"] = methodInvocation_target.toJson();
+      if (invocationExpression_typeArguments != null)
+        _result["invocationExpression_typeArguments"] =
+            invocationExpression_typeArguments.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (invocationExpression_arguments != null)
+        _result["invocationExpression_arguments"] =
+            invocationExpression_arguments.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.typeName) {
+      if (typeName_type != null)
+        _result["typeName_type"] = typeName_type.toJson();
+      if (typeName_name != null)
+        _result["typeName_name"] = typeName_name.toJson();
+      if (typeName_question != 0)
+        _result["typeName_question"] = typeName_question;
+      if (typeName_typeArguments != null)
+        _result["typeName_typeArguments"] = typeName_typeArguments.toJson();
+    }
     if (kind == idl.LinkedNodeKind.adjacentStrings) {
       if (adjacentStrings_strings.isNotEmpty)
         _result["adjacentStrings_strings"] =
@@ -15841,6 +16040,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.classTypeAlias) {
       if (annotatedNode_comment != null)
@@ -15874,6 +16076,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.declaredIdentifier) {
       if (annotatedNode_comment != null)
@@ -15916,61 +16121,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["fieldDeclaration_staticKeyword"] =
             fieldDeclaration_staticKeyword;
     }
-    if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionDeclaration_functionExpression != null)
-        _result["functionDeclaration_functionExpression"] =
-            functionDeclaration_functionExpression.toJson();
-      if (functionDeclaration_externalKeyword != 0)
-        _result["functionDeclaration_externalKeyword"] =
-            functionDeclaration_externalKeyword;
-      if (functionDeclaration_returnType != null)
-        _result["functionDeclaration_returnType"] =
-            functionDeclaration_returnType.toJson();
-      if (functionDeclaration_propertyKeyword != 0)
-        _result["functionDeclaration_propertyKeyword"] =
-            functionDeclaration_propertyKeyword;
-      if (functionDeclaration_returnType2 != null)
-        _result["functionDeclaration_returnType2"] =
-            functionDeclaration_returnType2.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (namedCompilationUnitMember_name != null)
-        _result["namedCompilationUnitMember_name"] =
-            namedCompilationUnitMember_name.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionTypeAlias_formalParameters != null)
-        _result["functionTypeAlias_formalParameters"] =
-            functionTypeAlias_formalParameters.toJson();
-      if (functionTypeAlias_returnType != null)
-        _result["functionTypeAlias_returnType"] =
-            functionTypeAlias_returnType.toJson();
-      if (functionTypeAlias_typeParameters != null)
-        _result["functionTypeAlias_typeParameters"] =
-            functionTypeAlias_typeParameters.toJson();
-      if (typeAlias_typedefKeyword != 0)
-        _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
-      if (typeAlias_semicolon != 0)
-        _result["typeAlias_semicolon"] = typeAlias_semicolon;
-      if (functionTypeAlias_returnType2 != null)
-        _result["functionTypeAlias_returnType2"] =
-            functionTypeAlias_returnType2.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (namedCompilationUnitMember_name != null)
-        _result["namedCompilationUnitMember_name"] =
-            namedCompilationUnitMember_name.toJson();
-    }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
       if (annotatedNode_comment != null)
         _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
@@ -15994,6 +16144,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
       if (annotatedNode_comment != null)
@@ -16007,46 +16160,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["directive_keyword"] = directive_keyword;
       if (directive_semicolon != 0)
         _result["directive_semicolon"] = directive_semicolon;
-    }
-    if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (methodDeclaration_body != null)
-        _result["methodDeclaration_body"] = methodDeclaration_body.toJson();
-      if (methodDeclaration_externalKeyword != 0)
-        _result["methodDeclaration_externalKeyword"] =
-            methodDeclaration_externalKeyword;
-      if (methodDeclaration_formalParameters != null)
-        _result["methodDeclaration_formalParameters"] =
-            methodDeclaration_formalParameters.toJson();
-      if (methodDeclaration_returnType != null)
-        _result["methodDeclaration_returnType"] =
-            methodDeclaration_returnType.toJson();
-      if (methodDeclaration_modifierKeyword != 0)
-        _result["methodDeclaration_modifierKeyword"] =
-            methodDeclaration_modifierKeyword;
-      if (methodDeclaration_operatorKeyword != 0)
-        _result["methodDeclaration_operatorKeyword"] =
-            methodDeclaration_operatorKeyword;
-      if (methodDeclaration_propertyKeyword != 0)
-        _result["methodDeclaration_propertyKeyword"] =
-            methodDeclaration_propertyKeyword;
-      if (methodDeclaration_actualProperty != 0)
-        _result["methodDeclaration_actualProperty"] =
-            methodDeclaration_actualProperty;
-      if (methodDeclaration_returnType2 != null)
-        _result["methodDeclaration_returnType2"] =
-            methodDeclaration_returnType2.toJson();
-      if (methodDeclaration_typeParameters != null)
-        _result["methodDeclaration_typeParameters"] =
-            methodDeclaration_typeParameters.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (methodDeclaration_name != null)
-        _result["methodDeclaration_name"] = methodDeclaration_name.toJson();
     }
     if (kind == idl.LinkedNodeKind.mixinDeclaration) {
       if (annotatedNode_comment != null)
@@ -16082,6 +16195,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.partDirective) {
       if (annotatedNode_comment != null)
@@ -16151,140 +16267,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeParameter_name"] = typeParameter_name.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (variableDeclaration_initializer != null)
-        _result["variableDeclaration_initializer"] =
-            variableDeclaration_initializer.toJson();
-      if (variableDeclaration_equals != 0)
-        _result["variableDeclaration_equals"] = variableDeclaration_equals;
-      if (variableDeclaration_name != null)
-        _result["variableDeclaration_name"] = variableDeclaration_name.toJson();
-      if (variableDeclaration_type2 != null)
-        _result["variableDeclaration_type2"] =
-            variableDeclaration_type2.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (variableDeclaration_declaration != null)
-        _result["variableDeclaration_declaration"] =
-            variableDeclaration_declaration.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (fieldFormalParameter_type != null)
-        _result["fieldFormalParameter_type"] =
-            fieldFormalParameter_type.toJson();
-      if (fieldFormalParameter_keyword != 0)
-        _result["fieldFormalParameter_keyword"] = fieldFormalParameter_keyword;
-      if (fieldFormalParameter_typeParameters != null)
-        _result["fieldFormalParameter_typeParameters"] =
-            fieldFormalParameter_typeParameters.toJson();
-      if (fieldFormalParameter_formalParameters != null)
-        _result["fieldFormalParameter_formalParameters"] =
-            fieldFormalParameter_formalParameters.toJson();
-      if (fieldFormalParameter_period != 0)
-        _result["fieldFormalParameter_period"] = fieldFormalParameter_period;
-      if (fieldFormalParameter_thisKeyword != 0)
-        _result["fieldFormalParameter_thisKeyword"] =
-            fieldFormalParameter_thisKeyword;
-      if (normalFormalParameter_covariantKeyword != 0)
-        _result["normalFormalParameter_covariantKeyword"] =
-            normalFormalParameter_covariantKeyword;
-      if (fieldFormalParameter_type2 != null)
-        _result["fieldFormalParameter_type2"] =
-            fieldFormalParameter_type2.toJson();
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
-      if (normalFormalParameter_identifier != null)
-        _result["normalFormalParameter_identifier"] =
-            normalFormalParameter_identifier.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (functionTypedFormalParameter_formalParameters != null)
-        _result["functionTypedFormalParameter_formalParameters"] =
-            functionTypedFormalParameter_formalParameters.toJson();
-      if (functionTypedFormalParameter_returnType != null)
-        _result["functionTypedFormalParameter_returnType"] =
-            functionTypedFormalParameter_returnType.toJson();
-      if (functionTypedFormalParameter_typeParameters != null)
-        _result["functionTypedFormalParameter_typeParameters"] =
-            functionTypedFormalParameter_typeParameters.toJson();
-      if (normalFormalParameter_covariantKeyword != 0)
-        _result["normalFormalParameter_covariantKeyword"] =
-            normalFormalParameter_covariantKeyword;
-      if (functionTypedFormalParameter_type2 != null)
-        _result["functionTypedFormalParameter_type2"] =
-            functionTypedFormalParameter_type2.toJson();
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
-      if (normalFormalParameter_identifier != null)
-        _result["normalFormalParameter_identifier"] =
-            normalFormalParameter_identifier.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (simpleFormalParameter_type != null)
-        _result["simpleFormalParameter_type"] =
-            simpleFormalParameter_type.toJson();
-      if (simpleFormalParameter_keyword != 0)
-        _result["simpleFormalParameter_keyword"] =
-            simpleFormalParameter_keyword;
-      if (normalFormalParameter_covariantKeyword != 0)
-        _result["normalFormalParameter_covariantKeyword"] =
-            normalFormalParameter_covariantKeyword;
-      if (simpleFormalParameter_type2 != null)
-        _result["simpleFormalParameter_type2"] =
-            simpleFormalParameter_type2.toJson();
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
-      if (normalFormalParameter_identifier != null)
-        _result["normalFormalParameter_identifier"] =
-            normalFormalParameter_identifier.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
     }
     if (kind == idl.LinkedNodeKind.switchCase) {
       if (switchMember_statements.isNotEmpty)
@@ -16395,23 +16377,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             awaitExpression_expression.toJson();
       if (awaitExpression_awaitKeyword != 0)
         _result["awaitExpression_awaitKeyword"] = awaitExpression_awaitKeyword;
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.binaryExpression) {
-      if (binaryExpression_leftOperand != null)
-        _result["binaryExpression_leftOperand"] =
-            binaryExpression_leftOperand.toJson();
-      if (binaryExpression_element != 0)
-        _result["binaryExpression_element"] = binaryExpression_element;
-      if (binaryExpression_rightOperand != null)
-        _result["binaryExpression_rightOperand"] =
-            binaryExpression_rightOperand.toJson();
-      if (binaryExpression_operator != 0)
-        _result["binaryExpression_operator"] = binaryExpression_operator;
-      if (binaryExpression_invokeType != null)
-        _result["binaryExpression_invokeType"] =
-            binaryExpression_invokeType.toJson();
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
@@ -16664,56 +16629,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["functionDeclarationStatement_functionDeclaration"] =
             functionDeclarationStatement_functionDeclaration.toJson();
     }
-    if (kind == idl.LinkedNodeKind.functionExpression) {
-      if (functionExpression_body != null)
-        _result["functionExpression_body"] = functionExpression_body.toJson();
-      if (functionExpression_formalParameters != null)
-        _result["functionExpression_formalParameters"] =
-            functionExpression_formalParameters.toJson();
-      if (functionExpression_typeParameters != null)
-        _result["functionExpression_typeParameters"] =
-            functionExpression_typeParameters.toJson();
-      if (functionDeclaration_returnType2 != null)
-        _result["functionDeclaration_returnType2"] =
-            functionDeclaration_returnType2.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
-      if (functionExpressionInvocation_function != null)
-        _result["functionExpressionInvocation_function"] =
-            functionExpressionInvocation_function.toJson();
-      if (invocationExpression_invokeType != null)
-        _result["invocationExpression_invokeType"] =
-            invocationExpression_invokeType.toJson();
-      if (invocationExpression_typeArguments != null)
-        _result["invocationExpression_typeArguments"] =
-            invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
-        _result["invocationExpression_arguments"] =
-            invocationExpression_arguments.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.genericFunctionType) {
-      if (genericFunctionType_typeParameters != null)
-        _result["genericFunctionType_typeParameters"] =
-            genericFunctionType_typeParameters.toJson();
-      if (genericFunctionType_functionKeyword != 0)
-        _result["genericFunctionType_functionKeyword"] =
-            genericFunctionType_functionKeyword;
-      if (genericFunctionType_returnType != null)
-        _result["genericFunctionType_returnType"] =
-            genericFunctionType_returnType.toJson();
-      if (genericFunctionType_formalParameters != null)
-        _result["genericFunctionType_formalParameters"] =
-            genericFunctionType_formalParameters.toJson();
-      if (genericFunctionType_question != 0)
-        _result["genericFunctionType_question"] = genericFunctionType_question;
-      if (genericFunctionType_returnType2 != null)
-        _result["genericFunctionType_returnType2"] =
-            genericFunctionType_returnType2.toJson();
-      if (genericFunctionType_type != null)
-        _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
-    }
     if (kind == idl.LinkedNodeKind.ifElement) {
       if (ifMixin_condition != null)
         _result["ifMixin_condition"] = ifMixin_condition.toJson();
@@ -16814,26 +16729,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["mapLiteralEntry_separator"] = mapLiteralEntry_separator;
       if (mapLiteralEntry_value != null)
         _result["mapLiteralEntry_value"] = mapLiteralEntry_value.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.methodInvocation) {
-      if (methodInvocation_methodName != null)
-        _result["methodInvocation_methodName"] =
-            methodInvocation_methodName.toJson();
-      if (methodInvocation_operator != 0)
-        _result["methodInvocation_operator"] = methodInvocation_operator;
-      if (methodInvocation_target != null)
-        _result["methodInvocation_target"] = methodInvocation_target.toJson();
-      if (invocationExpression_invokeType != null)
-        _result["invocationExpression_invokeType"] =
-            invocationExpression_invokeType.toJson();
-      if (invocationExpression_typeArguments != null)
-        _result["invocationExpression_typeArguments"] =
-            invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
-        _result["invocationExpression_arguments"] =
-            invocationExpression_arguments.toJson();
     }
     if (kind == idl.LinkedNodeKind.namedExpression) {
       if (namedExpression_expression != null)
@@ -16976,16 +16871,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.typeName) {
-      if (typeName_name != null)
-        _result["typeName_name"] = typeName_name.toJson();
-      if (typeName_question != 0)
-        _result["typeName_question"] = typeName_question;
-      if (typeName_typeArguments != null)
-        _result["typeName_typeArguments"] = typeName_typeArguments.toJson();
-      if (typeName_type != null)
-        _result["typeName_type"] = typeName_type.toJson();
-    }
     if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {
       if (variableDeclarationStatement_variables != null)
         _result["variableDeclarationStatement_variables"] =
@@ -17122,6 +17007,221 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
 
   @override
   Map<String, Object> toMap() {
+    if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "functionDeclaration_functionExpression":
+            functionDeclaration_functionExpression,
+        "functionDeclaration_externalKeyword":
+            functionDeclaration_externalKeyword,
+        "functionDeclaration_returnType": functionDeclaration_returnType,
+        "functionDeclaration_propertyKeyword":
+            functionDeclaration_propertyKeyword,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionExpression) {
+      return {
+        "actualReturnType": actualReturnType,
+        "functionExpression_body": functionExpression_body,
+        "functionExpression_formalParameters":
+            functionExpression_formalParameters,
+        "functionExpression_typeParameters": functionExpression_typeParameters,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "functionTypeAlias_formalParameters":
+            functionTypeAlias_formalParameters,
+        "functionTypeAlias_returnType": functionTypeAlias_returnType,
+        "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
+        "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
+        "typeAlias_semicolon": typeAlias_semicolon,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      return {
+        "actualReturnType": actualReturnType,
+        "genericFunctionType_typeParameters":
+            genericFunctionType_typeParameters,
+        "genericFunctionType_functionKeyword":
+            genericFunctionType_functionKeyword,
+        "genericFunctionType_returnType": genericFunctionType_returnType,
+        "genericFunctionType_formalParameters":
+            genericFunctionType_formalParameters,
+        "genericFunctionType_question": genericFunctionType_question,
+        "genericFunctionType_type": genericFunctionType_type,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "methodDeclaration_body": methodDeclaration_body,
+        "methodDeclaration_externalKeyword": methodDeclaration_externalKeyword,
+        "methodDeclaration_formalParameters":
+            methodDeclaration_formalParameters,
+        "methodDeclaration_returnType": methodDeclaration_returnType,
+        "methodDeclaration_modifierKeyword": methodDeclaration_modifierKeyword,
+        "methodDeclaration_operatorKeyword": methodDeclaration_operatorKeyword,
+        "methodDeclaration_propertyKeyword": methodDeclaration_propertyKeyword,
+        "methodDeclaration_actualProperty": methodDeclaration_actualProperty,
+        "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "methodDeclaration_name": methodDeclaration_name,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "fieldFormalParameter_type": fieldFormalParameter_type,
+        "fieldFormalParameter_keyword": fieldFormalParameter_keyword,
+        "fieldFormalParameter_typeParameters":
+            fieldFormalParameter_typeParameters,
+        "fieldFormalParameter_formalParameters":
+            fieldFormalParameter_formalParameters,
+        "fieldFormalParameter_period": fieldFormalParameter_period,
+        "fieldFormalParameter_thisKeyword": fieldFormalParameter_thisKeyword,
+        "normalFormalParameter_covariantKeyword":
+            normalFormalParameter_covariantKeyword,
+        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "formalParameter_kind": formalParameter_kind,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "functionTypedFormalParameter_formalParameters":
+            functionTypedFormalParameter_formalParameters,
+        "functionTypedFormalParameter_returnType":
+            functionTypedFormalParameter_returnType,
+        "functionTypedFormalParameter_typeParameters":
+            functionTypedFormalParameter_typeParameters,
+        "normalFormalParameter_covariantKeyword":
+            normalFormalParameter_covariantKeyword,
+        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "formalParameter_kind": formalParameter_kind,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "simpleFormalParameter_type": simpleFormalParameter_type,
+        "simpleFormalParameter_keyword": simpleFormalParameter_keyword,
+        "normalFormalParameter_covariantKeyword":
+            normalFormalParameter_covariantKeyword,
+        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "normalFormalParameter_identifier": normalFormalParameter_identifier,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "formalParameter_kind": formalParameter_kind,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      return {
+        "actualType": actualType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "variableDeclaration_initializer": variableDeclaration_initializer,
+        "variableDeclaration_equals": variableDeclaration_equals,
+        "variableDeclaration_name": variableDeclaration_name,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+        "variableDeclaration_declaration": variableDeclaration_declaration,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.binaryExpression) {
+      return {
+        "binaryExpression_invokeType": binaryExpression_invokeType,
+        "binaryExpression_leftOperand": binaryExpression_leftOperand,
+        "binaryExpression_element": binaryExpression_element,
+        "binaryExpression_rightOperand": binaryExpression_rightOperand,
+        "binaryExpression_operator": binaryExpression_operator,
+        "expression_type": expression_type,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      return {
+        "invocationExpression_invokeType": invocationExpression_invokeType,
+        "functionExpressionInvocation_function":
+            functionExpressionInvocation_function,
+        "invocationExpression_typeArguments":
+            invocationExpression_typeArguments,
+        "expression_type": expression_type,
+        "invocationExpression_arguments": invocationExpression_arguments,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.methodInvocation) {
+      return {
+        "invocationExpression_invokeType": invocationExpression_invokeType,
+        "methodInvocation_methodName": methodInvocation_methodName,
+        "methodInvocation_operator": methodInvocation_operator,
+        "methodInvocation_target": methodInvocation_target,
+        "invocationExpression_typeArguments":
+            invocationExpression_typeArguments,
+        "expression_type": expression_type,
+        "invocationExpression_arguments": invocationExpression_arguments,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.typeName) {
+      return {
+        "typeName_type": typeName_type,
+        "typeName_name": typeName_name,
+        "typeName_question": typeName_question,
+        "typeName_typeArguments": typeName_typeArguments,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
     if (kind == idl.LinkedNodeKind.adjacentStrings) {
       return {
         "adjacentStrings_strings": adjacentStrings_strings,
@@ -17434,6 +17534,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.classTypeAlias) {
@@ -17453,6 +17554,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.declaredIdentifier) {
@@ -17487,43 +17589,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "kind": kind,
       };
     }
-    if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "functionDeclaration_functionExpression":
-            functionDeclaration_functionExpression,
-        "functionDeclaration_externalKeyword":
-            functionDeclaration_externalKeyword,
-        "functionDeclaration_returnType": functionDeclaration_returnType,
-        "functionDeclaration_propertyKeyword":
-            functionDeclaration_propertyKeyword,
-        "functionDeclaration_returnType2": functionDeclaration_returnType2,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "functionTypeAlias_formalParameters":
-            functionTypeAlias_formalParameters,
-        "functionTypeAlias_returnType": functionTypeAlias_returnType,
-        "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
-        "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
-        "typeAlias_semicolon": typeAlias_semicolon,
-        "functionTypeAlias_returnType2": functionTypeAlias_returnType2,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
       return {
         "annotatedNode_comment": annotatedNode_comment,
@@ -17538,6 +17603,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
@@ -17547,28 +17613,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "libraryDirective_name": libraryDirective_name,
         "directive_keyword": directive_keyword,
         "directive_semicolon": directive_semicolon,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "methodDeclaration_body": methodDeclaration_body,
-        "methodDeclaration_externalKeyword": methodDeclaration_externalKeyword,
-        "methodDeclaration_formalParameters":
-            methodDeclaration_formalParameters,
-        "methodDeclaration_returnType": methodDeclaration_returnType,
-        "methodDeclaration_modifierKeyword": methodDeclaration_modifierKeyword,
-        "methodDeclaration_operatorKeyword": methodDeclaration_operatorKeyword,
-        "methodDeclaration_propertyKeyword": methodDeclaration_propertyKeyword,
-        "methodDeclaration_actualProperty": methodDeclaration_actualProperty,
-        "methodDeclaration_returnType2": methodDeclaration_returnType2,
-        "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "methodDeclaration_name": methodDeclaration_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17593,6 +17637,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.partDirective) {
@@ -17646,86 +17691,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "typeParameter_name": typeParameter_name,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "variableDeclaration_initializer": variableDeclaration_initializer,
-        "variableDeclaration_equals": variableDeclaration_equals,
-        "variableDeclaration_name": variableDeclaration_name,
-        "variableDeclaration_type2": variableDeclaration_type2,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-        "variableDeclaration_declaration": variableDeclaration_declaration,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      return {
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "fieldFormalParameter_type": fieldFormalParameter_type,
-        "fieldFormalParameter_keyword": fieldFormalParameter_keyword,
-        "fieldFormalParameter_typeParameters":
-            fieldFormalParameter_typeParameters,
-        "fieldFormalParameter_formalParameters":
-            fieldFormalParameter_formalParameters,
-        "fieldFormalParameter_period": fieldFormalParameter_period,
-        "fieldFormalParameter_thisKeyword": fieldFormalParameter_thisKeyword,
-        "normalFormalParameter_covariantKeyword":
-            normalFormalParameter_covariantKeyword,
-        "fieldFormalParameter_type2": fieldFormalParameter_type2,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
-        "normalFormalParameter_identifier": normalFormalParameter_identifier,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      return {
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "functionTypedFormalParameter_formalParameters":
-            functionTypedFormalParameter_formalParameters,
-        "functionTypedFormalParameter_returnType":
-            functionTypedFormalParameter_returnType,
-        "functionTypedFormalParameter_typeParameters":
-            functionTypedFormalParameter_typeParameters,
-        "normalFormalParameter_covariantKeyword":
-            normalFormalParameter_covariantKeyword,
-        "functionTypedFormalParameter_type2":
-            functionTypedFormalParameter_type2,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
-        "normalFormalParameter_identifier": normalFormalParameter_identifier,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      return {
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "simpleFormalParameter_type": simpleFormalParameter_type,
-        "simpleFormalParameter_keyword": simpleFormalParameter_keyword,
-        "normalFormalParameter_covariantKeyword":
-            normalFormalParameter_covariantKeyword,
-        "simpleFormalParameter_type2": simpleFormalParameter_type2,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
-        "normalFormalParameter_identifier": normalFormalParameter_identifier,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17814,18 +17779,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "awaitExpression_expression": awaitExpression_expression,
         "awaitExpression_awaitKeyword": awaitExpression_awaitKeyword,
-        "expression_type": expression_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.binaryExpression) {
-      return {
-        "binaryExpression_leftOperand": binaryExpression_leftOperand,
-        "binaryExpression_element": binaryExpression_element,
-        "binaryExpression_rightOperand": binaryExpression_rightOperand,
-        "binaryExpression_operator": binaryExpression_operator,
-        "binaryExpression_invokeType": binaryExpression_invokeType,
         "expression_type": expression_type,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -18054,46 +18007,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "kind": kind,
       };
     }
-    if (kind == idl.LinkedNodeKind.functionExpression) {
-      return {
-        "functionExpression_body": functionExpression_body,
-        "functionExpression_formalParameters":
-            functionExpression_formalParameters,
-        "functionExpression_typeParameters": functionExpression_typeParameters,
-        "functionDeclaration_returnType2": functionDeclaration_returnType2,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
-      return {
-        "functionExpressionInvocation_function":
-            functionExpressionInvocation_function,
-        "invocationExpression_invokeType": invocationExpression_invokeType,
-        "invocationExpression_typeArguments":
-            invocationExpression_typeArguments,
-        "expression_type": expression_type,
-        "invocationExpression_arguments": invocationExpression_arguments,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.genericFunctionType) {
-      return {
-        "genericFunctionType_typeParameters":
-            genericFunctionType_typeParameters,
-        "genericFunctionType_functionKeyword":
-            genericFunctionType_functionKeyword,
-        "genericFunctionType_returnType": genericFunctionType_returnType,
-        "genericFunctionType_formalParameters":
-            genericFunctionType_formalParameters,
-        "genericFunctionType_question": genericFunctionType_question,
-        "genericFunctionType_returnType2": genericFunctionType_returnType2,
-        "genericFunctionType_type": genericFunctionType_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
     if (kind == idl.LinkedNodeKind.ifElement) {
       return {
         "ifMixin_condition": ifMixin_condition,
@@ -18184,20 +18097,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "mapLiteralEntry_key": mapLiteralEntry_key,
         "mapLiteralEntry_separator": mapLiteralEntry_separator,
         "mapLiteralEntry_value": mapLiteralEntry_value,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.methodInvocation) {
-      return {
-        "methodInvocation_methodName": methodInvocation_methodName,
-        "methodInvocation_operator": methodInvocation_operator,
-        "methodInvocation_target": methodInvocation_target,
-        "invocationExpression_invokeType": invocationExpression_invokeType,
-        "invocationExpression_typeArguments":
-            invocationExpression_typeArguments,
-        "expression_type": expression_type,
-        "invocationExpression_arguments": invocationExpression_arguments,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -18334,16 +18233,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "throwExpression_expression": throwExpression_expression,
         "throwExpression_throwKeyword": throwExpression_throwKeyword,
         "expression_type": expression_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.typeName) {
-      return {
-        "typeName_name": typeName_name,
-        "typeName_question": typeName_question,
-        "typeName_typeArguments": typeName_typeArguments,
-        "typeName_type": typeName_type,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -18519,7 +18408,7 @@ class LinkedNodeBundleBuilder extends Object
   List<LinkedNodeLibraryBuilder> get libraries =>
       _libraries ??= <LinkedNodeLibraryBuilder>[];
 
-  void set libraries(List<LinkedNodeLibraryBuilder> value) {
+  set libraries(List<LinkedNodeLibraryBuilder> value) {
     this._libraries = value;
   }
 
@@ -18527,7 +18416,7 @@ class LinkedNodeBundleBuilder extends Object
   LinkedNodeReferencesBuilder get references => _references;
 
   /// The shared list of references used in the [libraries].
-  void set references(LinkedNodeReferencesBuilder value) {
+  set references(LinkedNodeReferencesBuilder value) {
     this._references = value;
   }
 
@@ -18537,17 +18426,13 @@ class LinkedNodeBundleBuilder extends Object
       : _libraries = libraries,
         _references = references;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _libraries?.forEach((b) => b.flushInformative());
     _references?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addBool(this._references != null);
     this._references?.collectApiSignature(signature);
@@ -18661,7 +18546,7 @@ class LinkedNodeLibraryBuilder extends Object
   @override
   List<int> get exports => _exports ??= <int>[];
 
-  void set exports(List<int> value) {
+  set exports(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._exports = value;
   }
@@ -18669,14 +18554,14 @@ class LinkedNodeLibraryBuilder extends Object
   @override
   String get name => _name ??= '';
 
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
   @override
   int get nameLength => _nameLength ??= 0;
 
-  void set nameLength(int value) {
+  set nameLength(int value) {
     assert(value == null || value >= 0);
     this._nameLength = value;
   }
@@ -18684,7 +18569,7 @@ class LinkedNodeLibraryBuilder extends Object
   @override
   int get nameOffset => _nameOffset ??= 0;
 
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -18692,14 +18577,14 @@ class LinkedNodeLibraryBuilder extends Object
   @override
   List<LinkedNodeUnitBuilder> get units => _units ??= <LinkedNodeUnitBuilder>[];
 
-  void set units(List<LinkedNodeUnitBuilder> value) {
+  set units(List<LinkedNodeUnitBuilder> value) {
     this._units = value;
   }
 
   @override
   String get uriStr => _uriStr ??= '';
 
-  void set uriStr(String value) {
+  set uriStr(String value) {
     this._uriStr = value;
   }
 
@@ -18717,16 +18602,12 @@ class LinkedNodeLibraryBuilder extends Object
         _units = units,
         _uriStr = uriStr;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _units?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._uriStr ?? '');
     if (this._units == null) {
@@ -18891,14 +18772,14 @@ class LinkedNodeReferencesBuilder extends Object
   @override
   List<String> get name => _name ??= <String>[];
 
-  void set name(List<String> value) {
+  set name(List<String> value) {
     this._name = value;
   }
 
   @override
   List<int> get parent => _parent ??= <int>[];
 
-  void set parent(List<int> value) {
+  set parent(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._parent = value;
   }
@@ -18907,14 +18788,10 @@ class LinkedNodeReferencesBuilder extends Object
       : _name = name,
         _parent = parent;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._parent == null) {
       signature.addInt(0);
@@ -19026,7 +18903,7 @@ class LinkedNodeTypeBuilder extends Object
   List<LinkedNodeTypeFormalParameterBuilder> get functionFormalParameters =>
       _functionFormalParameters ??= <LinkedNodeTypeFormalParameterBuilder>[];
 
-  void set functionFormalParameters(
+  set functionFormalParameters(
       List<LinkedNodeTypeFormalParameterBuilder> value) {
     this._functionFormalParameters = value;
   }
@@ -19034,7 +18911,7 @@ class LinkedNodeTypeBuilder extends Object
   @override
   LinkedNodeTypeBuilder get functionReturnType => _functionReturnType;
 
-  void set functionReturnType(LinkedNodeTypeBuilder value) {
+  set functionReturnType(LinkedNodeTypeBuilder value) {
     this._functionReturnType = value;
   }
 
@@ -19042,7 +18919,7 @@ class LinkedNodeTypeBuilder extends Object
   List<int> get functionTypeParameters => _functionTypeParameters ??= <int>[];
 
   /// References to [LinkedNodeReferences].
-  void set functionTypeParameters(List<int> value) {
+  set functionTypeParameters(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._functionTypeParameters = value;
   }
@@ -19050,7 +18927,7 @@ class LinkedNodeTypeBuilder extends Object
   @override
   int get genericTypeAliasReference => _genericTypeAliasReference ??= 0;
 
-  void set genericTypeAliasReference(int value) {
+  set genericTypeAliasReference(int value) {
     assert(value == null || value >= 0);
     this._genericTypeAliasReference = value;
   }
@@ -19059,7 +18936,7 @@ class LinkedNodeTypeBuilder extends Object
   List<LinkedNodeTypeBuilder> get genericTypeAliasTypeArguments =>
       _genericTypeAliasTypeArguments ??= <LinkedNodeTypeBuilder>[];
 
-  void set genericTypeAliasTypeArguments(List<LinkedNodeTypeBuilder> value) {
+  set genericTypeAliasTypeArguments(List<LinkedNodeTypeBuilder> value) {
     this._genericTypeAliasTypeArguments = value;
   }
 
@@ -19067,7 +18944,7 @@ class LinkedNodeTypeBuilder extends Object
   int get interfaceClass => _interfaceClass ??= 0;
 
   /// Reference to a [LinkedNodeReferences].
-  void set interfaceClass(int value) {
+  set interfaceClass(int value) {
     assert(value == null || value >= 0);
     this._interfaceClass = value;
   }
@@ -19076,14 +18953,14 @@ class LinkedNodeTypeBuilder extends Object
   List<LinkedNodeTypeBuilder> get interfaceTypeArguments =>
       _interfaceTypeArguments ??= <LinkedNodeTypeBuilder>[];
 
-  void set interfaceTypeArguments(List<LinkedNodeTypeBuilder> value) {
+  set interfaceTypeArguments(List<LinkedNodeTypeBuilder> value) {
     this._interfaceTypeArguments = value;
   }
 
   @override
   idl.LinkedNodeTypeKind get kind => _kind ??= idl.LinkedNodeTypeKind.bottom;
 
-  void set kind(idl.LinkedNodeTypeKind value) {
+  set kind(idl.LinkedNodeTypeKind value) {
     this._kind = value;
   }
 
@@ -19091,7 +18968,7 @@ class LinkedNodeTypeBuilder extends Object
   int get typeParameterParameter => _typeParameterParameter ??= 0;
 
   /// Reference to a [LinkedNodeReferences].
-  void set typeParameterParameter(int value) {
+  set typeParameterParameter(int value) {
     assert(value == null || value >= 0);
     this._typeParameterParameter = value;
   }
@@ -19116,9 +18993,7 @@ class LinkedNodeTypeBuilder extends Object
         _kind = kind,
         _typeParameterParameter = typeParameterParameter;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _functionFormalParameters?.forEach((b) => b.flushInformative());
     _functionReturnType?.flushInformative();
@@ -19126,9 +19001,7 @@ class LinkedNodeTypeBuilder extends Object
     _interfaceTypeArguments?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._functionFormalParameters == null) {
       signature.addInt(0);
@@ -19381,21 +19254,21 @@ class LinkedNodeTypeFormalParameterBuilder extends Object
   idl.LinkedNodeFormalParameterKind get kind =>
       _kind ??= idl.LinkedNodeFormalParameterKind.required;
 
-  void set kind(idl.LinkedNodeFormalParameterKind value) {
+  set kind(idl.LinkedNodeFormalParameterKind value) {
     this._kind = value;
   }
 
   @override
   String get name => _name ??= '';
 
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
   @override
   LinkedNodeTypeBuilder get type => _type;
 
-  void set type(LinkedNodeTypeBuilder value) {
+  set type(LinkedNodeTypeBuilder value) {
     this._type = value;
   }
 
@@ -19407,16 +19280,12 @@ class LinkedNodeTypeFormalParameterBuilder extends Object
         _name = name,
         _type = type;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _type?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addString(this._name ?? '');
@@ -19522,21 +19391,21 @@ class LinkedNodeUnitBuilder extends Object
   @override
   LinkedNodeBuilder get node => _node;
 
-  void set node(LinkedNodeBuilder value) {
+  set node(LinkedNodeBuilder value) {
     this._node = value;
   }
 
   @override
   UnlinkedTokensBuilder get tokens => _tokens;
 
-  void set tokens(UnlinkedTokensBuilder value) {
+  set tokens(UnlinkedTokensBuilder value) {
     this._tokens = value;
   }
 
   @override
   String get uriStr => _uriStr ??= '';
 
-  void set uriStr(String value) {
+  set uriStr(String value) {
     this._uriStr = value;
   }
 
@@ -19546,17 +19415,13 @@ class LinkedNodeUnitBuilder extends Object
         _tokens = tokens,
         _uriStr = uriStr;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _node?.flushInformative();
     _tokens?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._uriStr ?? '');
     signature.addBool(this._tokens != null);
@@ -19665,35 +19530,35 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
   @override
   LinkedNodeBuilder get comment => _comment;
 
-  void set comment(LinkedNodeBuilder value) {
+  set comment(LinkedNodeBuilder value) {
     this._comment = value;
   }
 
   @override
   bool get isConst => _isConst ??= false;
 
-  void set isConst(bool value) {
+  set isConst(bool value) {
     this._isConst = value;
   }
 
   @override
   bool get isCovariant => _isCovariant ??= false;
 
-  void set isCovariant(bool value) {
+  set isCovariant(bool value) {
     this._isCovariant = value;
   }
 
   @override
   bool get isFinal => _isFinal ??= false;
 
-  void set isFinal(bool value) {
+  set isFinal(bool value) {
     this._isFinal = value;
   }
 
   @override
   bool get isStatic => _isStatic ??= false;
 
-  void set isStatic(bool value) {
+  set isStatic(bool value) {
     this._isStatic = value;
   }
 
@@ -19709,16 +19574,12 @@ class LinkedNodeVariablesDeclarationBuilder extends Object
         _isFinal = isFinal,
         _isStatic = isStatic;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _comment?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addBool(this._comment != null);
     this._comment?.collectApiSignature(signature);
@@ -19856,7 +19717,7 @@ class LinkedReferenceBuilder extends Object
   /// Containing references must always point backward; that is, for all i, if
   /// LinkedUnit.references[i].containingReference != 0, then
   /// LinkedUnit.references[i].containingReference < i.
-  void set containingReference(int value) {
+  set containingReference(int value) {
     assert(value == null || value >= 0);
     this._containingReference = value;
   }
@@ -19869,7 +19730,7 @@ class LinkedReferenceBuilder extends Object
   ///
   /// Zero if this entity is contained within another entity (e.g. a class
   /// member), or if [kind] is [ReferenceKind.prefix].
-  void set dependency(int value) {
+  set dependency(int value) {
     assert(value == null || value >= 0);
     this._dependency = value;
   }
@@ -19879,7 +19740,7 @@ class LinkedReferenceBuilder extends Object
 
   /// The kind of the entity being referred to.  For the pseudo-types `dynamic`
   /// and `void`, the kind is [ReferenceKind.classOrEnum].
-  void set kind(idl.ReferenceKind value) {
+  set kind(idl.ReferenceKind value) {
     this._kind = value;
   }
 
@@ -19893,7 +19754,7 @@ class LinkedReferenceBuilder extends Object
   /// If this [LinkedReference] doesn't have an associated [UnlinkedReference],
   /// name of the entity being referred to.  For the pseudo-type `dynamic`, the
   /// string is "dynamic".  For the pseudo-type `void`, the string is "void".
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -19903,7 +19764,7 @@ class LinkedReferenceBuilder extends Object
   /// If the entity being referred to is generic, the number of type parameters
   /// it declares (does not include type parameters of enclosing entities).
   /// Otherwise zero.
-  void set numTypeParameters(int value) {
+  set numTypeParameters(int value) {
     assert(value == null || value >= 0);
     this._numTypeParameters = value;
   }
@@ -19918,7 +19779,7 @@ class LinkedReferenceBuilder extends Object
   ///
   /// Zero if this entity is contained within another entity (e.g. a class
   /// member).
-  void set unit(int value) {
+  set unit(int value) {
     assert(value == null || value >= 0);
     this._unit = value;
   }
@@ -19937,14 +19798,10 @@ class LinkedReferenceBuilder extends Object
         _numTypeParameters = numTypeParameters,
         _unit = unit;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._unit ?? 0);
     signature.addInt(this._dependency ?? 0);
@@ -20094,7 +19951,7 @@ class LinkedUnitBuilder extends Object
 
   /// List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
   /// corresponding to const constructors that are part of cycles.
-  void set constCycles(List<int> value) {
+  set constCycles(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._constCycles = value;
   }
@@ -20105,7 +19962,7 @@ class LinkedUnitBuilder extends Object
   /// List of slot ids (referring to [UnlinkedClass.notSimplyBoundedSlot] or
   /// [UnlinkedTypedef.notSimplyBoundedSlot]) corresponding to classes and
   /// typedefs that are not simply bounded.
-  void set notSimplyBounded(List<int> value) {
+  set notSimplyBounded(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._notSimplyBounded = value;
   }
@@ -20117,7 +19974,7 @@ class LinkedUnitBuilder extends Object
   /// List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot] or
   /// [UnlinkedVariable.inheritsCovariantSlot]) corresponding to parameters
   /// that inherit `@covariant` behavior from a base class.
-  void set parametersInheritingCovariant(List<int> value) {
+  set parametersInheritingCovariant(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._parametersInheritingCovariant = value;
   }
@@ -20132,7 +19989,7 @@ class LinkedUnitBuilder extends Object
   /// elements beyond the number of elements in [UnlinkedUnit.references], those
   /// additional elements are references that are only referred to implicitly
   /// (e.g. elements involved in inferred or propagated types).
-  void set references(List<LinkedReferenceBuilder> value) {
+  set references(List<LinkedReferenceBuilder> value) {
     this._references = value;
   }
 
@@ -20141,7 +19998,7 @@ class LinkedUnitBuilder extends Object
       _topLevelInferenceErrors ??= <TopLevelInferenceErrorBuilder>[];
 
   /// The list of type inference errors.
-  void set topLevelInferenceErrors(List<TopLevelInferenceErrorBuilder> value) {
+  set topLevelInferenceErrors(List<TopLevelInferenceErrorBuilder> value) {
     this._topLevelInferenceErrors = value;
   }
 
@@ -20150,7 +20007,7 @@ class LinkedUnitBuilder extends Object
 
   /// List associating slot ids found inside the unlinked summary for the
   /// compilation unit with propagated and inferred types.
-  void set types(List<EntityRefBuilder> value) {
+  set types(List<EntityRefBuilder> value) {
     this._types = value;
   }
 
@@ -20168,18 +20025,14 @@ class LinkedUnitBuilder extends Object
         _topLevelInferenceErrors = topLevelInferenceErrors,
         _types = types;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _references?.forEach((b) => b.flushInformative());
     _topLevelInferenceErrors?.forEach((b) => b.flushInformative());
     _types?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._references == null) {
       signature.addInt(0);
@@ -20411,7 +20264,7 @@ class PackageBundleBuilder extends Object
       _linkedLibraries ??= <LinkedLibraryBuilder>[];
 
   /// Linked libraries.
-  void set linkedLibraries(List<LinkedLibraryBuilder> value) {
+  set linkedLibraries(List<LinkedLibraryBuilder> value) {
     this._linkedLibraries = value;
   }
 
@@ -20420,7 +20273,7 @@ class PackageBundleBuilder extends Object
 
   /// The list of URIs of items in [linkedLibraries], e.g. `dart:core` or
   /// `package:foo/bar.dart`.
-  void set linkedLibraryUris(List<String> value) {
+  set linkedLibraryUris(List<String> value) {
     this._linkedLibraryUris = value;
   }
 
@@ -20429,7 +20282,7 @@ class PackageBundleBuilder extends Object
 
   /// Major version of the summary format.  See
   /// [PackageBundleAssembler.currentMajorVersion].
-  void set majorVersion(int value) {
+  set majorVersion(int value) {
     assert(value == null || value >= 0);
     this._majorVersion = value;
   }
@@ -20439,7 +20292,7 @@ class PackageBundleBuilder extends Object
 
   /// Minor version of the summary format.  See
   /// [PackageBundleAssembler.currentMinorVersion].
-  void set minorVersion(int value) {
+  set minorVersion(int value) {
     assert(value == null || value >= 0);
     this._minorVersion = value;
   }
@@ -20453,7 +20306,7 @@ class PackageBundleBuilder extends Object
       _unlinkedUnits ??= <UnlinkedUnitBuilder>[];
 
   /// Unlinked information for the compilation units constituting the package.
-  void set unlinkedUnits(List<UnlinkedUnitBuilder> value) {
+  set unlinkedUnits(List<UnlinkedUnitBuilder> value) {
     this._unlinkedUnits = value;
   }
 
@@ -20461,7 +20314,7 @@ class PackageBundleBuilder extends Object
   List<String> get unlinkedUnitUris => _unlinkedUnitUris ??= <String>[];
 
   /// The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
-  void set unlinkedUnitUris(List<String> value) {
+  set unlinkedUnitUris(List<String> value) {
     this._unlinkedUnitUris = value;
   }
 
@@ -20479,17 +20332,13 @@ class PackageBundleBuilder extends Object
         _unlinkedUnits = unlinkedUnits,
         _unlinkedUnitUris = unlinkedUnitUris;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _linkedLibraries?.forEach((b) => b.flushInformative());
     _unlinkedUnits?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._linkedLibraries == null) {
       signature.addInt(0);
@@ -20711,7 +20560,7 @@ class PackageIndexBuilder extends Object
 
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the kind of the synthetic element.
-  void set elementKinds(List<idl.IndexSyntheticElementKind> value) {
+  set elementKinds(List<idl.IndexSyntheticElementKind> value) {
     this._elementKinds = value;
   }
 
@@ -20724,7 +20573,7 @@ class PackageIndexBuilder extends Object
   /// is a top-level element.  The list is sorted in ascending order, so that
   /// the client can quickly check whether an element is referenced in this
   /// [PackageIndex].
-  void set elementNameClassMemberIds(List<int> value) {
+  set elementNameClassMemberIds(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementNameClassMemberIds = value;
   }
@@ -20737,7 +20586,7 @@ class PackageIndexBuilder extends Object
   /// not a named parameter.  The list is sorted in ascending order, so that the
   /// client can quickly check whether an element is referenced in this
   /// [PackageIndex].
-  void set elementNameParameterIds(List<int> value) {
+  set elementNameParameterIds(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementNameParameterIds = value;
   }
@@ -20750,7 +20599,7 @@ class PackageIndexBuilder extends Object
   /// the identifier of the top-level element name, or `null` if the element is
   /// the unit.  The list is sorted in ascending order, so that the client can
   /// quickly check whether an element is referenced in this [PackageIndex].
-  void set elementNameUnitMemberIds(List<int> value) {
+  set elementNameUnitMemberIds(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementNameUnitMemberIds = value;
   }
@@ -20761,7 +20610,7 @@ class PackageIndexBuilder extends Object
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the index into [unitLibraryUris] and [unitUnitUris] for the library
   /// specific unit where the element is declared.
-  void set elementUnits(List<int> value) {
+  set elementUnits(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._elementUnits = value;
   }
@@ -20772,7 +20621,7 @@ class PackageIndexBuilder extends Object
   /// List of unique element strings used in this [PackageIndex].  The list is
   /// sorted in ascending order, so that the client can quickly check the
   /// presence of a string in this [PackageIndex].
-  void set strings(List<String> value) {
+  set strings(List<String> value) {
     this._strings = value;
   }
 
@@ -20782,7 +20631,7 @@ class PackageIndexBuilder extends Object
   /// Each item of this list corresponds to the library URI of a unique library
   /// specific unit referenced in the [PackageIndex].  It is an index into
   /// [strings] list.
-  void set unitLibraryUris(List<int> value) {
+  set unitLibraryUris(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._unitLibraryUris = value;
   }
@@ -20791,7 +20640,7 @@ class PackageIndexBuilder extends Object
   List<UnitIndexBuilder> get units => _units ??= <UnitIndexBuilder>[];
 
   /// List of indexes of each unit in this [PackageIndex].
-  void set units(List<UnitIndexBuilder> value) {
+  set units(List<UnitIndexBuilder> value) {
     this._units = value;
   }
 
@@ -20801,7 +20650,7 @@ class PackageIndexBuilder extends Object
   /// Each item of this list corresponds to the unit URI of a unique library
   /// specific unit referenced in the [PackageIndex].  It is an index into
   /// [strings] list.
-  void set unitUnitUris(List<int> value) {
+  set unitUnitUris(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._unitUnitUris = value;
   }
@@ -20826,16 +20675,12 @@ class PackageIndexBuilder extends Object
         _units = units,
         _unitUnitUris = unitUnitUris;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _units?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._elementUnits == null) {
       signature.addInt(0);
@@ -21142,7 +20987,7 @@ class TopLevelInferenceErrorBuilder extends Object
   List<String> get arguments => _arguments ??= <String>[];
 
   /// The [kind] specific arguments.
-  void set arguments(List<String> value) {
+  set arguments(List<String> value) {
     this._arguments = value;
   }
 
@@ -21151,7 +20996,7 @@ class TopLevelInferenceErrorBuilder extends Object
       _kind ??= idl.TopLevelInferenceErrorKind.assignment;
 
   /// The kind of the error.
-  void set kind(idl.TopLevelInferenceErrorKind value) {
+  set kind(idl.TopLevelInferenceErrorKind value) {
     this._kind = value;
   }
 
@@ -21161,7 +21006,7 @@ class TopLevelInferenceErrorBuilder extends Object
   /// The slot id (which is unique within the compilation unit) identifying the
   /// target of type inference with which this [TopLevelInferenceError] is
   /// associated.
-  void set slot(int value) {
+  set slot(int value) {
     assert(value == null || value >= 0);
     this._slot = value;
   }
@@ -21172,14 +21017,10 @@ class TopLevelInferenceErrorBuilder extends Object
         _kind = kind,
         _slot = slot;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._slot ?? 0);
     signature.addInt(this._kind == null ? 0 : this._kind.index);
@@ -21300,7 +21141,7 @@ class UnitIndexBuilder extends Object
       _definedNameKinds ??= <idl.IndexNameKind>[];
 
   /// Each item of this list is the kind of an element defined in this unit.
-  void set definedNameKinds(List<idl.IndexNameKind> value) {
+  set definedNameKinds(List<idl.IndexNameKind> value) {
     this._definedNameKinds = value;
   }
 
@@ -21309,7 +21150,7 @@ class UnitIndexBuilder extends Object
 
   /// Each item of this list is the name offset of an element defined in this
   /// unit relative to the beginning of the file.
-  void set definedNameOffsets(List<int> value) {
+  set definedNameOffsets(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._definedNameOffsets = value;
   }
@@ -21321,7 +21162,7 @@ class UnitIndexBuilder extends Object
   /// is an index into [PackageIndex.strings] list.  The list is sorted in
   /// ascending order, so that the client can quickly find name definitions in
   /// this [UnitIndex].
-  void set definedNames(List<int> value) {
+  set definedNames(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._definedNames = value;
   }
@@ -21331,7 +21172,7 @@ class UnitIndexBuilder extends Object
 
   /// Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
   /// for the library specific unit that corresponds to this [UnitIndex].
-  void set unit(int value) {
+  set unit(int value) {
     assert(value == null || value >= 0);
     this._unit = value;
   }
@@ -21342,7 +21183,7 @@ class UnitIndexBuilder extends Object
 
   /// Each item of this list is the `true` if the corresponding element usage
   /// is qualified with some prefix.
-  void set usedElementIsQualifiedFlags(List<bool> value) {
+  set usedElementIsQualifiedFlags(List<bool> value) {
     this._usedElementIsQualifiedFlags = value;
   }
 
@@ -21351,7 +21192,7 @@ class UnitIndexBuilder extends Object
       _usedElementKinds ??= <idl.IndexRelationKind>[];
 
   /// Each item of this list is the kind of the element usage.
-  void set usedElementKinds(List<idl.IndexRelationKind> value) {
+  set usedElementKinds(List<idl.IndexRelationKind> value) {
     this._usedElementKinds = value;
   }
 
@@ -21359,7 +21200,7 @@ class UnitIndexBuilder extends Object
   List<int> get usedElementLengths => _usedElementLengths ??= <int>[];
 
   /// Each item of this list is the length of the element usage.
-  void set usedElementLengths(List<int> value) {
+  set usedElementLengths(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedElementLengths = value;
   }
@@ -21369,7 +21210,7 @@ class UnitIndexBuilder extends Object
 
   /// Each item of this list is the offset of the element usage relative to the
   /// beginning of the file.
-  void set usedElementOffsets(List<int> value) {
+  set usedElementOffsets(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedElementOffsets = value;
   }
@@ -21380,7 +21221,7 @@ class UnitIndexBuilder extends Object
   /// Each item of this list is the index into [PackageIndex.elementUnits] and
   /// [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
   /// that the client can quickly find element references in this [UnitIndex].
-  void set usedElements(List<int> value) {
+  set usedElements(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedElements = value;
   }
@@ -21391,7 +21232,7 @@ class UnitIndexBuilder extends Object
 
   /// Each item of this list is the `true` if the corresponding name usage
   /// is qualified with some prefix.
-  void set usedNameIsQualifiedFlags(List<bool> value) {
+  set usedNameIsQualifiedFlags(List<bool> value) {
     this._usedNameIsQualifiedFlags = value;
   }
 
@@ -21400,7 +21241,7 @@ class UnitIndexBuilder extends Object
       _usedNameKinds ??= <idl.IndexRelationKind>[];
 
   /// Each item of this list is the kind of the name usage.
-  void set usedNameKinds(List<idl.IndexRelationKind> value) {
+  set usedNameKinds(List<idl.IndexRelationKind> value) {
     this._usedNameKinds = value;
   }
 
@@ -21409,7 +21250,7 @@ class UnitIndexBuilder extends Object
 
   /// Each item of this list is the offset of the name usage relative to the
   /// beginning of the file.
-  void set usedNameOffsets(List<int> value) {
+  set usedNameOffsets(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedNameOffsets = value;
   }
@@ -21420,7 +21261,7 @@ class UnitIndexBuilder extends Object
   /// Each item of this list is the index into [PackageIndex.strings] for a
   /// used name.  The list is sorted in ascending order, so that the client can
   /// quickly find name uses in this [UnitIndex].
-  void set usedNames(List<int> value) {
+  set usedNames(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._usedNames = value;
   }
@@ -21453,14 +21294,10 @@ class UnitIndexBuilder extends Object
         _usedNameOffsets = usedNameOffsets,
         _usedNames = usedNames;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addInt(this._unit ?? 0);
     if (this._usedElementLengths == null) {
@@ -21870,7 +21707,7 @@ class UnlinkedClassBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this class.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -21878,7 +21715,7 @@ class UnlinkedClassBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the class.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -21888,7 +21725,7 @@ class UnlinkedClassBuilder extends Object
 
   /// Documentation comment for the class, or `null` if there is no
   /// documentation comment.
-  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+  set documentationComment(UnlinkedDocumentationCommentBuilder value) {
     this._documentationComment = value;
   }
 
@@ -21897,7 +21734,7 @@ class UnlinkedClassBuilder extends Object
       _executables ??= <UnlinkedExecutableBuilder>[];
 
   /// Executable objects (methods, getters, and setters) contained in the class.
-  void set executables(List<UnlinkedExecutableBuilder> value) {
+  set executables(List<UnlinkedExecutableBuilder> value) {
     this._executables = value;
   }
 
@@ -21906,7 +21743,7 @@ class UnlinkedClassBuilder extends Object
       _fields ??= <UnlinkedVariableBuilder>[];
 
   /// Field declarations contained in the class.
-  void set fields(List<UnlinkedVariableBuilder> value) {
+  set fields(List<UnlinkedVariableBuilder> value) {
     this._fields = value;
   }
 
@@ -21915,7 +21752,7 @@ class UnlinkedClassBuilder extends Object
 
   /// Indicates whether this class is the core "Object" class (and hence has no
   /// supertype)
-  void set hasNoSupertype(bool value) {
+  set hasNoSupertype(bool value) {
     this._hasNoSupertype = value;
   }
 
@@ -21923,7 +21760,7 @@ class UnlinkedClassBuilder extends Object
   List<EntityRefBuilder> get interfaces => _interfaces ??= <EntityRefBuilder>[];
 
   /// Interfaces appearing in an `implements` clause, if any.
-  void set interfaces(List<EntityRefBuilder> value) {
+  set interfaces(List<EntityRefBuilder> value) {
     this._interfaces = value;
   }
 
@@ -21931,7 +21768,7 @@ class UnlinkedClassBuilder extends Object
   bool get isAbstract => _isAbstract ??= false;
 
   /// Indicates whether the class is declared with the `abstract` keyword.
-  void set isAbstract(bool value) {
+  set isAbstract(bool value) {
     this._isAbstract = value;
   }
 
@@ -21939,7 +21776,7 @@ class UnlinkedClassBuilder extends Object
   bool get isMixinApplication => _isMixinApplication ??= false;
 
   /// Indicates whether the class is declared using mixin application syntax.
-  void set isMixinApplication(bool value) {
+  set isMixinApplication(bool value) {
     this._isMixinApplication = value;
   }
 
@@ -21947,7 +21784,7 @@ class UnlinkedClassBuilder extends Object
   List<EntityRefBuilder> get mixins => _mixins ??= <EntityRefBuilder>[];
 
   /// Mixins appearing in a `with` clause, if any.
-  void set mixins(List<EntityRefBuilder> value) {
+  set mixins(List<EntityRefBuilder> value) {
     this._mixins = value;
   }
 
@@ -21955,7 +21792,7 @@ class UnlinkedClassBuilder extends Object
   String get name => _name ??= '';
 
   /// Name of the class.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -21963,7 +21800,7 @@ class UnlinkedClassBuilder extends Object
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the class name relative to the beginning of the file.
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -21978,7 +21815,7 @@ class UnlinkedClassBuilder extends Object
   /// type when specifying the bound of a type parameter.
   ///
   /// Otherwise, zero.
-  void set notSimplyBoundedSlot(int value) {
+  set notSimplyBoundedSlot(int value) {
     assert(value == null || value >= 0);
     this._notSimplyBoundedSlot = value;
   }
@@ -21990,7 +21827,7 @@ class UnlinkedClassBuilder extends Object
   /// Superclass constraints for this mixin declaration. The list will be empty
   /// if this class is not a mixin declaration, or if the declaration does not
   /// have an `on` clause (in which case the type `Object` is implied).
-  void set superclassConstraints(List<EntityRefBuilder> value) {
+  set superclassConstraints(List<EntityRefBuilder> value) {
     this._superclassConstraints = value;
   }
 
@@ -22000,7 +21837,7 @@ class UnlinkedClassBuilder extends Object
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
   /// The list will be empty if this class is not a mixin declaration.
-  void set superInvokedNames(List<String> value) {
+  set superInvokedNames(List<String> value) {
     this._superInvokedNames = value;
   }
 
@@ -22010,7 +21847,7 @@ class UnlinkedClassBuilder extends Object
   /// Supertype of the class, or `null` if either (a) the class doesn't
   /// explicitly declare a supertype (and hence has supertype `Object`), or (b)
   /// the class *is* `Object` (and hence has no supertype).
-  void set supertype(EntityRefBuilder value) {
+  set supertype(EntityRefBuilder value) {
     this._supertype = value;
   }
 
@@ -22019,7 +21856,7 @@ class UnlinkedClassBuilder extends Object
       _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /// Type parameters of the class, if any.
-  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+  set typeParameters(List<UnlinkedTypeParamBuilder> value) {
     this._typeParameters = value;
   }
 
@@ -22059,9 +21896,7 @@ class UnlinkedClassBuilder extends Object
         _supertype = supertype,
         _typeParameters = typeParameters;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _codeRange = null;
@@ -22076,9 +21911,7 @@ class UnlinkedClassBuilder extends Object
     _typeParameters?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     if (this._executables == null) {
@@ -22498,7 +22331,7 @@ class UnlinkedCombinatorBuilder extends Object
 
   /// If this is a `show` combinator, offset of the end of the list of shown
   /// names.  Otherwise zero.
-  void set end(int value) {
+  set end(int value) {
     assert(value == null || value >= 0);
     this._end = value;
   }
@@ -22507,7 +22340,7 @@ class UnlinkedCombinatorBuilder extends Object
   List<String> get hides => _hides ??= <String>[];
 
   /// List of names which are hidden.  Empty if this is a `show` combinator.
-  void set hides(List<String> value) {
+  set hides(List<String> value) {
     this._hides = value;
   }
 
@@ -22516,7 +22349,7 @@ class UnlinkedCombinatorBuilder extends Object
 
   /// If this is a `show` combinator, offset of the `show` keyword.  Otherwise
   /// zero.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value == null || value >= 0);
     this._offset = value;
   }
@@ -22525,7 +22358,7 @@ class UnlinkedCombinatorBuilder extends Object
   List<String> get shows => _shows ??= <String>[];
 
   /// List of names which are shown.  Empty if this is a `hide` combinator.
-  void set shows(List<String> value) {
+  set shows(List<String> value) {
     this._shows = value;
   }
 
@@ -22536,17 +22369,13 @@ class UnlinkedCombinatorBuilder extends Object
         _offset = offset,
         _shows = shows;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _end = null;
     _offset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._shows == null) {
       signature.addInt(0);
@@ -22678,7 +22507,7 @@ class UnlinkedConfigurationBuilder extends Object
 
   /// The name of the declared variable whose value is being used in the
   /// condition.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -22686,7 +22515,7 @@ class UnlinkedConfigurationBuilder extends Object
   String get uri => _uri ??= '';
 
   /// The URI of the implementation library to be used if the condition is true.
-  void set uri(String value) {
+  set uri(String value) {
     this._uri = value;
   }
 
@@ -22695,7 +22524,7 @@ class UnlinkedConfigurationBuilder extends Object
 
   /// The value to which the value of the declared variable will be compared,
   /// or `true` if the condition does not include an equality test.
-  void set value(String value) {
+  set value(String value) {
     this._value = value;
   }
 
@@ -22704,14 +22533,10 @@ class UnlinkedConfigurationBuilder extends Object
         _uri = uri,
         _value = value;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addString(this._value ?? '');
@@ -22822,7 +22647,7 @@ class UnlinkedConstructorInitializerBuilder extends Object
   /// If there are `m` [arguments] and `n` [argumentNames], then each argument
   /// from [arguments] with index `i` such that `n + i - m >= 0`, should be used
   /// with the name at `n + i - m`.
-  void set argumentNames(List<String> value) {
+  set argumentNames(List<String> value) {
     this._argumentNames = value;
   }
 
@@ -22832,7 +22657,7 @@ class UnlinkedConstructorInitializerBuilder extends Object
 
   /// If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
   /// invocation.  Otherwise empty.
-  void set arguments(List<UnlinkedExprBuilder> value) {
+  set arguments(List<UnlinkedExprBuilder> value) {
     this._arguments = value;
   }
 
@@ -22841,7 +22666,7 @@ class UnlinkedConstructorInitializerBuilder extends Object
 
   /// If [kind] is `field`, the expression of the field initializer.
   /// Otherwise `null`.
-  void set expression(UnlinkedExprBuilder value) {
+  set expression(UnlinkedExprBuilder value) {
     this._expression = value;
   }
 
@@ -22850,7 +22675,7 @@ class UnlinkedConstructorInitializerBuilder extends Object
       _kind ??= idl.UnlinkedConstructorInitializerKind.field;
 
   /// The kind of the constructor initializer (field, redirect, super).
-  void set kind(idl.UnlinkedConstructorInitializerKind value) {
+  set kind(idl.UnlinkedConstructorInitializerKind value) {
     this._kind = value;
   }
 
@@ -22861,7 +22686,7 @@ class UnlinkedConstructorInitializerBuilder extends Object
   /// [kind] is `thisInvocation`, the name of the constructor, declared in this
   /// class, to redirect to.  If [kind] is `superInvocation`, the name of the
   /// constructor, declared in the superclass, to invoke.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -22877,17 +22702,13 @@ class UnlinkedConstructorInitializerBuilder extends Object
         _kind = kind,
         _name = name;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _arguments?.forEach((b) => b.flushInformative());
     _expression?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addBool(this._expression != null);
@@ -23060,20 +22881,16 @@ class UnlinkedDocumentationCommentBuilder extends Object
   ///
   /// References appearing within the doc comment in square brackets are not
   /// specially encoded.
-  void set text(String value) {
+  set text(String value) {
     this._text = value;
   }
 
   UnlinkedDocumentationCommentBuilder({String text}) : _text = text;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._text ?? '');
   }
@@ -23159,7 +22976,7 @@ class UnlinkedEnumBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this enum.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -23167,7 +22984,7 @@ class UnlinkedEnumBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the enum.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -23177,7 +22994,7 @@ class UnlinkedEnumBuilder extends Object
 
   /// Documentation comment for the enum, or `null` if there is no documentation
   /// comment.
-  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+  set documentationComment(UnlinkedDocumentationCommentBuilder value) {
     this._documentationComment = value;
   }
 
@@ -23185,7 +23002,7 @@ class UnlinkedEnumBuilder extends Object
   String get name => _name ??= '';
 
   /// Name of the enum type.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -23193,7 +23010,7 @@ class UnlinkedEnumBuilder extends Object
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the enum name relative to the beginning of the file.
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -23203,7 +23020,7 @@ class UnlinkedEnumBuilder extends Object
       _values ??= <UnlinkedEnumValueBuilder>[];
 
   /// Values listed in the enum declaration, in declaration order.
-  void set values(List<UnlinkedEnumValueBuilder> value) {
+  set values(List<UnlinkedEnumValueBuilder> value) {
     this._values = value;
   }
 
@@ -23221,9 +23038,7 @@ class UnlinkedEnumBuilder extends Object
         _nameOffset = nameOffset,
         _values = values;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _codeRange = null;
@@ -23232,9 +23047,7 @@ class UnlinkedEnumBuilder extends Object
     _values?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     if (this._values == null) {
@@ -23410,7 +23223,7 @@ class UnlinkedEnumValueBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this value.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -23420,7 +23233,7 @@ class UnlinkedEnumValueBuilder extends Object
 
   /// Documentation comment for the enum value, or `null` if there is no
   /// documentation comment.
-  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+  set documentationComment(UnlinkedDocumentationCommentBuilder value) {
     this._documentationComment = value;
   }
 
@@ -23428,7 +23241,7 @@ class UnlinkedEnumValueBuilder extends Object
   String get name => _name ??= '';
 
   /// Name of the enumerated value.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -23436,7 +23249,7 @@ class UnlinkedEnumValueBuilder extends Object
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the enum value name relative to the beginning of the file.
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -23451,18 +23264,14 @@ class UnlinkedEnumValueBuilder extends Object
         _name = name,
         _nameOffset = nameOffset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _documentationComment = null;
     _nameOffset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     if (this._annotations == null) {
@@ -23618,7 +23427,7 @@ class UnlinkedExecutableBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this executable.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -23628,7 +23437,7 @@ class UnlinkedExecutableBuilder extends Object
   /// If this executable's function body is declared using `=>`, the expression
   /// to the right of the `=>`.  May be omitted if neither type inference nor
   /// constant evaluation depends on the function body.
-  void set bodyExpr(UnlinkedExprBuilder value) {
+  set bodyExpr(UnlinkedExprBuilder value) {
     this._bodyExpr = value;
   }
 
@@ -23636,7 +23445,7 @@ class UnlinkedExecutableBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the executable.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -23646,8 +23455,7 @@ class UnlinkedExecutableBuilder extends Object
 
   /// If a constant [UnlinkedExecutableKind.constructor], the constructor
   /// initializers.  Otherwise empty.
-  void set constantInitializers(
-      List<UnlinkedConstructorInitializerBuilder> value) {
+  set constantInitializers(List<UnlinkedConstructorInitializerBuilder> value) {
     this._constantInitializers = value;
   }
 
@@ -23660,7 +23468,7 @@ class UnlinkedExecutableBuilder extends Object
   /// a cycle.
   ///
   /// Otherwise, zero.
-  void set constCycleSlot(int value) {
+  set constCycleSlot(int value) {
     assert(value == null || value >= 0);
     this._constCycleSlot = value;
   }
@@ -23671,7 +23479,7 @@ class UnlinkedExecutableBuilder extends Object
 
   /// Documentation comment for the executable, or `null` if there is no
   /// documentation comment.
-  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+  set documentationComment(UnlinkedDocumentationCommentBuilder value) {
     this._documentationComment = value;
   }
 
@@ -23683,7 +23491,7 @@ class UnlinkedExecutableBuilder extends Object
   /// return type.  If there is no matching entry in [LinkedUnit.types], then
   /// no return type was inferred for this variable, so its static type is
   /// `dynamic`.
-  void set inferredReturnTypeSlot(int value) {
+  set inferredReturnTypeSlot(int value) {
     assert(value == null || value >= 0);
     this._inferredReturnTypeSlot = value;
   }
@@ -23692,7 +23500,7 @@ class UnlinkedExecutableBuilder extends Object
   bool get isAbstract => _isAbstract ??= false;
 
   /// Indicates whether the executable is declared using the `abstract` keyword.
-  void set isAbstract(bool value) {
+  set isAbstract(bool value) {
     this._isAbstract = value;
   }
 
@@ -23700,7 +23508,7 @@ class UnlinkedExecutableBuilder extends Object
   bool get isAsynchronous => _isAsynchronous ??= false;
 
   /// Indicates whether the executable has body marked as being asynchronous.
-  void set isAsynchronous(bool value) {
+  set isAsynchronous(bool value) {
     this._isAsynchronous = value;
   }
 
@@ -23708,7 +23516,7 @@ class UnlinkedExecutableBuilder extends Object
   bool get isConst => _isConst ??= false;
 
   /// Indicates whether the executable is declared using the `const` keyword.
-  void set isConst(bool value) {
+  set isConst(bool value) {
     this._isConst = value;
   }
 
@@ -23716,7 +23524,7 @@ class UnlinkedExecutableBuilder extends Object
   bool get isExternal => _isExternal ??= false;
 
   /// Indicates whether the executable is declared using the `external` keyword.
-  void set isExternal(bool value) {
+  set isExternal(bool value) {
     this._isExternal = value;
   }
 
@@ -23724,7 +23532,7 @@ class UnlinkedExecutableBuilder extends Object
   bool get isFactory => _isFactory ??= false;
 
   /// Indicates whether the executable is declared using the `factory` keyword.
-  void set isFactory(bool value) {
+  set isFactory(bool value) {
     this._isFactory = value;
   }
 
@@ -23732,7 +23540,7 @@ class UnlinkedExecutableBuilder extends Object
   bool get isGenerator => _isGenerator ??= false;
 
   /// Indicates whether the executable has body marked as being a generator.
-  void set isGenerator(bool value) {
+  set isGenerator(bool value) {
     this._isGenerator = value;
   }
 
@@ -23740,7 +23548,7 @@ class UnlinkedExecutableBuilder extends Object
   bool get isRedirectedConstructor => _isRedirectedConstructor ??= false;
 
   /// Indicates whether the executable is a redirected constructor.
-  void set isRedirectedConstructor(bool value) {
+  set isRedirectedConstructor(bool value) {
     this._isRedirectedConstructor = value;
   }
 
@@ -23752,7 +23560,7 @@ class UnlinkedExecutableBuilder extends Object
   /// Note that for top level executables, this flag is false, since they are
   /// not declared using the `static` keyword (even though they are considered
   /// static for semantic purposes).
-  void set isStatic(bool value) {
+  set isStatic(bool value) {
     this._isStatic = value;
   }
 
@@ -23762,7 +23570,7 @@ class UnlinkedExecutableBuilder extends Object
 
   /// The kind of the executable (function/method, getter, setter, or
   /// constructor).
-  void set kind(idl.UnlinkedExecutableKind value) {
+  set kind(idl.UnlinkedExecutableKind value) {
     this._kind = value;
   }
 
@@ -23771,7 +23579,7 @@ class UnlinkedExecutableBuilder extends Object
       _localFunctions ??= <UnlinkedExecutableBuilder>[];
 
   /// The list of local functions.
-  void set localFunctions(List<UnlinkedExecutableBuilder> value) {
+  set localFunctions(List<UnlinkedExecutableBuilder> value) {
     this._localFunctions = value;
   }
 
@@ -23789,7 +23597,7 @@ class UnlinkedExecutableBuilder extends Object
   /// Name of the executable.  For setters, this includes the trailing "=".  For
   /// named constructors, this excludes the class name and excludes the ".".
   /// For unnamed constructors, this is the empty string.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -23798,7 +23606,7 @@ class UnlinkedExecutableBuilder extends Object
 
   /// If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
   /// the offset of the end of the constructor name.  Otherwise zero.
-  void set nameEnd(int value) {
+  set nameEnd(int value) {
     assert(value == null || value >= 0);
     this._nameEnd = value;
   }
@@ -23810,7 +23618,7 @@ class UnlinkedExecutableBuilder extends Object
   /// named constructors, this excludes the class name and excludes the ".".
   /// For unnamed constructors, this is the offset of the class name (i.e. the
   /// offset of the second "C" in "class C { C(); }").
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -23822,7 +23630,7 @@ class UnlinkedExecutableBuilder extends Object
   /// Parameters of the executable, if any.  Note that getters have no
   /// parameters (hence this will be the empty list), and setters have a single
   /// parameter.
-  void set parameters(List<UnlinkedParamBuilder> value) {
+  set parameters(List<UnlinkedParamBuilder> value) {
     this._parameters = value;
   }
 
@@ -23831,7 +23639,7 @@ class UnlinkedExecutableBuilder extends Object
 
   /// If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
   /// the offset of the period before the constructor name.  Otherwise zero.
-  void set periodOffset(int value) {
+  set periodOffset(int value) {
     assert(value == null || value >= 0);
     this._periodOffset = value;
   }
@@ -23841,7 +23649,7 @@ class UnlinkedExecutableBuilder extends Object
 
   /// If [isRedirectedConstructor] and [isFactory] are both `true`, the
   /// constructor to which this constructor redirects; otherwise empty.
-  void set redirectedConstructor(EntityRefBuilder value) {
+  set redirectedConstructor(EntityRefBuilder value) {
     this._redirectedConstructor = value;
   }
 
@@ -23851,7 +23659,7 @@ class UnlinkedExecutableBuilder extends Object
   /// If [isRedirectedConstructor] is `true` and [isFactory] is `false`, the
   /// name of the constructor that this constructor redirects to; otherwise
   /// empty.
-  void set redirectedConstructorName(String value) {
+  set redirectedConstructorName(String value) {
     this._redirectedConstructorName = value;
   }
 
@@ -23863,7 +23671,7 @@ class UnlinkedExecutableBuilder extends Object
   /// associated with variable initializers and closures, since these
   /// executables may have return types that are not accessible via direct
   /// imports.
-  void set returnType(EntityRefBuilder value) {
+  set returnType(EntityRefBuilder value) {
     this._returnType = value;
   }
 
@@ -23873,7 +23681,7 @@ class UnlinkedExecutableBuilder extends Object
 
   /// Type parameters of the executable, if any.  Empty if support for generic
   /// method syntax is disabled.
-  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+  set typeParameters(List<UnlinkedTypeParamBuilder> value) {
     this._typeParameters = value;
   }
 
@@ -23881,7 +23689,7 @@ class UnlinkedExecutableBuilder extends Object
   int get visibleLength => _visibleLength ??= 0;
 
   /// If a local function, the length of the visible range; zero otherwise.
-  void set visibleLength(int value) {
+  set visibleLength(int value) {
     assert(value == null || value >= 0);
     this._visibleLength = value;
   }
@@ -23890,7 +23698,7 @@ class UnlinkedExecutableBuilder extends Object
   int get visibleOffset => _visibleOffset ??= 0;
 
   /// If a local function, the beginning of the visible range; zero otherwise.
-  void set visibleOffset(int value) {
+  set visibleOffset(int value) {
     assert(value == null || value >= 0);
     this._visibleOffset = value;
   }
@@ -23953,9 +23761,7 @@ class UnlinkedExecutableBuilder extends Object
         _visibleLength = visibleLength,
         _visibleOffset = visibleOffset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _bodyExpr?.flushInformative();
@@ -23976,9 +23782,7 @@ class UnlinkedExecutableBuilder extends Object
     _visibleOffset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     if (this._parameters == null) {
@@ -24527,7 +24331,7 @@ class UnlinkedExportNonPublicBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this export directive.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -24535,7 +24339,7 @@ class UnlinkedExportNonPublicBuilder extends Object
   int get offset => _offset ??= 0;
 
   /// Offset of the "export" keyword.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value == null || value >= 0);
     this._offset = value;
   }
@@ -24545,7 +24349,7 @@ class UnlinkedExportNonPublicBuilder extends Object
 
   /// End of the URI string (including quotes) relative to the beginning of the
   /// file.
-  void set uriEnd(int value) {
+  set uriEnd(int value) {
     assert(value == null || value >= 0);
     this._uriEnd = value;
   }
@@ -24555,7 +24359,7 @@ class UnlinkedExportNonPublicBuilder extends Object
 
   /// Offset of the URI string (including quotes) relative to the beginning of
   /// the file.
-  void set uriOffset(int value) {
+  set uriOffset(int value) {
     assert(value == null || value >= 0);
     this._uriOffset = value;
   }
@@ -24570,9 +24374,7 @@ class UnlinkedExportNonPublicBuilder extends Object
         _uriEnd = uriEnd,
         _uriOffset = uriOffset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _offset = null;
@@ -24580,9 +24382,7 @@ class UnlinkedExportNonPublicBuilder extends Object
     _uriOffset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._annotations == null) {
       signature.addInt(0);
@@ -24704,7 +24504,7 @@ class UnlinkedExportPublicBuilder extends Object
       _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /// Combinators contained in this export declaration.
-  void set combinators(List<UnlinkedCombinatorBuilder> value) {
+  set combinators(List<UnlinkedCombinatorBuilder> value) {
     this._combinators = value;
   }
 
@@ -24714,7 +24514,7 @@ class UnlinkedExportPublicBuilder extends Object
 
   /// Configurations used to control which library will actually be loaded at
   /// run-time.
-  void set configurations(List<UnlinkedConfigurationBuilder> value) {
+  set configurations(List<UnlinkedConfigurationBuilder> value) {
     this._configurations = value;
   }
 
@@ -24722,7 +24522,7 @@ class UnlinkedExportPublicBuilder extends Object
   String get uri => _uri ??= '';
 
   /// URI used in the source code to reference the exported library.
-  void set uri(String value) {
+  set uri(String value) {
     this._uri = value;
   }
 
@@ -24734,17 +24534,13 @@ class UnlinkedExportPublicBuilder extends Object
         _configurations = configurations,
         _uri = uri;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _combinators?.forEach((b) => b.flushInformative());
     _configurations?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._uri ?? '');
     if (this._combinators == null) {
@@ -24880,7 +24676,7 @@ class UnlinkedExprBuilder extends Object
       _assignmentOperators ??= <idl.UnlinkedExprAssignOperator>[];
 
   /// Sequence of operators used by assignment operations.
-  void set assignmentOperators(List<idl.UnlinkedExprAssignOperator> value) {
+  set assignmentOperators(List<idl.UnlinkedExprAssignOperator> value) {
     this._assignmentOperators = value;
   }
 
@@ -24888,7 +24684,7 @@ class UnlinkedExprBuilder extends Object
   List<double> get doubles => _doubles ??= <double>[];
 
   /// Sequence of 64-bit doubles consumed by the operation `pushDouble`.
-  void set doubles(List<double> value) {
+  set doubles(List<double> value) {
     this._doubles = value;
   }
 
@@ -24898,7 +24694,7 @@ class UnlinkedExprBuilder extends Object
   /// Sequence of unsigned 32-bit integers consumed by the operations
   /// `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
   /// `makeList`, and `makeMap`.
-  void set ints(List<int> value) {
+  set ints(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._ints = value;
   }
@@ -24908,7 +24704,7 @@ class UnlinkedExprBuilder extends Object
 
   /// Indicates whether the expression is a valid potentially constant
   /// expression.
-  void set isValidConst(bool value) {
+  set isValidConst(bool value) {
     this._isValidConst = value;
   }
 
@@ -24918,7 +24714,7 @@ class UnlinkedExprBuilder extends Object
 
   /// Sequence of operations to execute (starting with an empty stack) to form
   /// the constant value.
-  void set operations(List<idl.UnlinkedExprOperation> value) {
+  set operations(List<idl.UnlinkedExprOperation> value) {
     this._operations = value;
   }
 
@@ -24929,7 +24725,7 @@ class UnlinkedExprBuilder extends Object
   /// `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
   /// that in the case of `pushReference` (and sometimes `invokeConstructor` the
   /// actual entity being referred to may be something other than a type.
-  void set references(List<EntityRefBuilder> value) {
+  set references(List<EntityRefBuilder> value) {
     this._references = value;
   }
 
@@ -24938,7 +24734,7 @@ class UnlinkedExprBuilder extends Object
 
   /// String representation of the expression in a form suitable to be tokenized
   /// and parsed.
-  void set sourceRepresentation(String value) {
+  set sourceRepresentation(String value) {
     this._sourceRepresentation = value;
   }
 
@@ -24947,7 +24743,7 @@ class UnlinkedExprBuilder extends Object
 
   /// Sequence of strings consumed by the operations `pushString` and
   /// `invokeConstructor`.
-  void set strings(List<String> value) {
+  set strings(List<String> value) {
     this._strings = value;
   }
 
@@ -24969,16 +24765,12 @@ class UnlinkedExprBuilder extends Object
         _sourceRepresentation = sourceRepresentation,
         _strings = strings;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _references?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._operations == null) {
       signature.addInt(0);
@@ -25242,7 +25034,7 @@ class UnlinkedImportBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this import declaration.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -25251,7 +25043,7 @@ class UnlinkedImportBuilder extends Object
       _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /// Combinators contained in this import declaration.
-  void set combinators(List<UnlinkedCombinatorBuilder> value) {
+  set combinators(List<UnlinkedCombinatorBuilder> value) {
     this._combinators = value;
   }
 
@@ -25261,7 +25053,7 @@ class UnlinkedImportBuilder extends Object
 
   /// Configurations used to control which library will actually be loaded at
   /// run-time.
-  void set configurations(List<UnlinkedConfigurationBuilder> value) {
+  set configurations(List<UnlinkedConfigurationBuilder> value) {
     this._configurations = value;
   }
 
@@ -25269,7 +25061,7 @@ class UnlinkedImportBuilder extends Object
   bool get isDeferred => _isDeferred ??= false;
 
   /// Indicates whether the import declaration uses the `deferred` keyword.
-  void set isDeferred(bool value) {
+  set isDeferred(bool value) {
     this._isDeferred = value;
   }
 
@@ -25277,7 +25069,7 @@ class UnlinkedImportBuilder extends Object
   bool get isImplicit => _isImplicit ??= false;
 
   /// Indicates whether the import declaration is implicit.
-  void set isImplicit(bool value) {
+  set isImplicit(bool value) {
     this._isImplicit = value;
   }
 
@@ -25286,7 +25078,7 @@ class UnlinkedImportBuilder extends Object
 
   /// If [isImplicit] is false, offset of the "import" keyword.  If [isImplicit]
   /// is true, zero.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value == null || value >= 0);
     this._offset = value;
   }
@@ -25296,7 +25088,7 @@ class UnlinkedImportBuilder extends Object
 
   /// Offset of the prefix name relative to the beginning of the file, or zero
   /// if there is no prefix.
-  void set prefixOffset(int value) {
+  set prefixOffset(int value) {
     assert(value == null || value >= 0);
     this._prefixOffset = value;
   }
@@ -25308,7 +25100,7 @@ class UnlinkedImportBuilder extends Object
   /// import declaration, or zero if this import declaration declares no prefix.
   ///
   /// Note that multiple imports can declare the same prefix.
-  void set prefixReference(int value) {
+  set prefixReference(int value) {
     assert(value == null || value >= 0);
     this._prefixReference = value;
   }
@@ -25317,7 +25109,7 @@ class UnlinkedImportBuilder extends Object
   String get uri => _uri ??= '';
 
   /// URI used in the source code to reference the imported library.
-  void set uri(String value) {
+  set uri(String value) {
     this._uri = value;
   }
 
@@ -25326,7 +25118,7 @@ class UnlinkedImportBuilder extends Object
 
   /// End of the URI string (including quotes) relative to the beginning of the
   /// file.  If [isImplicit] is true, zero.
-  void set uriEnd(int value) {
+  set uriEnd(int value) {
     assert(value == null || value >= 0);
     this._uriEnd = value;
   }
@@ -25336,7 +25128,7 @@ class UnlinkedImportBuilder extends Object
 
   /// Offset of the URI string (including quotes) relative to the beginning of
   /// the file.  If [isImplicit] is true, zero.
-  void set uriOffset(int value) {
+  set uriOffset(int value) {
     assert(value == null || value >= 0);
     this._uriOffset = value;
   }
@@ -25365,9 +25157,7 @@ class UnlinkedImportBuilder extends Object
         _uriEnd = uriEnd,
         _uriOffset = uriOffset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _combinators?.forEach((b) => b.flushInformative());
@@ -25378,9 +25168,7 @@ class UnlinkedImportBuilder extends Object
     _uriOffset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._uri ?? '');
     if (this._combinators == null) {
@@ -25641,7 +25429,7 @@ class UnlinkedParamBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this parameter.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -25649,7 +25437,7 @@ class UnlinkedParamBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the parameter.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -25658,7 +25446,7 @@ class UnlinkedParamBuilder extends Object
 
   /// If the parameter has a default value, the source text of the constant
   /// expression in the default value.  Otherwise the empty string.
-  void set defaultValueCode(String value) {
+  set defaultValueCode(String value) {
     this._defaultValueCode = value;
   }
 
@@ -25674,7 +25462,7 @@ class UnlinkedParamBuilder extends Object
   /// inferable, they are not marked as such in the summary; if their type is
   /// not specified, they always inherit the static type of the corresponding
   /// field.
-  void set inferredTypeSlot(int value) {
+  set inferredTypeSlot(int value) {
     assert(value == null || value >= 0);
     this._inferredTypeSlot = value;
   }
@@ -25688,7 +25476,7 @@ class UnlinkedParamBuilder extends Object
   /// `@covariant` behavior from a base class.
   ///
   /// Otherwise, zero.
-  void set inheritsCovariantSlot(int value) {
+  set inheritsCovariantSlot(int value) {
     assert(value == null || value >= 0);
     this._inheritsCovariantSlot = value;
   }
@@ -25698,7 +25486,7 @@ class UnlinkedParamBuilder extends Object
 
   /// The synthetic initializer function of the parameter.  Absent if the
   /// variable does not have an initializer.
-  void set initializer(UnlinkedExecutableBuilder value) {
+  set initializer(UnlinkedExecutableBuilder value) {
     this._initializer = value;
   }
 
@@ -25706,7 +25494,7 @@ class UnlinkedParamBuilder extends Object
   bool get isExplicitlyCovariant => _isExplicitlyCovariant ??= false;
 
   /// Indicates whether this parameter is explicitly marked as being covariant.
-  void set isExplicitlyCovariant(bool value) {
+  set isExplicitlyCovariant(bool value) {
     this._isExplicitlyCovariant = value;
   }
 
@@ -25714,7 +25502,7 @@ class UnlinkedParamBuilder extends Object
   bool get isFinal => _isFinal ??= false;
 
   /// Indicates whether the parameter is declared using the `final` keyword.
-  void set isFinal(bool value) {
+  set isFinal(bool value) {
     this._isFinal = value;
   }
 
@@ -25729,7 +25517,7 @@ class UnlinkedParamBuilder extends Object
   /// ```
   /// but is not function-typed if it does not, even if the type of the
   /// parameter is a function type.
-  void set isFunctionTyped(bool value) {
+  set isFunctionTyped(bool value) {
     this._isFunctionTyped = value;
   }
 
@@ -25738,7 +25526,7 @@ class UnlinkedParamBuilder extends Object
 
   /// Indicates whether this is an initializing formal parameter (i.e. it is
   /// declared using `this.` syntax).
-  void set isInitializingFormal(bool value) {
+  set isInitializingFormal(bool value) {
     this._isInitializingFormal = value;
   }
 
@@ -25746,7 +25534,7 @@ class UnlinkedParamBuilder extends Object
   idl.UnlinkedParamKind get kind => _kind ??= idl.UnlinkedParamKind.required;
 
   /// Kind of the parameter.
-  void set kind(idl.UnlinkedParamKind value) {
+  set kind(idl.UnlinkedParamKind value) {
     this._kind = value;
   }
 
@@ -25754,7 +25542,7 @@ class UnlinkedParamBuilder extends Object
   String get name => _name ??= '';
 
   /// Name of the parameter.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -25762,7 +25550,7 @@ class UnlinkedParamBuilder extends Object
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the parameter name relative to the beginning of the file.
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -25772,7 +25560,7 @@ class UnlinkedParamBuilder extends Object
       _parameters ??= <UnlinkedParamBuilder>[];
 
   /// If [isFunctionTyped] is `true`, the parameters of the function type.
-  void set parameters(List<UnlinkedParamBuilder> value) {
+  set parameters(List<UnlinkedParamBuilder> value) {
     this._parameters = value;
   }
 
@@ -25782,7 +25570,7 @@ class UnlinkedParamBuilder extends Object
   /// If [isFunctionTyped] is `true`, the declared return type.  If
   /// [isFunctionTyped] is `false`, the declared type.  Absent if the type is
   /// implicit.
-  void set type(EntityRefBuilder value) {
+  set type(EntityRefBuilder value) {
     this._type = value;
   }
 
@@ -25790,7 +25578,7 @@ class UnlinkedParamBuilder extends Object
   int get visibleLength => _visibleLength ??= 0;
 
   /// The length of the visible range.
-  void set visibleLength(int value) {
+  set visibleLength(int value) {
     assert(value == null || value >= 0);
     this._visibleLength = value;
   }
@@ -25799,7 +25587,7 @@ class UnlinkedParamBuilder extends Object
   int get visibleOffset => _visibleOffset ??= 0;
 
   /// The beginning of the visible range.
-  void set visibleOffset(int value) {
+  set visibleOffset(int value) {
     assert(value == null || value >= 0);
     this._visibleOffset = value;
   }
@@ -25840,9 +25628,7 @@ class UnlinkedParamBuilder extends Object
         _visibleLength = visibleLength,
         _visibleOffset = visibleOffset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _codeRange = null;
@@ -25855,9 +25641,7 @@ class UnlinkedParamBuilder extends Object
     _visibleOffset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addInt(this._inferredTypeSlot ?? 0);
@@ -26194,7 +25978,7 @@ class UnlinkedPartBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this part declaration.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -26203,7 +25987,7 @@ class UnlinkedPartBuilder extends Object
 
   /// End of the URI string (including quotes) relative to the beginning of the
   /// file.
-  void set uriEnd(int value) {
+  set uriEnd(int value) {
     assert(value == null || value >= 0);
     this._uriEnd = value;
   }
@@ -26213,7 +25997,7 @@ class UnlinkedPartBuilder extends Object
 
   /// Offset of the URI string (including quotes) relative to the beginning of
   /// the file.
-  void set uriOffset(int value) {
+  set uriOffset(int value) {
     assert(value == null || value >= 0);
     this._uriOffset = value;
   }
@@ -26224,18 +26008,14 @@ class UnlinkedPartBuilder extends Object
         _uriEnd = uriEnd,
         _uriOffset = uriOffset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _uriEnd = null;
     _uriOffset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._annotations == null) {
       signature.addInt(0);
@@ -26343,7 +26123,7 @@ class UnlinkedPublicNameBuilder extends Object
   idl.ReferenceKind get kind => _kind ??= idl.ReferenceKind.classOrEnum;
 
   /// The kind of object referred to by the name.
-  void set kind(idl.ReferenceKind value) {
+  set kind(idl.ReferenceKind value) {
     this._kind = value;
   }
 
@@ -26357,7 +26137,7 @@ class UnlinkedPublicNameBuilder extends Object
   ///
   /// Unnamed constructors are not included since they do not constitute a
   /// separate name added to any namespace.
-  void set members(List<UnlinkedPublicNameBuilder> value) {
+  set members(List<UnlinkedPublicNameBuilder> value) {
     this._members = value;
   }
 
@@ -26365,7 +26145,7 @@ class UnlinkedPublicNameBuilder extends Object
   String get name => _name ??= '';
 
   /// The name itself.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -26374,7 +26154,7 @@ class UnlinkedPublicNameBuilder extends Object
 
   /// If the entity being referred to is generic, the number of type parameters
   /// it accepts.  Otherwise zero.
-  void set numTypeParameters(int value) {
+  set numTypeParameters(int value) {
     assert(value == null || value >= 0);
     this._numTypeParameters = value;
   }
@@ -26389,16 +26169,12 @@ class UnlinkedPublicNameBuilder extends Object
         _name = name,
         _numTypeParameters = numTypeParameters;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _members?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addInt(this._kind == null ? 0 : this._kind.index);
@@ -26529,7 +26305,7 @@ class UnlinkedPublicNamespaceBuilder extends Object
       _exports ??= <UnlinkedExportPublicBuilder>[];
 
   /// Export declarations in the compilation unit.
-  void set exports(List<UnlinkedExportPublicBuilder> value) {
+  set exports(List<UnlinkedExportPublicBuilder> value) {
     this._exports = value;
   }
 
@@ -26541,7 +26317,7 @@ class UnlinkedPublicNamespaceBuilder extends Object
   ///
   /// TODO(paulberry): consider sorting these names to reduce unnecessary
   /// relinking.
-  void set names(List<UnlinkedPublicNameBuilder> value) {
+  set names(List<UnlinkedPublicNameBuilder> value) {
     this._names = value;
   }
 
@@ -26549,7 +26325,7 @@ class UnlinkedPublicNamespaceBuilder extends Object
   List<String> get parts => _parts ??= <String>[];
 
   /// URIs referenced by part declarations in the compilation unit.
-  void set parts(List<String> value) {
+  set parts(List<String> value) {
     this._parts = value;
   }
 
@@ -26561,17 +26337,13 @@ class UnlinkedPublicNamespaceBuilder extends Object
         _names = names,
         _parts = parts;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _exports?.forEach((b) => b.flushInformative());
     _names?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._names == null) {
       signature.addInt(0);
@@ -26720,7 +26492,7 @@ class UnlinkedReferenceBuilder extends Object
   /// Name of the entity being referred to.  For the pseudo-type `dynamic`, the
   /// string is "dynamic".  For the pseudo-type `void`, the string is "void".
   /// For the pseudo-type `bottom`, the string is "*bottom*".
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -26733,7 +26505,7 @@ class UnlinkedReferenceBuilder extends Object
   /// Prefix references must always point backward; that is, for all i, if
   /// UnlinkedUnit.references[i].prefixReference != 0, then
   /// UnlinkedUnit.references[i].prefixReference < i.
-  void set prefixReference(int value) {
+  set prefixReference(int value) {
     assert(value == null || value >= 0);
     this._prefixReference = value;
   }
@@ -26742,14 +26514,10 @@ class UnlinkedReferenceBuilder extends Object
       : _name = name,
         _prefixReference = prefixReference;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addInt(this._prefixReference ?? 0);
@@ -26841,7 +26609,7 @@ class UnlinkedTokensBuilder extends Object
 
   /// The token that corresponds to this token, or `0` if this token is not
   /// the first of a pair of matching tokens (such as parentheses).
-  void set endGroup(List<int> value) {
+  set endGroup(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._endGroup = value;
   }
@@ -26852,21 +26620,21 @@ class UnlinkedTokensBuilder extends Object
   /// Return `true` if this token is a synthetic token. A synthetic token is a
   /// token that was introduced by the parser in order to recover from an error
   /// in the code.
-  void set isSynthetic(List<bool> value) {
+  set isSynthetic(List<bool> value) {
     this._isSynthetic = value;
   }
 
   @override
   List<idl.UnlinkedTokenKind> get kind => _kind ??= <idl.UnlinkedTokenKind>[];
 
-  void set kind(List<idl.UnlinkedTokenKind> value) {
+  set kind(List<idl.UnlinkedTokenKind> value) {
     this._kind = value;
   }
 
   @override
   List<int> get length => _length ??= <int>[];
 
-  void set length(List<int> value) {
+  set length(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._length = value;
   }
@@ -26874,7 +26642,7 @@ class UnlinkedTokensBuilder extends Object
   @override
   List<String> get lexeme => _lexeme ??= <String>[];
 
-  void set lexeme(List<String> value) {
+  set lexeme(List<String> value) {
     this._lexeme = value;
   }
 
@@ -26883,7 +26651,7 @@ class UnlinkedTokensBuilder extends Object
 
   /// The next token in the token stream, `0` for [UnlinkedTokenType.EOF] or
   /// the last comment token.
-  void set next(List<int> value) {
+  set next(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._next = value;
   }
@@ -26891,7 +26659,7 @@ class UnlinkedTokensBuilder extends Object
   @override
   List<int> get offset => _offset ??= <int>[];
 
-  void set offset(List<int> value) {
+  set offset(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._offset = value;
   }
@@ -26903,7 +26671,7 @@ class UnlinkedTokensBuilder extends Object
   /// or `0` if there are no comments preceding this token. Additional comments
   /// can be reached by following the token stream using [next] until `0` is
   /// reached.
-  void set precedingComment(List<int> value) {
+  set precedingComment(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._precedingComment = value;
   }
@@ -26911,7 +26679,7 @@ class UnlinkedTokensBuilder extends Object
   @override
   List<idl.UnlinkedTokenType> get type => _type ??= <idl.UnlinkedTokenType>[];
 
-  void set type(List<idl.UnlinkedTokenType> value) {
+  set type(List<idl.UnlinkedTokenType> value) {
     this._type = value;
   }
 
@@ -26935,14 +26703,10 @@ class UnlinkedTokensBuilder extends Object
         _precedingComment = precedingComment,
         _type = type;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {}
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     if (this._endGroup == null) {
       signature.addInt(0);
@@ -27239,7 +27003,7 @@ class UnlinkedTypedefBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this typedef.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -27247,7 +27011,7 @@ class UnlinkedTypedefBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the typedef.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -27257,7 +27021,7 @@ class UnlinkedTypedefBuilder extends Object
 
   /// Documentation comment for the typedef, or `null` if there is no
   /// documentation comment.
-  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+  set documentationComment(UnlinkedDocumentationCommentBuilder value) {
     this._documentationComment = value;
   }
 
@@ -27265,7 +27029,7 @@ class UnlinkedTypedefBuilder extends Object
   String get name => _name ??= '';
 
   /// Name of the typedef.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -27273,7 +27037,7 @@ class UnlinkedTypedefBuilder extends Object
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the typedef name relative to the beginning of the file.
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -27288,7 +27052,7 @@ class UnlinkedTypedefBuilder extends Object
   /// raw type when specifying the bound of a type parameter.
   ///
   /// Otherwise, zero.
-  void set notSimplyBoundedSlot(int value) {
+  set notSimplyBoundedSlot(int value) {
     assert(value == null || value >= 0);
     this._notSimplyBoundedSlot = value;
   }
@@ -27298,7 +27062,7 @@ class UnlinkedTypedefBuilder extends Object
       _parameters ??= <UnlinkedParamBuilder>[];
 
   /// Parameters of the executable, if any.
-  void set parameters(List<UnlinkedParamBuilder> value) {
+  set parameters(List<UnlinkedParamBuilder> value) {
     this._parameters = value;
   }
 
@@ -27308,7 +27072,7 @@ class UnlinkedTypedefBuilder extends Object
   /// If [style] is [TypedefStyle.functionType], the return type of the typedef.
   /// If [style] is [TypedefStyle.genericFunctionType], the function type being
   /// defined.
-  void set returnType(EntityRefBuilder value) {
+  set returnType(EntityRefBuilder value) {
     this._returnType = value;
   }
 
@@ -27316,7 +27080,7 @@ class UnlinkedTypedefBuilder extends Object
   idl.TypedefStyle get style => _style ??= idl.TypedefStyle.functionType;
 
   /// The style of the typedef.
-  void set style(idl.TypedefStyle value) {
+  set style(idl.TypedefStyle value) {
     this._style = value;
   }
 
@@ -27325,7 +27089,7 @@ class UnlinkedTypedefBuilder extends Object
       _typeParameters ??= <UnlinkedTypeParamBuilder>[];
 
   /// Type parameters of the typedef, if any.
-  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+  set typeParameters(List<UnlinkedTypeParamBuilder> value) {
     this._typeParameters = value;
   }
 
@@ -27351,9 +27115,7 @@ class UnlinkedTypedefBuilder extends Object
         _style = style,
         _typeParameters = typeParameters;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _codeRange = null;
@@ -27364,9 +27126,7 @@ class UnlinkedTypedefBuilder extends Object
     _typeParameters?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addBool(this._returnType != null);
@@ -27621,7 +27381,7 @@ class UnlinkedTypeParamBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this type parameter.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -27630,7 +27390,7 @@ class UnlinkedTypeParamBuilder extends Object
 
   /// Bound of the type parameter, if a bound is explicitly declared.  Otherwise
   /// null.
-  void set bound(EntityRefBuilder value) {
+  set bound(EntityRefBuilder value) {
     this._bound = value;
   }
 
@@ -27638,7 +27398,7 @@ class UnlinkedTypeParamBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the type parameter.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -27646,7 +27406,7 @@ class UnlinkedTypeParamBuilder extends Object
   String get name => _name ??= '';
 
   /// Name of the type parameter.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -27654,7 +27414,7 @@ class UnlinkedTypeParamBuilder extends Object
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the type parameter name relative to the beginning of the file.
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -27671,9 +27431,7 @@ class UnlinkedTypeParamBuilder extends Object
         _name = name,
         _nameOffset = nameOffset;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _bound?.flushInformative();
@@ -27681,9 +27439,7 @@ class UnlinkedTypeParamBuilder extends Object
     _nameOffset = null;
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addBool(this._bound != null);
@@ -27848,7 +27604,7 @@ class UnlinkedUnitBuilder extends Object
   /// MD5 hash of the non-informative fields of the [UnlinkedUnit] (not
   /// including this one) as 16 unsigned 8-bit integer values.  This can be used
   /// to identify when the API of a unit may have changed.
-  void set apiSignature(List<int> value) {
+  set apiSignature(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._apiSignature = value;
   }
@@ -27858,7 +27614,7 @@ class UnlinkedUnitBuilder extends Object
       _classes ??= <UnlinkedClassBuilder>[];
 
   /// Classes declared in the compilation unit.
-  void set classes(List<UnlinkedClassBuilder> value) {
+  set classes(List<UnlinkedClassBuilder> value) {
     this._classes = value;
   }
 
@@ -27866,7 +27622,7 @@ class UnlinkedUnitBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the unit.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -27874,7 +27630,7 @@ class UnlinkedUnitBuilder extends Object
   List<UnlinkedEnumBuilder> get enums => _enums ??= <UnlinkedEnumBuilder>[];
 
   /// Enums declared in the compilation unit.
-  void set enums(List<UnlinkedEnumBuilder> value) {
+  set enums(List<UnlinkedEnumBuilder> value) {
     this._enums = value;
   }
 
@@ -27884,7 +27640,7 @@ class UnlinkedUnitBuilder extends Object
 
   /// Top level executable objects (functions, getters, and setters) declared in
   /// the compilation unit.
-  void set executables(List<UnlinkedExecutableBuilder> value) {
+  set executables(List<UnlinkedExecutableBuilder> value) {
     this._executables = value;
   }
 
@@ -27893,7 +27649,7 @@ class UnlinkedUnitBuilder extends Object
       _exports ??= <UnlinkedExportNonPublicBuilder>[];
 
   /// Export declarations in the compilation unit.
-  void set exports(List<UnlinkedExportNonPublicBuilder> value) {
+  set exports(List<UnlinkedExportNonPublicBuilder> value) {
     this._exports = value;
   }
 
@@ -27906,7 +27662,7 @@ class UnlinkedUnitBuilder extends Object
       _imports ??= <UnlinkedImportBuilder>[];
 
   /// Import declarations in the compilation unit.
-  void set imports(List<UnlinkedImportBuilder> value) {
+  set imports(List<UnlinkedImportBuilder> value) {
     this._imports = value;
   }
 
@@ -27914,7 +27670,7 @@ class UnlinkedUnitBuilder extends Object
   bool get isPartOf => _isPartOf ??= false;
 
   /// Indicates whether the unit contains a "part of" declaration.
-  void set isPartOf(bool value) {
+  set isPartOf(bool value) {
     this._isPartOf = value;
   }
 
@@ -27924,7 +27680,7 @@ class UnlinkedUnitBuilder extends Object
 
   /// Annotations for the library declaration, or the empty list if there is no
   /// library declaration.
-  void set libraryAnnotations(List<UnlinkedExprBuilder> value) {
+  set libraryAnnotations(List<UnlinkedExprBuilder> value) {
     this._libraryAnnotations = value;
   }
 
@@ -27934,8 +27690,7 @@ class UnlinkedUnitBuilder extends Object
 
   /// Documentation comment for the library, or `null` if there is no
   /// documentation comment.
-  void set libraryDocumentationComment(
-      UnlinkedDocumentationCommentBuilder value) {
+  set libraryDocumentationComment(UnlinkedDocumentationCommentBuilder value) {
     this._libraryDocumentationComment = value;
   }
 
@@ -27943,7 +27698,7 @@ class UnlinkedUnitBuilder extends Object
   String get libraryName => _libraryName ??= '';
 
   /// Name of the library (from a "library" declaration, if present).
-  void set libraryName(String value) {
+  set libraryName(String value) {
     this._libraryName = value;
   }
 
@@ -27952,7 +27707,7 @@ class UnlinkedUnitBuilder extends Object
 
   /// Length of the library name as it appears in the source code (or 0 if the
   /// library has no name).
-  void set libraryNameLength(int value) {
+  set libraryNameLength(int value) {
     assert(value == null || value >= 0);
     this._libraryNameLength = value;
   }
@@ -27962,7 +27717,7 @@ class UnlinkedUnitBuilder extends Object
 
   /// Offset of the library name relative to the beginning of the file (or 0 if
   /// the library has no name).
-  void set libraryNameOffset(int value) {
+  set libraryNameOffset(int value) {
     assert(value == null || value >= 0);
     this._libraryNameOffset = value;
   }
@@ -27971,7 +27726,7 @@ class UnlinkedUnitBuilder extends Object
   List<int> get lineStarts => _lineStarts ??= <int>[];
 
   /// Offsets of the first character of each line in the source code.
-  void set lineStarts(List<int> value) {
+  set lineStarts(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._lineStarts = value;
   }
@@ -27980,7 +27735,7 @@ class UnlinkedUnitBuilder extends Object
   List<UnlinkedClassBuilder> get mixins => _mixins ??= <UnlinkedClassBuilder>[];
 
   /// Mixins declared in the compilation unit.
-  void set mixins(List<UnlinkedClassBuilder> value) {
+  set mixins(List<UnlinkedClassBuilder> value) {
     this._mixins = value;
   }
 
@@ -27988,7 +27743,7 @@ class UnlinkedUnitBuilder extends Object
   List<UnlinkedPartBuilder> get parts => _parts ??= <UnlinkedPartBuilder>[];
 
   /// Part declarations in the compilation unit.
-  void set parts(List<UnlinkedPartBuilder> value) {
+  set parts(List<UnlinkedPartBuilder> value) {
     this._parts = value;
   }
 
@@ -27996,7 +27751,7 @@ class UnlinkedUnitBuilder extends Object
   UnlinkedPublicNamespaceBuilder get publicNamespace => _publicNamespace;
 
   /// Unlinked public namespace of this compilation unit.
-  void set publicNamespace(UnlinkedPublicNamespaceBuilder value) {
+  set publicNamespace(UnlinkedPublicNamespaceBuilder value) {
     this._publicNamespace = value;
   }
 
@@ -28009,7 +27764,7 @@ class UnlinkedUnitBuilder extends Object
   /// the absence of a reference in places where a reference is optional (for
   /// example [UnlinkedReference.prefixReference or
   /// UnlinkedImport.prefixReference]).
-  void set references(List<UnlinkedReferenceBuilder> value) {
+  set references(List<UnlinkedReferenceBuilder> value) {
     this._references = value;
   }
 
@@ -28018,7 +27773,7 @@ class UnlinkedUnitBuilder extends Object
       _typedefs ??= <UnlinkedTypedefBuilder>[];
 
   /// Typedefs declared in the compilation unit.
-  void set typedefs(List<UnlinkedTypedefBuilder> value) {
+  set typedefs(List<UnlinkedTypedefBuilder> value) {
     this._typedefs = value;
   }
 
@@ -28027,7 +27782,7 @@ class UnlinkedUnitBuilder extends Object
       _variables ??= <UnlinkedVariableBuilder>[];
 
   /// Top level variables declared in the compilation unit.
-  void set variables(List<UnlinkedVariableBuilder> value) {
+  set variables(List<UnlinkedVariableBuilder> value) {
     this._variables = value;
   }
 
@@ -28073,9 +27828,7 @@ class UnlinkedUnitBuilder extends Object
         _typedefs = typedefs,
         _variables = variables;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _classes?.forEach((b) => b.flushInformative());
     _codeRange = null;
@@ -28096,9 +27849,7 @@ class UnlinkedUnitBuilder extends Object
     _variables?.forEach((b) => b.flushInformative());
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addBool(this._publicNamespace != null);
     this._publicNamespace?.collectApiSignature(signature);
@@ -28646,7 +28397,7 @@ class UnlinkedVariableBuilder extends Object
       _annotations ??= <UnlinkedExprBuilder>[];
 
   /// Annotations for this variable.
-  void set annotations(List<UnlinkedExprBuilder> value) {
+  set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -28654,7 +28405,7 @@ class UnlinkedVariableBuilder extends Object
   CodeRangeBuilder get codeRange => _codeRange;
 
   /// Code range of the variable.
-  void set codeRange(CodeRangeBuilder value) {
+  set codeRange(CodeRangeBuilder value) {
     this._codeRange = value;
   }
 
@@ -28664,7 +28415,7 @@ class UnlinkedVariableBuilder extends Object
 
   /// Documentation comment for the variable, or `null` if there is no
   /// documentation comment.
-  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+  set documentationComment(UnlinkedDocumentationCommentBuilder value) {
     this._documentationComment = value;
   }
 
@@ -28675,7 +28426,7 @@ class UnlinkedVariableBuilder extends Object
   /// [LinkedLibrary.types] contains the inferred type for this variable.  If
   /// there is no matching entry in [LinkedLibrary.types], then no type was
   /// inferred for this variable, so its static type is `dynamic`.
-  void set inferredTypeSlot(int value) {
+  set inferredTypeSlot(int value) {
     assert(value == null || value >= 0);
     this._inferredTypeSlot = value;
   }
@@ -28689,7 +28440,7 @@ class UnlinkedVariableBuilder extends Object
   /// synthetic setter inherits `@covariant` behavior from a base class.
   ///
   /// Otherwise, zero.
-  void set inheritsCovariantSlot(int value) {
+  set inheritsCovariantSlot(int value) {
     assert(value == null || value >= 0);
     this._inheritsCovariantSlot = value;
   }
@@ -28699,7 +28450,7 @@ class UnlinkedVariableBuilder extends Object
 
   /// The synthetic initializer function of the variable.  Absent if the
   /// variable does not have an initializer.
-  void set initializer(UnlinkedExecutableBuilder value) {
+  set initializer(UnlinkedExecutableBuilder value) {
     this._initializer = value;
   }
 
@@ -28707,7 +28458,7 @@ class UnlinkedVariableBuilder extends Object
   bool get isConst => _isConst ??= false;
 
   /// Indicates whether the variable is declared using the `const` keyword.
-  void set isConst(bool value) {
+  set isConst(bool value) {
     this._isConst = value;
   }
 
@@ -28716,7 +28467,7 @@ class UnlinkedVariableBuilder extends Object
 
   /// Indicates whether this variable is declared using the `covariant` keyword.
   /// This should be false for everything except instance fields.
-  void set isCovariant(bool value) {
+  set isCovariant(bool value) {
     this._isCovariant = value;
   }
 
@@ -28724,7 +28475,7 @@ class UnlinkedVariableBuilder extends Object
   bool get isFinal => _isFinal ??= false;
 
   /// Indicates whether the variable is declared using the `final` keyword.
-  void set isFinal(bool value) {
+  set isFinal(bool value) {
     this._isFinal = value;
   }
 
@@ -28736,7 +28487,7 @@ class UnlinkedVariableBuilder extends Object
   /// Note that for top level variables, this flag is false, since they are not
   /// declared using the `static` keyword (even though they are considered
   /// static for semantic purposes).
-  void set isStatic(bool value) {
+  set isStatic(bool value) {
     this._isStatic = value;
   }
 
@@ -28744,7 +28495,7 @@ class UnlinkedVariableBuilder extends Object
   String get name => _name ??= '';
 
   /// Name of the variable.
-  void set name(String value) {
+  set name(String value) {
     this._name = value;
   }
 
@@ -28752,7 +28503,7 @@ class UnlinkedVariableBuilder extends Object
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the variable name relative to the beginning of the file.
-  void set nameOffset(int value) {
+  set nameOffset(int value) {
     assert(value == null || value >= 0);
     this._nameOffset = value;
   }
@@ -28766,7 +28517,7 @@ class UnlinkedVariableBuilder extends Object
   /// propagated type is the same as its declared type.
   ///
   /// Non-propagable variables have a [propagatedTypeSlot] of zero.
-  void set propagatedTypeSlot(int value) {
+  set propagatedTypeSlot(int value) {
     assert(value == null || value >= 0);
     this._propagatedTypeSlot = value;
   }
@@ -28775,7 +28526,7 @@ class UnlinkedVariableBuilder extends Object
   EntityRefBuilder get type => _type;
 
   /// Declared type of the variable.  Absent if the type is implicit.
-  void set type(EntityRefBuilder value) {
+  set type(EntityRefBuilder value) {
     this._type = value;
   }
 
@@ -28817,9 +28568,7 @@ class UnlinkedVariableBuilder extends Object
         _propagatedTypeSlot = propagatedTypeSlot,
         _type = type;
 
-  /**
-   * Flush [informative] data recursively.
-   */
+  /// Flush [informative] data recursively.
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _codeRange = null;
@@ -28829,9 +28578,7 @@ class UnlinkedVariableBuilder extends Object
     _type?.flushInformative();
   }
 
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
+  /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
     signature.addInt(this._propagatedTypeSlot ?? 0);

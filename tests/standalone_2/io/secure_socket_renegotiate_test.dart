@@ -4,6 +4,7 @@
 //
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
+// OtherResources=secure_socket_renegotiate_client.dart
 
 // This test verifies that client certificates work, if the client and server
 // are in separate processes, and that connection renegotiation works, and
@@ -66,10 +67,10 @@ Future<SecureServerSocket> runServer() {
 void main() {
   runServer().then((SecureServerSocket server) {
     var clientScript =
-        Platform.script.toFilePath().replaceFirst("_test.dart", "_client.dart");
-    Expect.isTrue(clientScript.endsWith("_client.dart"));
+        Platform.script.resolve('secure_socket_renegotiate_client.dart').toFilePath();
     Process
-        .run(Platform.executable, [clientScript, server.port.toString()]).then(
+        .run(Platform.executable,
+        []..addAll(Platform.executableArguments)..addAll([clientScript, server.port.toString()])).then(
             (ProcessResult result) {
       if (result.exitCode != 0) {
         print("Client failed, stdout:");

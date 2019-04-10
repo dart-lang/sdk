@@ -1618,13 +1618,17 @@ final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "lexeme": String
- *   "type": String
+ *   "type": optional String
  *   "validElementKinds": optional List<String>
  * }
  */
 final Matcher isTokenDetails = new LazyMatcher(() => new MatchesJsonObject(
-    "TokenDetails", {"lexeme": isString, "type": isString},
-    optionalFields: {"validElementKinds": isListOf(isString)}));
+        "TokenDetails", {
+      "lexeme": isString
+    }, optionalFields: {
+      "type": isString,
+      "validElementKinds": isListOf(isString)
+    }));
 
 /**
  * TypeHierarchyItem
@@ -2616,11 +2620,13 @@ final Matcher isEditGetStatementCompletionResult = new LazyMatcher(() =>
  * {
  *   "file": FilePath
  *   "elements": List<ImportedElements>
+ *   "offset": optional int
  * }
  */
 final Matcher isEditImportElementsParams = new LazyMatcher(() =>
     new MatchesJsonObject("edit.importElements params",
-        {"file": isFilePath, "elements": isListOf(isImportedElements)}));
+        {"file": isFilePath, "elements": isListOf(isImportedElements)},
+        optionalFields: {"offset": isInt}));
 
 /**
  * edit.importElements result

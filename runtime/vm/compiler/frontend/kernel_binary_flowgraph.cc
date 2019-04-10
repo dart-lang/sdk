@@ -1159,8 +1159,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kListConcatenation:
     case kSetConcatenation:
     case kMapConcatenation:
-      // Collection concatenation operations are removed by the constant
-      // evaluator.
+    case kInstanceCreation:
+      // Collection concatenation and instance creation operations are removed
+      // by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -1622,12 +1623,6 @@ Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
                                                    const Class& klass,
                                                    intptr_t argument_count) {
   return flow_graph_builder_->AllocateObject(position, klass, argument_count);
-}
-
-Fragment StreamingFlowGraphBuilder::AllocateObject(
-    const Class& klass,
-    const Function& closure_function) {
-  return flow_graph_builder_->AllocateObject(klass, closure_function);
 }
 
 Fragment StreamingFlowGraphBuilder::AllocateContext(
@@ -4135,7 +4130,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 
     // Avoid OSR point inside block-expressions.
     // TODO(ajcbik): make sure OSR works inside BE too
-    if (block_expression_depth() == 0) loop += CheckStackOverflow(position);
+    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
 
     if (condition.entry != nullptr) {
       loop <<= condition.entry;
@@ -4212,7 +4207,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
 
     // Avoid OSR point inside block-expressions.
     // TODO(ajcbik): make sure OSR works inside BE too
-    if (block_expression_depth() == 0) loop += CheckStackOverflow(position);
+    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
 
     loop += condition;
   } else {
@@ -4955,11 +4950,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
-  const Class& closure_class =
-      Class::ZoneHandle(Z, I->object_store()->closure_class());
-  ASSERT(!closure_class.IsNull());
   Fragment instructions =
-      flow_graph_builder_->AllocateObject(closure_class, function);
+      flow_graph_builder_->AllocateClosure(TokenPosition::kNoSource, function);
   LocalVariable* closure = MakeTemporary();
 
   // The function signature can have uninstantiated class type parameters.

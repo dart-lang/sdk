@@ -8,6 +8,7 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
+import 'constants.dart';
 import 'impact.dart';
 import 'runtime_type_analysis.dart';
 import 'static_type.dart';
@@ -227,6 +228,13 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   void registerFieldInitialization(ir.Field node) {
     _data._fieldInitializers ??= [];
     _data._fieldInitializers.add(node);
+  }
+
+  @override
+  void registerFieldConstantInitialization(
+      ir.Field node, ConstantReference constant) {
+    _data._fieldConstantInitializers ??= {};
+    _data._fieldConstantInitializers.putIfAbsent(node, () => []).add(constant);
   }
 
   @override
@@ -482,6 +490,7 @@ class ImpactDataImpl implements ImpactData {
   List<_TypeUse> _typeUses;
   List<_RedirectingInitializer> _redirectingInitializers;
   List<ir.Field> _fieldInitializers;
+  Map<ir.Field, List<ConstantReference>> _fieldConstantInitializers;
   List<_TypeLiteral> _typeLiterals;
   List<ir.TreeNode> _localFunctions;
   List<_GenericInstantiation> _genericInstantiations;
@@ -555,6 +564,8 @@ class ImpactDataImpl implements ImpactData {
         () => new _RedirectingInitializer.fromDataSource(source),
         emptyAsNull: true);
     _fieldInitializers = source.readMemberNodes(emptyAsNull: true);
+    _fieldConstantInitializers =
+        source.readMemberMap(() => source.readTreeNodes(), emptyAsNull: true);
     _typeLiterals = source.readList(
         () => new _TypeLiteral.fromDataSource(source),
         emptyAsNull: true);
@@ -649,6 +660,8 @@ class ImpactDataImpl implements ImpactData {
         (_RedirectingInitializer o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeMemberNodes(_fieldInitializers, allowNull: true);
+    sink.writeMemberNodeMap(_fieldConstantInitializers, sink.writeTreeNodes,
+        allowNull: true);
     sink.writeList(_typeLiterals, (_TypeLiteral o) => o.toDataSink(sink),
         allowNull: true);
     sink.writeTreeNodes(_localFunctions, allowNull: true);
@@ -895,6 +908,14 @@ class ImpactDataImpl implements ImpactData {
       for (ir.Field data in _fieldInitializers) {
         registry.registerFieldInitialization(data);
       }
+    }
+    if (_fieldConstantInitializers != null) {
+      _fieldConstantInitializers
+          .forEach((ir.Field field, List<ConstantReference> constants) {
+        for (ConstantReference constant in constants) {
+          registry.registerFieldConstantInitialization(field, constant);
+        }
+      });
     }
     if (_typeLiterals != null) {
       for (_TypeLiteral data in _typeLiterals) {

@@ -14,6 +14,7 @@ import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../ir/constants.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/backend.dart';
@@ -1127,9 +1128,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   int _findLength(ir.Arguments arguments) {
     ir.Expression firstArgument = arguments.positional.first;
     if (firstArgument is ir.ConstantExpression &&
-        firstArgument.constant is ir.IntConstant) {
-      ir.IntConstant constant = firstArgument.constant;
-      return constant.value;
+        firstArgument.constant is ir.DoubleConstant) {
+      ir.DoubleConstant constant = firstArgument.constant;
+      double doubleValue = constant.value;
+      int truncatedValue = doubleValue.truncate();
+      if (doubleValue == truncatedValue) {
+        return truncatedValue;
+      }
     } else if (firstArgument is ir.IntLiteral) {
       return firstArgument.value;
     } else if (firstArgument is ir.StaticGet) {
@@ -2164,52 +2169,4 @@ class LocalState {
     sb.write(')');
     return sb.toString();
   }
-}
-
-/// Class to represent a reference to a constant in allocation nodes.
-///
-/// This class is needed in order to support serialization of references to
-/// constant nodes. Since the constant nodes are not [ir.TreeNode]s we can only
-/// serialize the constants as values which would bypass by the canonicalization
-/// performed by the CFE. This class extends only as a trick to easily pass
-/// it through serialization.
-///
-/// By adding a reference to the constant expression in which the constant
-/// occurred, we can serialize references to constants in two steps: a reference
-/// to the constant expression followed by an index of the referred constant
-/// in the traversal order of the constant held by the constant expression.
-///
-/// This is used for list, map, and set literals.
-class ConstantReference extends ir.TreeNode {
-  final ir.ConstantExpression expression;
-  final ir.Constant constant;
-
-  ConstantReference(this.expression, this.constant);
-
-  @override
-  void visitChildren(ir.Visitor v) {
-    throw new UnsupportedError("ConstantReference.visitChildren");
-  }
-
-  @override
-  accept(ir.TreeVisitor v) {
-    throw new UnsupportedError("ConstantReference.accept");
-  }
-
-  @override
-  transformChildren(ir.Transformer v) {
-    throw new UnsupportedError("ConstantReference.transformChildren");
-  }
-
-  @override
-  int get hashCode => 13 * constant.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ConstantReference && constant == other.constant;
-  }
-
-  @override
-  String toString() => 'ConstantReference(constant=$constant)';
 }

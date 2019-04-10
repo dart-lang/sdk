@@ -28,11 +28,12 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   void expectEdits(List<SourceFileEdit> fileEdits, String expectedSource) {
     expect(fileEdits, hasLength(1));
     expect(fileEdits[0].file, testFile);
-    List<SourceEdit> edits = fileEdits[0].edits;
-    String source = testCode;
-    for (SourceEdit edit in edits) {
-      source = edit.apply(source);
-    }
+    expectFileEdits(testCode, fileEdits[0], expectedSource);
+  }
+
+  void expectFileEdits(
+      String originalSource, SourceFileEdit fileEdit, String expectedSource) {
+    String source = SourceEdit.applySequence(originalSource, fileEdit.edits);
     expect(source, expectedSource);
   }
 
@@ -144,6 +145,78 @@ void test() {
 ''');
   }
 
+  test_dartfix_non_nullable_analysis_options_created() async {
+    // Add pubspec for nnbd migration to detect
+    newFile('/project/pubspec.yaml', content: '''
+name: testnnbd
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expect(result.edits, hasLength(1));
+    expectFileEdits('', result.edits[0], '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+
+''');
+  }
+
+  test_dartfix_non_nullable_analysis_options_experiments_added() async {
+    String originalOptions = '''
+analyzer:
+  something:
+    - other
+
+linter:
+  - boo
+''';
+    newFile('/project/analysis_options.yaml', content: originalOptions);
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expect(result.edits, hasLength(1));
+    expectFileEdits(originalOptions, result.edits[0], '''
+analyzer:
+  something:
+    - other
+  enable-experiment:
+    - non-nullable
+
+linter:
+  - boo
+''');
+  }
+
+  test_dartfix_non_nullable_analysis_options_nnbd_added() async {
+    String originalOptions = '''
+analyzer:
+  enable-experiment:
+    - other
+linter:
+  - boo
+''';
+    newFile('/project/analysis_options.yaml', content: originalOptions);
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['non-nullable']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expect(result.edits, hasLength(1));
+    expectFileEdits(originalOptions, result.edits[0], '''
+analyzer:
+  enable-experiment:
+    - other
+    - non-nullable
+linter:
+  - boo
+''');
+  }
+
   test_dartfix_excludedSource() async {
     // Add analysis options to exclude the lib directory then reanalyze
     newFile('/project/analysis_options.yaml', content: '''
@@ -199,5 +272,78 @@ const double myDouble = 42.0;
 part of lib2;
 const double myDouble = 42;
     ''');
+  }
+
+  test_dartfix_spread_collections() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+var l = ['a']..addAll(['b']);
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['use-spread-collections']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+var l = ['a', ...['b']];
+''');
+  }
+
+  test_dartfix_collection_if_elements() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+f(bool b) {
+  return ['a', b ? 'c' : 'd', 'e'];
+}
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['collection-if-elements']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+f(bool b) {
+  return ['a', if (b) 'c' else 'd', 'e'];
+}
+''');
+  }
+
+  test_dartfix_map_for_elements() async {
+    // Add analysis options to enable ui as code
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - control-flow-collections
+    - spread-collections
+''');
+    addTestFile('''
+f(Iterable<int> i) {
+  var k = 3;
+  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
+}
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['map-for-elements']);
+    expect(result.suggestions.length, greaterThanOrEqualTo(1));
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+f(Iterable<int> i) {
+  var k = 3;
+  return { for (var e in i) e * 2 : k };
+}
+''');
   }
 }

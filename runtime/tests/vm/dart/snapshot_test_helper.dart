@@ -151,12 +151,10 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
   });
 }
 
-runAppJitTest() async {
+runAppJitTest(Uri testScriptUri) async {
   await withTempDir((String temp) async {
     final snapshotPath = p.join(temp, 'app.jit');
-    final testPath = Platform.script
-        .toFilePath()
-        .replaceAll(new RegExp(r'_test.dart$'), '_test_body.dart');
+    final testPath = testScriptUri.toFilePath();
 
     final trainingResult = await runDart('TRAINING RUN', [
       '--snapshot=$snapshotPath',
@@ -170,12 +168,10 @@ runAppJitTest() async {
   });
 }
 
-Future<void> runAppJitBytecodeTest() async {
+Future<void> runAppJitBytecodeTest(Uri testScriptUri) async {
   await withTempDir((String temp) async {
     final snapshotPath = p.join(temp, 'app.jit');
-    final testPath = Platform.script
-        .toFilePath()
-        .replaceAll(new RegExp(r'_test.dart$'), '_test_body.dart');
+    final testPath = testScriptUri.toFilePath();
 
     final trainingResult = await runDart('TRAINING RUN', [
       '--enable_interpreter',

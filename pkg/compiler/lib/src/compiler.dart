@@ -78,7 +78,7 @@ abstract class Compiler {
 
   api.CompilerOutput get outputProvider => _outputProvider;
 
-  Uri _mainLibraryUri;
+  List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
   JClosedWorld backendClosedWorldForTesting;
 
@@ -231,20 +231,7 @@ abstract class Compiler {
       });
 
   Future runInternal(Uri uri) async {
-    // TODO(ahe): This prevents memory leaks when invoking the compiler
-    // multiple times. Implement a better mechanism where we can store
-    // such caches in the compiler and get access to them through a
-    // suitably maintained static reference to the current compiler.
-    clearStringTokenCanonicalizer();
-    Selector.canonicalizedValues.clear();
-
-    // The selector objects held in static fields must remain canonical.
-    for (Selector selector in Selectors.ALL) {
-      Selector.canonicalizedValues
-          .putIfAbsent(selector.hashCode, () => <Selector>[])
-          .add(selector);
-    }
-
+    clearState();
     assert(uri != null);
     // As far as I can tell, this branch is only used by test code.
     reporter.log('Compiling $uri (${options.buildId})');
@@ -265,7 +252,6 @@ abstract class Compiler {
         return;
       }
       if (options.cfeOnly) return;
-      _mainLibraryUri = result.rootLibraryUri;
 
       frontendStrategy.registerLoadedLibraries(result);
       for (Uri uri in result.libraries) {
@@ -284,6 +270,23 @@ abstract class Compiler {
       }
 
       await compileFromKernel(result.rootLibraryUri, result.libraries);
+    }
+  }
+
+  /// Clear the internal compiler state to prevent memory leaks when invoking
+  /// the compiler multiple times (e.g. in batch mode).
+  // TODO(ahe): implement a better mechanism where we can store
+  // such caches in the compiler and get access to them through a
+  // suitably maintained static reference to the current compiler.
+  void clearState() {
+    clearStringTokenCanonicalizer();
+    Selector.canonicalizedValues.clear();
+
+    // The selector objects held in static fields must remain canonical.
+    for (Selector selector in Selectors.ALL) {
+      Selector.canonicalizedValues
+          .putIfAbsent(selector.hashCode, () => <Selector>[])
+          .add(selector);
     }
   }
 
@@ -396,6 +399,7 @@ abstract class Compiler {
   }
 
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
+    _userCodeLocations.add(new CodeLocation(rootLibraryUri));
     selfTask.measureSubtask("compileFromKernel", () {
       JClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
@@ -567,23 +571,9 @@ abstract class Compiler {
     if (element == null) return assumeInUserCode;
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return false;
-    Iterable<CodeLocation> userCodeLocations =
-        computeUserCodeLocations(assumeInUserCode: assumeInUserCode);
-    return userCodeLocations.any(
+    if (_userCodeLocations.isEmpty && assumeInUserCode) return true;
+    return _userCodeLocations.any(
         (CodeLocation codeLocation) => codeLocation.inSameLocation(libraryUri));
-  }
-
-  Iterable<CodeLocation> computeUserCodeLocations(
-      {bool assumeInUserCode: false}) {
-    List<CodeLocation> userCodeLocations = <CodeLocation>[];
-    if (_mainLibraryUri != null) {
-      userCodeLocations.add(new CodeLocation(_mainLibraryUri));
-    }
-    if (userCodeLocations.isEmpty && assumeInUserCode) {
-      // Assume in user code since [mainApp] has not been set yet.
-      userCodeLocations.add(const AnyLocation());
-    }
-    return userCodeLocations;
   }
 
   /// Return a canonical URI for the source of [element].

@@ -18,6 +18,7 @@ export 'package:kernel/ast.dart'
         Catch,
         CheckLibraryIsLoaded,
         Class,
+        Component,
         Constructor,
         ConstructorInvocation,
         ContinueSwitchStatement,

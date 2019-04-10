@@ -479,6 +479,10 @@ class Isolate : public BaseIsolate {
     return background_compiler_;
   }
 
+  BackgroundCompiler* optimizing_background_compiler() const {
+    return optimizing_background_compiler_;
+  }
+
 #if !defined(PRODUCT)
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
@@ -697,6 +701,13 @@ class Isolate : public BaseIsolate {
     return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
   }
 
+  // Whether it's possible for unoptimized code to optimize immediately on entry
+  // (can happen with random or very low optimization counter thresholds)
+  bool CanOptimizeImmediately() const {
+    return FLAG_optimization_counter_threshold < 2 ||
+           FLAG_randomize_optimization_counter;
+  }
+
   bool should_load_vmservice() const {
     return ShouldLoadVmServiceBit::decode(isolate_flags_);
   }
@@ -909,8 +920,11 @@ class Isolate : public BaseIsolate {
 
   uint32_t isolate_flags_;
 
-  // Background compilation.
+  // Unoptimized background compilation.
   BackgroundCompiler* background_compiler_;
+
+  // Optimized background compilation.
+  BackgroundCompiler* optimizing_background_compiler_;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.

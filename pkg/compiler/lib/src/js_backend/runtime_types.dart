@@ -2073,6 +2073,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       classUse.instance = true;
     });
 
+    Set<ClassEntity> visitedSuperClasses = {};
     codegenWorldBuilder.instantiatedTypes.forEach((InterfaceType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.direct);
       ClassUse classUse =
@@ -2081,6 +2082,28 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       FunctionType callType = _types.getCallType(type);
       if (callType != null) {
         liveTypeVisitor.visitType(callType, TypeVisitorState.direct);
+      }
+
+      // Superclass might make classes live as type arguments. For instance
+      //
+      //    class A {}
+      //    class B<T> {}
+      //    class C implements B<A> {}
+      //    main() => new C();
+      //
+      // Here `A` is live as a type argument through the liveness of `C`.
+      for (InterfaceType supertype
+          in _closedWorld.dartTypes.getSupertypes(type.element)) {
+        if (supertype.typeArguments.isEmpty &&
+            visitedSuperClasses.contains(supertype.element)) {
+          // If [superclass] is not generic then a second visit cannot add more
+          // information that the first. In the example above, visiting `C`
+          // twice can only result in a second registration of `A` as live
+          // type argument.
+          break;
+        }
+        visitedSuperClasses.add(supertype.element);
+        liveTypeVisitor.visitType(supertype, TypeVisitorState.direct);
       }
     });
 

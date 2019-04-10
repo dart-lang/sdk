@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Script for generating AOT snapshot in two steps:
+# - Compilation to kernel with additional AOT specific transformations.
+# - Compilation of kernel into snapshot using gen_snapshot.
+
+# Parse incoming arguments and extract the value of --packages option if any
+# was passed. Split options (--xyz) and non-options into two separate arrays.
+# All options will be passed to gen_snapshot, while --packages will be
+# passed to the CFE (Common Front-End).
+
+set -e
+
+OPTIONS=()
+GEN_KERNEL_OPTIONS=()
+PACKAGES=
+BUILD_ELF=0
+
+ARGV=()
+for arg in "$@"; do
+  case $arg in
+    --packages=*)
+    PACKAGES="$arg"
+    ;;
+    --enable-asserts)
+    GEN_KERNEL_OPTIONS+=("$arg")
+    OPTIONS+=("$arg")
+    ;;
+    --tfa | \
+    --no-tfa | \
+    -D* )
+    GEN_KERNEL_OPTIONS+=("$arg")
+    ;;
+    --build-elf)
+    BUILD_ELF=1
+    ;;
+    --*)
+    OPTIONS+=("$arg")
+    ;;
+    *)
+    ARGV+=("$arg")
+    ;;
+  esac
+done
+
+if [ "${#ARGV[@]}" -ne 2 ]; then
+    echo "Usage: $0 [options] <dart-source-file> <dart-aot-file>"
+    echo ""
+    echo "Dart AOT (ahead-of-time) compile Dart source code into native machine code."
+    exit 1
+fi
+
+SOURCE_FILE="${ARGV[0]}"
+SNAPSHOT_FILE="${ARGV[1]}"
+
+if [ $BUILD_ELF -eq 1 ]; then
+  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-assembly"
+  GEN_SNAPSHOT_FILENAME="--assembly=${SNAPSHOT_FILE}.S"
+else
+  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-blobs"
+  GEN_SNAPSHOT_FILENAME="--blobs_container_filename=${SNAPSHOT_FILE}"
+fi
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+
+DART="$BIN_DIR/dart"
+GEN_SNAPSHOT="$BIN_DIR/utils/gen_snapshot"
+
+SNAPSHOT_DIR="$BIN_DIR/snapshots"
+SNAPSHOT="$SNAPSHOT_DIR/gen_kernel.dart.snapshot"
+
+# Step 1: Generate Kernel binary from the input Dart source.
+"$DART"                                                                        \
+     "${SNAPSHOT}"                                                             \
+     --platform "${SDK_DIR}/lib/_internal/vm_platform_strong.dill"             \
+     --aot                                                                     \
+     -Ddart.vm.product=true                                                    \
+     "${GEN_KERNEL_OPTIONS[@]}"                                                \
+     $PACKAGES                                                                 \
+     -o "$SNAPSHOT_FILE.dill"                                                  \
+     "$SOURCE_FILE"
+
+# Step 2: Generate snapshot from the Kernel binary.
+"$GEN_SNAPSHOT"                                                                \
+     "$GEN_SNAPSHOT_OPTION"                                                    \
+     "$GEN_SNAPSHOT_FILENAME"                                                  \
+     "${OPTIONS[@]}"                                                           \
+     "$SNAPSHOT_FILE.dill"
+
+# Step 3: Assemble the assembly file into an ELF object.
+if [ $BUILD_ELF -eq 1 ]; then
+    gcc -shared -o "$SNAPSHOT_FILE" "${SNAPSHOT_FILE}.S"
+fi

@@ -1547,40 +1547,38 @@ table AnalysisDriverUnlinkedUnit {
 
 /// Information about a single declaration.
 table AvailableDeclaration {
-  defaultArgumentListString:string (id: 0);
+  children:[AvailableDeclaration] (id: 0);
 
-  defaultArgumentListTextRanges:[uint] (id: 1);
+  defaultArgumentListString:string (id: 1);
 
-  docComplete:string (id: 2);
+  defaultArgumentListTextRanges:[uint] (id: 2);
 
-  docSummary:string (id: 3);
+  docComplete:string (id: 3);
 
-  fieldMask:uint (id: 4);
+  docSummary:string (id: 4);
 
-  isAbstract:bool (id: 5);
+  fieldMask:uint (id: 5);
 
-  isConst:bool (id: 6);
+  isAbstract:bool (id: 6);
 
-  isDeprecated:bool (id: 7);
+  isConst:bool (id: 7);
 
-  isFinal:bool (id: 8);
+  isDeprecated:bool (id: 8);
+
+  isFinal:bool (id: 9);
 
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 9);
+  kind:AvailableDeclarationKind (id: 10);
 
-  locationOffset:uint (id: 10);
+  locationOffset:uint (id: 11);
 
-  locationStartColumn:uint (id: 11);
+  locationStartColumn:uint (id: 12);
 
-  locationStartLine:uint (id: 12);
+  locationStartLine:uint (id: 13);
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 13);
-
-  /// The second, optional, part of the declaration name.  For example enum
-  /// constants all have the same [name], but their own [name2].
-  name2:string (id: 14);
+  name:string (id: 14);
 
   parameterNames:[string] (id: 15);
 
@@ -1603,11 +1601,11 @@ table AvailableDeclaration {
 
 /// Information about an available, even if not yet imported file.
 table AvailableFile {
-  /// The Dartdoc directives in the file.
-  directiveInfo:DirectiveInfo (id: 5);
-
   /// Declarations of the file.
   declarations:[AvailableDeclaration] (id: 0);
+
+  /// The Dartdoc directives in the file.
+  directiveInfo:DirectiveInfo (id: 5);
 
   /// Exports directives of the file.
   exports:[AvailableFileExport] (id: 1);
@@ -1838,6 +1836,9 @@ table LinkedLibrary {
 
 /// Information about a linked AST node.
 table LinkedNode {
+  /// The explicit or inferred return type of a function typed node.
+  variantField_24:LinkedNodeType (id: 24);
+
   variantField_2:[LinkedNode] (id: 2);
 
   variantField_11:LinkedNode (id: 11);
@@ -1859,8 +1860,6 @@ table LinkedNode {
   variantField_18:uint (id: 18);
 
   variantField_19:uint (id: 19);
-
-  variantField_24:LinkedNodeType (id: 24);
 
   variantField_27:bool (id: 27);
 

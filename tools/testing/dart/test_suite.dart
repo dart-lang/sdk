@@ -14,6 +14,7 @@
  */
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import "package:status_file/expectation.dart";
 
@@ -468,9 +469,10 @@ class VMTestSuite extends TestSuite {
 
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
-      final dfePath = new Path("$buildDir/gen/kernel-service.dart.snapshot")
-          .absolute
-          .toNativePath();
+      final filename = configuration.architecture == Architecture.x64
+          ? '$buildDir/gen/kernel-service.dart.snapshot'
+          : '$buildDir/gen/kernel_service.dill';
+      final dfePath = new Path(filename).absolute.toNativePath();
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$dfePath');
     }
@@ -870,6 +872,11 @@ class StandardTestSuite extends TestSuite {
       // error should be reported by the compilation command.
       return commands;
     }
+
+    vmOptions = vmOptions
+        .map((s) =>
+            s.replaceAll("__RANDOM__", "${Random().nextInt(0x7fffffff)}"))
+        .toList();
 
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(

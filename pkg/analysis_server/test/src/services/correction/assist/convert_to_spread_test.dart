@@ -41,6 +41,21 @@ f() {
 ''');
   }
 
+  test_addAll_expression_to_emptyList() async {
+    await resolveTestUnit('''
+f() {
+  var ints = [1, 2, 3];
+  print([]..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
+}
+''');
+    await assertHasAssist('''
+f() {
+  var ints = [1, 2, 3];
+  print([...ints.map((i) => i.toString())]..addAll(['c']));
+}
+''');
+  }
+
   test_addAll_literal() async {
     await resolveTestUnit('''
 var l = ['a']..add/*caret*/All(['b'])..addAll(['c']);

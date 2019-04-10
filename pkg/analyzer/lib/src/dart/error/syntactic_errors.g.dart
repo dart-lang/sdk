@@ -104,6 +104,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXPECTED_ELSE_OR_COMMA,
   _INVALID_SUPER_IN_INITIALIZER,
   _INVALID_THIS_IN_INITIALIZER,
+  _TYPE_BEFORE_FACTORY,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -216,7 +217,7 @@ const ParserErrorCode _DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode(
 
 const ParserErrorCode _DUPLICATED_MODIFIER = const ParserErrorCode(
     'DUPLICATED_MODIFIER', r"The modifier '#lexeme' was already specified.",
-    correction: "Try removing all but one occurance of the modifier.");
+    correction: "Try removing all but one occurence of the modifier.");
 
 const ParserErrorCode _DUPLICATE_DEFERRED = const ParserErrorCode(
     'DUPLICATE_DEFERRED',
@@ -256,7 +257,7 @@ const ParserErrorCode _EXPERIMENT_NOT_ENABLED = const ParserErrorCode(
 
 const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
     const ParserErrorCode('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
-        r"Export directives must preceed part directives.",
+        r"Export directives must precede part directives.",
         correction:
             "Try moving the export directives before the part directives.");
 
@@ -360,7 +361,7 @@ const ParserErrorCode _IMPLEMENTS_BEFORE_WITH = const ParserErrorCode(
 
 const ParserErrorCode _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
     const ParserErrorCode('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
-        r"Import directives must preceed part directives.",
+        r"Import directives must precede part directives.",
         correction:
             "Try moving the import directives before the part directives.");
 
@@ -438,7 +439,7 @@ const ParserErrorCode _MISSING_INITIALIZER =
 
 const ParserErrorCode _MISSING_KEYWORD_OPERATOR = const ParserErrorCode(
     'MISSING_KEYWORD_OPERATOR',
-    r"Operator declarations must be preceeded by the keyword 'operator'.",
+    r"Operator declarations must be preceded by the keyword 'operator'.",
     correction: "Try adding the keyword 'operator'.");
 
 const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
@@ -549,6 +550,10 @@ const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     r"Can't use type arguments with type variable '#name'.",
     correction: "Try removing the type arguments.");
+
+const ParserErrorCode _TYPE_BEFORE_FACTORY = const ParserErrorCode(
+    'TYPE_BEFORE_FACTORY', r"Factory constructors cannot have a return type.",
+    correction: "Try removing the type appearing before 'factory'.");
 
 const ParserErrorCode _VAR_AND_TYPE = const ParserErrorCode('VAR_AND_TYPE',
     r"Variables can't be declared using both 'var' and a type name.",

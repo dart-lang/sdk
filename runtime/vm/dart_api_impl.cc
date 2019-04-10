@@ -806,12 +806,13 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   return Api::NewHandle(T, UnhandledException::New(obj, stacktrace));
 }
 
-DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
+DART_EXPORT void Dart_PropagateError(Dart_Handle handle) {
   Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(thread->zone(), Api::UnwrapHandle(handle));
   if (!obj.IsError()) {
-    return Api::NewError(
+    FATAL1(
         "%s expects argument 'handle' to be an error handle.  "
         "Did you forget to check Dart_IsError first?",
         CURRENT_FUNC);
@@ -819,7 +820,8 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // propagate an error here.
-    return Api::NewError("No Dart frames on stack, cannot propagate error.");
+    FATAL1("No Dart frames on stack, cannot propagate error: %s",
+           Error::Cast(obj).ToErrorCString());
   }
   // Unwind all the API scopes till the exit frame before propagating.
   const Error* error;
@@ -837,16 +839,6 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   }
   Exceptions::PropagateError(*error);
   UNREACHABLE();
-  return Api::NewError("Cannot reach here.  Internal error.");
-}
-
-DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
-                                         int line,
-                                         const char* handle,
-                                         const char* message) {
-  fprintf(stderr, "%s:%d: error handle: '%s':\n    '%s'\n", file, line, handle,
-          message);
-  OS::Abort();
 }
 
 DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
@@ -1045,7 +1037,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 #if !defined(PRODUCT)
 #define VM_METRIC_API(type, variable, name, unit)                              \
   DART_EXPORT int64_t Dart_VM##variable##Metric() {                            \
-    return vm_metric_##variable##_.value();                                    \
+    return vm_metric_##variable.value();                                       \
   }
 VM_METRIC_LIST(VM_METRIC_API);
 #undef VM_METRIC_API

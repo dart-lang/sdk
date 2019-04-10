@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 3;
+const int currentBytecodeFormatVersion = 4;
 
 /// Version of experimental / bleeding edge bytecode format.
 /// Produced by bytecode generator when --use-future-bytecode-format
@@ -123,6 +123,8 @@ enum Opcode {
   kCompareIntLe,
 
   kDirectCall,
+
+  kAllocateClosure,
 }
 
 enum Encoding {
@@ -300,6 +302,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kDirectCall: const Format(
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
+  Opcode.kAllocateClosure: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
 };
 
 // Should match constant in runtime/vm/stack_frame_dbc.h.

@@ -1890,150 +1890,33 @@ void IsolateReloadContext::ResetMegamorphicCaches() {
   // new ones.
 }
 
-class MarkFunctionsForRecompilation : public ObjectVisitor {
+class InvalidationCollector : public ObjectVisitor {
  public:
-  MarkFunctionsForRecompilation(Isolate* isolate,
-                                IsolateReloadContext* reload_context,
-                                Zone* zone)
-      : ObjectVisitor(),
-        handle_(Object::Handle(zone)),
-        owning_class_(Class::Handle(zone)),
-        owning_lib_(Library::Handle(zone)),
-        code_(Code::Handle(zone)),
-        bytecode_(Bytecode::Handle(zone)),
-        reload_context_(reload_context),
-        zone_(zone) {}
+  InvalidationCollector(Zone* zone,
+                        GrowableArray<const Function*>* functions,
+                        GrowableArray<const KernelProgramInfo*>* kernel_infos)
+      : zone_(zone), functions_(functions), kernel_infos_(kernel_infos) {}
+  virtual ~InvalidationCollector() {}
 
   virtual void VisitObject(RawObject* obj) {
     if (obj->IsPseudoObject()) {
-      // Cannot even be wrapped in handles.
-      return;
+      return;  // Cannot be wrapped in handles.
     }
-    handle_ = obj;
-    if (handle_.IsFunction()) {
-      const Function& func = Function::Cast(handle_);
-      if (func.IsSignatureFunction()) {
-        return;
-      }
-
-      // Switch to unoptimized code or the lazy compilation stub.
-      func.SwitchToLazyCompiledUnoptimizedCode();
-
-      // Grab the current code.
-      code_ = func.CurrentCode();
-      ASSERT(!code_.IsNull());
-      bytecode_ = func.bytecode();
-      const bool clear_code = IsFromDirtyLibrary(func);
-      const bool stub_code = code_.IsStubCode();
-
-      // Zero edge counters.
-      func.ZeroEdgeCounters();
-
-      if (!stub_code || !bytecode_.IsNull()) {
-        if (clear_code) {
-          VTIR_Print("Marking %s for recompilation, clearing code\n",
-                     func.ToCString());
-          ClearAllCode(func);
-        } else {
-          if (!stub_code) {
-            PreserveUnoptimizedCode();
-          }
-          if (!bytecode_.IsNull()) {
-            PreserveBytecode();
-          }
-        }
-      }
-
-      // Clear counters.
-      func.set_usage_counter(0);
-      func.set_deoptimization_counter(0);
-      func.set_optimized_instruction_count(0);
-      func.set_optimized_call_site_count(0);
+    const Object& handle = Object::Handle(zone_, obj);
+    if (handle.IsFunction()) {
+      functions_->Add(&Function::Cast(handle));
+    } else if (handle.IsKernelProgramInfo()) {
+      kernel_infos_->Add(&KernelProgramInfo::Cast(handle));
     }
   }
 
  private:
-  void ClearAllCode(const Function& func) {
-    // Null out the ICData array and code.
-    func.ClearICDataArray();
-    func.ClearCode();
-    func.SetWasCompiled(false);
-  }
-
-  void PreserveUnoptimizedCode() {
-    ASSERT(!code_.IsNull());
-    // We are preserving the unoptimized code, fill all ICData arrays with
-    // the sentinel values so that we have no stale type feedback.
-    code_.ResetICDatas(zone_);
-  }
-
-  void PreserveBytecode() {
-    ASSERT(!bytecode_.IsNull());
-    // We are preserving the bytecode, fill all ICData arrays with
-    // the sentinel values so that we have no stale type feedback.
-    bytecode_.ResetICDatas(zone_);
-  }
-
-  bool IsFromDirtyLibrary(const Function& func) {
-    owning_class_ = func.Owner();
-    owning_lib_ = owning_class_.library();
-    return reload_context_->IsDirty(owning_lib_);
-  }
-
-  Object& handle_;
-  Class& owning_class_;
-  Library& owning_lib_;
-  Code& code_;
-  Bytecode& bytecode_;
-  IsolateReloadContext* reload_context_;
-  Zone* zone_;
+  Zone* const zone_;
+  GrowableArray<const Function*>* const functions_;
+  GrowableArray<const KernelProgramInfo*>* const kernel_infos_;
 };
 
 typedef UnorderedHashMap<SmiTraits> IntHashMap;
-
-class InvalidateKernelInfoCaches : public ObjectVisitor {
- public:
-  explicit InvalidateKernelInfoCaches(Zone* zone)
-      : ObjectVisitor(),
-        handle_(Object::Handle(zone)),
-        data_(Array::Handle(zone)),
-        key_(Object::Handle(zone)),
-        value_(Smi::Handle(zone)) {}
-
-  virtual void VisitObject(RawObject* obj) {
-    if (obj->IsPseudoObject()) {
-      // Cannot even be wrapped in handles.
-      return;
-    }
-    handle_ = obj;
-    if (!handle_.IsKernelProgramInfo()) {
-      return;
-    }
-    const KernelProgramInfo& info = KernelProgramInfo::Cast(handle_);
-    // Clear the libraries cache.
-    {
-      data_ ^= info.libraries_cache();
-      ASSERT(!data_.IsNull());
-      IntHashMap table(&key_, &value_, &data_);
-      table.Clear();
-      info.set_libraries_cache(table.Release());
-    }
-    // Clear the classes cache.
-    {
-      data_ ^= info.classes_cache();
-      ASSERT(!data_.IsNull());
-      IntHashMap table(&key_, &value_, &data_);
-      table.Clear();
-      info.set_classes_cache(table.Release());
-    }
-  }
-
- private:
-  Object& handle_;
-  Array& data_;
-  Object& key_;
-  Smi& value_;
-};
 
 void IsolateReloadContext::RunInvalidationVisitors() {
   TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
@@ -2042,15 +1925,92 @@ void IsolateReloadContext::RunInvalidationVisitors() {
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
 
-  HeapIterationScope iteration(thread);
-  GrowableArray<ObjectVisitor*> arr(zone, 2);
-  ExtensibleObjectVisitor visitor(&arr);
-  MarkFunctionsForRecompilation function_visitor(isolate_, this, zone);
-  InvalidateKernelInfoCaches kernel_info_visitor(zone);
+  GrowableArray<const Function*> functions(4 * KB);
+  GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
 
-  visitor.Add(&function_visitor);
-  visitor.Add(&kernel_info_visitor);
-  iteration.IterateObjects(&visitor);
+  {
+    HeapIterationScope iteration(thread);
+    InvalidationCollector visitor(zone, &functions, &kernel_infos);
+    iteration.IterateObjects(&visitor);
+  }
+
+  Array& data = Array::Handle(zone);
+  Object& key = Object::Handle(zone);
+  Smi& value = Smi::Handle(zone);
+  for (intptr_t i = 0; i < kernel_infos.length(); i++) {
+    const KernelProgramInfo& info = *kernel_infos[i];
+    // Clear the libraries cache.
+    {
+      data ^= info.libraries_cache();
+      ASSERT(!data.IsNull());
+      IntHashMap table(&key, &value, &data);
+      table.Clear();
+      info.set_libraries_cache(table.Release());
+    }
+    // Clear the classes cache.
+    {
+      data ^= info.classes_cache();
+      ASSERT(!data.IsNull());
+      IntHashMap table(&key, &value, &data);
+      table.Clear();
+      info.set_classes_cache(table.Release());
+    }
+  }
+
+  Class& owning_class = Class::Handle(zone);
+  Library& owning_lib = Library::Handle(zone);
+  Code& code = Code::Handle(zone);
+  Bytecode& bytecode = Bytecode::Handle(zone);
+  for (intptr_t i = 0; i < functions.length(); i++) {
+    const Function& func = *functions[i];
+    if (func.IsSignatureFunction()) {
+      continue;
+    }
+
+    // Switch to unoptimized code or the lazy compilation stub.
+    func.SwitchToLazyCompiledUnoptimizedCode();
+
+    // Grab the current code.
+    code = func.CurrentCode();
+    ASSERT(!code.IsNull());
+    bytecode = func.bytecode();
+
+    owning_class = func.Owner();
+    owning_lib = owning_class.library();
+    const bool clear_code = IsDirty(owning_lib);
+    const bool stub_code = code.IsStubCode();
+
+    // Zero edge counters.
+    func.ZeroEdgeCounters();
+
+    if (!stub_code || !bytecode.IsNull()) {
+      if (clear_code) {
+        VTIR_Print("Marking %s for recompilation, clearing code\n",
+                   func.ToCString());
+        // Null out the ICData array and code.
+        func.ClearICDataArray();
+        func.ClearCode();
+        func.SetWasCompiled(false);
+      } else {
+        if (!stub_code) {
+          // We are preserving the unoptimized code, fill all ICData arrays with
+          // the sentinel values so that we have no stale type feedback.
+          code.ResetICDatas(zone);
+        }
+        if (!bytecode.IsNull()) {
+          // We are preserving the bytecode, fill all ICData arrays with
+          // the sentinel values so that we have no stale type feedback.
+          bytecode.ResetICDatas(zone);
+        }
+      }
+    }
+
+    // Clear counters.
+    func.set_usage_counter(0);
+    func.set_deoptimization_counter(0);
+    func.set_optimized_instruction_count(0);
+    func.set_optimized_call_site_count(0);
+  }
 }
 
 void IsolateReloadContext::InvalidateWorld() {

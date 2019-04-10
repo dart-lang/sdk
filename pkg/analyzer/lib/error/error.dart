@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/scanner/errors.dart';
 
@@ -230,6 +231,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
   CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
   CompileTimeErrorCode.NOT_MAP_SPREAD,
+  CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
   CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
   CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
   CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
@@ -355,6 +357,9 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.UNUSED_LABEL,
   HintCode.UNUSED_LOCAL_VARIABLE,
   HintCode.UNUSED_SHOWN_NAME,
+  ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+  ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
+  ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE,
   ParserErrorCode.ABSTRACT_CLASS_MEMBER,
   ParserErrorCode.ABSTRACT_ENUM,
   ParserErrorCode.ABSTRACT_STATIC_METHOD,
@@ -528,6 +533,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.TOP_LEVEL_OPERATOR,
   ParserErrorCode.TYPEDEF_IN_CLASS,
   ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
+  ParserErrorCode.TYPE_BEFORE_FACTORY,
   ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
   ParserErrorCode.UNEXPECTED_TOKEN,
   ParserErrorCode.VAR_AND_TYPE,

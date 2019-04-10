@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/tokens_context.dart';
 
@@ -555,6 +556,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       functionDeclaration_returnType: node.returnType?.accept(this),
     );
     _storeNamedCompilationUnitMember(builder, node);
+    _writeActualReturnType(builder, node);
     return builder;
   }
 
@@ -594,6 +596,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       functionTypeAlias_typeParameters: node.typeParameters?.accept(this),
     );
     _storeTypeAlias(builder, node);
+    _writeActualReturnType(builder, node);
     return builder;
   }
 
@@ -613,13 +616,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitGenericFunctionType(GenericFunctionType node) {
-    return LinkedNodeBuilder.genericFunctionType(
+    var builder = LinkedNodeBuilder.genericFunctionType(
       genericFunctionType_formalParameters: node.parameters.accept(this),
       genericFunctionType_functionKeyword: _getToken(node.functionKeyword),
       genericFunctionType_question: _getToken(node.question),
       genericFunctionType_returnType: node.returnType?.accept(this),
+      genericFunctionType_type: _writeType(node.type),
       genericFunctionType_typeParameters: node.typeParameters?.accept(this),
     );
+    _writeActualReturnType(builder, node);
+    return builder;
   }
 
   @override
@@ -710,6 +716,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       instanceCreationExpression_keyword: _getToken(node.keyword),
       instanceCreationExpression_typeArguments:
           nodeImpl.typeArguments?.accept(this),
+      expression_type: _writeType(node.staticType),
     );
   }
 
@@ -819,6 +826,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _storeClassMember(builder, node);
     _storeCodeOffsetLength(builder, node);
+    _writeActualReturnType(builder, node);
     return builder;
   }
 
@@ -1228,12 +1236,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitVariableDeclaration(VariableDeclaration node) {
-    return LinkedNodeBuilder.variableDeclaration(
+    var builder = LinkedNodeBuilder.variableDeclaration(
       variableDeclaration_equals: _getToken(node.equals),
       variableDeclaration_initializer: node.initializer?.accept(this),
       variableDeclaration_name: node.name.accept(this),
       variableDeclaration_declaration: _variablesDeclaration,
     );
+    _writeActualType(builder, node);
+    return builder;
   }
 
   @override
@@ -1409,6 +1419,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     builder.formalParameter_kind = kind;
 
     _storeCodeOffsetLength(builder, node);
+    _writeActualType(builder, node);
   }
 
   void _storeForMixin(LinkedNodeBuilder builder, ForMixin node) {
@@ -1507,6 +1518,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..uriBasedDirective_uri = node.uri.accept(this)
       ..uriBasedDirective_uriContent = node.uriContent
       ..uriBasedDirective_uriElement = _getReferenceIndex(node.uriElement);
+  }
+
+  void _writeActualReturnType(LinkedNodeBuilder builder, AstNode node) {
+    var type = LazyAst.getReturnType(node);
+    // TODO(scheglov) Check for `null` when writing resolved AST.
+    builder.actualReturnType = _writeType(type);
+  }
+
+  void _writeActualType(LinkedNodeBuilder builder, AstNode node) {
+    var type = LazyAst.getType(node);
+    // TODO(scheglov) Check for `null` when writing resolved AST.
+    builder.actualType = _writeType(type);
   }
 
   List<LinkedNodeBuilder> _writeNodeList(List<AstNode> nodeList) {

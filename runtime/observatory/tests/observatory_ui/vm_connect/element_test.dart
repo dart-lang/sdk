@@ -10,8 +10,6 @@ import 'package:observatory/src/elements/vm_connect_target.dart';
 import 'package:observatory/src/elements/vm_connect.dart';
 import '../mocks.dart';
 
-void load(_) {}
-
 main() {
   VMConnectElement.tag.ensureRegistration();
 
@@ -21,14 +19,13 @@ main() {
   group('instantiation', () {
     test('default', () {
       final e = new VMConnectElement(
-          new TargetRepositoryMock(), load, new NotificationRepositoryMock());
+          new TargetRepositoryMock(), new NotificationRepositoryMock());
       expect(e, isNotNull, reason: 'element correctly created');
     });
   });
   test('is correctly listening', () async {
     final targets = new TargetRepositoryMock();
-    final e =
-        new VMConnectElement(targets, load, new NotificationRepositoryMock());
+    final e = new VMConnectElement(targets, new NotificationRepositoryMock());
     document.body.append(e);
     await e.onRendered.first;
     expect(targets.hasListeners, isTrue, reason: 'is listening');
@@ -42,8 +39,7 @@ main() {
         const TargetMock(name: 't-1'),
         const TargetMock(name: 't-2'),
       ]);
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(targets, new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       expect(targets.listInvoked, isTrue, reason: 'should invoke list()');
@@ -57,8 +53,7 @@ main() {
     test('react to update event', () async {
       final list = <TargetMock>[const TargetMock(name: 't-1')];
       final targets = new TargetRepositoryMock(list: list);
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(targets, new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       expect(e.querySelectorAll(tTag).length, equals(1));
@@ -80,8 +75,7 @@ main() {
           add: expectAsync1((String val) {
             expect(val, equals(address));
           }, count: 1, reason: 'should be invoked'));
-      final e = new VMConnectElement(
-          targets, load, new NotificationRepositoryMock(),
+      final e = new VMConnectElement(targets, new NotificationRepositoryMock(),
           address: address);
       document.body.append(e);
       await e.onRendered.first;
@@ -96,8 +90,7 @@ main() {
           setCurrent: expectAsync1((M.Target t) {
             expect(t, equals(list[0]));
           }, count: 1, reason: 'should be invoked'));
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(targets, new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       (e.querySelector(tTag) as VMConnectTargetElement).connect();
@@ -111,8 +104,7 @@ main() {
           delete: expectAsync1((M.Target t) {
             expect(t, equals(list[0]));
           }, count: 1, reason: 'should be invoked'));
-      final e =
-          new VMConnectElement(targets, load, new NotificationRepositoryMock());
+      final e = new VMConnectElement(targets, new NotificationRepositoryMock());
       document.body.append(e);
       await e.onRendered.first;
       (e.querySelector(tTag) as VMConnectTargetElement).delete();

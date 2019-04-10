@@ -78,6 +78,9 @@ testIfElement(dynamic dynVar, List<int> listInt, List<double> listDouble,
   List<int> list91 = [if (oracle("foo")) ...dynVar];
   Set<int> set91 = {if (oracle("foo")) ...dynVar, null};
   Map<String, int> map91 = {if (oracle("foo")) ...dynVar, "baz": null};
+  List<int> list100 = [if (dynVar) 42];
+  Set<int> set100 = {if (dynVar) 42};
+  Map<int, int> map100 = {if (dynVar) 42: 42};
 }
 
 testIfElementErrors(Map<int, int> map) {
@@ -99,6 +102,20 @@ testIfElementErrors(Map<int, int> map) {
   <int>[if (oracle("foo")) 42 else ...map];
   <int>{if (oracle("foo")) ...map else 42, null};
   <String, int>{if (oracle("foo")) "bar": 42 else ...[42], "baz": null};
+
+  Set<dynamic> set10 = {if (oracle("foo")) 42 else "bar": 3.14};
+  Map<dynamic, dynamic> map10 = {if (oracle("foo")) 42 else "bar": 3.14};
+  Set<dynamic> set11 = {if (oracle("foo")) "bar": 3.14 else 42};
+  Map<dynamic, dynamic> map11 = {if (oracle("foo")) "bar": 3.14 else 42};
+  var map12 = {if (oracle("foo")) 42 else "bar": 3.14};
+  var map13 = {if (oracle("foo")) "bar": 3.14 else 42};
+  List<int> list20 = [if (42) 42];
+  Set<int> set20 = {if (42) 42};
+  Map<int, int> map30 = {if (42) 42: 42};
+  List<String> list40 = <String>[if (oracle("foo")) true else 42];
+  Set<String> set40 = <String>{if (oracle("foo")) true else 42};
+  Map<String, int> map40 = <String, int>{if (oracle("foo")) true: 42 else 42: 42};
+  Map<int, String> map41 = <int, String>{if (oracle("foo")) 42: true else 42: 42};
 }
 
 testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int
@@ -184,6 +201,9 @@ testForElement(dynamic dynVar, List<int> listInt, List<double> listDouble, int
   List<int> list120 = [for (var i in dynVar) i];
   Set<int> set120 = {for (var i in dynVar) i, null};
   Map<String, int> map120 = {for (var i in dynVar) "bar": i, "baz": null};
+  List<int> list130 = [for (var i = 1; i < 2; i++) i];
+  Set<int> set130 = {for (var i = 1; i < 2; i++) i};
+  Map<int, int> map130 = {for (var i = 1; i < 2; i++) i: i};
 }
 
 testForElementErrors(Map<int, int> map, List<int> list) async {
@@ -235,6 +255,18 @@ testForElementErrorsNotAsync(Stream<int> stream) {
   <int>[await for (int i in stream) i];
   <int>{await for (int i in stream) i};
   <String, int>{await for (int i in stream) "bar": i};
+}
+
+class A {}
+
+class B extends A {
+  int get foo => 42;
+}
+
+testPromotion(A a) {
+  List<int> list10 = [if (a is B) a.foo];
+  Set<int> set10 = {if (a is B) a.foo};
+  Map<int, int> map10 = {if (a is B) a.foo: a.foo};
 }
 
 main() {}

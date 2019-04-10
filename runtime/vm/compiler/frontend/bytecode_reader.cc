@@ -474,32 +474,32 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
   // be kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
   enum ConstantPoolTag {
     kInvalid,
-    kNull,    // TODO(alexmarkov): obsolete, remove
-    kString,  // TODO(alexmarkov): obsolete, remove
-    kInt,     // TODO(alexmarkov): obsolete, remove
-    kDouble,  // TODO(alexmarkov): obsolete, remove
-    kBool,    // TODO(alexmarkov): obsolete, remove
-    kArgDesc,
+    kUnused1,
+    kUnused2,
+    kUnused3,
+    kUnused4,
+    kUnused5,
+    kUnused6,
     kICData,
-    kStaticICData,
+    kUnused7,
     kStaticField,
     kInstanceField,
     kClass,
     kTypeArgumentsField,
-    kTearOff,  // TODO(alexmarkov): obsolete, remove
+    kUnused8,
     kType,
-    kTypeArguments,                       // TODO(alexmarkov): obsolete, remove
-    kList,                                // TODO(alexmarkov): obsolete, remove
-    kInstance,                            // TODO(alexmarkov): obsolete, remove
-    kTypeArgumentsForInstanceAllocation,  // TODO(alexmarkov): obsolete, remove
+    kUnused9,
+    kUnused10,
+    kUnused11,
+    kUnused12,
     kClosureFunction,
     kEndClosureFunctionScope,
     kNativeEntry,
     kSubtypeTestCache,
-    kPartialTearOffInstantiation,  // TODO(alexmarkov): obsolete, remove
+    kUnused13,
     kEmptyTypeArguments,
-    kSymbol,           // TODO(alexmarkov): obsolete, remove
-    kInterfaceCallV1,  // TODO(alexmarkov): obsolete, remove
+    kUnused14,
+    kUnused15,
     kObjectRef,
     kDirectCall,
     kInterfaceCall,
@@ -520,9 +520,6 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
   Field& field = Field::Handle(Z);
   Class& cls = Class::Handle(Z);
   String& name = String::Handle(Z);
-  TypeArguments& type_args = TypeArguments::Handle(Z);
-  Class* symbol_class = nullptr;
-  Field* symbol_name_field = nullptr;
   const String* simpleInstanceOf = nullptr;
   const intptr_t obj_count = pool.Length();
   for (intptr_t i = 0; i < obj_count; ++i) {
@@ -530,50 +527,6 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
     switch (tag) {
       case ConstantPoolTag::kInvalid:
         UNREACHABLE();
-      case ConstantPoolTag::kNull:
-        obj = Object::null();
-        break;
-      case ConstantPoolTag::kString:
-        obj = ReadString();
-        ASSERT(obj.IsString() && obj.IsCanonical());
-        break;
-      case ConstantPoolTag::kInt: {
-        uint32_t low_bits = helper_->ReadUInt32();
-        int64_t value = helper_->ReadUInt32();
-        value = (value << 32) | low_bits;
-        obj = Integer::New(value, Heap::kOld);
-        obj = H.Canonicalize(Integer::Cast(obj));
-      } break;
-      case ConstantPoolTag::kDouble: {
-        uint32_t low_bits = helper_->ReadUInt32();
-        uint64_t bits = helper_->ReadUInt32();
-        bits = (bits << 32) | low_bits;
-        double value = bit_cast<double, uint64_t>(bits);
-        obj = Double::New(value, Heap::kOld);
-        obj = H.Canonicalize(Double::Cast(obj));
-      } break;
-      case ConstantPoolTag::kBool:
-        if (helper_->ReadByte() == 1) {
-          obj = Bool::True().raw();
-        } else {
-          obj = Bool::False().raw();
-        }
-        break;
-      case ConstantPoolTag::kArgDesc: {
-        intptr_t num_arguments = helper_->ReadUInt();
-        intptr_t num_type_args = helper_->ReadUInt();
-        intptr_t num_arg_names = helper_->ReadListLength();
-        if (num_arg_names == 0) {
-          obj = ArgumentsDescriptor::New(num_type_args, num_arguments);
-        } else {
-          array = Array::New(num_arg_names);
-          for (intptr_t j = 0; j < num_arg_names; j++) {
-            name = ReadString();
-            array.SetAt(j, name);
-          }
-          obj = ArgumentsDescriptor::New(num_type_args, num_arguments, array);
-        }
-      } break;
       case ConstantPoolTag::kICData: {
         intptr_t flags = helper_->ReadByte();
         InvocationKind kind =
@@ -614,21 +567,6 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
                         H.thread()->compiler_state().GetNextDeoptId(),
                         checked_argument_count, ICData::RebindRule::kInstance);
       } break;
-      case ConstantPoolTag::kStaticICData: {
-        elem = ReadObject();
-        ASSERT(elem.IsFunction());
-        name = Function::Cast(elem).name();
-        const int num_args_checked =
-            MethodRecognizer::NumArgsCheckedForStaticCall(Function::Cast(elem));
-        intptr_t arg_desc_index = helper_->ReadUInt();
-        ASSERT(arg_desc_index < i);
-        array ^= pool.ObjectAt(arg_desc_index);
-        obj = ICData::New(function, name,
-                          array,  // Arguments descriptor.
-                          H.thread()->compiler_state().GetNextDeoptId(),
-                          num_args_checked, ICData::RebindRule::kStatic);
-        ICData::Cast(obj).AddTarget(Function::Cast(elem));
-      } break;
       case ConstantPoolTag::kStaticField:
         obj = ReadObject();
         ASSERT(obj.IsField());
@@ -654,63 +592,10 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
         cls ^= ReadObject();
         obj = Smi::New(cls.type_arguments_field_offset() / kWordSize);
         break;
-      case ConstantPoolTag::kTearOff:
-        obj = ReadObject();
-        ASSERT(obj.IsFunction());
-        obj = Function::Cast(obj).ImplicitClosureFunction();
-        ASSERT(obj.IsFunction());
-        obj = Function::Cast(obj).ImplicitStaticClosure();
-        ASSERT(obj.IsInstance());
-        obj = H.Canonicalize(Instance::Cast(obj));
-        break;
       case ConstantPoolTag::kType:
         obj = ReadObject();
         ASSERT(obj.IsAbstractType());
         break;
-      case ConstantPoolTag::kTypeArguments:
-        cls = Class::null();
-        obj = ReadTypeArguments(cls);
-        ASSERT(obj.IsNull() || obj.IsTypeArguments());
-        break;
-      case ConstantPoolTag::kList: {
-        obj = ReadObject();
-        ASSERT(obj.IsAbstractType());
-        const intptr_t length = helper_->ReadListLength();
-        array = Array::New(length, AbstractType::Cast(obj));
-        for (intptr_t j = 0; j < length; j++) {
-          intptr_t elem_index = helper_->ReadUInt();
-          ASSERT(elem_index < i);
-          elem = pool.ObjectAt(elem_index);
-          array.SetAt(j, elem);
-        }
-        array.MakeImmutable();
-        obj = H.Canonicalize(Array::Cast(array));
-        ASSERT(!obj.IsNull());
-      } break;
-      case ConstantPoolTag::kInstance: {
-        cls ^= ReadObject();
-        obj = Instance::New(cls, Heap::kOld);
-        intptr_t type_args_index = helper_->ReadUInt();
-        ASSERT(type_args_index < i);
-        type_args ^= pool.ObjectAt(type_args_index);
-        if (!type_args.IsNull()) {
-          Instance::Cast(obj).SetTypeArguments(type_args);
-        }
-        intptr_t num_fields = helper_->ReadUInt();
-        for (intptr_t j = 0; j < num_fields; j++) {
-          field ^= ReadObject();
-          intptr_t elem_index = helper_->ReadUInt();
-          ASSERT(elem_index < i);
-          elem = pool.ObjectAt(elem_index);
-          Instance::Cast(obj).SetField(field, elem);
-        }
-        obj = H.Canonicalize(Instance::Cast(obj));
-      } break;
-      case ConstantPoolTag::kTypeArgumentsForInstanceAllocation: {
-        cls ^= ReadObject();
-        obj = ReadTypeArguments(cls);
-        ASSERT(obj.IsNull() || obj.IsTypeArguments());
-      } break;
       case ConstantPoolTag::kClosureFunction: {
         intptr_t closure_index = helper_->ReadUInt();
         obj = closures_->At(closure_index);
@@ -731,61 +616,9 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
       case ConstantPoolTag::kSubtypeTestCache: {
         obj = SubtypeTestCache::New();
       } break;
-      case ConstantPoolTag::kPartialTearOffInstantiation: {
-        intptr_t tearoff_index = helper_->ReadUInt();
-        ASSERT(tearoff_index < i);
-        const Closure& old_closure =
-            Closure::CheckedHandle(Z, pool.ObjectAt(tearoff_index));
-
-        intptr_t type_args_index = helper_->ReadUInt();
-        ASSERT(type_args_index < i);
-        type_args ^= pool.ObjectAt(type_args_index);
-
-        obj = Closure::New(
-            TypeArguments::Handle(Z, old_closure.instantiator_type_arguments()),
-            TypeArguments::Handle(Z, old_closure.function_type_arguments()),
-            type_args, Function::Handle(Z, old_closure.function()),
-            Context::Handle(Z, old_closure.context()), Heap::kOld);
-        obj = H.Canonicalize(Instance::Cast(obj));
-      } break;
       case ConstantPoolTag::kEmptyTypeArguments:
         obj = Object::empty_type_arguments().raw();
         break;
-      case ConstantPoolTag::kSymbol: {
-        name ^= ReadObject();
-        ASSERT(name.IsSymbol());
-        if (symbol_class == nullptr) {
-          elem = Library::InternalLibrary();
-          ASSERT(!elem.IsNull());
-          symbol_class = &Class::Handle(
-              Z, Library::Cast(elem).LookupClass(Symbols::Symbol()));
-          ASSERT(!symbol_class->IsNull());
-          symbol_name_field = &Field::Handle(
-              Z,
-              symbol_class->LookupInstanceFieldAllowPrivate(Symbols::_name()));
-          ASSERT(!symbol_name_field->IsNull());
-        }
-        obj = Instance::New(*symbol_class, Heap::kOld);
-        Instance::Cast(obj).SetField(*symbol_name_field, name);
-        obj = H.Canonicalize(Instance::Cast(obj));
-      } break;
-      case ConstantPoolTag::kInterfaceCallV1: {
-        helper_->ReadByte();  // TODO(regis): Remove, unneeded.
-        name ^= ReadObject();
-        ASSERT(name.IsSymbol());
-        intptr_t arg_desc_index = helper_->ReadUInt();
-        ASSERT(arg_desc_index < i);
-        array ^= pool.ObjectAt(arg_desc_index);
-        // InterfaceCall constant occupies 2 entries.
-        // The first entry is used for selector name.
-        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
-                       ObjectPool::Patchability::kNotPatchable);
-        pool.SetObjectAt(i, name);
-        ++i;
-        ASSERT(i < obj_count);
-        // The second entry is used for arguments descriptor.
-        obj = array.raw();
-      } break;
       case ConstantPoolTag::kObjectRef:
         obj = ReadObject();
         break;
@@ -805,13 +638,11 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
       case ConstantPoolTag::kInterfaceCall: {
         elem = ReadObject();
         ASSERT(elem.IsFunction());
-        name = Function::Cast(elem).name();
-        ASSERT(name.IsSymbol());
         // InterfaceCall constant occupies 2 entries.
-        // The first entry is used for selector name.
+        // The first entry is used for interface target.
         pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
                        ObjectPool::Patchability::kNotPatchable);
-        pool.SetObjectAt(i, name);
+        pool.SetObjectAt(i, elem);
         ++i;
         ASSERT(i < obj_count);
         // The second entry is used for arguments descriptor.
@@ -1678,12 +1509,16 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       if (is_static) {
         field.SetStaticValue(value, true);
       } else {
-        // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-        // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
-        // details.
-        field.RecordStore(value);
-        if (value.IsDouble()) {
-          field.set_is_double_initialized(true);
+        // Null-initialized instance fields are tracked separately for each
+        // constructor (see handling of kHasNullableFieldsFlag).
+        if (!value.IsNull()) {
+          // Note: optimizer relies on DoubleInitialized bit in its
+          // field-unboxing heuristics.
+          // See JitCallSpecializer::VisitStoreInstanceField for more details.
+          field.RecordStore(value);
+          if (value.IsDouble()) {
+            field.set_is_double_initialized(true);
+          }
         }
       }
     }

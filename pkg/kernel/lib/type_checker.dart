@@ -713,6 +713,18 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitInstanceCreation(InstanceCreation node) {
+    Substitution substitution = Substitution.fromPairs(
+        node.classNode.typeParameters, node.typeArguments);
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      DartType fieldType = substitution.substituteType(fieldRef.asField.type);
+      DartType valueType = visitExpression(value);
+      checkAssignable(node, fieldType, valueType);
+    });
+    return new InterfaceType(node.classNode, node.typeArguments);
+  }
+
+  @override
   DartType visitStringLiteral(StringLiteral node) {
     return environment.stringType;
   }

@@ -50,6 +50,9 @@ pause_on_unhandled_async_exceptions2_test: Pass, Slow
 regress_34841_test: RuntimeError # http://dartbug.com/34841
 unused_changes_in_last_reload_test: RuntimeError
 
+[ $compiler == dartkb ]
+*: Skip # Debugging capabilities are not yet supported in bytecode modes.
+
 [ $compiler == dartkp ]
 *: SkipByDesign # Non-kernel also skips precompiled mode.
 

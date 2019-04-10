@@ -52,6 +52,17 @@ class B extends A {
 ''', [HintCode.MUST_BE_IMMUTABLE]);
   }
 
+  test_finalField() async {
+    addMetaPackage();
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  final x = 7;
+}
+''');
+  }
+
   test_fromMixinWithAnnotation() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -62,16 +73,6 @@ class B {
 }
 class C extends A with B {}
 ''', [HintCode.MUST_BE_IMMUTABLE]);
-  }
-
-  test_staticField() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-@immutable
-class A {
-  static int x;
-}
-''');
   }
 
   test_mixinApplication() async {
@@ -98,13 +99,12 @@ class C = A with B;
 ''', [HintCode.MUST_BE_IMMUTABLE]);
   }
 
-  test_finalField() async {
-    addMetaPackage();
+  test_staticField() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
-  final x = 7;
+  static int x;
 }
 ''');
   }

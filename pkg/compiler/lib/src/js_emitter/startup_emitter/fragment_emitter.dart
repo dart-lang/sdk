@@ -1084,12 +1084,10 @@ class FragmentEmitter {
     if (field.isElided) {
       ConstantValue constantValue = field.constantValue;
       if (constantValue == null) {
-        assert(_closedWorld.abstractValueDomain is TrivialAbstractValueDomain);
-        // Since static types are not used in invocation/access of instance
-        // members in codegen, we see dynamic uses in codegen that are not
-        // present in resolution when using the trivial abstract value domain.
-        // This means that resolution can determine that a field is never read
-        // but codegen thinks it is read.
+        // TODO(johnniwinther): Static types are not honoured in the dynamic
+        // uses created in codegen, leading to dead code, as known by the closed
+        // world computation, being triggered by the codegen enqueuer. We
+        // cautiously generate a null constant for this case.
         constantValue = new NullConstantValue();
       }
       code = js.js(

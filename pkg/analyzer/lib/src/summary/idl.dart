@@ -288,54 +288,52 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
 /// Information about a single declaration.
 abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(0)
-  String get defaultArgumentListString;
+  List<AvailableDeclaration> get children;
 
   @Id(1)
-  List<int> get defaultArgumentListTextRanges;
+  String get defaultArgumentListString;
 
   @Id(2)
-  String get docComplete;
+  List<int> get defaultArgumentListTextRanges;
 
   @Id(3)
-  String get docSummary;
+  String get docComplete;
 
   @Id(4)
-  int get fieldMask;
+  String get docSummary;
 
   @Id(5)
-  bool get isAbstract;
+  int get fieldMask;
 
   @Id(6)
-  bool get isConst;
+  bool get isAbstract;
 
   @Id(7)
-  bool get isDeprecated;
+  bool get isConst;
 
   @Id(8)
+  bool get isDeprecated;
+
+  @Id(9)
   bool get isFinal;
 
   /// The kind of the declaration.
-  @Id(9)
+  @Id(10)
   AvailableDeclarationKind get kind;
 
-  @Id(10)
+  @Id(11)
   int get locationOffset;
 
-  @Id(11)
+  @Id(12)
   int get locationStartColumn;
 
-  @Id(12)
+  @Id(13)
   int get locationStartLine;
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(13)
-  String get name;
-
-  /// The second, optional, part of the declaration name.  For example enum
-  /// constants all have the same [name], but their own [name2].
   @Id(14)
-  String get name2;
+  String get name;
 
   @Id(15)
   List<String> get parameterNames;
@@ -384,13 +382,13 @@ abstract class AvailableFile extends base.SummaryClass {
   factory AvailableFile.fromBuffer(List<int> buffer) =>
       generated.readAvailableFile(buffer);
 
-  /// The Dartdoc directives in the file.
-  @Id(5)
-  DirectiveInfo get directiveInfo;
-
   /// Declarations of the file.
   @Id(0)
   List<AvailableDeclaration> get declarations;
+
+  /// The Dartdoc directives in the file.
+  @Id(5)
+  DirectiveInfo get directiveInfo;
 
   /// Exports directives of the file.
   @Id(1)
@@ -770,6 +768,25 @@ abstract class LinkedLibrary extends base.SummaryClass {
 /// Information about a linked AST node.
 @Variant('kind')
 abstract class LinkedNode extends base.SummaryClass {
+  /// The explicit or inferred return type of a function typed node.
+  @VariantId(24, variantList: [
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionExpression,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericFunctionType,
+    LinkedNodeKind.methodDeclaration,
+  ])
+  LinkedNodeType get actualReturnType;
+
+  /// The explicit or inferred type of a variable.
+  @VariantId(24, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  LinkedNodeType get actualType;
+
   @VariantId(2, variant: LinkedNodeKind.adjacentStrings)
   List<LinkedNode> get adjacentStrings_strings;
 
@@ -1407,9 +1424,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_type;
 
-  @VariantId(24, variant: LinkedNodeKind.fieldFormalParameter)
-  LinkedNodeType get fieldFormalParameter_type2;
-
   @VariantId(7, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_typeParameters;
 
@@ -1531,12 +1545,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionDeclaration)
   LinkedNode get functionDeclaration_returnType;
 
-  @VariantId(24, variantList: [
-    LinkedNodeKind.functionDeclaration,
-    LinkedNodeKind.functionExpression,
-  ])
-  LinkedNodeType get functionDeclaration_returnType2;
-
   @VariantId(6, variant: LinkedNodeKind.functionDeclarationStatement)
   LinkedNode get functionDeclarationStatement_functionDeclaration;
 
@@ -1558,9 +1566,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_returnType;
 
-  @VariantId(24, variant: LinkedNodeKind.functionTypeAlias)
-  LinkedNodeType get functionTypeAlias_returnType2;
-
   @VariantId(8, variant: LinkedNodeKind.functionTypeAlias)
   LinkedNode get functionTypeAlias_typeParameters;
 
@@ -1569,9 +1574,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_returnType;
-
-  @VariantId(24, variant: LinkedNodeKind.functionTypedFormalParameter)
-  LinkedNodeType get functionTypedFormalParameter_type2;
 
   @VariantId(8, variant: LinkedNodeKind.functionTypedFormalParameter)
   LinkedNode get functionTypedFormalParameter_typeParameters;
@@ -1587,9 +1589,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_returnType;
-
-  @VariantId(24, variant: LinkedNodeKind.genericFunctionType)
-  LinkedNodeType get genericFunctionType_returnType2;
 
   @VariantId(25, variant: LinkedNodeKind.genericFunctionType)
   LinkedNodeType get genericFunctionType_type;
@@ -1816,9 +1815,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_returnType;
 
-  @VariantId(24, variant: LinkedNodeKind.methodDeclaration)
-  LinkedNodeType get methodDeclaration_returnType2;
-
   @VariantId(9, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_typeParameters;
 
@@ -2041,9 +2037,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.simpleFormalParameter)
   LinkedNode get simpleFormalParameter_type;
 
-  @VariantId(24, variant: LinkedNodeKind.simpleFormalParameter)
-  LinkedNodeType get simpleFormalParameter_type2;
-
   @VariantId(15, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_element;
 
@@ -2055,6 +2048,15 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(20, variant: LinkedNodeKind.simpleStringLiteral)
   String get simpleStringLiteral_value;
+
+  @VariantId(31, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.mixinDeclaration,
+  ])
+  bool get simplyBoundable_isSimplyBounded;
 
   @VariantId(6, variant: LinkedNodeKind.spreadElement)
   LinkedNode get spreadElement_expression;
@@ -2264,9 +2266,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.variableDeclaration)
   LinkedNode get variableDeclaration_name;
-
-  @VariantId(24, variant: LinkedNodeKind.variableDeclaration)
-  LinkedNodeType get variableDeclaration_type2;
 
   @VariantId(15, variant: LinkedNodeKind.variableDeclarationList)
   int get variableDeclarationList_keyword;

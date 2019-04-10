@@ -97,7 +97,6 @@ testing:pkg/testing/lib
 typed_data:third_party/pkg/typed_data/lib
 unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
-utf:third_party/pkg/utf/lib
 vm:pkg/vm/lib
 watcher:third_party/pkg/watcher/lib
 web_components:third_party/pkg/web_components/lib

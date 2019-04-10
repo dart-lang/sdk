@@ -42,6 +42,7 @@ static const int kSavedCallerFpSlotFromFp = 0;
 static const int kSavedCallerPcSlotFromFp = 1;
 static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
+static const int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)

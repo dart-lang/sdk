@@ -412,6 +412,9 @@ class FlowGraph : public ZoneAllocated {
   // Adds a 2-way phi.
   PhiInstr* AddPhi(JoinEntryInstr* join, Definition* d1, Definition* d2);
 
+  // SSA transformation methods and fields.
+  void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
+
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;
@@ -420,9 +423,6 @@ class FlowGraph : public ZoneAllocated {
   friend class ConstantPropagator;
   friend class DeadCodeElimination;
   friend class compiler::GraphIntrinsifier;
-
-  // SSA transformation methods and fields.
-  void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
 
   void CompressPath(intptr_t start_index,
                     intptr_t current_index,

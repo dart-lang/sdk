@@ -551,6 +551,9 @@ class _ElementWriter {
         buffer.write(e.keyword.lexeme);
         buffer.write(' ');
       }
+      if (withTypes && e.constructorName.type.typeArguments == null) {
+        writeInterfaceTypeArgsComment(e);
+      }
       writeNode(e.constructorName);
       writeList('(', ')', e.argumentList.arguments, ', ', writeNode,
           includeEmpty: true);

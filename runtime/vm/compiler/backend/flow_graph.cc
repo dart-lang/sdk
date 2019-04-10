@@ -567,7 +567,7 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
   InsertBefore(call, load_type_args, call->env(), FlowGraph::kValue);
 
   const AbstractType& type =
-      AbstractType::Handle(zone(), call->ic_data()->StaticReceiverType());
+      AbstractType::Handle(zone(), call->ic_data()->receivers_static_type());
   ASSERT(!type.IsNull());
   const TypeArguments& args = TypeArguments::Handle(zone(), type.arguments());
   Instruction* guard = new (zone()) CheckConditionInstr(
@@ -2136,7 +2136,7 @@ void FlowGraph::WidenSmiToInt32() {
         // propagation information (e.g. it might no longer be a _Smi).
         for (Value::Iterator it(defn->input_use_list()); !it.Done();
              it.Advance()) {
-          it.Current()->SetReachingType(NULL);
+          it.Current()->SetReachingType(nullptr);
         }
 
         if (defn->IsBinarySmiOp()) {

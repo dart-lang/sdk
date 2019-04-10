@@ -752,6 +752,9 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     if (param->base_reg() == FPREG) {
       slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-slot_index);
+    } else {
+      ASSERT(param->base_reg() == SPREG);
+      slot_index += compiler::target::frame_layout.last_param_from_entry_sp;
     }
     range->set_assigned_location(
         Location::StackSlot(slot_index, param->base_reg()));

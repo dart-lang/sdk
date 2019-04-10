@@ -75,6 +75,17 @@ const List<TestData> DATA = const [
     const ConstantData('proxy', 'ConstructedConstant(_Proxy())'),
     const ConstantData('const [] == null', 'BoolConstant(false)'),
     const ConstantData('proxy == null', 'BoolConstant(false)'),
+    const ConstantData('proxy != null', 'BoolConstant(true)'),
+    const ConstantData('null == proxy', 'BoolConstant(false)'),
+    const ConstantData('null != proxy', 'BoolConstant(true)'),
+    const ConstantData('true == proxy', 'BoolConstant(false)'),
+    const ConstantData('true != proxy', 'BoolConstant(true)'),
+    const ConstantData('0 == proxy', 'BoolConstant(false)'),
+    const ConstantData('0 != proxy', 'BoolConstant(true)'),
+    const ConstantData('0.5 == proxy', 'BoolConstant(false)'),
+    const ConstantData('0.5 != proxy', 'BoolConstant(true)'),
+    const ConstantData('"" == proxy', 'BoolConstant(false)'),
+    const ConstantData('"" != proxy', 'BoolConstant(true)'),
     const ConstantData('Object', 'TypeConstant(Object)'),
     const ConstantData('null ?? 0', 'IntConstant(0)'),
     const ConstantData(
@@ -380,11 +391,10 @@ class B extends A {
         expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
     const ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
     const ConstantData('const Class7()', 'ConstructedConstant(Class7())'),
-    // TODO(johnniwinther): Expect a NonConstant and errors when 31799 is fixed.
-    const ConstantData(
-      'const Class7() == const Class7()',
-      'BoolConstant(true)',
-    ),
+    const ConstantData('const Class7() == const Class7()', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidEqualsOperandType'),
+    const ConstantData('const Class7() != const Class7()', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidEqualsOperandType'),
     const ConstantData('const Class8(not_string.length)', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidPropertyGet'),
     const ConstantData(

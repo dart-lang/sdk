@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
@@ -175,8 +176,12 @@ T max<T extends num>(T a, T b) => null;
       null,
       rootReference,
     );
-    elementFactory.addBundle(dartCoreResult.bundle);
-    elementFactory.addBundle(linkResult.bundle);
+    elementFactory.addBundle(
+      LinkedBundleContext(elementFactory, dartCoreResult.bundle),
+    );
+    elementFactory.addBundle(
+      LinkedBundleContext(elementFactory, linkResult.bundle),
+    );
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
@@ -187,6 +192,74 @@ T max<T extends num>(T a, T b) => null;
     analysisContext.typeSystem = Dart2TypeSystem(typeProvider);
 
     return elementFactory.libraryOfUri('${source.uri}');
+  }
+
+  @override
+  @failingTest
+  test_class_alias_notSimplyBounded_self() async {
+    await super.test_class_alias_notSimplyBounded_self();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_circularity_via_typedef() async {
+    await super.test_class_notSimplyBounded_circularity_via_typedef();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_complex_by_cycle() async {
+    await super.test_class_notSimplyBounded_complex_by_cycle();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_complex_by_reference_to_cycle() async {
+    await super.test_class_notSimplyBounded_complex_by_reference_to_cycle();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_complex_by_use_of_parameter() async {
+    await super.test_class_notSimplyBounded_complex_by_use_of_parameter();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_dependency_with_type_params() async {
+    await super.test_class_notSimplyBounded_dependency_with_type_params();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type() async {
+    await super
+        .test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_function_typed_bound_complex_via_return_type() async {
+    await super
+        .test_class_notSimplyBounded_function_typed_bound_complex_via_return_type();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_refers_to_circular_typedef() async {
+    await super.test_class_notSimplyBounded_refers_to_circular_typedef();
+  }
+
+  @override
+  @failingTest
+  test_class_notSimplyBounded_self() async {
+    await super.test_class_notSimplyBounded_self();
+  }
+
+  @override
+  @failingTest
+  test_class_type_parameters_bound() async {
+    await super.test_class_type_parameters_bound();
   }
 
   @override
@@ -205,6 +278,12 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_closure_generic() async {
     await super.test_closure_generic();
+  }
+
+  @override
+  @failingTest
+  test_closure_in_variable_declaration_in_part() async {
+    await super.test_closure_in_variable_declaration_in_part();
   }
 
   @override
@@ -259,8 +338,93 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_constructor_initializers_assertInvocation() async {
+    await super.test_constructor_initializers_assertInvocation();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_assertInvocation_message() async {
+    await super.test_constructor_initializers_assertInvocation_message();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_field() async {
+    await super.test_constructor_initializers_field();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_field_notConst() async {
+    await super.test_constructor_initializers_field_notConst();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_field_withParameter() async {
+    await super.test_constructor_initializers_field_withParameter();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_superInvocation_named() async {
+    await super.test_constructor_initializers_superInvocation_named();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_superInvocation_named_underscore() async {
+    await super
+        .test_constructor_initializers_superInvocation_named_underscore();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_superInvocation_namedExpression() async {
+    await super.test_constructor_initializers_superInvocation_namedExpression();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_superInvocation_unnamed() async {
+    await super.test_constructor_initializers_superInvocation_unnamed();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_thisInvocation_named() async {
+    await super.test_constructor_initializers_thisInvocation_named();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_thisInvocation_namedExpression() async {
+    await super.test_constructor_initializers_thisInvocation_namedExpression();
+  }
+
+  @override
+  @failingTest
+  test_constructor_initializers_thisInvocation_unnamed() async {
+    await super.test_constructor_initializers_thisInvocation_unnamed();
+  }
+
+  @override
+  @failingTest
+  test_constructor_redirected_factory_named() async {
+    await super.test_constructor_redirected_factory_named();
+  }
+
+  @override
+  @failingTest
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
+  }
+
+  @override
+  @failingTest
+  test_constructor_redirected_factory_named_imported() async {
+    await super.test_constructor_redirected_factory_named_imported();
   }
 
   @override
@@ -271,8 +435,20 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_constructor_redirected_factory_named_prefixed() async {
+    await super.test_constructor_redirected_factory_named_prefixed();
+  }
+
+  @override
+  @failingTest
   test_constructor_redirected_factory_named_prefixed_generic() async {
     await super.test_constructor_redirected_factory_named_prefixed_generic();
+  }
+
+  @override
+  @failingTest
+  test_constructor_redirected_factory_unnamed() async {
+    await super.test_constructor_redirected_factory_unnamed();
   }
 
   @override
@@ -283,8 +459,20 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_constructor_redirected_factory_unnamed_imported() async {
+    await super.test_constructor_redirected_factory_unnamed_imported();
+  }
+
+  @override
+  @failingTest
   test_constructor_redirected_factory_unnamed_imported_generic() async {
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
+  }
+
+  @override
+  @failingTest
+  test_constructor_redirected_factory_unnamed_prefixed() async {
+    await super.test_constructor_redirected_factory_unnamed_prefixed();
   }
 
   @override
@@ -295,8 +483,44 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_constructor_redirected_thisInvocation_named() async {
+    await super.test_constructor_redirected_thisInvocation_named();
+  }
+
+  @override
+  @failingTest
+  test_constructor_redirected_thisInvocation_named_generic() async {
+    await super.test_constructor_redirected_thisInvocation_named_generic();
+  }
+
+  @override
+  @failingTest
+  test_constructor_redirected_thisInvocation_unnamed() async {
+    await super.test_constructor_redirected_thisInvocation_unnamed();
+  }
+
+  @override
+  @failingTest
+  test_constructor_redirected_thisInvocation_unnamed_generic() async {
+    await super.test_constructor_redirected_thisInvocation_unnamed_generic();
+  }
+
+  @override
+  @failingTest
+  test_constructor_withCycles_const() async {
+    await super.test_constructor_withCycles_const();
+  }
+
+  @override
+  @failingTest
   test_defaultValue_genericFunction() async {
     await super.test_defaultValue_genericFunction();
+  }
+
+  @override
+  @failingTest
+  test_defaultValue_refersToGenericClass() async {
+    await super.test_defaultValue_refersToGenericClass();
   }
 
   @override
@@ -333,6 +557,12 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_defaultValue_refersToGenericClass_methodNG() async {
     await super.test_defaultValue_refersToGenericClass_methodNG();
+  }
+
+  @override
+  @failingTest
+  test_export_class_type_alias() async {
+    await super.test_export_class_type_alias();
   }
 
   @override
@@ -379,8 +609,20 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_futureOr_inferred() async {
+    await super.test_futureOr_inferred();
+  }
+
+  @override
+  @failingTest
   test_getter_inferred_type_nonStatic_implicit_return() async {
     await super.test_getter_inferred_type_nonStatic_implicit_return();
+  }
+
+  @override
+  @failingTest
+  test_implicitConstructor_named_const() async {
+    await super.test_implicitConstructor_named_const();
   }
 
   @override
@@ -401,6 +643,12 @@ T max<T extends num>(T a, T b) => null;
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
 //    await super.test_import_short_absolute();
+  }
+
+  @override
+  @failingTest
+  test_infer_generic_typedef_complex() async {
+    await super.test_infer_generic_typedef_complex();
   }
 
   @override
@@ -435,6 +683,12 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_inferred_type_refers_to_function_typed_param_of_typedef() async {
+    await super.test_inferred_type_refers_to_function_typed_param_of_typedef();
+  }
+
+  @override
+  @failingTest
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
     await super
         .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
@@ -456,6 +710,19 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_inferred_type_refers_to_nested_function_typed_param() async {
+    await super.test_inferred_type_refers_to_nested_function_typed_param();
+  }
+
+  @override
+  @failingTest
+  test_inferred_type_refers_to_nested_function_typed_param_named() async {
+    await super
+        .test_inferred_type_refers_to_nested_function_typed_param_named();
+  }
+
+  @override
+  @failingTest
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
     await super
         .test_inferred_type_refers_to_setter_function_typed_parameter_type();
@@ -471,6 +738,47 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_inferredType_implicitCreation() async {
     await super.test_inferredType_implicitCreation();
+  }
+
+  @override
+  @failingTest
+  test_initializer_executable_with_return_type_from_closure() async {
+    await super.test_initializer_executable_with_return_type_from_closure();
+  }
+
+  @override
+  @failingTest
+  test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
+    await super
+        .test_initializer_executable_with_return_type_from_closure_await_dynamic();
+  }
+
+  @override
+  @failingTest
+  test_initializer_executable_with_return_type_from_closure_await_future3_int() async {
+    await super
+        .test_initializer_executable_with_return_type_from_closure_await_future3_int();
+  }
+
+  @override
+  @failingTest
+  test_initializer_executable_with_return_type_from_closure_await_future_int() async {
+    await super
+        .test_initializer_executable_with_return_type_from_closure_await_future_int();
+  }
+
+  @override
+  @failingTest
+  test_initializer_executable_with_return_type_from_closure_await_future_noArg() async {
+    await super
+        .test_initializer_executable_with_return_type_from_closure_await_future_noArg();
+  }
+
+  @override
+  @failingTest
+  test_initializer_executable_with_return_type_from_closure_field() async {
+    await super
+        .test_initializer_executable_with_return_type_from_closure_field();
   }
 
   @override
@@ -511,14 +819,14 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_invalid_setterParameter_fieldFormalParameter() async {
-    await super.test_invalid_setterParameter_fieldFormalParameter();
+  test_invalid_nameConflict_imported_exported() async {
+    await super.test_invalid_nameConflict_imported_exported();
   }
 
   @override
   @failingTest
-  test_invalid_setterParameter_fieldFormalParameter_self() async {
-    await super.test_invalid_setterParameter_fieldFormalParameter_self();
+  test_invalid_nameConflict_local() async {
+    await super.test_invalid_nameConflict_local();
   }
 
   @override
@@ -547,18 +855,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_metadata_importDirective() async {
-    await super.test_metadata_importDirective();
-  }
-
-  @override
-  @failingTest
-  test_metadata_partDirective() async {
-    await super.test_metadata_partDirective();
-  }
-
-  @override
-  @failingTest
   test_method_inferred_type_nonStatic_implicit_param() async {
     await super.test_method_inferred_type_nonStatic_implicit_param();
   }
@@ -579,6 +875,24 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_new_typedef_notSimplyBounded_self() async {
+    await super.test_new_typedef_notSimplyBounded_self();
+  }
+
+  @override
+  @failingTest
+  test_old_typedef_notSimplyBounded_self() async {
+    await super.test_old_typedef_notSimplyBounded_self();
+  }
+
+  @override
+  @failingTest
+  test_parameter_covariant() async {
+    await super.test_parameter_covariant();
+  }
+
+  @override
+  @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
   }
@@ -591,6 +905,12 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_setter_covariant() async {
+    await super.test_setter_covariant();
+  }
+
+  @override
+  @failingTest
   test_setter_inferred_type_nonStatic_implicit_param() async {
     await super.test_setter_inferred_type_nonStatic_implicit_param();
   }
@@ -599,6 +919,24 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_syntheticFunctionType_genericClosure() async {
     await super.test_syntheticFunctionType_genericClosure();
+  }
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_inGenericClass() async {
+    await super.test_syntheticFunctionType_inGenericClass();
+  }
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_noArguments() async {
+    await super.test_syntheticFunctionType_noArguments();
+  }
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_withArguments() async {
+    await super.test_syntheticFunctionType_withArguments();
   }
 
   @override
@@ -627,6 +965,18 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_type_inference_nested_function() async {
+    await super.test_type_inference_nested_function();
+  }
+
+  @override
+  @failingTest
+  test_type_inference_nested_function_with_parameter_types() async {
+    await super.test_type_inference_nested_function_with_parameter_types();
+  }
+
+  @override
+  @failingTest
   test_type_inference_of_closure_with_default_value() async {
     await super.test_type_inference_of_closure_with_default_value();
   }
@@ -641,6 +991,47 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
+  }
+
+  @override
+  @failingTest
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included();
+  }
+
+  @override
+  @failingTest
+  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted();
+  }
+
+  @override
+  @failingTest
+  test_typedef_notSimplyBounded_dependency_via_param_type_old_style() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_param_type_old_style();
+  }
+
+  @override
+  @failingTest
+  test_typedef_notSimplyBounded_dependency_via_return_type_new_style() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_return_type_new_style();
+  }
+
+  @override
+  @failingTest
+  test_typedef_notSimplyBounded_dependency_via_return_type_old_style() async {
+    await super
+        .test_typedef_notSimplyBounded_dependency_via_return_type_old_style();
+  }
+
+  @override
+  @failingTest
+  test_typedef_type_parameters_bound() async {
+    await super.test_typedef_type_parameters_bound();
   }
 
   @override
@@ -675,6 +1066,12 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
+  test_unresolved_annotation_instanceCreation_argument_super() async {
+    await super.test_unresolved_annotation_instanceCreation_argument_super();
+  }
+
+  @override
+  @failingTest
   test_unresolved_export() async {
     await super.test_unresolved_export();
   }
@@ -683,6 +1080,12 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_unresolved_import() async {
     await super.test_unresolved_import();
+  }
+
+  @override
+  @failingTest
+  test_unused_type_parameter() async {
+    await super.test_unused_type_parameter();
   }
 
   @override

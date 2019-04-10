@@ -261,8 +261,18 @@ class ClassTable {
 
 #ifndef PRODUCT
   // Called whenever a class is allocated in the runtime.
-  void UpdateAllocatedNew(intptr_t cid, intptr_t size);
-  void UpdateAllocatedOld(intptr_t cid, intptr_t size);
+  void UpdateAllocatedNew(intptr_t cid, intptr_t size) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    ASSERT(stats != NULL);
+    ASSERT(size != 0);
+    stats->recent.AddNew(size);
+  }
+  void UpdateAllocatedOld(intptr_t cid, intptr_t size) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    ASSERT(stats != NULL);
+    ASSERT(size != 0);
+    stats->recent.AddOld(size);
+  }
   void UpdateAllocatedOldGC(intptr_t cid, intptr_t size);
   void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
   void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);

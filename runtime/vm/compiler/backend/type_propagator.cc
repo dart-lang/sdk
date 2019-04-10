@@ -580,12 +580,14 @@ void CompileType::Union(CompileType* other) {
 
 CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
                                              CompileType* new_type) {
+  ASSERT(new_type != nullptr);
+
   // In general, prefer the newly inferred type over old type.
   // It is possible that new and old types are unrelated or do not intersect
   // at all (for example, in case of unreachable code).
 
   // Discard None type as it is used to denote an unknown type.
-  if (old_type->IsNone()) {
+  if (old_type == nullptr || old_type->IsNone()) {
     return new_type;
   }
   if (new_type->IsNone()) {
@@ -826,13 +828,22 @@ CompileType* Value::Type() {
   return reaching_type_;
 }
 
-void Value::RefineReachingType(CompileType* type) {
-  ASSERT(type != NULL);
-  if (reaching_type_ == NULL) {
-    reaching_type_ = type;
-  } else {
-    reaching_type_ = CompileType::ComputeRefinedType(reaching_type_, type);
+void Value::SetReachingType(CompileType* type) {
+  // If [type] is owned but not by the definition which flows into this use
+  // then we need to disconect the type from original owner by cloning it.
+  // This is done to prevent situations when [type] is updated by its owner
+  // but [owner] is no longer connected to this use through def-use chain
+  // and as a result type propagator does not recompute type of the current
+  // instruction.
+  if (type != nullptr && type->owner() != nullptr &&
+      type->owner() != definition()) {
+    type = new CompileType(*type);
   }
+  reaching_type_ = type;
+}
+
+void Value::RefineReachingType(CompileType* type) {
+  SetReachingType(CompileType::ComputeRefinedType(reaching_type_, type));
 }
 
 CompileType PhiInstr::ComputeType() const {
@@ -1445,6 +1456,10 @@ CompileType CheckedSmiOpInstr::ComputeType() const {
     }
   }
   return CompileType::Dynamic();
+}
+
+bool CheckedSmiOpInstr::RecomputeType() {
+  return UpdateType(ComputeType());
 }
 
 CompileType CheckedSmiComparisonInstr::ComputeType() const {

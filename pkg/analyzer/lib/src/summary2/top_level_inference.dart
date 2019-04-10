@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -44,6 +43,12 @@ class TopLevelInference {
     _nameScope = _libraryScope;
   }
 
+  DynamicTypeImpl get _dynamicType {
+    return DynamicTypeImpl.instance;
+  }
+
+  VoidTypeImpl get _voidType => VoidTypeImpl.instance;
+
   void infer() {
     _setOmittedReturnTypes();
     _inferFieldsTemporary();
@@ -56,12 +61,12 @@ class TopLevelInference {
       _linkedContext = unit.linkedContext;
 
       for (var class_ in unit.types) {
-        var fields = <String, LinkedNodeType>{};
+        var fields = <String, DartType>{};
         for (FieldElementImpl field in class_.fields) {
           if (field.isSynthetic) continue;
 
           var name = field.name;
-          var type = field.linkedNode.variableDeclaration_type2;
+          var type = field.type;
           if (type == null) {
             throw StateError('Field $name should have a type.');
           }
@@ -71,20 +76,18 @@ class TopLevelInference {
         for (ConstructorElementImpl constructor in class_.constructors) {
           for (ParameterElementImpl parameter in constructor.parameters) {
             if (parameter is FieldFormalParameterElement) {
-              LinkedNodeBuilder parameterNode = parameter.linkedNode;
-              if (parameterNode.kind == LinkedNodeKind.defaultFormalParameter) {
-                parameterNode = parameterNode.defaultFormalParameter_parameter;
+              FormalParameter node = parameter.linkedNode;
+              if (node is DefaultFormalParameter) {
+                var defaultParameter = node as DefaultFormalParameter;
+                node = defaultParameter.parameter;
               }
 
-              if (parameterNode.fieldFormalParameter_type2 == null) {
+              if (node is FieldFormalParameter &&
+                  node.type == null &&
+                  node.parameters == null) {
                 var name = parameter.name;
-                var type = fields[name];
-                if (type == null) {
-                  type = LinkedNodeTypeBuilder(
-                    kind: LinkedNodeTypeKind.dynamic_,
-                  );
-                }
-                parameterNode.fieldFormalParameter_type2 = type;
+                var type = fields[name] ?? _dynamicType;
+                LazyAst.setType(node, type);
               }
             }
           }
@@ -108,10 +111,10 @@ class TopLevelInference {
 
       for (TopLevelVariableElementImpl variable in unit.topLevelVariables) {
         if (variable.isSynthetic) continue;
-        LinkedNodeBuilder variableNode = variable.linkedNode;
-        if (variableNode.variableDeclaration_type2 == null ||
-            _linkedContext.isConst(variableNode)) {
-          _inferVariableTypeFromInitializerTemporary(variableNode);
+        VariableDeclaration node = variable.linkedNode;
+        VariableDeclarationList parent = node.parent;
+        if (parent.type == null || _linkedContext.isConst(node)) {
+          _inferVariableTypeFromInitializerTemporary(node);
         }
       }
     }
@@ -125,43 +128,34 @@ class TopLevelInference {
 
     for (FieldElementImpl field in class_.fields) {
       if (field.isSynthetic) continue;
-      var fieldNode = field.linkedNode;
-
+      VariableDeclaration node = field.linkedNode;
+      VariableDeclarationList parent = node.parent;
       // TODO(scheglov) Use inheritance
       // TODO(scheglov) infer in the correct order
-      if (fieldNode.variableDeclaration_type2 == null) {
-        _inferVariableTypeFromInitializerTemporary(fieldNode);
+      if (parent.type == null || parent.isConst) {
+        _inferVariableTypeFromInitializerTemporary(node);
       }
     }
 
     _nameScope = prevScope;
   }
 
-  void _inferVariableTypeFromInitializerTemporary(LinkedNodeBuilder node) {
-    var unresolvedNode = node.variableDeclaration_initializer;
+  void _inferVariableTypeFromInitializerTemporary(VariableDeclaration node) {
+    var initializer = node.initializer;
 
-    if (unresolvedNode == null) {
-      node.variableDeclaration_type2 = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.dynamic_,
-      );
+    if (initializer == null) {
+      LazyAst.setType(node, _dynamicType);
       return;
     }
 
-    var expression = _linkedContext.readInitializer(unitElement, node);
-    astFactory.expressionFunctionBody(null, null, expression, null);
-
     var astResolver = AstResolver(linker, _libraryElement, _nameScope);
-    var resolvedNode = astResolver.resolve(_linkedContext, expression);
-    node.variableDeclaration_initializer = resolvedNode;
+    astResolver.resolve(initializer);
 
-    if (node.variableDeclaration_type2 == null) {
-      var initializerType = expression.staticType;
+    VariableDeclarationList parent = node.parent;
+    if (parent.type == null) {
+      var initializerType = initializer.staticType;
       initializerType = _dynamicIfNull(initializerType);
-
-      var linkingBundleContext = linker.linkingBundleContext;
-      node.variableDeclaration_type2 = linkingBundleContext.writeType(
-        initializerType,
-      );
+      LazyAst.setType(node, initializerType);
     }
   }
 
@@ -179,23 +173,16 @@ class TopLevelInference {
       }
 
       for (FunctionElementImpl function in unit.functions) {
-        LinkedNodeBuilder functionNode = function.linkedNode;
-        if (functionNode.functionDeclaration_returnType == null) {
-          functionNode.functionDeclaration_returnType2 = LinkedNodeTypeBuilder(
-            kind: LinkedNodeTypeKind.dynamic_,
-          );
+        FunctionDeclaration node = function.linkedNode;
+        if (node.returnType == null) {
+          LazyAst.setReturnType(node, _dynamicType);
         }
       }
 
       for (PropertyAccessorElementImpl accessor in unit.accessors) {
         if (accessor.isSynthetic) continue;
         if (accessor.isSetter) {
-          LinkedNodeBuilder node = accessor.linkedNode;
-          if (node.functionDeclaration_returnType == null) {
-            node.functionDeclaration_returnType2 = LinkedNodeTypeBuilder(
-              kind: LinkedNodeTypeKind.void_,
-            );
-          }
+          LazyAst.setReturnType(accessor.linkedNode, _voidType);
         }
       }
     }
@@ -203,28 +190,22 @@ class TopLevelInference {
 
   void _setOmittedReturnTypesClass(ClassElement class_) {
     for (MethodElementImpl method in class_.methods) {
-      LinkedNodeBuilder methodNode = method.linkedNode;
-      if (methodNode.methodDeclaration_returnType == null) {
-        methodNode.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.dynamic_,
-        );
+      MethodDeclaration node = method.linkedNode;
+      if (node.returnType == null) {
+        LazyAst.setReturnType(node, _dynamicType);
       }
     }
 
     for (PropertyAccessorElementImpl accessor in class_.accessors) {
       if (accessor.isSynthetic) continue;
 
-      LinkedNodeBuilder accessorNode = accessor.linkedNode;
-      if (accessorNode.methodDeclaration_returnType != null) continue;
+      MethodDeclaration node = accessor.linkedNode;
+      if (node.returnType != null) continue;
 
       if (accessor.isSetter) {
-        accessorNode.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.void_,
-        );
+        LazyAst.setReturnType(node, _voidType);
       } else {
-        accessorNode.methodDeclaration_returnType2 = LinkedNodeTypeBuilder(
-          kind: LinkedNodeTypeKind.dynamic_,
-        );
+        LazyAst.setReturnType(node, _dynamicType);
       }
     }
   }

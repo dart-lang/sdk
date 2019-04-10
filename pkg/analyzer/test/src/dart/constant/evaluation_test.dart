@@ -90,7 +90,11 @@ const c = true ? 1 : x;
       'c',
       errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
     );
-    expect(result, isNull);
+    if (analysisOptions.experimentStatus.constant_update_2018) {
+      expect(result.toIntValue(), 1);
+    } else {
+      expect(result, isNull);
+    }
   }
 
   test_visitConditionalExpression_eager_true_invalid_int() async {

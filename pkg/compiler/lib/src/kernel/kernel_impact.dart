@@ -13,12 +13,14 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/constants.dart';
+import '../ir/impact.dart';
+import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
 import '../ir/scope.dart';
 import '../ir/static_type.dart';
-import '../ir/impact.dart';
-import '../ir/impact_data.dart';
 import '../ir/util.dart';
+import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../native/behavior.dart';
@@ -45,9 +47,17 @@ class KernelImpactBuilder extends ImpactBuilderBase
   @override
   final MemberEntity currentMember;
   final Set<PragmaAnnotation> _annotations;
+  @override
+  final ConstantValuefier _constantValuefier;
 
-  KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter,
-      this._options, VariableScopeModel variableScopeModel, this._annotations)
+  KernelImpactBuilder(
+      this.elementMap,
+      this.currentMember,
+      this.reporter,
+      this._options,
+      VariableScopeModel variableScopeModel,
+      this._annotations,
+      this._constantValuefier)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
         super(elementMap.typeEnvironment, elementMap.classHierarchy,
@@ -80,9 +90,11 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
   final CompilerOptions _options;
   @override
   final MemberEntity currentMember;
+  @override
+  final ConstantValuefier _constantValuefier;
 
-  KernelImpactConverter(
-      this.elementMap, this.currentMember, this.reporter, this._options)
+  KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
+      this._options, this._constantValuefier)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}');
 
@@ -114,6 +126,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   ir.TypeEnvironment get typeEnvironment;
   CommonElements get commonElements;
   NativeBasicData get _nativeBasicData;
+  ConstantValuefier get _constantValuefier;
 
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
@@ -778,6 +791,14 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerFieldInitialization(ir.Field node) {
     impactBuilder
         .registerStaticUse(new StaticUse.fieldInit(elementMap.getField(node)));
+  }
+
+  @override
+  void registerFieldConstantInitialization(
+      ir.Field node, ConstantReference constant) {
+    impactBuilder.registerStaticUse(new StaticUse.fieldConstantInit(
+        elementMap.getField(node),
+        constant.constant.accept(_constantValuefier)));
   }
 
   @override

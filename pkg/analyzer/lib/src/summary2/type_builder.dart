@@ -2,220 +2,326 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
-import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/reference_resolver.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 
-/// Build types in a [TypesToBuild].
+/// Type annotations and declarations to build types for.
+///
+/// Not all types can be build during reference resolution phase.
+/// For example `A` means `A<num>` if `class A<T extends num>`, but we don't
+/// know this until we resolved `A` declaration, and we might have not yet.
+///
+/// So, we remember type annotations that should be resolved later, and
+/// declarations to set types from explicit type annotations.
+class NodesToBuildType {
+  final List<NodeToBuildType> items = [];
+
+  void addDeclaration(AstNode declaration) {
+    items.add(NodeToBuildType._(null, declaration));
+  }
+
+  void addTypeAnnotation(TypeAnnotation typeAnnotation) {
+    items.add(NodeToBuildType._(typeAnnotation, null));
+  }
+}
+
+/// A type annotation to build type for, or a declaration to set its explicitly
+/// declared type.
+class NodeToBuildType {
+  final TypeAnnotation typeAnnotation;
+  final AstNode declaration;
+
+  NodeToBuildType._(this.typeAnnotation, this.declaration);
+}
+
+/// Build types in a [NodesToBuildType].
 class TypeBuilder {
-  final LinkedBundleContext bundleContext;
+  final LinkingBundleContext bundleContext;
 
   TypeBuilder(this.bundleContext);
 
-  LinkedNodeTypeBuilder get _dynamicType {
-    return LinkedNodeTypeBuilder(
-      kind: LinkedNodeTypeKind.dynamic_,
-    );
+  DynamicTypeImpl get _dynamicType {
+    return DynamicTypeImpl.instance;
   }
 
-  void build(TypesToBuild typesToBuild) {
-    for (var node in typesToBuild.typeAnnotations) {
-      var kind = node.kind;
-      if (kind == LinkedNodeKind.genericFunctionType) {
-        _buildGenericFunctionType(node);
-      } else if (kind == LinkedNodeKind.typeName) {
-        _buildTypeName(node);
-      } else {
-        throw StateError('$kind');
+  void build(NodesToBuildType nodesToBuildType) {
+    for (var item in nodesToBuildType.items) {
+      if (item.typeAnnotation != null) {
+        var node = item.typeAnnotation;
+        if (node is GenericFunctionType) {
+          _buildGenericFunctionType(node);
+        } else if (node is TypeName) {
+          _buildTypeName(node);
+        } else {
+          throw StateError('${node.runtimeType}');
+        }
+      } else if (item.declaration != null) {
+        _setTypesForDeclaration(item.declaration);
       }
     }
-    for (var node in typesToBuild.declarations) {
-      _setTypesForDeclaration(node);
-    }
   }
 
-  LinkedNodeTypeBuilder _buildFunctionType(
-    LinkedNode returnTypeNode,
-    LinkedNode parameterList,
+  DartType _buildFunctionType(
+    TypeAnnotation returnTypeNode,
+    FormalParameterList parameterList,
   ) {
-    var returnType = _getType(returnTypeNode);
+    var returnType = returnTypeNode?.type ?? _dynamicType;
 
-    var formalParameters = <LinkedNodeTypeFormalParameterBuilder>[];
-    for (var parameter in parameterList.formalParameterList_parameters) {
-      formalParameters.add(LinkedNodeTypeFormalParameterBuilder(
-        kind: parameter.formalParameter_kind,
-        type: _getFormalParameterType(parameter),
-      ));
-    }
+    // TODO(scheglov) type parameters
+    var typeParameters = const <TypeParameterElement>[];
 
-    return LinkedNodeTypeBuilder(
-      kind: LinkedNodeTypeKind.function,
-      functionFormalParameters: formalParameters,
-      functionReturnType: returnType,
+    var formalParameters = parameterList.parameters.map((p) {
+      // TODO(scheglov) other types and kinds
+      return ParameterElementImpl.synthetic(
+        (p as SimpleFormalParameter).identifier.name,
+        LazyAst.getType(p),
+        ParameterKind.REQUIRED,
+      );
+    }).toList();
+
+    return FunctionTypeImpl.synthetic(
+      returnType,
+      typeParameters,
+      formalParameters,
     );
   }
 
-  void _buildGenericFunctionType(LinkedNodeBuilder node) {
+  void _buildGenericFunctionType(GenericFunctionTypeImpl node) {
     // TODO(scheglov) Type parameters?
-    node.genericFunctionType_type = _buildFunctionType(
-      node.genericFunctionType_returnType,
-      node.genericFunctionType_formalParameters,
-    );
+    node.type = _buildFunctionType(node.returnType, node.parameters);
   }
 
-  void _buildTypeName(LinkedNodeBuilder node) {
-    var referenceIndex = _typeNameElementIndex(node.typeName_name);
-    var reference = bundleContext.referenceOfIndex(referenceIndex);
+  void _buildTypeName(TypeName node) {
+    var element = node.name.staticElement;
 
-    List<LinkedNodeTypeBuilder> typeArguments;
-    var typeArgumentList = node.typeName_typeArguments;
+    List<DartType> typeArguments;
+    var typeArgumentList = node.typeArguments;
     if (typeArgumentList != null) {
-      typeArguments = typeArgumentList.typeArgumentList_arguments
-          .map((node) => _getType(node))
-          .toList();
+      typeArguments = typeArgumentList.arguments.map((a) => a.type).toList();
     }
 
-    if (reference.isClass) {
+    if (element is ClassElement) {
+      if (element.isEnum) {
+        node.type = InterfaceTypeImpl.explicit(element, const []);
+      } else {
+        // TODO(scheglov) Use instantiate to bounds.
+        var typeParametersLength = element.typeParameters.length;
+        if (typeArguments == null ||
+            typeArguments.length != typeParametersLength) {
+          typeArguments = List<DartType>.filled(
+            typeParametersLength,
+            DynamicTypeImpl.instance,
+          );
+        }
+        node.type = InterfaceTypeImpl.explicit(element, typeArguments);
+      }
+    } else if (element is GenericTypeAliasElement) {
       // TODO(scheglov) Use instantiate to bounds.
-      var typeParametersLength = _typeParametersLength(reference);
+      var typeParametersLength = element.typeParameters.length;
       if (typeArguments == null ||
           typeArguments.length != typeParametersLength) {
-        typeArguments = List<LinkedNodeTypeBuilder>.filled(
+        typeArguments = List<DartType>.filled(
           typeParametersLength,
-          _dynamicType,
+          DynamicTypeImpl.instance,
         );
       }
-      node.typeName_type = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.interface,
-        interfaceClass: referenceIndex,
-        interfaceTypeArguments: typeArguments,
+
+      var substitution = Substitution.fromPairs(
+        element.typeParameters,
+        typeArguments,
       );
-    } else if (reference.isDynamic) {
-      node.typeName_type = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.dynamic_,
-      );
-    } else if (reference.isGenericTypeAlias) {
-      // TODO(scheglov) Use instantiate to bounds.
-      var typeParametersLength = _typeParametersLength(reference);
-      if (typeArguments == null ||
-          typeArguments.length != typeParametersLength) {
-        typeArguments = List<LinkedNodeTypeBuilder>.filled(
-          typeParametersLength,
-          _dynamicType,
-        );
-      }
-      node.typeName_type = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.genericTypeAlias,
-        genericTypeAliasReference: referenceIndex,
-        genericTypeAliasTypeArguments: typeArguments,
-      );
-    } else if (reference.isEnum) {
-      node.typeName_type = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.interface,
-        interfaceClass: referenceIndex,
-      );
-    } else if (reference.isTypeParameter) {
-      node.typeName_type = LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.typeParameter,
-        typeParameterParameter: referenceIndex,
-      );
+
+      // TODO(scheglov) Not sure if I like this.
+      var type = substitution.substituteType(element.function.type);
+      node.type = type;
+    } else if (element is TypeParameterElement) {
+      node.type = TypeParameterTypeImpl(element);
     } else {
-      node.typeName_type = _dynamicType;
+//      throw UnimplementedError('${element.runtimeType}');
+      // TODO(scheglov) implement
+      node.type = DynamicTypeImpl.instance;
     }
+
+//    var referenceIndex = typeNameElementIndex(node.typeName_name);
+//    var reference = bundleContext.referenceOfIndex(referenceIndex);
+//
+//    List<LinkedNodeTypeBuilder> typeArguments;
+//    var typeArgumentList = node.typeName_typeArguments;
+//    if (typeArgumentList != null) {
+//      typeArguments = typeArgumentList.typeArgumentList_arguments
+//          .map((node) => _getType(node))
+//          .toList();
+//    }
+//
+//    if (reference.isClass) {
+//      // TODO(scheglov) Use instantiate to bounds.
+//      var typeParametersLength = _typeParametersLength(reference);
+//      if (typeArguments == null ||
+//          typeArguments.length != typeParametersLength) {
+//        typeArguments = List<LinkedNodeTypeBuilder>.filled(
+//          typeParametersLength,
+//          _dynamicType,
+//        );
+//      }
+//      node.typeName_type = LinkedNodeTypeBuilder(
+//        kind: LinkedNodeTypeKind.interface,
+//        interfaceClass: referenceIndex,
+//        interfaceTypeArguments: typeArguments,
+//      );
+//    } else if (reference.isDynamic) {
+//      node.typeName_type = LinkedNodeTypeBuilder(
+//        kind: LinkedNodeTypeKind.dynamic_,
+//      );
+//    } else if (reference.isTypeAlias) {
+//      // TODO(scheglov) Use instantiate to bounds.
+//      var typeParametersLength = _typeParametersLength(reference);
+//      if (typeArguments == null ||
+//          typeArguments.length != typeParametersLength) {
+//        typeArguments = List<LinkedNodeTypeBuilder>.filled(
+//          typeParametersLength,
+//          _dynamicType,
+//        );
+//      }
+//      node.typeName_type = LinkedNodeTypeBuilder(
+//        kind: LinkedNodeTypeKind.genericTypeAlias,
+//        genericTypeAliasReference: referenceIndex,
+//        genericTypeAliasTypeArguments: typeArguments,
+//      );
+//    } else if (reference.isEnum) {
+//      node.typeName_type = LinkedNodeTypeBuilder(
+//        kind: LinkedNodeTypeKind.interface,
+//        interfaceClass: referenceIndex,
+//      );
+//    } else if (reference.isTypeParameter) {
+//      node.typeName_type = LinkedNodeTypeBuilder(
+//        kind: LinkedNodeTypeKind.typeParameter,
+//        typeParameterParameter: referenceIndex,
+//      );
+//    } else {
+//      node.typeName_type = _dynamicType;
+//    }
   }
 
-  void _fieldFormalParameter(LinkedNodeBuilder node) {
-    var parameterList = node.fieldFormalParameter_formalParameters;
+  void _fieldFormalParameter(FieldFormalParameter node) {
+    var parameterList = node.parameters;
     if (parameterList != null) {
-      node.fieldFormalParameter_type2 = _buildFunctionType(
-        node.fieldFormalParameter_type,
-        parameterList,
-      );
+      var type = _buildFunctionType(node.type, parameterList);
+      LazyAst.setType(node, type);
     } else {
-      var type = _getType(node.fieldFormalParameter_type);
-      node.fieldFormalParameter_type2 = type;
+      LazyAst.setType(node, node.type?.type ?? _dynamicType);
     }
   }
 
-  void _functionTypedFormalParameter(LinkedNodeBuilder node) {
-    node.functionTypedFormalParameter_type2 = _buildFunctionType(
-      node.functionTypedFormalParameter_returnType,
-      node.functionTypedFormalParameter_formalParameters,
-    );
+  void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    var type = _buildFunctionType(node.returnType, node.parameters);
+    LazyAst.setType(node, type);
   }
 
-  LinkedNodeTypeBuilder _getFormalParameterType(LinkedNode node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.defaultFormalParameter) {
-      return _getFormalParameterType(node.defaultFormalParameter_parameter);
-    }
-    if (kind == LinkedNodeKind.functionTypedFormalParameter) {
-      return node.functionTypedFormalParameter_type2;
-    }
-    if (kind == LinkedNodeKind.simpleFormalParameter) {
-      return _getType(node.simpleFormalParameter_type);
-    }
-    throw UnimplementedError('$kind');
-  }
+//  LinkedNodeTypeBuilder _getFormalParameterType(LinkedNode node) {
+//    var kind = node.kind;
+//    if (kind == LinkedNodeKind.defaultFormalParameter) {
+//      return _getFormalParameterType(node.defaultFormalParameter_parameter);
+//    }
+//    if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+//      return node.functionTypedFormalParameter_type2;
+//    }
+//    if (kind == LinkedNodeKind.simpleFormalParameter) {
+//      return _getType(node.simpleFormalParameter_type);
+//    }
+//    throw UnimplementedError('$kind');
+//  }
 
-  LinkedNodeTypeBuilder _getType(LinkedNodeBuilder node) {
-    if (node == null) return _dynamicType;
+//  LinkedNodeTypeBuilder _getType(LinkedNodeBuilder node) {
+//    if (node == null) return _dynamicType;
+//
+//    var kind = node.kind;
+//    if (kind == LinkedNodeKind.genericFunctionType) {
+//      return node.genericFunctionType_type;
+//    } else if (kind == LinkedNodeKind.typeName) {
+//      return node.typeName_type;
+//    } else {
+//      throw UnimplementedError('$kind');
+//    }
+//  }
 
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.genericFunctionType) {
-      return node.genericFunctionType_type;
-    } else if (kind == LinkedNodeKind.typeName) {
-      return node.typeName_type;
-    } else {
-      throw UnimplementedError('$kind');
-    }
-  }
-
-  void _setTypesForDeclaration(LinkedNodeBuilder node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.fieldFormalParameter) {
+  void _setTypesForDeclaration(AstNode node) {
+    if (node is FieldFormalParameter) {
       _fieldFormalParameter(node);
-    } else if (kind == LinkedNodeKind.functionDeclaration) {
-      node.functionDeclaration_returnType2 = _getType(
-        node.functionDeclaration_returnType,
-      );
-    } else if (kind == LinkedNodeKind.functionTypeAlias) {
-      node.functionTypeAlias_returnType2 = _getType(
-        node.functionTypeAlias_returnType,
-      );
-    } else if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+    } else if (node is FunctionDeclaration) {
+      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+    } else if (node is FunctionTypeAlias) {
+      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+    } else if (node is FunctionTypedFormalParameter) {
       _functionTypedFormalParameter(node);
-    } else if (kind == LinkedNodeKind.genericFunctionType) {
-      node.genericFunctionType_returnType2 = _getType(
-        node.genericFunctionType_returnType,
-      );
-    } else if (kind == LinkedNodeKind.methodDeclaration) {
-      node.methodDeclaration_returnType2 = _getType(
-        node.methodDeclaration_returnType,
-      );
-    } else if (kind == LinkedNodeKind.simpleFormalParameter) {
-      node.simpleFormalParameter_type2 = _getType(
-        node.simpleFormalParameter_type,
-      );
-    } else if (kind == LinkedNodeKind.variableDeclarationList) {
-      var typeNode = node.variableDeclarationList_type;
-      for (var variable in node.variableDeclarationList_variables) {
-        variable.variableDeclaration_type2 = _getType(typeNode);
+    } else if (node is GenericFunctionType) {
+      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+    } else if (node is MethodDeclaration) {
+      if (node.returnType != null) {
+        LazyAst.setReturnType(node, node.returnType.type);
+      }
+    } else if (node is SimpleFormalParameter) {
+      // TODO(scheglov) use top-level inference
+      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+    } else if (node is VariableDeclarationList) {
+      var type = node.type?.type;
+      if (type != null) {
+        for (var variable in node.variables) {
+          LazyAst.setType(variable, type);
+        }
       }
     } else {
-      throw UnimplementedError('$kind');
+      throw UnimplementedError('${node.runtimeType}');
     }
+//    var kind = node.kind;
+//    if (kind == LinkedNodeKind.fieldFormalParameter) {
+//      _fieldFormalParameter(node);
+//    } else if (kind == LinkedNodeKind.functionDeclaration) {
+//      node.functionDeclaration_returnType2 = _getType(
+//        node.functionDeclaration_returnType,
+//      );
+//    } else if (kind == LinkedNodeKind.functionTypeAlias) {
+//      node.functionTypeAlias_returnType2 = _getType(
+//        node.functionTypeAlias_returnType,
+//      );
+//    } else if (kind == LinkedNodeKind.functionTypedFormalParameter) {
+//      _functionTypedFormalParameter(node);
+//    } else if (kind == LinkedNodeKind.genericFunctionType) {
+//      node.genericFunctionType_returnType2 = _getType(
+//        node.genericFunctionType_returnType,
+//      );
+//    } else if (kind == LinkedNodeKind.methodDeclaration) {
+//      node.methodDeclaration_returnType2 = _getType(
+//        node.methodDeclaration_returnType,
+//      );
+//    } else if (kind == LinkedNodeKind.simpleFormalParameter) {
+//      node.simpleFormalParameter_type2 = _getType(
+//        node.simpleFormalParameter_type,
+//      );
+//    } else if (kind == LinkedNodeKind.variableDeclarationList) {
+//      var typeNode = node.variableDeclarationList_type;
+//      for (var variable in node.variableDeclarationList_variables) {
+//        variable.variableDeclaration_type2 = _getType(typeNode);
+//      }
+//    } else {
+//      throw UnimplementedError('$kind');
+//    }
   }
 
-  int _typeParametersLength(Reference reference) {
-    var node = bundleContext.elementFactory.nodeOfReference(reference);
-    return LinkedUnitContext.getTypeParameters(node)?.length ?? 0;
-  }
+//  int _typeParametersLength(Reference reference) {
+//    var node = bundleContext.elementFactory.nodeOfReference(reference);
+//    return LinkedUnitContext.getTypeParameters(node)?.length ?? 0;
+//  }
 
-  static int _typeNameElementIndex(LinkedNode name) {
+  static int typeNameElementIndex(LinkedNode name) {
     if (name.kind == LinkedNodeKind.simpleIdentifier) {
       return name.simpleIdentifier_element;
     } else {

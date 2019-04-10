@@ -150,7 +150,7 @@ class AssistProcessor {
 
     if (experimentStatus.control_flow_collections) {
       await _addProposal_convertConditionalExpressionToIfElement();
-      await _addProposal_convertMapFromIterableToIfLiteral();
+      await _addProposal_convertMapFromIterableToForLiteral();
     }
     if (experimentStatus.spread_collections) {
       await _addProposal_convertAddAllToSpread();
@@ -169,6 +169,18 @@ class AssistProcessor {
       await _addProposal_convertClassToMixin();
     } else if (assistKind == DartAssistKind.CONVERT_TO_INT_LITERAL) {
       await _addProposal_convertToIntLiteral();
+    } else if (assistKind == DartAssistKind.CONVERT_TO_SPREAD) {
+      if (experimentStatus.spread_collections) {
+        await _addProposal_convertAddAllToSpread();
+      }
+    } else if (assistKind == DartAssistKind.CONVERT_TO_FOR_ELEMENT) {
+      if (experimentStatus.control_flow_collections) {
+        await _addProposal_convertMapFromIterableToForLiteral();
+      }
+    } else if (assistKind == DartAssistKind.CONVERT_TO_IF_ELEMENT) {
+      if (experimentStatus.control_flow_collections) {
+        await _addProposal_convertConditionalExpressionToIfElement();
+      }
     }
     return assists;
   }
@@ -484,7 +496,13 @@ class AssistProcessor {
     elementText ??= '...${utils.getNodeText(argument)}';
     DartChangeBuilder changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      // ['a']..addAll(['b', 'c']);
+      if (list.elements.isNotEmpty) {
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        //
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      } // []..addAll(['b', 'c']);
       builder.addDeletion(range.node(invocation));
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
@@ -547,8 +565,8 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_convertConditionalExpressionToIfElement() async {
-    AstNode node = this.node;
-    if (node is! ConditionalExpression) {
+    AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
+    if (node == null) {
       _coverageMarker();
       return;
     }
@@ -923,7 +941,7 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_MAP_LITERAL);
   }
 
-  Future<void> _addProposal_convertMapFromIterableToIfLiteral() async {
+  Future<void> _addProposal_convertMapFromIterableToForLiteral() async {
     //
     // Ensure that the selection is inside an invocation of Map.fromIterable.
     //
@@ -1077,7 +1095,7 @@ class AssistProcessor {
         builder.write(' }');
       });
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_FOR_ELEMENT);
   }
 
   Future<void> _addProposal_convertPartOfToUri() async {

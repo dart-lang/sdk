@@ -13,6 +13,7 @@ namespace dart {
 
 class AbstractType;
 class BufferFormatter;
+class Definition;
 
 // CompileType describes type of a value produced by a definition.
 //
@@ -41,6 +42,7 @@ class CompileType : public ZoneAllocated {
         type_(other.type_) {}
 
   CompileType& operator=(const CompileType& other) {
+    // This intentionally does not change the owner of this type.
     is_nullable_ = other.is_nullable_;
     cid_ = other.cid_;
     type_ = other.type_;
@@ -89,7 +91,8 @@ class CompileType : public ZoneAllocated {
       // unreachable values) as None.
       return None();
     }
-    return CompileType(kNonNullable, kIllegalCid, type_);
+
+    return CompileType(kNonNullable, cid_, type_);
   }
 
   static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
@@ -209,14 +212,25 @@ class CompileType : public ZoneAllocated {
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
+  // CompileType object might be unowned or owned by a definition.
+  // Owned CompileType objects can change during type propagation when
+  // [RecomputeType] is called on the owner. We keep track of which
+  // definition owns [CompileType] to prevent situations where
+  // owned [CompileType] is cached as a reaching type in a [Value] which
+  // is no longer connected to the original owning definition.
+  // See [Value::SetReachingType].
+  void set_owner(Definition* owner) { owner_ = owner; }
+  Definition* owner() const { return owner_; }
+
  private:
   bool CanComputeIsInstanceOf(const AbstractType& type,
                               bool is_nullable,
                               bool* is_instance);
 
   bool is_nullable_;
-  intptr_t cid_;
+  classid_t cid_;
   const AbstractType* type_;
+  Definition* owner_ = nullptr;
 };
 
 }  // namespace dart

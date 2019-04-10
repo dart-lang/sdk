@@ -207,7 +207,20 @@ enum Enum {
 }
 
 /*strong.element: testEnum:static=[Enum.A]*/
-/*strongConst.element: testEnum:static=[init:Enum._name,init:Enum.index],type=[const:Enum,inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32]*/
+/*strongConst.element: testEnum:
+ static=[
+  Enum._name=StringConstant("Enum.A"),
+  Enum.index=IntConstant(0)],
+ type=[
+  const:Enum,
+  inst:JSDouble,
+  inst:JSInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSString,
+  inst:JSUInt31,
+  inst:JSUInt32]
+*/
 testEnum() => Enum.A;
 
 /*element: staticGenericMethod:

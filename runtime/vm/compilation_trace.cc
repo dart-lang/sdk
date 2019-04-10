@@ -60,6 +60,13 @@ CompilationTraceLoader::CompilationTraceLoader(Thread* thread)
       function_(Function::Handle(zone_)),
       function2_(Function::Handle(zone_)),
       field_(Field::Handle(zone_)),
+      sites_(Array::Handle(zone_)),
+      site_(ICData::Handle(zone_)),
+      static_type_(AbstractType::Handle(zone_)),
+      receiver_cls_(Class::Handle(zone_)),
+      target_(Function::Handle(zone_)),
+      selector_(String::Handle(zone_)),
+      args_desc_(Array::Handle(zone_)),
       error_(Object::Handle(zone_)) {}
 
 static char* FindCharacter(char* str, char goal, char* limit) {
@@ -354,14 +361,75 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
 }
 
 RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
-  if (function.is_abstract()) {
+  if (function.is_abstract() || function.HasCode()) {
     return Object::null();
   }
+
   // Prevent premature code collection due to major GC during startup.
   if (function.usage_counter() < Function::kGraceUsageCounter) {
     function.set_usage_counter(Function::kGraceUsageCounter);
   }
-  return Compiler::CompileFunction(thread_, function);
+
+  error_ = Compiler::CompileFunction(thread_, function);
+  if (error_.IsError()) {
+    return error_.raw();
+  }
+
+  SpeculateInstanceCallTargets(function);
+
+  return error_.raw();
+}
+
+// For instance calls, if the receiver's static type has one concrete
+// implementation, lookup the target for that implementation and add it
+// to the ICData's entries.
+// For some well-known interfaces, do the same for the most common concrete
+// implementation (e.g., int -> _Smi).
+void CompilationTraceLoader::SpeculateInstanceCallTargets(
+    const Function& function) {
+  sites_ = function.ic_data_array();
+  if (sites_.IsNull()) {
+    return;
+  }
+  for (intptr_t i = 1; i < sites_.Length(); i++) {
+    site_ ^= sites_.At(i);
+    if (site_.rebind_rule() != ICData::kInstance) {
+      continue;
+    }
+    if (site_.NumArgsTested() != 1) {
+      continue;
+    }
+
+    static_type_ = site_.receivers_static_type();
+    if (static_type_.IsNull()) {
+      continue;
+    } else if (static_type_.IsDoubleType()) {
+      receiver_cls_ = Isolate::Current()->class_table()->At(kDoubleCid);
+    } else if (static_type_.IsIntType()) {
+      receiver_cls_ = Isolate::Current()->class_table()->At(kSmiCid);
+    } else if (static_type_.IsStringType()) {
+      receiver_cls_ = Isolate::Current()->class_table()->At(kOneByteStringCid);
+    } else if (static_type_.IsDartFunctionType() ||
+               static_type_.IsDartClosureType()) {
+      receiver_cls_ = Isolate::Current()->class_table()->At(kClosureCid);
+    } else if (static_type_.HasTypeClass()) {
+      receiver_cls_ = static_type_.type_class();
+      if (receiver_cls_.is_implemented() || receiver_cls_.is_abstract()) {
+        continue;
+      }
+    } else {
+      continue;
+    }
+
+    selector_ = site_.target_name();
+    args_desc_ = site_.arguments_descriptor();
+    target_ = Resolver::ResolveDynamicForReceiverClass(
+        receiver_cls_, selector_, ArgumentsDescriptor(args_desc_));
+    if (!target_.IsNull() && !site_.HasReceiverClassId(receiver_cls_.id())) {
+      intptr_t count = 0;  // Don't pollute type feedback and coverage data.
+      site_.AddReceiverCheck(receiver_cls_.id(), target_, count);
+    }
+  }
 }
 
 TypeFeedbackSaver::TypeFeedbackSaver(WriteStream* stream)

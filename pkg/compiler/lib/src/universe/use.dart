@@ -160,7 +160,8 @@ enum StaticUseKind {
   INVOKE,
   GET,
   SET,
-  INIT,
+  FIELD_INIT,
+  FIELD_CONSTANT_INIT,
 }
 
 /// Statically known use of an [Entity].
@@ -174,12 +175,14 @@ class StaticUse {
   final InterfaceType type;
   final CallStructure callStructure;
   final ImportEntity deferredImport;
+  final ConstantValue constant;
 
   StaticUse.internal(Entity element, this.kind,
       {this.type,
       this.callStructure,
       this.deferredImport,
-      typeArgumentsHash: 0})
+      typeArgumentsHash: 0,
+      this.constant})
       : this.element = element,
         this.hashCode = Hashing.listHash([
           element,
@@ -187,7 +190,8 @@ class StaticUse {
           type,
           typeArgumentsHash,
           callStructure,
-          deferredImport
+          deferredImport,
+          constant
         ]);
 
   /// Short textual representation use for testing.
@@ -199,7 +203,7 @@ class StaticUse {
       case StaticUseKind.SET:
         sb.write('set:');
         break;
-      case StaticUseKind.INIT:
+      case StaticUseKind.FIELD_INIT:
         sb.write('init:');
         break;
       case StaticUseKind.CLOSURE:
@@ -237,6 +241,10 @@ class StaticUse {
       sb.write('{');
       sb.write(deferredImport.name);
       sb.write('}');
+    }
+    if (constant != null) {
+      sb.write('=');
+      sb.write(constant.toStructuredText());
     }
     return sb.toString();
   }
@@ -321,7 +329,7 @@ class StaticUse {
             "or static method."));
     assert(element.isField,
         failedAt(element, "Static init element $element must be a field."));
-    return new StaticUse.internal(element, StaticUseKind.INIT);
+    return new StaticUse.internal(element, StaticUseKind.FIELD_INIT);
   }
 
   /// Invocation of a super method [element] with the given [callStructure].
@@ -541,7 +549,18 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(
             element, "Field init element $element must be an instance field."));
-    return new StaticUse.internal(element, StaticUseKind.INIT);
+    return new StaticUse.internal(element, StaticUseKind.FIELD_INIT);
+  }
+
+  /// Constant initialization of an instance field [element].
+  factory StaticUse.fieldConstantInit(
+      FieldEntity element, ConstantValue constant) {
+    assert(
+        element.isInstanceMember,
+        failedAt(
+            element, "Field init element $element must be an instance field."));
+    return new StaticUse.internal(element, StaticUseKind.FIELD_CONSTANT_INIT,
+        constant: constant);
   }
 
   /// Read access of an instance field or boxed field [element].
@@ -603,12 +622,14 @@ class StaticUse {
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! StaticUse) return false;
-    return element == other.element &&
+    return other is StaticUse &&
+        element == other.element &&
         kind == other.kind &&
         type == other.type &&
         callStructure == other.callStructure &&
-        equalElements(typeArguments, other.typeArguments);
+        equalElements(typeArguments, other.typeArguments) &&
+        deferredImport == other.deferredImport &&
+        constant == other.constant;
   }
 
   @override

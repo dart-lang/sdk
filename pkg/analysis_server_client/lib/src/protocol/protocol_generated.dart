@@ -10303,6 +10303,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
  * {
  *   "file": FilePath
  *   "elements": List<ImportedElements>
+ *   "offset": optional int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -10311,6 +10312,8 @@ class EditImportElementsParams implements RequestParams {
   String _file;
 
   List<ImportedElements> _elements;
+
+  int _offset;
 
   /**
    * The file in which the specified elements are to be made accessible.
@@ -10338,9 +10341,29 @@ class EditImportElementsParams implements RequestParams {
     this._elements = value;
   }
 
-  EditImportElementsParams(String file, List<ImportedElements> elements) {
+  /**
+   * The offset at which the specified elements need to be made accessible. If
+   * provided, this is used to guard against adding imports for text that would
+   * be inserted into a comment, string literal, or other location where the
+   * imports would not be necessary.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset at which the specified elements need to be made accessible. If
+   * provided, this is used to guard against adding imports for text that would
+   * be inserted into a comment, string literal, or other location where the
+   * imports would not be necessary.
+   */
+  void set offset(int value) {
+    this._offset = value;
+  }
+
+  EditImportElementsParams(String file, List<ImportedElements> elements,
+      {int offset}) {
     this.file = file;
     this.elements = elements;
+    this.offset = offset;
   }
 
   factory EditImportElementsParams.fromJson(
@@ -10365,7 +10388,11 @@ class EditImportElementsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
-      return new EditImportElementsParams(file, elements);
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      }
+      return new EditImportElementsParams(file, elements, offset: offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements params", json);
     }
@@ -10382,6 +10409,9 @@ class EditImportElementsParams implements RequestParams {
     result["file"] = file;
     result["elements"] =
         elements.map((ImportedElements value) => value.toJson()).toList();
+    if (offset != null) {
+      result["offset"] = offset;
+    }
     return result;
   }
 
@@ -10398,7 +10428,8 @@ class EditImportElementsParams implements RequestParams {
     if (other is EditImportElementsParams) {
       return file == other.file &&
           listEqual(elements, other.elements,
-              (ImportedElements a, ImportedElements b) => a == b);
+              (ImportedElements a, ImportedElements b) => a == b) &&
+          offset == other.offset;
     }
     return false;
   }
@@ -10408,6 +10439,7 @@ class EditImportElementsParams implements RequestParams {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -21541,7 +21573,7 @@ class ServerStatusParams implements HasToJson {
  *
  * {
  *   "lexeme": String
- *   "type": String
+ *   "type": optional String
  *   "validElementKinds": optional List<String>
  * }
  *
@@ -21555,12 +21587,12 @@ class TokenDetails implements HasToJson {
   List<String> _validElementKinds;
 
   /**
-   * The raw token text.
+   * The token's lexeme.
    */
   String get lexeme => _lexeme;
 
   /**
-   * The raw token text.
+   * The token's lexeme.
    */
   void set lexeme(String value) {
     assert(value != null);
@@ -21568,31 +21600,38 @@ class TokenDetails implements HasToJson {
   }
 
   /**
-   * The type of this token.
+   * A unique id for the type of the identifier. Omitted if the token is not an
+   * identifier in a reference position.
    */
   String get type => _type;
 
   /**
-   * The type of this token.
+   * A unique id for the type of the identifier. Omitted if the token is not an
+   * identifier in a reference position.
    */
   void set type(String value) {
-    assert(value != null);
     this._type = value;
   }
 
   /**
-   * The kinds of elements which could validly replace this token.
+   * An indication of whether this token is in a declaration or reference
+   * position. (If no other purpose is found for this field then it should be
+   * renamed and converted to a boolean value.) Omitted if the token is not an
+   * identifier.
    */
   List<String> get validElementKinds => _validElementKinds;
 
   /**
-   * The kinds of elements which could validly replace this token.
+   * An indication of whether this token is in a declaration or reference
+   * position. (If no other purpose is found for this field then it should be
+   * renamed and converted to a boolean value.) Omitted if the token is not an
+   * identifier.
    */
   void set validElementKinds(List<String> value) {
     this._validElementKinds = value;
   }
 
-  TokenDetails(String lexeme, String type, {List<String> validElementKinds}) {
+  TokenDetails(String lexeme, {String type, List<String> validElementKinds}) {
     this.lexeme = lexeme;
     this.type = type;
     this.validElementKinds = validElementKinds;
@@ -21613,8 +21652,6 @@ class TokenDetails implements HasToJson {
       String type;
       if (json.containsKey("type")) {
         type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "type");
       }
       List<String> validElementKinds;
       if (json.containsKey("validElementKinds")) {
@@ -21623,8 +21660,8 @@ class TokenDetails implements HasToJson {
             json["validElementKinds"],
             jsonDecoder.decodeString);
       }
-      return new TokenDetails(lexeme, type,
-          validElementKinds: validElementKinds);
+      return new TokenDetails(lexeme,
+          type: type, validElementKinds: validElementKinds);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "TokenDetails", json);
     }
@@ -21634,7 +21671,9 @@ class TokenDetails implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["lexeme"] = lexeme;
-    result["type"] = type;
+    if (type != null) {
+      result["type"] = type;
+    }
     if (validElementKinds != null) {
       result["validElementKinds"] = validElementKinds;
     }

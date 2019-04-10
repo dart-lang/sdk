@@ -122,6 +122,20 @@ abstract class TypeBuilder {
     return checkedOrTrusted;
   }
 
+  HInstruction potentiallyCheckOrTrustTypeOfCondition(HInstruction original) {
+    DartType boolType = builder.commonElements.boolType;
+    HInstruction checkedOrTrusted = original;
+    if (builder.options.conditionCheckPolicy.isTrusted) {
+      checkedOrTrusted = _trustType(original, boolType);
+    } else if (builder.options.conditionCheckPolicy.isEmitted) {
+      checkedOrTrusted = _checkType(
+          original, boolType, HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+    }
+    if (checkedOrTrusted == original) return original;
+    builder.add(checkedOrTrusted);
+    return checkedOrTrusted;
+  }
+
   ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member);
 
   /// Helper to create an instruction that gets the value of a type variable.

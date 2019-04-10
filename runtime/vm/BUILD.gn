@@ -119,6 +119,14 @@ template("gen_vm_platform") {
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
     ]
     args = [ "dart:core" ]
+    is_product_flag = dart_runtime_mode == "release"
+    allow_causal_async_stacks = !is_product_flag
+    args += [
+      "-Ddart.vm.product=$is_product_flag",
+      "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
+      "-Ddart.isVM=true",
+    ]
+
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
     }

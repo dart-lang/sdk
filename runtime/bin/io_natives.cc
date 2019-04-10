@@ -194,7 +194,7 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    bool* auto_setup_scope) {
   const char* function_name = NULL;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
-  DART_CHECK_VALID(result);
+  ASSERT(!Dart_IsError(result));
   ASSERT(function_name != NULL);
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;

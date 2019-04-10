@@ -16,6 +16,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryElementTest);
     defineReflectiveTests(ImportLibraryElement_existingImport_Test);
+    defineReflectiveTests(ImportLibraryElement_incompleteCode_Test);
     defineReflectiveTests(ImportLibraryElement_newImport_withoutPrefix_Test);
     defineReflectiveTests(ImportLibraryElement_newImport_withPrefix_Test);
   });
@@ -154,6 +155,47 @@ import 'package:test/b.dart' as p;
       uriStr: 'package:test/b.dart',
       name: 'C',
       expectedPrefix: 'p',
+    );
+  }
+}
+
+@reflectiveTest
+class ImportLibraryElement_incompleteCode_Test extends _Base {
+  test_formalParameter() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'a.dart';
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+f(A^) {}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+f(A) {}
+''',
+    );
+  }
+
+  test_topLevelVariable() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'a.dart';
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+A^
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+A
+''',
     );
   }
 }

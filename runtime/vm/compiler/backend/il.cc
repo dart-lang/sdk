@@ -479,15 +479,7 @@ void Instruction::CheckField(const Field& field) const {
 }
 #endif  // DEBUG
 
-Definition::Definition(intptr_t deopt_id)
-    : Instruction(deopt_id),
-      range_(NULL),
-      type_(NULL),
-      temp_index_(-1),
-      ssa_temp_index_(-1),
-      input_use_list_(NULL),
-      env_use_list_(NULL),
-      constant_value_(NULL) {}
+Definition::Definition(intptr_t deopt_id) : Instruction(deopt_id) {}
 
 // A value in the constant propagation lattice.
 //    - non-constant sentinel
@@ -4115,26 +4107,14 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Array& arguments_descriptor =
         Array::Handle(zone, GetArgumentsDescriptor());
 
-    AbstractType& static_receiver_type = AbstractType::Handle(zone);
-
-#if defined(TARGET_ARCH_X64)
-    // Enable static type exactness tracking for the callsite by setting
-    // static receiver type on the ICData.
-    if (checked_argument_count() == 1) {
-      if (static_receiver_type_ != nullptr &&
-          static_receiver_type_->HasTypeClass()) {
-        const Class& cls =
-            Class::Handle(zone, static_receiver_type_->type_class());
-        if (cls.IsGeneric() && !cls.IsFutureOrClass()) {
-          static_receiver_type = static_receiver_type_->raw();
-        }
-      }
+    AbstractType& receivers_static_type = AbstractType::Handle(zone);
+    if (receivers_static_type_ != nullptr) {
+      receivers_static_type = receivers_static_type_->raw();
     }
-#endif
 
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
-        checked_argument_count(), static_receiver_type);
+        checked_argument_count(), receivers_static_type);
   } else {
     call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }
@@ -5063,13 +5043,15 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      intptr_t class_id,
                                      AlignmentType alignment,
                                      intptr_t deopt_id,
-                                     TokenPosition token_pos)
+                                     TokenPosition token_pos,
+                                     SpeculativeMode speculative_mode)
     : TemplateInstruction(deopt_id),
       emit_store_barrier_(emit_store_barrier),
       index_scale_(index_scale),
       class_id_(class_id),
       alignment_(StrengthenAlignment(class_id, alignment)),
-      token_pos_(token_pos) {
+      token_pos_(token_pos),
+      speculative_mode_(speculative_mode) {
   SetInputAt(kArrayPos, array);
   SetInputAt(kIndexPos, index);
   SetInputAt(kValuePos, value);

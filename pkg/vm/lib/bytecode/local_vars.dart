@@ -598,6 +598,16 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitBlockExpression(BlockExpression node) {
+    // Not using _visitWithScope as Block inside BlockExpression does not have
+    // a scope.
+    _enterScope(node);
+    visitList(node.body.statements, this);
+    node.value.accept(this);
+    _leaveScope();
+  }
+
+  @override
   visitAssertBlock(AssertBlock node) {
     _visitWithScope(node);
   }
@@ -1034,6 +1044,15 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitBlock(Block node) {
     _visit(node, scope: true);
+  }
+
+  @override
+  visitBlockExpression(BlockExpression node) {
+    // Not using _visit as Block inside BlockExpression does not have a scope.
+    _enterScope(node);
+    visitList(node.body.statements, this);
+    node.value.accept(this);
+    _leaveScope();
   }
 
   @override

@@ -538,8 +538,8 @@ Future<int> main() async {
           mainFile
               .writeAsStringSync("import 'lib.dart';  main() => print(foo);\n");
           inputStreamController.add('recompile ${mainFile.path} abc\n'
-              '${mainFile.uri}\n'
-              'abc\n'
+                  '${mainFile.uri}\n'
+                  'abc\n'
               .codeUnits);
           count += 1;
         } else if (count == 1) {
@@ -597,8 +597,8 @@ Future<int> main() async {
           inputStreamController.add('accept\n'.codeUnits);
           mainFile.writeAsStringSync("main() => print('foo');\n");
           inputStreamController.add('recompile ${mainFile.path} abc\n'
-              '${mainFile.uri}\n'
-              'abc\n'
+                  '${mainFile.uri}\n'
+                  'abc\n'
               .codeUnits);
           count += 1;
         } else if (count == 1) {
@@ -687,8 +687,8 @@ true
 
           file.writeAsStringSync("import 'lib.dart'; main() => foo();\n");
           inputStreamController.add('recompile ${file.path} abc\n'
-              '${file.path}\n'
-              'abc\n'
+                  '${file.path}\n'
+                  'abc\n'
               .codeUnits);
 
           count += 1;
@@ -757,8 +757,8 @@ true
           var file2 = new File('${tempDir.path}/bar.dart')..createSync();
           file2.writeAsStringSync("main() {}\n");
           inputStreamController.add('recompile ${file2.path} abc\n'
-              '${file2.path}\n'
-              'abc\n'
+                  '${file2.path}\n'
+                  'abc\n'
               .codeUnits);
         } else {
           expect(count, 1);
@@ -853,8 +853,8 @@ true
             inputStreamController.add('reset\n'.codeUnits);
 
             inputStreamController.add('recompile ${fileB.path} abc\n'
-                '${fileB.path}\n'
-                'abc\n'
+                    '${fileB.path}\n'
+                    'abc\n'
                 .codeUnits);
             break;
           case 1:
@@ -925,8 +925,8 @@ true
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { baz(); }\n");
             inputStreamController.add('recompile ${file2.uri} abc\n'
-                '${file2.uri}\n'
-                'abc\n'
+                    '${file2.uri}\n'
+                    'abc\n'
                 .codeUnits);
             break;
           case 1:
@@ -938,8 +938,8 @@ true
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { }\n");
             inputStreamController.add('recompile ${file2.uri} abc\n'
-                '${file2.uri}\n'
-                'abc\n'
+                    '${file2.uri}\n'
+                    'abc\n'
                 .codeUnits);
             break;
           case 2:
@@ -1132,7 +1132,7 @@ true
             inputStreamController.add('accept\n'.codeUnits);
             inputStreamController.add('reset\n'.codeUnits);
             inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                'x$count\n'
+                    'x$count\n'
                 .codeUnits);
           } else if (count == 1) {
             // Restart. Expect full kernel file.
@@ -1157,7 +1157,7 @@ true
             // Reload with no changes
             inputStreamController.add('accept\n'.codeUnits);
             inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                'x$count\n'
+                    'x$count\n'
                 .codeUnits);
           } else if (count == 2) {
             // Partial file. Expect to be empty.
@@ -1174,8 +1174,8 @@ true
             // Reload with 1 change
             inputStreamController.add('accept\n'.codeUnits);
             inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                '${dart2jsOtherFile.uri}\n'
-                'x$count\n'
+                    '${dart2jsOtherFile.uri}\n'
+                    'x$count\n'
                 .codeUnits);
           } else if (count == 3) {
             // Partial file. Expect to not be empty.

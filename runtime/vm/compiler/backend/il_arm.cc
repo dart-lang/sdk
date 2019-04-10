@@ -1856,10 +1856,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ strh(IP, field_nullability_operand);
       }
 
-      if (deopt == NULL) {
-        ASSERT(!compiler->is_optimizing());
-        __ b(&ok);
-      }
+      __ b(&ok);
     }
 
     if (deopt == NULL) {
@@ -1874,6 +1871,8 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Push(value_reg);
       __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
       __ Drop(2);  // Drop the field and the value.
+    } else {
+      __ b(fail);
     }
   } else {
     ASSERT(compiler->is_optimizing());

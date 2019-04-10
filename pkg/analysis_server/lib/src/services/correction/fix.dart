@@ -11,9 +11,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-/**
- * Return true if this [errorCode] is likely to have a fix associated with it.
- */
+/// Return true if this [errorCode] is likely to have a fix associated with it.
 bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
@@ -103,9 +101,14 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.unnecessary_this ||
             errorCode.name == LintNames.use_rethrow_when_possible));
 
-/**
- * The implementation of [DartFixContext].
- */
+/// An enumeration of quick fix kinds for the errors found in an analysis
+/// options file.
+class AnalysisOptionsFixKind {
+  static const REMOVE_SETTING =
+      const FixKind('REMOVE_SETTING', 50, "Remove '{0}'");
+}
+
+/// The implementation of [DartFixContext].
 class DartFixContextImpl implements DartFixContext {
   @override
   final ChangeWorkspace workspace;
@@ -119,9 +122,7 @@ class DartFixContextImpl implements DartFixContext {
   DartFixContextImpl(this.workspace, this.resolveResult, this.error);
 }
 
-/**
- * An enumeration of possible quick fix kinds.
- */
+/// An enumeration of quick fix kinds found in a Dart file.
 class DartFixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
@@ -304,6 +305,10 @@ class DartFixKind {
       'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, "Replace with ??=");
   static const REPLACE_WITH_IDENTIFIER =
       const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
+  static const REPLACE_WITH_IS_EMPTY =
+      const FixKind('REPLACE_WITH_IS_EMPTY', 50, "Replace with 'isEmpty'");
+  static const REPLACE_WITH_IS_NOT_EMPTY = const FixKind(
+      'REPLACE_WITH_IS_NOT_EMPTY', 50, "Replace with 'isNotEmpty'");
   static const REPLACE_WITH_NULL_AWARE = const FixKind(
       'REPLACE_WITH_NULL_AWARE',
       50,

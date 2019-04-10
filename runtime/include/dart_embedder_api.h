@@ -60,6 +60,7 @@ struct VmServiceConfiguration {
   // TODO(vegorov) document these ones.
   bool dev_mode;
   bool deterministic;
+  bool disable_auth_codes;
 };
 
 // Create and initialize vm-service isolate. This method should be used

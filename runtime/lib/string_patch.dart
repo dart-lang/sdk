@@ -224,8 +224,7 @@ abstract class _StringBase implements String {
     var s = _OneByteString._allocate(len);
 
     // Special case for _Uint8ArrayView.
-    final cid = ClassID.getID(charCodes);
-    if (identical(cid, ClassID.cidUint8ArrayView)) {
+    if (charCodes is Uint8List) {
       if (start >= 0 && len >= 0) {
         for (int i = 0; i < len; i++) {
           s._setAt(i, charCodes[start + i]);

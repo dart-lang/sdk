@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/nullability/conditional_discard.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -50,28 +51,19 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         // TODO(danrubel): Return something other than this
         // to indicate that we should insert a type for the declaration
         // that is missing a type reference.
-        ? new DecoratedType(DynamicTypeImpl.instance, ConstraintVariable.always)
+        ? new DecoratedType(
+            DynamicTypeImpl.instance, NullabilityNode.forInferredDynamicType())
         : type.accept(this);
   }
 
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var decoratedType = node.parameter.accept(this);
-    ConstraintVariable optional;
-    if (node.declaredElement.hasRequired) {
-      optional = null;
-    } else if (node.defaultValue != null) {
-      optional = ConstraintVariable.always;
-    } else {
-      optional = decoratedType.nullable;
-      _variables.recordPossiblyOptional(_source, node, optional);
+    if (node.declaredElement.hasRequired || node.defaultValue != null) {
+      return null;
     }
-    if (optional != null) {
-      _currentFunctionType
-              .namedParameterOptionalVariables[node.declaredElement.name] =
-          optional;
-    }
-    return null;
+    decoratedType.node.trackPossiblyOptional();
+    _variables.recordPossiblyOptional(_source, node, decoratedType.node);
   }
 
   @override
@@ -117,8 +109,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = decorateType(node.type);
     var declaredElement = node.declaredElement;
-    assert(type.nonNullIntent == null);
-    type.nonNullIntent = NonNullIntent(node.offset);
+    type.node.trackNonNullIntent(node.offset);
     _variables.recordDecoratedElementType(declaredElement, type);
     if (declaredElement.isNamed) {
       _currentFunctionType.namedParameters[declaredElement.name] = type;
@@ -133,7 +124,10 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(node != null); // TODO(paulberry)
     assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
-    if (type.isVoid) return DecoratedType(type, ConstraintVariable.always);
+    if (type.isVoid) {
+      return DecoratedType(
+          type, NullabilityNode.forTypeAnnotation(node.end, always: true));
+    }
     assert(
         type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
     var typeArguments = const <DecoratedType>[];
@@ -146,10 +140,11 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         assert(false); // TODO(paulberry): is this possible?
       }
     }
-    var nullable = node.question == null
-        ? TypeIsNullable(node.end)
-        : ConstraintVariable.always;
-    var decoratedType = DecoratedTypeAnnotation(type, nullable, node.end,
+    var decoratedType = DecoratedTypeAnnotation(
+        type,
+        NullabilityNode.forTypeAnnotation(node.end,
+            always: node.question != null),
+        node.end,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
     return decoratedType;
@@ -165,11 +160,11 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     var previousFunctionType = _currentFunctionType;
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
-    var functionType = DecoratedType(declaredElement.type, null,
+    var functionType = DecoratedType(
+        declaredElement.type, NullabilityNode.never,
         returnType: decoratedReturnType,
         positionalParameters: [],
-        namedParameters: {},
-        namedParameterOptionalVariables: {});
+        namedParameters: {});
     _currentFunctionType = functionType;
     try {
       parameters.accept(this);
@@ -194,11 +189,11 @@ abstract class VariableRecorder {
   void recordDecoratedTypeAnnotation(
       Source source, TypeAnnotation node, DecoratedTypeAnnotation type);
 
-  /// Associates a constraint variable with the question of whether the given
-  /// named parameter should be optional (should not have a `required`
+  /// Records that [node] is associated with the question of whether the named
+  /// [parameter] should be optional (should not have a `required`
   /// annotation added to it).
-  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
-      ConstraintVariable variable);
+  void recordPossiblyOptional(
+      Source source, DefaultFormalParameter parameter, NullabilityNode node);
 }
 
 /// Repository of constraint variables and decorated types corresponding to the

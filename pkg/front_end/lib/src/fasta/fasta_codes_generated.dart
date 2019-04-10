@@ -1102,6 +1102,36 @@ Message _withArgumentsConstEvalDuplicateKey(Constant _constant) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant
+            _constant)> templateConstEvalElementImplementsEqual = const Template<
+        Message Function(Constant _constant)>(
+    messageTemplate:
+        r"""The element '#constant' does not have a primitive operator '=='.""",
+    withArguments: _withArgumentsConstEvalElementImplementsEqual);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)>
+    codeConstEvalElementImplementsEqual =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalElementImplementsEqual",
+        templateConstEvalElementImplementsEqual,
+        analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalElementImplementsEqual(Constant _constant) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalElementImplementsEqual,
+      message:
+          """The element '${constant}' does not have a primitive operator '=='.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalFailedAssertion = messageConstEvalFailedAssertion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1207,6 +1237,40 @@ Message _withArgumentsConstEvalInvalidBinaryOperandType(
         'type': _type,
         'type2': _type2
       });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant _constant,
+        DartType
+            _type)> templateConstEvalInvalidEqualsOperandType = const Template<
+        Message Function(Constant _constant, DartType _type)>(
+    messageTemplate:
+        r"""Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'.""",
+    withArguments: _withArgumentsConstEvalInvalidEqualsOperandType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant, DartType _type)>
+    codeConstEvalInvalidEqualsOperandType =
+    const Code<Message Function(Constant _constant, DartType _type)>(
+  "ConstEvalInvalidEqualsOperandType",
+  templateConstEvalInvalidEqualsOperandType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidEqualsOperandType(
+    Constant _constant, DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  List<Object> typeParts = labeler.labelType(_type);
+  String constant = constantParts.join();
+  String type = typeParts.join();
+  return new Message(codeConstEvalInvalidEqualsOperandType,
+      message:
+          """Binary operator '==' requires receiver constant '${constant}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant, 'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1427,6 +1491,35 @@ const MessageCode messageConstEvalIterationInConstSet = const MessageCode(
     "ConstEvalIterationInConstSet",
     analyzerCodes: <String>["NON_CONSTANT_SET_ELEMENT"],
     message: r"""Iteration can't be used in a constant set.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Constant _constant)>
+    templateConstEvalKeyImplementsEqual =
+    const Template<Message Function(Constant _constant)>(
+        messageTemplate:
+            r"""The key '#constant' does not have a primitive operator '=='.""",
+        withArguments: _withArgumentsConstEvalKeyImplementsEqual);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant _constant)>
+    codeConstEvalKeyImplementsEqual =
+    const Code<Message Function(Constant _constant)>(
+        "ConstEvalKeyImplementsEqual", templateConstEvalKeyImplementsEqual,
+        analyzerCodes: <String>[
+      "CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalKeyImplementsEqual(Constant _constant) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalKeyImplementsEqual,
+      message:
+          """The key '${constant}' does not have a primitive operator '=='.""" +
+              labeler.originMessages,
+      arguments: {'constant': _constant});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2539,7 +2632,7 @@ Message _withArgumentsDuplicatedLibraryImportContext(String name) {
 const Template<Message Function(Token token)> templateDuplicatedModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""The modifier '#lexeme' was already specified.""",
-        tipTemplate: r"""Try removing all but one occurance of the modifier.""",
+        tipTemplate: r"""Try removing all but one occurence of the modifier.""",
         withArguments: _withArgumentsDuplicatedModifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2553,7 +2646,7 @@ Message _withArgumentsDuplicatedModifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeDuplicatedModifier,
       message: """The modifier '${lexeme}' was already specified.""",
-      tip: """Try removing all but one occurance of the modifier.""",
+      tip: """Try removing all but one occurence of the modifier.""",
       arguments: {'token': token});
 }
 
@@ -3159,7 +3252,7 @@ const Code<Null> codeExportAfterPart = messageExportAfterPart;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExportAfterPart = const MessageCode("ExportAfterPart",
     index: 75,
-    message: r"""Export directives must preceed part directives.""",
+    message: r"""Export directives must precede part directives.""",
     tip: r"""Try moving the export directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4415,7 +4508,7 @@ const Code<Null> codeImportAfterPart = messageImportAfterPart;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImportAfterPart = const MessageCode("ImportAfterPart",
     index: 10,
-    message: r"""Import directives must preceed part directives.""",
+    message: r"""Import directives must precede part directives.""",
     tip: r"""Try moving the import directives before the part directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6693,7 +6786,7 @@ const MessageCode messageMissingOperatorKeyword = const MessageCode(
     "MissingOperatorKeyword",
     index: 31,
     message:
-        r"""Operator declarations must be preceeded by the keyword 'operator'.""",
+        r"""Operator declarations must be preceded by the keyword 'operator'.""",
     tip: r"""Try adding the keyword 'operator'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9209,6 +9302,16 @@ Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
       tip: """Try removing the type arguments.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypeBeforeFactory = messageTypeBeforeFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypeBeforeFactory = const MessageCode(
+    "TypeBeforeFactory",
+    index: 97,
+    message: r"""Factory constructors cannot have a return type.""",
+    tip: r"""Try removing the type appearing before 'factory'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateTypeNotFound =

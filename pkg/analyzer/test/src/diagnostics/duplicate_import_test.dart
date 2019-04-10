@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -32,22 +31,6 @@ class A {}''');
     assertTestErrors([HintCode.DUPLICATE_IMPORT]);
   }
 
-  test_twoDuplicateImports() async {
-    newFile('/lib2.dart', content: r'''
-library L;
-import 'lib1.dart';
-import 'lib1.dart';
-import 'lib1.dart';
-A a;''');
-    newFile('/lib1.dart', content: r'''
-library lib1;
-class A {}''');
-
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
-  }
-
   test_importsHaveIdenticalShowHide() async {
     newFile('/lib2.dart', content: r'''
 library L;
@@ -63,23 +46,6 @@ class B {}''');
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
     assertTestErrors([HintCode.DUPLICATE_IMPORT]);
-  }
-
-  test_oneImportUsesAs() async {
-    newFile('/lib2.dart', content: r'''
-library L;
-import 'lib1.dart';
-import 'lib1.dart' as one;
-A a;
-one.A a2;''');
-
-    newFile('/lib1.dart', content: r'''
-library lib1;
-class A {}''');
-
-    await _resolveTestFile('/lib1.dart');
-    await _resolveTestFile('/lib2.dart');
-    assertNoTestErrors();
   }
 
   test_oneImportHasHide() async {
@@ -116,6 +82,39 @@ class B {}''');
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
     assertNoTestErrors();
+  }
+
+  test_oneImportUsesAs() async {
+    newFile('/lib2.dart', content: r'''
+library L;
+import 'lib1.dart';
+import 'lib1.dart' as one;
+A a;
+one.A a2;''');
+
+    newFile('/lib1.dart', content: r'''
+library lib1;
+class A {}''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib2.dart');
+    assertNoTestErrors();
+  }
+
+  test_twoDuplicateImports() async {
+    newFile('/lib2.dart', content: r'''
+library L;
+import 'lib1.dart';
+import 'lib1.dart';
+import 'lib1.dart';
+A a;''');
+    newFile('/lib1.dart', content: r'''
+library lib1;
+class A {}''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib2.dart');
+    assertTestErrors([HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
   }
 
   /// Resolve the test file at [path].

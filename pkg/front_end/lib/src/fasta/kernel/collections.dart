@@ -10,11 +10,12 @@ import 'package:kernel/ast.dart'
         DartType,
         Expression,
         MapEntry,
-        setParents,
+        NullLiteral,
         Statement,
-        transformList,
         TreeNode,
         VariableDeclaration,
+        setParents,
+        transformList,
         visitList;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -27,7 +28,12 @@ import 'package:kernel/visitor.dart'
         TreeVisitor,
         Visitor;
 
+import '../messages.dart'
+    show templateExpectedAfterButGot, templateExpectedButGot;
+
 import '../problems.dart' show getFileUri, unsupported;
+
+import '../type_inference/inference_helper.dart' show InferenceHelper;
 
 /// Mixin for spread and control-flow elements.
 ///
@@ -55,6 +61,11 @@ mixin ControlFlowElement on Expression {
 class SpreadElement extends Expression with ControlFlowElement {
   Expression expression;
   bool isNullAware;
+
+  /// The type of the elements of the collection that [expression] evaluates to.
+  ///
+  /// It is set during type inference and is used to add appropriate type casts
+  /// during the desugaring.
   DartType elementType;
 
   SpreadElement(this.expression, this.isNullAware) {
@@ -228,6 +239,11 @@ mixin ControlFlowMapEntry implements MapEntry {
 class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   Expression expression;
   bool isNullAware;
+
+  /// The type of the map entries of the map that [expression] evaluates to.
+  ///
+  /// It is set during type inference and is used to add appropriate type casts
+  /// during the desugaring.
   DartType entryType;
 
   SpreadMapEntry(this.expression, this.isNullAware) {
@@ -370,4 +386,91 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       problem?.parent = this;
     }
   }
+}
+
+Expression convertToElement(MapEntry entry, InferenceHelper helper) {
+  if (entry is SpreadMapEntry) {
+    return new SpreadElement(entry.expression, entry.isNullAware)
+      ..fileOffset = entry.expression.fileOffset;
+  }
+  if (entry is IfMapEntry) {
+    return new IfElement(
+        entry.condition,
+        convertToElement(entry.then, helper),
+        entry.otherwise == null
+            ? null
+            : convertToElement(entry.otherwise, helper))
+      ..fileOffset = entry.fileOffset;
+  }
+  if (entry is ForMapEntry) {
+    return new ForElement(entry.variables, entry.condition, entry.updates,
+        convertToElement(entry.body, helper))
+      ..fileOffset = entry.fileOffset;
+  }
+  if (entry is ForInMapEntry) {
+    return new ForInElement(entry.variable, entry.iterable, entry.prologue,
+        convertToElement(entry.body, helper), entry.problem,
+        isAsync: entry.isAsync)
+      ..fileOffset = entry.fileOffset;
+  }
+  return helper.desugarSyntheticExpression(helper.buildProblem(
+    templateExpectedButGot.withArguments(','),
+    entry.fileOffset,
+    1,
+  ));
+}
+
+bool isConvertibleToMapEntry(Expression element) {
+  if (element is SpreadElement) return true;
+  if (element is IfElement) {
+    return isConvertibleToMapEntry(element.then) &&
+        (element.otherwise == null ||
+            isConvertibleToMapEntry(element.otherwise));
+  }
+  if (element is ForElement) {
+    return isConvertibleToMapEntry(element.body);
+  }
+  if (element is ForInElement) {
+    return isConvertibleToMapEntry(element.body);
+  }
+  return false;
+}
+
+MapEntry convertToMapEntry(Expression element, InferenceHelper helper) {
+  if (element is SpreadElement) {
+    return new SpreadMapEntry(element.expression, element.isNullAware)
+      ..fileOffset = element.expression.fileOffset;
+  }
+  if (element is IfElement) {
+    return new IfMapEntry(
+        element.condition,
+        convertToMapEntry(element.then, helper),
+        element.otherwise == null
+            ? null
+            : convertToMapEntry(element.otherwise, helper))
+      ..fileOffset = element.fileOffset;
+  }
+  if (element is ForElement) {
+    return new ForMapEntry(element.variables, element.condition,
+        element.updates, convertToMapEntry(element.body, helper))
+      ..fileOffset = element.fileOffset;
+  }
+  if (element is ForInElement) {
+    return new ForInMapEntry(
+        element.variable,
+        element.iterable,
+        element.prologue,
+        convertToMapEntry(element.body, helper),
+        element.problem,
+        isAsync: element.isAsync)
+      ..fileOffset = element.fileOffset;
+  }
+  return new MapEntry(
+      helper.desugarSyntheticExpression(helper.buildProblem(
+        templateExpectedAfterButGot.withArguments(':'),
+        element.fileOffset,
+        // TODO(danrubel): what is the length of the expression?
+        1,
+      )),
+      new NullLiteral());
 }

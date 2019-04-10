@@ -138,6 +138,8 @@ template("build_gen_snapshot") {
     }
     deps = [ ":generate_abi_version_cc_file" ] + extra_deps
 
+    defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
+
     sources = [
       "address_sanitizer.cc",
       "builtin.cc",
@@ -846,37 +848,23 @@ dart_executable("dart_precompiled_runtime_for_linking") {
   target_type = "static_library"
 }
 
-executable("process_test") {
-  sources = [
-    "process_test.cc",
+dart_executable("dartaotruntime") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  extra_sources = [
+    "builtin.cc",
+    "snapshot_empty.cc",
+    "loader.cc",
+    "loader.h",
+    "gzip.cc",
+    "gzip.h",
+    "observatory_assets_empty.cc",
   ]
 }
 
-action("generate_snapshot_test_dat_file") {
-  snapshot_test_dat_file = "$root_gen_dir/snapshot_test.dat"
-  snapshot_test_in_dat_file = "../vm/snapshot_test_in.dat"
-  snapshot_test_dart_file = "../vm/snapshot_test.dart"
-  inputs = [
-    "../tools/create_string_literal.py",
-    snapshot_test_in_dat_file,
-    snapshot_test_dart_file,
-  ]
-
-  outputs = [
-    snapshot_test_dat_file,
-  ]
-
-  script = "../tools/create_string_literal.py"
-  args = [
-    "--output",
-    rebase_path(snapshot_test_dat_file),
-    "--input_cc",
-    rebase_path(snapshot_test_in_dat_file),
-    "--include",
-    "INTENTIONALLY_LEFT_BLANK",
-    "--var_name",
-    "INTENTIONALLY_LEFT_BLANK_TOO",
-    rebase_path(snapshot_test_dart_file),
+executable("process_test") {
+  sources = [
+    "process_test.cc",
   ]
 }
 
@@ -925,6 +913,10 @@ executable("run_vm_tests") {
     "..:dart_os_config",
     "..:dart_maybe_product_config",
   ]
+
+  if (dart_target_arch != "ia32") {
+    configs += [ "..:dart_precompiler_config" ]
+  }
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
   }
@@ -935,10 +927,9 @@ executable("run_vm_tests") {
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",
     ":generate_abi_version_cc_file",
-    ":generate_snapshot_test_dat_file",
     ":libdart_builtin",
     ":standalone_dart_io",
-    "..:libdart_jit",
+    "..:libdart_nosnapshot_with_precompiler",
     "//third_party/zlib",
   ]
   include_dirs = [

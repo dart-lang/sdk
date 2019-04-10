@@ -907,7 +907,9 @@ class BaseCoreDumpArchiver(object):
         "Existing files which *did not* match the pattern inside the search "
         "directory are are:\n  %s"
         % (missing_as_string, self._search_dir, '\n  '.join(other_files)))
-    if throw:
+    # TODO: Figure out why windows coredump generation does not work.
+    # See http://dartbug.com/36469
+    if throw and GuessOS() != 'win32':
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
   def _get_file_name(self, file):

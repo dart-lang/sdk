@@ -523,6 +523,10 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form '@literal'.
   bool get hasLiteral;
 
+  /// Return `true` if this element has an annotation of the form
+  /// `@optionalTypeArgs`.
+  bool get hasOptionalTypeArgs;
+
   /// Return `true` if this element has an annotation of the form `@override`.
   bool get hasOverride;
 
@@ -746,6 +750,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated member as requiring
   /// overriding methods to call super.
   bool get isMustCallSuper;
+
+  /// Return `true` if this annotation marks the associated type as
+  /// having "optional" type arguments.
+  bool get isOptionalTypeArgs;
 
   /// Return `true` if this annotation marks the associated method as being
   /// expected to override an inherited method.

@@ -22,7 +22,6 @@ config_import_corelib_test: CompileTimeError # we need a special platform.dill f
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
-control_flow_collections/*: Skip
 deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.
@@ -67,6 +66,9 @@ vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
+
+[ $builder_tag == dart2js_production && $compiler == dart2js ]
+control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
 
 [ $compiler == dart2js && $runtime == chrome ]
 field_override_optimization_test: RuntimeError
@@ -478,7 +480,6 @@ deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
 enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
 expect_test: RuntimeError, OK # Issue 13080

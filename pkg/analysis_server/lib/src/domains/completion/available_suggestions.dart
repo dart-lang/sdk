@@ -72,13 +72,7 @@ protocol.Notification createCompletionAvailableSuggestionsNotification(
 ) {
   return protocol.CompletionAvailableSuggestionsParams(
     changedLibraries: change.changed.map((library) {
-      return protocol.AvailableSuggestionSet(
-        library.id,
-        library.uriStr,
-        library.declarations.map((declaration) {
-          return _protocolAvailableSuggestion(declaration);
-        }).toList(),
-      );
+      return _protocolAvailableSuggestionSet(library);
     }).toList(),
     removedLibraries: change.removed,
   ).toNotification();
@@ -103,13 +97,13 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     Declaration declaration) {
   var label = declaration.name;
   if (declaration.kind == DeclarationKind.CONSTRUCTOR) {
-    label = declaration.name2;
+    label = declaration.parent.name;
     if (declaration.name.isNotEmpty) {
       label += '.${declaration.name}';
     }
   }
   if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
-    label = '${declaration.name2}.${declaration.name}';
+    label = '${declaration.parent.name}.${declaration.name}';
   }
 
   List<String> relevanceTags;
@@ -132,6 +126,23 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     requiredParameterCount: declaration.requiredParameterCount,
     relevanceTags: relevanceTags,
   );
+}
+
+protocol.AvailableSuggestionSet _protocolAvailableSuggestionSet(
+    Library library) {
+  var items = <protocol.AvailableSuggestion>[];
+
+  void addItem(Declaration declaration) {
+    var suggestion = _protocolAvailableSuggestion(declaration);
+    items.add(suggestion);
+    declaration.children.forEach(addItem);
+  }
+
+  for (var declaration in library.declarations) {
+    addItem(declaration);
+  }
+
+  return protocol.AvailableSuggestionSet(library.id, library.uriStr, items);
 }
 
 protocol.Element _protocolElement(Declaration declaration) {

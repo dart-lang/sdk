@@ -1407,34 +1407,28 @@ const char* ActivationFrame::ToCString() {
       ContextLevel());
 }
 
-void ActivationFrame::PrintToJSONObject(JSONObject* jsobj, bool full) {
+void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
   if (kind_ == kRegular) {
-    PrintToJSONObjectRegular(jsobj, full);
+    PrintToJSONObjectRegular(jsobj);
   } else if (kind_ == kAsyncCausal) {
-    PrintToJSONObjectAsyncCausal(jsobj, full);
+    PrintToJSONObjectAsyncCausal(jsobj);
   } else if (kind_ == kAsyncSuspensionMarker) {
-    PrintToJSONObjectAsyncSuspensionMarker(jsobj, full);
+    PrintToJSONObjectAsyncSuspensionMarker(jsobj);
   } else if (kind_ == kAsyncActivation) {
-    PrintToJSONObjectAsyncActivation(jsobj, full);
+    PrintToJSONObjectAsyncActivation(jsobj);
   } else {
     UNIMPLEMENTED();
   }
 }
 
-void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj, bool full) {
+void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
-  jsobj->AddProperty("function", function(), !full);
+  jsobj->AddProperty("function", function());
   jsobj->AddProperty("code", code());
-  if (full) {
-    // TODO(cutch): The old "full" script usage no longer fits
-    // in the world where we pass the script as part of the
-    // location.
-    jsobj->AddProperty("script", script, !full);
-  }
   {
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
@@ -1455,7 +1449,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj, bool full) {
         jsvar.AddProperty("type", "BoundVariable");
         var_name = String::ScrubName(var_name);
         jsvar.AddProperty("name", var_name.ToCString());
-        jsvar.AddProperty("value", var_value, !full);
+        jsvar.AddProperty("value", var_value);
         // Where was the variable declared?
         jsvar.AddProperty("declarationTokenPos", declaration_token_pos);
         // When the variable becomes visible to the scope.
@@ -1467,45 +1461,31 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj, bool full) {
   }
 }
 
-void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj,
-                                                   bool full) {
+void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj) {
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
   const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
-  jsobj->AddProperty("function", function(), !full);
+  jsobj->AddProperty("function", function());
   jsobj->AddProperty("code", code());
-  if (full) {
-    // TODO(cutch): The old "full" script usage no longer fits
-    // in the world where we pass the script as part of the
-    // location.
-    jsobj->AddProperty("script", script, !full);
-  }
 }
 
-void ActivationFrame::PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj,
-                                                             bool full) {
+void ActivationFrame::PrintToJSONObjectAsyncSuspensionMarker(
+    JSONObject* jsobj) {
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   jsobj->AddProperty("marker", "AsynchronousSuspension");
 }
 
-void ActivationFrame::PrintToJSONObjectAsyncActivation(JSONObject* jsobj,
-                                                       bool full) {
+void ActivationFrame::PrintToJSONObjectAsyncActivation(JSONObject* jsobj) {
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
   const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
-  jsobj->AddProperty("function", function(), !full);
+  jsobj->AddProperty("function", function());
   jsobj->AddProperty("code", code());
-  if (full) {
-    // TODO(cutch): The old "full" script usage no longer fits
-    // in the world where we pass the script as part of the
-    // location.
-    jsobj->AddProperty("script", script, !full);
-  }
 }
 
 static bool IsFunctionVisible(const Function& function) {

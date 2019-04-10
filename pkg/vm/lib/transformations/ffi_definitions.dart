@@ -360,6 +360,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   bool _hasAnnotation(Class node) {
+    // Pre constant 2018 update.
+    // TODO(dacoharkes): Remove pre constant 2018 after constants change landed.
     for (Expression e in node.annotations) {
       if (e is StaticGet) {
         if (e.target == structField) {
@@ -367,7 +369,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         }
       }
     }
-    return false;
+    Iterable<Class> postConstant2018 = node.annotations
+        .whereType<ConstantExpression>()
+        .map((expr) => expr.constant)
+        .whereType<InstanceConstant>()
+        .map((constant) => constant.classNode);
+    return postConstant2018.contains(structClass);
   }
 
   void _preventTreeShaking(Class node) {
@@ -386,11 +393,20 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   Iterable<NativeType> _getAnnotations(Field node) {
-    return node.annotations
+    Iterable<NativeType> preConstant2018 = node.annotations
         .whereType<ConstructorInvocation>()
         .map((expr) => expr.target.parent)
         .map((klass) => _getFieldType(klass))
         .where((type) => type != null);
+    Iterable<NativeType> postConstant2018 = node.annotations
+        .whereType<ConstantExpression>()
+        .map((expr) => expr.constant)
+        .whereType<InstanceConstant>()
+        .map((constant) => constant.classNode)
+        .map((klass) => _getFieldType(klass))
+        .where((type) => type != null);
+    // TODO(dacoharkes): Remove preConstant2018 after constants change landed.
+    return postConstant2018.followedBy(preConstant2018);
   }
 }
 

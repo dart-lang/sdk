@@ -118,6 +118,17 @@ abstract class Type extends TypeExpr {
       return new Type.nullableAny();
     } else if (dartType == const BottomType()) {
       return new Type.nullable(new Type.empty());
+    } else if (
+        // Recognize Null type and use a more precise representation which
+        // doesn't need type specialization.
+        // TODO(alexmarkov): figure out where exactly approximation happens if
+        // Null is represented as Nullable(Cone(Null)) instead of
+        // Nullable(Empty).
+        dartType is InterfaceType &&
+            dartType.classNode.name == 'Null' &&
+            dartType.classNode.enclosingLibrary.importUri.scheme == 'dart' &&
+            dartType.classNode.enclosingLibrary.importUri.path == 'core') {
+      return new Type.nullable(new Type.empty());
     }
     return new Type.nullable(new ConeType(dartType));
   }

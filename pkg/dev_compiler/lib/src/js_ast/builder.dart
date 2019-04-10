@@ -293,59 +293,99 @@ class JsBuilder {
     return Template.withStatementResult(ast);
   }
 
-  /// Creates a literal js string from [value].
+  /// Creates a literal js string from [value], escaped for use in a UTF-8
+  /// output.
   LiteralString escapedString(String value, [String quote = '"']) {
-    // Start by escaping the backslashes.
-    String escaped = value.replaceAll('\\', '\\\\');
+    int otherEscapes = 0;
+    int unpairedSurrogates = 0;
 
-    // Replace $ in template strings:
-    // http://www.ecma-international.org/ecma-262/6.0/#sec-template-literal-lexical-components
-    var quoteReplace = quote == '`' ? r'`$' : quote;
+    int quoteRune = quote.codeUnitAt(0);
 
-    // http://www.ecma-international.org/ecma-262/6.0/#sec-literals-string-literals
-    // > All code points may appear literally in a string literal except for the
-    // > closing quote code points, U+005C (REVERSE SOLIDUS),
-    // > U+000D (CARRIAGE RETURN), U+2028 (LINE SEPARATOR),
-    // > U+2029 (PARAGRAPH SEPARATOR), and U+000A (LINE FEED).
-    var re = RegExp('[\n\r$quoteReplace\b\f\t\v\u2028\u2029]');
-    escaped = escaped.replaceAllMapped(re, (m) {
-      switch (m.group(0)) {
-        case "\n":
-          return r"\n";
-        case "\r":
-          return r"\r";
-        case "\u2028":
-          return r"\u2028";
-        case "\u2029":
-          return r"\u2029";
-        // Quotes and $ are only replaced if they conflict with the containing
-        // quote, see regex above.
-        case '"':
-          return r'\"';
-        case "'":
-          return r"\'";
-        case "`":
-          return r"\`";
-        case r"$":
-          return r"\$";
-        // TODO(jmesserly): these don't need to be escaped for correctness,
-        // but they are conventionally escaped.
-        case "\b":
-          return r"\b";
-        case "\t":
-          return r"\t";
-        case "\f":
-          return r"\f";
-        case "\v":
-          return r"\v";
+    for (int rune in value.runes) {
+      if (rune == charCodes.$BACKSLASH) {
+        ++otherEscapes;
+      } else if (rune == charCodes.$LF ||
+          rune == charCodes.$CR ||
+          rune == charCodes.$LS ||
+          rune == charCodes.$PS) {
+        // Line terminators.
+        ++otherEscapes;
+      } else if (rune == charCodes.$BS ||
+          rune == charCodes.$TAB ||
+          rune == charCodes.$VTAB ||
+          rune == charCodes.$FF) {
+        ++otherEscapes;
+      } else if (rune == quoteRune ||
+          rune == charCodes.$$ && quoteRune == charCodes.$BACKPING) {
+        ++otherEscapes;
+      } else if (_isUnpairedSurrogate(rune)) {
+        ++unpairedSurrogates;
       }
-      throw 'unreachable';
-    });
-    LiteralString result = LiteralString('$quote$escaped$quote');
-    // We don't escape quotes of a different style under the assumption that the
-    // string is wrapped into quotes. Verify that assumption.
-    assert(result.value.codeUnitAt(0) == quote.codeUnitAt(0));
-    return result;
+    }
+
+    if (otherEscapes == 0 && unpairedSurrogates == 0) {
+      return string(value, quote);
+    }
+
+    var sb = new StringBuffer();
+
+    for (int rune in value.runes) {
+      String escape = _irregularEscape(rune, quote);
+      if (escape != null) {
+        sb.write(escape);
+        continue;
+      }
+      if (rune == charCodes.$LS ||
+          rune == charCodes.$PS ||
+          _isUnpairedSurrogate(rune)) {
+        if (rune < 0x100) {
+          sb.write(r'\x');
+          sb.write(rune.toRadixString(16).padLeft(2, '0'));
+        } else if (rune < 0x10000) {
+          sb.write(r'\u');
+          sb.write(rune.toRadixString(16).padLeft(4, '0'));
+        } else {
+          sb.write(r'\u{');
+          sb.write(rune.toRadixString(16));
+          sb.write('}');
+        }
+      } else {
+        sb.writeCharCode(rune);
+      }
+    }
+
+    return string(sb.toString(), quote);
+  }
+
+  static bool _isUnpairedSurrogate(int code) => (code & 0xFFFFF800) == 0xD800;
+
+  static String _irregularEscape(int code, String quote) {
+    switch (code) {
+      case charCodes.$SQ:
+        return quote == "'" ? r"\'" : "'";
+      case charCodes.$DQ:
+        return quote == '"' ? r'\"' : '"';
+      case charCodes.$BACKPING:
+        return quote == '`' ? r'\`' : '`';
+      case charCodes.$$:
+        // Escape $ inside of template strings.
+        return quote == '`' ? r'\$' : r'$';
+      case charCodes.$BACKSLASH:
+        return r'\\';
+      case charCodes.$BS:
+        return r'\b';
+      case charCodes.$TAB:
+        return r'\t';
+      case charCodes.$LF:
+        return r'\n';
+      case charCodes.$VTAB:
+        return r'\v';
+      case charCodes.$FF:
+        return r'\f';
+      case charCodes.$CR:
+        return r'\r';
+    }
+    return null;
   }
 
   /// Creates a literal js string from [value].

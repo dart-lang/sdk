@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=appjit_bytecode_simple_test_body.dart
+
 // Verify that app-jit snapshot contains dependencies between classes and CHA
 // optimized code.
 
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'snapshot_test_helper.dart';
 
-Future<void> main() => runAppJitBytecodeTest();
+Future<void> main() => runAppJitBytecodeTest(
+    Platform.script.resolve('appjit_bytecode_simple_test_body.dart'));

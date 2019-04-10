@@ -6,11 +6,16 @@ import 'dart:math' show max;
 
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 
 /// A general task for performing a fix.
 abstract class FixCodeTask {
   /// Number of times [processUnit] should be called for each compilation unit.
   int get numPhases;
+
+  /// [processPackage] is called once for each package
+  /// before [processUnit] is called for any compilation unit in any package.
+  Future<void> processPackage(Folder pkgFolder);
 
   /// [processUnit] is called for each phase and compilation unit.
   ///
@@ -41,6 +46,12 @@ mixin FixCodeProcessor {
   Future<void> processCodeTasks(int phase, ResolvedUnitResult result) async {
     for (FixCodeTask task in _codeTasks) {
       await task.processUnit(phase, result);
+    }
+  }
+
+  void processPackage(Folder pkgFolder) async {
+    for (FixCodeTask task in _codeTasks) {
+      await task.processPackage(pkgFolder);
     }
   }
 

@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.25.0';
+const String PROTOCOL_VERSION = '1.26.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -201,6 +201,7 @@ const String EDIT_REQUEST_GET_STATEMENT_COMPLETION_OFFSET = 'offset';
 const String EDIT_REQUEST_IMPORT_ELEMENTS = 'edit.importElements';
 const String EDIT_REQUEST_IMPORT_ELEMENTS_ELEMENTS = 'elements';
 const String EDIT_REQUEST_IMPORT_ELEMENTS_FILE = 'file';
+const String EDIT_REQUEST_IMPORT_ELEMENTS_OFFSET = 'offset';
 const String EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE =
     'edit.isPostfixCompletionApplicable';
 const String EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE_FILE = 'file';

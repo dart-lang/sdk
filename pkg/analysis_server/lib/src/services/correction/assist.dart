@@ -88,8 +88,16 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorFieldParameter',
       30,
       "Convert to field formal parameter");
+  static const CONVERT_TO_FOR_ELEMENT = const AssistKind(
+      'dart.assist.convertToForElement', 30, "Convert to a 'for' element",
+      associatedErrorCodes: <String>[
+        'prefer_for_elements_to_map_fromIterable'
+      ]);
   static const CONVERT_TO_IF_ELEMENT = const AssistKind(
-      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element");
+      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element",
+      associatedErrorCodes: <String>[
+        'prefer_if_elements_to_conditional_expressions'
+      ]);
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal",
       associatedErrorCodes: <String>['prefer_int_literals']);
@@ -122,7 +130,8 @@ class DartAssistKind {
       "Convert to single quoted string",
       associatedErrorCodes: <String>['prefer_single_quotes']);
   static const CONVERT_TO_SPREAD = const AssistKind(
-      'dart.assist.convertToSpread', 30, "Convert to a spread");
+      'dart.assist.convertToSpread', 30, "Convert to a spread",
+      associatedErrorCodes: <String>['spread_collections']);
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =

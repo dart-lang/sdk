@@ -21,6 +21,14 @@ namespace kernel {
 
 #define Z (zone_)
 
+// Returns static type of the parameter if it can be trusted (was type checked
+// by caller) and dynamic otherwise.
+static CompileType ParameterType(LocalVariable* param) {
+  return param->was_type_checked_by_caller()
+             ? CompileType::FromAbstractType(param->type())
+             : CompileType::Dynamic();
+}
+
 bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
     const Function& function) {
   return !function.HasOptionalParameters() &&
@@ -182,7 +190,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     copy_args_prologue += LoadLocal(optional_count_var);
     copy_args_prologue += LoadFpRelativeSlot(
         kWordSize * (compiler::target::frame_layout.param_end_from_fp +
-                     num_fixed_params - param));
+                     num_fixed_params - param),
+        ParameterType(ParameterVariable(param)));
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
     copy_args_prologue += Drop();
@@ -202,7 +211,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       good += LoadLocal(optional_count_var);
       good += LoadFpRelativeSlot(
           kWordSize * (compiler::target::frame_layout.param_end_from_fp +
-                       num_fixed_params - param));
+                       num_fixed_params - param),
+          ParameterType(ParameterVariable(param)));
       good += StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       good += Drop();
 
@@ -300,7 +310,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(
-            kWordSize * compiler::target::frame_layout.param_end_from_fp);
+            kWordSize * compiler::target::frame_layout.param_end_from_fp,
+            ParameterType(ParameterVariable(opt_param_position[i])));
 
         // Copy down.
         good += StoreLocalRaw(TokenPosition::kNoSource,
@@ -405,7 +416,8 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   store_type_args += LoadArgDescriptor();
   store_type_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
   store_type_args += LoadFpRelativeSlot(
-      kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp));
+      kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp),
+      CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
 

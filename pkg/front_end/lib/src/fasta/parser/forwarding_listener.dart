@@ -224,6 +224,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginThenControlFlow(Token token) {
+    listener?.beginThenControlFlow(token);
+  }
+
+  @override
   void beginIfStatement(Token token) {
     listener?.beginIfStatement(token);
   }

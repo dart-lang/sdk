@@ -5,9 +5,13 @@
 #ifndef RUNTIME_VM_CONSTANTS_ARM64_H_
 #define RUNTIME_VM_CONSTANTS_ARM64_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_arm64.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
 
-namespace dart {
+namespace arch_arm64 {
 
 enum Register {
   R0 = 0,
@@ -107,7 +111,7 @@ const FpuRegister kNoFpuRegister = kNoVRegister;
 // Register aliases.
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
-const Register PP = R27;   // Caches object pool pointer in generated code.
+const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
@@ -397,10 +401,7 @@ enum SystemOp {
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
   CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 | B6 | B4 |
-          B3 |
-          B2 |
-          B1 |
-          B0,
+          B3 | B2 | B1 | B0,
 };
 
 // C3.2.5
@@ -1186,13 +1187,13 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
-}  // namespace dart
+}  // namespace arch_arm64
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM64_H_

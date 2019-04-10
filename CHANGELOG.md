@@ -1,3 +1,21 @@
+## 2.2.1-dev.4.0
+
+### Dart VM
+
+* The VM service now requires an authentication code by default. This behavior
+  can be disabled by providing the `--disable-service-auth-codes` flag.
+
+### Tool Changes
+
+#### Linter
+
+The Linter was updated to `0.1.85` which includes the following changes:
+
+* (**BREAKING**) renamed `spread_collections` to `prefer_spread_collections`
+* new lint: `prefer_for_elements_to_map_fromIterable`
+* new lint: `prefer_if_elements_to_conditional_expressions`
+* new lint: `diagnostic_describe_all_properties`
+
 ## 2.2.1-dev.3.1
 
 * Cherry-pick 245576a096a2da54ef21d664d37d1f50f6f8dbb7 to dev
@@ -12,6 +30,10 @@
 *   Improve indentation of adjacent strings in argument lists.
 
 ## 2.2.1-dev.3.0
+
+### Dart VM
+
+* Support for deprecated flags '-c' and '--checked' has been removed
 
 ### Core library changes
 
@@ -33,13 +55,10 @@
 The Linter was updated to `0.1.83` which includes the following changes:
 
 * updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
-* updated SDK constraint to `2.2.0`
 * miscellaneous rule documentation fixes
-* (internal) updated sources to use Set literals
 * fixed NPE in `avoid_shadowing_type_parameters`
 * added linter version numbering for use in analyzer summaries
 * fixed type utilities to handle inheritance cycles
-* (internal) changes to adopt new `package:analyzer` APIs
 * fixed `unnecessary_parenthesis` false positives
 
 ## 2.2.1-dev.2.0

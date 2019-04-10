@@ -163,6 +163,11 @@ class AllocatorData {
   final Map<KConstructor, Initializer> initializers = {};
 
   AllocatorData(this.initialValue);
+
+  @override
+  String toString() =>
+      'AllocatorData(initialValue=${initialValue?.toStructuredText()},'
+      'initializers=$initializers)';
 }
 
 enum InitializerKind {
@@ -284,6 +289,8 @@ class JFieldAnalysis {
               }
             }
 
+            memberUsage.initialConstants.forEach(includeInitialValue);
+
             bool inAllConstructors = true;
             for (KConstructor constructor in classData.constructors) {
               if (isTooComplex) {
@@ -292,7 +299,10 @@ class JFieldAnalysis {
 
               MemberUsage constructorUsage =
                   closedWorld.liveMemberUsage[constructor];
-              if (constructorUsage == null) return;
+              if (constructorUsage == null) {
+                // This constructor isn't called.
+                continue;
+              }
               ParameterStructure invokedParameters =
                   closedWorld.annotationsData.hasNoElision(constructor)
                       ? constructor.parameterStructure

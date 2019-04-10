@@ -21,6 +21,22 @@ class MustCallSuperTest extends DriverResolutionTest with PackageMixin {
     addMetaPackage();
   }
 
+  test_containsSuperCall() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C extends A {
+  @override
+  void a() {
+    super.a(); // OK
+  }
+}
+''');
+  }
+
   test_fromExtendingClass() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -68,22 +84,6 @@ class D extends C {
   void a() {}
 }
 ''', [HintCode.MUST_CALL_SUPER]);
-  }
-
-  test_containsSuperCall() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class A {
-  @mustCallSuper
-  void a() {}
-}
-class C extends A {
-  @override
-  void a() {
-    super.a(); // OK
-  }
-}
-''');
   }
 
   test_overriddenWithFuture() async {

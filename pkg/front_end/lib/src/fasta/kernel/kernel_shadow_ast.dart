@@ -42,11 +42,9 @@ import '../fasta_codes.dart'
         messageVoidExpression,
         noLength,
         templateCantInferTypeDueToCircularity,
-        templateExpectedButGot,
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
-        templateInvalidAssignment,
         templateSpreadElementTypeMismatch,
         templateSpreadMapEntryElementKeyTypeMismatch,
         templateSpreadMapEntryElementValueTypeMismatch,
@@ -91,7 +89,8 @@ import 'collections.dart'
         IfElement,
         IfMapEntry,
         SpreadElement,
-        SpreadMapEntry;
+        SpreadMapEntry,
+        convertToElement;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 

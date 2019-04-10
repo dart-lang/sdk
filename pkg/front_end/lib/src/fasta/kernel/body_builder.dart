@@ -68,14 +68,10 @@ import '../type_inference/type_promotion.dart'
 
 import 'collections.dart'
     show
-        ForElement,
-        ForInElement,
-        ForInMapEntry,
-        ForMapEntry,
-        IfElement,
-        IfMapEntry,
         SpreadElement,
-        SpreadMapEntry;
+        SpreadMapEntry,
+        convertToMapEntry,
+        isConvertibleToMapEntry;
 
 import 'constness.dart' show Constness;
 
@@ -914,10 +910,22 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   void resolveRedirectingFactoryTargets() {
     for (StaticInvocation invocation in redirectingFactoryInvocations) {
-      // If the invocation was invalid, it has already been desugared into
-      // an exception throwing expression. There is nothing to resolve anymore.
-      if (invocation.parent == null) {
-        continue;
+      // If the invocation was invalid, it or its parent has already been
+      // desugared into an exception throwing expression.  There is nothing to
+      // resolve anymore.  Note that in the case where the invocation's parent
+      // was invalid, type inference won't reach the invocation node and won't
+      // set its inferredType field.  If type inference is disabled, reach to
+      // the outtermost parent to check if the node is a dead code.
+      if (invocation.parent == null) continue;
+      if (_typeInferrer != null) {
+        if (invocation is FactoryConstructorInvocationJudgment &&
+            invocation.inferredType == null) {
+          continue;
+        }
+      } else {
+        TreeNode parent = invocation.parent;
+        while (parent is! Component && parent != null) parent = parent.parent;
+        if (parent == null) continue;
       }
 
       Procedure initialTarget = invocation.target;
@@ -2308,10 +2316,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
-    if (entry == invalidCollectionElement) {
-      push(invalidCollectionElement);
-      return;
-    }
     transformCollections = true;
     List<VariableDeclaration> variables =
         buildVariableDeclarations(variableOrExpression);
@@ -2545,7 +2549,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (setOrMapEntries[i] is MapEntry) {
           mapEntries[i] = setOrMapEntries[i];
         } else {
-          mapEntries[i] = convertToMapEntry(setOrMapEntries[i]);
+          mapEntries[i] = convertToMapEntry(setOrMapEntries[i], this);
         }
       }
       buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);
@@ -2570,56 +2574,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
     push(forest.literalNull(token));
-  }
-
-  bool isConvertibleToMapEntry(Expression element) {
-    if (element is SpreadElement) return true;
-    if (element is IfElement) {
-      return isConvertibleToMapEntry(element.then) &&
-          (element.otherwise == null ||
-              isConvertibleToMapEntry(element.otherwise));
-    }
-    if (element is ForElement) {
-      return isConvertibleToMapEntry(element.body);
-    }
-    if (element is ForInElement) {
-      return isConvertibleToMapEntry(element.body);
-    }
-    return false;
-  }
-
-  MapEntry convertToMapEntry(Expression element) {
-    if (element is SpreadElement) {
-      return new SpreadMapEntry(element.expression, element.isNullAware)
-        ..fileOffset = element.expression.fileOffset;
-    }
-    if (element is IfElement) {
-      return new IfMapEntry(
-          element.condition,
-          convertToMapEntry(element.then),
-          element.otherwise == null
-              ? null
-              : convertToMapEntry(element.otherwise))
-        ..fileOffset = element.fileOffset;
-    }
-    if (element is ForElement) {
-      return new ForMapEntry(element.variables, element.condition,
-          element.updates, convertToMapEntry(element.body))
-        ..fileOffset = element.fileOffset;
-    }
-    if (element is ForInElement) {
-      return new ForInMapEntry(element.variable, element.iterable,
-          element.prologue, convertToMapEntry(element.body), element.problem)
-        ..fileOffset = element.fileOffset;
-    }
-    return new MapEntry(
-        desugarSyntheticExpression(buildProblem(
-          fasta.templateExpectedAfterButGot.withArguments(':'),
-          element.fileOffset,
-          // TODO(danrubel): what is the length of the expression?
-          1,
-        )),
-        new NullLiteral());
   }
 
   void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
@@ -3726,13 +3680,25 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         token.next, token.offset, Constness.explicitConst);
   }
 
+  @override
   void beginIfControlFlow(Token ifToken) {
     // TODO(danrubel): consider removing this when control flow support is added
     // if the ifToken is not needed for error reporting
     push(ifToken);
   }
 
-  void handleElseControlFlow(Token elseToken) {}
+  @override
+  void beginThenControlFlow(Token token) {
+    Expression condition = popForValue();
+    enterThenForTypePromotion(condition);
+    push(condition);
+    super.beginThenControlFlow(token);
+  }
+
+  @override
+  void handleElseControlFlow(Token elseToken) {
+    typePromoter?.enterElse();
+  }
 
   @override
   void endIfControlFlow(Token token) {
@@ -3740,6 +3706,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     var entry = pop();
     var condition = pop(); // parenthesized expression
     Token ifToken = pop();
+    typePromoter?.enterElse();
+    typePromoter?.exitConditional();
     if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled
@@ -3747,10 +3715,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           fasta.templateUnexpectedToken.withArguments(ifToken),
           ifToken,
           ifToken);
-      push(invalidCollectionElement);
-      return;
-    }
-    if (entry == invalidCollectionElement) {
       push(invalidCollectionElement);
       return;
     }
@@ -3769,6 +3733,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     var thenEntry = pop(); // then entry
     var condition = pop(); // parenthesized expression
     Token ifToken = pop();
+    typePromoter?.exitConditional();
     if (!library.loader.target.enableControlFlowCollections) {
       // TODO(danrubel): Report a more user friendly error message
       // when an experiment is not enabled
@@ -3776,11 +3741,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           fasta.templateUnexpectedToken.withArguments(ifToken),
           ifToken,
           ifToken);
-      push(invalidCollectionElement);
-      return;
-    }
-    if (thenEntry == invalidCollectionElement ||
-        elseEntry == invalidCollectionElement) {
       push(invalidCollectionElement);
       return;
     }
@@ -3796,7 +3756,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             new SpreadMapEntry(elseEntry.expression, elseEntry.isNullAware),
             ifToken));
       } else {
-        push(invalidCollectionElement);
+        int offset = elseEntry is Expression
+            ? elseEntry.fileOffset
+            : offsetForToken(ifToken);
+        push(new MapEntry(
+            desugarSyntheticExpression(buildProblem(
+                fasta.templateExpectedAfterButGot.withArguments(':'),
+                offset,
+                1)),
+            new NullLiteral())
+          ..fileOffset = offsetForToken(ifToken));
       }
     } else if (elseEntry is MapEntry) {
       if (thenEntry is SpreadElement) {
@@ -3806,7 +3775,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             elseEntry,
             ifToken));
       } else {
-        push(invalidCollectionElement);
+        int offset = thenEntry is Expression
+            ? thenEntry.fileOffset
+            : offsetForToken(ifToken);
+        push(new MapEntry(
+            desugarSyntheticExpression(buildProblem(
+                fasta.templateExpectedAfterButGot.withArguments(':'),
+                offset,
+                1)),
+            new NullLiteral())
+          ..fileOffset = offsetForToken(ifToken));
       }
     } else {
       push(forest.ifElement(
@@ -4134,10 +4112,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           fasta.templateUnexpectedToken.withArguments(forToken),
           forToken,
           forToken);
-      push(invalidCollectionElement);
-      return;
-    }
-    if (entry == invalidCollectionElement) {
       push(invalidCollectionElement);
       return;
     }

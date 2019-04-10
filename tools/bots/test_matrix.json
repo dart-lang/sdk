@@ -266,6 +266,7 @@
     }},
     "dart2js-production-(linux|mac|win)-d8": {
       "options": {
+        "builder-tag": "dart2js_production",
         "use-sdk": true,
         "dart2js-options": ["-O3"]
     }},
@@ -323,7 +324,7 @@
     "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
-        "vm-options": ["--optimization-counter-threshold=5"]
+        "vm-options": ["--optimization-counter-threshold=5", "--random-seed=__RANDOM__"]
     }},
     "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
@@ -441,12 +442,7 @@
         {
           "name": "vm mixed mode tests",
           "arguments": [
-            "-ndartkb-mixed-linux-${mode}-${arch}",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2",
-            "ffi"
+            "-ndartkb-mixed-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -454,12 +450,7 @@
         {
           "name": "vm bytecode compiler tests",
           "arguments": [
-            "-ndartkb-compile-linux-${mode}-${arch}",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2",
-            "ffi"
+            "-ndartkb-compile-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -467,12 +458,7 @@
         {
           "name": "vm interpreter tests",
           "arguments": [
-            "-ndartkb-interpret-linux-${mode}-${arch}",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2",
-            "ffi"
+            "-ndartkb-interpret-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -1328,6 +1314,18 @@
                         "--mode=release", "create_sdk"]
         },
         {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64,arm,arm64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64,arm,arm64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
+        },
+        {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
         },
@@ -1358,6 +1356,18 @@
           "script": "tools/build.py",
           "arguments": ["--arch=ia32,x64",
                         "--mode=release", "create_sdk"]
+        },
+        {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
         },
         {
           "name": "upload sdk",
@@ -1714,14 +1724,23 @@
           "arguments": ["noop"]
         },
         {
-          "name": "remove out directory to do a clean build",
+          "name": "remove out directory to do a clean linux-ia32 build",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": ["clean"]
         },
         {
           "name": "build linux-ia32 for benchmarking",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=ia32",
+            "create_sdk",
+            "runtime"]
+        },
+        {
+          "name": "archive linux-ia32 for benchmarking",
           "script": "tools/bots/try_benchmarks.sh",
-          "arguments": ["linux-ia32-build"]
+          "arguments": ["linux-ia32-archive"]
         },
         {
           "name": "try linux-ia32 benchmarking",
@@ -1729,14 +1748,69 @@
           "arguments": ["linux-ia32-benchmark"]
         },
         {
-          "name": "build linux-x64 for benchmarking",
+          "name": "remove out directory to do a clean linux-x64 build",
           "script": "tools/bots/try_benchmarks.sh",
-          "arguments": ["linux-x64-build"]
+          "arguments": ["clean"]
+        },
+        {
+          "name": "build linux-x64 for benchmarking",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk",
+            "runtime",
+            "gen_snapshot",
+            "dart_precompiled_runtime"]
+        },
+        {
+          "name": "build linux-x64 simdbc for benchmarking",
+          "script": "tools/build.py",
+          "arguments": ["--mode=release", "--arch=simdbc64", "runtime"]
+        },
+        {
+          "name": "archive linux-x64 for benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-archive"]
         },
         {
           "name": "try linux-x64 benchmarking",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": ["linux-x64-benchmark"]
+        },
+        {
+          "name": "remove out directory to do a clean linux-x64-bytecode build",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["clean"]
+        },
+        {
+          "name": "generate ninja for linux-x64-bytecode",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "--bytecode"]
+        },
+        {
+          "name": "build linux-x64-bytecode for benchmarking",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk",
+            "runtime",
+            "gen_snapshot",
+            "dart_precompiled_runtime"]
+        },
+        {
+          "name": "archive linux-x64-bytecode for benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-bytecode-archive"]
+        },
+        {
+          "name": "try linux-x64-bytecode benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-bytecode-benchmark"]
         }
       ]
     },

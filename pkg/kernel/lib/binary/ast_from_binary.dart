@@ -1534,6 +1534,26 @@ class BinaryBuilder {
         return new MapConcatenation(readExpressionList(),
             keyType: keyType, valueType: valueType)
           ..fileOffset = offset;
+      case Tag.InstanceCreation:
+        int offset = readOffset();
+        Reference classReference = readClassReference();
+        List<DartType> typeArguments = readDartTypeList();
+        int fieldValueCount = readUInt();
+        Map<Reference, Expression> fieldValues = <Reference, Expression>{};
+        for (int i = 0; i < fieldValueCount; i++) {
+          final Reference fieldRef =
+              readCanonicalNameReference().getReference();
+          final Expression value = readExpression();
+          fieldValues[fieldRef] = value;
+        }
+        int assertCount = readUInt();
+        List<AssertStatement> asserts = new List<AssertStatement>(assertCount);
+        for (int i = 0; i < assertCount; i++) {
+          asserts[i] = readStatement();
+        }
+        return new InstanceCreation(
+            classReference, typeArguments, fieldValues, asserts)
+          ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
         return new IsExpression(readExpression(), readDartType())

@@ -776,8 +776,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.SET:
         useSet.addAll(usage.write());
         break;
-      case StaticUseKind.INIT:
+      case StaticUseKind.FIELD_INIT:
         useSet.addAll(usage.init());
+        break;
+      case StaticUseKind.FIELD_CONSTANT_INIT:
+        useSet.addAll(usage.constantInit(staticUse.constant));
         break;
       case StaticUseKind.INVOKE:
         registerStaticInvocation(staticUse);

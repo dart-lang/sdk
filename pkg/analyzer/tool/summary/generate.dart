@@ -2,21 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This file contains code to generate serialization/deserialization logic for
- * summaries based on an "IDL" description of the summary format (written in
- * stylized Dart).
- *
- * For each class in the "IDL" input, two corresponding classes are generated:
- * - A class with the same name which represents deserialized summary data in
- *   memory.  This class has read-only semantics.
- * - A "builder" class which can be used to generate serialized summary data.
- *   This class has write-only semantics.
- *
- * Each of the "builder" classes has a single `finish` method which writes
- * the entity being built into the given FlatBuffer and returns the `Offset`
- * reference to it.
- */
+/// This file contains code to generate serialization/deserialization logic for
+/// summaries based on an "IDL" description of the summary format (written in
+/// stylized Dart).
+///
+/// For each class in the "IDL" input, two corresponding classes are generated:
+/// - A class with the same name which represents deserialized summary data in
+///   memory.  This class has read-only semantics.
+/// - A "builder" class which can be used to generate serialized summary data.
+///   This class has write-only semantics.
+///
+/// Each of the "builder" classes has a single `finish` method which writes
+/// the entity being built into the given FlatBuffer and returns the `Offset`
+/// reference to it.
 import 'dart:convert';
 import 'dart:io';
 
@@ -60,19 +58,13 @@ class _CodeGenerator {
   static const String _throwDeprecated =
       "throw new UnimplementedError('attempt to access deprecated field')";
 
-  /**
-   * Buffer in which generated code is accumulated.
-   */
+  /// Buffer in which generated code is accumulated.
   final StringBuffer _outBuffer = new StringBuffer();
 
-  /**
-   * Current indentation level.
-   */
+  /// Current indentation level.
   String _indentation = '';
 
-  /**
-   * Semantic model of the "IDL" input file.
-   */
+  /// Semantic model of the "IDL" input file.
   idlModel.Idl _idl;
 
   _CodeGenerator(String idlPath) {
@@ -90,10 +82,8 @@ class _CodeGenerator {
     checkIdl();
   }
 
-  /**
-   * Perform basic sanity checking of the IDL (over and above that done by
-   * [extractIdl]).
-   */
+  /// Perform basic sanity checking of the IDL (over and above that done by
+  /// [extractIdl]).
   void checkIdl() {
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
       if (cls.fileIdentifier != null) {
@@ -143,10 +133,8 @@ class _CodeGenerator {
     });
   }
 
-  /**
-   * Generate a string representing the Dart type which should be used to
-   * represent [type] when deserialized.
-   */
+  /// Generate a string representing the Dart type which should be used to
+  /// represent [type] when deserialized.
   String dartType(idlModel.FieldType type) {
     String baseType = idlPrefix(type.typeName);
     if (type.isList) {
@@ -156,13 +144,11 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Generate a Dart expression representing the default value for a field
-   * having the given [type], or `null` if there is no default value.
-   *
-   * If [builder] is `true`, the returned type should be appropriate for use in
-   * a builder class.
-   */
+  /// Generate a Dart expression representing the default value for a field
+  /// having the given [type], or `null` if there is no default value.
+  ///
+  /// If [builder] is `true`, the returned type should be appropriate for use in
+  /// a builder class.
   String defaultValue(idlModel.FieldType type, bool builder) {
     if (type.isList) {
       if (builder) {
@@ -188,10 +174,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Generate a string representing the Dart type which should be used to
-   * represent [type] while building a serialized data structure.
-   */
+  /// Generate a string representing the Dart type which should be used to
+  /// represent [type] while building a serialized data structure.
   String encodedType(idlModel.FieldType type) {
     String typeStr;
     if (_idl.classes.containsKey(type.typeName)) {
@@ -206,10 +190,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Process the AST in [idlParsed] and store the resulting semantic model in
-   * [_idl].  Also perform some error checking.
-   */
+  /// Process the AST in [idlParsed] and store the resulting semantic model in
+  /// [_idl].  Also perform some error checking.
   void extractIdl(CompilationUnit idlParsed) {
     _idl = new idlModel.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
@@ -301,10 +283,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Generate a string representing the FlatBuffer schema type which should be
-   * used to represent [type].
-   */
+  /// Generate a string representing the FlatBuffer schema type which should be
+  /// used to represent [type].
   String fbsType(idlModel.FieldType type) {
     String typeStr;
     switch (type.typeName) {
@@ -337,9 +317,7 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Entry point to the code generator when generating the "format.fbs" file.
-   */
+  /// Entry point to the code generator when generating the "format.fbs" file.
   void generateFlatBufferSchema() {
     outputHeader();
     for (idlModel.EnumDeclaration enm in _idl.enums.values) {
@@ -392,9 +370,7 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Entry point to the code generator when generating the "format.dart" file.
-   */
+  /// Entry point to the code generator when generating the "format.dart" file.
   void generateFormatCode() {
     outputHeader();
     out('library analyzer.src.summary.format;');
@@ -430,10 +406,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Add the prefix `idl.` to a type name, unless that type name is the name of
-   * a built-in type.
-   */
+  /// Add the prefix `idl.` to a type name, unless that type name is the name of
+  /// a built-in type.
   String idlPrefix(String s) {
     switch (s) {
       case 'bool':
@@ -446,9 +420,7 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Execute [callback] with two spaces added to [_indentation].
-   */
+  /// Execute [callback] with two spaces added to [_indentation].
   void indent(void callback()) {
     String oldIndentation = _indentation;
     try {
@@ -459,10 +431,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Add the string [s] to the output as a single line, indenting as
-   * appropriate.
-   */
+  /// Add the string [s] to the output as a single line, indenting as
+  /// appropriate.
   void out([String s = '']) {
     if (s == '') {
       _outBuffer.writeln('');
@@ -489,9 +459,7 @@ class _CodeGenerator {
     out();
   }
 
-  /**
-   * Enclose [s] in quotes, escaping as necessary.
-   */
+  /// Enclose [s] in quotes, escaping as necessary.
   String quoted(String s) {
     return json.encode(s);
   }
@@ -713,7 +681,7 @@ class _CodeGenerator {
           if (field.variantMap != null) {
             for (var logicalName in field.variantMap.keys) {
               var variants = field.variantMap[logicalName];
-              out('void set $logicalName($typeStr value) {');
+              out('set $logicalName($typeStr value) {');
               indent(() {
                 out(_variantAssertStatement(cls, variants));
                 _generateNonNegativeInt(fieldType);
@@ -723,7 +691,7 @@ class _CodeGenerator {
               out();
             }
           } else {
-            out('void set $fieldName($typeStr value) {');
+            out('set $fieldName($typeStr value) {');
             indent(() {
               _generateNonNegativeInt(fieldType);
               out('this._$fieldName = value;');
@@ -782,9 +750,7 @@ class _CodeGenerator {
       // Generate flushInformative().
       {
         out();
-        out('/**');
-        out(' * Flush [informative] data recursively.');
-        out(' */');
+        out('/// Flush [informative] data recursively.');
         out('void flushInformative() {');
         indent(() {
           for (idlModel.FieldDeclaration field in cls.fields) {
@@ -806,9 +772,7 @@ class _CodeGenerator {
       // Generate collectApiSignature().
       {
         out();
-        out('/**');
-        out(' * Accumulate non-[informative] data into [signature].');
-        out(' */');
+        out('/// Accumulate non-[informative] data into [signature].');
         out('void collectApiSignature(api_sig.ApiSignature signature) {');
         indent(() {
           List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
@@ -1241,12 +1205,10 @@ class _CodeGenerator {
     out('}');
   }
 
-  /**
-   * Generate a call to the appropriate method of [ApiSignature] for the type
-   * [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
-   * generate code to handle the possibility that [ref] is `null` (substituting
-   * in the appropriate default value).
-   */
+  /// Generate a call to the appropriate method of [ApiSignature] for the type
+  /// [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
+  /// generate code to handle the possibility that [ref] is `null` (substituting
+  /// in the appropriate default value).
   void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
     if (_idl.enums.containsKey(typeName)) {
       if (couldBeNull) {
@@ -1291,10 +1253,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Return the documentation text of the given [node], or `null` if the [node]
-   * does not have a comment.  Each line is `\n` separated.
-   */
+  /// Return the documentation text of the given [node], or `null` if the [node]
+  /// does not have a comment.  Each line is `\n` separated.
   String _getNodeDoc(AnnotatedNode node) {
     Comment comment = node.documentationComment;
     if (comment != null && comment.isDocumentation) {

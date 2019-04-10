@@ -93,6 +93,14 @@ ConstEvalDuplicateKey:
   template: "The key '#constant' conflicts with another existing key in the map."
   analyzerCode: EQUAL_KEYS_IN_CONST_MAP
 
+ConstEvalElementImplementsEqual:
+  template: "The element '#constant' does not have a primitive operator '=='."
+  analyzerCode: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
+
+ConstEvalKeyImplementsEqual:
+  template: "The key '#constant' does not have a primitive operator '=='."
+  analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+
 ConstEvalNonConstantLiteral:
   template: "Can't have a non-constant #string literal within a const context."
   analyzerCode: NON_CONSTANT_DEFAULT_VALUE
@@ -102,6 +110,9 @@ ConstEvalInvalidType:
 
 ConstEvalInvalidBinaryOperandType:
   template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
+
+ConstEvalInvalidEqualsOperandType:
+  template: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
 
 ConstEvalZeroDivisor:
   template: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
@@ -626,6 +637,14 @@ ConstAfterFactory:
   script:
     - "class C { factory const C() = prefix.B.foo; }"
 
+TypeBeforeFactory:
+  index: 97
+  template: "Factory constructors cannot have a return type."
+  tip: "Try removing the type appearing before 'factory'."
+  analyzerCode: ParserErrorCode.TYPE_BEFORE_FACTORY
+  script:
+    - "class C { T factory C() { return null; } }"
+
 ConstConstructorWithBody:
   template: "A const constructor can't have a body."
   tip: "Try removing either the 'const' keyword or the body."
@@ -669,7 +688,7 @@ CovariantAndStatic:
 DuplicatedModifier:
   index: 70
   template: "The modifier '#lexeme' was already specified."
-  tip: "Try removing all but one occurance of the modifier."
+  tip: "Try removing all but one occurence of the modifier."
   analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
   script:
     - "class C { const const m; }"
@@ -2165,7 +2184,7 @@ LibraryDirectiveNotFirst:
 
 ImportAfterPart:
   index: 10
-  template: "Import directives must preceed part directives."
+  template: "Import directives must precede part directives."
   tip: "Try moving the import directives before the part directives."
   analyzerCode: ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
@@ -2173,7 +2192,7 @@ ImportAfterPart:
 
 ExportAfterPart:
   index: 75
-  template: "Export directives must preceed part directives."
+  template: "Export directives must precede part directives."
   tip: "Try moving the export directives before the part directives."
   analyzerCode: ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
@@ -2463,7 +2482,7 @@ EnumConstantSameNameAsEnclosing:
 
 MissingOperatorKeyword:
   index: 31
-  template: "Operator declarations must be preceeded by the keyword 'operator'."
+  template: "Operator declarations must be preceded by the keyword 'operator'."
   tip: "Try adding the keyword 'operator'."
   analyzerCode: ParserErrorCode.MISSING_KEYWORD_OPERATOR
   script:

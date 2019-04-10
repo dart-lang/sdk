@@ -36,17 +36,20 @@ public class TokenDetails {
   public static final List<TokenDetails> EMPTY_LIST = Lists.newArrayList();
 
   /**
-   * The raw token text.
+   * The token's lexeme.
    */
   private final String lexeme;
 
   /**
-   * The type of this token.
+   * A unique id for the type of the identifier. Omitted if the token is not an identifier in a
+   * reference position.
    */
   private final String type;
 
   /**
-   * The kinds of elements which could validly replace this token.
+   * An indication of whether this token is in a declaration or reference position. (If no other
+   * purpose is found for this field then it should be renamed and converted to a boolean value.)
+   * Omitted if the token is not an identifier.
    */
   private final List<String> validElementKinds;
 
@@ -73,7 +76,7 @@ public class TokenDetails {
 
   public static TokenDetails fromJson(JsonObject jsonObject) {
     String lexeme = jsonObject.get("lexeme").getAsString();
-    String type = jsonObject.get("type").getAsString();
+    String type = jsonObject.get("type") == null ? null : jsonObject.get("type").getAsString();
     List<String> validElementKinds = jsonObject.get("validElementKinds") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("validElementKinds").getAsJsonArray());
     return new TokenDetails(lexeme, type, validElementKinds);
   }
@@ -91,21 +94,24 @@ public class TokenDetails {
   }
 
   /**
-   * The raw token text.
+   * The token's lexeme.
    */
   public String getLexeme() {
     return lexeme;
   }
 
   /**
-   * The type of this token.
+   * A unique id for the type of the identifier. Omitted if the token is not an identifier in a
+   * reference position.
    */
   public String getType() {
     return type;
   }
 
   /**
-   * The kinds of elements which could validly replace this token.
+   * An indication of whether this token is in a declaration or reference position. (If no other
+   * purpose is found for this field then it should be renamed and converted to a boolean value.)
+   * Omitted if the token is not an identifier.
    */
   public List<String> getValidElementKinds() {
     return validElementKinds;
@@ -123,7 +129,9 @@ public class TokenDetails {
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("lexeme", lexeme);
-    jsonObject.addProperty("type", type);
+    if (type != null) {
+      jsonObject.addProperty("type", type);
+    }
     if (validElementKinds != null) {
       JsonArray jsonArrayValidElementKinds = new JsonArray();
       for (String elt : validElementKinds) {

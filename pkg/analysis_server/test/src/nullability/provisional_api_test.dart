@@ -368,6 +368,31 @@ main() {
                 NamedNoDefaultParameterHeuristic.assumeNullable));
   }
 
+  test_named_parameter_no_default_unused_option2_assume_nullable_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g();
+}
+''';
+    var expected = '''
+void f(String? s) {}
+void g({String? s}) {
+  f(s);
+}
+main() {
+  g();
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
   test_named_parameter_no_default_unused_option2_assume_required() async {
     var content = '''
 void f({String s}) {}
@@ -379,6 +404,31 @@ main() {
 void f({String? s}) {}
 main() {
   f();
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+  }
+
+  test_named_parameter_no_default_unused_option2_assume_required_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g();
+}
+''';
+    var expected = '''
+void f(String? s) {}
+void g({String? s}) {
+  f(s);
+}
+main() {
+  g();
 }
 ''';
     await _checkSingleFileChanges(content, expected,
@@ -455,6 +505,31 @@ main() {
                 NamedNoDefaultParameterHeuristic.assumeNullable));
   }
 
+  test_named_parameter_no_default_used_non_null_option2_assume_nullable_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
+}
+''';
+    var expected = '''
+void f(String? s) {}
+void g({String? s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
   test_named_parameter_no_default_used_non_null_option2_assume_required() async {
     var content = '''
 void f({String s}) {}
@@ -463,9 +538,36 @@ main() {
 }
 ''';
     var expected = '''
+import 'package:meta/meta.dart';
 void f({@required String s}) {}
 main() {
   f(s: 'x');
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+  }
+
+  test_named_parameter_no_default_used_non_null_option2_assume_required_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
+}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f(String s) {}
+void g({@required String s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
 }
 ''';
     await _checkSingleFileChanges(content, expected,

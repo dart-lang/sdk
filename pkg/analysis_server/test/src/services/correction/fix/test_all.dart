@@ -23,6 +23,7 @@ import 'add_required_test.dart' as add_required;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'analysis_options/test_all.dart' as analysis_options;
 import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
     as change_to_nearest_precise_value;
@@ -95,6 +96,8 @@ import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
+import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
@@ -122,6 +125,7 @@ main() {
     add_required.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    analysis_options.main();
     change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();
@@ -188,6 +192,8 @@ main() {
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
     replace_with_identifier.main();
+    replace_with_is_empty.main();
+    replace_with_is_not_empty.main();
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     update_sdk_constraints.main();

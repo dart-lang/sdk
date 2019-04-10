@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -82,11 +83,13 @@ class LiteralElementVerifier {
             CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, element);
       }
     } else if (element is SpreadElement) {
+      var isNullAware = element.spreadOperator.type ==
+          TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
       Expression expression = element.expression;
       if (forList || forSet) {
-        _verifySpreadForListOrSet(expression);
+        _verifySpreadForListOrSet(isNullAware, expression);
       } else if (forMap) {
-        _verifySpreadForMap(expression);
+        _verifySpreadForMap(isNullAware, expression);
       }
     }
   }
@@ -123,12 +126,19 @@ class LiteralElementVerifier {
 
   /// Verify that the type of the elements of the given [expression] can be
   /// assigned to the [elementType] of the enclosing collection.
-  void _verifySpreadForListOrSet(Expression expression) {
+  void _verifySpreadForListOrSet(bool isNullAware, Expression expression) {
     var expressionType = expression.staticType;
     if (expressionType.isDynamic) return;
 
-    // TODO(scheglov) Check for non-null-aware spread?
-    if (expressionType.isDartCoreNull) return;
+    if (expressionType.isDartCoreNull) {
+      if (!isNullAware) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+          expression,
+        );
+      }
+      return;
+    }
 
     InterfaceType iterableType;
     var iterableObjectType = typeProvider.iterableObjectType;
@@ -161,12 +171,19 @@ class LiteralElementVerifier {
 
   /// Verify that the [expression] is a subtype of `Map<Object, Object>`, and
   /// its key and values are assignable to [mapKeyType] and [mapValueType].
-  void _verifySpreadForMap(Expression expression) {
+  void _verifySpreadForMap(bool isNullAware, Expression expression) {
     var expressionType = expression.staticType;
     if (expressionType.isDynamic) return;
 
-    // TODO(scheglov) Check for non-null-aware spread?
-    if (expressionType.isDartCoreNull) return;
+    if (expressionType.isDartCoreNull) {
+      if (!isNullAware) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+          expression,
+        );
+      }
+      return;
+    }
 
     InterfaceType mapType;
     var mapObjectObjectType = typeProvider.mapObjectObjectType;

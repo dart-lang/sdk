@@ -765,7 +765,13 @@ class ProgramBuilder {
           assert(!field.needsUncheckedSetter);
           FieldEntity element = field.element;
           js.Expression code = _generatedCode[element];
-          assert(code != null);
+          if (code == null) {
+            // TODO(johnniwinther): Static types are not honoured in the dynamic
+            // uses created in codegen, leading to dead code, as known by the
+            // closed world computation, being triggered by the codegen
+            // enqueuer. We cautiously generate an empty function for this case.
+            code = js.js("function() {}");
+          }
           js.Name name = _namer.deriveSetterName(field.accessorName);
           checkedSetters.add(_buildStubMethod(name, code, element: element));
         }

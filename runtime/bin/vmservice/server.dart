@@ -147,6 +147,7 @@ class Server {
   final String _ip;
   final int _port;
   final bool _originCheckDisabled;
+  final bool _authCodesDisabled;
   HttpServer _server;
   bool get running => _server != null;
 
@@ -157,11 +158,15 @@ class Server {
     }
     var ip = _server.address.address;
     var port = _server.port;
-    var path = useAuthToken ? "$serviceAuthToken/" : "/";
+    var path = !_authCodesDisabled ? "$serviceAuthToken/" : "/";
     return new Uri(scheme: 'http', host: ip, port: port, path: path);
   }
 
-  Server(this._service, this._ip, this._port, this._originCheckDisabled);
+  // On Fuchsia, authentication codes are disabled by default. To enable, the authentication token
+  // would have to be written into the hub alongside the port number.
+  Server(this._service, this._ip, this._port, this._originCheckDisabled,
+      bool authCodesDisabled)
+      : _authCodesDisabled = (authCodesDisabled || Platform.isFuchsia);
 
   bool _isAllowedOrigin(String origin) {
     Uri uri;
@@ -214,7 +219,7 @@ class Server {
   /// Checks the [requestUri] for the service auth token and returns the path.
   /// If the service auth token check fails, returns null.
   String _checkAuthTokenAndGetPath(Uri requestUri) {
-    if (!useAuthToken) {
+    if (_authCodesDisabled) {
       return requestUri.path == '/' ? ROOT_REDIRECT_PATH : requestUri.path;
     }
     final List<String> requestPathSegments = requestUri.pathSegments;

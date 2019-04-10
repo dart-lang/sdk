@@ -38,6 +38,7 @@ namespace bin {
   V(version, version_option)                                                   \
   V(compile_all, compile_all)                                                  \
   V(disable_service_origin_check, vm_service_dev_mode)                         \
+  V(disable_service_auth_codes, vm_service_auth_disabled)                      \
   V(deterministic, deterministic)                                              \
   V(trace_loading, trace_loading)                                              \
   V(short_socket_read, short_socket_read)                                      \
@@ -116,6 +117,7 @@ class Options {
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
 
+  static constexpr int kAbiVersionUnset = -1;
   static int target_abi_version() { return target_abi_version_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

@@ -52,7 +52,9 @@ class B {}
     var uriStr = 'package:test/a.dart';
 
     newFile(path, content: r'''
-class A {}
+class A {
+  A.a();
+}
 ''');
 
     var set = await waitForSetWithUri(uriStr);
@@ -75,6 +77,27 @@ class A {}
     "package:test/a.dart::A",
     "A"
   ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'A.a'), '''
+{
+  "label": "A.a",
+  "element": {
+    "kind": "CONSTRUCTOR",
+    "name": "a",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 14,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 5
+    },
+    "flags": 0,
+    "parameters": "()"
+  },
+  "parameterNames": [],
+  "parameterTypes": [],
+  "requiredParameterCount": 0
 }
 ''');
   }

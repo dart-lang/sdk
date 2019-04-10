@@ -33,9 +33,6 @@ class ApplyCheckElementTextReplacements {
 
 @reflectiveTest
 class TopLevelInferenceErrorsTest extends AbstractStrongTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   test_initializer_additive() async {
     await _assertErrorOnlyLeft(['+', '-']);
   }

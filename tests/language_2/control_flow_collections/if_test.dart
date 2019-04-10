@@ -19,7 +19,6 @@ void main() {
   testShortCircuit();
   testDuplicateKeys();
   testKeyOrder();
-  testRuntimeFailures();
 }
 
 void testList() {
@@ -228,16 +227,4 @@ void testKeyOrder() {
     if (true) e2b
   };
   Expect.equals("1:a,2:a", set.join(","));
-}
-
-void testRuntimeFailures() {
-  dynamic nonBool = 3;
-  Expect.throwsTypeError(() => <int>[if (nonBool) 1]);
-  Expect.throwsTypeError(() => <int, int>{if (nonBool) 1: 1});
-  Expect.throwsTypeError(() => <int>{if (nonBool) 1});
-
-  bool nullBool = null;
-  Expect.throwsAssertionError(() => <int>[if (nullBool) 1]);
-  Expect.throwsAssertionError(() => <int, int>{if (nullBool) 1: 1});
-  Expect.throwsAssertionError(() => <int>{if (nullBool) 1});
 }

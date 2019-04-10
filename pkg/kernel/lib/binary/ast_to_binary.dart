@@ -1503,6 +1503,20 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitInstanceCreation(InstanceCreation node) {
+    writeByte(Tag.InstanceCreation);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.classReference);
+    writeNodeList(node.typeArguments);
+    writeUInt30(node.fieldValues.length);
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      writeNonNullReference(fieldRef);
+      writeNode(value);
+    });
+    writeNodeList(node.asserts);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     writeByte(Tag.IsExpression);
     writeOffset(node.fileOffset);

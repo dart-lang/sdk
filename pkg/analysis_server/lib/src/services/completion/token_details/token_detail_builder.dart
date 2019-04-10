@@ -6,6 +6,8 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// An object used to build the details for each token in the code being
 /// analyzed.
@@ -21,15 +23,29 @@ class TokenDetailBuilder {
   void visitNode(AstNode node) {
     for (SyntacticEntity entity in node.childEntities) {
       if (entity is Token) {
-        _createDetails(entity, null);
+        _createDetails(entity, null, null);
       } else if (entity is SimpleIdentifier) {
+        String type = _getType(entity);
+        if (_isTypeName(entity)) {
+          type = 'dart:core;Type<$type>';
+        }
         List<String> kinds = [];
         if (entity.inDeclarationContext()) {
           kinds.add('declaration');
         } else {
-          kinds.add('identifier');
+          kinds.add('reference');
         }
-        _createDetails(entity.token, kinds);
+        _createDetails(entity.token, type, kinds);
+      } else if (entity is BooleanLiteral) {
+        _createDetails(entity.literal, _getType(entity), null);
+      } else if (entity is DoubleLiteral) {
+        _createDetails(entity.literal, _getType(entity), null);
+      } else if (entity is IntegerLiteral) {
+        _createDetails(entity.literal, _getType(entity), null);
+      } else if (entity is SimpleStringLiteral) {
+        _createDetails(entity.literal, _getType(entity), null);
+      } else if (entity is Comment) {
+        // Ignore comments and the references within them.
       } else if (entity is AstNode) {
         visitNode(entity);
       }
@@ -37,8 +53,68 @@ class TokenDetailBuilder {
   }
 
   /// Create the details for a single [token], using the given list of [kinds].
-  void _createDetails(Token token, List<String> kinds) {
-    details.add(new TokenDetails(token.lexeme, token.type.name,
-        validElementKinds: kinds));
+  void _createDetails(Token token, String type, List<String> kinds) {
+    details.add(
+        new TokenDetails(token.lexeme, type: type, validElementKinds: kinds));
+  }
+
+  /// Return a unique identifier for the type of the given [expression].
+  String _getType(Expression expression) {
+    StringBuffer buffer = new StringBuffer();
+    _writeType(buffer, expression.staticType);
+    return buffer.toString();
+  }
+
+  /// Return `true` if the [identifier] represents the name of a type.
+  bool _isTypeName(SimpleIdentifier identifier) {
+    AstNode parent = identifier.parent;
+    if (parent is TypeName && identifier == parent.name) {
+      return true;
+    } else if (parent is PrefixedIdentifier &&
+        parent.identifier == identifier) {
+      AstNode parent2 = parent.parent;
+      if (parent2 is TypeName && parent == parent2.name) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return a unique identifier for the type of the given [expression].
+  void _writeType(StringBuffer buffer, DartType type) {
+    if (type == null) {
+      // This should never happen if the AST has been resolved.
+      buffer.write('dynamic');
+    } else if (type is FunctionType) {
+      _writeType(buffer, type.returnType);
+      buffer.write(' Function(');
+      bool first = true;
+      for (var parameter in type.parameters) {
+        if (first) {
+          first = false;
+        } else {
+          buffer.write(', ');
+        }
+        _writeType(buffer, parameter.type);
+      }
+      buffer.write(')');
+    } else if (type is InterfaceType) {
+      Element element = type.element;
+      if (element == null || element.isSynthetic) {
+        buffer.write(type.displayName);
+      } else {
+        String uri = element.library.source.uri.toString();
+        String name = element.name;
+        if (element is ClassMemberElement) {
+          String className = element.enclosingElement.name;
+          buffer.write('$uri;$className;$name');
+        } else {
+          buffer.write('$uri;$name');
+        }
+      }
+    } else {
+      // Handle `void` and `dynamic`.
+      buffer.write(type.displayName);
+    }
   }
 }

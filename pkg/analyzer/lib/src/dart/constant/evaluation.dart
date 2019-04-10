@@ -1160,6 +1160,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return _dartObjectComputer.eagerXor(
           node, leftResult, rightResult, experimentStatus.constant_update_2018);
     } else if (operatorType == TokenType.EQ_EQ) {
+      if (experimentStatus.constant_update_2018) {
+        return _dartObjectComputer.lazyEqualEqual(
+            node, leftResult, rightResult);
+      }
       return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT) {
       return _dartObjectComputer.greaterThan(node, leftResult, rightResult);
@@ -2005,6 +2009,18 @@ class DartObjectComputer {
     if (leftOperand != null) {
       try {
         return leftOperand.lazyAnd(_typeProvider, rightOperandComputer);
+      } on EvaluationException catch (exception) {
+        _errorReporter.reportErrorForNode(exception.errorCode, node);
+      }
+    }
+    return null;
+  }
+
+  DartObjectImpl lazyEqualEqual(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      try {
+        return leftOperand.lazyEqualEqual(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }

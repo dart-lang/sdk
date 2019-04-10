@@ -42,8 +42,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newFile('/workspace/some/code/pubspec.yaml');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
@@ -56,8 +55,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newFile('/workspace/some/code/pubspec.yaml');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
@@ -75,8 +73,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newFile('/workspace/some/code/pubspec.yaml');
     String buildDir = convertPath('/workspace/out/debug-x87_128');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
@@ -109,7 +106,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
     newFile('/workspace/some/code/pubspec.yaml');
-    newFile('/workspace/.config', content: 'FOO=foo\n' + 'BAR=bar\n');
+    newFile('/workspace/.fx-build-dir', content: '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
@@ -127,8 +124,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newFile('/workspace/some/code/pubspec.yaml');
     String buildDir = convertPath('out/release-y22_256');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
     newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
@@ -152,8 +148,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFolder('/workspace/some/code');
     newFile('/workspace/some/code/pubspec.yaml');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR=$buildDir\n' + 'BAR=bar\n');
+    newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageOneLocation = convertPath('/workspace/this/is/the/package');
     Uri packageOneUri = resourceProvider.pathContext.toUri(packageOneLocation);
     newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
@@ -179,8 +174,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
   GnWorkspace _buildStandardGnWorkspace() {
     newFolder('/ws/.jiri_root');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile('/ws/.config',
-        content: 'FOO=foo\n' + 'FUCHSIA_BUILD_DIR="$buildDir"\n' + 'BAR=bar\n');
+    newFile('/ws/.fx-build-dir', content: '$buildDir\n');
     newFile('/ws/out/debug-x87_128/dartlang/gen/some/code/foo.packages');
     newFolder('/ws/some/code');
     return GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));

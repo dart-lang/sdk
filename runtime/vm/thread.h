@@ -19,6 +19,7 @@
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
+#include "vm/random.h"
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
@@ -771,6 +772,8 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
+  uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
+
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
@@ -799,11 +802,11 @@ class Thread : public ThreadState {
   Heap* heap_;
   uword top_;
   uword end_;
-  uword top_exit_frame_info_;
+  uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
   MarkingStackBlock* deferred_marking_stack_block_;
-  uword vm_tag_;
+  uword volatile vm_tag_;
   RawStackTrace* async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
   // generated code to runtime.
@@ -867,6 +870,8 @@ class Thread : public ThreadState {
   RawGrowableObjectArray* pending_functions_;
 
   RawError* sticky_error_;
+
+  Random thread_random_;
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
