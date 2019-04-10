@@ -337,6 +337,7 @@ namespace dart {
 //        Jump T         ;; jump if not equal
 //
 //  - If<Cond>Null rA
+//    If<Cond>NullTOS
 //
 //    Cond is Eq or Ne. Skips the next instruction unless the given condition
 //    holds.
@@ -723,6 +724,10 @@ namespace dart {
 //    InstanceCall ... <- lazy deopt inside first call
 //    InstanceCall ... <- patches second call with Deopt
 //
+//  - NullError
+//
+//    Throws a NullError.
+//
 // BYTECODE LIST FORMAT
 //
 // Bytecode list below is specified using the following format:
@@ -862,6 +867,8 @@ namespace dart {
   V(IfEqStrictNum,                       A_D, reg, reg, ___) \
   V(IfEqNull,                              A, reg, ___, ___) \
   V(IfNeNull,                              A, reg, ___, ___) \
+  V(IfEqNullTOS,                           0, ___, ___, ___) \
+  V(IfNeNullTOS,                           0, ___, ___, ___) \
   V(CreateArrayTOS,                        0, ___, ___, ___) \
   V(CreateArrayOpt,                    A_B_C, reg, reg, reg) \
   V(Allocate,                              D, lit, ___, ___) \
@@ -949,7 +956,8 @@ namespace dart {
   V(DebugStep,                             0, ___, ___, ___) \
   V(DebugBreak,                            A, num, ___, ___) \
   V(Deopt,                               A_D, num, num, ___) \
-  V(DeoptRewind,                           0, ___, ___, ___)
+  V(DeoptRewind,                           0, ___, ___, ___) \
+  V(NullError,                             0, ___, ___, ___)
 
 // clang-format on
 

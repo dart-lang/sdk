@@ -1220,9 +1220,9 @@ RawObject* Simulator::Call(const Code& code,
                            const Array& arguments,
                            Thread* thread) {
   // Interpreter state (see constants_dbc.h for high-level overview).
-  uint32_t* pc;       // Program Counter: points to the next op to execute.
-  RawObject** FP;     // Frame Pointer.
-  RawObject** SP;     // Stack Pointer.
+  uint32_t* pc;    // Program Counter: points to the next op to execute.
+  RawObject** FP;  // Frame Pointer.
+  RawObject** SP;  // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
   uint16_t rA;  // A component of the currently executing op.
@@ -3025,6 +3025,14 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(NullError, 0);
+    Exit(thread, FP, SP, pc);
+    NativeArguments native_args(thread, 0, SP, SP);
+    INVOKE_RUNTIME(DRT_NullError, native_args);
+    UNREACHABLE();
+  }
+
+  {
     BYTECODE(BadTypeError, 0);
     // Stack: instance, instantiator type args, function type args, type, name
     RawObject** args = SP - 4;
@@ -3649,6 +3657,22 @@ SwitchDispatch:
   {
     BYTECODE(IfNeNull, A_D);
     if (FP[rA] == null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfEqNullTOS, 0);
+    if (SP[0] != null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfNeNullTOS, 0);
+    if (SP[0] == null_value) {
       pc++;
     }
     DISPATCH();

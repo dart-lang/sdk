@@ -4600,7 +4600,8 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-#if !defined(TARGET_ARCH_DBC)
+#endif  // !defined(TARGET_ARCH_DBC)
+
 void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                                FlowGraphCompiler* compiler) {
   const String& function_name = check_null->function_name();
@@ -4609,7 +4610,8 @@ void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
   compiler->AddNullCheck(compiler->assembler()->CodeSize(),
                          check_null->token_pos(), name_index);
 }
-#endif  // !defined(TARGET_ARCH_DBC)
+
+#if !defined(TARGET_ARCH_DBC)
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();

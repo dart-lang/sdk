@@ -58,7 +58,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 #define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
   M(CaseInsensitiveCompareUC16)                                                \
   M(GenericCheckBound)                                                         \
-  M(CheckNull)                                                                 \
   M(IndirectGoto)                                                              \
   M(Int64ToDouble)                                                             \
   M(BinaryInt64Op)                                                             \
@@ -1573,6 +1572,17 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
   }
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass,
                       licm_hoisted_ ? ICData::kHoisted : 0);
+}
+
+EMIT_NATIVE_CODE(CheckNull, 1) {
+  if (compiler->is_optimizing()) {
+    const Register value = locs()->in(0).reg();
+    __ IfEqNull(value);
+  } else {
+    __ IfEqNullTOS();
+  }
+  __ NullError();
+  CheckNullInstr::AddMetadataForRuntimeCall(this, compiler);
 }
 
 EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {

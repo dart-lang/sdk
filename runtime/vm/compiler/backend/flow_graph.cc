@@ -497,10 +497,6 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   // If the receiver can have the null value, exclude any method
   // that is actually valid on a null receiver.
   if (receiver_maybe_null) {
-#ifdef TARGET_ARCH_DBC
-    // TODO(ajcbik): DBC does not support null check at all yet.
-    return ToCheck::kCheckCid;
-#else
     const Class& null_class =
         Class::Handle(zone(), isolate()->object_store()->null_class());
     const Function& target = Function::Handle(
@@ -509,7 +505,6 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     if (!target.IsNull()) {
       return ToCheck::kCheckCid;
     }
-#endif
   }
 
   // Use CHA to determine if the method is not overridden by any subclass
@@ -1289,7 +1284,6 @@ void FlowGraph::RenameRecursive(
       }
     }
   }
-
 
   // Attach environment to the block entry.
   AttachEnvironment(block_entry, env);

@@ -2612,7 +2612,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   bool is_unchecked_closure_call = false;
   bool is_unchecked_call = result_type.IsSkipCheck();
-#ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr) {
     if (call_site_attributes.receiver_type->IsFunctionType()) {
       AlternativeReadingScope alt(&reader_);
@@ -2625,7 +2624,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       is_unchecked_call = true;
     }
   }
-#endif
 
   Fragment instructions;
 
@@ -4026,7 +4024,7 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement() {
 Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
   ASSERT(block_expression_depth() == 0);  // no while in block-expr
   loop_depth_inc();
-  const TokenPosition position = ReadPosition();  // read position.
+  const TokenPosition position = ReadPosition();            // read position.
   TestFragment condition = TranslateConditionForControl();  // read condition.
   const Fragment body = BuildStatement();                   // read body
 
@@ -4166,7 +4164,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
   const TokenPosition position = ReadPosition();  // read position.
-  TokenPosition body_position = ReadPosition();  // read body position.
+  TokenPosition body_position = ReadPosition();   // read body position.
   intptr_t variable_kernel_position = ReaderOffset() + data_program_offset_;
   SkipVariableDeclaration();  // read variable.
 
@@ -4459,7 +4457,7 @@ Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildIfStatement() {
-  ReadPosition();                                       // read position.
+  ReadPosition();  // read position.
 
   TestFragment condition = TranslateConditionForControl();
 

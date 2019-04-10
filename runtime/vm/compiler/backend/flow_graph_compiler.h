@@ -243,8 +243,6 @@ class TemplateSlowPathCode : public SlowPathCode {
   }
 };
 
-#if !defined(TARGET_ARCH_DBC)
-
 // Slow path code which calls runtime entry to throw an exception.
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
@@ -297,8 +295,6 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                               compiler);
   }
 };
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 class FlowGraphCompiler : public ValueObject {
  private:
