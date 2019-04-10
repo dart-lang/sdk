@@ -43,6 +43,7 @@ dart/snapshot_version_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/compilation_trace_test: Pass, Slow
+dart/type_feedback_test: Pass, Slow
 
 [ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
 dart/entrypoints/jit/*: SkipByDesign  # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
