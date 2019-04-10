@@ -103,6 +103,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    Expression argument = invocation.argumentList.arguments[0];
+    if (argument is ListLiteral) {
+      // Handled by: prefer_inlined_adds
+      return;
+    }
+
     rule.reportLint(invocation.methodName);
   }
 }

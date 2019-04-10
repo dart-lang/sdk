@@ -130,6 +130,7 @@ abstract class List<E> implements Iterable<E> {
   /* external */ factory List([int length]);
   /* external */ factory List.filled(int length, E fill, {bool growable: false});
   void add(E value);
+  void addAll(Iterable<E> iterable);
   E operator [](int index);
   void operator []=(int index, E value);
   Iterator<E> get iterator => null;
