@@ -44,8 +44,6 @@ DEFINE_FLAG(charp,
             "URI scheme that replaces filepaths prefixes specified"
             " by kernel_multiroot_filepaths option");
 
-const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
-
 // Tags used to indicate different requests to the dart frontend.
 //
 // Current tags include the following:
@@ -61,10 +59,11 @@ const int KernelIsolate::kCompileExpressionTag = 4;
 const int KernelIsolate::kListDependenciesTag = 5;
 const int KernelIsolate::kNotifyIsolateShutdown = 6;
 
+const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
+KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kStopped;
 Isolate* KernelIsolate::isolate_ = NULL;
-bool KernelIsolate::initializing_ = true;
 Dart_Port KernelIsolate::kernel_port_ = ILLEGAL_PORT;
 
 class RunKernelTask : public ThreadPool::Task {
@@ -79,11 +78,7 @@ class RunKernelTask : public ThreadPool::Task {
 
     Dart_IsolateCreateCallback create_callback =
         KernelIsolate::create_callback();
-
-    if (create_callback == NULL) {
-      KernelIsolate::FinishedInitializing();
-      return;
-    }
+    ASSERT(create_callback != NULL);
 
     // Note: these flags must match those passed to the VM during
     // the app-jit training run (see //utils/kernel-service/BUILD.gn).
@@ -109,7 +104,7 @@ class RunKernelTask : public ThreadPool::Task {
       free(error);
       error = NULL;
       KernelIsolate::SetKernelIsolate(NULL);
-      KernelIsolate::FinishedInitializing();
+      KernelIsolate::InitializingFailed();
       return;
     }
 
@@ -171,6 +166,7 @@ class RunKernelTask : public ThreadPool::Task {
     if (FLAG_trace_kernel) {
       OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Shutdown.\n");
     }
+    KernelIsolate::FinishedExiting();
   }
 
   bool RunMain(Isolate* I) {
@@ -223,18 +219,36 @@ class RunKernelTask : public ThreadPool::Task {
 };
 
 void KernelIsolate::Run() {
-  MonitorLocker ml(monitor_);
-  initializing_ = true;
+  {
+    MonitorLocker ml(monitor_);
+    ASSERT(state_ == kStopped);
+    state_ = kStarting;
+    ml.NotifyAll();
+  }
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();
-  Dart::thread_pool()->Run(new RunKernelTask());
+  if (create_callback_ == NULL) {
+    KernelIsolate::InitializingFailed();
+    return;
+  }
+  bool task_started = Dart::thread_pool()->Run(new RunKernelTask());
+  ASSERT(task_started);
 }
 
 void KernelIsolate::Shutdown() {
   MonitorLocker ml(monitor_);
-  while (isolate_ != NULL) {
-    Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
+  while (state_ == kStarting) {
+    ml.Wait();
+  }
+  if (state_ == kStopped) {
+    return;
+  }
+  ASSERT(state_ == kStarted);
+  state_ = kStopping;
+  ml.NotifyAll();
+  Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
+  while (state_ != kStopped) {
     ml.Wait();
   }
 }
@@ -290,16 +304,31 @@ void KernelIsolate::SetLoadPort(Dart_Port port) {
   ml.NotifyAll();
 }
 
+void KernelIsolate::FinishedExiting() {
+  MonitorLocker ml(monitor_);
+  ASSERT(state_ == kStarted || state_ == kStopping);
+  state_ = kStopped;
+  ml.NotifyAll();
+}
+
 void KernelIsolate::FinishedInitializing() {
   MonitorLocker ml(monitor_);
-  initializing_ = false;
+  ASSERT(state_ == kStarting);
+  state_ = kStarted;
+  ml.NotifyAll();
+}
+
+void KernelIsolate::InitializingFailed() {
+  MonitorLocker ml(monitor_);
+  ASSERT(state_ == kStarting);
+  state_ = kStopped;
   ml.NotifyAll();
 }
 
 Dart_Port KernelIsolate::WaitForKernelPort() {
   VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
   MonitorLocker ml(monitor_);
-  while (initializing_ && (kernel_port_ == ILLEGAL_PORT)) {
+  while (state_ == kStarting && (kernel_port_ == ILLEGAL_PORT)) {
     ml.Wait();
   }
   return kernel_port_;
