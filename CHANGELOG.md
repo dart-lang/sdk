@@ -1,3 +1,8 @@
+# 0.1.86
+
+* updated `prefer_spread_collections` to ignore calls to `addAll` that could be inlined
+* new lint: `prefer_inlined_adds`
+
 # 0.1.85
 
 * (**BREAKING**) renamed `spread_collections` to `prefer_spread_collections`
