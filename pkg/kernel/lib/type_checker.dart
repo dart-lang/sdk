@@ -811,6 +811,11 @@ class TypeCheckingVisitor
   }
 
   @override
+  visitConstantExpression(ConstantExpression node) {
+    return node.type;
+  }
+
+  @override
   visitAssertStatement(AssertStatement node) {
     visitExpression(node.condition);
     if (node.message != null) {
@@ -1034,11 +1039,4 @@ class TypeCheckingVisitor
 
   @override
   visitInvalidInitializer(InvalidInitializer node) {}
-
-  @override
-  visitConstantExpression(ConstantExpression node) {
-    // Without explicitly running the "constants" transformation, we should
-    // never get here!
-    throw 'unreachable';
-  }
 }

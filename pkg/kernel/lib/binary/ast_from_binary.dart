@@ -1656,7 +1656,10 @@ class BinaryBuilder {
         var typeArguments = readDartTypeList();
         return new Instantiation(expression, typeArguments);
       case Tag.ConstantExpression:
-        return new ConstantExpression(readConstantReference());
+        int offset = readOffset();
+        DartType type = readDartType();
+        Constant constant = readConstantReference();
+        return new ConstantExpression(constant, type)..fileOffset = offset;
       default:
         throw fail('unexpected expression tag: $tag');
     }

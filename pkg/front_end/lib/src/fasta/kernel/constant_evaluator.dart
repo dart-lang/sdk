@@ -309,7 +309,8 @@ class ConstantsTransformer extends Transformer {
           // So the value of the variable is still available for debugging
           // purposes we convert the constant variable to be a final variable
           // initialized to the evaluated constant expression.
-          node.initializer = makeConstantExpression(constant)..parent = node;
+          node.initializer = makeConstantExpression(constant, node.initializer)
+            ..parent = node;
           node.isFinal = true;
           node.isConst = false;
         } else {
@@ -354,13 +355,13 @@ class ConstantsTransformer extends Transformer {
   // Handle use-sites of constants (and "inline" constant expressions):
 
   visitSymbolLiteral(SymbolLiteral node) {
-    return makeConstantExpression(constantEvaluator.evaluate(node));
+    return makeConstantExpression(constantEvaluator.evaluate(node), node);
   }
 
   visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
-      return evaluateAndTransformWithContext(node, target.initializer);
+      return evaluateAndTransformWithContext(node, node);
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
       return evaluateAndTransformWithContext(node, node);
     }
@@ -426,7 +427,7 @@ class ConstantsTransformer extends Transformer {
   }
 
   evaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
-    return makeConstantExpression(evaluateWithContext(treeContext, node));
+    return makeConstantExpression(evaluateWithContext(treeContext, node), node);
   }
 
   evaluateWithContext(TreeNode treeContext, Expression node) {
@@ -439,12 +440,13 @@ class ConstantsTransformer extends Transformer {
     });
   }
 
-  Expression makeConstantExpression(Constant constant) {
+  Expression makeConstantExpression(Constant constant, Expression node) {
     if (constant is UnevaluatedConstant &&
         constant.expression is InvalidExpression) {
       return constant.expression;
     }
-    return new ConstantExpression(constant);
+    return new ConstantExpression(constant, node.getStaticType(typeEnvironment))
+      ..fileOffset = node.fileOffset;
   }
 }
 

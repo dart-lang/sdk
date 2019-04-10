@@ -883,7 +883,12 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kNullLiteral:
       return;
-    case kConstantExpression: {
+    case kConstantExpression:
+      helper_.ReadPosition();
+      helper_.SkipDartType();
+      helper_.SkipConstantReference();
+      return;
+    case kDeprecated_ConstantExpression: {
       helper_.SkipConstantReference();
       return;
     }

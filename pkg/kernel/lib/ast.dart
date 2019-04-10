@@ -3756,22 +3756,25 @@ class FunctionExpression extends Expression {
 
 class ConstantExpression extends Expression {
   Constant constant;
+  DartType type;
 
-  ConstantExpression(this.constant) {
+  ConstantExpression(this.constant, [this.type = const DynamicType()]) {
     assert(constant != null);
   }
 
-  DartType getStaticType(TypeEnvironment types) => constant.getType(types);
+  DartType getStaticType(TypeEnvironment types) => type;
 
   accept(ExpressionVisitor v) => v.visitConstantExpression(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitConstantExpression(this, arg);
 
   visitChildren(Visitor v) {
     constant?.acceptReference(v);
+    type?.accept(v);
   }
 
   transformChildren(Transformer v) {
     constant = v.visitConstant(constant);
+    type = v.visitDartType(type);
   }
 }
 

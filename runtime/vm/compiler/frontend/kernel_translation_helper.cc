@@ -2332,6 +2332,11 @@ void KernelReaderHelper::SkipExpression() {
     case kNullLiteral:
       return;
     case kConstantExpression:
+      ReadPosition();  // read position.
+      SkipDartType();  // read type.
+      SkipConstantReference();
+      return;
+    case kDeprecated_ConstantExpression:
       SkipConstantReference();
       return;
     case kLoadLibrary:

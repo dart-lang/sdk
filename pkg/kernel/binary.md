@@ -139,7 +139,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 23;
+  UInt32 formatVersion = 24;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -901,6 +901,13 @@ type CheckLibraryIsLoaded extends Expression {
 }
 
 type ConstantExpression extends Expression {
+  Byte tag = 106;
+  FileOffset fileOffset;
+  DartType type;
+  ConstantReference constantReference;
+}
+
+type Deprecated_ConstantExpression extends Expression {
   Byte tag = 107;
   ConstantReference constantReference;
 }

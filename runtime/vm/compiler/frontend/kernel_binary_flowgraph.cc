@@ -1217,7 +1217,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kNullLiteral:
       return BuildNullLiteral(position);
     case kConstantExpression:
-      return BuildConstantExpression(position);
+      return BuildConstantExpression(position, tag);
+    case kDeprecated_ConstantExpression:
+      return BuildConstantExpression(position, tag);
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
     case kLoadLibrary:
@@ -3761,8 +3763,14 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
-    TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
+    TokenPosition* position,
+    Tag tag) {
+  TokenPosition p = TokenPosition::kNoSource;
+  if (tag == kConstantExpression) {
+    p = ReadPosition();
+    SkipDartType();
+  }
+  if (position != nullptr) *position = p;
   const intptr_t constant_offset = ReadUInt();
   KernelConstantsMap constant_map(H.constants().raw());
   Fragment result =

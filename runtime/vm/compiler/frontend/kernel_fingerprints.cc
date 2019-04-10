@@ -549,6 +549,11 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kNullLiteral:
       return;
     case kConstantExpression:
+      ReadPosition();
+      SkipDartType();
+      SkipConstantReference();
+      return;
+    case kDeprecated_ConstantExpression:
       SkipConstantReference();
       return;
     case kLoadLibrary:

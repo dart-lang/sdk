@@ -276,7 +276,8 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitConstantExpression(ConstantExpression node) {
-    return new ConstantExpression(visitConstant(node.constant));
+    return new ConstantExpression(
+        visitConstant(node.constant), visitType(node.type));
   }
 
   visitStringLiteral(StringLiteral node) {

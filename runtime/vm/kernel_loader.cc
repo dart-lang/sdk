@@ -539,11 +539,16 @@ void KernelLoader::AnnotateNativeProcedures(const Array& constant_table_array) {
       const intptr_t annotation_count = helper_.ReadListLength();
       for (intptr_t j = 0; j < annotation_count; ++j) {
         const intptr_t tag = helper_.PeekTag();
-        if (tag == kConstantExpression) {
+        if (tag == kConstantExpression ||
+            tag == kDeprecated_ConstantExpression) {
           helper_.ReadByte();  // Skip the tag.
 
           // We have a candiate.  Let's look if it's an instance of the
           // ExternalName class.
+          if (tag == kConstantExpression) {
+            helper_.ReadPosition();  // Skip fileOffset.
+            helper_.SkipDartType();  // Skip type.
+          }
           const intptr_t constant_table_offset = helper_.ReadUInt();
           constant ^= constant_table.GetOrDie(constant_table_offset);
           if (constant.clazz() == external_name_class_.raw()) {
@@ -654,9 +659,13 @@ void KernelLoader::LoadNativeExtensionLibraries(
       uri_path = String::null();
 
       const intptr_t tag = helper_.PeekTag();
-      if (tag == kConstantExpression) {
+      if (tag == kConstantExpression || tag == kDeprecated_ConstantExpression) {
         helper_.ReadByte();  // Skip the tag.
 
+        if (tag == kConstantExpression) {
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
+        }
         const intptr_t constant_table_index = helper_.ReadUInt();
         constant ^= constant_table.GetOrDie(constant_table_index);
         if (constant.clazz() == external_name_class_.raw()) {
@@ -1725,7 +1734,8 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
       if (DetectPragmaCtor()) {
         *has_pragma_annotation = true;
       }
-    } else if (tag == kConstantExpression) {
+    } else if (tag == kConstantExpression ||
+               tag == kDeprecated_ConstantExpression) {
       const Array& constant_table_array =
           Array::Handle(kernel_program_info_.constants());
       if (constant_table_array.IsNull()) {
@@ -1747,6 +1757,10 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
 
         helper_.ReadByte();  // Skip the tag.
 
+        if (tag == kConstantExpression) {
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
+        }
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
 
         AlternativeReadingScope scope(
@@ -1776,6 +1790,10 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
         // Obtain `dart:_internal::pragma`.
         EnsurePragmaClassIsLookedUp();
 
+        if (tag == kConstantExpression) {
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
+        }
         const intptr_t constant_table_index = helper_.ReadUInt();
         const Object& constant =
             Object::Handle(constant_table.GetOrDie(constant_table_index));

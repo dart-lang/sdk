@@ -161,7 +161,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
         EvaluateNullLiteral();
         break;
       case kConstantExpression:
-        EvaluateConstantExpression();
+        EvaluateConstantExpression(tag);
+        break;
+      case kDeprecated_ConstantExpression:
+        EvaluateConstantExpression(tag);
         break;
       default:
         H.ReportError(
@@ -860,12 +863,16 @@ void ConstantEvaluator::EvaluateNullLiteral() {
   result_ = Instance::null();
 }
 
-void ConstantEvaluator::EvaluateConstantExpression() {
+void ConstantEvaluator::EvaluateConstantExpression(Tag tag) {
   // Please note that this constants array is constructed exactly once, see
   // ReadConstantTable() and is immutable from that point on, so there is no
   // need to guard against concurrent access between mutator and background
   // compiler.
   KernelConstantsMap constant_map(H.constants().raw());
+  if (tag == kConstantExpression) {
+    helper_->ReadPosition();
+    helper_->SkipDartType();
+  }
   result_ ^= constant_map.GetOrDie(helper_->ReadUInt());
   ASSERT(constant_map.Release().raw() == H.constants().raw());
 }
