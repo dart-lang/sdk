@@ -101,7 +101,11 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
         // These only occur inside unevaluated constants, so if we decide to
         // remove support for late evaluation of environment constants from
         // dill files in the VM, an implementation here will not be necessary.
-        UNIMPLEMENTED();
+        H.ReportError(
+            script_, TokenPosition::kNoSource,
+            "Unexpected unevaluated constant, All constant expressions"
+            " are expected to be evaluated at this point %s (%d)",
+            Reader::TagName(tag), tag);
         break;
       case kSymbolLiteral:
         EvaluateSymbolLiteral();
@@ -118,7 +122,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kConstSetLiteral:
         // Set literals are currently desugared in the frontend and will not
         // reach the VM. See http://dartbug.com/35124 for discussion.
-        UNREACHABLE();
+        H.ReportError(script_, TokenPosition::kNoSource,
+                      "Unexpected set literal constant, this constant"
+                      " is expected to be evaluated at this point %s (%d)",
+                      Reader::TagName(tag), tag);
         break;
       case kConstMapLiteral:
         EvaluateMapLiteralInternal();
@@ -392,7 +399,6 @@ void ConstantEvaluator::EvaluateStaticGet() {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(Error::Cast(value), script_, position,
                       "Not a constant expression.");
-        UNREACHABLE();
       }
       Thread* thread = H.thread();
       const Error& error =
@@ -400,7 +406,6 @@ void ConstantEvaluator::EvaluateStaticGet() {
       if (!error.IsNull()) {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(error, script_, position, "Not a constant expression.");
-        UNREACHABLE();
       }
       ASSERT(value.IsNull() || value.IsInstance());
       field.SetStaticValue(value.IsNull() ? Instance::null_instance()
@@ -1225,7 +1230,10 @@ const Array& ConstantHelper::ReadConstantTable() {
       case kSetConstant:
         // Set literals are currently desugared in the frontend and will not
         // reach the VM. See http://dartbug.com/35124 for discussion.
-        UNREACHABLE();
+        H.ReportError(script(), TokenPosition::kNoSource,
+                      "Unexpected set constant, this constant"
+                      " is expected to be evaluated at this point (%" Pd ")",
+                      constant_tag);
         break;
       case kInstanceConstant: {
         const NameIndex index = helper_.ReadCanonicalNameReference();
@@ -1318,12 +1326,19 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kMapConstant:
         // Note: This is already lowered to InstanceConstant/ListConstant.
-        UNREACHABLE();
+        H.ReportError(script(), TokenPosition::kNoSource,
+                      "Unexpected map constant, this constant"
+                      " is expected to be evaluated at this point (%" Pd ")",
+                      constant_tag);
         break;
       case kUnevaluatedConstant:
         // We should not see unevaluated constants in the constant table, they
         // should have been fully evaluated before we get them.
-        UNREACHABLE();
+        H.ReportError(
+            script(), TokenPosition::kNoSource,
+            "Unexpected unevaluated constant, All constant expressions"
+            " are expected to be evaluated at this point (%" Pd ")",
+            constant_tag);
         break;
       default:
         UNREACHABLE();
