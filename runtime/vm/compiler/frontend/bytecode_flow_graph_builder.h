@@ -133,6 +133,7 @@ class BytecodeFlowGraphBuilder {
   void DropUnusedValuesFromStack();
   void BuildJumpIfStrictCompare(Token::Kind cmp_kind);
   void BuildIntOp(const String& name, Token::Kind token_kind, int num_args);
+  void BuildInterfaceCallCommon(bool is_unchecked_call);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
 

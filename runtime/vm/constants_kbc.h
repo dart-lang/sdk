@@ -285,6 +285,11 @@ namespace dart {
 //    interface method declaration.
 //    The ICData indicates whether the first argument is a type argument vector.
 //
+//  - UncheckedInterfaceCall ArgC, D
+//
+//    Same as InterfaceCall, but can omit type checks of generic-covariant
+//    parameters.
+//
 //  - DynamicCall ArgC, D
 //
 //    Lookup and invoke method using ICData in PP[D]
@@ -490,6 +495,7 @@ namespace dart {
   V(CompareIntLe,                          0, ___, ___, ___)                   \
   V(DirectCall,                          A_D, num, num, ___)                   \
   V(AllocateClosure,                       D, lit, ___, ___)                   \
+  V(UncheckedInterfaceCall,              A_D, num, num, ___)                   \
 
   // These bytecodes are only generated within the VM. Reassinging their
   // opcodes is not a breaking change.
@@ -515,7 +521,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 4;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 5;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,
@@ -631,6 +637,7 @@ class KernelBytecode {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kIndirectStaticCall:
       case KernelBytecode::kInterfaceCall:
+      case KernelBytecode::kUncheckedInterfaceCall:
       case KernelBytecode::kDynamicCall:
       case KernelBytecode::kDirectCall:
         return true;

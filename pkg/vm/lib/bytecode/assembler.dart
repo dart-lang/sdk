@@ -281,6 +281,11 @@ class BytecodeAssembler {
     emitWord(_encodeAD(Opcode.kInterfaceCall, ra, rd));
   }
 
+  void emitUncheckedInterfaceCall(int ra, int rd) {
+    emitSourcePosition();
+    emitWord(_encodeAD(Opcode.kUncheckedInterfaceCall, ra, rd));
+  }
+
   void emitDynamicCall(int ra, int rd) {
     emitSourcePosition();
     emitWord(_encodeAD(Opcode.kDynamicCall, ra, rd));

@@ -285,7 +285,7 @@ L2:
   PushNull
   PushConstant         CP#10
   AssertAssignable     0, CP#11
-  InterfaceCall        2, CP#12
+  UncheckedInterfaceCall 2, CP#12
   Drop1
   PushNull
   ReturnTOS

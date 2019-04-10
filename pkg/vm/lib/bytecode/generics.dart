@@ -7,7 +7,9 @@ library vm.bytecode.generics;
 import 'dart:math' show min;
 
 import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 bool hasInstantiatorTypeArguments(Class c) {
   for (; c != null; c = c.superclass) {
@@ -234,5 +236,83 @@ class IsRecursiveAfterFlatteningVisitor extends DartTypeVisitor<void> {
       visit(p.type);
     }
     visit(node.returnType);
+  }
+}
+
+/// Returns static type of [expr].
+DartType getStaticType(Expression expr, TypeEnvironment typeEnvironment) {
+  // TODO(dartbug.com/34496): Remove this try/catch once
+  // getStaticType() is reliable.
+  try {
+    return expr.getStaticType(typeEnvironment);
+  } catch (e) {
+    return const DynamicType();
+  }
+}
+
+/// Returns `true` if [type] cannot be extended in user code.
+bool isSealedType(DartType type, CoreTypes coreTypes) {
+  if (type is InterfaceType) {
+    final cls = type.classNode;
+    return cls == coreTypes.intClass ||
+        cls == coreTypes.doubleClass ||
+        cls == coreTypes.boolClass ||
+        cls == coreTypes.stringClass ||
+        cls == coreTypes.nullClass;
+  }
+  return false;
+}
+
+// Returns true if an instance call to [interfaceTarget] with given
+// [receiver] can omit argument type checks needed due to generic-covariant
+// parameters.
+bool isUncheckedCall(Member interfaceTarget, Expression receiver,
+    TypeEnvironment typeEnvironment) {
+  if (interfaceTarget == null) {
+    // Dynamic call cannot be unchecked.
+    return false;
+  }
+
+  if (!_hasGenericCovariantParameters(interfaceTarget)) {
+    // Unchecked call makes sense only if there are generic-covariant parameters.
+    return false;
+  }
+
+  // Calls via [this] do not require checks.
+  if (receiver is ThisExpression) {
+    return true;
+  }
+
+  DartType receiverStaticType = getStaticType(receiver, typeEnvironment);
+  if (receiverStaticType is InterfaceType) {
+    if (receiverStaticType.typeArguments.isEmpty) {
+      return true;
+    }
+
+    if (receiverStaticType.typeArguments
+        .every((t) => isSealedType(t, typeEnvironment.coreTypes))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool _hasGenericCovariantParameters(Member target) {
+  if (target is Field) {
+    return target.isGenericCovariantImpl;
+  } else if (target is Procedure) {
+    for (var param in target.function.positionalParameters) {
+      if (param.isGenericCovariantImpl) {
+        return true;
+      }
+    }
+    for (var param in target.function.namedParameters) {
+      if (param.isGenericCovariantImpl) {
+        return true;
+      }
+    }
+    return false;
+  } else {
+    throw 'Unexpected instance call target ${target.runtimeType} $target';
   }
 }

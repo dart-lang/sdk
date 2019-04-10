@@ -780,7 +780,8 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   B->Push(call);
 }
 
-void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
+void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
+    bool is_unchecked_call) {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
@@ -818,8 +819,20 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
 
   // TODO(alexmarkov): add type info - call->SetResultType()
 
+  if (is_unchecked_call) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+
   code_ <<= call;
   B->Push(call);
+}
+
+void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/false);
+}
+
+void BytecodeFlowGraphBuilder::BuildUncheckedInterfaceCall() {
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/true);
 }
 
 void BytecodeFlowGraphBuilder::BuildDynamicCall() {

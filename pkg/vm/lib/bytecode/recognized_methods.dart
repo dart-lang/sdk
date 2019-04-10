@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'dbc.dart';
+import 'generics.dart' show getStaticType;
 
 class RecognizedMethods {
   static const binaryIntOps = <String, Opcode>{
@@ -32,15 +33,7 @@ class RecognizedMethods {
 
   RecognizedMethods(this.typeEnv);
 
-  DartType staticType(Expression expr) {
-    // TODO(dartbug.com/34496): Remove this ugly try/catch once
-    // getStaticType() is reliable.
-    try {
-      return expr.getStaticType(typeEnv);
-    } catch (e) {
-      return const DynamicType();
-    }
-  }
+  DartType staticType(Expression expr) => getStaticType(expr, typeEnv);
 
   bool isInt(Expression expr) => staticType(expr) == typeEnv.intType;
 

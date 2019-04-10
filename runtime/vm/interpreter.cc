@@ -2115,6 +2115,38 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(UncheckedInterfaceCall, A_D);
+
+#ifndef PRODUCT
+    // Check if single stepping.
+    if (thread->isolate()->single_step()) {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
+    }
+#endif  // !PRODUCT
+
+    {
+      const uint16_t argc = rA;
+      const uint16_t kidx = rD;
+
+      RawObject** call_base = SP - argc + 1;
+      RawObject** call_top = SP + 1;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      RawString* target_name =
+          static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                         &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(DynamicCall, A_D);
 
 #ifndef PRODUCT
