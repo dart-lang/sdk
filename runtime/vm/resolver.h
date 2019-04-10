@@ -34,11 +34,16 @@ class Resolver : public AllStatic {
       const ArgumentsDescriptor& args_desc,
       bool allow_add = true);
 
-  // If 'allow_add' is true we may add a function to the class during lookup.
-  static RawFunction* ResolveDynamicAnyArgs(Zone* zone,
-                                            const Class& receiver_class,
-                                            const String& function_name,
-                                            bool allow_add = true);
+  // Answers whether the receiver class has a definition for given selector
+  // other than noSuchMethod. Helper threads such as the background compiler
+  // must use this instead of checking for null answer from ResolveDynamicX
+  // because a helper thread cannot safely use 'allow_add = true' because it
+  // may concurrently mutate a class, and 'allow_add = false' will give false
+  /// negatives if lazy dispatchers are disabled or a lazy dispatcher hasn't
+  // been created yet.
+  static bool HasDefinition(Zone* zone,
+                            const Class& receiver_class,
+                            const String& function_name);
 
   // Resolve specified dart static function. If library.IsNull, use
   // either application library or core library if no application library
@@ -68,6 +73,15 @@ class Resolver : public AllStatic {
                                                 intptr_t type_args_len,
                                                 intptr_t num_arguments,
                                                 const Array& argument_names);
+
+ private:
+  // If 'allow_add' is true we may add a function to the class during lookup.
+  static RawFunction* ResolveDynamicAnyArgs(
+      Zone* zone,
+      const Class& receiver_class,
+      const String& function_name,
+      const ArgumentsDescriptor& args_desc,
+      bool allow_add = true);
 };
 
 }  // namespace dart
