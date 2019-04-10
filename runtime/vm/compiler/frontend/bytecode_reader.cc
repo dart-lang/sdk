@@ -58,6 +58,9 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     case RawFunction::kImplicitSetter:
       function.AttachBytecode(Object::implicit_setter_bytecode());
       return;
+    case RawFunction::kMethodExtractor:
+      function.AttachBytecode(Object::method_extractor_bytecode());
+      return;
     default: {
     }
   }
@@ -95,11 +98,12 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
   ASSERT(function.is_declared_in_bytecode());
 
   // No parsing is needed if function has bytecode attached.
-  // With one exception: implicit getters and setters have artificial
-  // bytecodes, but they are still handled by shared flow graph builder
-  // which requires scopes/parsing.
-  if (function.HasBytecode() && !function.IsImplicitGetterFunction() &&
-      !function.IsImplicitSetterFunction()) {
+  // With one exception: implicit functions with artificial are still handled
+  // by shared flow graph builder which requires scopes/parsing.
+  if (function.HasBytecode() &&
+      (function.kind() != RawFunction::kImplicitGetter) &&
+      (function.kind() != RawFunction::kImplicitSetter) &&
+      (function.kind() != RawFunction::kMethodExtractor)) {
     return;
   }
 

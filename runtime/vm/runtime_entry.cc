@@ -461,28 +461,6 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   arguments.SetReturn(cloned_ctx);
 }
 
-// Extract a method by allocating and initializing a new Closure.
-// Arg0: receiver.
-// Arg1: method.
-// Return value: newly allocated Closure.
-DEFINE_RUNTIME_ENTRY(ExtractMethod, 2) {
-  ASSERT(FLAG_enable_interpreter);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const Function& method = Function::CheckedHandle(zone, arguments.ArgAt(1));
-  const TypeArguments& instantiator_type_arguments =
-      method.HasInstantiatedSignature(kCurrentClass)
-          ? Object::null_type_arguments()
-          : TypeArguments::Handle(zone, receiver.GetTypeArguments());
-  ASSERT(method.HasInstantiatedSignature(kFunctions));
-  const Context& context = Context::Handle(zone, Context::New(1));
-  context.SetAt(0, receiver);
-  const Closure& closure = Closure::Handle(
-      zone,
-      Closure::New(instantiator_type_arguments, Object::null_type_arguments(),
-                   Object::empty_type_arguments(), method, context));
-  arguments.SetReturn(closure);
-}
-
 // Result of an invoke may be an unhandled exception, in which case we
 // rethrow it.
 static void ThrowIfError(const Object& result) {

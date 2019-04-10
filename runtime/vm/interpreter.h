@@ -236,6 +236,15 @@ class Interpreter {
                      uint32_t* pc,
                      RawObject** FP,
                      RawObject** SP);
+  bool AllocateContext(Thread* thread,
+                       intptr_t num_variables,
+                       uint32_t* pc,
+                       RawObject** FP,
+                       RawObject** SP);
+  bool AllocateClosure(Thread* thread,
+                       uint32_t* pc,
+                       RawObject** FP,
+                       RawObject** SP);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

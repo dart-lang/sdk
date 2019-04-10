@@ -15,7 +15,6 @@ namespace dart {
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
-  V(ExtractMethod)                                                             \
   V(GetFieldForDispatch)                                                       \
   V(ResolveCallFunction)                                                       \
   V(FixCallersTarget)                                                          \

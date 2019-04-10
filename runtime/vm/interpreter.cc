@@ -117,6 +117,19 @@ class InterpreterHelpers {
                                : static_cast<intptr_t>(kSmiCid);
   }
 
+  DART_FORCE_INLINE static RawTypeArguments* GetTypeArguments(
+      Thread* thread,
+      RawInstance* instance) {
+    RawClass* instance_class =
+        thread->isolate()->class_table()->At(GetClassId(instance));
+    return instance_class->ptr()->num_type_arguments_ > 0
+               ? reinterpret_cast<RawTypeArguments**>(
+                     instance
+                         ->ptr())[instance_class->ptr()
+                                      ->type_arguments_field_offset_in_words_]
+               : TypeArguments::null();
+  }
+
   // The usage counter is actually a 'hotness' counter.
   // For an instance call, both the usage counters of the caller and of the
   // calle will get incremented, as well as the ICdata counter at the call site.
@@ -638,21 +651,6 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       // Field was initialized. Return its value.
       *SP = call_base;
       **SP = value;
-      *invoked = true;
-      return true;
-    }
-    case RawFunction::kMethodExtractor: {
-      ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
-      call_top[1] = 0;                       // Result of runtime call.
-      call_top[2] = *call_base;              // Receiver.
-      call_top[3] = function->ptr()->data_;  // Method.
-      Exit(thread, *FP, call_top + 4, *pc);
-      NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
-      if (!InvokeRuntime(thread, this, DRT_ExtractMethod, native_args)) {
-        return false;
-      }
-      *SP = call_base;
-      **SP = call_top[1];
       *invoked = true;
       return true;
     }
@@ -1466,6 +1464,67 @@ bool Interpreter::AllocateArray(Thread* thread,
   Exit(thread, FP, SP + 3, pc);
   NativeArguments args(thread, 2, SP + 1, SP);
   return InvokeRuntime(thread, this, DRT_AllocateArray, args);
+}
+
+// Allocate a _Context with the given length and put it into SP[0].
+// Returns false on exception.
+bool Interpreter::AllocateContext(Thread* thread,
+                                  intptr_t num_context_variables,
+                                  uint32_t* pc,
+                                  RawObject** FP,
+                                  RawObject** SP) {
+  const intptr_t instance_size = Context::InstanceSize(num_context_variables);
+  ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+  const uword start = thread->top();
+  if (LIKELY((start + instance_size) < thread->end())) {
+    thread->set_top(start + instance_size);
+    RawContext* result =
+        Context::RawCast(InitializeHeader(start, kContextCid, instance_size));
+    result->ptr()->num_variables_ = num_context_variables;
+    RawObject* null_value = Object::null();
+    result->ptr()->parent_ = static_cast<RawContext*>(null_value);
+    for (intptr_t offset = sizeof(RawContext); offset < instance_size;
+         offset += kWordSize) {
+      *reinterpret_cast<RawObject**>(start + offset) = null_value;
+    }
+    SP[0] = result;
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = Smi::New(num_context_variables);
+    Exit(thread, FP, SP + 2, pc);
+    NativeArguments args(thread, 1, SP + 1, SP);
+    return InvokeRuntime(thread, this, DRT_AllocateContext, args);
+  }
+}
+
+// Allocate a _Closure and put it into SP[0].
+// Returns false on exception.
+bool Interpreter::AllocateClosure(Thread* thread,
+                                  uint32_t* pc,
+                                  RawObject** FP,
+                                  RawObject** SP) {
+  const intptr_t instance_size = Closure::InstanceSize();
+  const uword start = thread->top();
+  if (LIKELY((start + instance_size) < thread->end())) {
+    thread->set_top(start + instance_size);
+    RawClosure* result =
+        Closure::RawCast(InitializeHeader(start, kClosureCid, instance_size));
+    RawObject* null_value = Object::null();
+    for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
+         offset += kWordSize) {
+      *reinterpret_cast<RawObject**>(start + offset) = null_value;
+    }
+    SP[0] = result;
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = thread->isolate()->object_store()->closure_class();
+    SP[2] = Object::null();  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    return InvokeRuntime(thread, this, DRT_AllocateObject, args);
+  }
 }
 
 RawObject* Interpreter::Call(RawFunction* function,
@@ -2498,30 +2557,10 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateContext, A_D);
+    ++SP;
     const uint16_t num_context_variables = rD;
-    {
-      const intptr_t instance_size =
-          Context::InstanceSize(num_context_variables);
-      ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
-      const uword start = thread->top();
-      if (LIKELY((start + instance_size) < thread->end())) {
-        thread->set_top(start + instance_size);
-        RawContext* result = Context::RawCast(
-            InitializeHeader(start, kContextCid, instance_size));
-        result->ptr()->num_variables_ = num_context_variables;
-        result->ptr()->parent_ = static_cast<RawContext*>(null_value);
-        for (intptr_t offset = sizeof(RawContext); offset < instance_size;
-             offset += kWordSize) {
-          *reinterpret_cast<RawObject**>(start + offset) = null_value;
-        }
-        *++SP = result;
-      } else {
-        *++SP = 0;
-        SP[1] = Smi::New(num_context_variables);
-        Exit(thread, FP, SP + 2, pc);
-        NativeArguments args(thread, 1, SP + 1, SP);
-        INVOKE_RUNTIME(DRT_AllocateContext, args);
-      }
+    if (!AllocateContext(thread, num_context_variables, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
     }
     DISPATCH();
   }
@@ -2972,26 +3011,9 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateClosure, A_D);
-    const intptr_t instance_size = Closure::InstanceSize();
-    const uword start = thread->top();
-    if (LIKELY((start + instance_size) < thread->end())) {
-      thread->set_top(start + instance_size);
-      RawClosure* result =
-          Closure::RawCast(InitializeHeader(start, kClosureCid, instance_size));
-      for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
-           offset += kWordSize) {
-        *reinterpret_cast<RawObject**>(start + offset) = null_value;
-      }
-      SP[1] = result;
-      ++SP;
-    } else {
-      SP[1] = 0;  // Space for the result.
-      SP[2] = thread->isolate()->object_store()->closure_class();
-      SP[3] = null_value;  // Type arguments.
-      Exit(thread, FP, SP + 4, pc);
-      NativeArguments args(thread, 2, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_AllocateObject, args);
-      ++SP;
+    ++SP;
+    if (!AllocateClosure(thread, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
     }
     DISPATCH();
   }
@@ -3122,15 +3144,7 @@ SwitchDispatch:
       SP[1] = value;
       SP[2] = field_type;
       // Provide type arguments of instance as instantiator.
-      RawClass* instance_class = thread->isolate()->class_table()->At(
-          InterpreterHelpers::GetClassId(instance));
-      SP[3] =
-          instance_class->ptr()->num_type_arguments_ > 0
-              ? reinterpret_cast<RawObject**>(
-                    instance
-                        ->ptr())[instance_class->ptr()
-                                     ->type_arguments_field_offset_in_words_]
-              : null_value;
+      SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
       SP[4] = null_value;  // Implicit setters cannot be generic.
       SP[5] = field->ptr()->name_;
       if (!AssertAssignable(thread, pc, FP, /* argv */ SP + 5,
@@ -3191,6 +3205,54 @@ SwitchDispatch:
     }
 
     *++SP = null_value;
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_MethodExtractor, 0);
+
+    RawFunction* function = FrameFunction(FP);
+    int32_t counter = ++(function->ptr()->usage_counter_);
+    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
+                 counter >= FLAG_compilation_counter_threshold &&
+                 !Function::HasCode(function))) {
+      SP[1] = 0;  // Unused code result.
+      SP[2] = function;
+      Exit(thread, FP, SP + 3, pc);
+      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
+      function = FrameFunction(FP);
+    }
+
+    ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
+
+    ++SP;
+    if (!AllocateClosure(thread, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+
+    ++SP;
+    if (!AllocateContext(thread, 1, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+
+    RawContext* context = Context::RawCast(*SP--);
+    RawInstance* instance = Instance::RawCast(FrameArguments(FP, 1)[0]);
+    context->StorePointer(
+        reinterpret_cast<RawInstance**>(&context->ptr()->data()[0]), instance);
+
+    RawClosure* closure = Closure::RawCast(*SP);
+    closure->StorePointer(
+        &closure->ptr()->instantiator_type_arguments_,
+        InterpreterHelpers::GetTypeArguments(thread, instance));
+    // function_type_arguments_ is already null
+    closure->ptr()->delayed_type_arguments_ =
+        Object::empty_type_arguments().raw();
+    closure->StorePointer(&closure->ptr()->function_,
+                          Function::RawCast(FrameFunction(FP)->ptr()->data_));
+    closure->StorePointer(&closure->ptr()->context_, context);
+    // hash_ is already null
 
     DISPATCH();
   }

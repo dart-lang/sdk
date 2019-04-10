@@ -901,6 +901,17 @@ void Object::Init(Isolate* isolate) {
   implicit_setter_bytecode_->set_exception_handlers(
       Object::empty_exception_handlers());
 
+  static const KBCInstr method_extractor_instr[2] = {
+      KernelBytecode::Encode(KernelBytecode::kVMInternal_MethodExtractor),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *method_extractor_bytecode_ = Bytecode::New(
+      reinterpret_cast<uword>(method_extractor_instr),
+      sizeof(method_extractor_instr), -1, Object::empty_object_pool());
+  method_extractor_bytecode_->set_pc_descriptors(Object::empty_descriptors());
+  method_extractor_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -962,6 +973,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(implicit_getter_bytecode_->IsBytecode());
   ASSERT(!implicit_setter_bytecode_->IsSmi());
   ASSERT(implicit_setter_bytecode_->IsBytecode());
+  ASSERT(!method_extractor_bytecode_->IsSmi());
+  ASSERT(method_extractor_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(Isolate* isolate) {
@@ -5678,7 +5691,6 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     }
   }
   switch (kind()) {
-    case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
     case RawFunction::kDynamicInvocationForwarder:
@@ -15120,6 +15132,8 @@ const char* Bytecode::Name() const {
     return "[Bytecode Stub] VMInternal_ImplicitGetter";
   } else if (raw() == Object::implicit_setter_bytecode().raw()) {
     return "[Bytecode Stub] VMInternal_ImplicitSetter";
+  } else if (raw() == Object::method_extractor_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractor";
   }
 
   Zone* zone = Thread::Current()->zone();
@@ -15132,9 +15146,11 @@ const char* Bytecode::Name() const {
 
 const char* Bytecode::QualifiedName() const {
   if (raw() == Object::implicit_getter_bytecode().raw()) {
-    return "[Bytecode Stub] VMInternal__ImplicitGetter";
+    return "[Bytecode Stub] VMInternal_ImplicitGetter";
   } else if (raw() == Object::implicit_setter_bytecode().raw()) {
-    return "[Bytecode Stub] VMInternal__ImplicitSetter";
+    return "[Bytecode Stub] VMInternal_ImplicitSetter";
+  } else if (raw() == Object::method_extractor_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractor";
   }
 
   Zone* zone = Thread::Current()->zone();
