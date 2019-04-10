@@ -27,7 +27,7 @@ main() {
 class NonDartFixTest with ResourceProviderMixin {
   Future<void> assertHasFix(
       String initialContent, String location, String expectedContent) async {
-    File optionsFile = resourceProvider.getFile('/analysis_options.yaml');
+    File optionsFile = getFile('/analysis_options.yaml');
     SourceFactory sourceFactory = new SourceFactory([]);
     List<engine.AnalysisError> errors = analyzeAnalysisOptions(
         optionsFile.createSource(), initialContent, sourceFactory);
