@@ -307,7 +307,10 @@ class Server {
 
     final String path = _checkAuthTokenAndGetPath(request.uri);
     if (path == null) {
-      // Malformed.
+      // Either no authentication code was provided when one was expected or an
+      // incorrect authentication code was provided.
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.write("missing or invalid authentication code");
       request.response.close();
       return;
     }
@@ -335,7 +338,7 @@ class Server {
     }
     // HTTP based service request.
     final client = new HttpRequestClient(request, _service);
-    final message = new Message.fromUri(client, request.uri);
+    final message = new Message.fromUri(client, Uri.parse(path));
     client.onRequest(message); // exception free, no need to try catch
   }
 
