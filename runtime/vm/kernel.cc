@@ -314,7 +314,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           temp_array = klass.fields();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_field ^= temp_array.At(i);
-            if (temp_field.kernel_offset() <= 0) {
+            // TODO(alexmarkov): collect token positions from bytecode
+            if (temp_field.is_declared_in_bytecode() ||
+                temp_field.kernel_offset() <= 0) {
               // Skip artificially injected fields.
               continue;
             }
@@ -333,6 +335,10 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
             entry_script = temp_function.script();
+            // TODO(alexmarkov): collect token positions from bytecode
+            if (temp_function.is_declared_in_bytecode()) {
+              continue;
+            }
             if (entry_script.raw() != interesting_script.raw()) {
               continue;
             }
@@ -363,6 +369,10 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.raw();
+        // TODO(alexmarkov): collect token positions from bytecode
+        if (temp_function.is_declared_in_bytecode()) {
+          continue;
+        }
         entry_script = temp_function.script();
         if (entry_script.raw() != interesting_script.raw()) {
           continue;
@@ -375,7 +385,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
                                    &yield_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
-        if (field.kernel_offset() <= 0) {
+        // TODO(alexmarkov): collect token positions from bytecode
+        if (field.is_declared_in_bytecode() || field.kernel_offset() <= 0) {
           // Skip artificially injected fields.
           continue;
         }
