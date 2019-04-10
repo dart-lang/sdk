@@ -258,7 +258,8 @@ void addToTable(String ret, String name, String proto) {
   // divergences.
   if (name == 'padLeft' || name == 'padRight') {
     proto = proto.replaceAll('I', 'i');
-  } else if (name == 'Platform.executable' ||
+  } else if (name == 'pid' ||
+      name == 'Platform.executable' ||
       name == 'Platform.resolvedExecutable') {
     return;
   }
