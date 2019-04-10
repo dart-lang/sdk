@@ -171,8 +171,6 @@ class DartLib {
     DartLib('FileSystemEvent.all', 'Vv'),
     DartLib('FileSystemEvent.ALL', 'Vv'),
     DartLib('exitCode', 'Vv'),
-    DartLib('ProcessInfo.currentRss', 'Vv'),
-    DartLib('ProcessInfo.maxRss', 'Vv'),
     DartLib('RawSocketOption.levelSocket', 'Vv'),
     DartLib('RawSocketOption.levelIPv4', 'Vv'),
     DartLib('RawSocketOption.IPv4MulticastInterface', 'Vv'),
