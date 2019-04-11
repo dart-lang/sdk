@@ -10,11 +10,12 @@ f() {
 var l = ['a']..addAll(['b']); // OK -- prefer_inlined_adds
 
 var l1 = [];
-var l2 = l1..addAll(['b']); //OK
+var l2 = l1..addAll(['b']); // OK
 
 var things;
 var l3 = ['a']..addAll(things ?? const []); // LINT
-var l4 = ['a']..addAll(things ?? []); //LINT
+var l4 = ['a']..addAll(things ?? []); // LINT
+var l7 = []..addAll(things); // LINT
 
 // Control flow.
 
