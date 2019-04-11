@@ -175,6 +175,36 @@ void StubCodeCompiler::GenerateSharedStub(
   __ ret(LR);
 }
 
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers);
+  __ mov(CallingConventions::kFirstCalleeSavedCpuReg, SP);
+  __ ReserveAlignedFrameSpace(0);
+  __ mov(CSP, SP);
+  __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ blr(R0);
+  __ mov(SP, CallingConventions::kFirstCalleeSavedCpuReg);
+  __ PopRegisters(all_registers);
+  __ mov(CSP, SP);
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers);
+  __ mov(CallingConventions::kFirstCalleeSavedCpuReg, SP);
+  __ ReserveAlignedFrameSpace(0);
+  __ mov(CSP, SP);
+  __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ blr(R0);
+  __ mov(SP, CallingConventions::kFirstCalleeSavedCpuReg);
+  __ PopRegisters(all_registers);
+  __ mov(CSP, SP);
+  __ Ret();
+}
+
 // R1: The extracted method.
 // R4: The type_arguments_field_offset (or 0)
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(

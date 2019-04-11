@@ -306,6 +306,9 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
+  void TransitionGeneratedToNative(Register destination_address);
+  void TransitionNativeToGenerated();
+
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
   void name(Register dst, Register src) { Emit##width(dst, src, __VA_ARGS__); }

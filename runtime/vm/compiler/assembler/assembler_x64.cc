@@ -164,6 +164,63 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
   EmitUint8(0xC0 + (dst & 0x07));
 }
 
+void Assembler::TransitionGeneratedToNative(Register destination_address) {
+  // Save exit frame information to enable stack walking.
+  movq(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
+
+  movq(Assembler::VMTagAddress(), destination_address);
+  movq(Address(THR, compiler::target::Thread::execution_state_offset()),
+       Immediate(compiler::target::Thread::native_execution_state()));
+
+  // Compare and swap the value at Thread::safepoint_state from unacquired to
+  // acquired. If the CAS fails, go to a slow-path stub.
+  Label done;
+  pushq(RAX);
+  movq(RAX, Immediate(Thread::safepoint_state_unacquired()));
+  movq(TMP, Immediate(Thread::safepoint_state_acquired()));
+  LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
+  movq(TMP, RAX);
+  popq(RAX);
+  cmpq(TMP, Immediate(Thread::safepoint_state_unacquired()));
+  j(EQUAL, &done);
+
+  movq(TMP,
+       Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
+  movq(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  CallCFunction(TMP);
+
+  Bind(&done);
+}
+
+void Assembler::TransitionNativeToGenerated() {
+  // Compare and swap the value at Thread::safepoint_state from acquired to
+  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  Label done;
+  pushq(RAX);
+  movq(RAX, Immediate(Thread::safepoint_state_acquired()));
+  movq(TMP, Immediate(Thread::safepoint_state_unacquired()));
+  LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
+  movq(TMP, RAX);
+  popq(RAX);
+  cmpq(TMP, Immediate(Thread::safepoint_state_acquired()));
+  j(EQUAL, &done);
+
+  movq(TMP,
+       Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
+  movq(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  CallCFunction(TMP);
+
+  Bind(&done);
+
+  movq(Assembler::VMTagAddress(),
+       Immediate(compiler::target::Thread::vm_tag_compiled_id()));
+  movq(Address(THR, Thread::execution_state_offset()),
+       Immediate(compiler::target::Thread::generated_execution_state()));
+
+  // Reset exit frame information in Isolate structure.
+  movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+}
+
 void Assembler::EmitQ(int reg,
                       const Address& address,
                       int opcode,

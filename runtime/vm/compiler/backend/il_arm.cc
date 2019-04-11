@@ -998,10 +998,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(false);
   __ EnterDartFrame(0, /*load_pool_pointer=*/false);
 
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
-
   // Reserve space for arguments and align frame before entering C++ world.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
                               kWordSize);
@@ -1047,35 +1043,24 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  // Mark that the thread is executing VM code.
-  __ StoreToOffset(kWord, R9, THR, Thread::vm_tag_offset());
-
   // We need to copy the return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
-  constexpr intptr_t kCallSequenceLength = 16;
-  const intptr_t call_sequence_start = __ CodeSize();
-
   __ mov(TMP, Operand(PC));
+  __ str(TMP, Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize));
 
   // For historical reasons, the PC on ARM points 8 bytes past the current
-  // instruction.
-  __ add(TMP, TMP, Operand(kCallSequenceLength - 8));
-
-  __ str(TMP, Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize));
-  __ blx(branch);
-
-  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
-
+  // instruction. Therefore we emit the metadata here, 8 bytes (2 instructions)
+  // after the original mov.
   compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
 
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(kWord, R2, THR, Thread::vm_tag_offset());
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(branch, saved_fp, locs()->temp(1).reg());
 
-  // Reset exit frame information in Isolate structure.
-  __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
+  __ blx(branch);
+
+  // Update information in the thread object and leave the safepoint.
+  __ TransitionNativeToGenerated(saved_fp, locs()->temp(1).reg());
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).

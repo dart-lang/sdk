@@ -2739,4 +2739,20 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->top_exit_frame_info() != 0);
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  thread->EnterSafepoint();
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint, 0, false, &DFLRT_EnterSafepoint);
+
+extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->top_exit_frame_info() != 0);
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  thread->ExitSafepoint();
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
+
 }  // namespace dart

@@ -846,9 +846,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_fp = locs()->temp(0).reg();
+  Register saved_fp = locs()->temp(0).reg();  // volatile
   Register branch = locs()->in(TargetAddressIndex()).reg();
-  Register tmp = locs()->temp(1).reg();
+  Register tmp = locs()->temp(1).reg();  // callee-saved
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
@@ -860,10 +860,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // We need to create a dummy "exit frame". It will have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
   __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize);
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
 
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {
@@ -911,33 +907,34 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  // Mark that the thread is executing VM code.
-  __ movl(Assembler::VMTagAddress(), branch);
-
-  // We need to copy the return address up into the dummy stack frame so the
+  // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use. Unlike X64, there's no
   // PC-relative 'leaq' available, so we have do a trick with 'call'.
-  constexpr intptr_t kCallSequenceLength = 6;
-
   Label get_pc;
   __ call(&get_pc);
-  __ Bind(&get_pc);
-
-  const intptr_t call_sequence_start = __ CodeSize();
-
-  __ popl(tmp);
-  __ movl(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
-  __ call(branch);
-
-  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
-
   compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
+  __ Bind(&get_pc);
+  __ popl(tmp);
+  __ movl(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
+
+  __ TransitionGeneratedToNative(branch, tmp);
+  __ call(branch);
 
   // The x86 calling convention requires floating point values to be returned on
   // the "floating-point stack" (aka. register ST0). We don't use the
   // floating-point stack in Dart, so we need to move the return value back into
   // an XMM register.
+  if (representation() == kUnboxedDouble || representation() == kUnboxedFloat) {
+    __ subl(SPREG, Immediate(8));
+    __ fstpl(Address(SPREG, 0));
+    __ TransitionNativeToGenerated(tmp);
+    __ fldl(Address(SPREG, 0));
+    __ addl(SPREG, Immediate(8));
+  } else {
+    __ TransitionNativeToGenerated(tmp);
+  }
+
   if (representation() == kUnboxedDouble) {
     __ subl(SPREG, Immediate(8));
     __ fstpl(Address(SPREG, 0));
@@ -947,12 +944,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ fstps(Address(SPREG, 0));
     __ movss(XMM0, Address(SPREG, 0));
   }
-
-  // Mark that the thread is executing Dart code.
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
-  // Reset exit frame information in Isolate structure.
-  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   // Leave dummy exit frame.
   __ LeaveFrame();

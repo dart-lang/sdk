@@ -897,10 +897,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize,
                     PP);
 
-  // Save exit frame information to enable stack walking as we are about to
-  // transition to Dart VM C++ code.
-  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
-
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(SPREG, Immediate(~(OS::ActivationFrameAlignment() - 1)));
@@ -927,35 +923,22 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  // Mark that the thread is executing VM code.
-  __ movq(Assembler::VMTagAddress(), target_address);
-
-// We need to copy the return address up into the dummy stack frame so the
-// stack walker will know which safepoint to use.
-#if defined(TARGET_OS_WINDOWS)
-  constexpr intptr_t kCallSequenceLength = 10;
-#else
-  constexpr intptr_t kCallSequenceLength = 6;
-#endif
-
-  // RIP points to the *next* instruction, so 'AddressRIPRelative' loads the
-  // address of the following 'movq'.
-  __ leaq(TMP, Address::AddressRIPRelative(kCallSequenceLength));
-
-  const intptr_t call_sequence_start = __ CodeSize();
-  __ movq(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
-  __ CallCFunction(target_address);
-
-  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
-
+  // We need to copy a dummy return address up into the dummy stack frame so the
+  // stack walker will know which safepoint to use. RIP points to the *next*
+  // instruction, so 'AddressRIPRelative' loads the address of the following
+  // 'movq'.
+  __ leaq(TMP, Address::AddressRIPRelative(0));
   compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
+  __ movq(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(target_address);
 
-  // Reset exit frame information in Isolate structure.
-  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+  __ CallCFunction(target_address);
+
+  // Update information in the thread object and leave the safepoint.
+  __ TransitionNativeToGenerated();
 
   // Although PP is a callee-saved register, it may have been moved by the GC.
   __ LeaveDartFrame(compiler::kRestoreCallerPP);

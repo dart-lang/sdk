@@ -107,6 +107,22 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  __ pushal();
+  __ movl(EAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ call(EAX);
+  __ popal();
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  __ pushal();
+  __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ call(EAX);
+  __ popal();
+  __ ret();
+}
+
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
   __ Breakpoint();

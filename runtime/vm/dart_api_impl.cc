@@ -6341,4 +6341,8 @@ DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
 #endif
 }
 
+DART_EXPORT void Dart_PrepareToAbort() {
+  OS::PrepareToAbort();
+}
+
 }  // namespace dart

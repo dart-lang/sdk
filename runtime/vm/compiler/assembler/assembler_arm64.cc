@@ -1305,6 +1305,76 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   LeaveFrame();
 }
 
+void Assembler::TransitionGeneratedToNative(Register destination,
+                                            Register state) {
+  Register addr = TMP2;
+
+  // Save exit frame information to enable stack walking.
+  StoreToOffset(FPREG, THR,
+                compiler::target::Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing native code.
+  StoreToOffset(destination, THR, compiler::target::Thread::vm_tag_offset());
+  LoadImmediate(state, Thread::native_execution_state());
+  StoreToOffset(state, THR, compiler::target::Thread::execution_state_offset());
+
+  Label slow_path, done, retry;
+  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldxr(state, addr);
+  cmp(state, Operand(Thread::safepoint_state_unacquired()));
+  b(&slow_path, NE);
+
+  movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
+  stxr(TMP, state, addr);
+  cbz(&done, TMP);  // 0 means stxr was successful.
+  b(&retry);
+
+  Bind(&slow_path);
+  ldr(addr,
+      Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
+  ldr(addr, FieldAddress(addr, compiler::target::Code::entry_point_offset()));
+  blr(addr);
+
+  Bind(&done);
+}
+
+void Assembler::TransitionNativeToGenerated(Register state) {
+  Register addr = TMP2;
+
+  Label slow_path, done, retry;
+  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldxr(state, addr);
+  cmp(state, Operand(Thread::safepoint_state_acquired()));
+  b(&slow_path, NE);
+
+  movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
+  stxr(TMP, state, addr);
+  cbz(&done, TMP);  // 0 means stxr was successful.
+  b(&retry);
+
+  Bind(&slow_path);
+  ldr(addr,
+      Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
+  ldr(addr, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  blr(addr);
+
+  Bind(&done);
+
+  // Mark that the thread is executing Dart code.
+  LoadImmediate(state, compiler::target::Thread::vm_tag_compiled_id());
+  StoreToOffset(state, THR, compiler::target::Thread::vm_tag_offset());
+  LoadImmediate(state, compiler::target::Thread::generated_execution_state());
+  StoreToOffset(state, THR, compiler::target::Thread::execution_state_offset());
+
+  // Reset exit frame information in Isolate structure.
+  StoreToOffset(ZR, THR,
+                compiler::target::Thread::top_exit_frame_info_offset());
+}
+
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
   Comment("EnterCallRuntimeFrame");
   EnterStubFrame();

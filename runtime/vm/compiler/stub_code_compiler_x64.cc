@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler/runtime_api.h"
 #include "vm/globals.h"
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/stub_code_compiler.h"
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -163,6 +165,28 @@ void StubCodeCompiler::GenerateSharedStub(
   __ PopRegisters(kDartAvailableCpuRegs,
                   save_fpu_registers ? kAllFpuRegistersList : 0);
 
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers.cpu_registers(),
+                   all_registers.fpu_registers());
+  __ movq(RAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ CallCFunction(RAX);
+  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers.cpu_registers(),
+                   all_registers.fpu_registers());
+  __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ CallCFunction(RAX);
+  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
   __ ret();
 }
 

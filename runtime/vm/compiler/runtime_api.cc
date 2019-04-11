@@ -214,6 +214,10 @@ void BailoutWithBranchOffsetError() {
   Thread::Current()->long_jump_base()->Jump(1, Object::branch_offset_error());
 }
 
+word RuntimeEntry::OffsetFromThread() const {
+  return dart::Thread::OffsetFromThread(runtime_entry_);
+}
+
 namespace target {
 
 const word kPageSize = dart::kPageSize;
@@ -495,6 +499,7 @@ word Array::header_size() {
   V(Thread, top_offset)                                                        \
   V(Thread, top_resource_offset)                                               \
   V(Thread, vm_tag_offset)                                                     \
+  V(Thread, safepoint_state_offset)                                            \
   V(TimelineStream, enabled_offset)                                            \
   V(TwoByteString, data_offset)                                                \
   V(Type, arguments_offset)                                                    \
@@ -512,6 +517,14 @@ word Array::header_size() {
 
 CLASS_NAME_LIST(DEFINE_FORWARDER)
 #undef DEFINE_FORWARDER
+
+uword Thread::safepoint_state_unacquired() {
+  return dart::Thread::safepoint_state_unacquired();
+}
+
+uword Thread::safepoint_state_acquired() {
+  return dart::Thread::safepoint_state_acquired();
+}
 
 const word HeapPage::kBytesPerCardLog2 = dart::HeapPage::kBytesPerCardLog2;
 
@@ -639,6 +652,30 @@ word Thread::lazy_deopt_from_throw_stub_offset() {
 
 word Thread::deoptimize_stub_offset() {
   return dart::Thread::deoptimize_stub_offset();
+}
+
+word Thread::enter_safepoint_stub_offset() {
+  return dart::Thread::enter_safepoint_stub_offset();
+}
+
+word Thread::exit_safepoint_stub_offset() {
+  return dart::Thread::exit_safepoint_stub_offset();
+}
+
+word Thread::execution_state_offset() {
+  return dart::Thread::execution_state_offset();
+}
+
+uword Thread::native_execution_state() {
+  return dart::Thread::ExecutionState::kThreadInNative;
+}
+
+uword Thread::generated_execution_state() {
+  return dart::Thread::ExecutionState::kThreadInGenerated;
+}
+
+uword Thread::vm_tag_compiled_id() {
+  return dart::VMTag::kDartCompiledTagId;
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)

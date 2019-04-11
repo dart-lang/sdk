@@ -510,6 +510,13 @@ class Assembler : public AssemblerBase {
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
 
+  // Requires two temporary registers 'scratch0' and 'scratch1' (in addition to
+  // TMP).
+  void TransitionGeneratedToNative(Register destination_address,
+                                   Register scratch0,
+                                   Register scratch1);
+  void TransitionNativeToGenerated(Register scratch0, Register scratch1);
+
   // Miscellaneous instructions.
   void clrex();
   void nop(Condition cond = AL);
@@ -1290,6 +1297,9 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
+
+  void EnterSafepointSlowly();
+  void ExitSafepointSlowly();
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Condition, Register)>

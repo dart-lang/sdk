@@ -547,6 +547,90 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
+void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register addr,
+                                            Register state) {
+  // Save exit frame information to enable stack walking.
+  StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing native code.
+  StoreToOffset(kWord, destination_address, THR, Thread::vm_tag_offset());
+  LoadImmediate(state, compiler::target::Thread::native_execution_state());
+  StoreToOffset(kWord, state, THR, Thread::execution_state_offset());
+
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    EnterSafepointSlowly();
+  } else {
+    Label slow_path, done, retry;
+    LoadImmediate(addr, compiler::target::Thread::safepoint_state_offset());
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldrex(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_unacquired()));
+    b(&slow_path, NE);
+
+    mov(state, Operand(Thread::safepoint_state_acquired()));
+    strex(TMP, state, addr);
+    cmp(TMP, Operand(0));  // 0 means strex was successful.
+    b(&done, EQ);
+    b(&retry);
+
+    Bind(&slow_path);
+    EnterSafepointSlowly();
+
+    Bind(&done);
+  }
+}
+
+void Assembler::EnterSafepointSlowly() {
+  ldr(TMP,
+      Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
+  ldr(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  blx(TMP);
+}
+
+void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    ExitSafepointSlowly();
+  } else {
+    Label slow_path, done, retry;
+    LoadImmediate(addr, compiler::target::Thread::safepoint_state_offset());
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldrex(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_acquired()));
+    b(&slow_path, NE);
+
+    mov(state, Operand(Thread::safepoint_state_unacquired()));
+    strex(TMP, state, addr);
+    cmp(TMP, Operand(0));  // 0 means strex was successful.
+    b(&done, EQ);
+    b(&retry);
+
+    Bind(&slow_path);
+    ExitSafepointSlowly();
+
+    Bind(&done);
+  }
+
+  // Mark that the thread is executing Dart code.
+  LoadImmediate(state, compiler::target::Thread::vm_tag_compiled_id());
+  StoreToOffset(kWord, state, THR, Thread::vm_tag_offset());
+  LoadImmediate(state, compiler::target::Thread::generated_execution_state());
+  StoreToOffset(kWord, state, THR, Thread::execution_state_offset());
+
+  // Reset exit frame information in Isolate structure.
+  LoadImmediate(state, 0);
+  StoreToOffset(kWord, state, THR, Thread::top_exit_frame_info_offset());
+}
+
+void Assembler::ExitSafepointSlowly() {
+  ldr(TMP,
+      Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
+  ldr(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  blx(TMP);
+}
+
 void Assembler::clrex() {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   int32_t encoding = (kSpecialCondition << kConditionShift) | B26 | B24 | B22 |

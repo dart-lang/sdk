@@ -887,10 +887,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(false);
   __ EnterDartFrame(0, PP);
 
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ StoreToOffset(FPREG, THR,
-                   compiler::target::Thread::top_exit_frame_info_offset());
+  // Save the stack limit address.
+  __ PushRegister(CSP);
 
   // Make space for arguments and align the frame.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
@@ -916,43 +914,29 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  // Mark that the thread is executing VM code.
-  __ StoreToOffset(branch, THR, compiler::target::Thread::vm_tag_offset());
-
-  // We need to copy the return address up into the dummy stack frame so the
+  // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
-  const intptr_t call_sequence_start = __ CodeSize();
-
-  // 5 instructions, 4 bytes each.
-  constexpr intptr_t kCallSequenceLength = 5 * 4;
-
-  __ adr(temp, Immediate(kCallSequenceLength));
-  __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
-
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack. We cache the stack limit address
-  // in a callee-saved register.
-  __ mov(temp, CSP);
-  __ mov(CSP, SP);
-
-  __ blr(branch);
-
-  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
-
-  // Restore the Dart stack pointer and the saved C stack pointer.
-  __ mov(SP, CSP);
-  __ mov(CSP, temp);
-
+  __ adr(temp, Immediate(0));
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
 
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(temp, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(temp, THR, compiler::target::Thread::vm_tag_offset());
+  __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
-  // Reset exit frame information in Isolate structure.
-  __ StoreToOffset(ZR, THR,
-                   compiler::target::Thread::top_exit_frame_info_offset());
+  // We are entering runtime code, so the C stack pointer must be restored from
+  // the stack limit to the top of the stack.
+  __ mov(CSP, SP);
+
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(branch, temp);
+
+  __ blr(branch);
+
+  // Update information in the thread object and leave the safepoint.
+  __ TransitionNativeToGenerated(temp);
+
+  // Restore the Dart stack pointer and the saved C stack pointer.
+  __ mov(SP, CSP);
+  __ LoadFromOffset(CSP, FPREG, kFirstLocalSlotFromFp * kWordSize);
 
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,

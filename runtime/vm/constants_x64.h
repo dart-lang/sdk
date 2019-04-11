@@ -224,7 +224,7 @@ class CallingConventions {
   static const intptr_t kNumArgRegs = 6;
 
   static const XmmRegister FpuArgumentRegisters[];
-  static const intptr_t kXmmArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
+  static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
                                                 R(XMM3) | R(XMM4) | R(XMM5) |
                                                 R(XMM6) | R(XMM7);
   static const intptr_t kNumFpuArgRegs = 8;

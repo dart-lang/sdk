@@ -77,7 +77,10 @@ namespace dart {
   V(double, LibcAsin, double)                                                  \
   V(double, LibcAtan, double)                                                  \
   V(double, LibcAtan2, double, double)                                         \
-  V(RawBool*, CaseInsensitiveCompareUC16, RawString*, RawSmi*, RawSmi*, RawSmi*)
+  V(RawBool*, CaseInsensitiveCompareUC16, RawString*, RawSmi*, RawSmi*,        \
+    RawSmi*)                                                                   \
+  V(void, EnterSafepoint)                                                      \
+  V(void, ExitSafepoint)
 
 }  // namespace dart
 

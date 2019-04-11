@@ -218,6 +218,8 @@ class RuntimeEntry : public ValueObject {
     call_(runtime_entry_, assembler, argument_count);
   }
 
+  word OffsetFromThread() const;
+
  protected:
   RuntimeEntry(const dart::RuntimeEntry* runtime_entry,
                RuntimeEntryCallInternal call)
@@ -571,6 +573,15 @@ class Thread : public AllStatic {
   static word array_write_barrier_entry_point_offset();
   static word write_barrier_entry_point_offset();
   static word vm_tag_offset();
+  static uword vm_tag_compiled_id();
+
+  static word safepoint_state_offset();
+  static uword safepoint_state_unacquired();
+  static uword safepoint_state_acquired();
+
+  static word execution_state_offset();
+  static uword native_execution_state();
+  static uword generated_execution_state();
 
 #if !defined(TARGET_ARCH_DBC)
   static word write_barrier_code_offset();
@@ -593,6 +604,8 @@ class Thread : public AllStatic {
   static word lazy_deopt_from_return_stub_offset();
   static word lazy_deopt_from_throw_stub_offset();
   static word deoptimize_stub_offset();
+  static word enter_safepoint_stub_offset();
+  static word exit_safepoint_stub_offset();
 #endif  // !defined(TARGET_ARCH_DBC)
 
   static word no_scope_native_wrapper_entry_point_offset();

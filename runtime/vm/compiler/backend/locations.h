@@ -548,6 +548,25 @@ class RegisterSet : public ValueObject {
     }
   }
 
+  // Adds all registers which don't have a special purpose (e.g. FP, SP, PC,
+  // CSP, etc.).
+  void AddAllGeneralRegisters() {
+    for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+      Register reg = static_cast<Register>(i);
+      if (reg == FPREG || reg == SPREG) continue;
+#if defined(TARGET_ARCH_ARM)
+      if (reg == PC) continue;
+#elif defined(TARGET_ARCH_ARM64)
+      if (reg == R31) continue;
+#endif
+      Add(Location::RegisterLocation(reg));
+    }
+
+    for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+      Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+    }
+  }
+
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
       cpu_registers_.Add(loc.reg());

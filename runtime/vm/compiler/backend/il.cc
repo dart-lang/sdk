@@ -5233,7 +5233,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32) ||                 \
+    defined(TARGET_ARCH_ARM)
   constexpr intptr_t kNumTemps = 2;
 #else
   constexpr intptr_t kNumTemps = 1;
@@ -5248,7 +5249,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                       CallingConventions::kFirstNonArgumentRegister));
   summary->set_temp(0, Location::RegisterLocation(
                            CallingConventions::kSecondNonArgumentRegister));
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM64) ||                 \
+    defined(TARGET_ARCH_ARM)
   summary->set_temp(1, Location::RegisterLocation(
                            CallingConventions::kFirstCalleeSavedCpuReg));
 #endif

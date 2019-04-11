@@ -645,6 +645,12 @@ class Assembler : public AssemblerBase {
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
+  // Require a temporary register 'tmp'.
+  // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
+  void TransitionGeneratedToNative(Register destination_address,
+                                   Register scratch);
+  void TransitionNativeToGenerated(Register scratch);
+
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's RSP is guaranteed to be correctly aligned and
   // frame_space bytes are reserved under it.
