@@ -747,7 +747,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
           new VariableGet(iteratorVariable),
           new Name('moveNext'),
           new Arguments(<Expression>[]),
-          helper.streamIteratorMoveNext));
+          helper.streamIteratorMoveNext))
+        ..fileOffset = stmt.fileOffset;
 
       // _asyncStarMoveNextHelper(:stream)
       var asyncStarMoveNextCall = new StaticInvocation(
