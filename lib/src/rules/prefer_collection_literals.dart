@@ -96,10 +96,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
 
+      var args = node.argumentList.arguments;
       if (constructorName == null) {
-        rule.reportLint(node);
+        // Skip: LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)
+        if (args.isEmpty) {
+          rule.reportLint(node);
+        }
       } else if (constructorName == 'from' || constructorName == 'of') {
-        var args = node.argumentList.arguments;
         if (args.length != 1) {
           return;
         }
