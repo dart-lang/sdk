@@ -81,7 +81,8 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
         it.CurrentValue()->definition()->IsPushArgument()) {
       it.SetCurrentLocation(Location::StackSlot(
           compiler::target::frame_layout.FrameSlotForVariableIndex(
-              -*stack_height)));
+              -*stack_height),
+          FPREG));
       (*stack_height)++;
     }
   }
@@ -960,8 +961,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
     Location loc = it.CurrentLocation();
     Value* value = it.CurrentValue();
-    it.SetCurrentLocation(loc.RemapForSlowPath(value->definition(),
-                                               cpu_reg_slots, fpu_reg_slots));
+    it.SetCurrentLocation(LocationRemapForSlowPath(
+        loc, value->definition(), cpu_reg_slots, fpu_reg_slots));
   }
 
   return env;

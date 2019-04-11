@@ -308,7 +308,7 @@ class DisassemblerX64 : public ValueObject {
   }
 
   const char* NameOfCPURegister(int reg) const {
-    return compiler::Assembler::RegisterName(static_cast<Register>(reg));
+    return RegisterNames::RegisterName(static_cast<Register>(reg));
   }
 
   const char* NameOfByteCPURegister(int reg) const {

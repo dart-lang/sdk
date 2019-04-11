@@ -3595,28 +3595,6 @@ void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
   strb(tmp, Address(addr, 3));
 }
 
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "r0", "r1",  "r2", "r3", "r4", "r5", "r6", "r7",
-    "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
-};
-
-const char* Assembler::RegisterName(Register reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
-  return cpu_reg_names[reg];
-}
-
-static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
-    "q0", "q1", "q2",  "q3",  "q4",  "q5",  "q6",  "q7",
-#if defined(VFPv3_D32)
-    "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
-#endif
-};
-
-const char* Assembler::FpuRegisterName(FpuRegister reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
-  return fpu_reg_names[reg];
-}
-
 }  // namespace compiler
 }  // namespace dart
 

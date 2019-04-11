@@ -1075,13 +1075,13 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void LoadIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s[", Assembler::RegisterName(base_reg()));
+  f->Print("%s[", RegisterNames::RegisterName(base_reg()));
   index()->PrintTo(f);
   f->Print(" + %" Pd "]", offset());
 }
 
 void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s[", Assembler::RegisterName(base_reg()));
+  f->Print("%s[", RegisterNames::RegisterName(base_reg()));
   index()->PrintTo(f);
   f->Print(" + %" Pd "], ", offset());
   value()->PrintTo(f);

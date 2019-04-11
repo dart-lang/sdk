@@ -79,7 +79,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::AnyOrConstant(value()));
+  locs->set_in(0, LocationAnyOrConstant(value()));
   return locs;
 }
 
@@ -558,12 +558,12 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RegisterOrConstant(left()));
+    locs->set_in(0, LocationRegisterOrConstant(left()));
     // Only one input can be a constant operand. The case of two constant
     // operands should be handled by constant propagation.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::RegisterOrConstant(right()));
+                        : LocationRegisterOrConstant(right()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -794,7 +794,7 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   locs->set_in(0, Location::RequiresRegister());
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_in(1, LocationRegisterOrConstant(right()));
   return locs;
 }
 
@@ -894,12 +894,12 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
   ASSERT(operation_cid() == kSmiCid);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RegisterOrConstant(left()));
+  summary->set_in(0, LocationRegisterOrConstant(left()));
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
   summary->set_in(1, summary->in(0).IsConstant()
                          ? Location::RequiresRegister()
-                         : Location::RegisterOrConstant(right()));
+                         : LocationRegisterOrConstant(right()));
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -1010,14 +1010,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto load_single_slot = [&](Location from, Location to) {
     if (!to.IsStackSlot()) return;
     if (from.IsRegister()) {
-      __ str(from.reg(), to.ToStackSlotAddress());
+      __ str(from.reg(), LocationToStackSlotAddress(to));
     } else if (from.IsFpuRegister()) {
       __ vstrs(EvenSRegisterOf(EvenDRegisterOf(from.fpu_reg())),
-               to.ToStackSlotAddress());
+               LocationToStackSlotAddress(to));
     } else if (from.IsStackSlot() || from.IsDoubleStackSlot()) {
       ASSERT(from.base_reg() == FPREG);
       __ ldr(TMP, Address(saved_fp, from.ToStackSlotOffset()));
-      __ str(TMP, to.ToStackSlotAddress());
+      __ str(TMP, LocationToStackSlotAddress(to));
     } else {
       UNREACHABLE();
     }
@@ -1032,11 +1032,11 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else if (target.IsDoubleStackSlot()) {
       if (origin.IsFpuRegister()) {
         __ vstrd(EvenDRegisterOf(origin.fpu_reg()),
-                 target.ToStackSlotAddress());
+                 LocationToStackSlotAddress(target));
       } else {
         ASSERT(origin.IsDoubleStackSlot() && origin.base_reg() == FPREG);
         __ vldrd(DTMP, Address(saved_fp, origin.ToStackSlotOffset()));
-        __ vstrd(DTMP, target.ToStackSlotAddress());
+        __ vstrd(DTMP, LocationToStackSlotAddress(target));
       }
     } else if (target.IsPairLocation()) {
       ASSERT(origin.IsPairLocation());
@@ -1626,7 +1626,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::RegisterLocation(kWriteBarrierValueReg)
-                          : Location::RegisterOrConstant(value()));
+                          : LocationRegisterOrConstant(value()));
       if (ShouldEmitStoreBarrier()) {
         locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
         locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
@@ -2315,7 +2315,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::RegisterLocation(kWriteBarrierValueReg)
-                           : Location::RegisterOrConstant(value()));
+                           : LocationRegisterOrConstant(value()));
   }
   return summary;
 }
@@ -3629,7 +3629,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     return summary;
   }
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
@@ -3941,7 +3941,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
@@ -5972,8 +5972,8 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  locs->set_in(kLengthPos, LocationRegisterOrSmiConstant(length()));
+  locs->set_in(kIndexPos, LocationRegisterOrSmiConstant(index()));
   return locs;
 }
 
@@ -6339,7 +6339,7 @@ LocationSummary* SpeculativeShiftInt64OpInstr::MakeLocationSummary(
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_in(1, Location::WritableRegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationWritableRegisterOrSmiConstant(right()));
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
   return summary;
@@ -6474,7 +6474,7 @@ LocationSummary* SpeculativeShiftUint32OpInstr::MakeLocationSummary(
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
@@ -6945,7 +6945,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   if ((constant != NULL) && !left()->IsSingleUse()) {
     locs->set_in(0, Location::RequiresRegister());
   } else {
-    locs->set_in(0, Location::RegisterOrConstant(left()));
+    locs->set_in(0, LocationRegisterOrConstant(left()));
   }
 
   constant = right()->definition()->AsConstant();
@@ -6956,7 +6956,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
     // one is a constant.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::RegisterOrConstant(right()));
+                        : LocationRegisterOrConstant(right()));
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
