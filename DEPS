@@ -64,7 +64,7 @@ vars = {
   "collection_tag": "1.14.11",
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
-  "csslib_tag" : "0.14.4+1",
+  "csslib_tag" : "0.15.0",
   "dart2js_info_tag" : "0.6.0",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -84,7 +84,7 @@ vars = {
   "dartdoc_tag" : "v0.28.2",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
-  "html_tag" : "0.14.0",
+  "html_tag" : "0.14.0+1",
   "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.3",
