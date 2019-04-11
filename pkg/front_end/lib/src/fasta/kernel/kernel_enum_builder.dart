@@ -23,7 +23,6 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         ThisExpression,
-        TreeNode,
         VariableGet;
 
 import 'kernel_shadow_ast.dart' show ShadowClass;
@@ -94,9 +93,10 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.stringType,
       LibraryBuilder parent,
       int startCharOffset,
-      int charOffset)
+      int charOffset,
+      int charEndOffset)
       : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, startCharOffset, charOffset, TreeNode.noOffset,
+            null, startCharOffset, charOffset, charEndOffset,
             cls: cls);
 
   factory KernelEnumBuilder(
@@ -242,7 +242,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         stringType,
         parent,
         startCharOffset,
-        charOffset);
+        charOffset,
+        charEndOffset);
     void setParent(String name, MemberBuilder builder) {
       do {
         builder.parent = enumBuilder;
