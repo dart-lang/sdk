@@ -40,19 +40,17 @@ class LookupCache : public ValueObject {
   void Clear();
   bool Lookup(intptr_t receiver_cid,
               RawString* function_name,
-              RawArray* arguments_descriptor,
               RawFunction** target) const;
   void Insert(intptr_t receiver_cid,
               RawString* function_name,
-              RawArray* arguments_descriptor,
               RawFunction* target);
 
  private:
   struct Entry {
     intptr_t receiver_cid;
     RawString* function_name;
-    RawArray* arguments_descriptor;
     RawFunction* target;
+    intptr_t padding;
   };
 
   static const intptr_t kNumEntries = 1024;
@@ -123,8 +121,6 @@ class Interpreter {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
   void MajorGC() { lookup_cache_.Clear(); }
-
-  LookupCache& lookup_cache() { return lookup_cache_; }
 
  private:
   uintptr_t* stack_;
