@@ -34,12 +34,16 @@ namespace bin {
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.
+// TODO(bkonyi): enable_service_auth_codes is a temporary flag and will be
+// removed once auth codes are enabled by default. disable_service_auth_codes is
+// a no-op for now.
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(version, version_option)                                                   \
   V(compile_all, compile_all)                                                  \
   V(disable_service_origin_check, vm_service_dev_mode)                         \
   V(disable_service_auth_codes, vm_service_auth_disabled)                      \
   V(deterministic, deterministic)                                              \
+  V(enable_service_auth_codes, vm_service_auth_enabled)                        \
   V(trace_loading, trace_loading)                                              \
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
