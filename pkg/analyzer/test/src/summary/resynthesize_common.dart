@@ -4589,6 +4589,38 @@ class C<E> {
   test_constructor_redirected_thisInvocation_named() async {
     var library = await checkLibrary('''
 class C {
+  const C.named();
+  const C() : this.named();
+}
+''');
+    checkElementText(library, r'''
+class C {
+  const C.named();
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_named_generic() async {
+    var library = await checkLibrary('''
+class C<T> {
+  const C.named();
+  const C() : this.named();
+}
+''');
+    checkElementText(library, r'''
+class C<T> {
+  const C.named();
+  const C() = C<T>.named : this.
+        named/*location: test.dart;C;named*/();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_named_notConst() async {
+    var library = await checkLibrary('''
+class C {
   C.named();
   C() : this.named();
 }
@@ -4597,8 +4629,7 @@ class C {
       checkElementText(library, r'''
 class C {
   C.named();
-  C() = C.named : this.
-        named/*location: test.dart;C;named*/();
+  C();
 }
 ''');
     } else {
@@ -4611,32 +4642,37 @@ class C {
     }
   }
 
-  test_constructor_redirected_thisInvocation_named_generic() async {
+  test_constructor_redirected_thisInvocation_unnamed() async {
     var library = await checkLibrary('''
-class C<T> {
-  C.named();
-  C() : this.named();
+class C {
+  const C();
+  const C.named() : this();
 }
 ''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-class C<T> {
-  C.named();
-  C() = C<T>.named : this.
-        named/*location: test.dart;C;named*/();
+    checkElementText(library, r'''
+class C {
+  const C();
+  const C.named() = C : this();
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T> {
-  C.named();
-  C() = C<T>.named;
-}
-''');
-    }
   }
 
-  test_constructor_redirected_thisInvocation_unnamed() async {
+  test_constructor_redirected_thisInvocation_unnamed_generic() async {
+    var library = await checkLibrary('''
+class C<T> {
+  const C();
+  const C.named() : this();
+}
+''');
+    checkElementText(library, r'''
+class C<T> {
+  const C();
+  const C.named() = C<T> : this();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_unnamed_notConst() async {
     var library = await checkLibrary('''
 class C {
   C();
@@ -4647,7 +4683,7 @@ class C {
       checkElementText(library, r'''
 class C {
   C();
-  C.named() = C : this();
+  C.named();
 }
 ''');
     } else {
@@ -4655,30 +4691,6 @@ class C {
 class C {
   C();
   C.named() = C;
-}
-''');
-    }
-  }
-
-  test_constructor_redirected_thisInvocation_unnamed_generic() async {
-    var library = await checkLibrary('''
-class C<T> {
-  C();
-  C.named() : this();
-}
-''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-class C<T> {
-  C();
-  C.named() = C<T> : this();
-}
-''');
-    } else {
-      checkElementText(library, r'''
-class C<T> {
-  C();
-  C.named() = C<T>;
 }
 ''');
     }

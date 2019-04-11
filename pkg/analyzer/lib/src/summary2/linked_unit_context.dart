@@ -116,6 +116,18 @@ class LinkedUnitContext {
     return '';
   }
 
+  List<ConstructorInitializer> getConstructorInitializers(
+    ConstructorDeclaration node,
+  ) {
+    LazyConstructorDeclaration.readInitializers(_astReader, node);
+    return node.initializers;
+  }
+
+  ConstructorName getConstructorRedirected(ConstructorDeclaration node) {
+    LazyConstructorDeclaration.readRedirectedConstructor(_astReader, node);
+    return node.redirectedConstructor;
+  }
+
   Iterable<ConstructorDeclaration> getConstructors(AstNode node) sync* {
     if (node is ClassOrMixinDeclaration) {
       var members = _getClassOrMixinMembers(node);

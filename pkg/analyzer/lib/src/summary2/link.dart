@@ -221,15 +221,15 @@ class Linker {
   }
 
   void _resolveConstructors() {
-//    for (var library in builders.values) {
-//      library.resolveConstructors();
-//    }
+    for (var library in builders.values) {
+      library.resolveConstructors();
+    }
   }
 
   void _resolveDefaultValues() {
-//    for (var library in builders.values) {
-//      library.resolveDefaultValues();
-//    }
+    for (var library in builders.values) {
+      library.resolveDefaultValues();
+    }
   }
 
   void _resolveMetadata() {

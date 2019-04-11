@@ -280,7 +280,7 @@ class SourceLibraryBuilder {
   }
 
   void resolveConstructors() {
-    ConstructorInitializerResolver(linker, reference).resolve();
+    ConstructorInitializerResolver(linker, element).resolve();
   }
 
   void resolveDefaultValues() {

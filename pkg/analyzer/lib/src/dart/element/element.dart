@@ -2470,21 +2470,20 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {
-    if (_constantInitializers == null) {
-//      if (linkedNode != null) {
-//        var context = enclosingUnit.linkedContext;
-//        return _constantInitializers ??=
-//            linkedNode.constructorDeclaration_initializers.map((node) {
-//          return context.readNode(node) as ConstructorInitializer;
-//        }).toList();
-//      }
+    if (_constantInitializers != null) return _constantInitializers;
 
-      if (serializedExecutable != null) {
-        _constantInitializers = serializedExecutable.constantInitializers
-            .map((i) => _buildConstructorInitializer(i))
-            .toList(growable: false);
-      }
+    if (linkedNode != null) {
+      return _constantInitializers = linkedContext.getConstructorInitializers(
+        linkedNode,
+      );
     }
+
+    if (serializedExecutable != null) {
+      return _constantInitializers = serializedExecutable.constantInitializers
+          .map((i) => _buildConstructorInitializer(i))
+          .toList(growable: false);
+    }
+
     return _constantInitializers;
   }
 
@@ -2626,41 +2625,39 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ConstructorElement get redirectedConstructor {
-    if (_redirectedConstructor == null) {
-//      if (linkedNode != null) {
-//        var context = enclosingUnit.linkedContext;
-//        if (isFactory) {
-//          var node = linkedNode.constructorDeclaration_redirectedConstructor;
-//          if (node != null) {
-//            ConstructorName ast = context.readNode(node);
-//            return ast.staticElement;
-//          }
-//        } else {
-//          for (var node in linkedNode.constructorDeclaration_initializers) {
-//            if (node.kind == LinkedNodeKind.redirectingConstructorInvocation) {
-//              RedirectingConstructorInvocation ast = context.readNode(node);
-//              return ast.staticElement;
-//            }
-//          }
-//        }
-//        return null;
-//      }
+    if (_redirectedConstructor != null) return _redirectedConstructor;
 
-      if (serializedExecutable != null) {
-        if (serializedExecutable.isRedirectedConstructor) {
-          if (serializedExecutable.isFactory) {
-            _redirectedConstructor = enclosingUnit.resynthesizerContext
-                .resolveConstructorRef(enclosingElement,
-                    serializedExecutable.redirectedConstructor);
-          } else {
-            _redirectedConstructor = enclosingElement.getNamedConstructor(
-                serializedExecutable.redirectedConstructorName);
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      if (isFactory) {
+        var node = context.getConstructorRedirected(linkedNode);
+        return _redirectedConstructor = node?.staticElement;
+      } else {
+        var initializers = context.getConstructorInitializers(linkedNode);
+        for (var initializer in initializers) {
+          if (initializer is RedirectingConstructorInvocation) {
+            return _redirectedConstructor = initializer.staticElement;
           }
-        } else {
-          return null;
         }
       }
+      return null;
     }
+
+    if (serializedExecutable != null) {
+      if (serializedExecutable.isRedirectedConstructor) {
+        if (serializedExecutable.isFactory) {
+          _redirectedConstructor = enclosingUnit.resynthesizerContext
+              .resolveConstructorRef(
+                  enclosingElement, serializedExecutable.redirectedConstructor);
+        } else {
+          _redirectedConstructor = enclosingElement.getNamedConstructor(
+              serializedExecutable.redirectedConstructorName);
+        }
+      } else {
+        return null;
+      }
+    }
+
     return _redirectedConstructor;
   }
 

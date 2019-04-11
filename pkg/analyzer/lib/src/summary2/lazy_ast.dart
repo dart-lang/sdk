@@ -267,7 +267,9 @@ class LazyConstructorDeclaration {
   bool _hasBody = false;
   bool _hasDocumentationComment = false;
   bool _hasFormalParameters = false;
+  bool _hasInitializers = false;
   bool _hasMetadata = false;
+  bool _hasRedirectedConstructor = false;
 
   LazyConstructorDeclaration(this.data);
 
@@ -314,6 +316,21 @@ class LazyConstructorDeclaration {
     }
   }
 
+  static void readInitializers(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasInitializers) {
+      var dataList = lazy.data.constructorDeclaration_initializers;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.initializers[i] = reader.readNode(data);
+      }
+      lazy._hasInitializers = true;
+    }
+  }
+
   static void readMetadata(
     AstBinaryReader reader,
     ConstructorDeclaration node,
@@ -326,6 +343,19 @@ class LazyConstructorDeclaration {
         node.metadata[i] = reader.readNode(data);
       }
       lazy._hasMetadata = true;
+    }
+  }
+
+  static void readRedirectedConstructor(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasRedirectedConstructor) {
+      node.redirectedConstructor = reader.readNode(
+        lazy.data.constructorDeclaration_redirectedConstructor,
+      );
+      lazy._hasRedirectedConstructor = true;
     }
   }
 
