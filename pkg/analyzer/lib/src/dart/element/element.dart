@@ -1060,31 +1060,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return _type;
   }
 
-  @override
-  List<TypeParameterElement> get typeParameters {
-    if (_typeParameterElements != null) return _typeParameterElements;
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var containerRef = reference.getChild('@typeParameter');
-      var typeParameters = context.getTypeParameters2(linkedNode);
-      if (typeParameters == null) {
-        return _typeParameterElements = const [];
-      }
-      return _typeParameterElements = typeParameters.typeParameters.map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          TypeParameterElementImpl.forLinkedNode(this, reference, node);
-        }
-        return reference.element as TypeParameterElementImpl;
-      }).toList();
-    }
-
-    return super.typeParameters;
-  }
-
   /// Set the type parameters defined for this class to the given
   /// [typeParameters].
   void set typeParameters(List<TypeParameterElement> typeParameters) {
@@ -9243,7 +9218,8 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      return reference.name;
+      TypeParameter node = this.linkedNode;
+      return node.name.name;
     }
     if (_unlinkedTypeParam != null) {
       return _unlinkedTypeParam.name;
@@ -9317,20 +9293,14 @@ mixin TypeParameterizedElementMixin
     if (_typeParameterElements != null) return _typeParameterElements;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var containerRef = reference.getChild('@typeParameter');
-      var typeParameters = context.getTypeParameters2(linkedNode);
+      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }
       return _typeParameterElements = typeParameters.typeParameters.map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          TypeParameterElementImpl.forLinkedNode(this, reference, node);
-        }
-        return reference.element as TypeParameterElementImpl;
+        TypeParameterElementImpl element = node.declaredElement;
+        element.enclosingElement = this;
+        return element;
       }).toList();
     }
 

@@ -2222,6 +2222,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.typeParameter)
   int get typeParameter_extendsKeyword;
 
+  @VariantId(16, variant: LinkedNodeKind.typeParameter)
+  int get typeParameter_id;
+
   @VariantId(7, variant: LinkedNodeKind.typeParameter)
   LinkedNode get typeParameter_name;
 
@@ -2501,9 +2504,8 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(1)
   LinkedNodeType get functionReturnType;
 
-  /// References to [LinkedNodeReferences].
   @Id(2)
-  List<int> get functionTypeParameters;
+  List<LinkedNodeTypeTypeParameter> get functionTypeParameters;
 
   @Id(7)
   int get genericTypeAliasReference;
@@ -2521,9 +2523,8 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(5)
   LinkedNodeTypeKind get kind;
 
-  /// Reference to a [LinkedNodeReferences].
   @Id(6)
-  int get typeParameterParameter;
+  int get typeParameterId;
 }
 
 /// Information about a formal parameter in a function type.
@@ -2543,10 +2544,18 @@ enum LinkedNodeTypeKind {
   bottom,
   dynamic_,
   function,
-  genericTypeAlias,
   interface,
   typeParameter,
   void_
+}
+
+/// Information about a type parameter in a function type.
+abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
+  @Id(1)
+  LinkedNodeType get bound;
+
+  @Id(0)
+  String get name;
 }
 
 /// Information about a single library in a [LinkedNodeLibrary].

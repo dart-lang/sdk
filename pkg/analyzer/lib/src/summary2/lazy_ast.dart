@@ -45,7 +45,6 @@ class LazyClassDeclaration {
   bool _hasImplementsClause = false;
   bool _hasMembers = false;
   bool _hasMetadata = false;
-  bool _hasTypeParameters = false;
   bool _hasWithClause = false;
 
   LazyClassDeclaration(this.data);
@@ -123,19 +122,6 @@ class LazyClassDeclaration {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    ClassDeclaration node,
-  ) {
-    var lazy = LazyClassDeclaration.get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.classOrMixinDeclaration_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void readWithClause(
     AstBinaryReader reader,
     ClassDeclaration node,
@@ -163,7 +149,6 @@ class LazyClassTypeAlias {
   bool _hasImplementsClause = false;
   bool _hasMetadata = false;
   bool _hasSuperclass = false;
-  bool _hasTypeParameters = false;
   bool _hasWithClause = false;
 
   LazyClassTypeAlias(this.data);
@@ -225,19 +210,6 @@ class LazyClassTypeAlias {
         );
         lazy._hasSuperclass = true;
       }
-    }
-  }
-
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    ClassTypeAlias node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.classTypeAlias_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
     }
   }
 
@@ -635,6 +607,7 @@ class LazyFunctionDeclaration {
     AstBinaryReader reader,
     FunctionDeclaration node,
   ) {
+    readFunctionExpression(reader, node);
     if (reader.isLazy) {
       var lazy = get(node);
       if (!lazy._hasReturnType) {
@@ -698,7 +671,6 @@ class LazyFunctionExpression {
 
   bool _hasBody = false;
   bool _hasFormalParameters = false;
-  bool _hasTypeParameters = false;
 
   LazyFunctionExpression(this.data);
 
@@ -732,19 +704,6 @@ class LazyFunctionExpression {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    FunctionExpression node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.functionExpression_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(FunctionExpression node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionExpression(data));
   }
@@ -759,7 +718,6 @@ class LazyFunctionTypeAlias {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasReturnType = false;
-  bool _hasTypeParameters = false;
 
   LazyFunctionTypeAlias(this.data);
 
@@ -823,19 +781,6 @@ class LazyFunctionTypeAlias {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    FunctionTypeAlias node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.functionTypeAlias_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(FunctionTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionTypeAlias(data));
   }
@@ -895,7 +840,6 @@ class LazyGenericTypeAlias {
 
   bool _hasDocumentationComment = false;
   bool _hasFunction = false;
-  bool _hasTypeParameters = false;
 
   LazyGenericTypeAlias(this.data);
 
@@ -929,19 +873,6 @@ class LazyGenericTypeAlias {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    GenericTypeAlias node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.genericTypeAlias_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(GenericTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyGenericTypeAlias(data));
   }
@@ -957,7 +888,6 @@ class LazyMethodDeclaration {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasReturnType = false;
-  bool _hasTypeParameters = false;
 
   LazyMethodDeclaration(this.data);
 
@@ -1034,19 +964,6 @@ class LazyMethodDeclaration {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    MethodDeclaration node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.methodDeclaration_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(MethodDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyMethodDeclaration(data));
   }
@@ -1061,7 +978,6 @@ class LazyMixinDeclaration {
   bool _hasOnClause = false;
   bool _hasImplementsClause = false;
   bool _hasMembers = false;
-  bool _hasTypeParameters = false;
 
   LazyMixinDeclaration(this.data);
 
@@ -1120,19 +1036,6 @@ class LazyMixinDeclaration {
         lazy.data.mixinDeclaration_onClause,
       );
       lazy._hasOnClause = true;
-    }
-  }
-
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    MixinDeclarationImpl node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.classOrMixinDeclaration_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
     }
   }
 

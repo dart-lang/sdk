@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -240,7 +239,7 @@ class AstBinaryReader {
       _getToken(data.classDeclaration_abstractKeyword),
       _getToken(data.classDeclaration_classKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNodeLazy(data.classOrMixinDeclaration_typeParameters),
+      _readNode(data.classOrMixinDeclaration_typeParameters),
       _readNodeLazy(data.classDeclaration_extendsClause),
       _readNodeLazy(data.classDeclaration_withClause),
       _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
@@ -259,7 +258,7 @@ class AstBinaryReader {
       _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.typeAlias_typedefKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNodeLazy(data.classTypeAlias_typeParameters),
+      _readNode(data.classTypeAlias_typeParameters),
       _getToken(data.classTypeAlias_equals),
       _getToken(data.classTypeAlias_abstractKeyword),
       _readNodeLazy(data.classTypeAlias_superclass),
@@ -618,7 +617,7 @@ class AstBinaryReader {
     _localParameters = thisLocalParameters;
 
     var node = astFactory.functionExpression(
-      _readNodeLazy(data.functionExpression_typeParameters),
+      _readNode(data.functionExpression_typeParameters),
       _readNodeLazy(data.functionExpression_formalParameters),
       _readNodeLazy(data.functionExpression_body),
     );
@@ -664,7 +663,7 @@ class AstBinaryReader {
       _getToken(data.typeAlias_typedefKeyword),
       _readNodeLazy(data.functionTypeAlias_returnType),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNodeLazy(data.functionTypeAlias_typeParameters),
+      _readNode(data.functionTypeAlias_typeParameters),
       _readNodeLazy(data.functionTypeAlias_formalParameters),
       _getToken(data.typeAlias_semicolon),
     );
@@ -705,7 +704,7 @@ class AstBinaryReader {
     GenericFunctionTypeImpl node = astFactory.genericFunctionType(
       _readNodeLazy(data.genericFunctionType_returnType),
       _getToken(data.genericFunctionType_functionKeyword),
-      _readNodeLazy(data.genericFunctionType_typeParameters),
+      _readNode(data.genericFunctionType_typeParameters),
       _readNodeLazy(data.genericFunctionType_formalParameters),
       question: _getToken(data.genericFunctionType_question),
     );
@@ -720,7 +719,7 @@ class AstBinaryReader {
       _readNodeList(data.annotatedNode_metadata),
       _getToken(data.typeAlias_typedefKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNodeLazy(data.genericTypeAlias_typeParameters),
+      _readNode(data.genericTypeAlias_typeParameters),
       _getToken(data.genericTypeAlias_equals),
       _readNodeLazy(data.genericTypeAlias_functionType),
       _getToken(data.typeAlias_semicolon),
@@ -896,7 +895,7 @@ class AstBinaryReader {
       _getToken(data.methodDeclaration_propertyKeyword),
       _getToken(data.methodDeclaration_operatorKeyword),
       _readNode(data.methodDeclaration_name),
-      _readNodeLazy(data.methodDeclaration_typeParameters),
+      _readNode(data.methodDeclaration_typeParameters),
       _readNodeLazy(data.methodDeclaration_formalParameters),
       _readNodeLazy(data.methodDeclaration_body),
     );
@@ -920,7 +919,7 @@ class AstBinaryReader {
       _readNodeList(data.annotatedNode_metadata),
       _getToken(data.mixinDeclaration_mixinKeyword),
       _readNode(data.namedCompilationUnitMember_name),
-      _readNodeLazy(data.classOrMixinDeclaration_typeParameters),
+      _readNode(data.classOrMixinDeclaration_typeParameters),
       _readNodeLazy(data.mixinDeclaration_onClause),
       _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
       _getToken(data.classOrMixinDeclaration_leftBracket),
@@ -1256,6 +1255,7 @@ class AstBinaryReader {
       _readNodeLazy(data.typeParameter_bound),
     );
     LazyTypeParameter.setData(node, data);
+    _unitContext.addTypeParameter(data.typeParameter_id, node);
     return node;
   }
 
@@ -1588,57 +1588,6 @@ class AstBinaryReader {
   }
 
   DartType _readType(LinkedNodeType data) {
-    if (data == null) return null;
-
-    switch (data.kind) {
-      case LinkedNodeTypeKind.bottom:
-        return BottomTypeImpl.instance;
-      case LinkedNodeTypeKind.dynamic_:
-        return DynamicTypeImpl.instance;
-      case LinkedNodeTypeKind.function:
-        return FunctionTypeImpl.synthetic(
-          _readType(data.functionReturnType),
-          _getElements(data.functionTypeParameters),
-          data.functionFormalParameters
-              .map((p) => ParameterElementImpl.synthetic(
-                  p.name, _readType(p.type), _formalParameterKind(p.kind)))
-              .toList(),
-        );
-      case LinkedNodeTypeKind.interface:
-        var element = _getElement(data.interfaceClass);
-        if (element != null) {
-          return InterfaceTypeImpl.explicit(
-            element,
-            _readTypes(
-              data.interfaceTypeArguments,
-              const <InterfaceType>[],
-            ),
-          );
-        }
-        return DynamicTypeImpl.instance;
-      case LinkedNodeTypeKind.typeParameter:
-        var element = _getElement(data.typeParameterParameter);
-        // TODO(scheglov) Remove when references include all type parameters.
-        element ??= TypeParameterElementImpl('', -1);
-        return TypeParameterTypeImpl(element);
-      case LinkedNodeTypeKind.void_:
-        return VoidTypeImpl.instance;
-      default:
-        throw UnimplementedError('Type kind: ${data.kind}');
-    }
-  }
-
-  List<T> _readTypes<T extends DartType>(
-    List<LinkedNodeType> dataList,
-    List<T> ifEmpty,
-  ) {
-    if (dataList.isEmpty) return ifEmpty;
-
-    var result = List<T>(dataList.length);
-    for (var i = 0; i < dataList.length; ++i) {
-      var data = dataList[i];
-      result[i] = _readType(data);
-    }
-    return result;
+    return _unitContext.readType(data);
   }
 }

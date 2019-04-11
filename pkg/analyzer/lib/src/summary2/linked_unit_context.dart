@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -26,6 +28,17 @@ class LinkedUnitContext {
 
   CompilationUnit _unit;
   bool _hasDirectivesRead = false;
+
+  /// Mapping from identifiers to real or synthetic type parameters.
+  ///
+  /// Real type parameters have corresponding [TypeParameter] nodes, and are
+  /// referenced from other AST nodes.
+  ///
+  /// Synthetic type parameters are added when [readType] begins reading a
+  /// [FunctionType], and removed when reading is done.
+  final Map<int, TypeParameterElement> _typeParameters = {};
+
+  int _nextSyntheticTypeParameterId = 0x10000;
 
   LinkedUnitContext(this.bundleContext, this.libraryContext,
       this.indexInLibrary, this.uriStr, this.data,
@@ -57,6 +70,15 @@ class LinkedUnitContext {
       _hasDirectivesRead = true;
     }
     return _unit;
+  }
+
+  /// Every [TypeParameter] node has [TypeParameterElement], which is created
+  /// during reading of this node. All type parameter nodes are read before
+  /// any nodes that reference them (bounds are read lazily later).
+  void addTypeParameter(int id, TypeParameter node) {
+    var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
+    _typeParameters[id] = element;
+    node.name.staticElement = element;
   }
 
   /// Return the absolute URI referenced in the [directive].
@@ -269,7 +291,11 @@ class LinkedUnitContext {
   }
 
   InterfaceType getInterfaceType(LinkedNodeType linkedType) {
-    return bundleContext.getInterfaceType(linkedType);
+    var type = readType(linkedType);
+    if (type is InterfaceType && !type.element.isEnum) {
+      return type;
+    }
+    return null;
   }
 
   List<Annotation> getLibraryMetadata(CompilationUnit unit) {
@@ -460,10 +486,8 @@ class LinkedUnitContext {
 
   TypeParameterList getTypeParameters2(AstNode node) {
     if (node is ClassDeclaration) {
-      LazyClassDeclaration.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is ClassTypeAlias) {
-      LazyClassTypeAlias.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is ConstructorDeclaration) {
       return null;
@@ -471,21 +495,16 @@ class LinkedUnitContext {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return getTypeParameters2(node.functionExpression);
     } else if (node is FunctionExpression) {
-      LazyFunctionExpression.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is FunctionTypeAlias) {
-      LazyFunctionTypeAlias.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is GenericFunctionType) {
       return node.typeParameters;
     } else if (node is GenericTypeAlias) {
-      LazyGenericTypeAlias.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is MethodDeclaration) {
-      LazyMethodDeclaration.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is MixinDeclaration) {
-      LazyMixinDeclaration.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else {
       throw UnimplementedError('${node.runtimeType}');
@@ -671,6 +690,58 @@ class LinkedUnitContext {
     return _astReader.readNode(linkedNode);
   }
 
+  DartType readType(LinkedNodeType linkedType) {
+    if (linkedType == null) return null;
+
+    var kind = linkedType.kind;
+    if (kind == LinkedNodeTypeKind.bottom) {
+      return BottomTypeImpl.instance;
+    } else if (kind == LinkedNodeTypeKind.dynamic_) {
+      return DynamicTypeImpl.instance;
+    } else if (kind == LinkedNodeTypeKind.function) {
+      var typeParameterDataList = linkedType.functionTypeParameters;
+
+      var typeParameters = <TypeParameterElement>[];
+      for (var typeParameterData in typeParameterDataList) {
+        var element = TypeParameterElementImpl(typeParameterData.name, -1);
+        typeParameters.add(element);
+        _typeParameters[_nextSyntheticTypeParameterId++] = element;
+      }
+
+      var returnType = readType(linkedType.functionReturnType);
+      var formalParameters = linkedType.functionFormalParameters.map((p) {
+        var type = readType(p.type);
+        var kind = _formalParameterKind(p.kind);
+        return ParameterElementImpl.synthetic(p.name, type, kind);
+      }).toList();
+
+      for (var i = 0; i < typeParameterDataList.length; ++i) {
+        _typeParameters.remove(--_nextSyntheticTypeParameterId);
+      }
+
+      return FunctionTypeImpl.synthetic(
+        returnType,
+        typeParameters,
+        formalParameters,
+      );
+    } else if (kind == LinkedNodeTypeKind.interface) {
+      var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
+      return InterfaceTypeImpl.explicit(
+        element,
+        linkedType.interfaceTypeArguments.map(readType).toList(),
+      );
+    } else if (kind == LinkedNodeTypeKind.typeParameter) {
+      var id = linkedType.typeParameterId;
+      var element = _typeParameters[id];
+      assert(element != null);
+      return TypeParameterTypeImpl(element);
+    } else if (kind == LinkedNodeTypeKind.void_) {
+      return VoidTypeImpl.instance;
+    } else {
+      throw UnimplementedError('$kind');
+    }
+  }
+
   void setReturnType(LinkedNodeBuilder node, DartType type) {
     throw UnimplementedError();
 //    var typeData = bundleContext.linking.writeType(type);
@@ -691,6 +762,16 @@ class LinkedUnitContext {
         }
       }
     }
+  }
+
+  ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
+    if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
+      return ParameterKind.NAMED;
+    }
+    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
+      return ParameterKind.POSITIONAL;
+    }
+    return ParameterKind.REQUIRED;
   }
 
   List<ClassMember> _getClassOrMixinMembers(ClassOrMixinDeclaration node) {

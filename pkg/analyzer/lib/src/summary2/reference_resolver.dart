@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
@@ -510,6 +511,7 @@ import 'package:analyzer/src/summary2/type_builder.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
+  final LinkingBundleContext linkingContext;
   final NodesToBuildType nodesToBuildType;
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
@@ -518,6 +520,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   Scope scope;
 
   ReferenceResolver(
+    this.linkingContext,
     this.nodesToBuildType,
     this.elementFactory,
     this._libraryElement,
@@ -536,6 +539,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@class').getChild(name);
 
+    _createTypeParameterElements(node.typeParameters);
     var element = ClassElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -564,6 +568,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@class').getChild(name);
 
+    _createTypeParameterElements(node.typeParameters);
     var element = ClassElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -654,6 +659,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@function').getChild(name);
 
+    _createTypeParameterElements(node.functionExpression.typeParameters);
     var element = FunctionElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -685,6 +691,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@typeAlias').getChild(name);
 
+    _createTypeParameterElements(node.typeParameters);
     var element = GenericTypeAliasElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -719,6 +726,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = '${outerReference.numOfChildren}';
     reference = reference.getChild(name);
 
+    _createTypeParameterElements(node.typeParameters);
     var element = GenericFunctionTypeElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -744,6 +752,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@typeAlias').getChild(name);
 
+    _createTypeParameterElements(node.typeParameters);
     var element = GenericTypeAliasElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -772,6 +781,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@method').getChild(name);
 
+    _createTypeParameterElements(node.typeParameters);
     var element = MethodElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -798,6 +808,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@class').getChild(name);
 
+    _createTypeParameterElements(node.typeParameters);
     var element = ClassElementImpl.forLinkedNode(
       outerReference.element,
       reference,
@@ -878,5 +889,19 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     node.mixinTypes.accept(this);
+  }
+
+  void _createTypeParameterElement(TypeParameter node) {
+    var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
+    node.name.staticElement = element;
+    linkingContext.addTypeParameter(element);
+  }
+
+  void _createTypeParameterElements(TypeParameterList typeParameterList) {
+    if (typeParameterList == null) return;
+
+    for (var typeParameter in typeParameterList.typeParameters) {
+      _createTypeParameterElement(typeParameter);
+    }
   }
 }

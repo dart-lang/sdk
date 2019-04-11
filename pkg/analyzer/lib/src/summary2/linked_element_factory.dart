@@ -152,11 +152,6 @@ class _ElementRequest {
       return _typeAlias(unit, reference);
     }
 
-    if (parentName == '@typeParameter') {
-      var enclosing = elementOfReference(parent2) as TypeParameterizedElement;
-      return _typeParameter(enclosing, reference);
-    }
-
     if (parentName == '@unit') {
       elementOfReference(parent2);
       // Creating a library fills all its units.
@@ -293,14 +288,6 @@ class _ElementRequest {
       assert(reference.node2 != null, '$reference');
     }
     GenericTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node2);
-    return reference.element;
-  }
-
-  Element _typeParameter(
-      TypeParameterizedElement enclosing, Reference reference) {
-    enclosing.typeParameters;
-    // Requesting type parameters sets elements for all their references.
-    assert(reference.element != null);
     return reference.element;
   }
 

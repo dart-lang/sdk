@@ -8,6 +8,37 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 
+/// Generates a fresh copy of the given type parameters, with their bounds
+/// substituted to reference the new parameters.
+///
+/// The returned object contains the fresh type parameter list as well as a
+/// mapping to be used for replacing other types to use the new type parameters.
+FreshTypeParameters getFreshTypeParameters(
+    List<TypeParameterElement> typeParameters) {
+  var freshParameters = new List<TypeParameterElementImpl>.generate(
+    typeParameters.length,
+    (i) => new TypeParameterElementImpl(typeParameters[i].name, -1),
+    growable: true,
+  );
+
+  var map = <TypeParameterElement, DartType>{};
+  for (int i = 0; i < typeParameters.length; ++i) {
+    map[typeParameters[i]] = new TypeParameterTypeImpl(freshParameters[i]);
+  }
+
+  var substitution = Substitution.fromMap(map);
+
+  for (int i = 0; i < typeParameters.length; ++i) {
+    var bound = typeParameters[i].bound;
+    if (bound != null) {
+      var newBound = substitution.substituteType(bound);
+      freshParameters[i].bound = newBound;
+    }
+  }
+
+  return new FreshTypeParameters(freshParameters, substitution);
+}
+
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
 ///
@@ -25,6 +56,30 @@ DartType substitute(
     return type;
   }
   return Substitution.fromMap(substitution).substituteType(type);
+}
+
+class FreshTypeParameters {
+  final List<TypeParameterElement> freshTypeParameters;
+  final Substitution substitution;
+
+  FreshTypeParameters(this.freshTypeParameters, this.substitution);
+
+  FunctionType applyToFunctionType(FunctionType type) {
+    return new FunctionTypeImpl.synthetic(
+      substitute(type.returnType),
+      freshTypeParameters,
+      type.parameters.map((parameter) {
+        return ParameterElementImpl.synthetic(
+          parameter.name,
+          substitute(parameter.type),
+          // ignore: deprecated_member_use_from_same_package
+          parameter.parameterKind,
+        );
+      }).toList(),
+    );
+  }
+
+  DartType substitute(DartType type) => substitution.substituteType(type);
 }
 
 abstract class Substitution {

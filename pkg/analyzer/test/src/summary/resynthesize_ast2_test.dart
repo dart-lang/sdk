@@ -308,12 +308,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_reference_topLevelFunction_generic() async {
-    await super.test_const_reference_topLevelFunction_generic();
-  }
-
-  @override
-  @failingTest
   test_const_reference_topLevelVariable_imported() async {
     await super.test_const_reference_topLevelVariable_imported();
   }
@@ -510,12 +504,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_infer_generic_typedef_complex() async {
     await super.test_infer_generic_typedef_complex();
-  }
-
-  @override
-  @failingTest
-  test_infer_generic_typedef_simple() async {
-    await super.test_infer_generic_typedef_simple();
   }
 
   @override
@@ -850,12 +838,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_typedef_generic_asFieldType() async {
-    await super.test_typedef_generic_asFieldType();
-  }
-
-  @override
-  @failingTest
   test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() async {
     await super
         .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included();
@@ -941,12 +923,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_unresolved_import() async {
     await super.test_unresolved_import();
-  }
-
-  @override
-  @failingTest
-  test_unused_type_parameter() async {
-    await super.test_unused_type_parameter();
   }
 
   @override

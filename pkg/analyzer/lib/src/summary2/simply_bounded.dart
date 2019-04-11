@@ -231,9 +231,9 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
       var element = TypeBuilder.typeNameElementIndex(type.typeName_name);
       var reference = _walker.bundleContext.referenceOfIndex(element);
 
-      if (reference.isTypeParameter) {
-        return allowTypeParameters;
-      }
+//      if (reference.isTypeParameter) {
+//        return allowTypeParameters;
+//      }
 
       var arguments = type.typeName_typeArguments;
       if (arguments == null) {

@@ -82,52 +82,6 @@ class LinkedBundleContext {
     return result;
   }
 
-  InterfaceType getInterfaceType(LinkedNodeType linkedType) {
-    var type = getType(linkedType);
-    if (type is InterfaceType && !type.element.isEnum) {
-      return type;
-    }
-    return null;
-  }
-
-  DartType getType(LinkedNodeType linkedType) {
-    var kind = linkedType.kind;
-    if (kind == LinkedNodeTypeKind.dynamic_) {
-      return DynamicTypeImpl.instance;
-    } else if (kind == LinkedNodeTypeKind.genericTypeAlias) {
-      var reference = referenceOfIndex(linkedType.genericTypeAliasReference);
-      return GenericTypeAliasElementImpl.typeAfterSubstitution(
-        elementFactory.elementOfReference(reference),
-        linkedType.genericTypeAliasTypeArguments.map(getType).toList(),
-      );
-    } else if (kind == LinkedNodeTypeKind.function) {
-      var returnType = getType(linkedType.functionReturnType);
-      var formalParameters = linkedType.functionFormalParameters.map((p) {
-        return ParameterElementImpl.synthetic(
-          p.name,
-          getType(p.type),
-          _formalParameterKind(p.kind),
-        );
-      }).toList();
-      return FunctionElementImpl.synthetic(formalParameters, returnType).type;
-    } else if (kind == LinkedNodeTypeKind.interface) {
-      var reference = referenceOfIndex(linkedType.interfaceClass);
-      Element element = elementFactory.elementOfReference(reference);
-      return InterfaceTypeImpl.explicit(
-        element,
-        linkedType.interfaceTypeArguments.map(getType).toList(),
-      );
-    } else if (kind == LinkedNodeTypeKind.typeParameter) {
-      var reference = referenceOfIndex(linkedType.typeParameterParameter);
-      Element element = elementFactory.elementOfReference(reference);
-      return TypeParameterTypeImpl(element);
-    } else if (kind == LinkedNodeTypeKind.void_) {
-      return VoidTypeImpl.instance;
-    } else {
-      throw UnimplementedError('$kind');
-    }
-  }
-
   Reference referenceOfIndex(int index) {
     var reference = _references[index];
     if (reference != null) return reference;
@@ -146,16 +100,6 @@ class LinkedBundleContext {
     _references[index] = reference;
 
     return reference;
-  }
-
-  ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
-    if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
-      return ParameterKind.NAMED;
-    }
-    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
-      return ParameterKind.POSITIONAL;
-    }
-    return ParameterKind.REQUIRED;
   }
 }
 

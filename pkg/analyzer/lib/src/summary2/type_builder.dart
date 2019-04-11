@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
@@ -70,21 +69,28 @@ class TypeBuilder {
     }
   }
 
-  DartType _buildFunctionType(
+  FunctionType _buildFunctionType(
+    TypeParameterList typeParameterList,
     TypeAnnotation returnTypeNode,
     FormalParameterList parameterList,
   ) {
     var returnType = returnTypeNode?.type ?? _dynamicType;
 
-    // TODO(scheglov) type parameters
-    var typeParameters = const <TypeParameterElement>[];
+    List<TypeParameterElement> typeParameters;
+    if (typeParameterList != null) {
+      typeParameters = typeParameterList.typeParameters
+          .map<TypeParameterElement>((p) => p.declaredElement)
+          .toList();
+    } else {
+      typeParameters = const <TypeParameterElement>[];
+    }
 
-    var formalParameters = parameterList.parameters.map((p) {
-      // TODO(scheglov) other types and kinds
+    var formalParameters = parameterList.parameters.map((parameter) {
       return ParameterElementImpl.synthetic(
-        (p as SimpleFormalParameter).identifier.name,
-        LazyAst.getType(p),
-        ParameterKind.REQUIRED,
+        parameter.identifier.name,
+        LazyAst.getType(parameter),
+        // ignore: deprecated_member_use_from_same_package
+        parameter.kind,
       );
     }).toList();
 
@@ -96,8 +102,11 @@ class TypeBuilder {
   }
 
   void _buildGenericFunctionType(GenericFunctionTypeImpl node) {
-    // TODO(scheglov) Type parameters?
-    node.type = _buildFunctionType(node.returnType, node.parameters);
+    node.type = _buildFunctionType(
+      node.typeParameters,
+      node.returnType,
+      node.parameters,
+    );
   }
 
   void _buildTypeName(TypeName node) {
@@ -214,7 +223,11 @@ class TypeBuilder {
   void _fieldFormalParameter(FieldFormalParameter node) {
     var parameterList = node.parameters;
     if (parameterList != null) {
-      var type = _buildFunctionType(node.type, parameterList);
+      var type = _buildFunctionType(
+        node.typeParameters,
+        node.type,
+        parameterList,
+      );
       LazyAst.setType(node, type);
     } else {
       LazyAst.setType(node, node.type?.type ?? _dynamicType);
@@ -222,7 +235,11 @@ class TypeBuilder {
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    var type = _buildFunctionType(node.returnType, node.parameters);
+    var type = _buildFunctionType(
+      node.typeParameters,
+      node.returnType,
+      node.parameters,
+    );
     LazyAst.setType(node, type);
   }
 
