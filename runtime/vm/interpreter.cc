@@ -1595,7 +1595,7 @@ RawObject* Interpreter::Call(RawFunction* function,
   FP[kKBCFunctionSlotFromFp] = function;
   FP[kKBCPcMarkerSlotFromFp] = bytecode;
   FP[kKBCSavedCallerPcSlotFromFp] =
-      reinterpret_cast<RawObject*>((arg_count << 2) | 2);
+      reinterpret_cast<RawObject*>(kEntryFramePcMarker);
   FP[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(fp_);
 
   // Load argument descriptor.
@@ -2393,8 +2393,6 @@ SwitchDispatch:
                   exit_fp);
       }
       ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));
-      const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
-      ASSERT(fp_ == FrameArguments(FP, argc + kKBCEntrySavedSlots));
       // Exception propagation should have been done.
       ASSERT(!result->IsHeapObject() ||
              result->GetClassId() != kUnhandledExceptionCid);
@@ -3297,11 +3295,11 @@ SwitchDispatch:
     pc = SavedCallerPC(FP);
 
     const bool has_dart_caller = !IsEntryFrameMarker(pc);
-    const intptr_t argc = has_dart_caller ? KernelBytecode::DecodeArgc(pc[-1])
-                                          : (reinterpret_cast<uword>(pc) >> 2);
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
 
     SP = FrameArguments(FP, 0);
     RawObject** args = SP - argc;

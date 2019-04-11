@@ -22,8 +22,8 @@ Callee frame   | ...                |
 Current frame  | ...               T| <- SP of current frame
                | ...               T|
                | first local       T| <- FP of current frame
-               | caller's FP       *|
-               | caller's PC       *|
+               | caller's FP        |
+               | caller's PC        |
                | code object       T|    (current frame's code object)
                | function object   T|    (current frame's function object)
                +--------------------+
@@ -31,8 +31,6 @@ Caller frame   | last parameter     | <- SP of caller frame
                |  ...               |
 
                T against a slot indicates it needs to be traversed during GC.
-               * against a slot indicates that it can be traversed during GC
-                 because it will look like a smi to the visitor.
 */
 
 static const int kKBCDartFrameFixedSize = 4;  // Function, Code, PC, FP

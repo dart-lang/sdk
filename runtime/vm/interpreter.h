@@ -73,6 +73,8 @@ typedef bool (*IntrinsicHandler)(Thread* thread,
 class Interpreter {
  public:
   static const uword kInterpreterStackUnderflowSize = 0x80;
+  // The entry frame pc marker must be non-zero (a valid exception handler pc).
+  static const word kEntryFramePcMarker = -1;
 
   Interpreter();
   ~Interpreter();
@@ -97,7 +99,7 @@ class Interpreter {
 
   // Identify an entry frame by looking at its pc marker value.
   static bool IsEntryFrameMarker(uint32_t* pc) {
-    return (reinterpret_cast<uword>(pc) & 2) != 0;
+    return reinterpret_cast<word>(pc) == kEntryFramePcMarker;
   }
 
   RawObject* Call(const Function& function,

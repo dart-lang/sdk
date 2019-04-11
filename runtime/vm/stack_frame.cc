@@ -387,8 +387,17 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 #if !defined(TARGET_ARCH_DBC)
   // For normal unoptimized Dart frames and Stub frames each slot
   // between the first and last included are tagged objects.
-  RawObject** first = reinterpret_cast<RawObject**>(
-      is_interpreted() ? fp() + (kKBCFirstObjectSlotFromFp * kWordSize) : sp());
+  if (is_interpreted()) {
+    // Do not visit caller's pc or caller's fp.
+    RawObject** first =
+        reinterpret_cast<RawObject**>(fp()) + kKBCFirstObjectSlotFromFp;
+    RawObject** last =
+        reinterpret_cast<RawObject**>(fp()) + kKBCLastFixedObjectSlotFromFp;
+
+    visitor->VisitPointers(first, last);
+  }
+  RawObject** first =
+      reinterpret_cast<RawObject**>(is_interpreted() ? fp() : sp());
   RawObject** last = reinterpret_cast<RawObject**>(
       is_interpreted()
           ? sp()
