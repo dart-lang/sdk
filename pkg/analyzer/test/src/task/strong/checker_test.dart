@@ -3649,6 +3649,25 @@ class Child extends Base {
 ''');
   }
 
+  test_strictInference_collectionLiterals() async {
+    addFile(r'''
+main() {
+  var emptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
+  var emptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
+
+  var upwardsInfersDynamicList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[42 as dynamic];
+  var upwardsInfersDynamicSet = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{42 as dynamic};
+
+
+  dynamic d;
+  var upwardsInfersDynamicMap1 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{d: 2};
+  var upwardsInfersDynamicMap2 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{4: d};
+  var upwardsInfersDynamicMap3 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{d: d};
+}
+    ''');
+    await check(strictInference: true);
+  }
+
   test_strictRawTypes_classes() async {
     addFile(r'''
 class C<T> {
@@ -3702,11 +3721,8 @@ main() {
     var upwardsInferNonDynamicIsOK = [42];
     var explicitDynamicIsOK = <dynamic>[42];
 
-    var rawList = /*info:STRICT_RAW_TYPE*/[];
     var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
     /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/[42 as dynamic];
   }
 
   {
@@ -3716,11 +3732,8 @@ main() {
     var upwardsInferNonDynamicIsOK = [42];
     var explicitDynamicIsOK = <dynamic>[42];
 
-    var rawList = /*info:STRICT_RAW_TYPE*/[];
     var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
     /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/[42 as dynamic];
   }
 
   {
@@ -3732,8 +3745,6 @@ main() {
 
     var rawSetOfSets = </*info:STRICT_RAW_TYPE*/Set>{};
     /*info:STRICT_RAW_TYPE*/Set rawSetFromType = {};
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/{42 as dynamic};
   }
 
   {
@@ -3748,11 +3759,6 @@ main() {
 
     var rawMapOfMaps = </*info:STRICT_RAW_TYPE*/Map>{};
     /*info:STRICT_RAW_TYPE*/Map rawMapFromType = {};
-
-    dynamic d;
-    var upwardsInfersDynamic1 = /*info:STRICT_RAW_TYPE*/{d: 2};
-    var upwardsInfersDynamic2 = /*info:STRICT_RAW_TYPE*/{4: d};
-    var upwardsInfersDynamic3 = /*info:STRICT_RAW_TYPE*/{d: d};
   }
 
   {
@@ -3812,15 +3818,6 @@ main() {
 }
     ''');
 
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_emptyMap() async {
-    addFile('''
-main() {
-  var rawMap = /*info:STRICT_RAW_TYPE*/{};
-}
-''');
     await check(strictRawTypes: true);
   }
 

@@ -994,7 +994,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArgumentCount(typeArguments, 1,
           StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
     }
-    _checkForRawTypedLiteral(node);
+    _checkForInferenceFailureOnCollectionLiteral(node);
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForListElementTypeNotAssignable(node);
 
@@ -1201,7 +1201,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkTypeArgumentCount(typeArguments, 2,
             StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
       }
-      _checkForRawTypedLiteral(node);
+      _checkForInferenceFailureOnCollectionLiteral(node);
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForMapTypeNotAssignable(node);
       _checkForNonConstMapAsExpressionStatement3(node);
@@ -1217,7 +1217,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkTypeArgumentCount(typeArguments, 1,
             StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
       }
-      _checkForRawTypedLiteral(node);
+      _checkForInferenceFailureOnCollectionLiteral(node);
       _checkForImplicitDynamicTypedLiteral(node);
       _checkForSetElementTypeNotAssignable3(node);
     }
@@ -3666,6 +3666,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         [directive.uri.stringValue]);
   }
 
+  /// Checks a collection literal for an inference failure, and reports the
+  /// appropriate error if [AnalysisOptionsImpl.strictInference] is set.
+  ///
+  /// This checks if [node] does not have explicit or inferred type arguments.
+  /// When that happens, it reports a
+  /// HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL error.
+  void _checkForInferenceFailureOnCollectionLiteral(TypedLiteral node) {
+    if (!_options.strictInference || node == null) return;
+    if (node.typeArguments != null) {
+      // Type has explicit type arguments.
+      return;
+    }
+    var type = node.staticType;
+    if (_isMissingTypeArguments(node, type, type.element, node)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, [type.name]);
+    }
+  }
+
   /**
    * Check that the given [typeReference] is not a type reference and that then
    * the [name] is reference to an instance member.
@@ -4692,60 +4711,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, parameter);
   }
 
-  /// Similar to [_checkForRawTypeName] but for list/map/set literals.
-  void _checkForRawTypedLiteral(TypedLiteral node) {
-    if (!_options.strictRawTypes || node == null) return;
-    if (node.typeArguments != null) {
-      // Type has explicit type arguments.
-      return;
-    }
-    var type = node.staticType;
-    return _checkForRawTypeErrors(node, type, type.element, node);
-  }
-
-  /// Given a [node] without type arguments that refers to [element], issues
-  /// an error if [type] is a generic type, and the type arguments were not
-  /// supplied from inference or a non-dynamic default instantiation.
-  ///
-  /// This function is used by other node-specific raw type checking functions
-  /// (for example [_checkForRawTypeName]), and should only be called when
-  /// we already know [AnalysisOptionsImpl.strictRawTypes] is true and [node]
-  /// has no explicit `typeArguments`.
-  ///
-  /// [inferenceContextNode] is the node that has the downwards context type,
-  /// if any. For example an [InstanceCreationExpression].
-  ///
-  /// The raw type error [HintCode.STRICT_RAW_TYPE] will *not* be reported when
-  /// any of the following are true:
-  ///
-  /// - [inferenceContextNode] has an inference context type that does not
-  ///   contain `?`
-  /// - [type] does not have any `dynamic` type arguments.
-  /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  void _checkForRawTypeErrors(AstNode node, DartType type, Element element,
-      Expression inferenceContextNode) {
-    assert(_options.strictRawTypes);
-    // Check if this type has type arguments and at least one is dynamic.
-    // If so, we may need to issue a strict-raw-types error.
-    if (type is ParameterizedType &&
-        type.typeArguments.any((t) => t.isDynamic)) {
-      // If we have an inference context node, check if the type was inferred
-      // from it. Some cases will not have a context type, such as the type
-      // annotation `List` in `List list;`
-      if (inferenceContextNode != null) {
-        var contextType = InferenceContext.getContext(inferenceContextNode);
-        if (contextType != null && UnknownInferredType.isKnown(contextType)) {
-          // Type was inferred from downwards context: not an error.
-          return;
-        }
-      }
-      if (element.hasOptionalTypeArgs) {
-        return;
-      }
-      _errorReporter.reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
-    }
-  }
-
   /// Checks a type annotation for a raw generic type, and reports the
   /// appropriate error if [AnalysisOptionsImpl.strictRawTypes] is set.
   ///
@@ -4766,8 +4731,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         inferenceContextNode = grandparent;
       }
     }
-    return _checkForRawTypeErrors(
-        node, node.type, node.name.staticElement, inferenceContextNode);
+    if (_isMissingTypeArguments(
+        node, node.type, node.name.staticElement, inferenceContextNode)) {
+      _errorReporter
+          .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
+    }
   }
 
   /**
@@ -6107,6 +6075,46 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       MethodElement callMethod =
           type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
       return callMethod != null;
+    }
+    return false;
+  }
+
+  /// Given a [node] without type arguments that refers to [element], issues
+  /// an error if [type] is a generic type, and the type arguments were not
+  /// supplied from inference or a non-dynamic default instantiation.
+  ///
+  /// This function is used by other node-specific type checking functions, and
+  /// should only be called when [node] has no explicit `typeArguments`.
+  ///
+  /// [inferenceContextNode] is the node that has the downwards context type,
+  /// if any. For example an [InstanceCreationExpression].
+  ///
+  /// This function will return false if any of the following are true:
+  ///
+  /// - [inferenceContextNode] has an inference context type that does not
+  ///   contain `?`
+  /// - [type] does not have any `dynamic` type arguments.
+  /// - the element is marked with `@optionalTypeArgs` from "package:meta".
+  bool _isMissingTypeArguments(AstNode node, DartType type, Element element,
+      Expression inferenceContextNode) {
+    // Check if this type has type arguments and at least one is dynamic.
+    // If so, we may need to issue a strict-raw-types error.
+    if (type is ParameterizedType &&
+        type.typeArguments.any((t) => t.isDynamic)) {
+      // If we have an inference context node, check if the type was inferred
+      // from it. Some cases will not have a context type, such as the type
+      // annotation `List` in `List list;`
+      if (inferenceContextNode != null) {
+        var contextType = InferenceContext.getContext(inferenceContextNode);
+        if (contextType != null && UnknownInferredType.isKnown(contextType)) {
+          // Type was inferred from downwards context: not an error.
+          return false;
+        }
+      }
+      if (element.hasOptionalTypeArgs) {
+        return false;
+      }
+      return true;
     }
     return false;
   }
