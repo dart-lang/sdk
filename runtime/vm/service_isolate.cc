@@ -326,8 +326,9 @@ class RunServiceTask : public ThreadPool::Task {
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
 
-    isolate = reinterpret_cast<Isolate*>(create_callback(
-        ServiceIsolate::kName, NULL, NULL, NULL, &api_flags, NULL, &error));
+    isolate = reinterpret_cast<Isolate*>(
+        create_callback(ServiceIsolate::kName, ServiceIsolate::kName, NULL,
+                        NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
       if (FLAG_trace_service) {
         OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
