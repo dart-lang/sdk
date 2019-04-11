@@ -139,7 +139,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 24;
+  UInt32 formatVersion = 25;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -238,8 +238,11 @@ type Library {
   List<Field> fields;
   List<Procedure> procedures;
 
+  List<UInt> sourceReferences; // list of sources owned by library, indexes into UriSource on Component.
+
   // Library index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
   // a specific class or procedure. Note the "+1" to account for needing the end of the last entry.
+  UInt32 sourceReferencesOffset;
   UInt32[classes.length + 1] classOffsets;
   UInt32 classCount = classes.length;
   UInt32[procedures.length + 1] procedureOffsets;

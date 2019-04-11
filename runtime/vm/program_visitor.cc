@@ -34,7 +34,7 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
       }
       visitor->Visit(cls);
     }
-    patches = lib.patch_classes();
+    patches = lib.owned_scripts();
     for (intptr_t j = 0; j < patches.Length(); j++) {
       entry = patches.At(j);
       if (entry.IsClass()) {

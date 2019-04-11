@@ -36,6 +36,7 @@
 #include "vm/heap/weak_code.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel.h"
+#include "vm/kernel_binary.h"
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/native_symbol.h"
@@ -10390,6 +10391,15 @@ RawArray* Library::LoadedScripts() const {
   // We compute the list of loaded scripts lazily. The result is
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // TODO(jensj): Once minimum kernel support is >= 25 this can be cleaned up.
+    // It really should just return the content of `owned_scripts`, and there
+    // should be no need to do the O(n) call to `AddScriptIfUnique` per script.
+    static_assert(
+        kernel::kMinSupportedKernelFormatVersion < 25,
+        "Once minimum kernel support is >= 25 this can be cleaned up.");
+#endif
+
     // Iterate over the library dictionary and collect all scripts.
     const GrowableObjectArray& scripts =
         GrowableObjectArray::Handle(GrowableObjectArray::New(8));
@@ -10412,7 +10422,7 @@ RawArray* Library::LoadedScripts() const {
     }
 
     // Add all scripts from patch classes.
-    GrowableObjectArray& patches = GrowableObjectArray::Handle(patch_classes());
+    GrowableObjectArray& patches = GrowableObjectArray::Handle(owned_scripts());
     for (intptr_t i = 0; i < patches.Length(); i++) {
       entry = patches.At(i);
       if (entry.IsClass()) {
@@ -10868,7 +10878,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
                       GrowableObjectArray::New(4, Heap::kOld));
   result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
   result.StorePointer(
-      &result.raw_ptr()->patch_classes_,
+      &result.raw_ptr()->owned_scripts_,
       GrowableObjectArray::New(Object::empty_array(), Heap::kOld));
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());

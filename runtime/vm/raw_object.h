@@ -1153,7 +1153,7 @@ class RawLibrary : public RawObject {
   RawArray* dictionary_;              // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawClass* toplevel_class_;          // Class containing top-level elements.
-  RawGrowableObjectArray* patch_classes_;
+  RawGrowableObjectArray* owned_scripts_;
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
   RawInstance* load_error_;  // Error iff load_state_ == kLoadError.

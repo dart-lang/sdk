@@ -1313,74 +1313,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
         helper_->SkipLibraryDependency();
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
-    case kAdditionalExports: {
-      intptr_t name_count = helper_->ReadUInt();
-      for (intptr_t i = 0; i < name_count; ++i) {
-        helper_->SkipCanonicalNameReference();
-      }
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    }
-    case kParts: {
-      intptr_t part_count = helper_->ReadUInt();  // read list length.
-      for (intptr_t i = 0; i < part_count; ++i) {
-        helper_->SkipLibraryPart();
-      }
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    }
-    case kTypedefs: {
-      intptr_t typedef_count = helper_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < typedef_count; i++) {
-        helper_->SkipLibraryTypedef();
-      }
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    }
-    case kClasses: {
-      class_count_ = helper_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < class_count_; ++i) {
-        ClassHelper class_helper(helper_);
-        class_helper.ReadUntilExcluding(ClassHelper::kEnd);
-      }
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    }
-    case kToplevelField: {
-      intptr_t field_count = helper_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < field_count; ++i) {
-        FieldHelper field_helper(helper_);
-        field_helper.ReadUntilExcluding(FieldHelper::kEnd);
-      }
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    }
-    case kToplevelProcedures: {
-      procedure_count_ = helper_->ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < procedure_count_; ++i) {
-        ProcedureHelper procedure_helper(helper_);
-        procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
-      }
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    }
-    case kLibraryIndex:
-      // Read library index.
-      for (intptr_t i = 0; i < class_count_; ++i) {
-        helper_->reader_.ReadUInt32();
-      }
-      helper_->reader_.ReadUInt32();
-      helper_->reader_.ReadUInt32();
-      for (intptr_t i = 0; i < procedure_count_; ++i) {
-        helper_->reader_.ReadUInt32();
-      }
-      helper_->reader_.ReadUInt32();
-      helper_->reader_.ReadUInt32();
-      if (++next_read_ == field) return;
-      FALL_THROUGH;
-    case kEnd:
       return;
   }
 }

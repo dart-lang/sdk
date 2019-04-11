@@ -143,8 +143,9 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return loader_->LookupClass(library_lookup_handle_, klass);
 }
 
-LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
-    : reader_(kernel_data) {
+LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data,
+                           int32_t binary_version)
+    : reader_(kernel_data), binary_version_(binary_version) {
   intptr_t data_size = reader_.size();
 
   procedure_count_ = reader_.ReadUInt32At(data_size - 4);
@@ -152,6 +153,11 @@ LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
 
   class_count_ = reader_.ReadUInt32At(procedure_index_offset_ - 4);
   class_index_offset_ = procedure_index_offset_ - 4 - (class_count_ + 1) * 4;
+
+  source_references_offset_ = -1;
+  if (binary_version >= 25) {
+    source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
+  }
 }
 
 ClassIndex::ClassIndex(const uint8_t* buffer,
@@ -919,7 +925,8 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
       library_kernel_data_ =
           helper_.reader_.ExternalDataFromTo(kernel_offset, library_end);
 
-      LibraryIndex library_index(library_kernel_data_);
+      LibraryIndex library_index(library_kernel_data_,
+                                 program_->binary_version());
       num_classes += library_index.class_count();
       num_procedures += library_index.procedure_count();
     }
@@ -1010,7 +1017,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
 
-  LibraryIndex library_index(library_kernel_data_);
+  LibraryIndex library_index(library_kernel_data_, program_->binary_version());
   intptr_t class_count = library_index.class_count();
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);
@@ -1093,6 +1100,19 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
 
   if (register_class) {
     classes.Add(toplevel_class, Heap::kOld);
+
+    if (library_index.HasSourceReferences()) {
+      helper_.SetOffset(library_index.SourceReferencesOffset());
+      intptr_t count = helper_.ReadUInt();
+      const GrowableObjectArray& owned_scripts =
+          GrowableObjectArray::Handle(library.owned_scripts());
+      Script& script = Script::Handle(Z);
+      for (intptr_t i = 0; i < count; i++) {
+        intptr_t uri_index = helper_.ReadUInt();
+        script = ScriptAt(uri_index);
+        owned_scripts.Add(script);
+      }
+    }
   }
   if (!library.Loaded()) library.SetLoaded();
 
@@ -1677,7 +1697,7 @@ void KernelLoader::FinishLoading(const Class& klass) {
 
   KernelLoader kernel_loader(script, library_kernel_data,
                              library_kernel_offset);
-  LibraryIndex library_index(library_kernel_data);
+  LibraryIndex library_index(library_kernel_data, /*binary_version=*/-1);
 
   if (klass.IsTopLevel()) {
     ASSERT(klass.raw() == toplevel_class.raw());

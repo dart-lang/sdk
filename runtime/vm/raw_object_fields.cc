@@ -71,7 +71,7 @@ namespace dart {
   F(Library, dictionary_)                                                      \
   F(Library, metadata_)                                                        \
   F(Library, toplevel_class_)                                                  \
-  F(Library, patch_classes_)                                                   \
+  F(Library, owned_scripts_)                                                   \
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
   F(Library, load_error_)                                                      \
