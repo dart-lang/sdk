@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -374,6 +375,25 @@ class Driver with HasContextMixin implements CommandLineStarter {
                     error, options, analysisDriver.analysisOptions);
                 allResult = allResult.max(severity);
               }
+            }
+          } catch (exception) {
+            // If the file cannot be analyzed, ignore it.
+          }
+        } else if (shortName == AnalysisEngine.ANDROID_MANIFEST_FILE) {
+          try {
+            File file = resourceProvider.getFile(path);
+            String content = file.readAsStringSync();
+            ManifestValidator validator =
+                new ManifestValidator(file.createSource());
+            LineInfo lineInfo = new LineInfo.fromContent(content);
+            List<AnalysisError> errors = validator.validate(
+                content, analysisDriver.analysisOptions.chromeOsManifestChecks);
+            formatter
+                .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+            for (AnalysisError error in errors) {
+              ErrorSeverity severity = determineProcessedSeverity(
+                  error, options, analysisDriver.analysisOptions);
+              allResult = allResult.max(severity);
             }
           } catch (exception) {
             // If the file cannot be analyzed, ignore it.
