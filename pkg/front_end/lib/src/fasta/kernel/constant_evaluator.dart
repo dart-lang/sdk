@@ -655,7 +655,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         result = nodeCache[node] ?? report(node, messageConstEvalCircularity);
       } else {
         nodeCache[node] = null;
-        result = nodeCache[node] = node.accept(this);
+        try {
+          result = nodeCache[node] = node.accept(this);
+        } catch (e) {
+          nodeCache.remove(node);
+          rethrow;
+        }
       }
     } else {
       result = node.accept(this);
