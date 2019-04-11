@@ -1,3 +1,7 @@
+## 2.2.1-dev.4.2
+
+* Cherry-pick ab66a3808b28dfc94eaf0ed151c13f4fc696b5dc to dev
+
 ## 2.2.1-dev.4.1
 
 * Cherry-pick 72b7e95c74b3ec0f0530322923713162a83013e2 to dev
