@@ -38,7 +38,7 @@ class ManifestFixTest with ResourceProviderMixin {
   }
 
   Future<List<Fix>> _getFixes(String content) {
-    File manifestFile = getFile('/package/manifest.xml');
+    File manifestFile = getFile('/package/AndroidManifest.xml');
     DocumentFragment document =
         parseFragment(content, container: MANIFEST_TAG, generateSpans: true);
     expect(document, isNotNull);
