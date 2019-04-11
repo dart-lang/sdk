@@ -45,8 +45,10 @@ def main():
   abi_version = int(utils.GetAbiVersion())
   oldest_abi_version = int(utils.GetOldestSupportedAbiVersion())
 
-  # The latest abi version may not have an entry in CIPD yet, so check first.
-  if not findAbiVersion(abi_version):
+  # The latest abi versions may not have an entry in CIPD yet, so check first.
+  while abi_version >= oldest_abi_version:
+    if findAbiVersion(abi_version):
+      break
     abi_version -= 1
 
   return downloadAbiDills(oldest_abi_version, abi_version)
