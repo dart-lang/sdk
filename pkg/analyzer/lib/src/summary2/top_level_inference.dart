@@ -5,9 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -147,6 +149,8 @@ class TopLevelInference {
       LazyAst.setType(node, _dynamicType);
       return;
     }
+
+    initializer.accept(LocalElementBuilder(ElementHolder(), null));
 
     var astResolver = AstResolver(linker, _libraryElement, _nameScope);
     astResolver.resolve(initializer);

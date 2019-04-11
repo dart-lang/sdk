@@ -221,18 +221,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_closure_generic() async {
-    await super.test_closure_generic();
-  }
-
-  @override
-  @failingTest
-  test_closure_in_variable_declaration_in_part() async {
-    await super.test_closure_in_variable_declaration_in_part();
-  }
-
-  @override
-  @failingTest
   test_const_constructor_inferred_args() async {
     await super.test_const_constructor_inferred_args();
   }
@@ -354,12 +342,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_futureOr_inferred() async {
-    await super.test_futureOr_inferred();
-  }
-
-  @override
-  @failingTest
   test_getter_inferred_type_nonStatic_implicit_return() async {
     await super.test_getter_inferred_type_nonStatic_implicit_return();
   }
@@ -422,12 +404,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_inferred_type_refers_to_function_typed_param_of_typedef() async {
-    await super.test_inferred_type_refers_to_function_typed_param_of_typedef();
-  }
-
-  @override
-  @failingTest
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
     await super
         .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
@@ -449,19 +425,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param() async {
-    await super.test_inferred_type_refers_to_nested_function_typed_param();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_nested_function_typed_param_named() async {
-    await super
-        .test_inferred_type_refers_to_nested_function_typed_param_named();
-  }
-
-  @override
-  @failingTest
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
     await super
         .test_inferred_type_refers_to_setter_function_typed_parameter_type();
@@ -477,47 +440,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_inferredType_implicitCreation() async {
     await super.test_inferredType_implicitCreation();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure() async {
-    await super.test_initializer_executable_with_return_type_from_closure();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future3_int() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future3_int();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future_int() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future_int();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_await_future_noArg() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_await_future_noArg();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_field() async {
-    await super
-        .test_initializer_executable_with_return_type_from_closure_field();
   }
 
   @override
@@ -638,62 +560,14 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_syntheticFunctionType_inGenericClass() async {
-    await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_noArguments() async {
-    await super.test_syntheticFunctionType_noArguments();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_withArguments() async {
-    await super.test_syntheticFunctionType_withArguments();
-  }
-
-  @override
-  @failingTest
   test_type_inference_based_on_loadLibrary() async {
     await super.test_type_inference_based_on_loadLibrary();
   }
 
   @override
   @failingTest
-  test_type_inference_closure_with_function_typed_parameter() async {
-    await super.test_type_inference_closure_with_function_typed_parameter();
-  }
-
-  @override
-  @failingTest
-  test_type_inference_closure_with_function_typed_parameter_new() async {
-    await super.test_type_inference_closure_with_function_typed_parameter_new();
-  }
-
-  @override
-  @failingTest
   test_type_inference_depends_on_exported_variable() async {
     await super.test_type_inference_depends_on_exported_variable();
-  }
-
-  @override
-  @failingTest
-  test_type_inference_nested_function() async {
-    await super.test_type_inference_nested_function();
-  }
-
-  @override
-  @failingTest
-  test_type_inference_nested_function_with_parameter_types() async {
-    await super.test_type_inference_nested_function_with_parameter_types();
-  }
-
-  @override
-  @failingTest
-  test_type_inference_of_closure_with_default_value() async {
-    await super.test_type_inference_of_closure_with_default_value();
   }
 
   @override
