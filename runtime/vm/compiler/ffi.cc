@@ -134,10 +134,10 @@ class ArgumentFrameState : public ValueObject {
       case kUnboxedInt64:
       case kUnboxedUint32:
       case kUnboxedInt32: {
-        Location result = ((rep == kUnboxedInt64 || rep == kUnboxedDouble) &&
-                           compiler::target::kWordSize == 4)
-                              ? AllocateAlignedRegisterPair()
-                              : AllocateCpuRegister();
+        Location result =
+            rep == kUnboxedInt64 && compiler::target::kWordSize == 4
+                ? AllocateAlignedRegisterPair()
+                : AllocateCpuRegister();
         if (!result.IsUnallocated()) return result;
         break;
       }
@@ -172,7 +172,9 @@ class ArgumentFrameState : public ValueObject {
       result = Location::DoubleStackSlot(stack_height_in_slots, SPREG);
       stack_height_in_slots += 2;
     } else {
-      result = Location::Pair(AllocateStackSlot(), AllocateStackSlot());
+      const Location low = AllocateStackSlot();
+      const Location high = AllocateStackSlot();
+      result = Location::Pair(low, high);
     }
     return result;
   }
