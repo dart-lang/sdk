@@ -205,6 +205,9 @@ class BaseFlowGraphBuilder {
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 
+  Fragment StrictCompare(TokenPosition position,
+                         Token::Kind kind,
+                         bool number_check = false);
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
   Fragment Goto(JoinEntryInstr* destination);
   Fragment IntConstant(int64_t value);

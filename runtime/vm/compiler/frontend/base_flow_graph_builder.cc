@@ -121,6 +121,17 @@ Fragment BaseFlowGraphBuilder::LoadContextAt(int depth) {
   return instructions;
 }
 
+Fragment BaseFlowGraphBuilder::StrictCompare(TokenPosition position,
+                                             Token::Kind kind,
+                                             bool number_check /* = false */) {
+  Value* right = Pop();
+  Value* left = Pop();
+  StrictCompareInstr* compare = new (Z) StrictCompareInstr(
+      position, kind, left, right, number_check, GetNextDeoptId());
+  Push(compare);
+  return Fragment(compare);
+}
+
 Fragment BaseFlowGraphBuilder::StrictCompare(Token::Kind kind,
                                              bool number_check /* = false */) {
   Value* right = Pop();

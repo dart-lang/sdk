@@ -1617,9 +1617,10 @@ Fragment StreamingFlowGraphBuilder::TranslateInstantiatedTypeArguments(
       type_arguments);
 }
 
-Fragment StreamingFlowGraphBuilder::StrictCompare(Token::Kind kind,
+Fragment StreamingFlowGraphBuilder::StrictCompare(TokenPosition position,
+                                                  Token::Kind kind,
                                                   bool number_check) {
-  return flow_graph_builder_->StrictCompare(kind, number_check);
+  return flow_graph_builder_->StrictCompare(position, kind, number_check);
 }
 
 Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
@@ -2679,7 +2680,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
-           StrictCompare(strict_cmp_kind, /*number_check = */ true);
+           StrictCompare(position, strict_cmp_kind, /*number_check = */ true);
   }
 
   LocalVariable* receiver_temp = NULL;
@@ -2853,7 +2854,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
-           StrictCompare(strict_cmp_kind, /*number_check = */ true);
+           StrictCompare(position, strict_cmp_kind, /*number_check = */ true);
   }
 
   instructions += PushArgument();  // push receiver as argument.
@@ -3120,7 +3121,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   // there.
   if (special_case_identical) {
     ASSERT(argument_count == 2);
-    instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
+    instructions +=
+        StrictCompare(position, Token::kEQ_STRICT, /*number_check=*/true);
   } else if (special_case_unchecked_cast) {
     // Simply do nothing: the result value is already pushed on the stack.
   } else {
