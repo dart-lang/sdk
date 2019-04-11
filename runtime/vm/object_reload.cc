@@ -713,15 +713,13 @@ void ICData::Reset(Zone* zone) const {
       if (IsImmutable()) {
         return;
       }
-      const String& name = String::Handle(zone, target_name());
-      const Class& smi_class = Class::Handle(zone, Smi::Class());
-      const ArgumentsDescriptor& args_desc =
-          ArgumentsDescriptor(Array::Handle(zone, arguments_descriptor()));
+      Zone* zone = Thread::Current()->zone();
+      const String& name = String::Handle(target_name());
+      const Class& smi_class = Class::Handle(Smi::Class());
       const Function& smi_op_target = Function::Handle(
-          zone,
-          Resolver::ResolveDynamicForReceiverClass(smi_class, name, args_desc));
+          Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
       GrowableArray<intptr_t> class_ids(2);
-      Function& target = Function::Handle(zone);
+      Function& target = Function::Handle();
       GetCheckAt(0, &class_ids, &target);
       if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
           (class_ids[1] == kSmiCid)) {
@@ -729,7 +727,7 @@ void ICData::Reset(Zone* zone) const {
         // count.
         ClearCountAt(0);
         WriteSentinelAt(1);
-        const Array& array = Array::Handle(zone, entries());
+        const Array& array = Array::Handle(entries());
         array.Truncate(2 * TestEntryLength());
         return;
       }

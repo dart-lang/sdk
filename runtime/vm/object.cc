@@ -3111,11 +3111,13 @@ RawFunction* Function::GetDynamicInvocationForwarder(
   }
 
   // Check if function actually needs a dynamic invocation forwarder.
-  if ((kind() == RawFunction::kInvokeFieldDispatcher) ||
-      !kernel::NeedsDynamicInvocationForwarder(*this)) {
+  if (!kernel::NeedsDynamicInvocationForwarder(*this)) {
     result = raw();
   } else if (allow_add) {
     result = CreateDynamicInvocationForwarder(mangled_name);
+  }
+
+  if (allow_add) {
     owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
   }
 
@@ -3340,7 +3342,7 @@ RawObject* Class::InvokeGetter(const String& getter_name,
 
   if (field.IsNull() || field.IsUninitialized()) {
     const String& internal_getter_name =
-        String::Handle(zone, Field::GetterSymbol(getter_name));
+        String::Handle(zone, Field::GetterName(getter_name));
     Function& getter =
         Function::Handle(zone, LookupStaticFunction(internal_getter_name));
 
@@ -3397,7 +3399,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   // Check for real fields and user-defined setters.
   const Field& field = Field::Handle(zone, LookupStaticField(setter_name));
   const String& internal_setter_name =
-      String::Handle(zone, Field::SetterSymbol(setter_name));
+      String::Handle(zone, Field::SetterName(setter_name));
 
   if (!field.IsNull() && check_is_entrypoint) {
     CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kSetterOnly));
@@ -3457,15 +3459,13 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   return value.raw();
 }
 
-RawObject* Class::Invoke(const String& function_name_in,
+RawObject* Class::Invoke(const String& function_name,
                          const Array& args,
                          const Array& arg_names,
                          bool respect_reflectable,
                          bool check_is_entrypoint) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const String& function_name =
-      String::Handle(zone, Symbols::New(thread, function_name_in));
 
   // TODO(regis): Support invocation of generic functions with type arguments.
   const int kTypeArgsLen = 0;
@@ -10972,12 +10972,12 @@ RawObject* Library::InvokeGetter(const String& getter_name,
     // owner class.
     const Class& klass = Class::Handle(field.Owner());
     const String& internal_getter_name =
-        String::Handle(Field::GetterSymbol(getter_name));
+        String::Handle(Field::GetterName(getter_name));
     getter = klass.LookupStaticFunction(internal_getter_name);
   } else {
     // No field found. Check for a getter in the lib.
     const String& internal_getter_name =
-        String::Handle(Field::GetterSymbol(getter_name));
+        String::Handle(Field::GetterName(getter_name));
     obj = LookupLocalOrReExportObject(internal_getter_name);
     if (obj.IsFunction()) {
       getter = Function::Cast(obj).raw();
@@ -11028,7 +11028,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
                                  bool check_is_entrypoint) const {
   Object& obj = Object::Handle(LookupLocalOrReExportObject(setter_name));
   const String& internal_setter_name =
-      String::Handle(Field::SetterSymbol(setter_name));
+      String::Handle(Field::SetterName(setter_name));
   AbstractType& setter_type = AbstractType::Handle();
   AbstractType& argument_type = AbstractType::Handle(value.GetType(Heap::kOld));
   if (obj.IsField()) {
@@ -11086,22 +11086,16 @@ RawObject* Library::InvokeSetter(const String& setter_name,
   return DartEntry::InvokeFunction(setter, args);
 }
 
-RawObject* Library::Invoke(const String& function_name_in,
+RawObject* Library::Invoke(const String& function_name,
                            const Array& args,
                            const Array& arg_names,
                            bool respect_reflectable,
                            bool check_is_entrypoint) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const String& function_name =
-      String::Handle(zone, Symbols::New(thread, function_name_in));
-
   // TODO(regis): Support invocation of generic functions with type arguments.
   const int kTypeArgsLen = 0;
 
-  Function& function = Function::Handle(zone);
-  Object& obj =
-      Object::Handle(zone, LookupLocalOrReExportObject(function_name));
+  Function& function = Function::Handle();
+  Object& obj = Object::Handle(LookupLocalOrReExportObject(function_name));
   if (obj.IsFunction()) {
     function ^= obj.raw();
   }
@@ -11112,39 +11106,37 @@ RawObject* Library::Invoke(const String& function_name_in,
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
-    const Object& getter_result = Object::Handle(
-        zone, InvokeGetter(function_name, false, respect_reflectable,
-                           check_is_entrypoint));
+    const Object& getter_result = Object::Handle(InvokeGetter(
+        function_name, false, respect_reflectable, check_is_entrypoint));
     if (getter_result.raw() != Object::sentinel().raw()) {
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
       // Make room for the closure (receiver) in arguments.
       intptr_t numArgs = args.Length();
-      const Array& call_args = Array::Handle(zone, Array::New(numArgs + 1));
-      Object& temp = Object::Handle(zone);
+      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+      Object& temp = Object::Handle();
       for (int i = 0; i < numArgs; i++) {
         temp = args.At(i);
         call_args.SetAt(i + 1, temp);
       }
       call_args.SetAt(0, getter_result);
       const Array& call_args_descriptor_array =
-          Array::Handle(zone, ArgumentsDescriptor::New(
-                                  kTypeArgsLen, call_args.Length(), arg_names));
+          Array::Handle(ArgumentsDescriptor::New(
+              kTypeArgsLen, call_args.Length(), arg_names));
       // Call closure.
       return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
     }
   }
 
   const Array& args_descriptor_array = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
+      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
-        AbstractType::Handle(zone,
-                             Class::Handle(zone, toplevel_class()).RareType()),
+        AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
         function_name, args, arg_names, InvocationMirror::kTopLevel,
         InvocationMirror::kMethod);
   }
@@ -13478,14 +13470,20 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   bool is_smi_two_args_op = false;
 
   ASSERT(NumArgsTested() == 2);
+  const String& name = String::Handle(target_name());
+  const Class& smi_class = Class::Handle(Smi::Class());
   Zone* zone = Thread::Current()->zone();
-  const String& name = String::Handle(zone, target_name());
-  const Class& smi_class = Class::Handle(zone, Smi::Class());
-  const ArgumentsDescriptor& args_desc =
-      ArgumentsDescriptor(Array::Handle(zone, arguments_descriptor()));
-  Function& smi_op_target = Function::Handle(
-      zone,
-      Resolver::ResolveDynamicForReceiverClass(smi_class, name, args_desc));
+  Function& smi_op_target =
+      Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (smi_op_target.IsNull() &&
+      Function::IsDynamicInvocationForwarderName(name)) {
+    const String& demangled =
+        String::Handle(Function::DemangleDynamicInvocationForwarderName(name));
+    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
+  }
+#endif
 
   if (NumberOfChecksIs(0)) {
     GrowableArray<intptr_t> class_ids(2);
@@ -15902,14 +15900,9 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   }
 
   const String& internal_getter_name =
-      String::Handle(zone, Field::GetterSymbol(getter_name));
-  const intptr_t kTypeArgsLen = 0;
-  const intptr_t kNumArgs = 1;
-  const ArgumentsDescriptor& args_desc = ArgumentsDescriptor(
-      Array::Handle(zone, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
-  Function& function =
-      Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
-                                 klass, internal_getter_name, args_desc));
+      String::Handle(zone, Field::GetterName(getter_name));
+  Function& function = Function::Handle(
+      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name));
 
   if (!function.IsNull() && check_is_entrypoint) {
     // The getter must correspond to either an entry-point field or a getter
@@ -15927,12 +15920,7 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
 
   // Check for method extraction when method extractors are not created.
   if (function.IsNull() && !FLAG_lazy_dispatchers) {
-    const intptr_t kGetterNumArgs = 1;
-    const ArgumentsDescriptor& getter_args_desc =
-        ArgumentsDescriptor(Array::Handle(
-            zone, ArgumentsDescriptor::New(kTypeArgsLen, kGetterNumArgs)));
-    function = Resolver::ResolveDynamicForReceiverClass(klass, getter_name,
-                                                        getter_args_desc);
+    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
 
     if (!function.IsNull() && check_is_entrypoint) {
       CHECK_ERROR(function.VerifyClosurizedEntryPoint());
@@ -15945,6 +15933,8 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
     }
   }
 
+  const int kTypeArgsLen = 0;
+  const int kNumArgs = 1;
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, *this);
   const Array& args_descriptor = Array::Handle(
@@ -15968,14 +15958,9 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
   }
 
   const String& internal_setter_name =
-      String::Handle(zone, Field::SetterSymbol(setter_name));
-  const intptr_t kTypeArgsLen = 0;
-  const intptr_t kNumArgs = 2;
-  const ArgumentsDescriptor& args_desc = ArgumentsDescriptor(
-      Array::Handle(zone, ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)));
-  const Function& setter =
-      Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
-                                 klass, internal_setter_name, args_desc));
+      String::Handle(zone, Field::SetterName(setter_name));
+  const Function& setter = Function::Handle(
+      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
 
   if (check_is_entrypoint) {
     // The setter must correspond to either an entry-point field or a setter
@@ -15991,6 +15976,8 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
     }
   }
 
+  const int kTypeArgsLen = 0;
+  const int kNumArgs = 2;
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, *this);
   args.SetAt(1, value);
@@ -16002,51 +15989,46 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
                                 type_args);
 }
 
-RawObject* Instance::Invoke(const String& function_name_in,
+RawObject* Instance::Invoke(const String& function_name,
                             const Array& args,
                             const Array& arg_names,
                             bool respect_reflectable,
                             bool check_is_entrypoint) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const String& function_name =
-      String::Handle(zone, Symbols::New(thread, function_name_in));
+  Zone* zone = Thread::Current()->zone();
   Class& klass = Class::Handle(zone, clazz());
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  const intptr_t kTypeArgsLen = 0;
-  const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
   Function& function = Function::Handle(
-      zone, Resolver::ResolveDynamicForReceiverClass(
-                klass, function_name, ArgumentsDescriptor(args_descriptor)));
+      zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
   if (!function.IsNull() && check_is_entrypoint) {
     CHECK_ERROR(function.VerifyCallEntryPoint());
   }
+
+  // TODO(regis): Support invocation of generic functions with type arguments.
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor = Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
     type_args ^= GetTypeArguments();
   }
 
-  if (function.IsNull() && !FLAG_lazy_dispatchers) {
+  if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
     const String& getter_name =
-        String::Handle(zone, Field::GetterSymbol(function_name));
-    const int kGetterNumArgs = 1;
-    const Array& getter_args_descriptor = Array::Handle(
-        zone, ArgumentsDescriptor::New(kTypeArgsLen, kGetterNumArgs));
-    function = Resolver::ResolveDynamicForReceiverClass(
-        klass, getter_name, ArgumentsDescriptor(getter_args_descriptor));
+        String::Handle(zone, Field::GetterName(function_name));
+    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
     if (!function.IsNull()) {
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
       ASSERT(function.kind() != RawFunction::kMethodExtractor);
       // Invoke the getter.
-      const Array& getter_args =
-          Array::Handle(zone, Array::New(kGetterNumArgs));
+      const int kNumArgs = 1;
+      const Array& getter_args = Array::Handle(zone, Array::New(kNumArgs));
       getter_args.SetAt(0, *this);
+      const Array& getter_args_descriptor = Array::Handle(
+          zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length()));
       const Object& getter_result = Object::Handle(
           zone, InvokeInstanceFunction(*this, function, getter_name,
                                        getter_args, getter_args_descriptor,
@@ -22031,12 +22013,6 @@ RawError* VerifyEntryPoint(
   }
 #endif
   if (!is_marked_entrypoint) {
-    if (member.IsFunction() &&
-        Function::Cast(member).kind() == RawFunction::kInvokeFieldDispatcher) {
-      return EntryPointFieldInvocationError(
-          String::Handle(Function::Cast(member).name()));
-    }
-
     const char* member_cstring =
         member.IsFunction()
             ? OS::SCreate(

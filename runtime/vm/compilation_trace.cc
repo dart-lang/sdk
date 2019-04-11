@@ -248,7 +248,22 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
       field_ = cls_.LookupFieldAllowPrivate(function_name2_);
       if (!function_.IsNull() && !function_.is_static()) {
         // Maybe this was a method extractor.
-        // TODO(rmacnak)
+        function2_ =
+            Resolver::ResolveDynamicAnyArgs(zone_, cls_, function_name_);
+        if (!function2_.IsNull()) {
+          error_ = CompileFunction(function2_);
+          if (error_.IsError()) {
+            if (FLAG_trace_compilation_trace) {
+              THR_Print(
+                  "Compilation trace: error compiling extractor %s for "
+                  "%s,%s,%s (%s)\n",
+                  function2_.ToCString(), uri_.ToCString(),
+                  class_name_.ToCString(), function_name_.ToCString(),
+                  Error::Cast(error_).ToErrorCString());
+            }
+            return error_.raw();
+          }
+        }
       }
     }
     if (field_.IsNull() && is_getter) {
