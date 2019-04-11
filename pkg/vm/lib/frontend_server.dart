@@ -34,6 +34,7 @@ import 'package:vm/kernel_front_end.dart'
         convertFileOrUriArgumentToUri,
         createFrontEndTarget,
         createFrontEndFileSystem,
+        setVMEnvironmentDefines,
         writeDepfile;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
@@ -331,6 +332,8 @@ class FrontendCompiler implements CompilerInterface {
     Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
+      setVMEnvironmentDefines(environmentDefines, _compilerOptions);
+
       _compilerOptions.omitPlatform = false;
       _generator =
           generator ?? _createGenerator(new Uri.file(_initializeFromDill));
