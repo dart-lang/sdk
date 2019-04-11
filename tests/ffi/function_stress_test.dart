@@ -139,5 +139,5 @@ final allocateThroughDart = ffiTestFunctions
 // Test GC in the FFI call path by calling a C function which allocates by
 // calling back into Dart ('testAllocationsInDartHelper').
 void testAllocationsInDart(int batchSize) {
-  allocateThroughDart(batchSize);
+  allocateThroughDart(batchSize * 10);
 }
