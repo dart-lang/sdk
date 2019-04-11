@@ -3933,13 +3933,26 @@ class Wrong<T> {
   }
 
   void test_invalidInterpolation_missingClosingBrace_issue35900() {
-    parseCompilationUnit(r"main () { print('${x' '); }", errors: [
-      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
-      expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 26, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 3),
-      expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 23, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 27, 0),
-    ]);
+    parseCompilationUnit(r"main () { print('${x' '); }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(
+                    ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 3),
+                expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 27, 0),
+              ]
+            : [
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(
+                    ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 3),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 23, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 23, 1),
+              ]);
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
@@ -5362,6 +5375,20 @@ main() {
   void test_typedefInClass_withReturnType() {
     parseCompilationUnit("class C { typedef int F(int x); }",
         errors: [expectedError(ParserErrorCode.TYPEDEF_IN_CLASS, 10, 7)]);
+  }
+
+  void test_unexpectedCommaThenInterpolation() {
+    // https://github.com/Dart-Code/Dart-Code/issues/1548
+    parseCompilationUnit(r"main() { String s = 'a' 'b', 'c$foo'; return s; }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 2),
+              ]
+            : [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 1),
+              ]);
   }
 
   void test_unexpectedTerminatorForParameterGroup_named() {
