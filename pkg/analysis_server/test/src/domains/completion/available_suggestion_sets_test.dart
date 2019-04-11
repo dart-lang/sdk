@@ -93,7 +93,8 @@ class A {
       "startColumn": 5
     },
     "flags": 0,
-    "parameters": "()"
+    "parameters": "()",
+    "returnType": "A"
   },
   "parameterNames": [],
   "parameterTypes": [],
