@@ -196,21 +196,9 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_notSimplyBounded_complex_by_cycle() async {
-    await super.test_class_notSimplyBounded_complex_by_cycle();
-  }
-
-  @override
-  @failingTest
   test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type() async {
     await super
         .test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type();
-  }
-
-  @override
-  @failingTest
-  test_class_notSimplyBounded_refers_to_circular_typedef() async {
-    await super.test_class_notSimplyBounded_refers_to_circular_typedef();
   }
 
   @override
@@ -444,38 +432,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
-    await super.test_instantiateToBounds_boundRefersToEarlierTypeArgument();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_boundRefersToItself() async {
-    await super.test_instantiateToBounds_boundRefersToItself();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
-    await super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
-  }
-
-  @override
-  @failingTest
   test_instantiateToBounds_functionTypeAlias_reexported() async {
     await super.test_instantiateToBounds_functionTypeAlias_reexported();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_functionTypeAlias_simple() async {
-    await super.test_instantiateToBounds_functionTypeAlias_simple();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_simple() async {
-    await super.test_instantiateToBounds_simple();
   }
 
   @override
@@ -578,37 +536,9 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() async {
-    await super
-        .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included();
-  }
-
-  @override
-  @failingTest
   test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() async {
     await super
         .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted();
-  }
-
-  @override
-  @failingTest
-  test_typedef_notSimplyBounded_dependency_via_param_type_old_style() async {
-    await super
-        .test_typedef_notSimplyBounded_dependency_via_param_type_old_style();
-  }
-
-  @override
-  @failingTest
-  test_typedef_notSimplyBounded_dependency_via_return_type_new_style() async {
-    await super
-        .test_typedef_notSimplyBounded_dependency_via_return_type_new_style();
-  }
-
-  @override
-  @failingTest
-  test_typedef_notSimplyBounded_dependency_via_return_type_old_style() async {
-    await super
-        .test_typedef_notSimplyBounded_dependency_via_return_type_old_style();
   }
 
   @override

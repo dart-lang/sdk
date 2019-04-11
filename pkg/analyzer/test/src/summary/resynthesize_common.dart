@@ -1247,11 +1247,19 @@ class Z {
 class C<T extends F> {}
 typedef F(C value);
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function(C<(C<dynamic>) → dynamic> value);
+notSimplyBounded class C<T extends (C<dynamic>) → dynamic> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(C<dynamic> value);
 notSimplyBounded class C<T extends (C<dynamic>) → dynamic> {
 }
 ''');
+    }
   }
 
   test_class_notSimplyBounded_circularity_with_type_params() async {
@@ -1359,12 +1367,21 @@ class C<T extends F> {}
 typedef F(G value);
 typedef G(F value);
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function(((dynamic) → dynamic) → dynamic value);
+notSimplyBounded typedef G = dynamic Function(((dynamic) → dynamic) → dynamic value);
+notSimplyBounded class C<T extends ((dynamic) → dynamic) → dynamic> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(((...) → dynamic) → dynamic value);
 notSimplyBounded typedef G = dynamic Function(((...) → dynamic) → dynamic value);
 notSimplyBounded class C<T extends ((...) → dynamic) → dynamic> {
 }
 ''');
+    }
   }
 
   test_class_notSimplyBounded_self() async {
@@ -9244,11 +9261,19 @@ class A {
 typedef F = void Function(C c);
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<dynamic> c);
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() async {
@@ -9258,11 +9283,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef F = void Function(C);
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<dynamic> );
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> );
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_param_type_old_style() async {
@@ -9272,11 +9305,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef void F(C c);
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<dynamic> c);
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_return_type_new_style() async {
@@ -9286,11 +9327,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef F = C Function();
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = C<dynamic> Function();
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_return_type_old_style() async {
@@ -9300,11 +9349,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef C F();
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = C<dynamic> Function();
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_parameter_parameters() async {

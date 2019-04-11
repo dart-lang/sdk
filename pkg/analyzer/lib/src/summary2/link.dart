@@ -245,7 +245,7 @@ class Linker {
       library.resolveTypes(nodesToBuildType);
     }
     computeSimplyBounded(bundleContext, builders.values);
-    TypeBuilder(linkingBundleContext).build(nodesToBuildType);
+    TypeBuilder(typeSystem).build(nodesToBuildType);
   }
 }
 
