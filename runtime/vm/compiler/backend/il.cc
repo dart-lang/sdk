@@ -2543,8 +2543,7 @@ Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !flow_graph->is_licm_allowed()) {
     return NULL;
   }
-  if ((constrained_type() != NULL) &&
-      Type()->IsEqualTo(value()->definition()->Type())) {
+  if ((constrained_type() != nullptr) && Type()->IsEqualTo(value()->Type())) {
     return value()->definition();
   }
   return this;
