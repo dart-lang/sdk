@@ -86,7 +86,7 @@ class TypeBuilder {
 
     var formalParameters = parameterList.parameters.map((parameter) {
       return ParameterElementImpl.synthetic(
-        parameter.identifier.name,
+        parameter.identifier?.name ?? '',
         LazyAst.getType(parameter),
         // ignore: deprecated_member_use_from_same_package
         parameter.kind,

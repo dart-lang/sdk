@@ -8349,17 +8349,25 @@ class ParameterElementImpl extends VariableElementImpl
           );
         }
       } else {
-        var name = node.identifier.name;
-        var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          ParameterElementImpl.forLinkedNodeFactory(
+        if (node.identifier == null) {
+          return ParameterElementImpl.forLinkedNodeFactory(
             enclosing,
-            reference,
+            containerRef.getChild(''),
             node,
           );
+        } else {
+          var name = node.identifier.name;
+          var reference = containerRef.getChild(name);
+          if (reference.element == null) {
+            reference.node2 = node;
+            ParameterElementImpl.forLinkedNodeFactory(
+              enclosing,
+              reference,
+              node,
+            );
+          }
+          return reference.element as ParameterElement;
         }
-        return reference.element as ParameterElement;
       }
     }).toList();
   }

@@ -196,13 +196,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type() async {
-    await super
-        .test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type();
-  }
-
-  @override
-  @failingTest
   test_class_type_parameters_bound() async {
     await super.test_class_type_parameters_bound();
   }
@@ -526,19 +519,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_inference_depends_on_exported_variable() async {
     await super.test_type_inference_depends_on_exported_variable();
-  }
-
-  @override
-  @failingTest
-  test_typedef_generic() async {
-    await super.test_typedef_generic();
-  }
-
-  @override
-  @failingTest
-  test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() async {
-    await super
-        .test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted();
   }
 
   @override
