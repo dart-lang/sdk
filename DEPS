@@ -108,6 +108,7 @@ vars = {
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
+  "pedantic_tag": "v1.5.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "0c77167b16d00b561a6055bfe26690af7f26ae88",
@@ -125,13 +126,13 @@ vars = {
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
   "source_span_tag": "1.5.5",
   "stack_trace_tag": "1.9.3",
-  "stream_channel_tag": "1.6.8",
+  "stream_channel_tag": "2.0.0",
   "string_scanner_tag": "1.0.3",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "1.3.4",
+  "test_tag": "test-v1.6.1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -301,6 +302,8 @@ deps = {
       + "@" + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_tag"),
+  Var("dart_root") + "/third_party/pkg/pedantic":
+      Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
