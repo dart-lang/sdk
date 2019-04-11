@@ -10,11 +10,7 @@ environment:
 dependencies:
   args: '>=0.13.4 <2.0.0'
 dev_dependencies:
-  expect:
-    path: ../expect
-  front_end:
-    path: ../front_end
-  test:
-    path: ../../third_party/pkg/test
-  testing:
-    path: ../testing
+  expect: any
+  front_end: any
+  test: any
+  testing: any
