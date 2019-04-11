@@ -41,6 +41,8 @@ class Flags {
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';
 
+  static const String experimentNewRti = '--experiment-new-rti';
+
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';
