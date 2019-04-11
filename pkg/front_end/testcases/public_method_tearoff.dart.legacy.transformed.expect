@@ -1,6 +1,6 @@
 library;
 import self as self;
-import "./public_method_tearoff_lib.dart" as pub;
+import "public_method_tearoff_lib.dart" as pub;
 
 import "org-dartlang-testcase:///public_method_tearoff_lib.dart";
 

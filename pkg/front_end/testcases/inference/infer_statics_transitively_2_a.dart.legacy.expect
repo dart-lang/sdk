@@ -1,8 +1,8 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "./infer_statics_transitively_b.dart" as inf;
-import "./infer_statics_transitively.dart" as test;
+import "infer_statics_transitively_b.dart" as inf;
+import "infer_statics_transitively.dart" as test;
 
 import "org-dartlang-testcase:///infer_statics_transitively.dart";
 import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
@@ -21,7 +21,7 @@ static method main() → dynamic {
 library test;
 import self as test;
 import "dart:core" as core;
-import "./infer_statics_transitively_a.dart" as inf2;
+import "infer_statics_transitively_a.dart" as inf2;
 
 import "org-dartlang-testcase:///infer_statics_transitively_a.dart";
 
@@ -44,8 +44,8 @@ static method main() → dynamic {
 library;
 import self as inf2;
 import "dart:core" as core;
-import "./infer_statics_transitively_b.dart" as inf;
-import "./infer_statics_transitively.dart" as test;
+import "infer_statics_transitively_b.dart" as inf;
+import "infer_statics_transitively.dart" as test;
 
 import "org-dartlang-testcase:///infer_statics_transitively.dart";
 import "org-dartlang-testcase:///infer_statics_transitively_b.dart";

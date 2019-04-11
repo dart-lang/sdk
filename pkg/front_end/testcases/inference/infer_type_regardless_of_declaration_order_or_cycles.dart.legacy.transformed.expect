@@ -1,6 +1,6 @@
 library test;
 import self as self;
-import "./infer_type_regardless_of_declaration_order_or_cycles_b.dart" as inf;
+import "infer_type_regardless_of_declaration_order_or_cycles_b.dart" as inf;
 import "dart:core" as core;
 
 import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles_b.dart";
@@ -29,7 +29,7 @@ static method main() → dynamic {
 
 library;
 import self as inf;
-import "./infer_type_regardless_of_declaration_order_or_cycles.dart" as self;
+import "infer_type_regardless_of_declaration_order_or_cycles.dart" as self;
 
 import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles.dart";
 

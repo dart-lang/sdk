@@ -1,6 +1,6 @@
 library test;
 import self as self;
-import "./infer_from_variables_in_non_cycle_imports_with_flag_a.dart" as inf;
+import "infer_from_variables_in_non_cycle_imports_with_flag_a.dart" as inf;
 
 import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_flag_a.dart";
 

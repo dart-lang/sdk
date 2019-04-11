@@ -23,7 +23,7 @@ library test.qualified.main;
 //
 import self as self;
 import "dart:core" as core;
-import "./qualified_lib.dart" as lib;
+import "qualified_lib.dart" as lib;
 
 import "org-dartlang-testcase:///qualified_lib.dart" as lib;
 
@@ -76,7 +76,7 @@ static method main() → dynamic {
 library test.qualified.lib;
 import self as lib;
 import "dart:core" as core;
-import "./qualified.dart" as self;
+import "qualified.dart" as self;
 
 import "org-dartlang-testcase:///qualified.dart" as main;
 
