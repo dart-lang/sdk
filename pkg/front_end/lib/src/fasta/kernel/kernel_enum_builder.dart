@@ -105,6 +105,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name,
       List<EnumConstantInfo> enumConstantInfos,
       KernelLibraryBuilder parent,
+      int startCharOffset,
       int charOffset,
       int charEndOffset) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
@@ -226,8 +227,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         members[name] = fieldBuilder..next = existing;
       }
     }
-    final int startCharOffset =
-        metadata == null ? charOffset : metadata.first.charOffset;
+    final int startCharOffsetComputed =
+        metadata == null ? startCharOffset : metadata.first.charOffset;
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
         metadata,
         name,
@@ -241,7 +242,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         objectType,
         stringType,
         parent,
-        startCharOffset,
+        startCharOffsetComputed,
         charOffset,
         charEndOffset);
     void setParent(String name, MemberBuilder builder) {

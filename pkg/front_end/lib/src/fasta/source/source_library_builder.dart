@@ -453,6 +453,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
+      int startCharOffset,
       int charOffset,
       int charEndOffset);
 

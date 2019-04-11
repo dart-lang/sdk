@@ -1168,13 +1168,14 @@ class OutlineBuilder extends StackListener {
     String documentationComment = getDocumentationComment(enumKeyword);
     List<EnumConstantInfo> enumConstantInfos =
         const FixedNullableList<EnumConstantInfo>().pop(stack, count);
-    int charOffset = pop();
+    int charOffset = pop(); // identifier char offset.
+    int startCharOffset = enumKeyword.charOffset;
     Object name = pop();
     List<MetadataBuilder<KernelTypeBuilder>> metadata = pop();
     checkEmpty(enumKeyword.charOffset);
     if (name is ParserRecovery) return;
     library.addEnum(documentationComment, metadata, name, enumConstantInfos,
-        charOffset, leftBrace?.endGroup?.charOffset);
+        startCharOffset, charOffset, leftBrace?.endGroup?.charOffset);
   }
 
   @override

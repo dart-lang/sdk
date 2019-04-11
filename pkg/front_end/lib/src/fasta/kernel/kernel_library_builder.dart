@@ -819,11 +819,19 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
+      int startCharOffset,
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelEnumBuilder builder = new KernelEnumBuilder(metadataCollector,
-        metadata, name, enumConstantInfos, this, charOffset, charEndOffset);
+    KernelEnumBuilder builder = new KernelEnumBuilder(
+        metadataCollector,
+        metadata,
+        name,
+        enumConstantInfos,
+        this,
+        startCharOffset,
+        charOffset,
+        charEndOffset);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.target, documentationComment);
