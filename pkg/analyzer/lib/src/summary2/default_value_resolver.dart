@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -10,45 +11,35 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
-import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/linking_node_scope.dart';
 
 class DefaultValueResolver {
-  Linker _linker;
-  LibraryElementImpl _libraryElement;
-  LinkedUnitContext _linkedContext;
+  final Linker _linker;
+  final LibraryElementImpl _libraryElement;
 
-  ClassElement _enclosingClassElement;
-  ExecutableElement _enclosingExecutableElement;
-
-  Scope _libraryScope;
-  Scope _classScope;
+  ClassElement _classElement;
+  ExecutableElement _executableElement;
+  Scope _scope;
 
   AstResolver _astResolver;
 
-  DefaultValueResolver(this._linker, Reference libraryRef) {
-    _libraryElement = _linker.elementFactory.elementOfReference(libraryRef);
-    _libraryScope = LibraryScope(_libraryElement);
-  }
+  DefaultValueResolver(this._linker, this._libraryElement);
 
   void resolve() {
     for (CompilationUnitElementImpl unit in _libraryElement.units) {
-      _linkedContext = unit.linkedContext;
-
       for (var classElement in unit.types) {
-        _enclosingClassElement = classElement;
-        _classScope = TypeParameterScope(_libraryScope, classElement);
+        _classElement = classElement;
 
         for (var element in classElement.constructors) {
           _constructor(element);
         }
 
         for (var element in classElement.methods) {
+          _setScopeFromElement(element);
           _method(element);
         }
 
-        _enclosingClassElement = null;
-        _classScope = null;
+        _classElement = null;
       }
 
       for (var element in unit.functions) {
@@ -61,60 +52,56 @@ class DefaultValueResolver {
     if (element.isSynthetic) return;
 
     _astResolver = null;
-    _enclosingExecutableElement = element;
+    _executableElement = element;
+    _setScopeFromElement(element);
 
     _parameters(element.parameters);
   }
 
   void _function(FunctionElementImpl element) {
     _astResolver = null;
-    _enclosingExecutableElement = element;
+    _executableElement = element;
+    _setScopeFromElement(element);
 
     _parameters(element.parameters);
   }
 
   void _method(MethodElementImpl element) {
     _astResolver = null;
-    _enclosingExecutableElement = element;
+    _executableElement = element;
+    _setScopeFromElement(element);
 
     _parameters(element.parameters);
   }
 
   void _parameter(ParameterElementImpl parameter) {
-    if (parameter.isNotOptional) return;
+    Expression defaultValue;
+    var node = parameter.linkedNode;
+    if (node is DefaultFormalParameter) {
+      defaultValue = node.defaultValue;
+    }
+    if (defaultValue == null) return;
 
-//    LinkedNodeBuilder node = parameter.linkedNode;
-//    var unresolvedNode = node.defaultFormalParameter_defaultValue;
-//    if (unresolvedNode == null) return;
-//
-//    var reader = AstBinaryReader(_linkedContext);
-//    var unresolvedAst = reader.readNode(unresolvedNode);
-//
-//    if (_astResolver == null) {
-//      var scope = FunctionScope(
-//        _classScope ?? _libraryScope,
-//        _enclosingExecutableElement,
-//      );
-//      _astResolver = AstResolver(_linker, _libraryElement, scope);
-//    }
-//
-//    var contextType = TypeVariableEliminator(_linker.typeProvider)
-//        .substituteType(parameter.type);
-//    InferenceContext.setType(unresolvedAst, contextType);
-//
-//    var resolvedNode = _astResolver.resolve(
-//      _linkedContext,
-//      unresolvedAst,
-//      enclosingClassElement: _enclosingClassElement,
-//      enclosingExecutableElement: _enclosingExecutableElement,
-//    );
-//    node.defaultFormalParameter_defaultValue = resolvedNode;
+    var contextType = TypeVariableEliminator(_linker.typeProvider)
+        .substituteType(parameter.type);
+    InferenceContext.setType(defaultValue, contextType);
+
+    _astResolver ??= AstResolver(_linker, _libraryElement, _scope);
+    _astResolver.resolve(
+      defaultValue,
+      enclosingClassElement: _classElement,
+      enclosingExecutableElement: _executableElement,
+    );
   }
 
   void _parameters(List<ParameterElement> parameters) {
     for (var parameter in parameters) {
       _parameter(parameter);
     }
+  }
+
+  void _setScopeFromElement(Element element) {
+    _scope = LinkingNodeContext.get((element as ElementImpl).linkedNode).scope;
   }
 }
 

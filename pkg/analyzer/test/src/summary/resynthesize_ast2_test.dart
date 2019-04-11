@@ -246,13 +246,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
-    await super
-        .test_const_parameterDefaultValue_initializingFormal_functionTyped();
-  }
-
-  @override
-  @failingTest
   test_const_reference_topLevelVariable_imported() async {
     await super.test_const_reference_topLevelVariable_imported();
   }
@@ -309,54 +302,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_constructor_redirected_factory_unnamed_prefixed_generic() async {
     await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_genericFunction() async {
-    await super.test_defaultValue_genericFunction();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_refersToGenericClass() async {
-    await super.test_defaultValue_refersToGenericClass();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_refersToGenericClass_constructor() async {
-    await super.test_defaultValue_refersToGenericClass_constructor();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_refersToGenericClass_constructor2() async {
-    await super.test_defaultValue_refersToGenericClass_constructor2();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_refersToGenericClass_functionG() async {
-    await super.test_defaultValue_refersToGenericClass_functionG();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodG() async {
-    await super.test_defaultValue_refersToGenericClass_methodG();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodG_classG() async {
-    await super.test_defaultValue_refersToGenericClass_methodG_classG();
-  }
-
-  @override
-  @failingTest
-  test_defaultValue_refersToGenericClass_methodNG() async {
-    await super.test_defaultValue_refersToGenericClass_methodNG();
   }
 
   @override
@@ -609,18 +554,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_instantiateToBounds_simple() async {
     await super.test_instantiateToBounds_simple();
-  }
-
-  @override
-  @failingTest
-  test_invalid_nameConflict_imported_exported() async {
-    await super.test_invalid_nameConflict_imported_exported();
-  }
-
-  @override
-  @failingTest
-  test_invalid_nameConflict_local() async {
-    await super.test_invalid_nameConflict_local();
   }
 
   @override

@@ -284,7 +284,7 @@ class SourceLibraryBuilder {
   }
 
   void resolveDefaultValues() {
-    DefaultValueResolver(linker, reference).resolve();
+    DefaultValueResolver(linker, element).resolve();
   }
 
   void resolveMetadata() {
