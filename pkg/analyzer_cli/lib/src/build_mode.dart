@@ -312,18 +312,21 @@ class BuildMode with HasContextMixin {
         }
       }
 
+      ErrorSeverity severity;
+      if (options.buildSummaryOnly) {
+        severity = ErrorSeverity.NONE;
+      } else {
+        // Process errors.
+        await _printErrors(outputPath: options.buildAnalysisOutput);
+        severity = await _computeMaxSeverity();
+      }
+
       if (dependencyTracker != null) {
         io.File file = new io.File(dependencyTracker.outputPath);
         file.writeAsStringSync(dependencyTracker.dependencies.join('\n'));
       }
 
-      if (options.buildSummaryOnly) {
-        return ErrorSeverity.NONE;
-      } else {
-        // Process errors.
-        await _printErrors(outputPath: options.buildAnalysisOutput);
-        return await _computeMaxSeverity();
-      }
+      return severity;
     });
   }
 
@@ -446,7 +449,9 @@ class BuildMode with HasContextMixin {
 
     var sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
-      new InSummaryUriResolver(resourceProvider, summaryDataStore),
+      new TrackingInSummaryUriResolver(
+          new InSummaryUriResolver(resourceProvider, summaryDataStore),
+          dependencyTracker),
       new ExplicitSourceResolver(uriToFileMap)
     ]);
 
@@ -737,5 +742,28 @@ class WorkerPackageBundleProvider implements PackageBundleProvider {
   @override
   PackageBundle get(String path) {
     return cache.get(inputs, path);
+  }
+}
+
+/**
+ * Wrapper for [InSummaryUriResolver] that tracks accesses to summaries.
+ */
+class TrackingInSummaryUriResolver extends UriResolver {
+  // May be null.
+  final DependencyTracker dependencyTracker;
+  final InSummaryUriResolver inSummaryUriResolver;
+
+  TrackingInSummaryUriResolver(
+      this.inSummaryUriResolver, this.dependencyTracker);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    var source = inSummaryUriResolver.resolveAbsolute(uri, actualUri);
+    if (dependencyTracker != null &&
+        source != null &&
+        source is InSummarySource) {
+      dependencyTracker.record(source.summaryPath);
+    }
+    return source;
   }
 }
