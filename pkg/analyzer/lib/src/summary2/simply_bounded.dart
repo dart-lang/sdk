@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart' show LinkedNode;
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
-import 'package:analyzer/src/summary2/linked_unit_context.dart';
-import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// Compute simple-boundedness for all classes and generic types aliases in
 /// the source [libraryBuilders].  There might be dependencies between them,
@@ -23,14 +21,17 @@ void computeSimplyBounded(
   var walker = SimplyBoundedDependencyWalker(bundleContext);
   var nodes = <SimplyBoundedNode>[];
   for (var libraryBuilder in libraryBuilders) {
-    var unitsRef = libraryBuilder.reference.getChild('@unit');
-    for (var unitRef in unitsRef.children) {
-      for (var classRef in unitRef.getChild('@class').children) {
-        var node = walker.getNode(classRef);
+    for (var unit in libraryBuilder.element.units) {
+      for (var element in unit.functionTypeAliases) {
+        var node = walker.getNode(element);
         nodes.add(node);
       }
-      for (var ref in unitRef.getChild('@typeAlias').children) {
-        var node = walker.getNode(ref);
+      for (var element in unit.mixins) {
+        var node = walker.getNode(element);
+        nodes.add(node);
+      }
+      for (var element in unit.types) {
+        var node = walker.getNode(element);
         nodes.add(node);
       }
     }
@@ -40,8 +41,7 @@ void computeSimplyBounded(
     if (!node.isEvaluated) {
       walker.walk(node);
     }
-    LinkedNodeBuilder builder = node._reference.node;
-    builder.simplyBoundable_isSimplyBounded = node.isSimplyBounded;
+    LazyAst.setSimplyBounded(node._node, node.isSimplyBounded);
   }
 }
 
@@ -49,7 +49,7 @@ void computeSimplyBounded(
 class SimplyBoundedDependencyWalker
     extends graph.DependencyWalker<SimplyBoundedNode> {
   final LinkedBundleContext bundleContext;
-  final Map<Reference, SimplyBoundedNode> nodeMap = {};
+  final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
 
   SimplyBoundedDependencyWalker(this.bundleContext);
 
@@ -65,31 +65,56 @@ class SimplyBoundedDependencyWalker
     }
   }
 
-  SimplyBoundedNode getNode(Reference reference) {
-    var node = nodeMap[reference];
-    if (node == null) {
-      if (reference.isClass) {
-        var parameters = LinkedUnitContext.getTypeParameters(reference.node);
-        node = SimplyBoundedNode(
+  SimplyBoundedNode getNode(Element element) {
+    var graphNode = nodeMap[element];
+    if (graphNode == null) {
+      var node = (element as ElementImpl).linkedNode;
+      if (node is ClassDeclaration) {
+        var parameters = node.typeParameters?.typeParameters;
+        graphNode = SimplyBoundedNode(
           this,
-          reference,
-          parameters ?? const <LinkedNode>[],
-          const <LinkedNode>[],
+          node,
+          parameters ?? const <TypeParameter>[],
+          const <TypeAnnotation>[],
         );
-      } else if (reference.isTypeAlias) {
-        var parameters = LinkedUnitContext.getTypeParameters(reference.node);
-        node = SimplyBoundedNode(
+      } else if (node is ClassTypeAlias) {
+        var parameters = node.typeParameters?.typeParameters;
+        graphNode = SimplyBoundedNode(
           this,
-          reference,
-          parameters ?? const <LinkedNode>[],
-          _collectTypedefRhsTypes(reference.node),
+          node,
+          parameters ?? const <TypeParameter>[],
+          const <TypeAnnotation>[],
+        );
+      } else if (node is FunctionTypeAlias) {
+        var parameters = node.typeParameters?.typeParameters;
+        graphNode = SimplyBoundedNode(
+          this,
+          node,
+          parameters ?? const <TypeParameter>[],
+          _collectTypedefRhsTypes(node),
+        );
+      } else if (node is GenericTypeAlias) {
+        var parameters = node.typeParameters?.typeParameters;
+        graphNode = SimplyBoundedNode(
+          this,
+          node,
+          parameters ?? const <TypeParameter>[],
+          _collectTypedefRhsTypes(node),
+        );
+      } else if (node is MixinDeclaration) {
+        var parameters = node.typeParameters?.typeParameters;
+        graphNode = SimplyBoundedNode(
+          this,
+          node,
+          parameters ?? const <TypeParameter>[],
+          const <TypeAnnotation>[],
         );
       } else {
-        throw UnimplementedError('$reference');
+        throw UnimplementedError('(${node.runtimeType}) $node');
       }
-      nodeMap[reference] = node;
+      nodeMap[element] = graphNode;
     }
-    return node;
+    return graphNode;
   }
 
   /// Collects all the type references appearing on the "right hand side" of a
@@ -100,33 +125,19 @@ class SimplyBoundedDependencyWalker
   /// declaration, the type that *would* appear after the "=" if it were
   /// converted to a new style typedef declaration.  This means that type
   /// parameter declarations and their bounds are not included.
-  static List<LinkedNode> _collectTypedefRhsTypes(LinkedNode node) {
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.functionTypeAlias) {
-      var types = <LinkedNode>[];
-      _TypeCollector.addType(
-        types,
-        node.functionTypeAlias_returnType,
-      );
-      _TypeCollector.visitParameters(
-        types,
-        node.functionTypeAlias_formalParameters,
-      );
-      return types;
-    } else if (kind == LinkedNodeKind.genericTypeAlias) {
-      var types = <LinkedNode>[];
-      var function = node.genericTypeAlias_functionType;
-      _TypeCollector.addType(
-        types,
-        function.genericFunctionType_returnType,
-      );
-      _TypeCollector.visitParameters(
-        types,
-        function.genericFunctionType_formalParameters,
-      );
-      return types;
+  static List<TypeAnnotation> _collectTypedefRhsTypes(AstNode node) {
+    if (node is FunctionTypeAlias) {
+      var collector = _TypeCollector();
+      collector.addType(node.returnType);
+      collector.visitParameters(node.parameters);
+      return collector.types;
+    } else if (node is GenericTypeAlias) {
+      var collector = _TypeCollector();
+      collector.addType(node.functionType.returnType);
+      collector.visitParameters(node.functionType.parameters);
+      return collector.types;
     } else {
-      throw StateError('$kind');
+      throw StateError('(${node.runtimeType}) $node');
     }
   }
 }
@@ -135,14 +146,14 @@ class SimplyBoundedDependencyWalker
 /// whether types are simply bounded.
 class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   final SimplyBoundedDependencyWalker _walker;
-  final Reference _reference;
+  final AstNode _node;
 
   /// The type parameters of the type whose simple-boundedness we check.
-  final List<LinkedNode> _typeParameters;
+  final List<TypeParameter> _typeParameters;
 
   /// If the type whose simple-boundedness we check is a typedef, the types
   /// appearing in its "right hand side".
-  final List<LinkedNode> _rhsTypes;
+  final List<TypeAnnotation> _rhsTypes;
 
   @override
   bool isEvaluated = false;
@@ -159,7 +170,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
 
   SimplyBoundedNode(
     this._walker,
-    this._reference,
+    this._node,
     this._typeParameters,
     this._rhsTypes,
   );
@@ -168,7 +179,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   List<SimplyBoundedNode> computeDependencies() {
     var dependencies = <SimplyBoundedNode>[];
     for (var typeParameter in _typeParameters) {
-      var bound = typeParameter.typeParameter_bound;
+      var bound = typeParameter.bound;
       if (bound != null) {
         if (!_visitType(dependencies, bound, false)) {
           // Note: we might consider setting isEvaluated=true here to prevent an
@@ -223,35 +234,32 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   /// If `false` is returned, further visiting is short-circuited.
   ///
   /// Otherwise `true` is returned.
-  bool _visitType(List<SimplyBoundedNode> dependencies, LinkedNode type,
+  bool _visitType(List<SimplyBoundedNode> dependencies, TypeAnnotation type,
       bool allowTypeParameters) {
     if (type == null) return true;
 
-    if (type.kind == LinkedNodeKind.typeName) {
-      var element = TypeBuilder.typeNameElementIndex(type.typeName_name);
-      var reference = _walker.bundleContext.referenceOfIndex(element);
+    if (type is TypeName) {
+      var element = type.name.staticElement;
 
-//      if (reference.isTypeParameter) {
-//        return allowTypeParameters;
-//      }
+      if (element is TypeParameterElement) {
+        return allowTypeParameters;
+      }
 
-      var arguments = type.typeName_typeArguments;
+      var arguments = type.typeArguments;
       if (arguments == null) {
-        var graphNode = _walker.nodeMap[reference];
+        var graphNode = _walker.nodeMap[element];
 
         // If not a node being linked, then the flag is already set.
         if (graphNode == null) {
-          if (reference.isClass || reference.isTypeAlias) {
-            var elementFactory = _walker.bundleContext.elementFactory;
-            var node = elementFactory.nodeOfReference(reference);
-            return node.simplyBoundable_isSimplyBounded;
+          if (element is TypeParameterizedElement) {
+            return element.isSimplyBounded;
           }
           return true;
         }
 
         dependencies.add(graphNode);
       } else {
-        for (var argument in arguments.typeArgumentList_arguments) {
+        for (var argument in arguments.arguments) {
           if (!_visitType(dependencies, argument, allowTypeParameters)) {
             return false;
           }
@@ -260,14 +268,11 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
       return true;
     }
 
-    if (type.kind == LinkedNodeKind.genericFunctionType) {
-      var types = <LinkedNode>[];
-      _TypeCollector.addType(types, type.genericFunctionType_returnType);
-      _TypeCollector.visitParameters(
-        types,
-        type.genericFunctionType_formalParameters,
-      );
-      for (var type in types) {
+    if (type is GenericFunctionType) {
+      var collector = _TypeCollector();
+      collector.addType(type.returnType);
+      collector.visitParameters(type.parameters);
+      for (var type in collector.types) {
         if (!_visitType(dependencies, type, allowTypeParameters)) {
           return false;
         }
@@ -275,39 +280,36 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
       return true;
     }
 
-    throw UnimplementedError('${type.kind}');
+    throw UnimplementedError('(${type.runtimeType}) $type');
   }
 }
 
-/// Helper for collecting type annotations in formal parameters.
+/// Helper for collecting type annotations.
 class _TypeCollector {
-  static void addType(List<LinkedNode> types, LinkedNode type) {
+  final List<TypeAnnotation> types = [];
+
+  void addType(TypeAnnotation type) {
     if (type != null) {
       types.add(type);
     }
   }
 
-  static void visitParameter(List<LinkedNode> types, LinkedNode parameter) {
-    var kind = parameter.kind;
-    if (kind == LinkedNodeKind.defaultFormalParameter) {
-      visitParameter(types, parameter.defaultFormalParameter_parameter);
-    } else if (kind == LinkedNodeKind.functionTypedFormalParameter) {
-      addType(types, parameter.functionTypedFormalParameter_returnType);
-      visitParameters(
-        types,
-        parameter.functionTypedFormalParameter_formalParameters,
-      );
-    } else if (kind == LinkedNodeKind.simpleFormalParameter) {
-      addType(types, parameter.simpleFormalParameter_type);
+  void visitParameter(FormalParameter node) {
+    if (node is DefaultFormalParameter) {
+      visitParameter(node.parameter);
+    } else if (node is FunctionTypedFormalParameter) {
+      addType(node.returnType);
+      visitParameters(node.parameters);
+    } else if (node is SimpleFormalParameter) {
+      addType(node.type);
     } else {
-      throw UnimplementedError('$kind');
+      throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
-  static void visitParameters(List<LinkedNode> types, LinkedNode parameters) {
-    assert(parameters.kind == LinkedNodeKind.formalParameterList);
-    for (var parameter in parameters.formalParameterList_parameters) {
-      visitParameter(types, parameter);
+  void visitParameters(FormalParameterList parameterList) {
+    for (var parameter in parameterList.parameters) {
+      visitParameter(parameter);
     }
   }
 }

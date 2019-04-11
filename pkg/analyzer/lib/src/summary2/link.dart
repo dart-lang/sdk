@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
@@ -243,7 +244,7 @@ class Linker {
     for (var library in builders.values) {
       library.resolveTypes(nodesToBuildType);
     }
-//    computeSimplyBounded(bundleContext, builders.values);
+    computeSimplyBounded(bundleContext, builders.values);
     TypeBuilder(linkingBundleContext).build(nodesToBuildType);
   }
 }

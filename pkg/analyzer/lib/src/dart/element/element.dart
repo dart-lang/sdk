@@ -830,9 +830,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isSimplyBounded {
-//    if (linkedNode != null) {
-//      return linkedNode.simplyBoundable_isSimplyBounded;
-//    }
+    if (linkedNode != null) {
+      return linkedContext.isSimplyBounded(linkedNode);
+    }
     return super.isSimplyBounded;
   }
 
@@ -5574,9 +5574,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   bool get isSimplyBounded {
-//    if (linkedNode != null) {
-//      return linkedNode.simplyBoundable_isSimplyBounded;
-//    }
+    if (linkedNode != null) {
+      return linkedContext.isSimplyBounded(linkedNode);
+    }
     return super.isSimplyBounded;
   }
 

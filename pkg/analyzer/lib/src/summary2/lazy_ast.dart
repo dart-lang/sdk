@@ -11,12 +11,17 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
+  static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeKey = 'lazyAst_type';
 
   final LinkedNode data;
 
   LazyAst(this.data);
+
+  static bool isSimplyBounded(AstNode node) {
+    return node.getProperty(_isSimplyBoundedKey);
+  }
 
   static DartType getReturnType(AstNode node) {
     return node.getProperty(_returnTypeKey);
@@ -28,6 +33,10 @@ class LazyAst {
 
   static void setReturnType(AstNode node, DartType type) {
     node.setProperty(_returnTypeKey, type);
+  }
+
+  static void setSimplyBounded(AstNode node, bool simplyBounded) {
+    node.setProperty(_isSimplyBoundedKey, simplyBounded);
   }
 
   static void setType(AstNode node, DartType type) {
@@ -137,6 +146,7 @@ class LazyClassDeclaration {
 
   static void setData(ClassDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyClassDeclaration(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -228,6 +238,7 @@ class LazyClassTypeAlias {
 
   static void setData(ClassTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyClassTypeAlias(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -783,6 +794,7 @@ class LazyFunctionTypeAlias {
 
   static void setData(FunctionTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionTypeAlias(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -875,6 +887,7 @@ class LazyGenericTypeAlias {
 
   static void setData(GenericTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyGenericTypeAlias(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -1041,6 +1054,7 @@ class LazyMixinDeclaration {
 
   static void setData(MixinDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyMixinDeclaration(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 

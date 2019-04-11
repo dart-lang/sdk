@@ -206,6 +206,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       classTypeAlias_withClause: node.withClause.accept(this),
     );
     _storeTypeAlias(builder, node);
+    _storeIsSimpleBounded(builder, node);
     return builder;
   }
 
@@ -595,6 +596,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _storeTypeAlias(builder, node);
     _writeActualReturnType(builder, node);
+    _storeIsSimpleBounded(builder, node);
     return builder;
   }
 
@@ -634,6 +636,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       genericTypeAlias_typeParameters: node.typeParameters?.accept(this),
     );
     _storeTypeAlias(builder, node);
+    _storeIsSimpleBounded(builder, node);
     return builder;
   }
 
@@ -1345,6 +1348,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..classOrMixinDeclaration_typeParameters =
           node.typeParameters?.accept(this);
     _storeNamedCompilationUnitMember(builder, node);
+    _storeIsSimpleBounded(builder, node);
   }
 
   void _storeCodeOffsetLength(LinkedNodeBuilder builder, AstNode node) {
@@ -1447,6 +1451,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..invocationExpression_arguments = node.argumentList.accept(this)
       ..invocationExpression_invokeType = _writeType(node.staticInvokeType)
       ..invocationExpression_typeArguments = node.typeArguments?.accept(this);
+  }
+
+  void _storeIsSimpleBounded(LinkedNodeBuilder builder, AstNode node) {
+    var flag = LazyAst.isSimplyBounded(node);
+    // TODO(scheglov) Check for `null` when writing resolved AST.
+    builder.simplyBoundable_isSimplyBounded = flag;
   }
 
   void _storeNamedCompilationUnitMember(

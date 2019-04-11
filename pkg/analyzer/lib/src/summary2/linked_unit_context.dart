@@ -658,6 +658,10 @@ class LinkedUnitContext {
     }
   }
 
+  bool isSimplyBounded(AstNode node) {
+    return LazyAst.isSimplyBounded(node);
+  }
+
   bool isStatic(AstNode node) {
     if (node is FunctionDeclaration) {
       return true;

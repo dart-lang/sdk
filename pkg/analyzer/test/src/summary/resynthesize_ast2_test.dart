@@ -196,38 +196,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_alias_notSimplyBounded_self() async {
-    await super.test_class_alias_notSimplyBounded_self();
-  }
-
-  @override
-  @failingTest
-  test_class_notSimplyBounded_circularity_via_typedef() async {
-    await super.test_class_notSimplyBounded_circularity_via_typedef();
-  }
-
-  @override
-  @failingTest
   test_class_notSimplyBounded_complex_by_cycle() async {
     await super.test_class_notSimplyBounded_complex_by_cycle();
-  }
-
-  @override
-  @failingTest
-  test_class_notSimplyBounded_complex_by_reference_to_cycle() async {
-    await super.test_class_notSimplyBounded_complex_by_reference_to_cycle();
-  }
-
-  @override
-  @failingTest
-  test_class_notSimplyBounded_complex_by_use_of_parameter() async {
-    await super.test_class_notSimplyBounded_complex_by_use_of_parameter();
-  }
-
-  @override
-  @failingTest
-  test_class_notSimplyBounded_dependency_with_type_params() async {
-    await super.test_class_notSimplyBounded_dependency_with_type_params();
   }
 
   @override
@@ -239,39 +209,14 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_notSimplyBounded_function_typed_bound_complex_via_return_type() async {
-    await super
-        .test_class_notSimplyBounded_function_typed_bound_complex_via_return_type();
-  }
-
-  @override
-  @failingTest
   test_class_notSimplyBounded_refers_to_circular_typedef() async {
     await super.test_class_notSimplyBounded_refers_to_circular_typedef();
   }
 
   @override
   @failingTest
-  test_class_notSimplyBounded_self() async {
-    await super.test_class_notSimplyBounded_self();
-  }
-
-  @override
-  @failingTest
   test_class_type_parameters_bound() async {
     await super.test_class_type_parameters_bound();
-  }
-
-  @override
-  @failingTest
-  test_class_type_parameters_f_bound_complex() async {
-    await super.test_class_type_parameters_f_bound_complex();
-  }
-
-  @override
-  @failingTest
-  test_class_type_parameters_f_bound_simple() async {
-    await super.test_class_type_parameters_f_bound_simple();
   }
 
   @override
@@ -724,18 +669,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_new_typedef_notSimplyBounded_self() async {
-    await super.test_new_typedef_notSimplyBounded_self();
-  }
-
-  @override
-  @failingTest
-  test_old_typedef_notSimplyBounded_self() async {
-    await super.test_old_typedef_notSimplyBounded_self();
-  }
-
-  @override
-  @failingTest
   test_parameter_covariant() async {
     await super.test_parameter_covariant();
   }
@@ -875,36 +808,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_typedef_type_parameters_bound() async {
     await super.test_typedef_type_parameters_bound();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters_bound_recursive() async {
-    await super.test_typedef_type_parameters_bound_recursive();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters_bound_recursive2() async {
-    await super.test_typedef_type_parameters_bound_recursive2();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters_f_bound_complex() async {
-    await super.test_typedef_type_parameters_f_bound_complex();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters_f_bound_simple() async {
-    await super.test_typedef_type_parameters_f_bound_simple();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters_f_bound_simple_new_syntax() async {
-    await super.test_typedef_type_parameters_f_bound_simple_new_syntax();
   }
 
   @override
