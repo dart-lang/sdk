@@ -932,8 +932,11 @@ void FlowGraphCompiler::CompileGraph() {
   VisitBlocks();
 
   __ int3();
-  ASSERT(assembler()->constant_pool_allowed());
-  GenerateDeferredCode();
+
+  if (!fully_intrinsified_) {
+    ASSERT(assembler()->constant_pool_allowed());
+    GenerateDeferredCode();
+  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,

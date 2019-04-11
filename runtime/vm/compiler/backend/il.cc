@@ -3766,14 +3766,11 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
     }
   }
-  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-  // entrypoints, so we generate several times the same intrinsification &
-  // frame setup.  That's why we cannot rely on the constant pool being
-  // `false` when we come in here.
+  // NOTE: Because in X64/ARM mode the graph can have multiple entrypoints, we
+  // generate several times the same intrinsification & frame setup. That's why
+  // we cannot rely on the constant pool being `false` when we come in here.
   __ set_constant_pool_allowed(false);
-  // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
-  // (meaning the function was fully intrinsified).
-  compiler->TryIntrinsify();
+  if (compiler->TryIntrinsify()) return;
   compiler->EmitPrologue();
   ASSERT(__ constant_pool_allowed());
 #endif

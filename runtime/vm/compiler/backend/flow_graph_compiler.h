@@ -817,6 +817,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
+  bool TryIntrinsifyHelper();
   void AddPcRelativeCallTarget(const Function& function,
                                Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
@@ -1030,6 +1031,7 @@ class FlowGraphCompiler : public ValueObject {
   // True while emitting intrinsic code.
   bool intrinsic_mode_;
   Label* intrinsic_slow_path_label_ = nullptr;
+  bool fully_intrinsified_ = false;
   CodeStatistics* stats_;
 
   const Class& double_class_;

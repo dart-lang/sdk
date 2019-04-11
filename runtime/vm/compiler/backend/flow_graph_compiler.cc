@@ -560,6 +560,14 @@ void FlowGraphCompiler::VisitBlocks() {
     StatsEnd(entry);
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
+
+    // The function was fully intrinsified, so there's no need to generate any
+    // more code.
+    if (fully_intrinsified_) {
+      ASSERT(entry == flow_graph().graph_entry()->normal_entry());
+      break;
+    }
+
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
@@ -1163,6 +1171,14 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
 
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
+  if (TryIntrinsifyHelper()) {
+    fully_intrinsified_ = true;
+    return true;
+  }
+  return false;
+}
+
+bool FlowGraphCompiler::TryIntrinsifyHelper() {
   Label exit;
   set_intrinsic_slow_path_label(&exit);
 
