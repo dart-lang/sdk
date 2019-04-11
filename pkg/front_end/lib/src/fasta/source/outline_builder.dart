@@ -944,8 +944,20 @@ class OutlineBuilder extends StackListener {
       library.endNestedDeclaration("<syntax-error>");
       return;
     }
-    library.addNamedMixinApplication(documentationComment, metadata, name,
-        typeVariables, modifiers, mixinApplication, interfaces, charOffset);
+
+    int startCharOffset = beginToken.charOffset;
+    int charEndOffset = endToken.charOffset;
+    library.addNamedMixinApplication(
+        documentationComment,
+        metadata,
+        name,
+        typeVariables,
+        modifiers,
+        mixinApplication,
+        interfaces,
+        startCharOffset,
+        charOffset,
+        charEndOffset);
   }
 
   @override

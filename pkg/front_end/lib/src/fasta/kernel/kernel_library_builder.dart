@@ -32,7 +32,6 @@ import 'package:kernel/ast.dart'
         StaticInvocation,
         StringLiteral,
         Supertype,
-        TreeNode,
         Typedef,
         TypeParameter,
         TypeParameterType,
@@ -303,7 +302,8 @@ class KernelLibraryBuilder
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, charOffset, className, isMixinDeclaration,
+        applyMixins(supertype, startCharOffset, charOffset, charEndOffset,
+            className, isMixinDeclaration,
             typeVariables: typeVariables),
         interfaces,
         classScope,
@@ -379,8 +379,13 @@ class KernelLibraryBuilder
     return typeVariablesByName;
   }
 
-  KernelTypeBuilder applyMixins(KernelTypeBuilder type, int charOffset,
-      String subclassName, bool isMixinDeclaration,
+  KernelTypeBuilder applyMixins(
+      KernelTypeBuilder type,
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset,
+      String subclassName,
+      bool isMixinDeclaration,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
@@ -553,9 +558,9 @@ class KernelLibraryBuilder
             }
           }
         }
-        final int startCharOffset =
+        final int computedStartCharOffset =
             (isNamedMixinApplication ? metadata : null) == null
-                ? charOffset
+                ? startCharOffset
                 : metadata.first.charOffset;
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
@@ -575,9 +580,9 @@ class KernelLibraryBuilder
                 isModifiable: false),
             this,
             <ConstructorReferenceBuilder>[],
-            startCharOffset,
+            computedStartCharOffset,
             charOffset,
-            TreeNode.noOffset,
+            charEndOffset,
             mixedInType: isMixinDeclaration ? null : mixin);
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
@@ -605,11 +610,13 @@ class KernelLibraryBuilder
       int modifiers,
       KernelTypeBuilder mixinApplication,
       List<KernelTypeBuilder> interfaces,
-      int charOffset) {
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
-    KernelNamedTypeBuilder supertype = applyMixins(
-        mixinApplication, charOffset, name, false,
+    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
+        startCharOffset, charOffset, charEndOffset, name, false,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,
