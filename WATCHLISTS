@@ -50,9 +50,6 @@
         ')$'
       )
     },
-    'mirrors' : {
-      'filepath': '.*mirrors.*',
-    },
     'observatory': {
       'filepath': (
         '^runtime/bin/vmservice/|'
@@ -79,8 +76,7 @@
     'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com',
                 'alexmarkov@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],
-    'mirrors' : [ 'rmacnak@google.com' ],
-    'observatory': [ 'bkonyi@google.com', 'rmacnak@google.com' ],
+    'observatory': [ 'bkonyi@google.com' ],
     'package_vm': [ 'alexmarkov@google.com' ],
     'runtime': [ 'vm-dev@dartlang.org' ],
     'vm_compiler': [ 'dart-vm-compiler-team+reviews@google.com' ],
