@@ -1839,6 +1839,30 @@
       ]
     },
     {
+      "builders": [
+        "flutter-frontend"
+      ],
+      "meta": {
+        "description": "This configuration is used for running frontend tests on flutter code."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+
+          "name": "compile flutter tests",
+          "script": "tools/bots/flutter/compile_flutter.sh"
+        }
+      ]
+    },
+    {
       "builders": ["fuzz-linux"],
       "meta": {
         "description": "This configuration is used for fuzz testing."
