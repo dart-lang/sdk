@@ -1012,15 +1012,17 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
 }
 
 static RawFunction* InlineCacheMissHandler(
+    Zone* zone,
     const GrowableArray<const Instance*>& args,  // Checked arguments only.
     const ICData& ic_data) {
   const Instance& receiver = *args[0];
   ArgumentsDescriptor arguments_descriptor(
-      Array::Handle(ic_data.arguments_descriptor()));
-  String& function_name = String::Handle(ic_data.target_name());
+      Array::Handle(zone, ic_data.arguments_descriptor()));
+  String& function_name = String::Handle(zone, ic_data.target_name());
   ASSERT(function_name.IsSymbol());
 
   Function& target_function = Function::Handle(
+      zone,
       Resolver::ResolveDynamic(receiver, function_name, arguments_descriptor));
 
   ObjectStore* store = Isolate::Current()->object_store();
@@ -1105,7 +1107,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data));
+      Function::Handle(zone, InlineCacheMissHandler(zone, args, ic_data));
   arguments.SetReturn(result);
 }
 
@@ -1123,7 +1125,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
   args.Add(&receiver);
   args.Add(&other);
   const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data));
+      Function::Handle(zone, InlineCacheMissHandler(zone, args, ic_data));
   arguments.SetReturn(result);
 }
 
@@ -1136,7 +1138,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(1));
   // IC data for static call is prepopulated with the statically known target.
   ASSERT(ic_data.NumberOfChecksIs(1));
-  const Function& target = Function::Handle(ic_data.GetTargetAt(0));
+  const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
   target.EnsureHasCode();
   ASSERT(!target.IsNull() && target.HasCode());
   ic_data.AddReceiverCheck(arg.GetClassId(), target, 1);
@@ -1162,7 +1164,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(2));
   // IC data for static call is prepopulated with the statically known target.
   ASSERT(!ic_data.NumberOfChecksIs(0));
-  const Function& target = Function::Handle(ic_data.GetTargetAt(0));
+  const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
   target.EnsureHasCode();
   GrowableArray<intptr_t> cids(2);
   cids.Add(arg0.GetClassId());

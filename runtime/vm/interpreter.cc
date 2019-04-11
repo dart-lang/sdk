@@ -263,6 +263,7 @@ void LookupCache::Clear() {
 
 bool LookupCache::Lookup(intptr_t receiver_cid,
                          RawString* function_name,
+                         RawArray* arguments_descriptor,
                          RawFunction** target) const {
   ASSERT(receiver_cid != kIllegalCid);  // Sentinel value.
 
@@ -270,14 +271,16 @@ bool LookupCache::Lookup(intptr_t receiver_cid,
       receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
   const intptr_t probe1 = hash & kTableMask;
   if (entries_[probe1].receiver_cid == receiver_cid &&
-      entries_[probe1].function_name == function_name) {
+      entries_[probe1].function_name == function_name &&
+      entries_[probe1].arguments_descriptor == arguments_descriptor) {
     *target = entries_[probe1].target;
     return true;
   }
 
   intptr_t probe2 = (hash >> 3) & kTableMask;
   if (entries_[probe2].receiver_cid == receiver_cid &&
-      entries_[probe2].function_name == function_name) {
+      entries_[probe2].function_name == function_name &&
+      entries_[probe2].arguments_descriptor == arguments_descriptor) {
     *target = entries_[probe2].target;
     return true;
   }
@@ -287,32 +290,26 @@ bool LookupCache::Lookup(intptr_t receiver_cid,
 
 void LookupCache::Insert(intptr_t receiver_cid,
                          RawString* function_name,
+                         RawArray* arguments_descriptor,
                          RawFunction* target) {
   // Otherwise we have to clear the cache or rehash on scavenges too.
   ASSERT(function_name->IsOldObject());
+  ASSERT(arguments_descriptor->IsOldObject());
   ASSERT(target->IsOldObject());
 
   const intptr_t hash =
       receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
   const intptr_t probe1 = hash & kTableMask;
-  if (entries_[probe1].receiver_cid == kIllegalCid) {
-    entries_[probe1].receiver_cid = receiver_cid;
-    entries_[probe1].function_name = function_name;
-    entries_[probe1].target = target;
-    return;
-  }
-
-  const intptr_t probe2 = (hash >> 3) & kTableMask;
-  if (entries_[probe2].receiver_cid == kIllegalCid) {
-    entries_[probe2].receiver_cid = receiver_cid;
-    entries_[probe2].function_name = function_name;
-    entries_[probe2].target = target;
-    return;
-  }
-
   entries_[probe1].receiver_cid = receiver_cid;
   entries_[probe1].function_name = function_name;
+  entries_[probe1].arguments_descriptor = arguments_descriptor;
   entries_[probe1].target = target;
+
+  const intptr_t probe2 = (hash >> 3) & kTableMask;
+  entries_[probe2].receiver_cid = receiver_cid;
+  entries_[probe2].function_name = function_name;
+  entries_[probe2].arguments_descriptor = arguments_descriptor;
+  entries_[probe2].target = target;
 }
 
 Interpreter::Interpreter()
@@ -909,7 +906,8 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
       InterpreterHelpers::GetClassId(call_base[receiver_idx]);
 
   RawFunction* target;
-  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, &target))) {
+  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
+                                     &target))) {
     // Table lookup miss.
     top[1] = call_base[receiver_idx];
     top[2] = target_name;
@@ -925,10 +923,8 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
     }
 
     target = static_cast<RawFunction*>(top[4]);
-    target_name = static_cast<RawString*>(top[2]);
     argdesc_ = static_cast<RawArray*>(top[3]);
     ASSERT(target->IsFunction());
-    lookup_cache_.Insert(receiver_cid, target_name, target);
   }
 
   top[0] = target;

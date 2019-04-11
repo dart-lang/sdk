@@ -6,6 +6,7 @@
 
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
+#include "vm/interpreter.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
 #include "vm/object.h"
@@ -47,6 +48,18 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
               String::Handle(zone, receiver_class.Name()).ToCString());
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Interpreter* interpreter = thread->interpreter();
+  if (interpreter != NULL) {
+    RawFunction* result;
+    if (interpreter->lookup_cache().Lookup(receiver_class.id(),
+                                           function_name.raw(),
+                                           args_desc.array().raw(), &result)) {
+      return result;
+    }
+  }
+#endif
+
   Function& function = Function::Handle(
       zone, ResolveDynamicAnyArgs(zone, receiver_class, function_name,
                                   args_desc, allow_add));
@@ -77,6 +90,13 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
   if (FLAG_trace_resolving) {
     THR_Print("ResolveDynamic result: %s\n", function.ToCString());
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if ((interpreter != NULL) && !function.IsNull()) {
+    interpreter->lookup_cache().Insert(receiver_class.id(), function_name.raw(),
+                                       args_desc.array().raw(), function.raw());
+  }
+#endif
 
   return function.raw();
 }
