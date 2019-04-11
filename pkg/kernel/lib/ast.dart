@@ -661,6 +661,10 @@ class Typedef extends NamedNode implements FileUriNode {
     annotations.add(node);
     node.parent = this;
   }
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
 }
 
 /// The degree to which the contents of a class have been loaded into memory.
