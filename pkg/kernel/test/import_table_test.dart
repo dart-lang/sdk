@@ -1,4 +1,4 @@
-import '../lib/import_table.dart';
+import 'package:kernel/import_table.dart';
 
 main() {
   List<String> paths = new List<String>();
