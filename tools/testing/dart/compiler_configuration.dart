@@ -1095,11 +1095,18 @@ abstract class VMKernelCompilerMixin {
     final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
     final genKernel = '${pkgVmDir}/tool/gen_kernel${executableScriptSuffix}';
 
-    final kernelBinariesFolder = _useSdk
-        ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-        : '${_configuration.buildDirectory}';
+    final String useAbiVersion = arguments.firstWhere(
+        (arg) => arg.startsWith('--use-abi-version='),
+        orElse: () => null);
 
-    // Always use strong platform as preview_dart_2 implies strong.
+    var kernelBinariesFolder = '${_configuration.buildDirectory}';
+    if (useAbiVersion != null) {
+      var version = useAbiVersion.split('=')[1];
+      kernelBinariesFolder += '/dart-sdk/lib/_internal/abiversions/$version';
+    } else if (_useSdk) {
+      kernelBinariesFolder += '/dart-sdk/lib/_internal';
+    }
+
     final vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
 
     final dillFile = tempKernelFile(tempDir);
@@ -1110,6 +1117,11 @@ abstract class VMKernelCompilerMixin {
       '-o',
       dillFile,
     ];
+
+    final batchArgs = <String>[];
+    if (useAbiVersion != null) {
+      batchArgs.add(useAbiVersion);
+    }
 
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
     args.addAll(arguments.where((name) =>
@@ -1132,7 +1144,7 @@ abstract class VMKernelCompilerMixin {
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
-        genKernel, args, environmentOverrides);
+        genKernel, args, environmentOverrides, batchArgs);
   }
 }
 

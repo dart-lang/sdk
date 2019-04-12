@@ -14,8 +14,8 @@ ARGV=()
 
 for arg in "$@"; do
   case $arg in
-    --abi-version=*)
-    ABI_VERSION="$(echo "$arg" | sed "s|--abi-version=||")"
+    --use-abi-version=*)
+    ABI_VERSION="$(echo "$arg" | sed "s|--use-abi-version=||")"
     ;;
     --platform*)
     HAS_PLATFORM="TRUE"
