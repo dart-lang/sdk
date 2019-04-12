@@ -187,6 +187,16 @@ class HintCode extends ErrorCode {
       correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
+   * When "strict-inference" is enabled, types in instance creation
+   * (constructor calls) must be inferred via the context type, or have type
+   * arguments.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = HintCode(
+      'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
+      "The type argument(s) of '{0}' cannot be inferred.",
+      correction: "Use explicit type argument(s) for '{0}'.");
+
+  /**
    * When "strict-inference" in enabled, uninitialized variables must be
    * declared with a specific type.
    */

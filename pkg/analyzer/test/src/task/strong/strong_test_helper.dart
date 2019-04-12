@@ -337,6 +337,7 @@ class AbstractStrongTest with ResourceProviderMixin {
         // else.
         return code.errorSeverity.ordinal > ErrorSeverity.INFO.ordinal ||
             code == HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL ||
+            code == HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION ||
             code == HintCode.STRICT_RAW_TYPE;
       }
       return true;

@@ -1315,7 +1315,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
-    _checkForRawTypeName(node);
+    if (node.parent is ConstructorName &&
+        node.parent.parent is InstanceCreationExpression) {
+      _checkForInferenceFailureOnInstanceCreation(node, node.parent.parent);
+    } else {
+      _checkForRawTypeName(node);
+    }
     super.visitTypeName(node);
   }
 
@@ -3685,6 +3690,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Checks a type on an instance creation expression for an inference
+  /// failure, and reports the appropriate error if
+  /// [AnalysisOptionsImpl.strictInference] is set.
+  ///
+  /// This checks if [node] refers to a generic type and does not have explicit
+  /// or inferred type arguments. When that happens, it reports a
+  /// HintMode.INFERENCE_FAILURE_ON_INSTANCE_CREATION error.
+  void _checkForInferenceFailureOnInstanceCreation(
+      TypeName node, InstanceCreationExpression inferenceContextNode) {
+    if (!_options.strictInference || node == null) return;
+    if (node.typeArguments != null) {
+      // Type has explicit type arguments.
+      return;
+    }
+    if (_isMissingTypeArguments(
+        node, node.type, node.name.staticElement, inferenceContextNode)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, node, [node.type]);
+    }
+  }
+
   /**
    * Check that the given [typeReference] is not a type reference and that then
    * the [name] is reference to an instance member.
@@ -4723,16 +4749,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       // Type has explicit type arguments.
       return;
     }
-    var parent = node.parent;
-    InstanceCreationExpression inferenceContextNode;
-    if (parent is ConstructorName) {
-      var grandparent = parent.parent;
-      if (grandparent is InstanceCreationExpression) {
-        inferenceContextNode = grandparent;
-      }
-    }
     if (_isMissingTypeArguments(
-        node, node.type, node.name.staticElement, inferenceContextNode)) {
+        node, node.type, node.name.staticElement, null)) {
       _errorReporter
           .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
     }

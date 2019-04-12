@@ -3668,6 +3668,51 @@ main() {
     await check(strictInference: true);
   }
 
+  test_strictInference_instanceCreation() async {
+    addFile(r'''
+class C<T> {
+  C([T t]);
+  C.of(T t);
+  factory C.from(Object e) => C();
+}
+
+main() {
+  // These should be allowed:
+  C<int> downwardsInferenceIsOK = C();
+  C<dynamic> downwardsInferenceDynamicIsOK = C();
+  var inferredFromConstructorParameterIsOK = C(42);
+  var explicitDynamicIsOK = C<dynamic>(42);
+
+  var rawConstructorCall = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C();
+  var upwardsInfersDynamic = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C(42 as dynamic);
+  var namedConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.of(42 as dynamic);
+  var factoryConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.from(42);
+}
+    ''');
+    await check(strictInference: true);
+  }
+
+  test_strictInference_instanceCreation_optionalTypeArgs() async {
+    addMetaPackage();
+    addFile(r'''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+class C<T> {
+  C([T t]);
+  C.of(T t);
+  factory C.from(Object e) => C();
+}
+
+main() {
+  var rawConstructorCall = C();
+  var upwardsInfersDynamic = C(42 as dynamic);
+  var namedConstructor = C.of(42 as dynamic);
+  var factoryConstructor = C.from(42);
+}
+    ''');
+    await check(strictInference: true);
+  }
+
   test_strictRawTypes_classes() async {
     addFile(r'''
 class C<T> {
@@ -3698,20 +3743,10 @@ C<int> explicitTypeArgsAreOK;
 
 main() {
   {
-    // These should be allowed:
-    C<int> downwardsInferenceIsOK = C();
-    C<dynamic> downwardsInferenceDynamicIsOK = C();
-    var inferredFromConstructorParameterIsOK = C(42);
-    var explicitDynamicIsOK = C<dynamic>(42);
-
     ClassWithNumBound classWithNumBoundOK;
     ClassWithObjectBound classWithObjectBoundOK;
     /*info:STRICT_RAW_TYPE*/ClassWithDynamicBound classWithDynamicBound;
-
-    var rawConstructorCall = /*info:STRICT_RAW_TYPE*/C();
     /*info:STRICT_RAW_TYPE*/C rawConstructorCallFromType = C();
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/C(42 as dynamic);
   }
 
   {
