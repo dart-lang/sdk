@@ -104,9 +104,6 @@ mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 [ $compiler == fasta && $strong ]
 isolate/isolate_stress_test: CompileTimeError
 mirrors/deferred_type_test: CompileTimeError
-mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
-mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError
 mirrors/mirrors_nsm_test/none: CompileTimeError
