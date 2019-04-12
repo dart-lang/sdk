@@ -239,6 +239,12 @@ class SourceLoader extends Loader<Library> {
       case "dart:async":
         return utf8.encode(defaultDartAsyncSource);
 
+      case "dart:collection":
+        return utf8.encode(defaultDartCollectionSource);
+
+      case "dart:_internal":
+        return utf8.encode(defaultDartInternalSource);
+
       default:
         return utf8.encode(message == null ? "" : "/* ${message.message} */");
     }
@@ -1136,6 +1142,8 @@ class String {}
 
 class Symbol {}
 
+class Set {}
+
 class Type {}
 
 class _InvocationMirror {
@@ -1219,5 +1227,22 @@ class _StreamIterator {
   moveNext() {}
 
   cancel() {}
+}
+""";
+
+/// A minimal implementation of dart:collection that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartCollectionSource = """
+class _UnmodifiableSet {
+  final Map _map;
+  const _UnmodifiableSet(this._map);
+}
+""";
+
+/// A minimal implementation of dart:_internel that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartInternalSource = """
+class Symbol {
+  const Symbol(String name);
 }
 """;
