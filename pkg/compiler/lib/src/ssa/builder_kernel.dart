@@ -1525,15 +1525,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitConstantExpression(ir.ConstantExpression node) {
     ConstantValue value = _elementMap.getConstantValue(node);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildGet(node);
     if (!closedWorld.outputUnitData
         .hasOnlyNonDeferredImportPathsToConstant(targetElement, value)) {
       stack.add(graph.addDeferredConstant(
           value,
           closedWorld.outputUnitData.outputUnitForConstant(value),
-          _sourceInformationBuilder.buildGet(node),
+          sourceInformation,
           closedWorld));
     } else {
-      stack.add(graph.addConstant(value, closedWorld));
+      stack.add(graph.addConstant(value, closedWorld,
+          sourceInformation: sourceInformation));
     }
   }
 
