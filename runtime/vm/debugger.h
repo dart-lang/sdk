@@ -636,8 +636,7 @@ class Debugger {
   TokenPosition ResolveBreakpointPos(const Function& func,
                                      TokenPosition requested_token_pos,
                                      TokenPosition last_token_pos,
-                                     intptr_t requested_column,
-                                     intptr_t exact_token_pos);
+                                     intptr_t requested_column);
   void DeoptimizeWorld();
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     TokenPosition token_pos,
@@ -678,9 +677,6 @@ class Debugger {
   static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
-  TokenPosition FindExactTokenPosition(const Script& script,
-                                       TokenPosition start_of_line,
-                                       intptr_t column_number);
 #endif
   // Appends at least one stack frame. Multiple frames will be appended
   // if |code| at the frame's pc contains inlined functions.

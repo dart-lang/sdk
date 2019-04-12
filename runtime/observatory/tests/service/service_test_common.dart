@@ -249,19 +249,6 @@ IsolateTest setBreakpointAtLine(int line) {
   };
 }
 
-IsolateTest setBreakpointAtLineColumn(int line, int column) {
-  return (Isolate isolate) async {
-    print("Setting breakpoint for line $line column $column");
-    Library lib = await isolate.rootLibrary.load();
-    Script script = lib.scripts.single;
-
-    Breakpoint bpt = await isolate.addBreakpoint(script, line, column);
-    print("Breakpoint is $bpt");
-    expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
-  };
-}
-
 IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
   return (Isolate isolate) async {
     print("Setting breakpoint for line $line in $uri");

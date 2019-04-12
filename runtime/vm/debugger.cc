@@ -2426,8 +2426,7 @@ void Debugger::PauseException(const Instance& exc) {
 TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
                                              TokenPosition requested_token_pos,
                                              TokenPosition last_token_pos,
-                                             intptr_t requested_column,
-                                             intptr_t exact_token_pos) {
+                                             intptr_t requested_column) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
 
@@ -2449,9 +2448,6 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   TokenPosition best_fit_pos = TokenPosition::kMaxSource;
   intptr_t best_column = INT_MAX;
   intptr_t best_line = INT_MAX;
-  // best_token_pos and exact_token_pos are only used
-  // if column number is provided.
-  intptr_t best_token_pos = INT_MAX;
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     const TokenPosition pos = iter.TokenPos();
@@ -2487,7 +2483,6 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
       best_fit_pos = pos;
       best_line = token_line;
       best_column = token_start_column;
-      best_token_pos = exact_token_pos - (requested_column - best_column);
     }
   }
 
@@ -2524,7 +2519,12 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
       }
 
       if (requested_column >= 0) {
-        if (pos.value() != best_token_pos) {
+        intptr_t ignored = -1;
+        intptr_t token_start_column = -1;
+        // We look for other tokens at the best column in case there
+        // is more than one token at the same column offset.
+        script.GetTokenLocation(pos, &ignored, &token_start_column);
+        if (token_start_column != best_column) {
           continue;
         }
       }
@@ -2544,7 +2544,7 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // longer are requesting a specific column number.
   if (last_token_pos < func.end_token_pos()) {
     return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos(),
-                                -1 /* no column */, -1);
+                                -1 /* no column */);
   }
   return TokenPosition::kNoSource;
 }
@@ -2812,18 +2812,8 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
       // have already been compiled. We can resolve the breakpoint now.
       DeoptimizeWorld();
       func ^= functions.At(0);
-      TokenPosition exact_token_pos = TokenPosition(-1);
-      // if requested_column is larger than zero, [token_pos, last_token_pos]
-      // governs one single line of code.
-      if (token_pos != last_token_pos && requested_column >= 0) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        exact_token_pos =
-            FindExactTokenPosition(script, token_pos, requested_column);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-      }
-      TokenPosition breakpoint_pos =
-          ResolveBreakpointPos(func, token_pos, last_token_pos,
-                               requested_column, exact_token_pos.value());
+      TokenPosition breakpoint_pos = ResolveBreakpointPos(
+          func, token_pos, last_token_pos, requested_column);
       if (breakpoint_pos.IsReal()) {
         BreakpointLocation* bpt =
             GetBreakpointLocation(script, breakpoint_pos, requested_column);
@@ -3802,22 +3792,6 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
   return best_fit.raw();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-// On single line of code with given column number,
-// Calculate exact tokenPosition
-TokenPosition Debugger::FindExactTokenPosition(const Script& script,
-                                               TokenPosition start_of_line,
-                                               intptr_t column_number) {
-  intptr_t line = -1;
-  intptr_t col = -1;
-  Zone* zone = Thread::Current()->zone();
-  kernel::KernelLineStartsReader line_starts_reader(
-      TypedData::Handle(zone, script.line_starts()), zone);
-  line_starts_reader.LocationForPosition(start_of_line.value(), &line, &col);
-  return TokenPosition(start_of_line.value() + (column_number - col));
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 void Debugger::NotifyCompilation(const Function& func) {
   if (breakpoint_locations_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
@@ -3839,18 +3813,7 @@ void Debugger::NotifyCompilation(const Function& func) {
     if (FunctionOverlaps(func, script, loc->token_pos(),
                          loc->end_token_pos())) {
       Function& inner_function = Function::Handle(zone);
-      TokenPosition token_pos = loc->token_pos();
-      TokenPosition end_token_pos = loc->end_token_pos();
-      if (token_pos != end_token_pos && loc->requested_column_number() >= 0) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        // Narrow down the token position range to a single value
-        // if requested column number is provided so that inner
-        // Closure won't be missed.
-        token_pos = FindExactTokenPosition(script, token_pos,
-                                           loc->requested_column_number());
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-      }
-      inner_function = FindInnermostClosure(func, token_pos);
+      inner_function = FindInnermostClosure(func, loc->token_pos());
       if (!inner_function.IsNull()) {
         // The local function of a function we just compiled cannot
         // be compiled already.
@@ -3871,9 +3834,9 @@ void Debugger::NotifyCompilation(const Function& func) {
       // and set the code breakpoints.
       if (!loc->IsResolved()) {
         // Resolve source breakpoint in the newly compiled function.
-        TokenPosition bp_pos = ResolveBreakpointPos(
-            func, loc->token_pos(), loc->end_token_pos(),
-            loc->requested_column_number(), token_pos.value());
+        TokenPosition bp_pos =
+            ResolveBreakpointPos(func, loc->token_pos(), loc->end_token_pos(),
+                                 loc->requested_column_number());
         if (!bp_pos.IsDebugPause()) {
           if (FLAG_verbose_debug) {
             OS::PrintErr("Failed resolving breakpoint for function '%s'\n",
