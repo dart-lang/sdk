@@ -12,15 +12,16 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../generated/parser_test.dart';
 
-List<String> _analyzerRootComponents;
-
 main() {
-  _analyzerRootComponents =
-      path.split(path.fromUri(Platform.script.resolve("../../")));
+  _analyzerRootComponents = path.split(path.fromUri(Platform.script));
+  int index = _analyzerRootComponents.lastIndexOf('analyzer');
+  _analyzerRootComponents = _analyzerRootComponents.sublist(0, index + 1);
   defineReflectiveSuite(() {
     defineReflectiveTests(ErrorCodeValuesTest);
   });
 }
+
+List<String> _analyzerRootComponents;
 
 @reflectiveTest
 class ErrorCodeValuesTest extends ParserTestCase {

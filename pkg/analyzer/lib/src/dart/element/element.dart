@@ -4893,6 +4893,17 @@ class FieldElementImpl extends PropertyInducingElementImpl
       enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
 
   @override
+  bool get isLazy {
+//    if (linkedNode != null) {
+//      return enclosingUnit.linkedContext.isLazy(linkedNode);
+//    }
+//    if (_unlinkedVariable != null) {
+//      return _unlinkedVariable.isLazy;
+//    }
+    return hasModifier(Modifier.LAZY);
+  }
+
+  @override
   bool get isStatic {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isStatic(linkedNode);
@@ -6989,6 +7000,17 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   }
 
   @override
+  bool get isLazy {
+//    if (linkedNode != null) {
+//      return enclosingUnit.linkedContext.isLazy(linkedNode);
+//    }
+//    if (_unlinkedVariable != null) {
+//      return _unlinkedVariable.isLazy;
+//    }
+    return hasModifier(Modifier.LAZY);
+  }
+
+  @override
   bool get isPotentiallyMutatedInClosure => true;
 
   @override
@@ -7363,25 +7385,28 @@ class Modifier implements Comparable<Modifier> {
   /// type being referred to is the return type.
   static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 12);
 
+  /// Indicates that modifier 'lazy' was applied to the element.
+  static const Modifier LAZY = const Modifier('LAZY', 13);
+
   /// Indicates that a class is a mixin application.
   static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 13);
+      const Modifier('MIXIN_APPLICATION', 14);
 
   /// Indicates that a class contains an explicit reference to 'super'.
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 14);
+      const Modifier('REFERENCES_SUPER', 15);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = const Modifier('SETTER', 15);
+  static const Modifier SETTER = const Modifier('SETTER', 16);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = const Modifier('STATIC', 16);
+  static const Modifier STATIC = const Modifier('STATIC', 17);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 17);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
 
   static const List<Modifier> values = const [
     ABSTRACT,
@@ -7397,6 +7422,7 @@ class Modifier implements Comparable<Modifier> {
     GETTER,
     HAS_EXT_URI,
     IMPLICIT_TYPE,
+    LAZY,
     MIXIN_APPLICATION,
     REFERENCES_SUPER,
     SETTER,
