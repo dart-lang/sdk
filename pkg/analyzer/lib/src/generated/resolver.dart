@@ -3632,7 +3632,7 @@ class ResolverErrorCode extends ErrorCode {
       const ResolverErrorCode(
           'PART_OF_UNNAMED_LIBRARY',
           "Library is unnamed. Expected a URI not a library name '{0}' in the "
-          "part-of directive.",
+              "part-of directive.",
           correction:
               "Try changing the part-of directive to a URI, or try including a"
               " different part.");
@@ -3851,13 +3851,6 @@ class ResolverVisitor extends ScopedVisitor {
     // TODO(brianwilkerson) Remove this method.
   }
 
-  /// A client is about to resolve a member in the given class declaration.
-  void prepareToResolveMembersInClass(ClassDeclaration node) {
-    _enclosingClassDeclaration = node;
-    enclosingClass = node.declaredElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
-  }
-
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
     ClassElement enclosingClassElement,
@@ -3867,6 +3860,13 @@ class ResolverVisitor extends ScopedVisitor {
     enclosingClass = enclosingClassElement;
     typeAnalyzer.thisType = enclosingClass?.type;
     _enclosingFunction = enclosingExecutableElement;
+  }
+
+  /// A client is about to resolve a member in the given class declaration.
+  void prepareToResolveMembersInClass(ClassDeclaration node) {
+    _enclosingClassDeclaration = node;
+    enclosingClass = node.declaredElement;
+    typeAnalyzer.thisType = enclosingClass?.type;
   }
 
   /// Visit the given [comment] if it is not `null`.
@@ -6793,6 +6793,25 @@ class TypeNameResolver {
   bool _isTypeNameInTypeArgumentList(TypeName typeName) =>
       typeName.parent is TypeArgumentList;
 
+  /// Given a [typeName] that has a question mark, report an error and return
+  /// `true` if it appears in a location where a nullable type is not allowed.
+  void _reportInvalidNullableType(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is ExtendsClause) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, typeName);
+    } else if (parent is ImplementsClause) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, typeName);
+    } else if (parent is OnClause) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, typeName);
+    } else if (parent is WithClause) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, typeName);
+    }
+  }
+
   void _resolveClassElement(TypeName node, Identifier typeName,
       TypeArgumentList argumentList, ClassElement element) {
     _setElement(typeName, element);
@@ -6838,6 +6857,9 @@ class TypeNameResolver {
         parent is ImplementsClause ||
         parent is OnClause ||
         parent is WithClause) {
+      if (node.question != null) {
+        _reportInvalidNullableType(node);
+      }
       nullability = Nullability.nonNullable;
     } else {
       nullability = _getNullability(node.question != null);
