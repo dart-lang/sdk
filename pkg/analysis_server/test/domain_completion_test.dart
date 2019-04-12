@@ -893,25 +893,35 @@ class C implements B {}
 class D with C {}
 ''', [
       token('class', null, null),
-      token('A', 'dart:core;Type', ['declaration']),
+      token('A', 'Type',
+          ['declaration']), //token('A', 'dart:core;Type', ['declaration']),
       token('{', null, null),
       token('}', null, null),
       token('class', null, null),
-      token('B', 'dart:core;Type', ['declaration']),
+      token('B', 'Type',
+          ['declaration']), //token('B', 'dart:core;Type', ['declaration']),
       token('extends', null, null),
-      token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
+      token('A', 'dart:core;Type<A>', [
+        'reference'
+      ]), //token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
       token('{', null, null),
       token('}', null, null),
       token('class', null, null),
-      token('C', 'dart:core;Type', ['declaration']),
+      token('C', 'Type',
+          ['declaration']), //token('C', 'dart:core;Type', ['declaration']),
       token('implements', null, null),
-      token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
+      token('B', 'dart:core;Type<B>', [
+        'reference'
+      ]), //token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
       token('{', null, null),
       token('}', null, null),
       token('class', null, null),
-      token('D', 'dart:core;Type', ['declaration']),
+      token('D', 'Type',
+          ['declaration']), //token('D', 'dart:core;Type', ['declaration']),
       token('with', null, null),
-      token('C', 'dart:core;Type<$testFileUri;C>', ['reference']),
+      token('C', 'dart:core;Type<C>', [
+        'reference'
+      ]), //token('C', 'dart:core;Type<$testFileUri;C>', ['reference']),
       token('{', null, null),
       token('}', null, null),
     ]);
@@ -921,11 +931,16 @@ class D with C {}
     await expectTokens('''
 List<int> x = null;
 ''', [
-      token('List', 'dart:core;Type<dart:core;List>', ['reference']),
+      token('List', 'dart:core;Type<List>', [
+        'reference'
+      ]), //token('List', 'dart:core;Type<dart:core;List>', ['reference']),
       token('<', null, null),
-      token('int', 'dart:core;Type<dart:core;int>', ['reference']),
+      token('int', 'dart:core;Type<int>', [
+        'reference'
+      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
       token('>', null, null),
-      token('x', 'dart:core;List', ['declaration']),
+      token('x', 'List',
+          ['declaration']), //token('x', 'dart:core;List', ['declaration']),
       token('=', null, null),
       token('null', null, null),
       token(';', null, null),
@@ -937,11 +952,13 @@ List<int> x = null;
 var x = 'a'.length;
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;int', ['declaration']),
+      token('x', 'int',
+          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
       token('=', null, null),
-      token("'a'", 'dart:core;String', null),
+      token("'a'", 'String', null), //token("'a'", 'dart:core;String', null),
       token('.', null, null),
-      token('length', 'dart:core;int', ['reference']),
+      token('length', 'int',
+          ['reference']), //token('length', 'dart:core;int', ['reference']),
       token(';', null, null),
     ]);
   }
@@ -951,9 +968,10 @@ var x = 'a'.length;
 var x = true;
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;bool', ['declaration']),
+      token('x', 'bool',
+          ['declaration']), //token('x', 'dart:core;bool', ['declaration']),
       token('=', null, null),
-      token('true', 'dart:core;bool', null),
+      token('true', 'bool', null), //token('true', 'dart:core;bool', null),
       token(';', null, null),
     ]);
   }
@@ -963,9 +981,10 @@ var x = true;
 var x = 3.4;
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;double', ['declaration']),
+      token('x', 'double',
+          ['declaration']), //token('x', 'dart:core;double', ['declaration']),
       token('=', null, null),
-      token('3.4', 'dart:core;double', null),
+      token('3.4', 'double', null), //token('3.4', 'dart:core;double', null),
       token(';', null, null),
     ]);
   }
@@ -975,9 +994,10 @@ var x = 3.4;
 var x = 7;
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;int', ['declaration']),
+      token('x', 'int',
+          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
       token('=', null, null),
-      token('7', 'dart:core;int', null),
+      token('7', 'int', null), //token('7', 'dart:core;int', null),
       token(';', null, null),
     ]);
   }
@@ -987,10 +1007,13 @@ var x = 7;
 var x = <int>[];
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;List', ['declaration']),
+      token('x', 'List',
+          ['declaration']), //token('x', 'dart:core;List', ['declaration']),
       token('=', null, null),
       token('<', null, null),
-      token("int", 'dart:core;Type<dart:core;int>', ['reference']),
+      token("int", 'dart:core;Type<int>', [
+        'reference'
+      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
       token('>', null, null),
       token('[', null, null),
       token(']', null, null),
@@ -1003,12 +1026,17 @@ var x = <int>[];
 var x = <int, int>{};
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;Map', ['declaration']),
+      token('x', 'Map',
+          ['declaration']), //token('x', 'dart:core;Map', ['declaration']),
       token('=', null, null),
       token('<', null, null),
-      token("int", 'dart:core;Type<dart:core;int>', ['reference']),
+      token("int", 'dart:core;Type<int>', [
+        'reference'
+      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
 //      token(',', null, null),
-      token("int", 'dart:core;Type<dart:core;int>', ['reference']),
+      token("int", 'dart:core;Type<int>', [
+        'reference'
+      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
       token('>', null, null),
       token('{', null, null),
       token('}', null, null),
@@ -1033,10 +1061,13 @@ var x = null;
 var x = <int>{};
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;Set', ['declaration']),
+      token('x', 'Set',
+          ['declaration']), //token('x', 'dart:core;Set', ['declaration']),
       token('=', null, null),
       token('<', null, null),
-      token("int", 'dart:core;Type<dart:core;int>', ['reference']),
+      token("int", 'dart:core;Type<int>', [
+        'reference'
+      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
       token('>', null, null),
       token('{', null, null),
       token('}', null, null),
@@ -1049,9 +1080,10 @@ var x = <int>{};
 var x = 'a';
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;String', ['declaration']),
+      token('x', 'String',
+          ['declaration']), //token('x', 'dart:core;String', ['declaration']),
       token('=', null, null),
-      token("'a'", 'dart:core;String', null),
+      token("'a'", 'String', null), //token("'a'", 'dart:core;String', null),
       token(';', null, null),
     ]);
   }
@@ -1063,17 +1095,27 @@ class A {
 }
 ''', [
       token('class', null, null),
-      token('A', 'dart:core;Type', ['declaration']),
+      token('A', 'Type',
+          ['declaration']), //token('A', 'dart:core;Type', ['declaration']),
       token('{', null, null),
-      token('String', 'dart:core;Type<dart:core;String>', ['reference']),
-      token('c', 'dart:core;String Function(dart:core;int, dart:core;int)',
+      token('String', 'dart:core;Type<String>', [
+        'reference'
+      ]), //token('String', 'dart:core;Type<dart:core;String>', ['reference']),
+      token('c',
+          'String Function(int, int)', //'dart:core;String Function(dart:core;int, dart:core;int)',
           ['declaration']),
       token('(', null, null),
-      token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('x', 'dart:core;int', ['declaration']),
+      token('int', 'dart:core;Type<int>', [
+        'reference'
+      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
+      token('x', 'int',
+          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
 //      token(',', null, null),
-      token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('y', 'dart:core;int', ['declaration']),
+      token('int', 'dart:core;Type<int>', [
+        'reference'
+      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
+      token('y', 'int',
+          ['declaration']), //token('y', 'dart:core;int', ['declaration']),
       token(')', null, null),
       token('{', null, null),
       token('}', null, null),
@@ -1086,18 +1128,19 @@ class A {
 var x = 'radar'.indexOf('r', 1);
 ''', [
       token('var', null, null),
-      token('x', 'dart:core;int', ['declaration']),
+      token('x', 'int',
+          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
       token('=', null, null),
-      token("'radar'", 'dart:core;String', null),
+      token("'radar'", 'String',
+          null), //token("'radar'", 'dart:core;String', null),
       token('.', null, null),
-      token(
-          'indexOf',
-          'dart:core;int Function(dart:core;Pattern, dart:core;int)',
+      token('indexOf',
+          'int Function(Pattern, int)', //'dart:core;int Function(dart:core;Pattern, dart:core;int)',
           ['reference']),
       token('(', null, null),
-      token("'r'", 'dart:core;String', null),
+      token("'r'", 'String', null), //token("'r'", 'dart:core;String', null),
 //      token(',', null, null),
-      token('1', 'dart:core;int', null),
+      token('1', 'int', null), //token('1', 'dart:core;int', null),
       token(')', null, null),
       token(';', null, null),
     ]);
@@ -1110,19 +1153,26 @@ class B {}
 mixin D on A implements B {}
 ''', [
       token('class', null, null),
-      token('A', 'dart:core;Type', ['declaration']),
+      token('A', 'Type',
+          ['declaration']), //token('A', 'dart:core;Type', ['declaration']),
       token('{', null, null),
       token('}', null, null),
       token('class', null, null),
-      token('B', 'dart:core;Type', ['declaration']),
+      token('B', 'Type',
+          ['declaration']), //token('B', 'dart:core;Type', ['declaration']),
       token('{', null, null),
       token('}', null, null),
       token('mixin', null, null),
-      token('D', 'dart:core;Type', ['declaration']),
+      token('D', 'Type',
+          ['declaration']), //token('D', 'dart:core;Type', ['declaration']),
       token('on', null, null),
-      token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
+      token('A', 'dart:core;Type<A>', [
+        'reference'
+      ]), //token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
       token('implements', null, null),
-      token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
+      token('B', 'dart:core;Type<B>', [
+        'reference'
+      ]), //token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
       token('{', null, null),
       token('}', null, null),
     ]);
@@ -1134,15 +1184,23 @@ int f(int p) {
   return p;
 }
 ''', [
-      token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('f', 'dart:core;int Function(dart:core;int)', ['declaration']),
+      token('int', 'dart:core;Type<int>', [
+        'reference'
+      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
+      token('f', 'int Function(int)', [
+        'declaration'
+      ]), //token('f', 'dart:core;int Function(dart:core;int)', ['declaration']),
       token('(', null, null),
-      token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('p', 'dart:core;int', ['declaration']),
+      token('int', 'dart:core;Type<int>', [
+        'reference'
+      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
+      token('p', 'int',
+          ['declaration']), //token('p', 'dart:core;int', ['declaration']),
       token(')', null, null),
       token('{', null, null),
       token('return', null, null),
-      token('p', 'dart:core;int', ['reference']),
+      token('p', 'int',
+          ['reference']), //token('p', 'dart:core;int', ['reference']),
       token(';', null, null),
       token('}', null, null),
     ]);
@@ -1153,8 +1211,11 @@ int f(int p) {
 /// Doc comment [x] with reference.
 int x;
 ''', [
-      token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('x', 'dart:core;int', ['declaration']),
+      token('int', 'dart:core;Type<int>', [
+        'reference'
+      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
+      token('x', 'int',
+          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
       token(';', null, null),
     ]);
   }

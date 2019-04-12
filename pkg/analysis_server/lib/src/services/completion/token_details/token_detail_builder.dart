@@ -103,13 +103,18 @@ class TokenDetailBuilder {
       if (element == null || element.isSynthetic) {
         buffer.write(type.displayName);
       } else {
-        String uri = element.library.source.uri.toString();
+//        String uri = element.library.source.uri.toString();
         String name = element.name;
         if (element is ClassMemberElement) {
           String className = element.enclosingElement.name;
-          buffer.write('$uri;$className;$name');
+          // TODO(brianwilkerson) Figure out why the uri is a file: URI when it
+          //  ought to be a package: URI and restore the code below to include
+          //  the URI in the string.
+//          buffer.write('$uri;$className;$name');
+          buffer.write('$className;$name');
         } else {
-          buffer.write('$uri;$name');
+//          buffer.write('$uri;$name');
+          buffer.write('$name');
         }
       }
     } else {
