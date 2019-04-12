@@ -216,6 +216,7 @@ mixin_declaration/mixin_declaration_superinvocation_application_test/06: Missing
 mixin_declaration/mixin_declaration_superinvocation_application_test/07: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/08: MissingCompileTimeError
 mixin_method_override_test/G5: Crash # Issue 34354
+nnbd/*: Skip
 override_inheritance_field_test/42: MissingCompileTimeError
 regress_22976_test/*: CompileTimeError # Issue 31935
 set_literals/invalid_set_literal_test/08: MissingCompileTimeError # Requires constant evaluation

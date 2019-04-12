@@ -106,6 +106,7 @@ mixin_super_2_test: CompileTimeError # Issue 34806
 mixin_super_use_test: CompileTimeError # Issue 34806
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 nested_generic_closure_test: CompileTimeError
+nnbd/*: Skip
 override_inheritance_field_test/42: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError
 part_refers_to_core_library_test/01: Crash
