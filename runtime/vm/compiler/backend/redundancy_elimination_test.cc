@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/backend/redundancy_elimination.h"
+
+#include <functional>
+
 #include "vm/compiler/backend/block_builder.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
