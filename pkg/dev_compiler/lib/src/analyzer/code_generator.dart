@@ -2449,12 +2449,12 @@ class CodeGenerator extends Object
 
       if (param.isOptional) {
         JS.Expression defaultValue;
-        if (paramNode != null) {
+        if (findAnnotation(param, isUndefinedAnnotation) != null) {
+          defaultValue = null;
+        } else if (paramNode != null) {
           var paramDefault = (paramNode as DefaultFormalParameter).defaultValue;
           if (paramDefault == null) {
             defaultValue = JS.LiteralNull();
-          } else if (_isJSUndefined(paramDefault)) {
-            defaultValue = null;
           } else {
             defaultValue = _visitExpression(paramDefault);
           }
@@ -2511,16 +2511,6 @@ class CodeGenerator extends Object
   bool _isCovariant(ParameterElement p) {
     return p.isCovariant ||
         (_classProperties?.covariantParameters?.contains(p) ?? false);
-  }
-
-  bool _isJSUndefined(Expression expr) {
-    expr = expr is AsExpression ? expr.expression : expr;
-    if (expr is Identifier) {
-      var element = expr.staticElement;
-      return isSdkInternalRuntime(element.library) &&
-          element.name == 'undefined';
-    }
-    return false;
   }
 
   JS.Fun _emitNativeFunctionBody(MethodDeclaration node) {
@@ -4270,10 +4260,6 @@ class CodeGenerator extends Object
       List<VariableDeclaration> fields) {
     var lazyFields = <VariableDeclaration>[];
     for (var field in fields) {
-      // Skip our magic undefined constant.
-      var element = field.declaredElement as TopLevelVariableElement;
-      if (element.name == 'undefined') continue;
-
       var init = field.initializer;
       if (init == null ||
           init is Literal ||

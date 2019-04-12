@@ -17,7 +17,8 @@ import 'dart:_js_helper'
         nullCheck,
         Primitives,
         PrivateSymbol,
-        quoteStringForRegExp;
+        quoteStringForRegExp,
+        undefined;
 import 'dart:_runtime' as dart;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
@@ -396,7 +397,7 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([int _length = dart.undefined]) {
+  factory List([@undefined int _length]) {
     dynamic list;
     if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');

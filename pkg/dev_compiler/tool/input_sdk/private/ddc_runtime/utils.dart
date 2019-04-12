@@ -8,11 +8,6 @@ part of dart._runtime;
 /// by the Dart runtime.
 // TODO(ochafik): Rewrite some of these in Dart when possible.
 
-/// The JavaScript undefined constant.
-///
-/// This is initialized by DDC to JS `void 0`.
-const undefined = null;
-
 final Function(Object, Object, Object) defineProperty =
     JS('', 'Object.defineProperty');
 
