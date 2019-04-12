@@ -38,18 +38,28 @@ namespace compiler {
 
 // Ensures that [RAX] is a new object, if not it will be added to the remembered
 // set via a leaf runtime call.
-static void EnsureIsNewOrRemembered(Assembler* assembler) {
+//
+// WARNING: This might clobber all registers except for [RAX], [THR] and [FP].
+// The caller should simply call LeaveStubFrame() and return.
+static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                    bool preserve_registers = true) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
   __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
   __ BranchIf(NOT_ZERO, &done);
 
-  __ EnterCallRuntimeFrame(0);
+  if (preserve_registers) {
+    __ EnterCallRuntimeFrame(0);
+  } else {
+    __ ReserveAlignedFrameSpace(0);
+  }
   __ movq(CallingConventions::kArg1Reg, RAX);
   __ movq(CallingConventions::kArg2Reg, THR);
   __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
-  __ LeaveCallRuntimeFrame();
+  if (preserve_registers) {
+    __ LeaveCallRuntimeFrame();
+  }
 
   __ Bind(&done);
 }
@@ -1446,7 +1456,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
   // RAX: new object
   // Restore the frame pointer.
@@ -1768,7 +1778,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     // Write-barrier elimination is enabled for [cls] and we therefore need to
     // ensure that the object is in new-space or has remembered bit set.
-    EnsureIsNewOrRemembered(assembler);
+    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   }
 
   // RAX: new object

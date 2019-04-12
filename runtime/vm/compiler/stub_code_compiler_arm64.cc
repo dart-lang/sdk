@@ -37,17 +37,27 @@ namespace compiler {
 
 // Ensures that [R0] is a new object, if not it will be added to the remembered
 // set via a leaf runtime call.
-static void EnsureIsNewOrRemembered(Assembler* assembler) {
+//
+// WARNING: This might clobber all registers except for [R0], [THR] and [FP].
+// The caller should simply call LeaveStubFrame() and return.
+static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                    bool preserve_registers = true) {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
   __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
-  __ EnterCallRuntimeFrame(0);
+  if (preserve_registers) {
+    __ EnterCallRuntimeFrame(0);
+  } else {
+    __ ReserveAlignedFrameSpace(0);
+  }
   // [R0] already contains first argument.
   __ mov(R1, THR);
   __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
-  __ LeaveCallRuntimeFrame();
+  if (preserve_registers) {
+    __ LeaveCallRuntimeFrame();
+  }
 
   __ Bind(&done);
 }
@@ -1492,7 +1502,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler);
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
 
   // R0: new object
   // Restore the frame pointer.
@@ -1794,7 +1804,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     // Write-barrier elimination is enabled for [cls] and we therefore need to
     // ensure that the object is in new-space or has remembered bit set.
-    EnsureIsNewOrRemembered(assembler);
+    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   }
   __ LeaveStubFrame();                  // Restores correct SP.
   __ ret();
