@@ -4,6 +4,8 @@
 
 // test w/ `pub run test -N prefer_iterable_whereType`
 
+var foo = [42].where((num) => num is! int); // OK
+
 main() {
   var l = [];
   l.where((e) => e is String); // LINT

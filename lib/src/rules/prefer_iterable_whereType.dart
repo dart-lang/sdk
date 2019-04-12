@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         expression = body.expression;
       }
       expression = expression?.unParenthesized;
-      if (expression is IsExpression) {
+      if (expression is IsExpression && expression.notOperator == null) {
         final target = expression.expression;
         if (target is SimpleIdentifier &&
             target.name == arg.parameters.parameters.first.identifier.name) {
