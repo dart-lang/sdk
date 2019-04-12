@@ -3242,8 +3242,6 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
     }
   }
 
-  LoadPoolPointer();
-
   ReserveAlignedFrameSpace(frame_space);
 }
 

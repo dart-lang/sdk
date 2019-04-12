@@ -1584,7 +1584,11 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
-  EnterStubFrame();
+  EnterFrame(0);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    pushq(CODE_REG);
+    pushq(PP);
+  }
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
   PushRegisters(CallingConventions::kVolatileCpuRegisters,

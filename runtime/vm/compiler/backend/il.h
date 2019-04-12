@@ -5125,7 +5125,11 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!length.IsSmi()) return false;
     const intptr_t value = Smi::Cast(length).Value();
     if (value < 0) return false;
-    return !Array::UseCardMarkingForAllocation(value);
+    return WillAllocateNewOrRemembered(value);
+  }
+
+  static bool WillAllocateNewOrRemembered(const intptr_t length) {
+    return !Array::UseCardMarkingForAllocation(length);
   }
 
  private:

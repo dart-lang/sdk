@@ -5499,6 +5499,9 @@ class Context : public Object {
   static intptr_t num_variables_offset() {
     return OFFSET_OF(RawContext, num_variables_);
   }
+  static intptr_t NumVariables(const RawContext* context) {
+    return context->ptr()->num_variables_;
+  }
 
   RawObject* At(intptr_t context_index) const {
     return *ObjectAddr(context_index);

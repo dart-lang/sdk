@@ -4,6 +4,9 @@
 
 #include "vm/globals.h"
 
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -31,6 +34,24 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, precompiled_mode);
 
 namespace compiler {
+
+// Ensures that [R0] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+static void EnsureIsNewOrRemembered(Assembler* assembler) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ tst(R0, Operand(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  __ EnterCallRuntimeFrame(0);
+  // [R0] already contains first argument.
+  __ mov(R1, Operand(THR));
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ LeaveCallRuntimeFrame();
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   LR : return address.
@@ -975,6 +996,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Pop arguments; result is popped in IP.
   __ PopList((1 << R1) | (1 << R2) | (1 << IP));  // R2 is restored.
   __ mov(R0, Operand(IP));
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -1369,6 +1396,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ Drop(1);  // Pop number of context variables argument.
   __ Pop(R0);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   // R0: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
@@ -1697,6 +1730,14 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       kInstanceReg,
       Address(SP,
               2 * target::kWordSize));  // Pop result (newly allocated object).
+
+  ASSERT(kInstanceReg == R0);
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler);
+  }
+
   __ LeaveDartFrameAndReturn();         // Restores correct SP.
 }
 

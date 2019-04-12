@@ -5,6 +5,9 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/globals.h"
 
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/backend/locations.h"
@@ -32,6 +35,24 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, precompiled_mode);
 
 namespace compiler {
+
+// Ensures that [RAX] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+static void EnsureIsNewOrRemembered(Assembler* assembler) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  __ EnterCallRuntimeFrame(0);
+  __ movq(CallingConventions::kArg1Reg, RAX);
+  __ movq(CallingConventions::kArg2Reg, THR);
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ LeaveCallRuntimeFrame();
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   RSP : points to return address.
@@ -991,6 +1012,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popq(RAX);  // Pop element type argument.
   __ popq(R10);  // Pop array length argument.
   __ popq(RAX);  // Pop return value from return slot.
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveStubFrame();
   __ ret();
 }
@@ -1415,6 +1442,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ popq(RAX);  // Pop number of context variables argument.
   __ popq(RAX);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
@@ -1718,6 +1751,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   // RDX: new object type arguments.
   // Create a stub frame.
   __ EnterStubFrame();  // Uses PP to access class object.
+
   __ pushq(R9);         // Setup space on stack for return value.
   __ PushObject(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
@@ -1730,6 +1764,13 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ popq(RAX);  // Pop argument (type arguments of object).
   __ popq(RAX);  // Pop argument (class of object).
   __ popq(RAX);  // Pop result (newly allocated object).
+
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler);
+  }
+
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();

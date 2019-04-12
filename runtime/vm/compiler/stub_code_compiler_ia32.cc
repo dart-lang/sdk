@@ -4,6 +4,9 @@
 
 #include "vm/globals.h"
 
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -30,6 +33,24 @@ DEFINE_FLAG(bool,
             "Set to true for debugging & verifying the slow paths.");
 
 namespace compiler {
+
+// Ensures that [EAX] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+static void EnsureIsNewOrRemembered(Assembler* assembler) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ testl(EAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  __ EnterCallRuntimeFrame(2 * target::kWordSize);
+  __ movl(Address(ESP, 1 * target::kWordSize), THR);
+  __ movl(Address(ESP, 0 * target::kWordSize), EAX);
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  __ LeaveCallRuntimeFrame();
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   ESP : points to return address.
@@ -773,6 +794,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popl(EAX);  // Pop element type argument.
   __ popl(EDX);  // Pop array length argument (preserved).
   __ popl(EAX);  // Pop return value from return slot.
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveFrame();
   __ ret();
 }
@@ -1131,6 +1158,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ popl(EAX);  // Pop number of context variables argument.
   __ popl(EAX);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   // EAX: new object
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -1397,6 +1430,13 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop argument (class of object).
   __ popl(EAX);  // Pop result (newly allocated object).
+
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler);
+  }
+
   // EAX: new object
   // Restore the frame pointer.
   __ LeaveFrame();

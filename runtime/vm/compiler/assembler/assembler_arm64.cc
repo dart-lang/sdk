@@ -1377,7 +1377,10 @@ void Assembler::TransitionNativeToGenerated(Register state) {
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
   Comment("EnterCallRuntimeFrame");
-  EnterStubFrame();
+  EnterFrame(0);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    TagAndPushPPAndPcMarker();  // Save PP and PC marker.
+  }
 
   // Store fpu registers with the lowest register number at the lowest
   // address.
