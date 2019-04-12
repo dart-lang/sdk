@@ -136,6 +136,9 @@ class KernelTarget extends TargetImplementation {
   final Map<String, String> environmentDefines =
       CompilerContext.current.options.environmentDefines;
 
+  final bool errorOnUnevaluatedConstant =
+      CompilerContext.current.options.errorOnUnevaluatedConstant;
+
   final bool enableAsserts = CompilerContext.current.options.enableAsserts;
 
   final List<Object> clonedFormals = <Object>[];
@@ -777,7 +780,8 @@ class KernelTarget extends TargetImplementation {
           environment,
           new KernelConstantErrorReporter(loader),
           enableAsserts: enableAsserts,
-          desugarSets: !backendTarget.supportsSetLiterals);
+          desugarSets: !backendTarget.supportsSetLiterals,
+          errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(

@@ -1635,6 +1635,14 @@ const MessageCode messageConstEvalNullValue = const MessageCode(
     message: r"""Null value during constant evaluation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalUnevaluated = const MessageCode(
+    "ConstEvalUnevaluated",
+    message: r"""Could not evaluate constant expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

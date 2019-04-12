@@ -193,6 +193,9 @@ ConstEvalIterationInConstMap:
   template: "Iteration can't be used in a constant map."
   analyzerCode: NON_CONSTANT_MAP_ELEMENT
 
+ConstEvalUnevaluated:
+  template: "Could not evaluate constant expression."
+
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION

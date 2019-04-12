@@ -45,6 +45,7 @@ import '../fasta_codes.dart'
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
         messageConstEvalNullValue,
+        messageConstEvalUnevaluated,
         noLength,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateElement,
@@ -83,6 +84,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
     bool enableAsserts: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
+    bool errorOnUnevaluatedConstant: false,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   coreTypes ??= new CoreTypes(component);
@@ -95,6 +97,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
       keepFields: keepFields,
       enableAsserts: enableAsserts,
       desugarSets: desugarSets,
+      errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
   return component;
 }
@@ -109,6 +112,7 @@ void transformLibraries(
     bool keepVariables: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
+    bool errorOnUnevaluatedConstant: false,
     bool enableAsserts: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
@@ -117,6 +121,7 @@ void transformLibraries(
       keepVariables,
       evaluateAnnotations,
       desugarSets,
+      errorOnUnevaluatedConstant,
       typeEnvironment,
       enableAsserts,
       errorReporter);
@@ -150,6 +155,7 @@ class ConstantsTransformer extends Transformer {
   final bool keepVariables;
   final bool evaluateAnnotations;
   final bool desugarSets;
+  final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
       ConstantsBackend backend,
@@ -158,12 +164,14 @@ class ConstantsTransformer extends Transformer {
       this.keepVariables,
       this.evaluateAnnotations,
       this.desugarSets,
+      this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
       bool enableAsserts,
       ErrorReporter errorReporter)
       : constantEvaluator = new ConstantEvaluator(backend, environmentDefines,
             typeEnvironment, enableAsserts, errorReporter,
-            desugarSets: desugarSets);
+            desugarSets: desugarSets,
+            errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
 
   // Transform the library/class members:
 
@@ -454,6 +462,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   Map<String, String> environmentDefines;
+  final bool errorOnUnevaluatedConstant;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
   final bool enableAsserts;
@@ -490,7 +499,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.enableAsserts, this.errorReporter,
-      {this.desugarSets = false})
+      {this.desugarSets = false, this.errorOnUnevaluatedConstant = false})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
@@ -539,7 +548,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     seenUnevaluatedChild = false;
     lazyDepth = 0;
     try {
-      return _evaluateSubexpression(node);
+      Constant result = _evaluateSubexpression(node);
+      if (errorOnUnevaluatedConstant && result is UnevaluatedConstant) {
+        return report(node, messageConstEvalUnevaluated);
+      }
+      return result;
     } on _AbortDueToError catch (e) {
       final Uri uri = getFileUri(e.node);
       final int fileOffset = getFileOffset(uri, e.node);
