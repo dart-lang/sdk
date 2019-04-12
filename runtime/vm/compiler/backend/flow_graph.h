@@ -422,6 +422,8 @@ class FlowGraph : public ZoneAllocated {
   // SSA transformation methods and fields.
   void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
 
+  void CreateCommonConstants();
+
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;

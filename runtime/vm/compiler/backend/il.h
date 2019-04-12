@@ -1964,6 +1964,12 @@ class Definition : public Instruction {
   // redefinition and check instructions.
   Definition* OriginalDefinition();
 
+  // If this definition is a redefinition (in a broad sense, this includes
+  // CheckArrayBound and CheckNull instructions) return [Value] corresponding
+  // to the input which is being redefined.
+  // Otherwise return [nullptr].
+  virtual Value* RedefinedValue() const;
+
   // Find the original definition of [this].
   //
   // This is an extension of [OriginalDefinition] which also follows through any
@@ -2806,6 +2812,8 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual Value* RedefinedValue() const;
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -3030,6 +3038,8 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual Value* RedefinedValue() const;
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -7394,6 +7404,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                         FlowGraphCompiler* compiler);
 
+  virtual Value* RedefinedValue() const;
+
  private:
   const TokenPosition token_pos_;
   const String& function_name_;
@@ -7447,6 +7459,7 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual bool IsCheckBoundBase() { return true; }
   virtual CheckBoundBase* AsCheckBoundBase() { return this; }
+  virtual Value* RedefinedValue() const;
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };

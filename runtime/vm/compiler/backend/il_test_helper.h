@@ -5,14 +5,17 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 
+#include <utility>
 #include <vector>
 
 #include "include/dart_api.h"
 
 #include "platform/allocation.h"
+#include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/unit_test.h"
 
 // The helpers in this file make it easier to write C++ unit tests which assert
@@ -188,6 +191,127 @@ class ILMatcher : public ValueObject {
   FlowGraph* flow_graph_;
   Instruction* cursor_;
   bool trace_;
+};
+
+#if !defined(PRODUCT)
+#define ENTITY_TOCSTRING(v) ((v)->ToCString())
+#else
+#define ENTITY_TOCSTRING(v) "<?>"
+#endif
+
+// Helper to check various IL and object properties and informative error
+// messages if check fails. [entity] should be a pointer to a value.
+// [property] should be an expression which can refer to [entity] using
+// variable named [it].
+// [entity] is expected to have a ToCString() method in non-PRODUCT builds.
+#define EXPECT_PROPERTY(entity, property)                                      \
+  do {                                                                         \
+    auto& it = *entity;                                                        \
+    if (!(property)) {                                                         \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected " #property " for " #entity " which is %s.\n",       \
+                ENTITY_TOCSTRING(entity));                                     \
+    }                                                                          \
+  } while (0)
+
+class FlowGraphBuilderHelper {
+ public:
+  FlowGraphBuilderHelper()
+      : state_(CompilerState::Current()),
+        flow_graph_(MakeDummyGraph(Thread::Current())) {
+    flow_graph_.CreateCommonConstants();
+  }
+
+  TargetEntryInstr* TargetEntry(intptr_t try_index = kInvalidTryIndex) const {
+    return new TargetEntryInstr(flow_graph_.allocate_block_id(), try_index,
+                                state_.GetNextDeoptId());
+  }
+
+  JoinEntryInstr* JoinEntry(intptr_t try_index = kInvalidTryIndex) const {
+    return new JoinEntryInstr(flow_graph_.allocate_block_id(), try_index,
+                              state_.GetNextDeoptId());
+  }
+
+  ConstantInstr* IntConstant(int64_t value) const {
+    return flow_graph_.GetConstant(
+        Integer::Handle(Integer::New(value, Heap::kOld)));
+  }
+
+  ConstantInstr* DoubleConstant(double value) {
+    return flow_graph_.GetConstant(
+        Double::Handle(Double::New(value, Heap::kOld)));
+  }
+
+  PhiInstr* Phi(JoinEntryInstr* join,
+                std::initializer_list<std::pair<BlockEntryInstr*, Definition*>>
+                    incomming) {
+    auto phi = new PhiInstr(join, incomming.size());
+    for (size_t i = 0; i < incomming.size(); i++) {
+      auto input = new Value(flow_graph_.constant_dead());
+      phi->SetInputAt(i, input);
+      input->definition()->AddInputUse(input);
+    }
+    for (auto pair : incomming) {
+      pending_phis_.Add({phi, pair.first, pair.second});
+    }
+    return phi;
+  }
+
+  void FinishGraph() {
+    flow_graph_.DiscoverBlocks();
+    GrowableArray<BitVector*> dominance_frontier;
+    flow_graph_.ComputeDominators(&dominance_frontier);
+
+    for (auto& pending : pending_phis_) {
+      auto join = pending.phi->block();
+      EXPECT(pending.phi->InputCount() == join->PredecessorCount());
+      auto pred_index = join->IndexOfPredecessor(pending.pred);
+      EXPECT(pred_index != -1);
+      pending.phi->InputAt(pred_index)->BindTo(pending.defn);
+    }
+  }
+
+  FlowGraph* flow_graph() { return &flow_graph_; }
+
+ private:
+  static FlowGraph& MakeDummyGraph(Thread* thread) {
+    const Function& func = Function::ZoneHandle(Function::New(
+        String::Handle(Symbols::New(thread, "dummy")),
+        RawFunction::kRegularFunction,
+        /*is_static=*/true,
+        /*is_const=*/false,
+        /*is_abstract=*/false,
+        /*is_external=*/false,
+        /*is_native=*/true,
+        Class::Handle(thread->isolate()->object_store()->object_class()),
+        TokenPosition::kNoSource));
+
+    Zone* zone = thread->zone();
+    ParsedFunction* parsed_function = new (zone) ParsedFunction(thread, func);
+
+    parsed_function->SetNodeSequence(new SequenceNode(
+        TokenPosition::kNoSource, new LocalScope(nullptr, 0, 0)));
+
+    auto graph_entry =
+        new GraphEntryInstr(*parsed_function, Compiler::kNoOSRDeoptId);
+
+    const intptr_t block_id = 1;  // 0 is GraphEntry.
+    graph_entry->set_normal_entry(
+        new FunctionEntryInstr(graph_entry, block_id, kInvalidTryIndex,
+                               CompilerState::Current().GetNextDeoptId()));
+    return *new FlowGraph(*parsed_function, graph_entry, block_id,
+                          PrologueInfo{-1, -1});
+  }
+
+  CompilerState& state_;
+  FlowGraph& flow_graph_;
+
+  struct PendingPhiInput {
+    PhiInstr* phi;
+    BlockEntryInstr* pred;
+    Definition* defn;
+  };
+  GrowableArray<PendingPhiInput> pending_phis_;
 };
 
 }  // namespace dart

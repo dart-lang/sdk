@@ -494,22 +494,31 @@ Object& Definition::constant_value() {
 
 Definition* Definition::OriginalDefinition() {
   Definition* defn = this;
-  while (true) {
-    if (auto redefinition = defn->AsRedefinition()) {
-      defn = redefinition->value()->definition();
-    } else if (auto assert_assignable = defn->AsAssertAssignable()) {
-      defn = assert_assignable->value()->definition();
-    } else if (auto check_array_bound = defn->AsCheckArrayBound()) {
-      defn = check_array_bound->index()->definition();
-    } else if (auto check_bound = defn->AsGenericCheckBound()) {
-      defn = check_bound->index()->definition();
-    } else if (auto check_null = defn->AsCheckNull()) {
-      defn = check_null->value()->definition();
-    } else {
-      break;
-    }
+  Value* unwrapped;
+  while ((unwrapped = defn->RedefinedValue()) != nullptr) {
+    defn = unwrapped->definition();
   }
   return defn;
+}
+
+Value* Definition::RedefinedValue() const {
+  return nullptr;
+}
+
+Value* RedefinitionInstr::RedefinedValue() const {
+  return value();
+}
+
+Value* AssertAssignableInstr::RedefinedValue() const {
+  return value();
+}
+
+Value* CheckBoundBase::RedefinedValue() const {
+  return index();
+}
+
+Value* CheckNullInstr::RedefinedValue() const {
+  return value();
 }
 
 Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {

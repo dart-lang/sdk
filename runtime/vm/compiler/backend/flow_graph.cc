@@ -1076,14 +1076,18 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
   }
 }
 
+void FlowGraph::CreateCommonConstants() {
+  constant_null_ = GetConstant(Object::ZoneHandle());
+  constant_dead_ = GetConstant(Symbols::OptimizedOut());
+}
+
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters) {
   GraphEntryInstr* entry = graph_entry();
 
   // Add global constants to the initial definitions.
-  constant_null_ = GetConstant(Object::ZoneHandle());
-  constant_dead_ = GetConstant(Symbols::OptimizedOut());
+  CreateCommonConstants();
 
   // During regular execution, only the direct parameters appear in
   // the fixed part of the environment. During OSR, however, all

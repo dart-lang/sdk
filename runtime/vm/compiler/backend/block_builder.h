@@ -28,13 +28,15 @@ class BlockBuilder : public ValueObject {
     return def;
   }
 
-  Definition* AddDefinition(Definition* def) {
+  template <typename T>
+  T* AddDefinition(T* def) {
     def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
     AddInstruction(def);
     return def;
   }
 
-  Instruction* AddInstruction(Instruction* instr) {
+  template <typename T>
+  T* AddInstruction(T* instr) {
     if (instr->ComputeCanDeoptimize()) {
       // All instructions that can deoptimize must have an environment attached
       // to them.
