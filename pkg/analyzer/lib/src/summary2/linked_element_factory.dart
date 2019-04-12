@@ -301,20 +301,33 @@ class _ElementRequest {
   ) {
     var classRef = unitRef.getChild('@class');
     var enumRef = unitRef.getChild('@enum');
+    var functionRef = unitRef.getChild('@function');
     var typeAliasRef = unitRef.getChild('@typeAlias');
+    var variableRef = unitRef.getChild('@variable');
     for (var declaration in unitNode.declarations) {
       if (declaration is ClassDeclaration) {
+        var name = declaration.name.name;
+        classRef.getChild(name).node2 = declaration;
+      } else if (declaration is ClassTypeAlias) {
         var name = declaration.name.name;
         classRef.getChild(name).node2 = declaration;
       } else if (declaration is EnumDeclaration) {
         var name = declaration.name.name;
         enumRef.getChild(name).node2 = declaration;
+      } else if (declaration is FunctionDeclaration) {
+        var name = declaration.name.name;
+        functionRef.getChild(name).node2 = declaration;
       } else if (declaration is FunctionTypeAlias) {
         var name = declaration.name.name;
         typeAliasRef.getChild(name).node2 = declaration;
       } else if (declaration is GenericTypeAlias) {
         var name = declaration.name.name;
         typeAliasRef.getChild(name).node2 = declaration;
+      } else if (declaration is TopLevelVariableDeclaration) {
+        for (var variable in declaration.variables.variables) {
+          var name = variable.name.name;
+          variableRef.getChild(name).node2 = declaration;
+        }
       }
     }
   }

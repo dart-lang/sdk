@@ -4872,7 +4872,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   bool get isCovariant {
     if (linkedNode != null) {
-      return linkedContext.isCovariantField(linkedNode);
+      return linkedContext.isCovariant(linkedNode);
     }
 
     if (_unlinkedVariable != null) {
@@ -6309,6 +6309,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   String get documentationComment {
+    if (linkedNode != null) {
+      var comment = linkedContext.getLibraryDocumentationComment(linkedNode);
+      return getCommentNodeRawText(comment);
+    }
     if (unlinkedDefiningUnit != null) {
       return unlinkedDefiningUnit.libraryDocumentationComment?.text;
     }
@@ -8071,13 +8075,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isCovariant {
-//    if (linkedNode != null) {
-//      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
-//        var parameter = linkedNode.defaultFormalParameter_parameter;
-//        return parameter.normalFormalParameter_isCovariant;
-//      }
-//      return linkedNode.normalFormalParameter_isCovariant;
-//    }
+    if (linkedNode != null) {
+      return linkedContext.isCovariant(linkedNode);
+    }
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }

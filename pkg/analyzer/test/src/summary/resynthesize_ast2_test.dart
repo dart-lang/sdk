@@ -275,12 +275,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_export_class_type_alias() async {
-    await super.test_export_class_type_alias();
-  }
-
-  @override
-  @failingTest
   test_export_configurations_useFirst() async {
     await super.test_export_configurations_useFirst();
   }
@@ -443,18 +437,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_library_documented_lines() async {
-    await super.test_library_documented_lines();
-  }
-
-  @override
-  @failingTest
-  test_library_documented_stars() async {
-    await super.test_library_documented_stars();
-  }
-
-  @override
-  @failingTest
   test_method_inferred_type_nonStatic_implicit_param() async {
     await super.test_method_inferred_type_nonStatic_implicit_param();
   }
@@ -475,12 +457,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_parameter_covariant() async {
-    await super.test_parameter_covariant();
-  }
-
-  @override
-  @failingTest
   test_parameter_covariant_inherited() async {
     await super.test_parameter_covariant_inherited();
   }
@@ -489,12 +465,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_parts_invalidUri_nullStringValue() async {
     await super.test_parts_invalidUri_nullStringValue();
-  }
-
-  @override
-  @failingTest
-  test_setter_covariant() async {
-    await super.test_setter_covariant();
   }
 
   @override

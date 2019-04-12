@@ -298,6 +298,15 @@ class LinkedUnitContext {
     return null;
   }
 
+  Comment getLibraryDocumentationComment(CompilationUnit unit) {
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        return directive.documentationComment;
+      }
+    }
+    return null;
+  }
+
   List<Annotation> getLibraryMetadata(CompilationUnit unit) {
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
@@ -582,8 +591,10 @@ class LinkedUnitContext {
     return isConstKeyword(node.variableDeclarationList_keyword);
   }
 
-  bool isCovariantField(AstNode node) {
-    if (node is VariableDeclaration) {
+  bool isCovariant(AstNode node) {
+    if (node is FormalParameter) {
+      return node.covariantKeyword != null;
+    } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
       return parent2 is FieldDeclaration && parent2.covariantKeyword != null;
     }
