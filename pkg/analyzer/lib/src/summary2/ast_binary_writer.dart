@@ -1472,7 +1472,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     builder
       ..namespaceDirective_combinators = _writeNodeList(node.combinators)
       ..namespaceDirective_configurations = _writeNodeList(node.configurations)
-      ..namespaceDirective_selectedUriContent = node.selectedUriContent
+      ..namespaceDirective_selectedUri = LazyDirective.getSelectedUri(node)
       ..directive_semicolon = _getToken(node.semicolon);
   }
 

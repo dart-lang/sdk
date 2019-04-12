@@ -4700,10 +4700,7 @@ class ExportElementImpl extends UriReferencedElementImpl
     if (_exportedLibrary != null) return _exportedLibrary;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var uri = context.directiveUri(librarySource.uri, linkedNode);
-      var elementFactory = context.bundleContext.elementFactory;
-      return _exportedLibrary = elementFactory.libraryOfUri('$uri');
+      return _exportedLibrary = linkedContext.directiveLibrary(linkedNode);
     }
 
     if (_unlinkedExportNonPublic != null) {
@@ -5898,10 +5895,7 @@ class ImportElementImpl extends UriReferencedElementImpl
     if (_importedLibrary != null) return _importedLibrary;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var uri = context.directiveUri(librarySource.uri, linkedNode);
-      var elementFactory = context.bundleContext.elementFactory;
-      return _importedLibrary = elementFactory.libraryOfUri('$uri');
+      return _importedLibrary = linkedContext.directiveLibrary(linkedNode);
     }
 
     if (_linkedDependency != null) {

@@ -1895,11 +1895,11 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
-  variantField_23:string (id: 23);
+  variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
 
-  variantField_20:string (id: 20);
+  variantField_23:LinkedNodeType (id: 23);
 
   variantField_22:string (id: 22);
 

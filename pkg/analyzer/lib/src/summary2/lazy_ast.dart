@@ -19,16 +19,16 @@ class LazyAst {
 
   LazyAst(this.data);
 
-  static bool isSimplyBounded(AstNode node) {
-    return node.getProperty(_isSimplyBoundedKey);
-  }
-
   static DartType getReturnType(AstNode node) {
     return node.getProperty(_returnTypeKey);
   }
 
   static DartType getType(AstNode node) {
     return node.getProperty(_typeKey);
+  }
+
+  static bool isSimplyBounded(AstNode node) {
+    return node.getProperty(_isSimplyBoundedKey);
   }
 
   static void setReturnType(AstNode node, DartType type) {
@@ -349,6 +349,7 @@ class LazyConstructorDeclaration {
 
 class LazyDirective {
   static const _key = 'lazyAst';
+  static const _uriKey = 'lazyAst_selectedUri';
 
   final LinkedNode data;
 
@@ -358,6 +359,10 @@ class LazyDirective {
 
   static LazyDirective get(Directive node) {
     return node.getProperty(_key);
+  }
+
+  static String getSelectedUri(UriBasedDirective node) {
+    return node.getProperty(_uriKey);
   }
 
   static void readMetadata(AstBinaryReader reader, Directive node) {
@@ -374,6 +379,13 @@ class LazyDirective {
 
   static void setData(Directive node, LinkedNode data) {
     node.setProperty(_key, LazyDirective(data));
+    if (node is NamespaceDirective) {
+      node.setProperty(_uriKey, data.namespaceDirective_selectedUri);
+    }
+  }
+
+  static void setSelectedUri(UriBasedDirective node, String uriStr) {
+    node.setProperty(_uriKey, uriStr);
   }
 }
 

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -27,15 +28,18 @@ import 'package:analyzer/src/summary2/type_builder.dart';
 LinkResult link(
   AnalysisOptions analysisOptions,
   SourceFactory sourceFactory,
+  DeclaredVariables declaredVariables,
   List<LinkedNodeBundle> inputs,
   Map<Source, Map<Source, CompilationUnit>> unitMap,
 ) {
-  var linker = Linker(analysisOptions, sourceFactory);
+  var linker = Linker(analysisOptions, sourceFactory, declaredVariables);
   linker.link(inputs, unitMap);
   return LinkResult(linker.linkingBundle);
 }
 
 class Linker {
+  final DeclaredVariables declaredVariables;
+
   final Reference rootReference = Reference.root();
   LinkedElementFactory elementFactory;
 
@@ -51,7 +55,11 @@ class Linker {
   Dart2TypeSystem typeSystem;
   InheritanceManager2 inheritance;
 
-  Linker(AnalysisOptions analysisOptions, SourceFactory sourceFactory) {
+  Linker(
+    AnalysisOptions analysisOptions,
+    SourceFactory sourceFactory,
+    this.declaredVariables,
+  ) {
     var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
     dynamicRef.element = DynamicElementImpl.instance;
 
@@ -98,6 +106,12 @@ class Linker {
     }
   }
 
+  void _resolveUriDirectives() {
+    for (var library in builders.values) {
+      library.resolveUriDirectives();
+    }
+  }
+
   void _addSyntheticConstructors() {
     for (var library in builders.values) {
       library.addSyntheticConstructors();
@@ -105,6 +119,7 @@ class Linker {
   }
 
   void _buildOutlines() {
+    _resolveUriDirectives();
     _addExporters();
     _computeLibraryScopes();
     _addSyntheticConstructors();

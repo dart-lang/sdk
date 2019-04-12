@@ -81,11 +81,10 @@ class LinkedUnitContext {
     node.name.staticElement = element;
   }
 
-  /// Return the absolute URI referenced in the [directive].
-  Uri directiveUri(Uri libraryUri, UriBasedDirective directive) {
-    var relativeUriStr = directive.uri.stringValue;
-    var relativeUri = Uri.parse(relativeUriStr);
-    return resolveRelativeUri(libraryUri, relativeUri);
+  /// Return the [LibraryElement] referenced in the [node].
+  LibraryElement directiveLibrary(UriBasedDirective node) {
+    var uriStr = LazyDirective.getSelectedUri(node);
+    return bundleContext.elementFactory.libraryOfUri(uriStr);
   }
 
   int getCodeLength(AstNode node) {

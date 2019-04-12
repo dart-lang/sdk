@@ -1862,13 +1862,11 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   List<LinkedNode> get namespaceDirective_configurations;
 
-  @VariantId(23, variantList: [
+  @VariantId(20, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
-    LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
   ])
-  String get namespaceDirective_selectedUriContent;
+  String get namespaceDirective_selectedUri;
 
   @VariantId(6, variant: LinkedNodeKind.nativeClause)
   LinkedNode get nativeClause_name;
@@ -2210,7 +2208,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.typeName)
   int get typeName_question;
 
-  @VariantId(24, variant: LinkedNodeKind.typeName)
+  @VariantId(23, variant: LinkedNodeKind.typeName)
   LinkedNodeType get typeName_type;
 
   @VariantId(7, variant: LinkedNodeKind.typeName)

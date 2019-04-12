@@ -13,6 +13,7 @@ import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -48,9 +49,7 @@ class SourceLibraryBuilder {
     var unitContext = context.units[0];
     for (var directive in unitContext.unit_withDirectives.directives) {
       if (directive is ast.ExportDirective) {
-        var relativeUriStr = directive.uri.stringValue;
-        var relativeUri = Uri.parse(relativeUriStr);
-        var uri = resolveRelativeUri(this.uri, relativeUri);
+        var uri = _selectAbsoluteUri(directive);
         var exported = linker.builders[uri];
         if (exported != null) {
           var combinators = directive.combinators.map((node) {
@@ -310,12 +309,45 @@ class SourceLibraryBuilder {
     }
   }
 
+  void resolveUriDirectives() {
+    var unitContext = context.units[0];
+    for (var directive in unitContext.unit.directives) {
+      if (directive is ast.NamespaceDirective) {
+        var uri = _selectAbsoluteUri(directive);
+        LazyDirective.setSelectedUri(directive, '$uri');
+      }
+    }
+  }
+
   void storeExportScope() {
     var linkingBundleContext = linker.linkingBundleContext;
     for (var reference in exportScope.map.values) {
       var index = linkingBundleContext.indexOfReference(reference);
       node.exports.add(index);
     }
+  }
+
+  Uri _selectAbsoluteUri(ast.NamespaceDirective directive) {
+    var relativeUriStr = _selectRelativeUri(
+      directive.configurations,
+      directive.uri.stringValue,
+    );
+    var relativeUri = Uri.parse(relativeUriStr);
+    return resolveRelativeUri(this.uri, relativeUri);
+  }
+
+  String _selectRelativeUri(
+    List<ast.Configuration> configurations,
+    String defaultUri,
+  ) {
+    for (var configuration in configurations) {
+      var name = configuration.name.components.join('.');
+      var value = configuration.value ?? 'true';
+      if (linker.declaredVariables.get(name) == (value)) {
+        return configuration.uri.stringValue;
+      }
+    }
+    return defaultUri;
   }
 
   static void build(Linker linker, Source librarySource,

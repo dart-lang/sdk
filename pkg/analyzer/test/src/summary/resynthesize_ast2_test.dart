@@ -161,6 +161,7 @@ T max<T extends num>(T a, T b) => null;
     var linkResult = link(
       AnalysisOptionsImpl(),
       sourceFactory,
+      declaredVariables,
       [dartCoreResult.bundle],
       libraryUnitMap,
     );
@@ -275,24 +276,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_export_configurations_useFirst() async {
-    await super.test_export_configurations_useFirst();
-  }
-
-  @override
-  @failingTest
-  test_export_configurations_useSecond() async {
-    await super.test_export_configurations_useSecond();
-  }
-
-  @override
-  @failingTest
-  test_exportImport_configurations_useFirst() async {
-    await super.test_exportImport_configurations_useFirst();
-  }
-
-  @override
-  @failingTest
   test_field_formal_param_inferred_type_implicit() async {
     await super.test_field_formal_param_inferred_type_implicit();
   }
@@ -325,12 +308,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_implicitConstructor_named_const() async {
     await super.test_implicitConstructor_named_const();
-  }
-
-  @override
-  @failingTest
-  test_import_configurations_useFirst() async {
-    await super.test_import_configurations_useFirst();
   }
 
   @override
@@ -539,6 +516,7 @@ T max<T extends num>(T a, T b) => null;
     return link(
       AnalysisOptionsImpl(),
       sourceFactory,
+      declaredVariables,
       [],
       libraryUnitMap,
     );
