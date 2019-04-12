@@ -2253,6 +2253,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         break;
 
       case Opcode.kNegateInt:
+      case Opcode.kNegateDouble:
         _generateNode(node.receiver);
         break;
 
@@ -2271,6 +2272,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       case Opcode.kCompareIntLt:
       case Opcode.kCompareIntGe:
       case Opcode.kCompareIntLe:
+      case Opcode.kAddDouble:
+      case Opcode.kSubDouble:
+      case Opcode.kMulDouble:
+      case Opcode.kDivDouble:
+      case Opcode.kCompareDoubleEq:
+      case Opcode.kCompareDoubleGt:
+      case Opcode.kCompareDoubleLt:
+      case Opcode.kCompareDoubleGe:
+      case Opcode.kCompareDoubleLe:
         _generateNode(node.receiver);
         _generateNode(node.arguments.positional.single);
         break;

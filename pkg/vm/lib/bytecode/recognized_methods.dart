@@ -29,13 +29,27 @@ class RecognizedMethods {
     '<=': Opcode.kCompareIntLe,
   };
 
+  static const binaryDoubleOps = <String, Opcode>{
+    '+': Opcode.kAddDouble,
+    '-': Opcode.kSubDouble,
+    '*': Opcode.kMulDouble,
+    '/': Opcode.kDivDouble,
+    '==': Opcode.kCompareDoubleEq,
+    '>': Opcode.kCompareDoubleGt,
+    '<': Opcode.kCompareDoubleLt,
+    '>=': Opcode.kCompareDoubleGe,
+    '<=': Opcode.kCompareDoubleLe,
+  };
+
   final TypeEnvironment typeEnv;
 
   RecognizedMethods(this.typeEnv);
 
   DartType staticType(Expression expr) => getStaticType(expr, typeEnv);
 
-  bool isInt(Expression expr) => staticType(expr) == typeEnv.intType;
+  bool isInt(DartType type) => type == typeEnv.intType;
+
+  bool isDouble(DartType type) => type == typeEnv.doubleType;
 
   Opcode specializedBytecodeFor(MethodInvocation node) {
     final args = node.arguments;
@@ -58,8 +72,13 @@ class RecognizedMethods {
   }
 
   Opcode specializedBytecodeForUnaryOp(String selector, Expression arg) {
-    if (selector == 'unary-' && isInt(arg)) {
-      return Opcode.kNegateInt;
+    if (selector == 'unary-') {
+      final argType = staticType(arg);
+      if (isInt(argType)) {
+        return Opcode.kNegateInt;
+      } else if (isDouble(argType)) {
+        return Opcode.kNegateDouble;
+      }
     }
 
     return null;
@@ -71,10 +90,15 @@ class RecognizedMethods {
       return Opcode.kEqualsNull;
     }
 
-    if (isInt(a) && isInt(b)) {
+    final aType = staticType(a);
+    final bType = staticType(b);
+
+    if (isInt(aType) && isInt(bType)) {
       return binaryIntOps[selector];
     }
-
+    if (isDouble(aType) && isDouble(bType)) {
+      return binaryDoubleOps[selector];
+    }
     return null;
   }
 }

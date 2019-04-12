@@ -1218,6 +1218,22 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   }                                                                            \
   ASSERT(Integer::GetInt64Value(RAW_CAST(Integer, SP[0])) == result);
 
+#define UNBOX_DOUBLE(value, obj, selector)                                     \
+  double value;                                                                \
+  {                                                                            \
+    if (UNLIKELY(obj == null_value)) {                                         \
+      SP[0] = selector.raw();                                                  \
+      goto ThrowNullError;                                                     \
+    }                                                                          \
+    value = Double::RawCast(obj)->ptr()->value_;                               \
+  }
+
+#define BOX_DOUBLE_RESULT(result)                                              \
+  if (!AllocateDouble(thread, result, pc, FP, SP)) {                           \
+    HANDLE_EXCEPTION;                                                          \
+  }                                                                            \
+  ASSERT(Utils::DoublesBitEqual(Double::RawCast(SP[0])->ptr()->value_, result));
+
 bool Interpreter::AssertAssignable(Thread* thread,
                                    uint32_t* pc,
                                    RawObject** FP,
@@ -3035,6 +3051,103 @@ SwitchDispatch:
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::LessEqualOperator());
     UNBOX_INT64(b, SP[1], Symbols::LessEqualOperator());
+    SP[0] = (a <= b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(NegateDouble, 0);
+    UNBOX_DOUBLE(value, SP[0], Symbols::UnaryMinus());
+    double result = -value;
+    BOX_DOUBLE_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(AddDouble, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::Plus());
+    UNBOX_DOUBLE(b, SP[1], Symbols::Plus());
+    double result = a + b;
+    BOX_DOUBLE_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(SubDouble, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::Minus());
+    UNBOX_DOUBLE(b, SP[1], Symbols::Minus());
+    double result = a - b;
+    BOX_DOUBLE_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(MulDouble, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::Star());
+    UNBOX_DOUBLE(b, SP[1], Symbols::Star());
+    double result = a * b;
+    BOX_DOUBLE_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DivDouble, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::Slash());
+    UNBOX_DOUBLE(b, SP[1], Symbols::Slash());
+    double result = a / b;
+    BOX_DOUBLE_RESULT(result);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareDoubleEq, 0);
+    SP -= 1;
+    if ((SP[0] == null_value) || (SP[1] == null_value)) {
+      SP[0] = (SP[0] == SP[1]) ? true_value : false_value;
+    } else {
+      double a = Double::RawCast(SP[0])->ptr()->value_;
+      double b = Double::RawCast(SP[1])->ptr()->value_;
+      SP[0] = (a == b) ? true_value : false_value;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareDoubleGt, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::RAngleBracket());
+    UNBOX_DOUBLE(b, SP[1], Symbols::RAngleBracket());
+    SP[0] = (a > b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareDoubleLt, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::LAngleBracket());
+    UNBOX_DOUBLE(b, SP[1], Symbols::LAngleBracket());
+    SP[0] = (a < b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareDoubleGe, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::GreaterEqualOperator());
+    UNBOX_DOUBLE(b, SP[1], Symbols::GreaterEqualOperator());
+    SP[0] = (a >= b) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CompareDoubleLe, 0);
+    SP -= 1;
+    UNBOX_DOUBLE(a, SP[0], Symbols::LessEqualOperator());
+    UNBOX_DOUBLE(b, SP[1], Symbols::LessEqualOperator());
     SP[0] = (a <= b) ? true_value : false_value;
     DISPATCH();
   }
