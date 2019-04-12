@@ -46,11 +46,15 @@ abstract class Comparable<T> {
   int compareTo(T other);
 }
 
-class Iterable<T> {}
+class Iterable<E> {
+  Iterable<R> map<R>(R f(E e));
+
+  List<E> toList();
+}
 
 class Iterator<T> {}
 
-class List<T> {}
+class List<E> implements Iterable<E> {}
 
 class Map<K, V> {}
 
@@ -197,12 +201,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_class_type_parameters_bound() async {
-    await super.test_class_type_parameters_bound();
-  }
-
-  @override
-  @failingTest
   test_const_constructor_inferred_args() async {
     await super.test_const_constructor_inferred_args();
   }
@@ -224,12 +222,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_const_reference_topLevelVariable_imported_withPrefix() async {
     await super.test_const_reference_topLevelVariable_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_const_topLevel_typedList_typedefArgument() async {
-    await super.test_const_topLevel_typedList_typedefArgument();
   }
 
   @override
@@ -326,20 +318,8 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_infer_generic_typedef_complex() async {
-    await super.test_infer_generic_typedef_complex();
-  }
-
-  @override
-  @failingTest
   test_inference_issue_32394() async {
     await super.test_inference_issue_32394();
-  }
-
-  @override
-  @failingTest
-  test_inference_map() async {
-    await super.test_inference_map();
   }
 
   @override
@@ -453,6 +433,8 @@ T max<T extends num>(T a, T b) => null;
   @override
   @failingTest
   test_syntheticFunctionType_genericClosure() async {
+    // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
+    // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
     await super.test_syntheticFunctionType_genericClosure();
   }
 
@@ -466,12 +448,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_inference_depends_on_exported_variable() async {
     await super.test_type_inference_depends_on_exported_variable();
-  }
-
-  @override
-  @failingTest
-  test_typedef_type_parameters_bound() async {
-    await super.test_typedef_type_parameters_bound();
   }
 
   @override

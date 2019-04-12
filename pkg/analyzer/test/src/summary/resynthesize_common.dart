@@ -3885,11 +3885,21 @@ const List<C> v = const <
 typedef int F(String id);
 const v = const <F>[];
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+typedef F = int Function(String id);
+const List<(String) → int> v = const <
+        F/*location: test.dart;F*/>[];
+''');
+    } else {
+      // This is wrong.
+      // `F` must be the reference to `typedef F` element, not the type.
+      checkElementText(library, r'''
 typedef F = int Function(String id);
 const List<(String) → int> v = const <
         null/*location: test.dart;F;-*/>[];
 ''');
+    }
   }
 
   test_const_topLevel_typedMap() async {
@@ -6250,7 +6260,6 @@ D d;
 ''');
   }
 
-  @failingTest
   void test_infer_generic_typedef_complex() async {
     // TODO(paulberry, scheglov): get this test to pass.
     var library = await checkLibrary('''
@@ -6262,7 +6271,18 @@ class D<T,U> {}
 D<int,U> f<U>() => null;
 const x = const C(f);
 ''');
-    checkElementText(library, '''TODO(paulberry, scheglov)''');
+    checkElementText(library, '''
+typedef F<T> = D<T, U> Function<U>();
+class C<V> {
+  const C(<U>() → D<V, U> f);
+}
+class D<T, U> {
+}
+const C<int> x = const
+        C/*location: test.dart;C*/(
+        f/*location: test.dart;f*/);
+D<int, U> f<U>() {}
+''');
   }
 
   void test_infer_generic_typedef_simple() async {

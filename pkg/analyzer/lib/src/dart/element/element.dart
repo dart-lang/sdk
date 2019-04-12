@@ -1021,6 +1021,12 @@ class ClassElementImpl extends AbstractClassElementImpl
 
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
+
+      var coreTypes = context.bundleContext.elementFactory.coreTypes;
+      if (identical(this, coreTypes.objectClass)) {
+        return null;
+      }
+
       var type = context.getSuperclass(linkedNode)?.type;
       if (_isInterfaceTypeClass(type)) {
         return _supertype = type;

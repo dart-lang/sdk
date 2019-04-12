@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -19,8 +20,14 @@ class LinkedElementFactory {
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
 
+  CoreTypes _coreTypes;
+
   LinkedElementFactory(
       this.analysisContext, this.analysisSession, this.rootReference);
+
+  CoreTypes get coreTypes {
+    return _coreTypes ??= CoreTypes(this);
+  }
 
   void addBundle(LinkedBundleContext context) {
     libraryMap.addAll(context.libraryMap);
