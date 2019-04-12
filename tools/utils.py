@@ -472,7 +472,7 @@ def GetGitRevision():
 
 
 def GetShortGitHash():
-  p = subprocess.Popen(['git', '--short', 'rev-parse', 'HEAD'],
+  p = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
                        stdout = subprocess.PIPE,
                        stderr = subprocess.STDOUT, shell=IsWindows(),
                        cwd = DART_DIR)
