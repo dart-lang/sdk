@@ -105,23 +105,9 @@ static void* MapAligned(zx_handle_t vmar,
   }
   ASSERT(base == aligned_base);
 
-  // Unmap the unused prefix and suffix. See ZX-3917 and/or ZX-1173.
-  if (orig_base != base) {
-    status = zx_vmar_unmap(vmar, orig_base, base - orig_base);
-    if (status != ZX_OK) {
-      LOG_ERR("zx_vmar_unmap(0x%lx, 0x%lx) failed: %s\n", orig_base,
-              base - orig_base, zx_status_get_string(status));
-    }
-  }
-  if ((orig_base + padded_size) != (base + size)) {
-    status = zx_vmar_unmap(vmar, base + size,
-                           (orig_base + padded_size) - (base + size));
-    if (status != ZX_OK) {
-      LOG_ERR("zx_vmar_unmap(0x%lx, 0x%lx) failed: %s\n", base + size,
-              (orig_base + padded_size) - (base + size),
-              zx_status_get_string(status));
-    }
-  }
+  // Unmap the unused prefix and suffix.
+  Unmap(vmar, orig_base, base);
+  Unmap(vmar, base + size, orig_base + padded_size);
 
   return reinterpret_cast<void*>(base);
 }
