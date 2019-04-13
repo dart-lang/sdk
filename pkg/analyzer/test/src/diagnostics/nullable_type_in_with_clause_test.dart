@@ -21,17 +21,49 @@ class NullableTypeInWithClauseTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
-  test_nonNullable() async {
+  test_class_nonNullable() async {
     assertNoErrorsInCode('''
 class A {}
 class B with A {}
 ''');
   }
 
-  test_nullable() async {
+  test_class_nullable() async {
     assertErrorsInCode('''
 class A {}
 class B with A? {}
+''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE]);
+  }
+
+  test_classAlias_withClass_nonNullable() async {
+    assertNoErrorsInCode('''
+class A {}
+class B {}
+class C = A with B;
+''');
+  }
+
+  test_classAlias_withClass_nullable() async {
+    assertErrorsInCode('''
+class A {}
+class B {}
+class C = A with B?;
+''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE]);
+  }
+
+  test_classAlias_withMixin_nonNullable() async {
+    assertNoErrorsInCode('''
+class A {}
+mixin B {}
+class C = A with B;
+''');
+  }
+
+  test_classAlias_withMixin_nullable() async {
+    assertErrorsInCode('''
+class A {}
+mixin B {}
+class C = A with B?;
 ''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE]);
   }
 }

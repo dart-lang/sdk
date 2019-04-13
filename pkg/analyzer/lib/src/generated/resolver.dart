@@ -6797,7 +6797,7 @@ class TypeNameResolver {
   /// `true` if it appears in a location where a nullable type is not allowed.
   void _reportInvalidNullableType(TypeName typeName) {
     AstNode parent = typeName.parent;
-    if (parent is ExtendsClause) {
+    if (parent is ExtendsClause || parent is ClassTypeAlias) {
       reportErrorForNode(
           CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, typeName);
     } else if (parent is ImplementsClause) {

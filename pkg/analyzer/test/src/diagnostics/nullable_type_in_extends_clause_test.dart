@@ -34,4 +34,36 @@ class A {}
 class B extends A? {}
 ''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE]);
   }
+
+  test_classAlias_withClass_nonNullable() async {
+    assertNoErrorsInCode('''
+class A {}
+class B {}
+class C = A with B;
+''');
+  }
+
+  test_classAlias_withClass_nullable() async {
+    assertErrorsInCode('''
+class A {}
+class B {}
+class C = A? with B;
+''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE]);
+  }
+
+  test_classAlias_withMixin_nonNullable() async {
+    assertNoErrorsInCode('''
+class A {}
+mixin B {}
+class C = A with B;
+''');
+  }
+
+  test_classAlias_withMixin_nullable() async {
+    assertErrorsInCode('''
+class A {}
+mixin B {}
+class C = A? with B;
+''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE]);
+  }
 }
