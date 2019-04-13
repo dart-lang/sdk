@@ -2058,6 +2058,30 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   void test_nullCheckPropertyAccess3() {
     parseNNBDCompilationUnit('f() { var x = super.p! + 7; }');
   }
+
+  void test_postfix_null_assertion_and_unary_prefix_operator_precedence() {
+    // -x! is parsed as -(x!).
+    var unit = parseNNBDCompilationUnit('void main() { -x!; }');
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var outerExpression = statement.expression as PrefixExpression;
+    expect(outerExpression.operator.type, TokenType.MINUS);
+    var innerExpression = outerExpression.operand as PostfixExpression;
+    expect(innerExpression.operator.type, TokenType.BANG);
+  }
+
+  void test_postfix_null_assertion_of_postfix_expression() {
+    // x++! is parsed as (x++)!.
+    var unit = parseNNBDCompilationUnit('void main() { x++!; }');
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var outerExpression = statement.expression as PostfixExpression;
+    expect(outerExpression.operator.type, TokenType.BANG);
+    var innerExpression = outerExpression.operand as PostfixExpression;
+    expect(innerExpression.operator.type, TokenType.PLUS_PLUS);
+  }
 }
 
 /**

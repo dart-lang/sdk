@@ -3870,7 +3870,7 @@ class Parser {
     }
     Token next = token.next;
     TokenType type = next.type;
-    int tokenLevel = type.precedence;
+    int tokenLevel = _computePrecedence(type);
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
       while (identical(tokenLevel, level)) {
@@ -3893,13 +3893,10 @@ class Parser {
               (identical(type, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token.next);
             token = next;
+          } else if (identical(type, TokenType.BANG)) {
+            listener.handleNonNullAssertExpression(token.next);
+            token = next;
           }
-        } else if (identical(tokenLevel, PREFIX_PRECEDENCE) &&
-            (identical(type, TokenType.BANG))) {
-          // The '!' has prefix precedence but here it's being used as a
-          // postfix operator to assert the expression has a non-null value.
-          listener.handleNonNullAssertExpression(token.next);
-          token = next;
         } else if (identical(tokenLevel, SELECTOR_PRECEDENCE)) {
           if (identical(type, TokenType.PERIOD) ||
               identical(type, TokenType.QUESTION_PERIOD)) {
@@ -3954,10 +3951,20 @@ class Parser {
         }
         next = token.next;
         type = next.type;
-        tokenLevel = type.precedence;
+        tokenLevel = _computePrecedence(type);
       }
     }
     return token;
+  }
+
+  int _computePrecedence(TokenType type) {
+    if (identical(type, TokenType.BANG)) {
+      // The '!' has prefix precedence but here it's being used as a
+      // postfix operator to assert the expression has a non-null value.
+      return POSTFIX_PRECEDENCE;
+    } else {
+      return type.precedence;
+    }
   }
 
   Token parseCascadeExpression(Token token) {
