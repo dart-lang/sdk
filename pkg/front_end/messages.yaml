@@ -221,7 +221,7 @@ Encoding:
 
 ExperimentNotEnabled:
   index: 93
-  template: "This requires the --#string experiment to be enabled."
+  template: "This requires the '#string' experiment to be enabled."
   tip: "Try enabling this experiment by adding it to the command line when compiling and running."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 

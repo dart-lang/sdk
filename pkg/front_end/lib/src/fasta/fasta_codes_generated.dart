@@ -3233,7 +3233,7 @@ const Template<
             string)> templateExperimentNotEnabled = const Template<
         Message Function(String string)>(
     messageTemplate:
-        r"""This requires the --#string experiment to be enabled.""",
+        r"""This requires the '#string' experiment to be enabled.""",
     tipTemplate:
         r"""Try enabling this experiment by adding it to the command line when compiling and running.""",
     withArguments: _withArgumentsExperimentNotEnabled);
@@ -3248,7 +3248,7 @@ const Code<Message Function(String string)> codeExperimentNotEnabled =
 Message _withArgumentsExperimentNotEnabled(String string) {
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeExperimentNotEnabled,
-      message: """This requires the --${string} experiment to be enabled.""",
+      message: """This requires the '${string}' experiment to be enabled.""",
       tip:
           """Try enabling this experiment by adding it to the command line when compiling and running.""",
       arguments: {'string': string});

@@ -251,7 +251,7 @@ const ParserErrorCode _EXPECTED_INSTEAD = const ParserErrorCode(
 
 const ParserErrorCode _EXPERIMENT_NOT_ENABLED = const ParserErrorCode(
     'EXPERIMENT_NOT_ENABLED',
-    r"This requires the --#string experiment to be enabled.",
+    r"This requires the '#string' experiment to be enabled.",
     correction:
         "Try enabling this experiment by adding it to the command line when compiling and running.");
 
