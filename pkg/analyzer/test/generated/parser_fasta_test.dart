@@ -2730,6 +2730,101 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
+  void test_languageVersion_afterImport() {
+    var unit = parseCompilationUnit('''
+import 'foo.dart';
+// @dart = 2.3
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_beforeComment() {
+    var unit = parseCompilationUnit('''
+// some other comment
+// @dart = 2.3
+// yet another comment
+import 'foo.dart';
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeFunction() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.3
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeImport() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeImport_afterScript() {
+    var unit = parseCompilationUnit('''
+#!/bin/dart
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeLibrary() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.3
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_incomplete_version() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_invalid_identifier() {
+    var unit = parseCompilationUnit('''
+// @dart = blat
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_invalid_version() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.x
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_unspecified() {
+    var unit = parseCompilationUnit('''
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
   void test_parseClassDeclaration_native_allowed() {
     allowNativeClause = true;
     test_parseClassDeclaration_native();

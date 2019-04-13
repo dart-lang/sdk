@@ -56,8 +56,9 @@ import 'package:front_end/src/fasta/source/stack_listener.dart'
     show NullValue, StackListener;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
-    show SyntheticStringToken, SyntheticToken;
+    show CommentToken, SyntheticStringToken, SyntheticToken;
 import 'package:kernel/ast.dart' show AsyncMarker;
+import 'package:pub_semver/pub_semver.dart';
 
 const _invalidCollectionElement = const _InvalidCollectionElement._();
 
@@ -68,6 +69,7 @@ class AstBuilder extends StackListener {
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
   ScriptTag scriptTag;
+  Version languageVersion;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
   final localDeclarations = <int, AstNode>{};
@@ -482,6 +484,7 @@ class AstBuilder extends StackListener {
     CompilationUnitImpl unit = ast.compilationUnit(
             beginToken, scriptTag, directives, declarations, endToken)
         as CompilationUnitImpl;
+    unit.languageVersion = languageVersion;
     unit.isNonNullable = enableNonNullable;
     push(unit);
   }
@@ -2468,6 +2471,16 @@ class AstBuilder extends StackListener {
 
     SimpleIdentifier name = pop();
     push(ast.label(name, colon));
+  }
+
+  @override
+  void handleLanguageVersion(Token commentToken, int major, int minor) {
+    debugEvent('LanguageVersion');
+    assert(commentToken is CommentToken);
+    assert(major != null);
+    assert(minor != null);
+
+    languageVersion = Version(major, minor, 0);
   }
 
   void handleLiteralBool(Token token) {

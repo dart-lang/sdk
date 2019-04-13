@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:pub_semver/src/version.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -2042,6 +2043,9 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// structure has not been resolved.
   @override
   CompilationUnitElement declaredElement;
+
+  @override
+  Version languageVersion;
 
   /// The line information for this compilation unit.
   @override
