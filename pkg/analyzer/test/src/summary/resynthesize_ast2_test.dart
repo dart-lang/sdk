@@ -62,6 +62,8 @@ abstract class Null {}
 
 class Object {
   const Object();
+  
+  String toString();
 }
 
 abstract class String {
@@ -214,24 +216,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_const_reference_topLevelVariable_imported() async {
-    await super.test_const_reference_topLevelVariable_imported();
-  }
-
-  @override
-  @failingTest
-  test_const_reference_topLevelVariable_imported_withPrefix() async {
-    await super.test_const_reference_topLevelVariable_imported_withPrefix();
-  }
-
-  @override
-  @failingTest
-  test_constExpr_pushReference_field_simpleIdentifier() async {
-    await super.test_constExpr_pushReference_field_simpleIdentifier();
-  }
-
-  @override
-  @failingTest
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
   }
@@ -268,36 +252,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_field_formal_param_inferred_type_implicit() async {
-    await super.test_field_formal_param_inferred_type_implicit();
-  }
-
-  @override
-  @failingTest
-  test_field_inferred_type_nonStatic_implicit_uninitialized() async {
-    await super.test_field_inferred_type_nonStatic_implicit_uninitialized();
-  }
-
-  @override
-  @failingTest
-  test_field_propagatedType_final_dep_inLib() async {
-    await super.test_field_propagatedType_final_dep_inLib();
-  }
-
-  @override
-  @failingTest
-  test_field_propagatedType_final_dep_inPart() async {
-    await super.test_field_propagatedType_final_dep_inPart();
-  }
-
-  @override
-  @failingTest
-  test_getter_inferred_type_nonStatic_implicit_return() async {
-    await super.test_getter_inferred_type_nonStatic_implicit_return();
-  }
-
-  @override
-  @failingTest
   test_implicitConstructor_named_const() async {
     await super.test_implicitConstructor_named_const();
   }
@@ -314,52 +268,6 @@ T max<T extends num>(T a, T b) => null;
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
 //    await super.test_import_short_absolute();
-  }
-
-  @override
-  @failingTest
-  test_inference_issue_32394() async {
-    await super.test_inference_issue_32394();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_is_typedef() async {
-    await super.test_inferred_type_is_typedef();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_bound_type_param() async {
-    await super.test_inferred_type_refers_to_bound_type_param();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
-    await super
-        .test_inferred_type_refers_to_function_typed_parameter_type_generic_class();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_function_typed_parameter_type_other_lib() async {
-    await super
-        .test_inferred_type_refers_to_function_typed_parameter_type_other_lib();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_method_function_typed_parameter_type();
-  }
-
-  @override
-  @failingTest
-  test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    await super
-        .test_inferred_type_refers_to_setter_function_typed_parameter_type();
   }
 
   @override
@@ -394,18 +302,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_method_inferred_type_nonStatic_implicit_param() async {
-    await super.test_method_inferred_type_nonStatic_implicit_param();
-  }
-
-  @override
-  @failingTest
-  test_method_inferred_type_nonStatic_implicit_return() async {
-    await super.test_method_inferred_type_nonStatic_implicit_return();
-  }
-
-  @override
-  @failingTest
   test_nameConflict_importWithRelativeUri_exportWithAbsolute() async {
     // TODO(scheglov) unexpectedly passes on Windows
     fail('unexpectedly passes on Windows');
@@ -426,12 +322,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_setter_inferred_type_nonStatic_implicit_param() async {
-    await super.test_setter_inferred_type_nonStatic_implicit_param();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_genericClosure() async {
     // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
     // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
@@ -442,12 +332,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_type_inference_based_on_loadLibrary() async {
     await super.test_type_inference_based_on_loadLibrary();
-  }
-
-  @override
-  @failingTest
-  test_type_inference_depends_on_exported_variable() async {
-    await super.test_type_inference_depends_on_exported_variable();
   }
 
   @override
@@ -466,18 +350,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_unresolved_import() async {
     await super.test_unresolved_import();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagatedType_final_dep_inLib() async {
-    await super.test_variable_propagatedType_final_dep_inLib();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagatedType_final_dep_inPart() async {
-    await super.test_variable_propagatedType_final_dep_inPart();
   }
 
   LinkResult _link(Map<Source, String> codeMap) {

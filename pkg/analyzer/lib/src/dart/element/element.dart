@@ -661,10 +661,16 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   bool get hasBeenInferred {
+    if (linkedNode != null) {
+      return linkedContext.hasOverrideInferenceDone(linkedNode);
+    }
     return _unlinkedClass != null || _hasBeenInferred;
   }
 
   void set hasBeenInferred(bool hasBeenInferred) {
+    if (linkedNode != null) {
+      return linkedContext.setOverrideInferenceDone(linkedNode);
+    }
     _assertNotResynthesized(_unlinkedClass);
     _hasBeenInferred = hasBeenInferred;
   }
@@ -4374,6 +4380,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   bool get hasImplicitReturnType {
+    if (linkedNode != null) {
+      return linkedContext.hasImplicitReturnType(linkedNode);
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.returnType == null &&
           serializedExecutable.kind != UnlinkedExecutableKind.constructor;
@@ -4508,9 +4517,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   DartType get returnType {
     if (linkedNode != null) {
       if (_returnType != null) return _returnType;
-      return _returnType = enclosingUnit.linkedContext.getReturnType(
-        linkedNode,
-      );
+      var context = enclosingUnit.linkedContext;
+      return _returnType = context.getReturnType(linkedNode);
     }
     if (serializedExecutable != null &&
         _declaredReturnType == null &&
@@ -4527,6 +4535,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   void set returnType(DartType returnType) {
+    if (linkedNode != null) {
+      linkedContext.setReturnType(linkedNode, returnType);
+    }
     _assertNotResynthesized(serializedExecutable);
     _returnType = _checkElementOfType(returnType);
   }
@@ -5104,14 +5115,6 @@ class FunctionElementImpl extends ExecutableElementImpl
       return reference.name;
     }
     return super.name;
-  }
-
-  @override
-  void set returnType(DartType returnType) {
-//    if (linkedNode != null) {
-//      enclosingUnit.linkedContext.setReturnType(linkedNode, returnType);
-//    }
-    super.returnType = returnType;
   }
 
   @override
@@ -7765,6 +7768,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   bool get hasImplicitType {
+    if (linkedNode != null) {
+      return linkedContext.hasImplicitType(linkedNode);
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.type == null;
     }
@@ -7877,6 +7883,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   void set type(DartType type) {
+    if (linkedNode != null) {
+      return linkedContext.setVariableType(linkedNode, type);
+    }
     _assertNotResynthesized(_unlinkedVariable);
     _type = _checkElementOfType(type);
   }
@@ -8031,6 +8040,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get hasImplicitType {
+    if (linkedNode != null) {
+      return linkedContext.hasImplicitType(linkedNode);
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.type == null && !unlinkedParam.isFunctionTyped;
     }
@@ -8885,7 +8897,7 @@ abstract class PropertyInducingElementImpl
   DartType get type {
     if (linkedNode != null) {
       if (_type != null) return _type;
-      return _type = enclosingUnit.linkedContext.getType(linkedNode);
+      return _type = linkedContext.getType(linkedNode);
     }
     if (isSynthetic && _type == null) {
       if (getter != null) {
@@ -9620,6 +9632,9 @@ abstract class VariableElementImpl extends ElementImpl
   DartType get type => _type ?? _declaredType;
 
   void set type(DartType type) {
+    if (linkedNode != null) {
+      return linkedContext.setVariableType(linkedNode, type);
+    }
     _type = _checkElementOfType(type);
   }
 

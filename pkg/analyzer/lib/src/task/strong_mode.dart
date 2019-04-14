@@ -156,6 +156,7 @@ class InstanceMemberInferrer {
       DartType type = matchingParameter?.type ?? typeProvider.dynamicType;
       if (parameterType == null) {
         if (type is FunctionType &&
+            type.element != null &&
             type.element is! TypeDefiningElement &&
             type.element.enclosingElement is! TypeDefiningElement) {
           // The resulting parameter's type element has an `enclosingElement` of

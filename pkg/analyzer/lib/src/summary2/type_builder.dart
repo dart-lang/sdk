@@ -47,9 +47,9 @@ class TypeBuilder {
 
   TypeBuilder(this.typeSystem);
 
-  DynamicTypeImpl get _dynamicType {
-    return DynamicTypeImpl.instance;
-  }
+  DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
+
+  VoidTypeImpl get _voidType => VoidTypeImpl.instance;
 
   void build(NodesToBuildType nodesToBuildType) {
     for (var item in nodesToBuildType.items) {
@@ -204,7 +204,9 @@ class TypeBuilder {
     if (node is FieldFormalParameter) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
-      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
+      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
+      var returnType = node.returnType?.type ?? defaultReturnType;
+      LazyAst.setReturnType(node, returnType);
     } else if (node is FunctionTypeAlias) {
       LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
     } else if (node is FunctionTypedFormalParameter) {
@@ -212,11 +214,10 @@ class TypeBuilder {
     } else if (node is GenericFunctionType) {
       LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
     } else if (node is MethodDeclaration) {
-      if (node.returnType != null) {
-        LazyAst.setReturnType(node, node.returnType.type);
-      }
+      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
+      var returnType = node.returnType?.type ?? defaultReturnType;
+      LazyAst.setReturnType(node, returnType);
     } else if (node is SimpleFormalParameter) {
-      // TODO(scheglov) use top-level inference
       LazyAst.setType(node, node.type?.type ?? _dynamicType);
     } else if (node is VariableDeclarationList) {
       var type = node.type?.type;

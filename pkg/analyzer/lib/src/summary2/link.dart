@@ -23,6 +23,7 @@ import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
+import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 LinkResult link(
@@ -103,12 +104,6 @@ class Linker {
   void _addExporters() {
     for (var library in builders.values) {
       library.addExporters();
-    }
-  }
-
-  void _resolveUriDirectives() {
-    for (var library in builders.values) {
-      library.resolveUriDirectives();
     }
   }
 
@@ -231,9 +226,7 @@ class Linker {
   }
 
   void _performTopLevelInference() {
-    for (var library in builders.values) {
-      library.performTopLevelInference();
-    }
+    TopLevelInference(this).infer();
   }
 
   void _resolveConstructors() {
@@ -261,6 +254,12 @@ class Linker {
     }
     computeSimplyBounded(bundleContext, builders.values);
     TypeBuilder(typeSystem).build(nodesToBuildType);
+  }
+
+  void _resolveUriDirectives() {
+    for (var library in builders.values) {
+      library.resolveUriDirectives();
+    }
   }
 }
 

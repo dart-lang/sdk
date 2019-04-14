@@ -11,6 +11,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
+  static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeKey = 'lazyAst_type';
@@ -27,8 +28,16 @@ class LazyAst {
     return node.getProperty(_typeKey);
   }
 
+  static bool hasOverrideInferenceDone(AstNode node) {
+    return node.getProperty(_hasOverrideInferenceKey) ?? false;
+  }
+
   static bool isSimplyBounded(AstNode node) {
     return node.getProperty(_isSimplyBoundedKey);
+  }
+
+  static void setOverrideInferenceDone(AstNode node) {
+    node.setProperty(_hasOverrideInferenceKey, true);
   }
 
   static void setReturnType(AstNode node, DartType type) {
@@ -1056,7 +1065,7 @@ class LazyMixinDeclaration {
     MixinDeclarationImpl node,
   ) {
     var lazy = get(node);
-    if (!lazy._hasOnClause) {
+    if (lazy != null && !lazy._hasOnClause) {
       node.onClause = reader.readNode(
         lazy.data.mixinDeclaration_onClause,
       );

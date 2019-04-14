@@ -4015,7 +4015,16 @@ class C {
   static const b = null;
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  static const dynamic a =
+        b/*location: test.dart;C;b?*/;
+  static const dynamic b = null;
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   static const dynamic a =
         C/*location: test.dart;C*/.
@@ -4023,6 +4032,7 @@ class C {
   static const dynamic b = null;
 }
 ''');
+    }
   }
 
   test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
@@ -6499,6 +6509,30 @@ f<T>() {
     checkElementText(library, r'''
 dynamic f<T>() {}
 ''');
+  }
+
+  test_inferred_type_initializer_cycle() async {
+    var library = await checkLibrary(r'''
+var a = b + 1;
+var b = c + 2;
+var c = a + 3;
+var d = 4;
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+dynamic a;
+dynamic b;
+dynamic c;
+int d;
+''');
+    } else {
+      checkElementText(library, r'''
+dynamic a/*error: dependencyCycle*/;
+dynamic b/*error: dependencyCycle*/;
+dynamic c/*error: dependencyCycle*/;
+int d;
+''');
+    }
   }
 
   test_inferred_type_is_typedef() async {

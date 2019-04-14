@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -539,6 +538,30 @@ class LinkedUnitContext {
     }
   }
 
+  bool hasImplicitReturnType(AstNode node) {
+    if (node is MethodDeclaration) {
+      return node.returnType == null;
+    }
+    return false;
+  }
+
+  bool hasImplicitType(AstNode node) {
+    if (node is VariableDeclaration) {
+      VariableDeclarationList parent = node.parent;
+      return parent.type == null;
+    } else if (node is SimpleFormalParameter) {
+      return node.type == null;
+    }
+    return false;
+  }
+
+  bool hasOverrideInferenceDone(AstNode node) {
+    // Only nodes in the libraries being linked might be not inferred yet.
+    if (_astReader.isLazy) return true;
+
+    return LazyAst.hasOverrideInferenceDone(node);
+  }
+
   bool isAbstract(AstNode node) {
     if (node is ClassDeclaration) {
       return node.abstractKeyword != null;
@@ -756,16 +779,17 @@ class LinkedUnitContext {
     }
   }
 
-  void setReturnType(LinkedNodeBuilder node, DartType type) {
-    throw UnimplementedError();
-//    var typeData = bundleContext.linking.writeType(type);
-//    node.functionDeclaration_returnType2 = typeData;
+  void setOverrideInferenceDone(AstNode node) {
+    assert(!_astReader.isLazy);
+    LazyAst.setOverrideInferenceDone(node);
   }
 
-  void setVariableType(LinkedNodeBuilder node, DartType type) {
-    throw UnimplementedError();
-//    var typeData = bundleContext.linking.writeType(type);
-//    node.simpleFormalParameter_type2 = typeData;
+  void setReturnType(AstNode node, DartType type) {
+    LazyAst.setReturnType(node, type);
+  }
+
+  void setVariableType(AstNode node, DartType type) {
+    LazyAst.setType(node, type);
   }
 
   Iterable<VariableDeclaration> topLevelVariables(CompilationUnit unit) sync* {
