@@ -21,7 +21,7 @@ class NonConstantMapKeyFromDeferredLibraryTest extends DriverResolutionTest {
   test_const_topLevel_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 var v = const {a.c : 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
@@ -30,7 +30,7 @@ var v = const {a.c : 0};
   test_const_topLevel_deferred_nested() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 var v = const {a.c + 1 : 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
@@ -52,7 +52,7 @@ class NonConstantMapKeyFromDeferredLibraryWithUiAsCodeTest
 // reports wrong error code
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) 0: 1 else a.c : 0};
@@ -62,7 +62,7 @@ var v = const { if (cond) 0: 1 else a.c : 0};
   test_const_ifElement_thenTrue_deferredThen() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) a.c : 0};

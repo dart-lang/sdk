@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class SetElementTypeNotAssignableTest extends DriverResolutionTest {
   test_explicitTypeArgs_const() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <String>{42};
 ''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
@@ -31,14 +31,14 @@ var v = const <String>{x};
   }
 
   test_explicitTypeArgs_const_actualTypeMismatch() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic x = 42;
 var v = const <String>{x};
 ''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_explicitTypeArgs_notConst() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = <String>{42};
 ''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
@@ -60,7 +60,7 @@ var v = const <int>{if (1 < 0) a else b};
   }
 
   test_const_ifElement_thenElseFalse_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>{if (1 < 0) a else b};
@@ -68,7 +68,7 @@ var v = const <int>{if (1 < 0) a else b};
   }
 
   test_const_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <int>{if (1 < 0) 'a'};
 ''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
@@ -88,7 +88,7 @@ var v = const <int>{if (true) a};
   }
 
   test_const_ifElement_thenTrue_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 'a';
 var v = const <int>{if (true) a};
 ''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
@@ -117,7 +117,7 @@ var v = <int>{if (1 < 0) a else b};
   }
 
   test_nonConst_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = <int>[if (1 < 0) 'a'];
 ''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }

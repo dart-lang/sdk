@@ -62,7 +62,7 @@ void main() {
   }
 
   test_namedConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
@@ -75,7 +75,7 @@ void main() {
   }
 
   test_nonConstContext() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
@@ -102,7 +102,7 @@ void main() {
   }
 
   test_usingNew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal

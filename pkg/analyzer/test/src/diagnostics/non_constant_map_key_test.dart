@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class NonConstantMapKeyTest extends DriverResolutionTest {
   test_const_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 final dynamic a = 0;
 var v = const {a : 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
@@ -36,7 +36,7 @@ class NonConstantMapKeyWithUiAsCodeTest extends NonConstantMapKeyTest {
     ];
 
   test_const_ifElement_thenTrue_elseFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 0: 1 else a : 0};
@@ -44,7 +44,7 @@ var v = const {if (cond) 0: 1 else a : 0};
   }
 
   test_const_ifElement_thenTrue_thenFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) a : 0};

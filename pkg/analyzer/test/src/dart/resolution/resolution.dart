@@ -150,11 +150,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
+  Future<void> assertErrorCodesInCode(
+      String code, List<ErrorCode> errors) async {
+    addTestFile(code);
+    await resolveTestFile();
+    assertTestErrorsWithCodes(errors);
+  }
+
   /**
    * Assert that the number of error codes in reported [errors] matches the
    * number of [expected] error codes. The order of errors is ignored.
    */
-  void assertErrors(List<AnalysisError> errors,
+  void assertErrorsWithCodes(List<AnalysisError> errors,
       [List<ErrorCode> expected = const <ErrorCode>[]]) {
     var errorListener = new GatheringErrorListener();
     for (AnalysisError error in result.errors) {
@@ -173,12 +180,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       errorListener.onError(error);
     }
     errorListener.assertErrorsWithCodes(expected);
-  }
-
-  Future<void> assertErrorsInCode(String code, List<ErrorCode> errors) async {
-    addTestFile(code);
-    await resolveTestFile();
-    assertTestErrors(errors);
   }
 
   void assertHasTestErrors() {
@@ -319,7 +320,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertNoTestErrors() {
-    assertTestErrors(const <ErrorCode>[]);
+    assertTestErrorsWithCodes(const <ErrorCode>[]);
   }
 
   void assertPropertyAccess(
@@ -338,8 +339,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 //    assertTypeNull(superExpression);
   }
 
-  void assertTestErrors(List<ErrorCode> expected) {
-    assertErrors(result.errors, expected);
+  void assertTestErrorsWithCodes(List<ErrorCode> expected) {
+    assertErrorsWithCodes(result.errors, expected);
   }
 
   void assertTopGetRef(String search, String name) {

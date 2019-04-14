@@ -58,7 +58,7 @@ class D extends C {
   test_equal_values_generic_undefined_value_base() async {
     // Note: we expect some errors due to the constant referring to undefined
     // values, but there should not be any INVALID_OVERRIDE... error.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   m([x = Undefined.value]) {}
 }
@@ -74,7 +74,7 @@ class B extends A {
   test_equal_values_generic_undefined_value_both() async {
     // Note: we expect some errors due to the constant referring to undefined
     // values, but there should not be any INVALID_OVERRIDE... error.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   m([x = Undefined.value]) {}
 }
@@ -92,7 +92,7 @@ class B extends A {
   test_equal_values_generic_undefined_value_derived() async {
     // Note: we expect some errors due to the constant referring to undefined
     // values, but there should not be any INVALID_OVERRIDE... error.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   m([x = 1]) {}
 }
@@ -175,7 +175,7 @@ class B extends A {
   }
 
   Future<void> _assertError(String code) async {
-    await assertErrorsInCode(code, [
+    await assertErrorCodesInCode(code, [
       StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
     ]);
   }

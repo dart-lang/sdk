@@ -21,14 +21,14 @@ class ConstSpreadExpectedMapTest extends DriverResolutionTest {
     ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
 
   test_const_mapInt() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 5;
 var b = const <int, int>{...a};
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP]);
   }
 
   test_const_mapList() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = <int>[5];
 var b = const <int, int>{...a};
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP]);
@@ -42,7 +42,7 @@ var b = <int, int>{...a};
   }
 
   test_const_mapNull() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = null;
 var b = const <int, int>{...a};
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP]);
@@ -56,7 +56,7 @@ var b = <int, int>{...?a};
   }
 
   test_const_mapSet() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = <int>{5};
 var b = const <int, int>{...a};
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP]);

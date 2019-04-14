@@ -28,7 +28,7 @@ class NonConstantIfElementConditionFromDeferredLibraryTest
   test_inList_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const bool c = true;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const [if(a.c) 0];
@@ -61,7 +61,7 @@ f() {
   test_inMap_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const bool c = true;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const {if(a.c) 0 : 0};
@@ -94,7 +94,7 @@ f() {
   test_inSet_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const bool c = true;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 f() {
   return const {if(a.c) 0};

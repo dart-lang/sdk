@@ -19,14 +19,14 @@ main() {
 @reflectiveTest
 class NonConstantListElementTest extends DriverResolutionTest {
   test_const_topVar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const [a];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
   test_const_topVar_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 final dynamic a = 0;
 var v = const [a + 1];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
@@ -51,35 +51,35 @@ class NonConstantListElementWithUiAsCodeTest
     ];
 
   test_const_forElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 const Set set = {};
 var v = const [for(final x in set) x];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const [if (1 < 0) 0 else a];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const [if (1 < 0) a else 0];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const [if (1 > 0) 0 else a];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const [if (1 > 0) a else 0];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
@@ -93,7 +93,7 @@ var v = const [if (1 < 0) a];
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const [if (1 < 0) a];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
@@ -107,7 +107,7 @@ var v = const [if (1 > 0) a];
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const [if (1 > 0) a];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);

@@ -715,7 +715,8 @@ g (A a) {
   a.f = a.f.toString();
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
+    assertTestErrorsWithCodes(
+        [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verifyTestResolved();
   }
 
@@ -795,7 +796,7 @@ class H extends D<p.W> {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verifyTestResolved();
   }
 
@@ -823,7 +824,7 @@ class H extends D<W> {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verifyTestResolved();
   }
 
@@ -862,7 +863,7 @@ f() {
   b[0][0] = 'hi';
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    assertTestErrorsWithCodes([StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verifyTestResolved();
   }
 
@@ -903,7 +904,8 @@ class A extends B {}
 class B {}
 class C = Object with A;''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT]);
     verifyTestResolved();
 
     var a = findElement.class_('A');
@@ -917,7 +919,7 @@ class A {
 }
 class C = Object with A;''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
     );
     verifyTestResolved();
@@ -949,7 +951,7 @@ class A {
 }
 class C = Object with A;''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.MIXIN_REFERENCES_SUPER]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_REFERENCES_SUPER]);
     verifyTestResolved();
 
     var a = findElement.class_('A');

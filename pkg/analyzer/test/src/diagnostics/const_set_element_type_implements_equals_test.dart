@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class ConstSetElementTypeImplementsEqualsTest extends DriverResolutionTest {
   test_constField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   static const a = const A();
   const A();
@@ -33,7 +33,7 @@ main() {
   }
 
   test_direct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -48,7 +48,7 @@ main() {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -63,7 +63,7 @@ main() {
   }
 
   test_factory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A { const factory A() = B; }
 
 class B implements A {
@@ -79,7 +79,7 @@ main() {
   }
 
   test_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -102,7 +102,7 @@ class ConstSetElementTypeImplementsEqualsWithUIAsCodeTest
     ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
 
   test_spread_list() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -115,7 +115,7 @@ main() {
   }
 
   test_spread_set() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;

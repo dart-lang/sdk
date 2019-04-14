@@ -17,7 +17,7 @@ main() {
 class UndefinedPrefixedNameTest extends DriverResolutionTest {
   test_getterContext() async {
     newFile('/test/lib/lib.dart');
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 import 'lib.dart' as p;
 f() => p.c;
 ''', [StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME]);
@@ -25,7 +25,7 @@ f() => p.c;
 
   test_setterContext() async {
     newFile('/test/lib/lib.dart');
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 import 'lib.dart' as p;
 f() {
   p.c = 0;

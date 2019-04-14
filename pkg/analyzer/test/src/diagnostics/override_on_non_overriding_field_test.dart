@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class OverrideOnNonOverridingFieldTest extends DriverResolutionTest {
   test_inInterface() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int get a => 0;
   void set b(_) {}
@@ -33,7 +33,7 @@ class B implements A {
   }
 
   test_inSuperclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int get a => 0;
   void set b(_) {}
@@ -50,7 +50,7 @@ class B extends A {
   }
 
   test_invalid() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
 }
 class B extends A {

@@ -21,7 +21,7 @@ class InvalidCastNewExprTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = ['set-literals'];
 
   test_listLiteral_const() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 const c = <B>[A()];
 class A {
   const A();
@@ -36,7 +36,7 @@ class B extends A {
   }
 
   test_listLiteral_nonConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 var c = <B>[A()];
 class A {
   const A();
@@ -48,7 +48,7 @@ class B extends A {
   }
 
   test_setLiteral_const() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 const c = <B>{A()};
 class A {
   const A();
@@ -63,7 +63,7 @@ class B extends A {
   }
 
   test_setLiteral_nonConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 var c = <B>{A()};
 class A {
   const A();

@@ -168,7 +168,7 @@ class EnclosedScopeTest extends ResolverTestCase {
 @reflectiveTest
 class ErrorResolverTest extends DriverResolutionTest {
   test_breakLabelOnSwitchMember() async {
-    assertErrorsInCode(r'''
+    assertErrorCodesInCode(r'''
 class A {
   void m(int i) {
     switch (i) {
@@ -182,7 +182,7 @@ class A {
   }
 
   test_continueLabelOnSwitch() async {
-    assertErrorsInCode(r'''
+    assertErrorCodesInCode(r'''
 class A {
   void m(int i) {
     l: switch (i) {
@@ -201,7 +201,7 @@ class C {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
       ParserErrorCode.EXPECTED_TOKEN
     ]);

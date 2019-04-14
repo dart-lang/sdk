@@ -19,13 +19,13 @@ main() {
 @reflectiveTest
 class EqualKeysInConstMapTest extends DriverResolutionTest {
   test_const_entry() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1: null, 2: null, 1: null};
 ''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<T> {
   const A();
 }
@@ -62,7 +62,7 @@ class EqualKeysInConstMapWithUIAsCodeTest extends EqualKeysInConstMapTest {
     ];
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1: null, if (1 < 0) 2: null else 1: null};
 ''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
   }
@@ -92,7 +92,7 @@ var c = const {2: null, if (1 < 0) 2: 2};
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1: null, if (0 < 1) 1: null};
 ''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
   }
@@ -104,7 +104,7 @@ var c = const {1: null, ...{2: null}};
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1: null, ...{1: null}};
 ''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
   }

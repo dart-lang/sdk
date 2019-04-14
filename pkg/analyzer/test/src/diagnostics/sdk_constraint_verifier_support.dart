@@ -17,6 +17,6 @@ class SdkConstraintVerifierTest extends DriverResolutionTest {
     driver.configure(
         analysisOptions: analysisOptions
           ..sdkVersionConstraint = VersionConstraint.parse(version));
-    await assertErrorsInCode(source, errorCodes ?? []);
+    await assertErrorCodesInCode(source, errorCodes ?? []);
   }
 }

@@ -59,7 +59,7 @@ class B<T extends A> {
 
   test_generics() async {
     // dartbug.com/18953
-    assertErrorsInCode(r'''
+    assertErrorCodesInCode(r'''
 import 'dart:async';
 Future<int> f() => new Future.value(0);
 void g(bool c) {
@@ -92,7 +92,7 @@ m(v) {
   }
 
   test_type_supertype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(int i) {
   var b = i as Object;
 }
@@ -100,7 +100,7 @@ m(int i) {
   }
 
   test_type_type() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(num i) {
   var b = i as num;
 }

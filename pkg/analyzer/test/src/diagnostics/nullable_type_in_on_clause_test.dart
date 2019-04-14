@@ -29,7 +29,7 @@ mixin B on A {}
   }
 
   test_nullable() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 class A {}
 mixin B on A? {}
 ''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE]);

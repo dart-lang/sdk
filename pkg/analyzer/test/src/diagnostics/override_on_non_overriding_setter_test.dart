@@ -38,7 +38,7 @@ class B extends A {
   }
 
   test_invalid() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
 }
 class B extends A {

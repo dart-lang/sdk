@@ -29,7 +29,7 @@ f() {
   }
 
   test_forStatement_outsideBody() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() {
   for (int x in []) {}
   x;
@@ -54,7 +54,7 @@ f(Object x) {
   }
 
   test_forElement_inList_outsideElement() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() {
   return [for (int x in []) null, x];
 }

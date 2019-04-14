@@ -29,7 +29,7 @@ class B with A {}
   }
 
   test_class_nullable() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 class A {}
 class B with A? {}
 ''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE]);
@@ -44,7 +44,7 @@ class C = A with B;
   }
 
   test_classAlias_withClass_nullable() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 class A {}
 class B {}
 class C = A with B?;
@@ -60,7 +60,7 @@ class C = A with B;
   }
 
   test_classAlias_withMixin_nullable() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 class A {}
 mixin B {}
 class C = A with B?;

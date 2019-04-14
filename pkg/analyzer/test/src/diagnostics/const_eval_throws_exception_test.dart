@@ -169,21 +169,21 @@ const c = [if (1 < 0) nil + 1];
   }
 
   test_ifElement_nonBoolCondition_list() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 const dynamic nonBool = 3;
 const c = const [if (nonBool) 'a'];
 ''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_ifElement_nonBoolCondition_map() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
 ''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
   }
 
   test_ifElement_nonBoolCondition_set() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
 ''', [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);

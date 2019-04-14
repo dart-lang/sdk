@@ -16,13 +16,13 @@ main() {
 @reflectiveTest
 class UnnecessaryTypeCheckTrueTest extends DriverResolutionTest {
   test_null_is_Null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 bool b = null is Null;
 ''', [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
   }
 
   test_type_is_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(i) {
   bool b = i is dynamic;
 }
@@ -30,7 +30,7 @@ m(i) {
   }
 
   test_type_is_object() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(i) {
   bool b = i is Object;
 }

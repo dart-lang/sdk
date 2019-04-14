@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ArgumentTypeNotAssignableTest extends DriverResolutionTest {
   test_functionType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   var a = new A();
   a.n(() => 0);
@@ -28,7 +28,7 @@ class A {
   }
 
   test_interfaceType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   var i = '';
   n(i);

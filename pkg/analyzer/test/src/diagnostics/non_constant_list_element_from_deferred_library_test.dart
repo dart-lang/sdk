@@ -23,7 +23,7 @@ class NonConstantListElementFromDeferredLibraryTest
   test_const_topLevel_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 var v = const [a.c];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
@@ -32,7 +32,7 @@ var v = const [a.c];
   test_const_topLevel_deferred_nested() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 var v = const [a.c + 1];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY]);
@@ -54,7 +54,7 @@ class NonConstantListValueFromDeferredLibraryWithUiAsCodeTest
     // reports wrong error code (which is not crucial to fix)
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const [ if (cond) 'a' else a.c ];
@@ -64,7 +64,7 @@ var v = const [ if (cond) 'a' else a.c ];
   test_const_ifElement_thenTrue_deferredThen() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const [ if (cond) a.c ];

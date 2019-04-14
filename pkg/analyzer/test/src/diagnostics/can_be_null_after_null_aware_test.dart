@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class CanBeNullAfterNullAwareTest extends DriverResolutionTest {
   test_afterCascade() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x..a?.b.c;
 }
@@ -24,7 +24,7 @@ m(x) {
   }
 
   test_beforeCascade() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x?.a..m();
 }
@@ -32,7 +32,7 @@ m(x) {
   }
 
   test_cascadeWithParenthesis() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   (x?.a)..m();
 }
@@ -69,7 +69,7 @@ m(x) {
   }
 
   test_methodInvocation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x?.a.b();
 }
@@ -77,7 +77,7 @@ m(x) {
   }
 
   test_multipleInvocations() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x?.a
     ..m()
@@ -87,7 +87,7 @@ m(x) {
   }
 
   test_parenthesized() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   (x?.a).b;
 }
@@ -95,7 +95,7 @@ m(x) {
   }
 
   test_propertyAccess() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x?.a.b;
 }

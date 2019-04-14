@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends DriverResolutionTest {
   test_assertion_throws() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(int x, int y) : assert(x < y);
 }
@@ -46,7 +46,7 @@ var v = const C(const B());
   test_fieldFormalParameterAssignableToField_fieldType_unresolved_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   final Unresolved x;
   const A(String this.x);
@@ -151,7 +151,7 @@ var v = const A(null);
   test_fieldFormalParameterAssignableToField_typedef() async {
     // foo has the runtime type dynamic -> dynamic, so it is not assignable
     // to A.f.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 typedef String Int2String(int x);
 class A {
   final Int2String f;
@@ -175,7 +175,7 @@ var v = const A<int>(3);
   }
 
   test_fieldFormalParameterNotAssignableToField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   final int x;
   const A(this.x);
@@ -191,7 +191,7 @@ var v = const A('foo');
     // According to checked-mode type checking rules, a value of type A is not
     // assignable to a field of type B, because B extends A (the subtyping
     // relationship is in the wrong direction).
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
 }
@@ -208,7 +208,7 @@ var v = const C(u);
   }
 
   test_fieldFormalParameterNotAssignableToField_fieldType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   final int x;
   const A(this.x);
@@ -221,7 +221,7 @@ var v = const A('foo');
   }
 
   test_fieldFormalParameterNotAssignableToField_fieldType_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   final Unresolved x;
   const A(String this.x);
@@ -237,7 +237,7 @@ var v = const A('foo');
     // According to checked-mode type checking rules, a value of type A is not
     // assignable to a field of type B, because B implements A (the subtyping
     // relationship is in the wrong direction).
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
 }
@@ -253,7 +253,7 @@ var v = const C(u);
 
   test_fieldFormalParameterNotAssignableToField_list() async {
     // <num>[1, 2, 3] has type List<num>, which is not a subtype of List<int>.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(List<int> x);
 }
@@ -265,7 +265,7 @@ var x = const A(w);
   test_fieldFormalParameterNotAssignableToField_map_keyMismatch() async {
     // <num, int>{1: 2} has type Map<num, int>, which is not a subtype of
     // Map<int, int>.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(Map<int, int> x);
 }
@@ -277,7 +277,7 @@ var x = const A(w);
   test_fieldFormalParameterNotAssignableToField_map_valueMismatch() async {
     // <int, num>{1: 2} has type Map<int, num>, which is not a subtype of
     // Map<int, int>.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(Map<int, int> x);
 }
@@ -287,7 +287,7 @@ var x = const A(w);
   }
 
   test_fieldFormalParameterNotAssignableToField_optional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   final int x;
   const A([this.x = 'foo']);
@@ -302,7 +302,7 @@ var v = const A();
   test_fieldFormalParameterNotAssignableToField_typedef() async {
     // foo has the runtime type String -> int, so it should not be assignable
     // to A.f (A.f requires it to be int -> String).
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 typedef String Int2String(int x);
 class A {
   final Int2String f;
@@ -317,7 +317,7 @@ var v = const A(foo);
   }
 
   test_fieldInitializerNotAssignable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   final int x;
   const A() : x = '';
@@ -329,7 +329,7 @@ class A {
   }
 
   test_fieldTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(x) : y = x;
   final int y;
@@ -339,7 +339,7 @@ var v = const A('foo');
   }
 
   test_fieldTypeMismatch_generic() async {
-    await assertErrorsInCode(
+    await assertErrorCodesInCode(
       r'''
 class C<T> {
   final T x = y;
@@ -356,7 +356,7 @@ var v = const C<String>();
   }
 
   test_fieldTypeMismatch_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(x) : y = x;
   final Unresolved y;
@@ -369,7 +369,7 @@ var v = const A('foo');
   }
 
   test_fieldTypeOk_generic() async {
-    await assertErrorsInCode(
+    await assertErrorCodesInCode(
       r'''
 class C<T> {
   final T x = y;
@@ -395,7 +395,7 @@ var v = const A(null);
   test_fieldTypeOk_unresolved_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(x) : y = x;
   final Unresolved y;
@@ -405,27 +405,27 @@ var v = const A(null);
   }
 
   test_listElementTypeNotAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <String> [42];
 ''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_listLiteral_inferredElementType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const Object x = [1];
 const List<String> y = x;
 ''', [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
   }
 
   test_mapLiteral_inferredKeyType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const Object x = {1: 1};
 const Map<String, dynamic> y = x;
 ''', [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
   }
 
   test_mapLiteral_inferredValueType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const Object x = {1: 1};
 const Map<dynamic, String> y = x;
 ''', [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
@@ -451,7 +451,7 @@ var v = const A<int>(3);''');
   test_parameterAssignable_undefined_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(Unresolved x);
 }
@@ -460,7 +460,7 @@ var v = const A(null);
   }
 
   test_parameterNotAssignable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(int x);
 }
@@ -472,7 +472,7 @@ var v = const A('foo');
   }
 
   test_parameterNotAssignable_typeSubstitution() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<T> {
   const A(T x);
 }
@@ -484,7 +484,7 @@ var v = const A<int>('foo');
   }
 
   test_parameterNotAssignable_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A(Unresolved x);
 }
@@ -496,7 +496,7 @@ var v = const A('foo');
   }
 
   test_redirectingConstructor_paramTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A.a1(x) : this.a2(x);
   const A.a2(String x);
@@ -506,7 +506,7 @@ var v = const A.a1(0);
   }
 
   test_superConstructor_paramTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class C {
   final double d;
   const C(this.d);
@@ -527,13 +527,13 @@ const int x = null;
   test_topLevelVarAssignable_undefined_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const Unresolved x = null;
 ''', [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   test_topLevelVarNotAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const int x = 'foo';
 ''', [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
@@ -542,7 +542,7 @@ const int x = 'foo';
   }
 
   test_topLevelVarNotAssignable_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const Unresolved x = 'foo';
 ''', [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,

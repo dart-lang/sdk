@@ -48,7 +48,7 @@ m(x) {
   }
 
   test_minus() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x?.a - '';
 }

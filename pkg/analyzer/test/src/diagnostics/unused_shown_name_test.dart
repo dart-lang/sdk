@@ -20,7 +20,7 @@ class UnusedShownNameTest extends DriverResolutionTest {
 class A {}
 class B {}
 ''');
-    assertErrorsInCode(r'''
+    assertErrorCodesInCode(r'''
 import 'lib1.dart' show A, B;
 A a;
 ''', [HintCode.UNUSED_SHOWN_NAME]);
@@ -31,7 +31,7 @@ A a;
 class A {}
 class B {}
 ''');
-    assertErrorsInCode(r'''
+    assertErrorCodesInCode(r'''
 import 'lib1.dart' as p show A, B;
 p.A a;
 ''', [HintCode.UNUSED_SHOWN_NAME]);
@@ -44,7 +44,7 @@ class B {}
 class C {}
 class D {}
 ''');
-    assertErrorsInCode(r'''
+    assertErrorCodesInCode(r'''
 import 'lib1.dart' show A, B;
 import 'lib1.dart' show C, D;
 A a;
@@ -59,7 +59,7 @@ const int var2 = 2;
 const int var3 = 3;
 const int var4 = 4;
 ''');
-    assertErrorsInCode(r'''
+    assertErrorCodesInCode(r'''
 import 'lib1.dart' show var1, var2;
 import 'lib1.dart' show var3, var4;
 int a = var1;

@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class UndefinedGetterTest extends DriverResolutionTest {
   test_ifStatement_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f(int x) {
   if (x is String) {
     x.length;
@@ -39,7 +39,7 @@ f(Object x) {
   }
 
   test_promotedTypeParameter_regress35305() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 void f<X extends num, Y extends X>(Y y) {
   if (y is int) {
     y.isEven;
@@ -57,7 +57,7 @@ class UndefinedGetterWithControlFlowCollectionsTest
     ..enabledExperiments = [EnableString.control_flow_collections];
 
   test_ifElement_inList_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f(int x) {
   return [if (x is String) x.length];
 }
@@ -73,7 +73,7 @@ f(Object x) {
   }
 
   test_ifElement_inMap_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f(int x) {
   return {if (x is String) x : x.length};
 }
@@ -89,7 +89,7 @@ f(Object x) {
   }
 
   test_ifElement_inSet_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f(int x) {
   return {if (x is String) x.length};
 }

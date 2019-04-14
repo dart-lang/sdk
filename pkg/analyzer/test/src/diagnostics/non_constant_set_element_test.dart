@@ -19,14 +19,14 @@ main() {
 @reflectiveTest
 class NonConstantSetElementTest extends DriverResolutionTest {
   test_const_parameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(a) {
   return const {a};
 }''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_topVar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int>{a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
@@ -50,28 +50,28 @@ class NonConstantSetElementWithUiAsCodeTest extends NonConstantSetElementTest {
     ];
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) 0 else a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) a else 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) 0 else a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) a else 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
@@ -85,7 +85,7 @@ var v = const <int>{if (1 < 0) a};
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
@@ -99,14 +99,14 @@ var v = const <int>{if (1 > 0) a};
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_spread_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 final Set x = null;
 var v = const {...x};
 ''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);

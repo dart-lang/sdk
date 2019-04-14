@@ -38,7 +38,7 @@ void main() {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
   }
 
   test_extendingSubclass() async {
@@ -86,7 +86,7 @@ abstract class B {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
   }
 
   test_field_subclassAndSameLibrary() async {
@@ -145,7 +145,7 @@ main() {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
   }
 
   test_function_sameLibrary() async {
@@ -208,7 +208,7 @@ class B {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
   }
 
   test_getter_subclass() async {
@@ -270,7 +270,7 @@ class B {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
   }
 
   test_method_subclass() async {
@@ -356,7 +356,7 @@ class B {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
   }
 
   test_setter_sameClass() async {

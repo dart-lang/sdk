@@ -19,7 +19,7 @@ class UnusedCatchStackTest extends DriverResolutionTest {
   bool get enableUnusedLocalVariable => true;
 
   test_on_unusedStack() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   try {
   } on String catch (exception, stackTrace) {
@@ -40,7 +40,7 @@ main() {
   }
 
   test_unusedStack() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   try {
   } catch (exception, stackTrace) {

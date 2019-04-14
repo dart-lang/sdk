@@ -21,7 +21,7 @@ class ConstSpreadExpectedListOrSetTest extends DriverResolutionTest {
     ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
 
   test_const_listInt() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 5;
 var b = const <int>[...a];
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET]);
@@ -35,14 +35,14 @@ var b = const <int>[...a];
   }
 
   test_const_listMap() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = <int, int>{0: 1};
 var b = const <int>[...a];
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET]);
   }
 
   test_const_listNull() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = null;
 var b = const <int>[...a];
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET]);
@@ -63,7 +63,7 @@ var b = const <int>[...a];
   }
 
   test_const_setInt() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 5;
 var b = const <int>{...a};
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET]);
@@ -77,14 +77,14 @@ var b = const <int>{...a};
   }
 
   test_const_setMap() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = <int, int>{1: 2};
 var b = const <int>{...a};
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET]);
   }
 
   test_const_setNull() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = null;
 var b = const <int>{...a};
 ''', [CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET]);

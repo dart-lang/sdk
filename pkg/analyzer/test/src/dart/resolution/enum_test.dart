@@ -27,7 +27,8 @@ enum E {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_inference_listLiteral() async {

@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNoSuchMethodTest extends DriverResolutionTest {
   test_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -59,7 +59,7 @@ class B extends A {
   }
 
   test_expressionBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }

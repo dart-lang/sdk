@@ -25,14 +25,14 @@ var v = const <bool, int>{true: a};
   }
 
   test_const_intString_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 'a';
 var v = const <bool, int>{true: a};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_const_intString_value() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <bool, int>{true: 'a'};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
@@ -52,7 +52,7 @@ var v = <bool, int>{true: a};
   }
 
   test_nonConst_intString_value() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = <bool, int>{true: 'a'};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
@@ -74,7 +74,7 @@ var v = const <bool, int>{if (1 < 0) true: a else false: b};
   }
 
   test_const_ifElement_thenElseFalse_intString_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <bool, int>{if (1 < 0) true: a else false: b};
@@ -89,7 +89,7 @@ var v = const <bool, int>{if (1 < 0) true: a};
   }
 
   test_const_ifElement_thenFalse_intString_value() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <bool, int>{if (1 < 0) true: 'a'};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
@@ -102,14 +102,14 @@ var v = const <bool, int>{if (true) true: a};
   }
 
   test_const_ifElement_thenTrue_intString_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 'a';
 var v = const <bool, int>{if (true) true: a};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_const_ifElement_thenTrue_notConst() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final a = 0;
 var v = const <bool, int>{if (1 < 2) true: a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
@@ -122,7 +122,7 @@ var v = const <bool, int>{...{true: 1}};
   }
 
   test_const_spread_intString_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const dynamic a = 'a';
 var v = const <bool, int>{...{true: a}};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
@@ -145,7 +145,7 @@ var v = <bool, int>{if (1 < 0) true: a else false: b};
   }
 
   test_nonConst_ifElement_thenFalse_intString_value() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = <bool, int>{if (1 < 0) true: 'a'};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
@@ -177,7 +177,7 @@ var v = <int, int>{...<num, num>{1: 1}};
   }
 
   test_nonConst_spread_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = <bool, int>{...{true: 'a'}};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }

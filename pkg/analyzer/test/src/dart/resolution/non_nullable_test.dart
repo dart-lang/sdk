@@ -194,7 +194,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([ParserErrorCode.EXPERIMENT_NOT_ENABLED]);
+    assertTestErrorsWithCodes([ParserErrorCode.EXPERIMENT_NOT_ENABLED]);
 
     assertType(findNode.typeName('int? a'), 'int*');
     assertType(findNode.typeName('int b'), 'int*');

@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class NullAwareInConditionTest extends DriverResolutionTest {
   test_assert() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   assert (x?.a);
 }
@@ -24,7 +24,7 @@ m(x) {
   }
 
   test_conditionalExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   return x?.a ? 0 : 1;
 }
@@ -32,7 +32,7 @@ m(x) {
   }
 
   test_do() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   do {} while (x?.a);
 }
@@ -40,7 +40,7 @@ m(x) {
   }
 
   test_for() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   for (var v = x; v?.a; v = v.next) {}
 }
@@ -48,7 +48,7 @@ m(x) {
   }
 
   test_if() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   if (x?.a) {}
 }
@@ -56,7 +56,7 @@ m(x) {
   }
 
   test_if_parenthesized() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   if ((x?.a)) {}
 }
@@ -64,7 +64,7 @@ m(x) {
   }
 
   test_while() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   while (x?.a) {}
 }

@@ -30,7 +30,7 @@ import 'package:foo/foo.dart';
 class Bar extends Foo {}
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
   test_implementingSealedClass() async {
@@ -46,7 +46,7 @@ import 'package:foo/foo.dart';
 class Bar implements Foo {}
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
   test_mixinApplicationOfSealedClass() async {
@@ -63,7 +63,7 @@ class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
   test_mixinApplicationOfSealedMixin() async {
@@ -80,7 +80,7 @@ class Bar1 {}
 class Bar2 = Bar1 with Foo;
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
   test_mixingInWithSealedMixin() async {
@@ -96,7 +96,7 @@ import 'package:foo/foo.dart';
 class Bar extends Object with Foo {}
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
   test_mixinImplementsSealedClass() async {
@@ -112,7 +112,7 @@ import 'package:foo/foo.dart';
 mixin Bar implements Foo {}
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrors([HintCode.SUBTYPE_OF_SEALED_CLASS]);
+    assertTestErrorsWithCodes([HintCode.SUBTYPE_OF_SEALED_CLASS]);
   }
 
   test_withinLibrary_OK() async {

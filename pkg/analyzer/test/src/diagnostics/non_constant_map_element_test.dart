@@ -29,7 +29,7 @@ class NonConstantMapElementWithUiAsCodeTest extends DriverResolutionTest {
     ];
 
   test_forElement_cannotBeConst() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 void main() {
   const {1: null, for (final x in const []) null: null};
 }
@@ -37,7 +37,7 @@ void main() {
   }
 
   test_forElement_nested_cannotBeConst() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 void main() {
   const {1: null, if (true) for (final x in const []) null: null};
 }
@@ -70,7 +70,7 @@ void main() {
   }
 
   test_ifElement_notConstCondition() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 void main() {
   bool notConst = true;
   const {1: null, if (notConst) null: null};
@@ -96,7 +96,7 @@ void main() {
   }
 
   test_spreadElement_notConst() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 void main() {
   var notConst = {};
   const {1: null, ...notConst};
@@ -108,7 +108,7 @@ void main() {
 @reflectiveTest
 class NonConstantMapKeyTest extends DriverResolutionTest {
   test_const_topVar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{a: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
@@ -132,28 +132,28 @@ class NonConstantMapKeyWithUiAsCodeTest extends NonConstantMapKeyTest {
     ];
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0 else 0: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
@@ -167,7 +167,7 @@ var v = const <int, int>{if (1 < 0) a: 0};
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
@@ -181,7 +181,7 @@ var v = const <int, int>{if (1 > 0) a: 0};
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
@@ -191,7 +191,7 @@ var v = const <int, int>{if (1 > 0) a: 0};
 @reflectiveTest
 class NonConstantMapValueTest extends DriverResolutionTest {
   test_const_topVar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{0: a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
@@ -215,28 +215,28 @@ class NonConstantMapValueWithUiAsCodeTest extends NonConstantMapValueTest {
     ];
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a else 0: 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
@@ -250,7 +250,7 @@ var v = const <int, int>{if (1 < 0) 0: a};
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
@@ -264,7 +264,7 @@ var v = const <int, int>{if (1 > 0) 0: a};
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);

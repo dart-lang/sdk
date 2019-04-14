@@ -19,13 +19,13 @@ main() {
 @reflectiveTest
 class EqualElementsInConstSetTest extends DriverResolutionTest {
   test_const_entry() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1, 2, 1};
 ''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<T> {
   const A();
 }
@@ -63,7 +63,7 @@ class EqualElementsInConstSetWithUIAsCodeTest
     ];
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1, if (1 < 0) 2 else 1};
 ''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
   }
@@ -93,7 +93,7 @@ var c = const {2, if (1 < 0) 2};
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1, if (0 < 1) 1};
 ''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
   }
@@ -105,7 +105,7 @@ var c = const {1, ...{2}};
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const {1, ...{1}};
 ''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
   }

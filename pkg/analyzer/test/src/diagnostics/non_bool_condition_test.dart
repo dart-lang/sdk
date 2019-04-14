@@ -29,7 +29,7 @@ class NonBoolConditionWithUIAsCodeTest extends NonBoolConditionTest {
     ];
 
   test_ifElement() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 const c = [if (3) 1];
 ''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }

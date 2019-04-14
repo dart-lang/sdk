@@ -33,7 +33,7 @@ main() {
 
   test_constructorParam_missingArgument() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   C({@Required('must specify an `a`') int a}) {}
@@ -46,7 +46,7 @@ main() {
 
   test_constructorParam_noReason() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -61,7 +61,7 @@ main() {
 
   test_constructorParam_nullReason() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -76,7 +76,7 @@ main() {
 
   test_constructorParam_redirectingConstructorCall() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   C({@required int x});
@@ -87,7 +87,7 @@ class C {
 
   test_functionParam() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 void f({@Required('must specify an `a`') int a}) {}
@@ -100,7 +100,7 @@ main() {
 
   test_methodParam() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   void m({@Required('must specify an `a`') int a}) {}
@@ -129,12 +129,12 @@ f() {
 
     await _resolveTestFile('/a_lib.dart');
     await _resolveTestFile('/test.dart');
-    assertTestErrors([HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    assertTestErrorsWithCodes([HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
   }
 
   test_requiredConstructor_paramSuperCall() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -149,7 +149,7 @@ class D extends C {
 
   test_typedef_functionParam() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 String test(C c) => c.m()();

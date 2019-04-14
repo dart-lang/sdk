@@ -29,7 +29,7 @@ class B implements A {}
   }
 
   test_class_nullable() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 class A {}
 class B implements A? {}
 ''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE]);
@@ -43,7 +43,7 @@ mixin B implements A {}
   }
 
   test_mixin_nullable() async {
-    assertErrorsInCode('''
+    assertErrorCodesInCode('''
 class A {}
 mixin B implements A? {}
 ''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE]);

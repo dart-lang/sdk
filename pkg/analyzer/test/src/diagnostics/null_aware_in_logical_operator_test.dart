@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class NullAwareInLogicalOperatorTest extends DriverResolutionTest {
   test_conditionalAnd_first() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x?.a && x.b;
 }
@@ -24,7 +24,7 @@ m(x) {
   }
 
   test_conditionalAnd_second() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x.a && x?.b;
 }
@@ -32,7 +32,7 @@ m(x) {
   }
 
   test_conditionalAnd_third() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x.a && x.b && x?.c;
 }
@@ -40,7 +40,7 @@ m(x) {
   }
 
   test_conditionalOr_first() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x?.a || x.b;
 }
@@ -48,7 +48,7 @@ m(x) {
   }
 
   test_conditionalOr_second() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x.a || x?.b;
 }
@@ -56,7 +56,7 @@ m(x) {
   }
 
   test_conditionalOr_third() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   x.a || x.b || x?.c;
 }
@@ -80,7 +80,7 @@ m(x) {
   }
 
   test_not() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(x) {
   !x?.a;
 }

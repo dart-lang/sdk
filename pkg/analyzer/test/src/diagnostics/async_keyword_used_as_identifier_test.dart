@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class AsyncKeywordUsedAsIdentifierTest extends DriverResolutionTest {
   test_async_annotation() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 const int async = 0;
 f() async {
   g(@async x) {}
@@ -27,7 +27,7 @@ f() async {
   }
 
   test_async_argumentLabel() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f(c) async {
   c.g(async: 0);
 }
@@ -35,7 +35,7 @@ f(c) async {
   }
 
   test_async_async() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   var async = 1;
 }
@@ -43,7 +43,7 @@ f() async {
   }
 
   test_async_asyncStar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async* {
   var async = 1;
 }
@@ -51,7 +51,7 @@ f() async* {
   }
 
   test_async_break() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   while (true) {
     break async;
@@ -64,7 +64,7 @@ f() async {
   }
 
   test_async_catchException() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 g() {}
 f() async {
   try {
@@ -75,7 +75,7 @@ f() async {
   }
 
   test_async_catchStacktrace() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 g() {}
 f() async {
   try {
@@ -86,7 +86,7 @@ f() async {
   }
 
   test_async_continue() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   while (true) {
     continue async;
@@ -99,7 +99,7 @@ f() async {
   }
 
   test_async_for() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var async;
 f() async {
   for (async in []) {}
@@ -108,7 +108,7 @@ f() async {
   }
 
   test_async_formalParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   g(int async) {}
   g(0);
@@ -117,7 +117,7 @@ f() async {
   }
 
   test_async_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class C {
   int get async => 1;
 }
@@ -128,7 +128,7 @@ f() async {
   }
 
   test_async_invocation() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class C {
   int async() => 1;
 }
@@ -139,7 +139,7 @@ f() async {
   }
 
   test_async_invocation_cascaded() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class C {
   int async() => 1;
 }
@@ -150,7 +150,7 @@ f() async {
   }
 
   test_async_label() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   async: g();
 }
@@ -159,7 +159,7 @@ g() {}
   }
 
   test_async_localFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   int async() => null;
 }
@@ -167,7 +167,7 @@ f() async {
   }
 
   test_async_prefix() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 import 'dart:async' as async;
 f() async {
   return new async.Future.value(0);
@@ -176,7 +176,7 @@ f() async {
   }
 
   test_async_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class C {
   void set async(int i) {}
 }
@@ -187,7 +187,7 @@ f() async {
   }
 
   test_async_setter_cascaded() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class C {
   void set async(int i) {}
 }
@@ -198,7 +198,7 @@ f() async {
   }
 
   test_async_stringInterpolation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 int async = 1;
 f() async {
   return "$async";
@@ -211,7 +211,7 @@ f() async {
 library lib1;
 int async;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 import 'lib1.dart' as l;
 f() async {
   return l.async;
@@ -220,7 +220,7 @@ f() async {
   }
 
   test_async_switchLabel() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   switch (0) {
     async: case 0: break;
@@ -230,7 +230,7 @@ f() async {
   }
 
   test_async_syncStar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() sync* {
   var async = 1;
 }
@@ -238,7 +238,7 @@ f() sync* {
   }
 
   test_await_async() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   var await = 1;
 }
@@ -246,7 +246,7 @@ f() async {
   }
 
   test_await_asyncStar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async* {
   var await = 1;
 }
@@ -254,7 +254,7 @@ f() async* {
   }
 
   test_await_syncStar() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() sync* {
   var await = 1;
 }
