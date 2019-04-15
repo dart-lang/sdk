@@ -216,42 +216,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_constructor_redirected_factory_named_generic() async {
-    await super.test_constructor_redirected_factory_named_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_named_imported_generic() async {
-    await super.test_constructor_redirected_factory_named_imported_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_named_prefixed_generic() async {
-    await super.test_constructor_redirected_factory_named_prefixed_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_unnamed_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_unnamed_imported_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_imported_generic();
-  }
-
-  @override
-  @failingTest
-  test_constructor_redirected_factory_unnamed_prefixed_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
-
-  @override
-  @failingTest
   test_implicitConstructor_named_const() async {
     await super.test_implicitConstructor_named_const();
   }

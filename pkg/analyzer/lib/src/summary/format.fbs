@@ -1859,6 +1859,8 @@ table LinkedNode {
 
   variantField_19:uint (id: 19);
 
+  variantField_23:LinkedNodeType (id: 23);
+
   variantField_27:bool (id: 27);
 
   variantField_9:LinkedNode (id: 9);
@@ -1898,8 +1900,6 @@ table LinkedNode {
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
-
-  variantField_23:LinkedNodeType (id: 23);
 
   variantField_22:string (id: 22);
 

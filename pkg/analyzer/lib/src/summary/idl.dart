@@ -915,6 +915,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.assignmentExpression)
   int get assignmentExpression_element;
 
+  @VariantId(23, variant: LinkedNodeKind.assignmentExpression)
+  LinkedNodeType get assignmentExpression_elementType;
+
   @VariantId(6, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_leftHandSide;
 
@@ -932,6 +935,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.binaryExpression)
   int get binaryExpression_element;
+
+  @VariantId(23, variant: LinkedNodeKind.binaryExpression)
+  LinkedNodeType get binaryExpression_elementType;
 
   @VariantId(24, variant: LinkedNodeKind.binaryExpression)
   LinkedNodeType get binaryExpression_invokeType;
@@ -1228,6 +1234,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.constructorName)
   int get constructorName_element;
+
+  @VariantId(23, variant: LinkedNodeKind.constructorName)
+  LinkedNodeType get constructorName_elementType;
 
   @VariantId(6, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_name;
@@ -1668,6 +1677,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_element;
 
+  @VariantId(23, variant: LinkedNodeKind.indexExpression)
+  LinkedNodeType get indexExpression_elementType;
+
   @VariantId(6, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_index;
 
@@ -1948,6 +1960,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.postfixExpression)
   int get postfixExpression_element;
 
+  @VariantId(23, variant: LinkedNodeKind.postfixExpression)
+  LinkedNodeType get postfixExpression_elementType;
+
   @VariantId(6, variant: LinkedNodeKind.postfixExpression)
   LinkedNode get postfixExpression_operand;
 
@@ -1965,6 +1980,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.prefixExpression)
   int get prefixExpression_element;
+
+  @VariantId(23, variant: LinkedNodeKind.prefixExpression)
+  LinkedNodeType get prefixExpression_elementType;
 
   @VariantId(6, variant: LinkedNodeKind.prefixExpression)
   LinkedNode get prefixExpression_operand;
@@ -1989,6 +2007,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.redirectingConstructorInvocation)
   int get redirectingConstructorInvocation_element;
+
+  @VariantId(23, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  LinkedNodeType get redirectingConstructorInvocation_elementType;
 
   @VariantId(16, variant: LinkedNodeKind.redirectingConstructorInvocation)
   int get redirectingConstructorInvocation_period;
@@ -2038,6 +2059,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_element;
 
+  @VariantId(23, variant: LinkedNodeKind.simpleIdentifier)
+  LinkedNodeType get simpleIdentifier_elementType;
+
   @VariantId(16, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_token;
 
@@ -2073,6 +2097,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.superConstructorInvocation)
   int get superConstructorInvocation_element;
+
+  @VariantId(23, variant: LinkedNodeKind.superConstructorInvocation)
+  LinkedNodeType get superConstructorInvocation_elementType;
 
   @VariantId(16, variant: LinkedNodeKind.superConstructorInvocation)
   int get superConstructorInvocation_period;

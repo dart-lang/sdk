@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -91,8 +92,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitAssignmentExpression(AssignmentExpression node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     return LinkedNodeBuilder.assignmentExpression(
-      assignmentExpression_element: _indexOfElement(node.staticElement),
+      assignmentExpression_element: elementComponents.rawElement,
+      assignmentExpression_elementType: elementComponents.definingType,
       assignmentExpression_leftHandSide: node.leftHandSide.accept(this),
       assignmentExpression_operator: _getToken(node.operator),
       assignmentExpression_rightHandSide: node.rightHandSide.accept(this),
@@ -111,8 +114,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitBinaryExpression(BinaryExpression node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     return LinkedNodeBuilder.binaryExpression(
-      binaryExpression_element: _indexOfElement(node.staticElement),
+      binaryExpression_element: elementComponents.rawElement,
+      binaryExpression_elementType: elementComponents.definingType,
       binaryExpression_leftOperand: node.leftOperand.accept(this),
       binaryExpression_operator: _getToken(node.operator),
       binaryExpression_rightOperand: node.rightOperand.accept(this),
@@ -301,8 +306,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitConstructorName(ConstructorName node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     return LinkedNodeBuilder.constructorName(
-      constructorName_element: _indexOfElement(node.staticElement),
+      constructorName_element: elementComponents.rawElement,
+      constructorName_elementType: elementComponents.definingType,
       constructorName_name: node.name?.accept(this),
       constructorName_period: _getToken(node.period),
       constructorName_type: node.type.accept(this),
@@ -695,8 +702,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitIndexExpression(IndexExpression node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     return LinkedNodeBuilder.indexExpression(
-      indexExpression_element: _indexOfElement(node.staticElement),
+      indexExpression_element: elementComponents.rawElement,
+      indexExpression_elementType: elementComponents.definingType,
       indexExpression_index: node.index.accept(this),
       indexExpression_leftBracket: _getToken(node.leftBracket),
       indexExpression_period: _getToken(node.period),
@@ -930,9 +939,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitPostfixExpression(PostfixExpression node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     return LinkedNodeBuilder.postfixExpression(
       expression_type: _writeType(node.staticType),
-      postfixExpression_element: _indexOfElement(node.staticElement),
+      postfixExpression_element: elementComponents.rawElement,
+      postfixExpression_elementType: elementComponents.definingType,
       postfixExpression_operand: node.operand.accept(this),
       postfixExpression_operator: _getToken(node.operator),
     );
@@ -950,9 +961,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitPrefixExpression(PrefixExpression node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     return LinkedNodeBuilder.prefixExpression(
       expression_type: _writeType(node.staticType),
-      prefixExpression_element: _indexOfElement(node.staticElement),
+      prefixExpression_element: elementComponents.rawElement,
+      prefixExpression_elementType: elementComponents.definingType,
       prefixExpression_operand: node.operand.accept(this),
       prefixExpression_operator: _getToken(node.operator),
     );
@@ -972,13 +985,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     var builder = LinkedNodeBuilder.redirectingConstructorInvocation(
       redirectingConstructorInvocation_arguments:
           node.argumentList.accept(this),
       redirectingConstructorInvocation_constructorName:
           node.constructorName?.accept(this),
-      redirectingConstructorInvocation_element:
-          _indexOfElement(node.staticElement),
+      redirectingConstructorInvocation_element: elementComponents.rawElement,
+      redirectingConstructorInvocation_elementType:
+          elementComponents.definingType,
       redirectingConstructorInvocation_period: _getToken(node.period),
       redirectingConstructorInvocation_thisKeyword: _getToken(node.thisKeyword),
     );
@@ -1053,8 +1068,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       }
     }
 
+    var elementComponents = _componentsOfElement(element);
     return LinkedNodeBuilder.simpleIdentifier(
-      simpleIdentifier_element: _indexOfElement(element),
+      simpleIdentifier_element: elementComponents.rawElement,
+      simpleIdentifier_elementType: elementComponents.definingType,
       simpleIdentifier_token: _getToken(node.token),
       expression_type: _writeType(node.staticType),
     );
@@ -1089,11 +1106,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitSuperConstructorInvocation(
       SuperConstructorInvocation node) {
+    var elementComponents = _componentsOfElement(node.staticElement);
     var builder = LinkedNodeBuilder.superConstructorInvocation(
       superConstructorInvocation_arguments: node.argumentList.accept(this),
       superConstructorInvocation_constructorName:
           node.constructorName?.accept(this),
-      superConstructorInvocation_element: _indexOfElement(node.staticElement),
+      superConstructorInvocation_element: elementComponents.rawElement,
+      superConstructorInvocation_elementType: elementComponents.definingType,
       superConstructorInvocation_period: _getToken(node.period),
       superConstructorInvocation_superKeyword: _getToken(node.superKeyword),
     );
@@ -1308,6 +1327,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   LinkedNodeBuilder writeNode(AstNode node) {
     return node.accept(this);
+  }
+
+  _ElementComponents _componentsOfElement(Element element) {
+    if (element is Member) {
+      var elementIndex = _indexOfElement(element.baseElement);
+      var definingTypeNode = _writeType(element.definingType);
+      return _ElementComponents(elementIndex, definingTypeNode);
+    }
+
+    var elementIndex = _indexOfElement(element);
+    return _ElementComponents(elementIndex, null);
   }
 
   int _getToken(Token token) {
@@ -1546,4 +1576,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeTypeBuilder _writeType(DartType type) {
     return _linkingContext.writeType(type);
   }
+}
+
+/// Components of a [Member] - the raw element, and the defining type.
+class _ElementComponents {
+  final int rawElement;
+  final LinkedNodeType definingType;
+
+  _ElementComponents(this.rawElement, this.definingType);
 }
