@@ -119,6 +119,11 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _mapObjectObjectType;
 
   /**
+   * The type representing the built-in type 'Never'.
+   */
+  InterfaceType _neverType;
+
+  /**
    * An shared object representing the value 'null'.
    */
   DartObjectImpl _nullObject;
@@ -439,6 +444,16 @@ class TestTypeProvider extends TypeProviderBase {
       _propagateTypeArguments(mapElement);
     }
     return _mapType;
+  }
+
+  @override
+  InterfaceType get neverType {
+    if (_neverType == null) {
+      ClassElementImpl neverElement =
+          ElementFactory.classElement('Never', objectType);
+      _neverType = neverElement.type;
+    }
+    return _neverType;
   }
 
   @override
