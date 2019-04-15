@@ -2429,6 +2429,9 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 // RBX: Contains an ICData.
 // TOS(0): return address (Dart code).
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ pushq(RBX);           // Preserve IC data.
   __ pushq(Immediate(0));  // Result slot.
@@ -2439,10 +2442,14 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ jmp(RAX);  // Jump to original stub.
+#endif  // defined(PRODUCT)
 }
 
 //  TOS(0): return address (Dart code).
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ pushq(Immediate(0));  // Result slot.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
@@ -2451,12 +2458,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ jmp(RAX);  // Jump to original stub.
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ Ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

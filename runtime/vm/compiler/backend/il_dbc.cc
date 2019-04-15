@@ -1317,8 +1317,10 @@ EMIT_NATIVE_CODE(InstantiateTypeArguments,
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#ifndef PRODUCT
   __ DebugStep();
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
+#endif
 }
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

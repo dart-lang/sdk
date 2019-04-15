@@ -6384,10 +6384,12 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#ifndef PRODUCT
   ASSERT(!compiler->is_optimizing());
   __ Call(StubCode::DebugStepCheck());
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
+#endif
 }
 
 }  // namespace dart

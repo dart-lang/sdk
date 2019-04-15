@@ -2036,6 +2036,9 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 
 // ECX: Contains an ICData.
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   // Save IC data.
   __ pushl(ECX);
@@ -2049,9 +2052,13 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
   // Jump to original stub.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ jmp(EAX);
+#endif  // defined(PRODUCT)
 }
 
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
@@ -2062,12 +2069,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   // Jump to original stub.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ jmp(EAX);
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

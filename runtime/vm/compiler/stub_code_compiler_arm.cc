@@ -2323,6 +2323,9 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 
 // R9: Contains an ICData.
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ LoadImmediate(R0, 0);
   // Preserve arguments descriptor and make room for result.
@@ -2332,9 +2335,13 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ mov(CODE_REG, Operand(R0));
   __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
 }
 
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ LoadImmediate(R0, 0);
   // Make room for result.
@@ -2343,12 +2350,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ PopList((1 << CODE_REG));
   __ LeaveStubFrame();
   __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code. All relevant registers have been saved.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ Ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

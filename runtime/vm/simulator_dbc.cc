@@ -1471,7 +1471,9 @@ SwitchDispatch:
 
   {
     BYTECODE(DebugStep, A);
-#ifndef PRODUCT
+#ifdef PRODUCT
+    FATAL("No debugging in PRODUCT mode");
+#else
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
@@ -1483,7 +1485,9 @@ SwitchDispatch:
 
   {
     BYTECODE(DebugBreak, A);
-#if !defined(PRODUCT)
+#ifdef PRODUCT
+    FATAL("No debugging in PRODUCT mode");
+#else
     {
       const uint32_t original_bc =
           static_cast<uint32_t>(reinterpret_cast<uintptr_t>(
@@ -1496,9 +1500,6 @@ SwitchDispatch:
       INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)
       DISPATCH_OP(original_bc);
     }
-#else
-    // There should be no debug breaks in product mode.
-    UNREACHABLE();
 #endif
     DISPATCH();
   }
