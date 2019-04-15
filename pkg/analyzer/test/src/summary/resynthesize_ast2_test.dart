@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -28,128 +29,38 @@ main() {
 @reflectiveTest
 class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases {
+  /// The shared SDK bundle, computed once and shared among test invocations.
+  static LinkedNodeBundle _sdkBundle;
+
   @override
   bool get isAstBasedSummary => true;
+
+  LinkedNodeBundle get sdkBundle {
+    if (_sdkBundle != null) return _sdkBundle;
+
+    var sdkUnitMap = <Source, Map<Source, CompilationUnit>>{};
+    for (var sdkLibrary in sdk.sdkLibraries) {
+      var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
+      var text = getFile(source.fullName).readAsStringSync();
+      var unit = parseText(text);
+      sdkUnitMap[source] = _unitsOfLibrary(source, unit);
+    }
+
+    var sdkLinkResult = link(
+      AnalysisOptionsImpl(),
+      sourceFactory,
+      declaredVariables,
+      [],
+      sdkUnitMap,
+    );
+
+    var bytes = sdkLinkResult.bundle.toBuffer();
+    return _sdkBundle = LinkedNodeBundle.fromBuffer(bytes);
+  }
 
   @override
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
-    var dartCoreSource = sourceFactory.forUri('dart:core');
-    var dartAsyncSource = sourceFactory.forUri('dart:async');
-    var dartMathSource = sourceFactory.forUri('dart:math');
-
-    var dartCoreCode = getFile(dartCoreSource.fullName).readAsStringSync();
-    dartCoreCode = r'''
-library dart.core;
-
-abstract class Comparable<T> {
-  int compareTo(T other);
-}
-
-class Iterable<E> {
-  Iterable<R> map<R>(R f(E e));
-
-  List<E> toList();
-}
-
-class Iterator<T> {}
-
-class List<E> implements Iterable<E> {}
-
-class Map<K, V> {}
-
-abstract class Null {}
-
-class Object {
-  const Object();
-  
-  String toString();
-}
-
-abstract class String {
-  int get length;
-  String operator +(String other);
-}
-
-class Set<T> {}
-
-abstract class Symbol {}
-
-abstract class Type {}
-
-abstract class bool {}
-
-abstract class double extends num {}
-
-abstract class int extends num {
-  bool get isEven => false;
-  bool get isNegative;
-  
-  int operator &(int other);
-  int operator -();
-  int operator <<(int shiftAmount);
-  int operator >>(int shiftAmount);
-  int operator ^(int other);
-  int operator |(int other);
-  int operator ~();
-}
-
-abstract class num implements Comparable<num> {
-  bool operator <(num other);
-  bool operator <=(num other);
-  bool operator ==(Object other);
-  bool operator >(num other);
-  bool operator >=(num other);
-  
-  double operator /(num other);
-  double toDouble();
-  
-  int operator <<(int other);
-  int operator >>(int other);
-  int operator ^(int other);
-  int operator |(int other);
-  int operator ~();
-  int operator ~/(num other);
-  
-  int round();
-  int toInt();
-  num abs();
-  
-  num operator %(num other);
-  num operator *(num other);
-  num operator +(num other);
-  num operator -();
-  num operator -(num other);
-}
-''';
-
-    var dartAsyncCode = r'''
-library dart.async;
-
-class Future<T> {}
-
-class FutureOr<T> {}
-
-class Stream<T> {}
-''';
-
-    var dartMathCode = r'''
-library dart.math;
-
-const double E = 2.718281828459045;
-const double PI = 3.1415926535897932;
-const double LN10 =  2.302585092994046;
-
-T min<T extends num>(T a, T b) => null;
-T max<T extends num>(T a, T b) => null;
-''';
-
-    var dartCoreResult = _link({
-      dartCoreSource: dartCoreCode,
-      dartAsyncSource: dartAsyncCode,
-      dartMathSource: dartMathCode,
-    });
-
     var source = addTestSource(text);
     var unit = parseText(text, experimentStatus: experimentStatus);
 
@@ -168,7 +79,7 @@ T max<T extends num>(T a, T b) => null;
       AnalysisOptionsImpl(),
       sourceFactory,
       declaredVariables,
-      [dartCoreResult.bundle],
+      [sdkBundle],
       libraryUnitMap,
     );
 
@@ -184,7 +95,7 @@ T max<T extends num>(T a, T b) => null;
       rootReference,
     );
     elementFactory.addBundle(
-      LinkedBundleContext(elementFactory, dartCoreResult.bundle),
+      LinkedBundleContext(elementFactory, sdkBundle),
     );
     elementFactory.addBundle(
       LinkedBundleContext(elementFactory, linkResult.bundle),
@@ -308,24 +219,6 @@ T max<T extends num>(T a, T b) => null;
   @failingTest
   test_unresolved_import() async {
     await super.test_unresolved_import();
-  }
-
-  LinkResult _link(Map<Source, String> codeMap) {
-    // TODO(scheglov) support for parts
-    var libraryUnitMap = <Source, Map<Source, CompilationUnit>>{};
-    for (var source in codeMap.keys) {
-      var code = codeMap[source];
-      var unit = parseText(code, experimentStatus: experimentStatus);
-      libraryUnitMap[source] = {source: unit};
-    }
-
-    return link(
-      AnalysisOptionsImpl(),
-      sourceFactory,
-      declaredVariables,
-      [],
-      libraryUnitMap,
-    );
   }
 
   Map<Source, CompilationUnit> _unitsOfLibrary(
