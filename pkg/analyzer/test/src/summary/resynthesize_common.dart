@@ -1247,19 +1247,11 @@ class Z {
 class C<T extends F> {}
 typedef F(C value);
 ''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(C<(C<dynamic>) → dynamic> value);
-notSimplyBounded class C<T extends (C<dynamic>) → dynamic> {
-}
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(C<dynamic> value);
 notSimplyBounded class C<T extends (C<dynamic>) → dynamic> {
 }
 ''');
-    }
   }
 
   test_class_notSimplyBounded_circularity_with_type_params() async {
@@ -9523,9 +9515,15 @@ notSimplyBounded typedef F<T extends () → void> = void Function();
   test_typedef_type_parameters_bound_recursive2() async {
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F<T extends List<dynamic>> = void Function();
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F<T extends List<() → void>> = void Function();
 ''');
+    }
   }
 
   test_typedef_type_parameters_f_bound_complex() async {

@@ -21,7 +21,6 @@ import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
-import 'package:analyzer/src/summary2/type_builder.dart';
 
 class SourceLibraryBuilder {
   final Linker linker;
@@ -288,7 +287,7 @@ class SourceLibraryBuilder {
     }
   }
 
-  void resolveTypes(NodesToBuildType nodesToBuildType) {
+  void resolveTypes(List<ast.AstNode> nodesToBuildType) {
     for (var unitContext in context.units) {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);

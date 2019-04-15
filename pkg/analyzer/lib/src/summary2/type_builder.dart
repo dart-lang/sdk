@@ -12,38 +12,12 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 
-/// Type annotations and declarations to build types for.
-///
-/// Not all types can be build during reference resolution phase.
-/// For example `A` means `A<num>` if `class A<T extends num>`, but we don't
-/// know this until we resolved `A` declaration, and we might have not yet.
-///
-/// So, we remember type annotations that should be resolved later, and
-/// declarations to set types from explicit type annotations.
-class NodesToBuildType {
-  final List<NodeToBuildType> items = [];
-
-  void addDeclaration(AstNode declaration) {
-    items.add(NodeToBuildType._(null, declaration));
-  }
-
-  void addTypeAnnotation(TypeAnnotation typeAnnotation) {
-    items.add(NodeToBuildType._(typeAnnotation, null));
-  }
-}
-
-/// A type annotation to build type for, or a declaration to set its explicitly
-/// declared type.
-class NodeToBuildType {
-  final TypeAnnotation typeAnnotation;
-  final AstNode declaration;
-
-  NodeToBuildType._(this.typeAnnotation, this.declaration);
-}
-
-/// Build types in a [NodesToBuildType].
 class TypeBuilder {
   final Dart2TypeSystem typeSystem;
+
+  /// The set of type annotations, and declaration in the build unit, for which
+  /// we need to build types, but have not built yet.
+  final Set<AstNode> _nodesToBuildType = Set.identity();
 
   TypeBuilder(this.typeSystem);
 
@@ -51,20 +25,27 @@ class TypeBuilder {
 
   VoidTypeImpl get _voidType => VoidTypeImpl.instance;
 
-  void build(NodesToBuildType nodesToBuildType) {
-    for (var item in nodesToBuildType.items) {
-      if (item.typeAnnotation != null) {
-        var node = item.typeAnnotation;
-        if (node is GenericFunctionType) {
-          _buildGenericFunctionType(node);
-        } else if (node is TypeName) {
-          _buildTypeName(node);
-        } else {
-          throw StateError('${node.runtimeType}');
-        }
-      } else if (item.declaration != null) {
-        _setTypesForDeclaration(item.declaration);
-      }
+  /// The [nodes] list is a mix of [TypeAnnotation]s and declarations, where
+  /// usually type annotations come before declarations that use them, but this
+  /// is not guaranteed, and not even always possible. For example references
+  /// to typedefs declared in another unit being built - we need to build types
+  /// for this typedef, which might reference another unit (encountered before
+  /// or after the one defining the typedef).
+  void build(List<AstNode> nodes) {
+    _nodesToBuildType.addAll(nodes);
+    for (var item in nodes) {
+      _build(item);
+    }
+  }
+
+  void _build(AstNode node) {
+    if (node == null) return;
+    if (!_nodesToBuildType.remove(node)) return;
+
+    if (node is TypeAnnotation) {
+      _typeAnnotation(node);
+    } else {
+      _declaration(node);
     }
   }
 
@@ -100,7 +81,86 @@ class TypeBuilder {
     );
   }
 
-  void _buildGenericFunctionType(GenericFunctionTypeImpl node) {
+  void _declaration(AstNode node) {
+    if (node is FieldFormalParameter) {
+      _fieldFormalParameter(node);
+    } else if (node is FunctionDeclaration) {
+      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
+      var returnType = node.returnType?.type ?? defaultReturnType;
+      LazyAst.setReturnType(node, returnType);
+    } else if (node is FunctionTypeAlias) {
+      _functionTypeAlias(node);
+    } else if (node is FunctionTypedFormalParameter) {
+      _functionTypedFormalParameter(node);
+    } else if (node is GenericFunctionType) {
+      _genericFunctionType(node);
+    } else if (node is MethodDeclaration) {
+      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
+      var returnType = node.returnType?.type ?? defaultReturnType;
+      LazyAst.setReturnType(node, returnType);
+    } else if (node is SimpleFormalParameter) {
+      _build(node.type);
+      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+    } else if (node is VariableDeclarationList) {
+      var type = node.type?.type;
+      if (type != null) {
+        for (var variable in node.variables) {
+          LazyAst.setType(variable, type);
+        }
+      }
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
+  }
+
+  void _fieldFormalParameter(FieldFormalParameter node) {
+    var parameterList = node.parameters;
+    if (parameterList != null) {
+      var type = _buildFunctionType(
+        node.typeParameters,
+        node.type,
+        parameterList,
+      );
+      LazyAst.setType(node, type);
+    } else {
+      LazyAst.setType(node, node.type?.type ?? _dynamicType);
+    }
+  }
+
+  void _formalParameterList(FormalParameterList node) {
+    for (var formalParameter in node.parameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        _build(formalParameter);
+      }
+    }
+  }
+
+  void _functionTypeAlias(FunctionTypeAlias node) {
+    var returnTypeNode = node.returnType;
+    _build(returnTypeNode);
+    LazyAst.setReturnType(node, returnTypeNode?.type ?? _dynamicType);
+
+    _typeParameterList(node.typeParameters);
+    _formalParameterList(node.parameters);
+  }
+
+  void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    var type = _buildFunctionType(
+      node.typeParameters,
+      node.returnType,
+      node.parameters,
+    );
+    LazyAst.setType(node, type);
+  }
+
+  void _genericFunctionType(GenericFunctionTypeImpl node) {
+    var returnTypeNode = node.returnType;
+    _build(returnTypeNode);
+    LazyAst.setReturnType(node, returnTypeNode?.type ?? _dynamicType);
+
+    _typeParameterList(node.typeParameters);
+    _formalParameterList(node.parameters);
+
     node.type = _buildFunctionType(
       node.typeParameters,
       node.returnType,
@@ -108,7 +168,22 @@ class TypeBuilder {
     );
   }
 
-  void _buildTypeName(TypeName node) {
+  List<DartType> _listOfDynamic(int typeParametersLength) {
+    return List<DartType>.filled(typeParametersLength, _dynamicType);
+  }
+
+  void _typeAnnotation(TypeAnnotation node) {
+    if (node is GenericFunctionType) {
+      _genericFunctionType(node);
+    } else if (node is TypeName) {
+      node.type = _dynamicType;
+      _typeName(node);
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
+  void _typeName(TypeName node) {
     var element = node.name.staticElement;
 
     List<DartType> typeArguments;
@@ -141,6 +216,8 @@ class TypeBuilder {
         node.type = InterfaceTypeImpl.explicit(element, typeArguments);
       }
     } else if (element is GenericTypeAliasElement) {
+      _build((element as ElementImpl).linkedNode);
+
       var rawType = element.function.type;
 
       var typeParameters = element.typeParameters;
@@ -173,61 +250,11 @@ class TypeBuilder {
     }
   }
 
-  void _fieldFormalParameter(FieldFormalParameter node) {
-    var parameterList = node.parameters;
-    if (parameterList != null) {
-      var type = _buildFunctionType(
-        node.typeParameters,
-        node.type,
-        parameterList,
-      );
-      LazyAst.setType(node, type);
-    } else {
-      LazyAst.setType(node, node.type?.type ?? _dynamicType);
-    }
-  }
+  void _typeParameterList(TypeParameterList node) {
+    if (node == null) return;
 
-  void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    var type = _buildFunctionType(
-      node.typeParameters,
-      node.returnType,
-      node.parameters,
-    );
-    LazyAst.setType(node, type);
-  }
-
-  List<DartType> _listOfDynamic(int typeParametersLength) {
-    return List<DartType>.filled(typeParametersLength, _dynamicType);
-  }
-
-  void _setTypesForDeclaration(AstNode node) {
-    if (node is FieldFormalParameter) {
-      _fieldFormalParameter(node);
-    } else if (node is FunctionDeclaration) {
-      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
-      var returnType = node.returnType?.type ?? defaultReturnType;
-      LazyAst.setReturnType(node, returnType);
-    } else if (node is FunctionTypeAlias) {
-      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
-    } else if (node is FunctionTypedFormalParameter) {
-      _functionTypedFormalParameter(node);
-    } else if (node is GenericFunctionType) {
-      LazyAst.setReturnType(node, node.returnType?.type ?? _dynamicType);
-    } else if (node is MethodDeclaration) {
-      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
-      var returnType = node.returnType?.type ?? defaultReturnType;
-      LazyAst.setReturnType(node, returnType);
-    } else if (node is SimpleFormalParameter) {
-      LazyAst.setType(node, node.type?.type ?? _dynamicType);
-    } else if (node is VariableDeclarationList) {
-      var type = node.type?.type;
-      if (type != null) {
-        for (var variable in node.variables) {
-          LazyAst.setType(variable, type);
-        }
-      }
-    } else {
-      throw UnimplementedError('${node.runtimeType}');
+    for (var typeParameter in node.typeParameters) {
+      _build(typeParameter.bound);
     }
   }
 }

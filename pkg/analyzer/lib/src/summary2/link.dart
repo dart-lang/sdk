@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/dart/ast/ast.dart' show AstNode, CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -248,7 +248,7 @@ class Linker {
   }
 
   void _resolveTypes() {
-    var nodesToBuildType = NodesToBuildType();
+    var nodesToBuildType = <AstNode>[];
     for (var library in builders.values) {
       library.resolveTypes(nodesToBuildType);
     }

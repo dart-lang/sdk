@@ -284,12 +284,6 @@ T max<T extends num>(T a, T b) => null;
 
   @override
   @failingTest
-  test_instantiateToBounds_functionTypeAlias_reexported() async {
-    await super.test_instantiateToBounds_functionTypeAlias_reexported();
-  }
-
-  @override
-  @failingTest
   test_invalidUri_part_emptyUri() async {
     await super.test_invalidUri_part_emptyUri();
   }
