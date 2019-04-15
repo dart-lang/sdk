@@ -56,41 +56,23 @@ typedef List<DartType> TypeArgumentsComputer();
  */
 class BottomTypeImpl extends TypeImpl {
   /**
-   * The unique instance of this class, with indeterminate nullability.
+   * The unique instance of this class.
    */
-  static final BottomTypeImpl instance = instanceIndeterminate;
-
-  /**
-   * The unique instance of this class, nullable.
-   */
-  static final BottomTypeImpl instanceNullable =
-      new BottomTypeImpl._(NullabilitySuffix.question);
-
-  /**
-   * The unique instance of this class, with indeterminate nullability.
-   */
-  static final BottomTypeImpl instanceIndeterminate =
-      new BottomTypeImpl._(NullabilitySuffix.star);
-
-  /**
-   * The unique instance of this class, non-nullable.
-   */
-  static final BottomTypeImpl instanceNonNullable =
-      new BottomTypeImpl._(NullabilitySuffix.none);
-
-  @override
-  final NullabilitySuffix nullabilitySuffix;
+  static final BottomTypeImpl instance = new BottomTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
    */
-  BottomTypeImpl._(this.nullabilitySuffix) : super(null, "<bottom>");
+  BottomTypeImpl._() : super(null, "<bottom>");
 
   @override
   int get hashCode => 0;
 
   @override
   bool get isBottom => true;
+
+  @override
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -135,15 +117,8 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    switch (nullabilitySuffix) {
-      case NullabilitySuffix.question:
-        return instanceNullable;
-      case NullabilitySuffix.star:
-        return instanceIndeterminate;
-      case NullabilitySuffix.none:
-        return instanceNonNullable;
-    }
-    throw StateError('Unexpected nullabilitySuffix: $nullabilitySuffix');
+    // The bottom type is always non-nullable.
+    return this;
   }
 }
 
@@ -153,7 +128,7 @@ class BottomTypeImpl extends TypeImpl {
  */
 class CircularFunctionTypeImpl extends DynamicTypeImpl
     implements _FunctionTypeImplLazy {
-  CircularFunctionTypeImpl() : super._circular(NullabilitySuffix.star);
+  CircularFunctionTypeImpl() : super._circular();
 
   @override
   List<ParameterElement> get baseParameters => const <ParameterElement>[];
@@ -294,7 +269,7 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
  * `...`.
  */
 class CircularTypeImpl extends DynamicTypeImpl {
-  CircularTypeImpl() : super._circular(NullabilitySuffix.star);
+  CircularTypeImpl() : super._circular();
 
   @override
   bool operator ==(Object object) => object is CircularTypeImpl;
@@ -359,35 +334,14 @@ class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
  */
 class DynamicTypeImpl extends TypeImpl {
   /**
-   * The unique instance of this class, with indeterminate nullability.
+   * The unique instance of this class.
    */
-  static final DynamicTypeImpl instance = instanceIndeterminate;
-
-  /**
-   * The unique instance of this class, nullable.
-   */
-  static final DynamicTypeImpl instanceNullable =
-      new DynamicTypeImpl._(NullabilitySuffix.question);
-
-  /**
-   * The unique instance of this class, with indeterminate nullability.
-   */
-  static final DynamicTypeImpl instanceIndeterminate =
-      new DynamicTypeImpl._(NullabilitySuffix.star);
-
-  /**
-   * The unique instance of this class, non-nullable.
-   */
-  static final DynamicTypeImpl instanceNonNullable =
-      new DynamicTypeImpl._(NullabilitySuffix.none);
-
-  @override
-  final NullabilitySuffix nullabilitySuffix;
+  static final DynamicTypeImpl instance = new DynamicTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
    */
-  DynamicTypeImpl._(this.nullabilitySuffix)
+  DynamicTypeImpl._()
       : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme) {
     (element as DynamicElementImpl).type = this;
   }
@@ -395,14 +349,16 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * Constructor used by [CircularTypeImpl].
    */
-  DynamicTypeImpl._circular(this.nullabilitySuffix)
-      : super(instance.element, Keyword.DYNAMIC.lexeme);
+  DynamicTypeImpl._circular() : super(instance.element, Keyword.DYNAMIC.lexeme);
 
   @override
   int get hashCode => 1;
 
   @override
   bool get isDynamic => true;
+
+  @override
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -452,15 +408,8 @@ class DynamicTypeImpl extends TypeImpl {
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    switch (nullabilitySuffix) {
-      case NullabilitySuffix.question:
-        return instanceNullable;
-      case NullabilitySuffix.star:
-        return instanceIndeterminate;
-      case NullabilitySuffix.none:
-        return instanceNonNullable;
-    }
-    throw StateError('Unexpected nullabilitySuffix: $nullabilitySuffix');
+    // The dynamic type is always nullable.
+    return this;
   }
 }
 
@@ -3002,6 +2951,11 @@ abstract class TypeImpl implements DartType {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 
   void _appendNullability(StringBuffer buffer) {
+    if (isDynamic || isBottom || isVoid) {
+      // These types don't have nullability variations, so don't append
+      // anything.
+      return;
+    }
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
         buffer.write('?');
@@ -3408,39 +3362,21 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * The unique instance of this class, with indeterminate nullability.
    */
-  static final VoidTypeImpl instance = instanceIndeterminate;
-
-  /**
-   * The unique instance of this class, nullable.
-   */
-  static final VoidTypeImpl instanceNullable =
-      new VoidTypeImpl._(NullabilitySuffix.question);
-
-  /**
-   * The unique instance of this class, with indeterminate nullability.
-   */
-  static final VoidTypeImpl instanceIndeterminate =
-      new VoidTypeImpl._(NullabilitySuffix.star);
-
-  /**
-   * The unique instance of this class, non-nullable.
-   */
-  static final VoidTypeImpl instanceNonNullable =
-      new VoidTypeImpl._(NullabilitySuffix.none);
-
-  @override
-  final NullabilitySuffix nullabilitySuffix;
+  static final VoidTypeImpl instance = new VoidTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
    */
-  VoidTypeImpl._(this.nullabilitySuffix) : super(null, Keyword.VOID.lexeme);
+  VoidTypeImpl._() : super(null, Keyword.VOID.lexeme);
 
   @override
   int get hashCode => 2;
 
   @override
   bool get isVoid => true;
+
+  @override
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -3480,15 +3416,8 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    switch (nullabilitySuffix) {
-      case NullabilitySuffix.question:
-        return instanceNullable;
-      case NullabilitySuffix.star:
-        return instanceIndeterminate;
-      case NullabilitySuffix.none:
-        return instanceNonNullable;
-    }
-    throw StateError('Unexpected nullabilitySuffix: $nullabilitySuffix');
+    // The void type is always nullable.
+    return this;
   }
 }
 
