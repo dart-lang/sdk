@@ -16,27 +16,33 @@ main() {
 @reflectiveTest
 class CanBeNullAfterNullAwareTest extends DriverResolutionTest {
   test_afterCascade() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x..a?.b.c;
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 10, 6),
+    ]);
   }
 
   test_beforeCascade() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a..m();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 
   test_cascadeWithParenthesis() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   (x?.a)..m();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 6),
+    ]);
   }
 
   test_definedForNull() async {
@@ -69,36 +75,44 @@ m(x) {
   }
 
   test_methodInvocation() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a.b();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 
   test_multipleInvocations() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a
     ..m()
     ..m();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 
   test_parenthesized() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   (x?.a).b;
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 6),
+    ]);
   }
 
   test_propertyAccess() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a.b;
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 }

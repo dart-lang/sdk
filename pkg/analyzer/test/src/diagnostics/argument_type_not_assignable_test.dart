@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ArgumentTypeNotAssignableTest extends DriverResolutionTest {
   test_functionType() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   var a = new A();
   a.n(() => 0);
@@ -24,16 +24,20 @@ m() {
 class A {
   n(void f(int i)) {}
 }
-''', [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 7),
+    ]);
   }
 
   test_interfaceType() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   var i = '';
   n(i);
 }
 n(int i) {}
-''', [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 1),
+    ]);
   }
 }

@@ -26,11 +26,13 @@ class AmbiguousSetOrMapLiteralBothTest extends DriverResolutionTest {
     ];
 
   test_setAndMap() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 Map<int, int> map;
 Set<int> set;
 var c = {...set, ...map};
-''', [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH]);
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 41, 16),
+    ]);
   }
 }
 
@@ -44,10 +46,12 @@ class AmbiguousSetOrMapLiteralEitherTest extends DriverResolutionTest {
     ];
 
   test_setAndMap() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 var map;
 var set;
 var c = {...set, ...map};
-''', [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER]);
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 26, 16),
+    ]);
   }
 }

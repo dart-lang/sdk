@@ -157,6 +157,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTestErrorsWithCodes(errors);
   }
 
+  Future<void> assertErrorsInCode(
+      String code, List<ExpectedError> expectedErrors) async {
+    addTestFile(code);
+    await resolveTestFile();
+
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    errorListener.addAll(result.errors);
+    errorListener.assertErrors(expectedErrors);
+  }
+
   /**
    * Assert that the number of error codes in reported [errors] matches the
    * number of [expected] error codes. The order of errors is ignored.
@@ -392,6 +402,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertTypeNull(Expression node) {
     expect(node.staticType, isNull);
   }
+
+  ExpectedError error(ErrorCode code, int offset, int length) =>
+      new ExpectedError(code, offset, length);
 
   Element getNodeElement(AstNode node) {
     if (node is Annotation) {
