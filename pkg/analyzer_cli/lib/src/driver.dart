@@ -564,7 +564,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
         for (io.FileSystemEntity entry
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
-          if (AnalysisEngine.isDartFileName(entry.path) &&
+          if ((AnalysisEngine.isDartFileName(entry.path) ||
+                  AnalysisEngine.isManifestFileName(entry.path)) &&
               entry is io.File &&
               !pathFilter.ignored(entry.path) &&
               !_isInHiddenDir(relative)) {

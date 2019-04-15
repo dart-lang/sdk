@@ -857,6 +857,16 @@ class AnalysisEngine {
     String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
     return extension == SUFFIX_DART;
   }
+
+  /**
+   * Return `true` if the given [fileName] is AndroidManifest.xml
+   */
+  static bool isManifestFileName(String fileName) {
+    if (fileName == null) {
+      return false;
+    }
+    return fileName.endsWith(AnalysisEngine.ANDROID_MANIFEST_FILE);
+  }
 }
 
 /**
