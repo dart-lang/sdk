@@ -614,6 +614,18 @@ class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
+  test_nullCoalesce_dynamic() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  dynamic x;
+  x ?? 1;
+}
+''');
+  }
+
   test_nullCoalesce_nonNullable() async {
     await assertErrorCodesInCode(r'''
 @pragma('analyzer:non-nullable')
@@ -634,6 +646,30 @@ library foo;
 m() {
   int? x;
   x ?? 1;
+}
+''');
+  }
+
+  test_nullCoalesce_nullType() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  Null x;
+  x ?? 1;
+}
+''');
+  }
+
+  test_nullCoalesceAssign_dynamic() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  dynamic x;
+  x ??= 1;
 }
 ''');
   }

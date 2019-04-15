@@ -1833,7 +1833,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (lhsType.nullabilitySuffix == NullabilitySuffix.none) {
+    if (_isNonNullableUnit && _typeSystem.isNonNullable(lhsType)) {
       _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
     }
   }
