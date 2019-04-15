@@ -1103,9 +1103,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _checkForAssignmentToFinal(node.operand);
-    _checkForIntNotAssignable(node.operand);
-    _checkForNullableDereference(node.operand);
+    if (node.operator.type != TokenType.BANG) {
+      _checkForAssignmentToFinal(node.operand);
+      _checkForIntNotAssignable(node.operand);
+      _checkForNullableDereference(node.operand);
+    }
     super.visitPostfixExpression(node);
   }
 

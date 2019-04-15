@@ -116,6 +116,18 @@ class A<T> {
     assertType(findNode.typeName('T? b'), 'T?');
   }
 
+  test_null_assertion_operator_removes_nullability() async {
+    addTestFile('''
+main() {
+  Object? x = null;
+  x!;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.postfix('x!'), 'Object!');
+  }
+
   test_typedef_classic() async {
     addTestFile('''
 typedef int? F(bool a, String? b);

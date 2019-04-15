@@ -726,13 +726,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
-    DartType staticType = _getStaticType(operand, read: true);
+    TypeImpl staticType = _getStaticType(operand, read: true);
 
-    // No need to check for `intVar++`, the result is `int`.
-    if (!staticType.isDartCoreInt) {
-      var operatorElement = node.staticElement;
-      var operatorReturnType = _computeStaticReturnType(operatorElement);
-      _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
+    if (node.operator.type == TokenType.BANG) {
+      // TODO(paulberry): This does the wrong thing if staticType is a type
+      // parameter type.
+      staticType = staticType.withNullability(NullabilitySuffix.none);
+    } else {
+      // No need to check for `intVar++`, the result is `int`.
+      if (!staticType.isDartCoreInt) {
+        var operatorElement = node.staticElement;
+        var operatorReturnType = _computeStaticReturnType(operatorElement);
+        _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
+      }
     }
 
     _recordStaticType(node, staticType);
