@@ -3063,6 +3063,9 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
+  Token get requiredKeyword => null;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDefaultFormalParameter(this);
 
@@ -3944,6 +3947,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       CommentImpl comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       this.thisKeyword,
@@ -3951,7 +3955,8 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _type = _becomeParentOf(type);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -5076,11 +5081,13 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       CommentImpl comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -7631,14 +7638,21 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token covariantKeyword;
 
+  /// The 'required' keyword, or `null` if the keyword was not used.
+  Token requiredKeyword;
+
   /// The name of the parameter being declared.
   SimpleIdentifierImpl _identifier;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute.
-  NormalFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
-      this.covariantKeyword, SimpleIdentifierImpl identifier) {
+  NormalFormalParameterImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      this.covariantKeyword,
+      this.requiredKeyword,
+      SimpleIdentifierImpl identifier) {
     _comment = _becomeParentOf(comment);
     _metadata = new NodeListImpl<Annotation>(this, metadata);
     _identifier = _becomeParentOf(identifier);
@@ -8696,10 +8710,12 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
       CommentImpl comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       SimpleIdentifierImpl identifier)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _type = _becomeParentOf(type);
   }
 
