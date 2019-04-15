@@ -4594,8 +4594,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (expression == null ||
         !_isNonNullable ||
         expression.staticType == null ||
-        (expression.staticType as TypeImpl).nullability !=
-            Nullability.nullable) {
+        (expression.staticType as TypeImpl).nullabilitySuffix !=
+            NullabilitySuffix.question) {
       return false;
     }
 
@@ -5400,8 +5400,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (target.staticType != null &&
-        (target.staticType as TypeImpl).nullability ==
-            Nullability.nonNullable) {
+        (target.staticType as TypeImpl).nullabilitySuffix ==
+            NullabilitySuffix.none) {
       _errorReporter.reportErrorForToken(
           HintCode.UNNECESSARY_NULL_AWARE_CALL, operator, []);
     }

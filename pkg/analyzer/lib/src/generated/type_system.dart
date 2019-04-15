@@ -958,7 +958,7 @@ class Dart2TypeSystem extends TypeSystem {
           type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
       return new InterfaceTypeImpl(
-          type.element, type.prunedTypedefs, type.nullability)
+          type.element, type.prunedTypedefs, type.nullabilitySuffix)
         ..typeArguments = newTypeArgs;
     }
     if (type is FunctionType) {
@@ -982,7 +982,7 @@ class Dart2TypeSystem extends TypeSystem {
 
       return new FunctionTypeImpl.synthetic(
           newReturnType, type.typeFormals, newParameters,
-          nullability: (type as TypeImpl).nullability);
+          nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
     }
     return type;
   }
@@ -1229,8 +1229,8 @@ class GenericInferrer {
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
           ' Inferred candidate type $inferred has type parameters'
-          ' ${(inferred as FunctionType).typeFormals}, but a function with'
-          ' type parameters cannot be used as a type argument.'
+              ' ${(inferred as FunctionType).typeFormals}, but a function with'
+              ' type parameters cannot be used as a type argument.'
         ]);
 
         // Heuristic: Using a generic function type as a bound makes subtyping
@@ -1261,8 +1261,8 @@ class GenericInferrer {
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
           "\nRecursive bound cannot be instantiated: '$typeParamBound'."
-          "\nConsider passing explicit type argument(s) "
-          "to the generic.\n\n'"
+              "\nConsider passing explicit type argument(s) "
+              "to the generic.\n\n'"
         ]);
       }
     }
@@ -2231,7 +2231,7 @@ class UnknownInferredType extends TypeImpl {
   bool get isDynamic => true;
 
   @override
-  Nullability get nullability => Nullability.indeterminate;
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.star;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -2293,7 +2293,7 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
-  TypeImpl withNullability(Nullability nullability) => this;
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   /// Given a [type] T, return true if it does not have an unknown type `?`.
   static bool isKnown(DartType type) => !isUnknown(type);

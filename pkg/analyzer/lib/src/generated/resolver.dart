@@ -1833,7 +1833,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (lhsType.nullability == Nullability.nonNullable) {
+    if (lhsType.nullabilitySuffix == NullabilitySuffix.none) {
       _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
     }
   }
@@ -6640,16 +6640,16 @@ class TypeNameResolver {
     return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
   }
 
-  Nullability _getNullability(bool hasQuestion) {
-    Nullability nullability;
+  NullabilitySuffix _getNullability(bool hasQuestion) {
+    NullabilitySuffix nullability;
     if (isNonNullableUnit) {
       if (hasQuestion) {
-        nullability = Nullability.nullable;
+        nullability = NullabilitySuffix.question;
       } else {
-        nullability = Nullability.nonNullable;
+        nullability = NullabilitySuffix.none;
       }
     } else {
-      nullability = Nullability.indeterminate;
+      nullability = NullabilitySuffix.star;
     }
     return nullability;
   }
@@ -6851,7 +6851,7 @@ class TypeNameResolver {
 
     var parent = node.parent;
 
-    Nullability nullability;
+    NullabilitySuffix nullabilitySuffix;
     if (parent is ClassTypeAlias ||
         parent is ExtendsClause ||
         parent is ImplementsClause ||
@@ -6860,13 +6860,13 @@ class TypeNameResolver {
       if (node.question != null) {
         _reportInvalidNullableType(node);
       }
-      nullability = Nullability.nonNullable;
+      nullabilitySuffix = NullabilitySuffix.none;
     } else {
-      nullability = _getNullability(node.question != null);
+      nullabilitySuffix = _getNullability(node.question != null);
     }
 
     var type = InterfaceTypeImpl.explicit(element, typeArguments,
-        nullability: nullability);
+        nullabilitySuffix: nullabilitySuffix);
 
     if (shouldUseWithClauseInferredTypes) {
       if (parent is WithClause && parameterCount != 0) {
