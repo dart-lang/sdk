@@ -1293,6 +1293,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
           temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
         }
+        temp_type_arguments_ = temp_type_arguments_.Canonicalize();
 
         // Make a copy of the old closure, with the delayed type arguments
         // set to [temp_type_arguments_].
