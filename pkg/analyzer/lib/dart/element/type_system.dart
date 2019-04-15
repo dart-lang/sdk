@@ -86,7 +86,7 @@ abstract class TypeSystem {
   ///
   /// We say that a type `T` is potentially non-nullable if `T` is not nullable.
   /// Note that this is different from saying that `T` is non-nullable. For
-  /// example, a type variable `X extends Object`? is a type which is
+  /// example, a type variable `X extends Object?` is a type which is
   /// potentially non-nullable but not non-nullable.
   ///
   /// The result of this method is undefined when the experiment 'non-nullable'
@@ -98,7 +98,7 @@ abstract class TypeSystem {
   ///
   /// We say that a type `T` is potentially nullable if `T` is not non-nullable.
   /// Note that this is different from saying that `T` is nullable. For example,
-  /// a type variable `X extends Object`? is a type which is potentially
+  /// a type variable `X extends Object?` is a type which is potentially
   /// nullable but not nullable.
   ///
   /// The result of this method is undefined when the experiment 'non-nullable'
