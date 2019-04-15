@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:meta/meta.dart';
 
 /// A representation of the operations defined for the type system.
 ///
@@ -49,6 +50,61 @@ abstract class TypeSystem {
   /// not a requirement of a type system, so the order of the arguments is
   /// important.
   bool isAssignableTo(DartType leftType, DartType rightType);
+
+  /// Return `true` if the [type] is a non-nullable type.
+  ///
+  /// We say that a type `T` is non-nullable if `T <: Object`. This is
+  /// equivalent to the syntactic criterion that `T` is any of:
+  /// - `Object`, `int`, `bool`, `Never`, `Function`
+  /// - Any function type
+  /// - Any class type or generic class type
+  /// - `FutureOr<S>` where `S` is non-nullable
+  /// - `X extends S` where `S` is non-nullable
+  /// - `X & S` where `S` is non-nullable
+  ///
+  /// The result of this method is undefined when the experiment 'non-nullable'
+  /// is not enabled.
+  @experimental
+  bool isNonNullable(DartType type);
+
+  /// Return `true` if the [type] is a nullable type.
+  ///
+  /// We say that a type `T` is nullable if `Null <: T`. This is equivalent to
+  /// the syntactic criterion that `T` is any of:
+  /// - `Null`
+  /// - `S?` for some `S`
+  /// - `FutureOr<S>` for some `S` where `S` is nullable
+  /// - `dynamic`
+  /// - `void`
+  ///
+  /// The result of this method is undefined when the experiment 'non-nullable'
+  /// is not enabled.
+  @experimental
+  bool isNullable(DartType type);
+
+  /// Return `true` if the [type] is a potentially non-nullable type.
+  ///
+  /// We say that a type `T` is potentially non-nullable if `T` is not nullable.
+  /// Note that this is different from saying that `T` is non-nullable. For
+  /// example, a type variable `X extends Object`? is a type which is
+  /// potentially non-nullable but not non-nullable.
+  ///
+  /// The result of this method is undefined when the experiment 'non-nullable'
+  /// is not enabled.
+  @experimental
+  bool isPotentiallyNonNullable(DartType type);
+
+  /// Return `true` if the [type] is not a potentially nullable type.
+  ///
+  /// We say that a type `T` is potentially nullable if `T` is not non-nullable.
+  /// Note that this is different from saying that `T` is nullable. For example,
+  /// a type variable `X extends Object`? is a type which is potentially
+  /// nullable but not nullable.
+  ///
+  /// The result of this method is undefined when the experiment 'non-nullable'
+  /// is not enabled.
+  @experimental
+  bool isPotentiallyNullable(DartType type);
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   ///

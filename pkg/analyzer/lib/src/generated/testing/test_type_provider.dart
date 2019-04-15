@@ -622,11 +622,13 @@ class TestTypeProvider extends TypeProviderBase {
 
   void _initDartAsync() {
     Source asyncSource;
-    if (_driver == null) {
+    if (_driver != null) {
+      asyncSource = _driver.sourceFactory.forUri(DartSdk.DART_ASYNC);
+    } else if (_context != null) {
       asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
       _context.setContents(asyncSource, "");
     } else {
-      asyncSource = _driver.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncSource = null;
     }
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(

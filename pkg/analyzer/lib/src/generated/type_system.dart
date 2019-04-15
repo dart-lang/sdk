@@ -1922,12 +1922,39 @@ abstract class TypeSystem implements public.TypeSystem {
    */
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
+  @override
+  bool isNonNullable(DartType type) {
+    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+      return false;
+    } else if (type.isDartAsyncFutureOr) {
+      isNonNullable((type as InterfaceType).typeArguments[0]);
+    }
+    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.question &&
+        (type is TypeParameterType ? isNonNullable(type.bound) : true);
+  }
+
+  @override
+  bool isNullable(DartType type) {
+    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+      return true;
+    } else if (type.isDartAsyncFutureOr) {
+      isNullable((type as InterfaceType).typeArguments[0]);
+    }
+    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.none;
+  }
+
   /// Check that [f1] is a subtype of [f2] for a member override.
   ///
   /// This is different from the normal function subtyping in two ways:
   /// - we know the function types are strict arrows,
   /// - it allows opt-in covariant parameters.
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2);
+
+  @override
+  bool isPotentiallyNonNullable(DartType type) => !isNullable(type);
+
+  @override
+  bool isPotentiallyNullable(DartType type) => !isNonNullable(type);
 
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,

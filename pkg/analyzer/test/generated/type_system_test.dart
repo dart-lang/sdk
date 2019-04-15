@@ -35,7 +35,31 @@ main() {
     defineReflectiveTests(StrongGenericFunctionInferenceTest);
     defineReflectiveTests(StrongLeastUpperBoundTest);
     defineReflectiveTests(StrongGreatestLowerBoundTest);
+    defineReflectiveTests(TypeSystemTest);
   });
+}
+
+abstract class AbstractTypeSystemTest {
+  TypeProvider typeProvider;
+  Dart2TypeSystem typeSystem;
+
+  DartType get bottomType => typeProvider.bottomType;
+  InterfaceType get doubleType => typeProvider.doubleType;
+  DartType get dynamicType => typeProvider.dynamicType;
+  InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get intType => typeProvider.intType;
+  InterfaceType get iterableType => typeProvider.iterableType;
+  InterfaceType get listType => typeProvider.listType;
+  DartType get nullType => typeProvider.nullType;
+  InterfaceType get numType => typeProvider.numType;
+  InterfaceType get objectType => typeProvider.objectType;
+  InterfaceType get stringType => typeProvider.stringType;
+  DartType get voidType => VoidTypeImpl.instance;
+
+  void setUp() {
+    typeProvider = new TestTypeProvider();
+    typeSystem = new Dart2TypeSystem(typeProvider);
+  }
 }
 
 /**
@@ -826,26 +850,7 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
 }
 
 @reflectiveTest
-class StrongAssignabilityTest {
-  TypeProvider typeProvider;
-  TypeSystem typeSystem;
-
-  DartType get bottomType => typeProvider.bottomType;
-  InterfaceType get doubleType => typeProvider.doubleType;
-  DartType get dynamicType => typeProvider.dynamicType;
-  InterfaceType get functionType => typeProvider.functionType;
-  InterfaceType get intType => typeProvider.intType;
-  InterfaceType get listType => typeProvider.listType;
-  InterfaceType get numType => typeProvider.numType;
-  InterfaceType get objectType => typeProvider.objectType;
-  InterfaceType get stringType => typeProvider.stringType;
-  DartType get voidType => VoidTypeImpl.instance;
-
-  void setUp() {
-    typeProvider = new TestTypeProvider();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
+class StrongAssignabilityTest extends AbstractTypeSystemTest {
   void test_isAssignableTo_bottom_isBottom() {
     DartType interfaceType = ElementFactory.classElement2('A', []).type;
     List<DartType> interassignable = <DartType>[
@@ -1111,28 +1116,7 @@ class StrongAssignabilityTest {
 }
 
 @reflectiveTest
-class StrongGenericFunctionInferenceTest {
-  TypeProvider typeProvider;
-  Dart2TypeSystem typeSystem;
-
-  DartType get bottomType => typeProvider.bottomType;
-  InterfaceType get doubleType => typeProvider.doubleType;
-  DartType get dynamicType => typeProvider.dynamicType;
-  InterfaceType get functionType => typeProvider.functionType;
-  InterfaceType get intType => typeProvider.intType;
-  InterfaceType get iterableType => typeProvider.iterableType;
-  InterfaceType get listType => typeProvider.listType;
-  DartType get nullType => typeProvider.nullType;
-  InterfaceType get numType => typeProvider.numType;
-  InterfaceType get objectType => typeProvider.objectType;
-  InterfaceType get stringType => typeProvider.stringType;
-  DartType get voidType => VoidTypeImpl.instance;
-
-  void setUp() {
-    typeProvider = new TestTypeProvider();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
+class StrongGenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
     var tFrom = TypeBuilder.variable('TFrom');
@@ -2292,4 +2276,168 @@ class TypeBuilder {
 
   static TypeParameterType variable(String name, {DartType bound}) =>
       ElementFactory.typeParameterWithType(name, bound).type;
+}
+
+@reflectiveTest
+class TypeSystemTest extends AbstractTypeSystemTest {
+  DartType get futureOrWithNoneType =>
+      typeProvider.futureOrType.instantiate([noneType]);
+  DartType get futureOrWithQuestionType =>
+      typeProvider.futureOrType.instantiate([questionType]);
+  DartType get futureOrWithStarType =>
+      typeProvider.futureOrType.instantiate([starType]);
+
+  DartType get noneType => (typeProvider.stringType as TypeImpl)
+      .withNullability(NullabilitySuffix.none);
+
+  DartType get questionType => (typeProvider.stringType as TypeImpl)
+      .withNullability(NullabilitySuffix.question);
+
+  DartType get starType => (typeProvider.stringType as TypeImpl)
+      .withNullability(NullabilitySuffix.star);
+
+  test_isNonNullable_dynamic() {
+    expect(typeSystem.isNonNullable(dynamicType), false);
+  }
+
+  test_isNonNullable_futureOr_noneArg() {
+    expect(typeSystem.isNonNullable(futureOrWithNoneType), true);
+  }
+
+  test_isNonNullable_futureOr_questionArg() {
+    expect(typeSystem.isNonNullable(futureOrWithQuestionType), true);
+  }
+
+  test_isNonNullable_futureOr_starArg() {
+    expect(typeSystem.isNonNullable(futureOrWithStarType), true);
+  }
+
+  test_isNonNullable_none() {
+    expect(typeSystem.isNonNullable(noneType), true);
+  }
+
+  test_isNonNullable_null() {
+    expect(typeSystem.isNonNullable(nullType), false);
+  }
+
+  test_isNonNullable_question() {
+    expect(typeSystem.isNonNullable(questionType), false);
+  }
+
+  test_isNonNullable_star() {
+    expect(typeSystem.isNonNullable(starType), true);
+  }
+
+  test_isNonNullable_void() {
+    expect(typeSystem.isNonNullable(voidType), false);
+  }
+
+  test_isNullable_dynamic() {
+    expect(typeSystem.isNullable(dynamicType), true);
+  }
+
+  test_isNullable_futureOr_noneArg() {
+    expect(typeSystem.isNullable(futureOrWithNoneType), true);
+  }
+
+  test_isNullable_futureOr_questionArg() {
+    expect(typeSystem.isNullable(futureOrWithQuestionType), true);
+  }
+
+  test_isNullable_futureOr_starArg() {
+    expect(typeSystem.isNullable(futureOrWithStarType), true);
+  }
+
+  test_isNullable_none() {
+    expect(typeSystem.isNullable(noneType), false);
+  }
+
+  test_isNullable_null() {
+    expect(typeSystem.isNullable(nullType), true);
+  }
+
+  test_isNullable_question() {
+    expect(typeSystem.isNullable(questionType), true);
+  }
+
+  test_isNullable_star() {
+    expect(typeSystem.isNullable(starType), true);
+  }
+
+  test_isNullable_void() {
+    expect(typeSystem.isNullable(voidType), true);
+  }
+
+  test_isPotentiallyNonNullable_dynamic() {
+    expect(typeSystem.isPotentiallyNonNullable(dynamicType), false);
+  }
+
+  test_isPotentiallyNonNullable_futureOr_noneArg() {
+    expect(typeSystem.isPotentiallyNonNullable(futureOrWithNoneType), false);
+  }
+
+  test_isPotentiallyNonNullable_futureOr_questionArg() {
+    expect(
+        typeSystem.isPotentiallyNonNullable(futureOrWithQuestionType), false);
+  }
+
+  test_isPotentiallyNonNullable_futureOr_starArg() {
+    expect(typeSystem.isPotentiallyNonNullable(futureOrWithStarType), false);
+  }
+
+  test_isPotentiallyNonNullable_none() {
+    expect(typeSystem.isPotentiallyNonNullable(noneType), true);
+  }
+
+  test_isPotentiallyNonNullable_null() {
+    expect(typeSystem.isPotentiallyNonNullable(nullType), false);
+  }
+
+  test_isPotentiallyNonNullable_question() {
+    expect(typeSystem.isPotentiallyNonNullable(questionType), false);
+  }
+
+  test_isPotentiallyNonNullable_star() {
+    expect(typeSystem.isPotentiallyNonNullable(starType), false);
+  }
+
+  test_isPotentiallyNonNullable_void() {
+    expect(typeSystem.isPotentiallyNonNullable(voidType), false);
+  }
+
+  test_isPotentiallyNullable_dynamic() {
+    expect(typeSystem.isPotentiallyNullable(dynamicType), true);
+  }
+
+  test_isPotentiallyNullable_futureOr_noneArg() {
+    expect(typeSystem.isPotentiallyNullable(futureOrWithNoneType), false);
+  }
+
+  test_isPotentiallyNullable_futureOr_questionArg() {
+    expect(typeSystem.isPotentiallyNullable(futureOrWithQuestionType), false);
+  }
+
+  test_isPotentiallyNullable_futureOr_starArg() {
+    expect(typeSystem.isPotentiallyNullable(futureOrWithStarType), false);
+  }
+
+  test_isPotentiallyNullable_none() {
+    expect(typeSystem.isPotentiallyNullable(noneType), false);
+  }
+
+  test_isPotentiallyNullable_null() {
+    expect(typeSystem.isPotentiallyNullable(nullType), true);
+  }
+
+  test_isPotentiallyNullable_question() {
+    expect(typeSystem.isPotentiallyNullable(questionType), true);
+  }
+
+  test_isPotentiallyNullable_star() {
+    expect(typeSystem.isPotentiallyNullable(starType), false);
+  }
+
+  test_isPotentiallyNullable_void() {
+    expect(typeSystem.isPotentiallyNullable(voidType), true);
+  }
 }
