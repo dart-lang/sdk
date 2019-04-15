@@ -2271,10 +2271,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
 
   // Create a static initializer.
   const Function& initializer_fun = Function::Handle(
-      zone, Function::New(init_name,
-                          // TODO(alexmarkov): Consider creating a separate
-                          // function kind for field initializers.
-                          RawFunction::kImplicitStaticFinalGetter,
+      zone, Function::New(init_name, RawFunction::kStaticFieldInitializer,
                           true,   // is_static
                           false,  // is_const
                           false,  // is_abstract
@@ -2286,6 +2283,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_is_inlinable(false);
   initializer_fun.set_token_pos(field.token_pos());
   initializer_fun.set_end_token_pos(field.end_token_pos());
+  initializer_fun.set_accessor_field(field);
   initializer_fun.InheritBinaryDeclarationFrom(field);
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();

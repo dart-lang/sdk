@@ -851,6 +851,7 @@ class RawFunction : public RawObject {
     kImplicitSetter,             // represents an implicit setter for fields.
     kImplicitStaticFinalGetter,  // represents an implicit getter for static
                                  // final fields (incl. static const fields).
+    kStaticFieldInitializer,
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,   // invokes a field as a closure.
@@ -935,6 +936,8 @@ class RawFunction : public RawObject {
                    bool,
                    PackedHasNamedOptionalParameters::kNextBit,
                    1>
+      OptimizableBit;
+  typedef BitField<uint32_t, bool, OptimizableBit::kNextBit, 1>
       BackgroundOptimizableBit;
   typedef BitField<uint32_t,
                    uint16_t,

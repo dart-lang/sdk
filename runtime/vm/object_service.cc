@@ -332,7 +332,8 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
                     static_cast<intptr_t>(deoptimization_counter()));
   if ((kind() == RawFunction::kImplicitGetter) ||
       (kind() == RawFunction::kImplicitSetter) ||
-      (kind() == RawFunction::kImplicitStaticFinalGetter)) {
+      (kind() == RawFunction::kImplicitStaticFinalGetter) ||
+      (kind() == RawFunction::kStaticFieldInitializer)) {
     const Field& field = Field::Handle(accessor_field());
     if (!field.IsNull()) {
       jsobj.AddProperty("_field", field);

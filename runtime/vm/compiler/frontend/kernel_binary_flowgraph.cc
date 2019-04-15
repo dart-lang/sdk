@@ -9,7 +9,6 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/kernel.h"  // For IsFieldInitializer.
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
 
@@ -936,11 +935,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
         return B->BuildGraphOfImplicitClosureFunction(function);
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kImplicitStaticFinalGetter:
-        if (!IsBytecodeFieldInitializer(function, Z)) {
-          return B->BuildGraphOfFieldAccessor(function);
+        return B->BuildGraphOfFieldAccessor(function);
+      case RawFunction::kImplicitStaticFinalGetter: {
+        if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
+          break;
         }
-        break;
+        return B->BuildGraphOfFieldAccessor(function);
+      }
       case RawFunction::kDynamicInvocationForwarder:
         return B->BuildGraphOfDynamicInvocationForwarder(function);
       case RawFunction::kMethodExtractor:
@@ -992,15 +993,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
-      if (IsFieldInitializer(function, Z)) {
-        return BuildGraphOfFieldInitializer();
-      }
       const Field& field = Field::Handle(Z, function.accessor_field());
       if (field.is_const() && field.IsUninitialized()) {
         EvaluateConstFieldValue(field);
       }
       return B->BuildGraphOfFieldAccessor(function);
     }
+    case RawFunction::kStaticFieldInitializer:
+      return BuildGraphOfFieldInitializer();
     case RawFunction::kDynamicInvocationForwarder:
       return B->BuildGraphOfDynamicInvocationForwarder(function);
     case RawFunction::kMethodExtractor:
@@ -1055,6 +1055,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter:
+    case RawFunction::kStaticFieldInitializer:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:

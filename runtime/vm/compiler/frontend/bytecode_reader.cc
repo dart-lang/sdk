@@ -342,7 +342,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   Object& parent = Object::Handle(Z, ReadObject());
   if (!parent.IsFunction()) {
     ASSERT(parent.IsField());
-    ASSERT(function.kind() == RawFunction::kImplicitStaticFinalGetter);
+    ASSERT(function.kind() == RawFunction::kStaticFieldInitializer);
     // Closure in a static field initializer, so use current function as parent.
     parent = function.raw();
   }
@@ -1900,12 +1900,18 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
       break;
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:
-    case RawFunction::kImplicitStaticFinalGetter:
-      if (IsBytecodeFieldInitializer(function, Z)) {
+      BytecodeScopeBuilder(parsed_function).BuildScopes();
+      break;
+    case RawFunction::kImplicitStaticFinalGetter: {
+      if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
         ReadCode(function, function.bytecode_offset());
       } else {
         BytecodeScopeBuilder(parsed_function).BuildScopes();
       }
+      break;
+    }
+    case RawFunction::kStaticFieldInitializer:
+      ReadCode(function, function.bytecode_offset());
       break;
     case RawFunction::kMethodExtractor:
       BytecodeScopeBuilder(parsed_function).BuildScopes();
@@ -2226,16 +2232,13 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
       annotation_field.bytecode_offset());
 }
 
-bool IsBytecodeFieldInitializer(const Function& function, Zone* zone) {
-  if (IsFieldInitializer(function, zone)) {
-    return true;
-  }
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
-    const auto& field = Field::Handle(zone, function.accessor_field());
-    return field.is_declared_in_bytecode() && field.is_const() &&
-           field.has_initializer();
-  }
-  return false;
+bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
+                                               Zone* zone) {
+  ASSERT(function.kind() == RawFunction::kImplicitStaticFinalGetter);
+
+  const auto& field = Field::Handle(zone, function.accessor_field());
+  return field.is_declared_in_bytecode() && field.is_const() &&
+         field.has_initializer();
 }
 
 }  // namespace kernel

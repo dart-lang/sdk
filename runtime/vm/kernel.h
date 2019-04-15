@@ -212,8 +212,6 @@ void ReadParameterCovariance(const Function& function,
 // as such function already checks all of its parameters.
 bool NeedsDynamicInvocationForwarder(const Function& function);
 
-bool IsFieldInitializer(const Function& function, Zone* zone);
-
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);
 

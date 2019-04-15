@@ -446,6 +446,7 @@ static bool IsImplicitFunction(const Function& func) {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:
     case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kStaticFieldInitializer:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:

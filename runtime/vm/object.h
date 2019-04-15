@@ -2297,6 +2297,7 @@ class Function : public Object {
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kStaticFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return false;
       default:
@@ -2315,6 +2316,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kStaticFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
@@ -2593,6 +2595,7 @@ class Function : public Object {
     switch (kind()) {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
+      case RawFunction::kImplicitStaticFinalGetter:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
       case RawFunction::kDynamicInvocationForwarder:
@@ -2625,7 +2628,7 @@ class Function : public Object {
   // Returns true if this function represents an implicit static field
   // initializer function.
   bool IsImplicitStaticFieldInitializer() const {
-    return kind() == RawFunction::kImplicitStaticFinalGetter;
+    return kind() == RawFunction::kStaticFieldInitializer;
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -2876,9 +2879,6 @@ class Function : public Object {
   //          dispatchers is not visible. Synthetic code that can trigger
   //          exceptions such as the outer async functions that create Futures
   //          is visible.
-  // optimizable: Candidate for going through the optimizing compiler. False for
-  //              some functions known to be execute infrequently and functions
-  //              which have been de-optimized too many times.
   // instrinsic: Has a hand-written assembly prologue.
   // inlinable: Candidate for inlining. False for functions with features we
   //            don't support during inlining (e.g., optional parameters),
@@ -2900,7 +2900,6 @@ class Function : public Object {
   V(Reflectable, is_reflectable)                                               \
   V(Visible, is_visible)                                                       \
   V(Debuggable, is_debuggable)                                                 \
-  V(Optimizable, is_optimizable)                                               \
   V(Inlinable, is_inlinable)                                                   \
   V(Intrinsic, is_intrinsic)                                                   \
   V(Native, is_native)                                                         \
@@ -2920,6 +2919,17 @@ class Function : public Object {
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
+  // optimizable: Candidate for going through the optimizing compiler. False for
+  //              some functions known to be execute infrequently and functions
+  //              which have been de-optimized too many times.
+  bool is_optimizable() const {
+    return RawFunction::OptimizableBit::decode(raw_ptr()->packed_fields_);
+  }
+  void set_is_optimizable(bool value) const {
+    set_packed_fields(
+        RawFunction::OptimizableBit::update(value, raw_ptr()->packed_fields_));
+  }
+
   // Indicates whether this function can be optimized on the background compiler
   // thread.
   bool is_background_optimizable() const {
@@ -2938,7 +2948,7 @@ class Function : public Object {
 
   enum KindTagBits {
     kKindTagPos = 0,
-    kKindTagSize = 4,
+    kKindTagSize = 5,
     kRecognizedTagPos = kKindTagPos + kKindTagSize,
     kRecognizedTagSize = 9,
     kModifierPos = kRecognizedTagPos + kRecognizedTagSize,

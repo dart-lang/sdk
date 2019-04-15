@@ -428,10 +428,10 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         return 'implicit setter';
       case M.FunctionKind.implicitStaticFinalGetter:
         return 'implicit static final getter';
+      case M.FunctionKind.staticFieldInitializer:
+        return 'field initializer';
       case M.FunctionKind.irregexpFunction:
         return 'irregexp function';
-      case M.FunctionKind.staticInitializer:
-        return 'static initializer';
       case M.FunctionKind.methodExtractor:
         return 'method extractor';
       case M.FunctionKind.noSuchMethodDispatcher:

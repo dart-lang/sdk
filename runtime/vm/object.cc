@@ -5700,7 +5700,7 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     case RawFunction::kFfiTrampoline:
       return false;
     case RawFunction::kImplicitStaticFinalGetter:
-      return kernel::IsFieldInitializer(*this, zone) || is_const();
+      return is_const();
     default:
       return true;
   }
@@ -5926,6 +5926,7 @@ RawField* Function::accessor_field() const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
          kind() == RawFunction::kImplicitStaticFinalGetter ||
+         kind() == RawFunction::kStaticFieldInitializer ||
          kind() == RawFunction::kDynamicInvocationForwarder);
   return Field::RawCast(raw_ptr()->data_);
 }
@@ -5933,7 +5934,8 @@ RawField* Function::accessor_field() const {
 void Function::set_accessor_field(const Field& value) const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
-         kind() == RawFunction::kImplicitStaticFinalGetter);
+         kind() == RawFunction::kImplicitStaticFinalGetter ||
+         kind() == RawFunction::kStaticFieldInitializer);
   // Top level classes may be finalized multiple times.
   ASSERT(raw_ptr()->data_ == Object::null() || raw_ptr()->data_ == value.raw());
   set_data(value);
@@ -6161,6 +6163,9 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kImplicitStaticFinalGetter:
       return "ImplicitStaticFinalGetter";
       break;
+    case RawFunction::kStaticFieldInitializer:
+      return "StaticFieldInitializer";
+      break;
     case RawFunction::kMethodExtractor:
       return "MethodExtractor";
       break;
@@ -6235,6 +6240,7 @@ void Function::SetRedirectionTarget(const Function& target) const {
 //   implicit getter:         Field
 //   implicit setter:         Field
 //   impl. static final gttr: Field
+//   field initializer:       Field
 //   noSuchMethod dispatcher: Array arguments descriptor
 //   invoke-field dispatcher: Array arguments descriptor
 //   redirecting constructor: RedirectionData
@@ -8063,6 +8069,9 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       kind_str = " static-final-getter";
+      break;
+    case RawFunction::kStaticFieldInitializer:
+      kind_str = " static-field-initializer";
       break;
     case RawFunction::kMethodExtractor:
       kind_str = " method-extractor";

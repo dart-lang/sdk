@@ -707,11 +707,6 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   return false;
 }
 
-bool IsFieldInitializer(const Function& function, Zone* zone) {
-  return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
-         Field::IsInitName(String::Handle(zone, function.name()));
-}
-
 static ProcedureAttributesMetadata ProcedureAttributesOf(
     Zone* zone,
     const Script& script,
