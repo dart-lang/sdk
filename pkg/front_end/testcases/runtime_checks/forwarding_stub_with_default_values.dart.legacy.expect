@@ -7,10 +7,10 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method f([core::num x = 10]) → void {
+  method f([core::num x = #C1]) → void {
     this.{self::B::_x} = x;
   }
-  method g({core::num x = 20}) → void {
+  method g({core::num x = #C2}) → void {
     this.{self::B::_x} = x;
   }
   method check(core::Object expectedValue) → void {
@@ -23,8 +23,8 @@ abstract class I<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::T>
     : super core::Object::•()
     ;
-  abstract method f([generic-covariant-impl self::I::T x = null]) → void;
-  abstract method g({generic-covariant-impl self::I::T x = null}) → void;
+  abstract method f([generic-covariant-impl self::I::T x = #C3]) → void;
+  abstract method g({generic-covariant-impl self::I::T x = #C3}) → void;
 }
 class C extends self::B implements self::I<core::num> {
   synthetic constructor •() → self::C

@@ -10,7 +10,7 @@ class Foo extends core::Object implements pri::Bar {
     : super core::Object::•()
     ;
   no-such-method-forwarder method /* from org-dartlang-testcase:///private_method_tearoff_lib.dart */ _f() → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_f, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
 class Baz extends self::Foo {
   synthetic constructor •() → self::Baz

@@ -129,7 +129,7 @@ class S extends core::Object {
   synthetic constructor •() → self::S
     : super core::Object::•()
     ;
-  method foo([dynamic x = null]) → dynamic {}
+  method foo([dynamic x = #C1]) → dynamic {}
 }
 class M extends core::Object {
   synthetic constructor •() → self::M

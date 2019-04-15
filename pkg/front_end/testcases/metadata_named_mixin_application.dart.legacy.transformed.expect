@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-@self::a
+@#C1
 class C extends self::D implements self::E {
   synthetic constructor •() → self::C
     : super self::D::•()
@@ -18,5 +18,5 @@ class E extends core::Object {
     : super core::Object::•()
     ;
 }
-static const field dynamic a = null;
+static const field dynamic a = #C1;
 static method main() → dynamic {}

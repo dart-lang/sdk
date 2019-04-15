@@ -27,9 +27,9 @@ static method testMap() → dynamic {
   core::print(<dynamic, dynamic>{"a": "b"});
 }
 static method testSymbol() → dynamic {
-  core::print(#fisk);
-  core::print(#_fisk);
-  core::print(#fisk.hest.ko);
+  core::print(#C1);
+  core::print(#C2);
+  core::print(#C3);
 }
 static method main() → dynamic {
   self::testString();

@@ -6,13 +6,13 @@ static method test(core::int x, () → void f) → void {
   #L1:
   switch(x) {
     #L2:
-    case 0:
+    case #C1:
       {
         f.call();
         continue #L3;
       }
     #L3:
-    case 1:
+    case #C2:
       {
         f.call();
         break #L1;

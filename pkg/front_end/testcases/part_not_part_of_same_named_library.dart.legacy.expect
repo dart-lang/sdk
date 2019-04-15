@@ -12,7 +12,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///part_not_part_of_same_named_library_lib2.dart";
 
-@core::override
+@#C1
 part part_not_part_of_same_named_library_lib1.dart;
 static method main() → dynamic {}
 

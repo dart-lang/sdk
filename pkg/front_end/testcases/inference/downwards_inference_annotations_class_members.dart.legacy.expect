@@ -8,13 +8,13 @@ class Foo extends core::Object {
     ;
 }
 abstract class Bar extends core::Object {
-  @self::Foo::•(const <dynamic>[])
+  @#C1
   field dynamic x = null;
-  @self::Foo::•(const <dynamic>[])
+  @#C1
   constructor •() → self::Bar
     : super core::Object::•()
     ;
-  @self::Foo::•(const <dynamic>[])
+  @#C1
   abstract method f() → void;
 }
 static method main() → dynamic {}

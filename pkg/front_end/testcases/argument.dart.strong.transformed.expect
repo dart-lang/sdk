@@ -32,6 +32,6 @@ static method escape(dynamic fn) → void {
 static method main() → dynamic {
   self::foo(new self::Foo::•());
   self::bar(new self::Bar::•());
-  self::escape(self::foo_escaped);
-  self::escape(self::bar_escaped);
+  self::escape(#C1);
+  self::escape(#C2);
 }

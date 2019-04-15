@@ -132,3 +132,6 @@ spread_collection: RuntimeError
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
 void_methods: Fail # Bad return from setters.
+mixin_constructors_with_default_values: RuntimeError # Fasta testing framework can't handle fromEnvironment constants.
+nested_implicit_const_with_env_var: RuntimeError # Fasta testing framework can't handle fromEnvironment constants.
+rasta/supports_reflection: RuntimeError # Fasta testing framework can't handle fromEnvironment constants.

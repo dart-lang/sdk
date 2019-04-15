@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  dynamic v = self::f.call(() → dynamic {
+  dynamic v = (#C1).call(() → dynamic {
     return 1;
   });
 }
