@@ -2044,7 +2044,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   CompilationUnitElement declaredElement;
 
-  @override
   Version languageVersion;
 
   /// The line information for this compilation unit.
@@ -3487,6 +3486,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
     ..add(_uri)
     ..addAll(combinators)
     ..add(semicolon);
@@ -5653,6 +5653,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
     ..add(_uri)
     ..add(deferredKeyword)
     ..add(asKeyword)
