@@ -21,7 +21,6 @@ import '../../scanner/token.dart'
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
-        PREFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
         SELECTOR_PRECEDENCE,
         SyntheticBeginToken,
