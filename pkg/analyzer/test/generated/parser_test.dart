@@ -7915,6 +7915,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(throwExpression.expression, isNotNull);
   }
 
+  void test_parseUnaryExpression_decrement_identifier_index() {
+    PrefixExpression expression = parseExpression('--a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS_MINUS);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
+  }
+
   void test_parseUnaryExpression_decrement_normal() {
     PrefixExpression expression = parseUnaryExpression('--x');
     expect(expression, isNotNull);
@@ -7967,6 +7979,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(operand.operand, isNotNull);
   }
 
+  void test_parseUnaryExpression_increment_identifier_index() {
+    PrefixExpression expression = parseExpression('++a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS_PLUS);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
+  }
+
   void test_parseUnaryExpression_increment_normal() {
     PrefixExpression expression = parseUnaryExpression('++x');
     expect(expression, isNotNull);
@@ -7998,6 +8022,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     PropertyAccess operand = expression.operand as PropertyAccess;
     expect(operand.target is SuperExpression, isTrue);
     expect(operand.propertyName.name, "x");
+  }
+
+  void test_parseUnaryExpression_minus_identifier_index() {
+    PrefixExpression expression = parseExpression('-a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
   }
 
   void test_parseUnaryExpression_minus_normal() {
@@ -8052,6 +8088,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.TILDE);
     expect(expression.operand, isNotNull);
+  }
+
+  void test_parseUnaryExpression_tilde_identifier_index() {
+    PrefixExpression expression = parseExpression('~a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.TILDE);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
   }
 }
 
