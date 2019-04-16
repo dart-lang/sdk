@@ -56,6 +56,18 @@ class _CompilerWorker extends AsyncWorkerLoop {
             ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());
     }));
+
+    if (lastResult.crashed && context != null) {
+      // TODO(vsm): See https://github.com/dart-lang/sdk/issues/36644.
+      // If the CFE is crashing with previous state, then clear compilation
+      // state and try again.
+      output.clear();
+      lastResult = await runZoned(() => compile(args, previousResult: null),
+          zoneSpecification:
+              ZoneSpecification(print: (self, parent, zone, message) {
+        output.writeln(message.toString());
+      }));
+    }
     return WorkResponse()
       ..exitCode = lastResult.success ? 0 : 1
       ..output = output.toString();
