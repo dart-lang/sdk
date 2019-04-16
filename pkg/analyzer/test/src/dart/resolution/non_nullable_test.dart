@@ -36,7 +36,7 @@ main() {
     assertNoTestErrors();
 
     assertType(findNode.typeName('int? a'), 'int?');
-    assertType(findNode.typeName('int b'), 'int!');
+    assertType(findNode.typeName('int b'), 'int');
   }
 
   test_local_returnType_interfaceType() async {
@@ -50,7 +50,7 @@ main() {
     assertNoTestErrors();
 
     assertType(findNode.typeName('int? f'), 'int?');
-    assertType(findNode.typeName('int g'), 'int!');
+    assertType(findNode.typeName('int g'), 'int');
   }
 
   @failingTest
@@ -80,7 +80,7 @@ main() {
     assertNoTestErrors();
 
     assertType(findNode.typeName('int? a'), 'int?');
-    assertType(findNode.typeName('int b'), 'int!');
+    assertType(findNode.typeName('int b'), 'int');
   }
 
   test_local_variable_interfaceType_generic() async {
@@ -96,9 +96,9 @@ main() {
     assertNoTestErrors();
 
     assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
-    assertType(findNode.typeName('List<int>? b'), 'List<int!>?');
-    assertType(findNode.typeName('List<int?> c'), 'List<int?>!');
-    assertType(findNode.typeName('List<int> d'), 'List<int!>!');
+    assertType(findNode.typeName('List<int>? b'), 'List<int>?');
+    assertType(findNode.typeName('List<int?> c'), 'List<int?>');
+    assertType(findNode.typeName('List<int> d'), 'List<int>');
   }
 
   test_local_variable_typeParameter() async {
@@ -112,7 +112,7 @@ class A<T> {
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('T a'), 'T!');
+    assertType(findNode.typeName('T a'), 'T');
     assertType(findNode.typeName('T? b'), 'T?');
   }
 
@@ -139,7 +139,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('F? a'), '(bool!, String?) → int??');
+    assertType(findNode.typeName('F? a'), '(bool, String?) → int??');
   }
 
   @failingTest
@@ -177,9 +177,9 @@ class X3 with A {} // 3
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('A {} // 1'), 'A!');
-    assertType(findNode.typeName('A {} // 2'), 'A!');
-    assertType(findNode.typeName('A {} // 3'), 'A!');
+    assertType(findNode.typeName('A {} // 1'), 'A');
+    assertType(findNode.typeName('A {} // 2'), 'A');
+    assertType(findNode.typeName('A {} // 3'), 'A');
   }
 
   test_classTypeAlias_hierarchy() async {
@@ -193,9 +193,9 @@ class X = A with B implements C;
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('A with'), 'A!');
-    assertType(findNode.typeName('B implements'), 'B!');
-    assertType(findNode.typeName('C;'), 'C!');
+    assertType(findNode.typeName('A with'), 'A');
+    assertType(findNode.typeName('B implements'), 'B');
+    assertType(findNode.typeName('C;'), 'C');
   }
 
   test_local_variable_interfaceType_notMigrated() async {
@@ -222,7 +222,7 @@ mixin X2 implements A {} // 2
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('A {} // 1'), 'A!');
-    assertType(findNode.typeName('A {} // 2'), 'A!');
+    assertType(findNode.typeName('A {} // 1'), 'A');
+    assertType(findNode.typeName('A {} // 2'), 'A');
   }
 }
