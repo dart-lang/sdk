@@ -3117,7 +3117,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
             sourceInformation));
       }
     } else {
-      MemberEntity member = _elementMap.getMember(staticTarget);
+      // TODO(johnniwinther): This is a constant tear off, so we should have
+      // created a constant value instead. Remove this case when we use CFE
+      // constants.
+      FunctionEntity member = _elementMap.getMember(staticTarget);
       push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member),
           sourceInformation));
     }
