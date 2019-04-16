@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,6 +12,8 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
+    defineReflectiveTests(
+        ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest);
     defineReflectiveTests(
       ConstSetElementTypeImplementsEqualsWithUIAsCodeTest,
     );
@@ -95,14 +98,30 @@ main() {
 }
 
 @reflectiveTest
+class ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest
+    extends ConstSetElementTypeImplementsEqualsWithUIAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
+}
+
+@reflectiveTest
 class ConstSetElementTypeImplementsEqualsWithUIAsCodeTest
     extends ConstSetElementTypeImplementsEqualsTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections
+    ];
 
   test_spread_list() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -111,11 +130,15 @@ class A {
 main() {
   const {...[A()]};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_spread_set() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -124,6 +147,12 @@ class A {
 main() {
   const {...{A()}};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]
+            : [
+                CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+                CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT
+              ]);
   }
 }

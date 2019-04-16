@@ -12,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualElementsInConstSetTest);
+    defineReflectiveTests(EqualElementsInConstSetWithUIAsCodeAndConstantsTest);
     defineReflectiveTests(EqualElementsInConstSetWithUIAsCodeTest);
   });
 }
@@ -53,6 +54,18 @@ var c = {1, 2, 1};
 }
 
 @reflectiveTest
+class EqualElementsInConstSetWithUIAsCodeAndConstantsTest
+    extends EqualElementsInConstSetWithUIAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
+}
+
+@reflectiveTest
 class EqualElementsInConstSetWithUIAsCodeTest
     extends EqualElementsInConstSetTest {
   @override
@@ -63,50 +76,82 @@ class EqualElementsInConstSetWithUIAsCodeTest
     ];
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1, if (1 < 0) 2 else 1};
-''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {if (0 < 1) 1 else 1};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {1, if (0 < 1) 2 else 1};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_onlyThen() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {if (0 < 1) 1 else 1};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenFalse() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {2, if (1 < 0) 2};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1, if (0 < 1) 1};
-''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_spread__noDuplicate() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1, ...{2}};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1, ...{1}};
-''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 }

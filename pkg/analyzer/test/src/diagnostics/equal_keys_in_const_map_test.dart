@@ -12,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualKeysInConstMapTest);
+    defineReflectiveTests(EqualKeysInConstMapWithUIAsCodeAndConstantsTest);
     defineReflectiveTests(EqualKeysInConstMapWithUIAsCodeTest);
   });
 }
@@ -53,6 +54,18 @@ var c = {1: null, 2: null, 1: null};
 }
 
 @reflectiveTest
+class EqualKeysInConstMapWithUIAsCodeAndConstantsTest
+    extends EqualKeysInConstMapWithUIAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
+}
+
+@reflectiveTest
 class EqualKeysInConstMapWithUIAsCodeTest extends EqualKeysInConstMapTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
@@ -62,50 +75,82 @@ class EqualKeysInConstMapWithUIAsCodeTest extends EqualKeysInConstMapTest {
     ];
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1: null, if (1 < 0) 2: null else 1: null};
-''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {if (0 < 1) 1: null else 1: null};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {1: null, if (0 < 1) 2: null else 1: null};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_onlyThen() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {if (0 < 1) 1: null else 1: null};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenFalse() async {
-    assertNoErrorsInCode('''
+    assertErrorCodesInCode(
+        '''
 var c = const {2: null, if (1 < 0) 2: 2};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1: null, if (0 < 1) 1: null};
-''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_spread__noDuplicate() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1: null, ...{2: null}};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 var c = const {1: null, ...{1: null}};
-''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 }

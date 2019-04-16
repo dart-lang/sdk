@@ -12,12 +12,25 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
 //    defineReflectiveTests(NonBoolConditionTest);
+    defineReflectiveTests(NonBoolConditionWithUIAsCodeAndConstantsTest);
     defineReflectiveTests(NonBoolConditionWithUIAsCodeTest);
   });
 }
 
 //@reflectiveTest
 class NonBoolConditionTest extends DriverResolutionTest {}
+
+@reflectiveTest
+class NonBoolConditionWithUIAsCodeAndConstantsTest
+    extends NonBoolConditionWithUIAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
+}
 
 @reflectiveTest
 class NonBoolConditionWithUIAsCodeTest extends NonBoolConditionTest {
@@ -29,8 +42,15 @@ class NonBoolConditionWithUIAsCodeTest extends NonBoolConditionTest {
     ];
 
   test_ifElement() async {
-    assertErrorCodesInCode('''
+    assertErrorCodesInCode(
+        '''
 const c = [if (3) 1];
-''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [StaticTypeWarningCode.NON_BOOL_CONDITION]
+            : [
+                StaticTypeWarningCode.NON_BOOL_CONDITION,
+                CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT
+              ]);
   }
 }

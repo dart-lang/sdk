@@ -12,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantListElementTest);
+    defineReflectiveTests(NonConstantListElementWithUiAsCodeAndConstantsTest);
     defineReflectiveTests(NonConstantListElementWithUiAsCodeTest);
   });
 }
@@ -38,6 +39,18 @@ final dynamic a = 0;
 var v = [a];
 ''');
   }
+}
+
+@reflectiveTest
+class NonConstantListElementWithUiAsCodeAndConstantsTest
+    extends NonConstantListElementWithUiAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
 }
 
 @reflectiveTest
@@ -86,10 +99,14 @@ var v = const [if (1 > 0) a else 0];
   }
 
   test_const_ifElement_thenFalse_constThen() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 const dynamic a = 0;
 var v = const [if (1 < 0) a];
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
@@ -100,10 +117,14 @@ var v = const [if (1 < 0) a];
   }
 
   test_const_ifElement_thenTrue_constThen() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 const dynamic a = 0;
 var v = const [if (1 > 0) a];
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue_finalThen() async {

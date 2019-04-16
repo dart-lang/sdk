@@ -11,12 +11,25 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NonConstantMapElementWithUiAsCodeAndConstantTest);
     defineReflectiveTests(NonConstantMapElementWithUiAsCodeTest);
     defineReflectiveTests(NonConstantMapKeyTest);
     defineReflectiveTests(NonConstantMapKeyWithUiAsCodeTest);
     defineReflectiveTests(NonConstantMapValueTest);
     defineReflectiveTests(NonConstantMapValueWithUiAsCodeTest);
   });
+}
+
+@reflectiveTest
+class NonConstantMapElementWithUiAsCodeAndConstantTest
+    extends NonConstantMapElementWithUiAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
 }
 
 @reflectiveTest
@@ -54,19 +67,27 @@ void main() {
   }
 
   test_ifElement_mayBeConst() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 void main() {
   const {1: null, if (true) null: null};
 }
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_ifElement_nested_mayBeConst() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 void main() {
   const {1: null, if (true) if (true) null: null};
 }
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_ifElement_notConstCondition() async {
@@ -79,20 +100,28 @@ void main() {
   }
 
   test_ifElementWithElse_mayBeConst() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 void main() {
   const isTrue = true;
   const {1: null, if (isTrue) null: null else null: null};
 }
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_spreadElement_mayBeConst() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 void main() {
   const {1: null, ...{null: null}};
 }
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_spreadElement_notConst() async {
@@ -132,59 +161,91 @@ class NonConstantMapKeyWithUiAsCodeTest extends NonConstantMapKeyTest {
     ];
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0 else 0: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenFalse_constThen() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 const dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue_constThen() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 const dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 }
 
@@ -215,58 +276,90 @@ class NonConstantMapValueWithUiAsCodeTest extends NonConstantMapValueTest {
     ];
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a else 0: 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenFalse_constThen() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 const dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue_constThen() async {
-    await assertNoErrorsInCode('''
+    await assertErrorCodesInCode(
+        '''
 const dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a};
-''');
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorCodesInCode(
+        '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 }

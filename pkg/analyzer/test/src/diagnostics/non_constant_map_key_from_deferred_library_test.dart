@@ -12,6 +12,8 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapKeyFromDeferredLibraryTest);
+    defineReflectiveTests(
+        NonConstantMapKeyFromDeferredLibraryWithUiAsCodeAndConstantsTest);
     defineReflectiveTests(NonConstantMapKeyFromDeferredLibraryWithUiAsCodeTest);
   });
 }
@@ -35,6 +37,18 @@ import 'lib1.dart' deferred as a;
 var v = const {a.c + 1 : 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
   }
+}
+
+@reflectiveTest
+class NonConstantMapKeyFromDeferredLibraryWithUiAsCodeAndConstantsTest
+    extends NonConstantMapKeyFromDeferredLibraryWithUiAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
 }
 
 @reflectiveTest
@@ -62,10 +76,14 @@ var v = const { if (cond) 0: 1 else a.c : 0};
   test_const_ifElement_thenTrue_deferredThen() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) a.c : 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 }
