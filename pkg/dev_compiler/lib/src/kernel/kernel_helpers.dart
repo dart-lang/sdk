@@ -79,16 +79,52 @@ Expression findAnnotation(TreeNode node, bool test(Expression value)) {
   return annotations.firstWhere(test, orElse: () => null);
 }
 
+/// Returns true if [value] represents an annotation for class [className] in
+/// "dart:" library [libraryName].
 bool isBuiltinAnnotation(
-    Expression value, String libraryName, String expectedName) {
-  if (value is ConstructorInvocation) {
-    var c = value.target.enclosingClass;
-    if (c.name == expectedName) {
-      var uri = c.enclosingLibrary.importUri;
-      return uri.scheme == 'dart' && uri.path == libraryName;
-    }
+    Expression value, String libraryName, String className) {
+  var c = getAnnotationClass(value);
+  if (c != null && c.name == className) {
+    var uri = c.enclosingLibrary.importUri;
+    return uri.scheme == 'dart' && uri.path == libraryName;
   }
   return false;
+}
+
+/// Gets the class of the instance referred to by metadata annotation [node].
+///
+/// For example:
+///
+/// - `@JS()` would return the "JS" class in "package:js".
+/// - `@anonymous` would return the "_Anonymous" class in "package:js".
+///
+/// This function works regardless of whether the CFE is evaluating constants,
+/// or whether the constant is a field reference (such as "anonymous" above).
+Class getAnnotationClass(Expression node) {
+  node = unwrapUnevaluatedConstant(node);
+  if (node is ConstantExpression) {
+    var constant = node.constant;
+    if (constant is InstanceConstant) return constant.classNode;
+  } else if (node is ConstructorInvocation) {
+    return node.target.enclosingClass;
+  } else if (node is StaticGet) {
+    var type = node.target.getterType;
+    if (type is InterfaceType) return type.classNode;
+  }
+  return null;
+}
+
+Expression unwrapUnevaluatedConstant(Expression node) {
+  // TODO(jmesserly): see if we can configure CFE to preseve the original
+  // expression, rather than wrapping in an UnevaluatedConstant and then
+  // a ConstantExpression.
+  if (node is ConstantExpression) {
+    var constant = node.constant;
+    if (constant is UnevaluatedConstant) {
+      return constant.expression;
+    }
+  }
+  return node;
 }
 
 /// Returns true if [name] is an operator method that is available on primitive
@@ -196,12 +232,10 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
           var expr = statement.expression;
           if (expr is Throw) {
             var error = expr.expression;
-            if (error is ConstructorInvocation &&
-                error.target.enclosingClass.name == 'UnsupportedError') {
-              // HTML adds a lot of private constructors that are unreachable.
-              // Skip these.
-              return true;
-            }
+
+            // HTML adds a lot of private constructors that are unreachable.
+            // Skip these.
+            return isBuiltinAnnotation(error, 'core', 'UnsupportedError');
           }
         }
       }

@@ -19,7 +19,7 @@ class InvalidFactoryAnnotationTest extends DriverResolutionTest
     with PackageMixin {
   test_class() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @factory
 class X {
@@ -29,7 +29,7 @@ class X {
 
   test_field() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class X {
   @factory
@@ -40,7 +40,7 @@ class X {
 
   test_topLevelFunction() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @factory
 main() { }

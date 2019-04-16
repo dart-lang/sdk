@@ -82,7 +82,10 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  explicit LibraryIndex(const ExternalTypedData& kernel_data);
+  // binary_version can be -1 in which case some parts of the index might not
+  // be read.
+  explicit LibraryIndex(const ExternalTypedData& kernel_data,
+                        int32_t binary_version);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -106,8 +109,17 @@ class LibraryIndex {
     return -1;
   }
 
+  bool HasSourceReferences() {
+    if (binary_version_ < 25) return false;
+    return true;
+  }
+
+  intptr_t SourceReferencesOffset() { return source_references_offset_; }
+
  private:
   Reader reader_;
+  int32_t binary_version_;
+  intptr_t source_references_offset_;
   intptr_t class_index_offset_;
   intptr_t class_count_;
   intptr_t procedure_index_offset_;

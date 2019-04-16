@@ -9,7 +9,6 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/kernel.h"  // For IsFieldInitializer.
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
 
@@ -936,11 +935,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
         return B->BuildGraphOfImplicitClosureFunction(function);
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kImplicitStaticFinalGetter:
-        if (!IsBytecodeFieldInitializer(function, Z)) {
-          return B->BuildGraphOfFieldAccessor(function);
+        return B->BuildGraphOfFieldAccessor(function);
+      case RawFunction::kImplicitStaticFinalGetter: {
+        if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
+          break;
         }
-        break;
+        return B->BuildGraphOfFieldAccessor(function);
+      }
       case RawFunction::kDynamicInvocationForwarder:
         return B->BuildGraphOfDynamicInvocationForwarder(function);
       case RawFunction::kMethodExtractor:
@@ -966,7 +967,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     }
     if (function.HasBytecode() &&
         (function.kind() != RawFunction::kImplicitGetter) &&
-        (function.kind() != RawFunction::kImplicitSetter)) {
+        (function.kind() != RawFunction::kImplicitSetter) &&
+        (function.kind() != RawFunction::kMethodExtractor)) {
       BytecodeFlowGraphBuilder bytecode_compiler(
           flow_graph_builder_, parsed_function(),
           &(flow_graph_builder_->ic_data_array_));
@@ -991,15 +993,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
-      if (IsFieldInitializer(function, Z)) {
-        return BuildGraphOfFieldInitializer();
-      }
       const Field& field = Field::Handle(Z, function.accessor_field());
       if (field.is_const() && field.IsUninitialized()) {
         EvaluateConstFieldValue(field);
       }
       return B->BuildGraphOfFieldAccessor(function);
     }
+    case RawFunction::kStaticFieldInitializer:
+      return BuildGraphOfFieldInitializer();
     case RawFunction::kDynamicInvocationForwarder:
       return B->BuildGraphOfDynamicInvocationForwarder(function);
     case RawFunction::kMethodExtractor:
@@ -1054,6 +1055,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter:
+    case RawFunction::kStaticFieldInitializer:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
@@ -1217,7 +1219,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kNullLiteral:
       return BuildNullLiteral(position);
     case kConstantExpression:
-      return BuildConstantExpression(position);
+      return BuildConstantExpression(position, tag);
+    case kDeprecated_ConstantExpression:
+      return BuildConstantExpression(position, tag);
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
     case kLoadLibrary:
@@ -1614,9 +1618,10 @@ Fragment StreamingFlowGraphBuilder::TranslateInstantiatedTypeArguments(
       type_arguments);
 }
 
-Fragment StreamingFlowGraphBuilder::StrictCompare(Token::Kind kind,
+Fragment StreamingFlowGraphBuilder::StrictCompare(TokenPosition position,
+                                                  Token::Kind kind,
                                                   bool number_check) {
-  return flow_graph_builder_->StrictCompare(kind, number_check);
+  return flow_graph_builder_->StrictCompare(position, kind, number_check);
 }
 
 Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
@@ -1679,7 +1684,8 @@ Fragment StreamingFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
 
 Fragment StreamingFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
   return flow_graph_builder_->CheckStackOverflow(
-      position, flow_graph_builder_->loop_depth_);
+      position, flow_graph_builder_->GetStackDepth(),
+      flow_graph_builder_->loop_depth_);
 }
 
 Fragment StreamingFlowGraphBuilder::CloneContext(
@@ -2610,7 +2616,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   bool is_unchecked_closure_call = false;
   bool is_unchecked_call = result_type.IsSkipCheck();
-#ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr) {
     if (call_site_attributes.receiver_type->IsFunctionType()) {
       AlternativeReadingScope alt(&reader_);
@@ -2623,7 +2628,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       is_unchecked_call = true;
     }
   }
-#endif
 
   Fragment instructions;
 
@@ -2677,7 +2681,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
-           StrictCompare(strict_cmp_kind, /*number_check = */ true);
+           StrictCompare(position, strict_cmp_kind, /*number_check = */ true);
   }
 
   LocalVariable* receiver_temp = NULL;
@@ -2851,7 +2855,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
-           StrictCompare(strict_cmp_kind, /*number_check = */ true);
+           StrictCompare(position, strict_cmp_kind, /*number_check = */ true);
   }
 
   instructions += PushArgument();  // push receiver as argument.
@@ -3118,7 +3122,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   // there.
   if (special_case_identical) {
     ASSERT(argument_count == 2);
-    instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
+    instructions +=
+        StrictCompare(position, Token::kEQ_STRICT, /*number_check=*/true);
   } else if (special_case_unchecked_cast) {
     // Simply do nothing: the result value is already pushed on the stack.
   } else {
@@ -3761,8 +3766,14 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
-    TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
+    TokenPosition* position,
+    Tag tag) {
+  TokenPosition p = TokenPosition::kNoSource;
+  if (tag == kConstantExpression) {
+    p = ReadPosition();
+    SkipDartType();
+  }
+  if (position != nullptr) *position = p;
   const intptr_t constant_offset = ReadUInt();
   KernelConstantsMap constant_map(H.constants().raw());
   Fragment result =
@@ -4018,7 +4029,7 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement() {
 Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
   ASSERT(block_expression_depth() == 0);  // no while in block-expr
   loop_depth_inc();
-  const TokenPosition position = ReadPosition();  // read position.
+  const TokenPosition position = ReadPosition();            // read position.
   TestFragment condition = TranslateConditionForControl();  // read condition.
   const Fragment body = BuildStatement();                   // read body
 
@@ -4031,6 +4042,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement() {
     body_entry += Goto(join);
 
     Fragment loop(join);
+    ASSERT(B->GetStackDepth() == 0);
     loop += CheckStackOverflow(position);
     loop.current->LinkTo(condition.entry);
 
@@ -4059,6 +4071,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
 
   JoinEntryInstr* join = BuildJoinEntry();
   Fragment loop(join);
+  ASSERT(B->GetStackDepth() == 0);
   loop += CheckStackOverflow(position);
   loop += body;
   loop <<= condition.entry;
@@ -4127,11 +4140,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     body += Goto(join);
 
     Fragment loop(join);
-
-    // Avoid OSR point inside block-expressions.
-    // TODO(ajcbik): make sure OSR works inside BE too
-    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
-
+    loop += CheckStackOverflow(position);  // may have non-empty stack
     if (condition.entry != nullptr) {
       loop <<= condition.entry;
     } else {
@@ -4158,7 +4167,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
   const TokenPosition position = ReadPosition();  // read position.
-  TokenPosition body_position = ReadPosition();  // read body position.
+  TokenPosition body_position = ReadPosition();   // read body position.
   intptr_t variable_kernel_position = ReaderOffset() + data_program_offset_;
   SkipVariableDeclaration();  // read variable.
 
@@ -4204,11 +4213,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
     body += Goto(join);
 
     Fragment loop(join);
-
-    // Avoid OSR point inside block-expressions.
-    // TODO(ajcbik): make sure OSR works inside BE too
-    if (B->GetStackDepth() == 0) loop += CheckStackOverflow(position);
-
+    loop += CheckStackOverflow(position);  // may have non-empty stack
     loop += condition;
   } else {
     instructions += condition;
@@ -4451,7 +4456,7 @@ Fragment StreamingFlowGraphBuilder::BuildContinueSwitchStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildIfStatement() {
-  ReadPosition();                                       // read position.
+  ReadPosition();  // read position.
 
   TestFragment condition = TranslateConditionForControl();
 

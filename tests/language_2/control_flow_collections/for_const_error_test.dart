@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=control-flow-collections,constant-update-2018
+// SharedOptions=--enable-experiment=control-flow-collections
 
 void main() {
   // For cannot be used in a const collection.
@@ -16,7 +16,7 @@ void main() {
 
   () async {
     const _ = <int>[await for (var i in []) 1]; //# 06: compile-time error
-    const _ = <int, int>{await  for (var i in []) 1: 1}; //# 07: compile-time error
+    const _ = <int, int>{await for (var i in []) 1: 1}; //# 07: compile-time error
     const _ = <int>{await for (var i in []) 1}; //# 08: compile-time error
   }();
 }

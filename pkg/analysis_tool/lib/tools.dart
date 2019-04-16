@@ -159,7 +159,7 @@ class CodeGenerator {
     if (codeGeneratorSettings.languageName == 'java') {
       header = '''
 /*
- * Copyright (c) ${year ?? '2018'}, the Dart project authors. Please see the AUTHORS file
+ * Copyright (c) ${year ?? '2019'}, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *

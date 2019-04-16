@@ -27,6 +27,7 @@ const Object x = 0;
 const double y = x;
     ''');
     await resolveTestFile();
-    assertTestErrors([CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
+    assertTestErrorsWithCodes(
+        [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
   }
 }

@@ -58,6 +58,9 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     case RawFunction::kImplicitSetter:
       function.AttachBytecode(Object::implicit_setter_bytecode());
       return;
+    case RawFunction::kMethodExtractor:
+      function.AttachBytecode(Object::method_extractor_bytecode());
+      return;
     default: {
     }
   }
@@ -95,11 +98,12 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
   ASSERT(function.is_declared_in_bytecode());
 
   // No parsing is needed if function has bytecode attached.
-  // With one exception: implicit getters and setters have artificial
-  // bytecodes, but they are still handled by shared flow graph builder
-  // which requires scopes/parsing.
-  if (function.HasBytecode() && !function.IsImplicitGetterFunction() &&
-      !function.IsImplicitSetterFunction()) {
+  // With one exception: implicit functions with artificial are still handled
+  // by shared flow graph builder which requires scopes/parsing.
+  if (function.HasBytecode() &&
+      (function.kind() != RawFunction::kImplicitGetter) &&
+      (function.kind() != RawFunction::kImplicitSetter) &&
+      (function.kind() != RawFunction::kMethodExtractor)) {
     return;
   }
 
@@ -338,7 +342,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   Object& parent = Object::Handle(Z, ReadObject());
   if (!parent.IsFunction()) {
     ASSERT(parent.IsField());
-    ASSERT(function.kind() == RawFunction::kImplicitStaticFinalGetter);
+    ASSERT(function.kind() == RawFunction::kStaticFieldInitializer);
     // Closure in a static field initializer, so use current function as parent.
     parent = function.raw();
   }
@@ -1896,12 +1900,18 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
       break;
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:
-    case RawFunction::kImplicitStaticFinalGetter:
-      if (IsBytecodeFieldInitializer(function, Z)) {
+      BytecodeScopeBuilder(parsed_function).BuildScopes();
+      break;
+    case RawFunction::kImplicitStaticFinalGetter: {
+      if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
         ReadCode(function, function.bytecode_offset());
       } else {
         BytecodeScopeBuilder(parsed_function).BuildScopes();
       }
+      break;
+    }
+    case RawFunction::kStaticFieldInitializer:
+      ReadCode(function, function.bytecode_offset());
       break;
     case RawFunction::kMethodExtractor:
       BytecodeScopeBuilder(parsed_function).BuildScopes();
@@ -2222,16 +2232,13 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
       annotation_field.bytecode_offset());
 }
 
-bool IsBytecodeFieldInitializer(const Function& function, Zone* zone) {
-  if (IsFieldInitializer(function, zone)) {
-    return true;
-  }
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
-    const auto& field = Field::Handle(zone, function.accessor_field());
-    return field.is_declared_in_bytecode() && field.is_const() &&
-           field.has_initializer();
-  }
-  return false;
+bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
+                                               Zone* zone) {
+  ASSERT(function.kind() == RawFunction::kImplicitStaticFinalGetter);
+
+  const auto& field = Field::Handle(zone, function.accessor_field());
+  return field.is_declared_in_bytecode() && field.is_const() &&
+         field.has_initializer();
 }
 
 }  // namespace kernel

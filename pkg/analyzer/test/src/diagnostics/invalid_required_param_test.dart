@@ -23,7 +23,7 @@ class InvalidRequiredParamTest extends DriverResolutionTest with PackageMixin {
   }
 
   test_namedParameter_withDefault() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 m({@required a = 1}) => null;
@@ -31,7 +31,7 @@ m({@required a = 1}) => null;
   }
 
   test_positionalParameter_noDefault() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 m([@required a]) => null;
@@ -39,7 +39,7 @@ m([@required a]) => null;
   }
 
   test_positionalParameter_withDefault() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 m([@required a = 1]) => null;
@@ -47,7 +47,7 @@ m([@required a = 1]) => null;
   }
 
   test_requiredParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 m(@required a) => null;

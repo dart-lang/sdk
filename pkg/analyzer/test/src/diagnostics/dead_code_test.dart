@@ -66,7 +66,7 @@ f() {
   }
 
   test_deadBlock_conditionalElse() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   true ? 1 : 2;
 }''', [HintCode.DEAD_CODE]);
@@ -82,14 +82,14 @@ f() {
 
   test_deadBlock_conditionalElse_nested() async {
     // Test that a dead else-statement can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   true ? true : false && false;
 }''', [HintCode.DEAD_CODE]);
   }
 
   test_deadBlock_conditionalIf() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   false ? 1 : 2;
 }''', [HintCode.DEAD_CODE]);
@@ -105,14 +105,14 @@ f() {
 
   test_deadBlock_conditionalIf_nested() async {
     // Test that a dead then-statement can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   false ? false && false : true;
 }''', [HintCode.DEAD_CODE]);
   }
 
   test_deadBlock_else() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   if(true) {} else {}
 }''', [HintCode.DEAD_CODE]);
@@ -128,14 +128,14 @@ f() {
 
   test_deadBlock_else_nested() async {
     // Test that a dead else-statement can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   if(true) {} else {if (false) {}}
 }''', [HintCode.DEAD_CODE]);
   }
 
   test_deadBlock_if() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   if(false) {}
 }''', [HintCode.DEAD_CODE]);
@@ -189,14 +189,14 @@ f() {
 
   test_deadBlock_if_nested() async {
     // Test that a dead then-statement can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   if(false) {if(false) {}}
 }''', [HintCode.DEAD_CODE]);
   }
 
   test_deadBlock_while() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   while(false) {}
 }''', [HintCode.DEAD_CODE]);
@@ -212,14 +212,14 @@ f() {
 
   test_deadBlock_while_nested() async {
     // Test that a dead while body can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   while(false) {if(false) {}}
 }''', [HintCode.DEAD_CODE]);
   }
 
   test_deadCatch_catchFollowingCatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 f() {
   try {} catch (e) {} catch (e) {}
@@ -228,7 +228,7 @@ f() {
 
   test_deadCatch_catchFollowingCatch_nested() async {
     // Test that a dead catch clause can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 f() {
   try {} catch (e) {} catch (e) {if(false) {}}
@@ -236,7 +236,7 @@ f() {
   }
 
   test_deadCatch_catchFollowingCatch_object() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   try {} on Object catch (e) {} catch (e) {}
 }''', [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
@@ -244,14 +244,14 @@ f() {
 
   test_deadCatch_catchFollowingCatch_object_nested() async {
     // Test that a dead catch clause can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   try {} on Object catch (e) {} catch (e) {if(false) {}}
 }''', [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
   }
 
   test_deadCatch_onCatchSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {}
 f() {
@@ -261,7 +261,7 @@ f() {
 
   test_deadCatch_onCatchSubtype_nested() async {
     // Test that a dead catch clause can't generate additional violations.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {}
 f() {
@@ -296,7 +296,7 @@ f() {
   }
 
   test_deadFinalReturnInCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   switch (true) {
   case true:
@@ -313,7 +313,7 @@ f() {
   }
 
   test_deadFinalStatementInCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   switch (true) {
   case true:
@@ -330,7 +330,7 @@ f() {
   }
 
   test_deadOperandLHS_and() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   bool b = false && false;
 }''', [HintCode.DEAD_CODE]);
@@ -345,14 +345,14 @@ f() {
   }
 
   test_deadOperandLHS_and_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   bool b = false && (false && false);
 }''', [HintCode.DEAD_CODE]);
   }
 
   test_deadOperandLHS_or() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   bool b = true || true;
 }''', [HintCode.DEAD_CODE]);
@@ -367,7 +367,7 @@ f() {
   }
 
   test_deadOperandLHS_or_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   bool b = true || (false && false);
 }''', [HintCode.DEAD_CODE]);
@@ -375,7 +375,7 @@ f() {
 
   test_statementAfterAlwaysThrowsFunction() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 @alwaysThrows
@@ -393,7 +393,7 @@ f() {
   @failingTest
   test_statementAfterAlwaysThrowsGetter() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -411,7 +411,7 @@ f() {
 
   test_statementAfterAlwaysThrowsMethod() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 class C {
@@ -429,7 +429,7 @@ f() {
   }
 
   test_statementAfterBreak_inDefaultCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(v) {
   switch(v) {
     case 1:
@@ -441,7 +441,7 @@ f(v) {
   }
 
   test_statementAfterBreak_inForEachStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   var list;
   for(var l in list) {
@@ -452,7 +452,7 @@ f() {
   }
 
   test_statementAfterBreak_inForStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   for(;;) {
     break;
@@ -462,7 +462,7 @@ f() {
   }
 
   test_statementAfterBreak_inSwitchCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(v) {
   switch(v) {
     case 1:
@@ -473,7 +473,7 @@ f(v) {
   }
 
   test_statementAfterBreak_inWhileStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(v) {
   while(v) {
     break;
@@ -483,7 +483,7 @@ f(v) {
   }
 
   test_statementAfterContinue_inForEachStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   var list;
   for(var l in list) {
@@ -494,7 +494,7 @@ f() {
   }
 
   test_statementAfterContinue_inForStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   for(;;) {
     continue;
@@ -504,7 +504,7 @@ f() {
   }
 
   test_statementAfterContinue_inWhileStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(v) {
   while(v) {
     continue;
@@ -514,7 +514,7 @@ f(v) {
   }
 
   test_statementAfterExitingIf_returns() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   if (1 > 2) {
     return;
@@ -536,7 +536,7 @@ f() {
   }
 
   test_statementAfterRethrow() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   try {
     var one = 1;
@@ -548,7 +548,7 @@ f() {
   }
 
   test_statementAfterReturn_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   var one = 1;
   return;
@@ -557,7 +557,7 @@ f() {
   }
 
   test_statementAfterReturn_ifStatement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(bool b) {
   if(b) {
     var one = 1;
@@ -568,7 +568,7 @@ f(bool b) {
   }
 
   test_statementAfterReturn_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   m() {
     var one = 1;
@@ -579,7 +579,7 @@ class A {
   }
 
   test_statementAfterReturn_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   var one = 1;
   return;
@@ -588,7 +588,7 @@ f() {
   }
 
   test_statementAfterReturn_twoReturns() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   var one = 1;
   return;
@@ -599,7 +599,7 @@ f() {
   }
 
   test_statementAfterThrow() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   var one = 1;
   throw 'Stop here';
@@ -614,8 +614,20 @@ class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
+  test_nullCoalesce_dynamic() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  dynamic x;
+  x ?? 1;
+}
+''');
+  }
+
   test_nullCoalesce_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 @pragma('analyzer:non-nullable')
 library foo;
 
@@ -638,8 +650,32 @@ m() {
 ''');
   }
 
+  test_nullCoalesce_nullType() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  Null x;
+  x ?? 1;
+}
+''');
+  }
+
+  test_nullCoalesceAssign_dynamic() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  dynamic x;
+  x ??= 1;
+}
+''');
+  }
+
   test_nullCoalesceAssign_nonNullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 @pragma('analyzer:non-nullable')
 library foo;
 

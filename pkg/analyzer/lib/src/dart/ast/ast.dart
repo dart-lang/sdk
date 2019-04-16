@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:pub_semver/src/version.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -2043,6 +2044,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   CompilationUnitElement declaredElement;
 
+  Version languageVersion;
+
   /// The line information for this compilation unit.
   @override
   LineInfo lineInfo;
@@ -3060,6 +3063,9 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   }
 
   @override
+  Token get requiredKeyword => null;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDefaultFormalParameter(this);
 
@@ -3483,6 +3489,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
     ..add(_uri)
     ..addAll(combinators)
     ..add(semicolon);
@@ -3940,6 +3947,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       CommentImpl comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       this.thisKeyword,
@@ -3947,7 +3955,8 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _type = _becomeParentOf(type);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -5072,11 +5081,13 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       CommentImpl comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -5649,6 +5660,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
     ..add(_uri)
     ..add(deferredKeyword)
     ..add(asKeyword)
@@ -7626,14 +7638,21 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token covariantKeyword;
 
+  /// The 'required' keyword, or `null` if the keyword was not used.
+  Token requiredKeyword;
+
   /// The name of the parameter being declared.
   SimpleIdentifierImpl _identifier;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute.
-  NormalFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
-      this.covariantKeyword, SimpleIdentifierImpl identifier) {
+  NormalFormalParameterImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      this.covariantKeyword,
+      this.requiredKeyword,
+      SimpleIdentifierImpl identifier) {
     _comment = _becomeParentOf(comment);
     _metadata = new NodeListImpl<Annotation>(this, metadata);
     _identifier = _becomeParentOf(identifier);
@@ -8691,10 +8710,12 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
       CommentImpl comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       SimpleIdentifierImpl identifier)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _type = _becomeParentOf(type);
   }
 

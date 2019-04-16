@@ -661,10 +661,16 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   bool get hasBeenInferred {
+    if (linkedNode != null) {
+      return linkedContext.hasOverrideInferenceDone(linkedNode);
+    }
     return _unlinkedClass != null || _hasBeenInferred;
   }
 
   void set hasBeenInferred(bool hasBeenInferred) {
+    if (linkedNode != null) {
+      return linkedContext.setOverrideInferenceDone(linkedNode);
+    }
     _assertNotResynthesized(_unlinkedClass);
     _hasBeenInferred = hasBeenInferred;
   }
@@ -830,9 +836,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isSimplyBounded {
-//    if (linkedNode != null) {
-//      return linkedNode.simplyBoundable_isSimplyBounded;
-//    }
+    if (linkedNode != null) {
+      return linkedContext.isSimplyBounded(linkedNode);
+    }
     return super.isSimplyBounded;
   }
 
@@ -1021,6 +1027,12 @@ class ClassElementImpl extends AbstractClassElementImpl
 
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
+
+      var coreTypes = context.bundleContext.elementFactory.coreTypes;
+      if (identical(this, coreTypes.objectClass)) {
+        return null;
+      }
+
       var type = context.getSuperclass(linkedNode)?.type;
       if (_isInterfaceTypeClass(type)) {
         return _supertype = type;
@@ -1058,31 +1070,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       _type = type;
     }
     return _type;
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    if (_typeParameterElements != null) return _typeParameterElements;
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var containerRef = reference.getChild('@typeParameter');
-      var typeParameters = context.getTypeParameters2(linkedNode);
-      if (typeParameters == null) {
-        return _typeParameterElements = const [];
-      }
-      return _typeParameterElements = typeParameters.typeParameters.map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          TypeParameterElementImpl.forLinkedNode(this, reference, node);
-        }
-        return reference.element as TypeParameterElementImpl;
-      }).toList();
-    }
-
-    return super.typeParameters;
   }
 
   /// Set the type parameters defined for this class to the given
@@ -2470,21 +2457,20 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {
-    if (_constantInitializers == null) {
-//      if (linkedNode != null) {
-//        var context = enclosingUnit.linkedContext;
-//        return _constantInitializers ??=
-//            linkedNode.constructorDeclaration_initializers.map((node) {
-//          return context.readNode(node) as ConstructorInitializer;
-//        }).toList();
-//      }
+    if (_constantInitializers != null) return _constantInitializers;
 
-      if (serializedExecutable != null) {
-        _constantInitializers = serializedExecutable.constantInitializers
-            .map((i) => _buildConstructorInitializer(i))
-            .toList(growable: false);
-      }
+    if (linkedNode != null) {
+      return _constantInitializers = linkedContext.getConstructorInitializers(
+        linkedNode,
+      );
     }
+
+    if (serializedExecutable != null) {
+      return _constantInitializers = serializedExecutable.constantInitializers
+          .map((i) => _buildConstructorInitializer(i))
+          .toList(growable: false);
+    }
+
     return _constantInitializers;
   }
 
@@ -2626,41 +2612,39 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ConstructorElement get redirectedConstructor {
-    if (_redirectedConstructor == null) {
-//      if (linkedNode != null) {
-//        var context = enclosingUnit.linkedContext;
-//        if (isFactory) {
-//          var node = linkedNode.constructorDeclaration_redirectedConstructor;
-//          if (node != null) {
-//            ConstructorName ast = context.readNode(node);
-//            return ast.staticElement;
-//          }
-//        } else {
-//          for (var node in linkedNode.constructorDeclaration_initializers) {
-//            if (node.kind == LinkedNodeKind.redirectingConstructorInvocation) {
-//              RedirectingConstructorInvocation ast = context.readNode(node);
-//              return ast.staticElement;
-//            }
-//          }
-//        }
-//        return null;
-//      }
+    if (_redirectedConstructor != null) return _redirectedConstructor;
 
-      if (serializedExecutable != null) {
-        if (serializedExecutable.isRedirectedConstructor) {
-          if (serializedExecutable.isFactory) {
-            _redirectedConstructor = enclosingUnit.resynthesizerContext
-                .resolveConstructorRef(enclosingElement,
-                    serializedExecutable.redirectedConstructor);
-          } else {
-            _redirectedConstructor = enclosingElement.getNamedConstructor(
-                serializedExecutable.redirectedConstructorName);
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      if (isFactory) {
+        var node = context.getConstructorRedirected(linkedNode);
+        return _redirectedConstructor = node?.staticElement;
+      } else {
+        var initializers = context.getConstructorInitializers(linkedNode);
+        for (var initializer in initializers) {
+          if (initializer is RedirectingConstructorInvocation) {
+            return _redirectedConstructor = initializer.staticElement;
           }
-        } else {
-          return null;
         }
       }
+      return null;
     }
+
+    if (serializedExecutable != null) {
+      if (serializedExecutable.isRedirectedConstructor) {
+        if (serializedExecutable.isFactory) {
+          _redirectedConstructor = enclosingUnit.resynthesizerContext
+              .resolveConstructorRef(
+                  enclosingElement, serializedExecutable.redirectedConstructor);
+        } else {
+          _redirectedConstructor = enclosingElement.getNamedConstructor(
+              serializedExecutable.redirectedConstructorName);
+        }
+      } else {
+        return null;
+      }
+    }
+
     return _redirectedConstructor;
   }
 
@@ -4396,6 +4380,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   bool get hasImplicitReturnType {
+    if (linkedNode != null) {
+      return linkedContext.hasImplicitReturnType(linkedNode);
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.returnType == null &&
           serializedExecutable.kind != UnlinkedExecutableKind.constructor;
@@ -4530,9 +4517,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   DartType get returnType {
     if (linkedNode != null) {
       if (_returnType != null) return _returnType;
-      return _returnType = enclosingUnit.linkedContext.getReturnType(
-        linkedNode,
-      );
+      var context = enclosingUnit.linkedContext;
+      return _returnType = context.getReturnType(linkedNode);
     }
     if (serializedExecutable != null &&
         _declaredReturnType == null &&
@@ -4549,6 +4535,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   void set returnType(DartType returnType) {
+    if (linkedNode != null) {
+      linkedContext.setReturnType(linkedNode, returnType);
+    }
     _assertNotResynthesized(serializedExecutable);
     _returnType = _checkElementOfType(returnType);
   }
@@ -4728,10 +4717,7 @@ class ExportElementImpl extends UriReferencedElementImpl
     if (_exportedLibrary != null) return _exportedLibrary;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var uri = context.directiveUri(librarySource.uri, linkedNode);
-      var elementFactory = context.bundleContext.elementFactory;
-      return _exportedLibrary = elementFactory.libraryOfUri('$uri');
+      return _exportedLibrary = linkedContext.directiveLibrary(linkedNode);
     }
 
     if (_unlinkedExportNonPublic != null) {
@@ -4859,8 +4845,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   factory FieldElementImpl.forLinkedNodeFactory(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
-    if (enclosing.enclosingUnit.linkedContext.isConst(linkedNode)) {
+      ClassElementImpl enclosing, Reference reference, AstNode linkedNode) {
+    var context = enclosing.enclosingUnit.linkedContext;
+    if (context.shouldBeConstFieldElement(linkedNode)) {
       return ConstFieldElementImpl.forLinkedNode(
         enclosing,
         reference,
@@ -4900,7 +4887,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   bool get isCovariant {
     if (linkedNode != null) {
-      return linkedContext.isCovariantField(linkedNode);
+      return linkedContext.isCovariant(linkedNode);
     }
 
     if (_unlinkedVariable != null) {
@@ -4919,6 +4906,17 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   bool get isEnumConstant =>
       enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
+
+  @override
+  bool get isLazy {
+//    if (linkedNode != null) {
+//      return enclosingUnit.linkedContext.isLazy(linkedNode);
+//    }
+//    if (_unlinkedVariable != null) {
+//      return _unlinkedVariable.isLazy;
+//    }
+    return hasModifier(Modifier.LAZY);
+  }
 
   @override
   bool get isStatic {
@@ -5118,14 +5116,6 @@ class FunctionElementImpl extends ExecutableElementImpl
       return reference.name;
     }
     return super.name;
-  }
-
-  @override
-  void set returnType(DartType returnType) {
-//    if (linkedNode != null) {
-//      enclosingUnit.linkedContext.setReturnType(linkedNode, returnType);
-//    }
-    super.returnType = returnType;
   }
 
   @override
@@ -5602,9 +5592,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   bool get isSimplyBounded {
-//    if (linkedNode != null) {
-//      return linkedNode.simplyBoundable_isSimplyBounded;
-//    }
+    if (linkedNode != null) {
+      return linkedContext.isSimplyBounded(linkedNode);
+    }
     return super.isSimplyBounded;
   }
 
@@ -5915,10 +5905,7 @@ class ImportElementImpl extends UriReferencedElementImpl
     if (_importedLibrary != null) return _importedLibrary;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var uri = context.directiveUri(librarySource.uri, linkedNode);
-      var elementFactory = context.bundleContext.elementFactory;
-      return _importedLibrary = elementFactory.libraryOfUri('$uri');
+      return _importedLibrary = linkedContext.directiveLibrary(linkedNode);
     }
 
     if (_linkedDependency != null) {
@@ -6337,6 +6324,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   String get documentationComment {
+    if (linkedNode != null) {
+      var comment = linkedContext.getLibraryDocumentationComment(linkedNode);
+      return getCommentNodeRawText(comment);
+    }
     if (unlinkedDefiningUnit != null) {
       return unlinkedDefiningUnit.libraryDocumentationComment?.text;
     }
@@ -6493,7 +6484,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           .whereType<ImportDirective>()
           .map((node) => ImportElementImpl.forLinkedNode(this, node))
           .toList();
-      var hasCore = _imports.any((import) => import.importedLibrary.isDartCore);
+      var hasCore = _imports.any((import) {
+        return import.importedLibrary?.isDartCore ?? false;
+      });
       if (!hasCore) {
         var elements = linkedContext.bundleContext.elementFactory;
         _imports.add(ImportElementImpl(-1)
@@ -6706,8 +6699,15 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Namespace get publicNamespace {
+    if (_publicNamespace != null) return _publicNamespace;
+
+    if (linkedNode != null) {
+      return _publicNamespace =
+          NamespaceBuilder().createPublicNamespaceForLibrary(this);
+    }
+
     if (resynthesizerContext != null) {
-      _publicNamespace ??= resynthesizerContext.buildPublicNamespace();
+      return _publicNamespace = resynthesizerContext.buildPublicNamespace();
     }
     return _publicNamespace;
   }
@@ -7013,6 +7013,17 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   }
 
   @override
+  bool get isLazy {
+//    if (linkedNode != null) {
+//      return enclosingUnit.linkedContext.isLazy(linkedNode);
+//    }
+//    if (_unlinkedVariable != null) {
+//      return _unlinkedVariable.isLazy;
+//    }
+    return hasModifier(Modifier.LAZY);
+  }
+
+  @override
   bool get isPotentiallyMutatedInClosure => true;
 
   @override
@@ -7133,16 +7144,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       return 'unary-';
     }
     return super.name;
-  }
-
-  @override
-  DartType get returnType {
-//    if (linkedNode != null) {
-//      return enclosingUnit.linkedContext.getType(
-//        linkedNode.methodDeclaration_returnType2,
-//      );
-//    }
-    return super.returnType;
   }
 
   @override
@@ -7387,25 +7388,28 @@ class Modifier implements Comparable<Modifier> {
   /// type being referred to is the return type.
   static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 12);
 
+  /// Indicates that modifier 'lazy' was applied to the element.
+  static const Modifier LAZY = const Modifier('LAZY', 13);
+
   /// Indicates that a class is a mixin application.
   static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 13);
+      const Modifier('MIXIN_APPLICATION', 14);
 
   /// Indicates that a class contains an explicit reference to 'super'.
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 14);
+      const Modifier('REFERENCES_SUPER', 15);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = const Modifier('SETTER', 15);
+  static const Modifier SETTER = const Modifier('SETTER', 16);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = const Modifier('STATIC', 16);
+  static const Modifier STATIC = const Modifier('STATIC', 17);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 17);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
 
   static const List<Modifier> values = const [
     ABSTRACT,
@@ -7421,6 +7425,7 @@ class Modifier implements Comparable<Modifier> {
     GETTER,
     HAS_EXT_URI,
     IMPLICIT_TYPE,
+    LAZY,
     MIXIN_APPLICATION,
     REFERENCES_SUPER,
     SETTER,
@@ -7763,6 +7768,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   bool get hasImplicitType {
+    if (linkedNode != null) {
+      return linkedContext.hasImplicitType(linkedNode);
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.type == null;
     }
@@ -7875,6 +7883,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   void set type(DartType type) {
+    if (linkedNode != null) {
+      return linkedContext.setVariableType(linkedNode, type);
+    }
     _assertNotResynthesized(_unlinkedVariable);
     _type = _checkElementOfType(type);
   }
@@ -8029,6 +8040,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get hasImplicitType {
+    if (linkedNode != null) {
+      return linkedContext.hasImplicitType(linkedNode);
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.type == null && !unlinkedParam.isFunctionTyped;
     }
@@ -8099,13 +8113,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isCovariant {
-//    if (linkedNode != null) {
-//      if (linkedNode.kind == LinkedNodeKind.defaultFormalParameter) {
-//        var parameter = linkedNode.defaultFormalParameter_parameter;
-//        return parameter.normalFormalParameter_isCovariant;
-//      }
-//      return linkedNode.normalFormalParameter_isCovariant;
-//    }
+    if (linkedNode != null) {
+      return linkedContext.isCovariant(linkedNode);
+    }
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
@@ -8377,17 +8387,25 @@ class ParameterElementImpl extends VariableElementImpl
           );
         }
       } else {
-        var name = node.identifier.name;
-        var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          ParameterElementImpl.forLinkedNodeFactory(
+        if (node.identifier == null) {
+          return ParameterElementImpl.forLinkedNodeFactory(
             enclosing,
-            reference,
+            containerRef.getChild(''),
             node,
           );
+        } else {
+          var name = node.identifier.name;
+          var reference = containerRef.getChild(name);
+          if (reference.element == null) {
+            reference.node2 = node;
+            ParameterElementImpl.forLinkedNodeFactory(
+              enclosing,
+              reference,
+              node,
+            );
+          }
+          return reference.element as ParameterElement;
         }
-        return reference.element as ParameterElement;
       }
     }).toList();
   }
@@ -8879,7 +8897,7 @@ abstract class PropertyInducingElementImpl
   DartType get type {
     if (linkedNode != null) {
       if (_type != null) return _type;
-      return _type = enclosingUnit.linkedContext.getType(linkedNode);
+      return _type = linkedContext.getType(linkedNode);
     }
     if (isSynthetic && _type == null) {
       if (getter != null) {
@@ -9246,7 +9264,8 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      return reference.name;
+      TypeParameter node = this.linkedNode;
+      return node.name.name;
     }
     if (_unlinkedTypeParam != null) {
       return _unlinkedTypeParam.name;
@@ -9320,20 +9339,14 @@ mixin TypeParameterizedElementMixin
     if (_typeParameterElements != null) return _typeParameterElements;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var containerRef = reference.getChild('@typeParameter');
-      var typeParameters = context.getTypeParameters2(linkedNode);
+      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }
       return _typeParameterElements = typeParameters.typeParameters.map((node) {
-        var name = node.name.name;
-        var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          TypeParameterElementImpl.forLinkedNode(this, reference, node);
-        }
-        return reference.element as TypeParameterElementImpl;
+        TypeParameterElementImpl element = node.declaredElement;
+        element.enclosingElement = this;
+        return element;
       }).toList();
     }
 
@@ -9533,9 +9546,6 @@ abstract class VariableElementImpl extends ElementImpl
   DartObject get constantValue => evaluationResult?.value;
 
   void set declaredType(DartType type) {
-//    if (linkedNode != null) {
-//      enclosingUnit.linkedContext.setVariableType(linkedNode, type);
-//    }
     _declaredType = _checkElementOfType(type);
   }
 
@@ -9619,6 +9629,9 @@ abstract class VariableElementImpl extends ElementImpl
   DartType get type => _type ?? _declaredType;
 
   void set type(DartType type) {
+    if (linkedNode != null) {
+      return linkedContext.setVariableType(linkedNode, type);
+    }
     _type = _checkElementOfType(type);
   }
 

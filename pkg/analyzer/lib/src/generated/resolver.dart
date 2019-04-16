@@ -1833,7 +1833,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (lhsType.nullability == Nullability.nonNullable) {
+    if (_isNonNullableUnit && _typeSystem.isNonNullable(lhsType)) {
       _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
     }
   }
@@ -3632,7 +3632,7 @@ class ResolverErrorCode extends ErrorCode {
       const ResolverErrorCode(
           'PART_OF_UNNAMED_LIBRARY',
           "Library is unnamed. Expected a URI not a library name '{0}' in the "
-          "part-of directive.",
+              "part-of directive.",
           correction:
               "Try changing the part-of directive to a URI, or try including a"
               " different part.");
@@ -3851,13 +3851,6 @@ class ResolverVisitor extends ScopedVisitor {
     // TODO(brianwilkerson) Remove this method.
   }
 
-  /// A client is about to resolve a member in the given class declaration.
-  void prepareToResolveMembersInClass(ClassDeclaration node) {
-    _enclosingClassDeclaration = node;
-    enclosingClass = node.declaredElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
-  }
-
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
     ClassElement enclosingClassElement,
@@ -3867,6 +3860,13 @@ class ResolverVisitor extends ScopedVisitor {
     enclosingClass = enclosingClassElement;
     typeAnalyzer.thisType = enclosingClass?.type;
     _enclosingFunction = enclosingExecutableElement;
+  }
+
+  /// A client is about to resolve a member in the given class declaration.
+  void prepareToResolveMembersInClass(ClassDeclaration node) {
+    _enclosingClassDeclaration = node;
+    enclosingClass = node.declaredElement;
+    typeAnalyzer.thisType = enclosingClass?.type;
   }
 
   /// Visit the given [comment] if it is not `null`.
@@ -6640,16 +6640,16 @@ class TypeNameResolver {
     return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
   }
 
-  Nullability _getNullability(bool hasQuestion) {
-    Nullability nullability;
+  NullabilitySuffix _getNullability(bool hasQuestion) {
+    NullabilitySuffix nullability;
     if (isNonNullableUnit) {
       if (hasQuestion) {
-        nullability = Nullability.nullable;
+        nullability = NullabilitySuffix.question;
       } else {
-        nullability = Nullability.nonNullable;
+        nullability = NullabilitySuffix.none;
       }
     } else {
-      nullability = Nullability.indeterminate;
+      nullability = NullabilitySuffix.star;
     }
     return nullability;
   }
@@ -6793,6 +6793,25 @@ class TypeNameResolver {
   bool _isTypeNameInTypeArgumentList(TypeName typeName) =>
       typeName.parent is TypeArgumentList;
 
+  /// Given a [typeName] that has a question mark, report an error and return
+  /// `true` if it appears in a location where a nullable type is not allowed.
+  void _reportInvalidNullableType(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is ExtendsClause || parent is ClassTypeAlias) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, typeName);
+    } else if (parent is ImplementsClause) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, typeName);
+    } else if (parent is OnClause) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, typeName);
+    } else if (parent is WithClause) {
+      reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, typeName);
+    }
+  }
+
   void _resolveClassElement(TypeName node, Identifier typeName,
       TypeArgumentList argumentList, ClassElement element) {
     _setElement(typeName, element);
@@ -6832,19 +6851,22 @@ class TypeNameResolver {
 
     var parent = node.parent;
 
-    Nullability nullability;
+    NullabilitySuffix nullabilitySuffix;
     if (parent is ClassTypeAlias ||
         parent is ExtendsClause ||
         parent is ImplementsClause ||
         parent is OnClause ||
         parent is WithClause) {
-      nullability = Nullability.nonNullable;
+      if (node.question != null) {
+        _reportInvalidNullableType(node);
+      }
+      nullabilitySuffix = NullabilitySuffix.none;
     } else {
-      nullability = _getNullability(node.question != null);
+      nullabilitySuffix = _getNullability(node.question != null);
     }
 
     var type = InterfaceTypeImpl.explicit(element, typeArguments,
-        nullability: nullability);
+        nullabilitySuffix: nullabilitySuffix);
 
     if (shouldUseWithClauseInferredTypes) {
       if (parent is WithClause && parameterCount != 0) {
@@ -7170,6 +7192,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Map'.
   InterfaceType get mapType;
 
+  /// Return the type representing the built-in type 'Never'.
+  InterfaceType get neverType;
+
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
   List<InterfaceType> get nonSubtypableTypes;
@@ -7315,8 +7340,8 @@ class TypeProviderImpl extends TypeProviderBase {
   /// An shared object representing the value 'null'.
   DartObjectImpl _nullObject;
 
-  /// The type representing the type 'Set'.
-  InterfaceType _setType;
+  /// The type representing the type 'Never'.
+  InterfaceType _neverType;
 
   /// The type representing the type 'Null'.
   InterfaceType _nullType;
@@ -7326,6 +7351,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   /// The type representing the built-in type 'Object'.
   InterfaceType _objectType;
+
+  /// The type representing the type 'Set'.
+  InterfaceType _setType;
 
   /// The type representing the built-in type 'StackTrace'.
   InterfaceType _stackTraceType;
@@ -7351,18 +7379,7 @@ class TypeProviderImpl extends TypeProviderBase {
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl(LibraryElement coreLibrary, LibraryElement asyncLibrary) {
-    Namespace coreNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLibrary);
-    Namespace asyncNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(asyncLibrary);
-    _initializeFrom(coreNamespace, asyncNamespace);
-  }
-
-  /// Initialize a newly created type provider to provide the types defined in
-  /// the given [Namespace]s.
-  TypeProviderImpl.forNamespaces(
-      Namespace coreNamespace, Namespace asyncNamespace) {
-    _initializeFrom(coreNamespace, asyncNamespace);
+    _initializeFrom(coreLibrary, asyncLibrary);
   }
 
   @override
@@ -7420,6 +7437,9 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get mapType => _mapType;
 
   @override
+  InterfaceType get neverType => _neverType;
+
+  @override
   DartObjectImpl get nullObject {
     if (_nullObject == null) {
       _nullObject = new DartObjectImpl(nullType, NullState.NULL_STATE);
@@ -7460,12 +7480,18 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   DartType get undefinedType => _undefinedType;
 
-  /// Return the type with the given name from the given namespace, or `null` if
-  /// there is no class with the given name.
-  ///
-  /// @param namespace the namespace in which to search for the given name
-  /// @param typeName the name of the type being searched for
-  /// @return the type that was found
+  InterfaceType _createNever(Namespace namespace) {
+    // TODO(brianwilkerson) Remove this method when the class is defined in the
+    //  SDK.
+    CompilationUnitElement compilationUnit =
+        boolType.element.getAncestor((e) => e is CompilationUnitElement);
+    ClassElementImpl element = ElementFactory.classElement('Never', objectType);
+    element.enclosingElement = compilationUnit;
+    return element.type;
+  }
+
+  /// Return the type with the given [typeName] from the given [namespace], or
+  /// `null` if there is no class with the given name.
   InterfaceType _getType(Namespace namespace, String typeName) {
     Element element = namespace.get(typeName);
     if (element == null) {
@@ -7478,28 +7504,36 @@ class TypeProviderImpl extends TypeProviderBase {
 
   /// Initialize the types provided by this type provider from the given
   /// [Namespace]s.
-  void _initializeFrom(Namespace coreNamespace, Namespace asyncNamespace) {
-    _boolType = _getType(coreNamespace, "bool");
+  void _initializeFrom(
+      LibraryElement coreLibrary, LibraryElement asyncLibrary) {
+    Namespace coreNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLibrary);
+    Namespace asyncNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(asyncLibrary);
+
+    _boolType = _getType(coreNamespace, 'bool');
     _bottomType = BottomTypeImpl.instance;
-    _deprecatedType = _getType(coreNamespace, "Deprecated");
-    _doubleType = _getType(coreNamespace, "double");
+    _deprecatedType = _getType(coreNamespace, 'Deprecated');
+    _doubleType = _getType(coreNamespace, 'double');
     _dynamicType = DynamicTypeImpl.instance;
-    _functionType = _getType(coreNamespace, "Function");
-    _futureOrType = _getType(asyncNamespace, "FutureOr");
-    _futureType = _getType(asyncNamespace, "Future");
-    _intType = _getType(coreNamespace, "int");
-    _iterableType = _getType(coreNamespace, "Iterable");
-    _listType = _getType(coreNamespace, "List");
-    _mapType = _getType(coreNamespace, "Map");
-    _nullType = _getType(coreNamespace, "Null");
-    _numType = _getType(coreNamespace, "num");
-    _objectType = _getType(coreNamespace, "Object");
-    _setType = _getType(coreNamespace, "Set");
-    _stackTraceType = _getType(coreNamespace, "StackTrace");
-    _streamType = _getType(asyncNamespace, "Stream");
-    _stringType = _getType(coreNamespace, "String");
-    _symbolType = _getType(coreNamespace, "Symbol");
-    _typeType = _getType(coreNamespace, "Type");
+    _functionType = _getType(coreNamespace, 'Function');
+    _futureOrType = _getType(asyncNamespace, 'FutureOr');
+    _futureType = _getType(asyncNamespace, 'Future');
+    _intType = _getType(coreNamespace, 'int');
+    _iterableType = _getType(coreNamespace, 'Iterable');
+    _listType = _getType(coreNamespace, 'List');
+    _mapType = _getType(coreNamespace, 'Map');
+    _neverType =
+        _getType(coreNamespace, 'Never') ?? _createNever(coreNamespace);
+    _nullType = _getType(coreNamespace, 'Null');
+    _numType = _getType(coreNamespace, 'num');
+    _objectType = _getType(coreNamespace, 'Object');
+    _setType = _getType(coreNamespace, 'Set');
+    _stackTraceType = _getType(coreNamespace, 'StackTrace');
+    _streamType = _getType(asyncNamespace, 'Stream');
+    _stringType = _getType(coreNamespace, 'String');
+    _symbolType = _getType(coreNamespace, 'Symbol');
+    _typeType = _getType(coreNamespace, 'Type');
     _undefinedType = UndefinedTypeImpl.instance;
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
@@ -7519,6 +7553,8 @@ class TypeProviderImpl extends TypeProviderBase {
   /// we can analyze older SDKs.
   static InterfaceType createPlaceholderFutureOr(
       InterfaceType futureType, InterfaceType objectType) {
+    // TODO(brianwilkerson) Remove this method now that the class has been
+    //  defined.
     var compilationUnit =
         futureType.element.getAncestor((e) => e is CompilationUnitElement);
     var element = ElementFactory.classElement('FutureOr', objectType, ['T']);

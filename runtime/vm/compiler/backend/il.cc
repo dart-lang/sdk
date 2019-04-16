@@ -494,22 +494,31 @@ Object& Definition::constant_value() {
 
 Definition* Definition::OriginalDefinition() {
   Definition* defn = this;
-  while (true) {
-    if (auto redefinition = defn->AsRedefinition()) {
-      defn = redefinition->value()->definition();
-    } else if (auto assert_assignable = defn->AsAssertAssignable()) {
-      defn = assert_assignable->value()->definition();
-    } else if (auto check_array_bound = defn->AsCheckArrayBound()) {
-      defn = check_array_bound->index()->definition();
-    } else if (auto check_bound = defn->AsGenericCheckBound()) {
-      defn = check_bound->index()->definition();
-    } else if (auto check_null = defn->AsCheckNull()) {
-      defn = check_null->value()->definition();
-    } else {
-      break;
-    }
+  Value* unwrapped;
+  while ((unwrapped = defn->RedefinedValue()) != nullptr) {
+    defn = unwrapped->definition();
   }
   return defn;
+}
+
+Value* Definition::RedefinedValue() const {
+  return nullptr;
+}
+
+Value* RedefinitionInstr::RedefinedValue() const {
+  return value();
+}
+
+Value* AssertAssignableInstr::RedefinedValue() const {
+  return value();
+}
+
+Value* CheckBoundBase::RedefinedValue() const {
+  return index();
+}
+
+Value* CheckNullInstr::RedefinedValue() const {
+  return value();
 }
 
 Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
@@ -1514,10 +1523,11 @@ bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
       // we can simply jump to the beginning of the block.
       ASSERT(instr->previous() == this);
 
+      const intptr_t stack_depth = instr->AsCheckStackOverflow()->stack_depth();
       auto normal_entry = graph_entry->normal_entry();
       auto osr_entry = new OsrEntryInstr(graph_entry, normal_entry->block_id(),
                                          normal_entry->try_index(),
-                                         normal_entry->deopt_id());
+                                         normal_entry->deopt_id(), stack_depth);
 
       auto goto_join = new GotoInstr(AsJoinEntry(),
                                      CompilerState::Current().GetNextDeoptId());
@@ -2407,13 +2417,21 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if (rhs == 0) {
         return right()->definition();
       } else if (rhs == 2) {
+        const int64_t shift_1 = 1;
         ConstantInstr* constant_1 =
-            flow_graph->GetConstant(Smi::Handle(Smi::New(1)));
+            flow_graph->GetConstant(Smi::Handle(Smi::New(shift_1)));
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_1), GetDeoptId(), can_overflow(),
             is_truncating(), range(), speculative_mode());
-        if (shift != NULL) {
+        if (shift != nullptr) {
+          // Assign a range to the shift factor, just in case range
+          // analysis no longer runs after this rewriting.
+          if (auto shift_with_range = shift->AsShiftIntegerOp()) {
+            shift_with_range->set_shift_range(
+                new Range(RangeBoundary::FromConstant(shift_1),
+                          RangeBoundary::FromConstant(shift_1)));
+          }
           flow_graph->InsertBefore(this, shift, env(), FlowGraph::kValue);
           return shift;
         }
@@ -2542,8 +2560,7 @@ Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !flow_graph->is_licm_allowed()) {
     return NULL;
   }
-  if ((constrained_type() != NULL) &&
-      Type()->IsEqualTo(value()->definition()->Type())) {
+  if ((constrained_type() != nullptr) && Type()->IsEqualTo(value()->Type())) {
     return value()->definition();
   }
   return this;
@@ -3765,14 +3782,11 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
     }
   }
-  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-  // entrypoints, so we generate several times the same intrinsification &
-  // frame setup.  That's why we cannot rely on the constant pool being
-  // `false` when we come in here.
+  // NOTE: Because in X64/ARM mode the graph can have multiple entrypoints, we
+  // generate several times the same intrinsification & frame setup. That's why
+  // we cannot rely on the constant pool being `false` when we come in here.
   __ set_constant_pool_allowed(false);
-  // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
-  // (meaning the function was fully intrinsified).
-  compiler->TryIntrinsify();
+  if (compiler->TryIntrinsify()) return;
   compiler->EmitPrologue();
   ASSERT(__ constant_pool_allowed());
 #endif
@@ -3951,8 +3965,8 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
   registers_remapped_ = true;
 
   for (intptr_t i = 0; i < InputCount(); i++) {
-    locations_[i] = LocationAt(i).RemapForSlowPath(
-        InputAt(i)->definition(), cpu_reg_slots, fpu_reg_slots);
+    locations_[i] = LocationRemapForSlowPath(
+        LocationAt(i), InputAt(i)->definition(), cpu_reg_slots, fpu_reg_slots);
   }
 }
 
@@ -4600,7 +4614,8 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-#if !defined(TARGET_ARCH_DBC)
+#endif  // !defined(TARGET_ARCH_DBC)
+
 void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                                FlowGraphCompiler* compiler) {
   const String& function_name = check_null->function_name();
@@ -4609,7 +4624,8 @@ void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
   compiler->AddNullCheck(compiler->assembler()->CodeSize(),
                          check_null->token_pos(), name_index);
 }
-#endif  // !defined(TARGET_ARCH_DBC)
+
+#if !defined(TARGET_ARCH_DBC)
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
@@ -5199,8 +5215,19 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_ARM)
+
+LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  UNREACHABLE();
+}
+
+void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+#endif  // defined(TARGET_ARCH_ARM)
+
+#if !defined(TARGET_ARCH_DBC)
 
 #define Z zone_
 
@@ -5219,7 +5246,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32) ||                 \
+    defined(TARGET_ARCH_ARM)
   constexpr intptr_t kNumTemps = 2;
 #else
   constexpr intptr_t kNumTemps = 1;
@@ -5234,7 +5262,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                       CallingConventions::kFirstNonArgumentRegister));
   summary->set_temp(0, Location::RegisterLocation(
                            CallingConventions::kSecondNonArgumentRegister));
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM64) ||                 \
+    defined(TARGET_ARCH_ARM)
   summary->set_temp(1, Location::RegisterLocation(
                            CallingConventions::kFirstCalleeSavedCpuReg));
 #endif
@@ -5246,8 +5275,15 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
     // register or a contiguous 64-bit slot on the stack. Unboxed 64-bit integer
     // values, in contrast, can be split between any two registers on a 32-bit
     // system.
+    //
+    // There is an exception for iOS and Android 32-bit ARM, where
+    // floating-point values are treated as integers as far as the calling
+    // convention is concerned. However, the representation of these arguments
+    // are set to kUnboxedInt32 or kUnboxedInt64 already, so we don't have to
+    // account for that here.
     const bool is_atomic = arg_representations_[i] == kUnboxedFloat ||
                            arg_representations_[i] == kUnboxedDouble;
+
     // Since we have to move this input down to the stack, there's no point in
     // pinning it to any specific register.
     summary->set_in(i, UnallocateStackSlots(arg_locations_[i], is_atomic));
@@ -5293,7 +5329,7 @@ Representation FfiCallInstr::representation() const {
   UNREACHABLE();
 }
 
-#endif
+#endif  // !defined(TARGET_ARCH_DBC)
 
 // SIMD
 

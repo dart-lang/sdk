@@ -820,8 +820,7 @@ DART_EXPORT void Dart_PropagateError(Dart_Handle handle) {
   if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // propagate an error here.
-    FATAL1("No Dart frames on stack, cannot propagate error: %s",
-           Error::Cast(obj).ToErrorCString());
+    FATAL("No Dart frames on stack, cannot propagate error.");
   }
   // Unwind all the API scopes till the exit frame before propagating.
   const Error* error;
@@ -6340,6 +6339,10 @@ DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
 #ifndef PRODUCT
   Profiler::DumpStackTrace(context);
 #endif
+}
+
+DART_EXPORT void Dart_PrepareToAbort() {
+  OS::PrepareToAbort();
 }
 
 }  // namespace dart

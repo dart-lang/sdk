@@ -17,13 +17,7 @@ bool _isJSLibrary(Library library) {
 }
 
 bool _annotationIsFromJSLibrary(String expectedName, Expression value) {
-  Class c;
-  if (value is ConstructorInvocation) {
-    c = value.target.enclosingClass;
-  } else if (value is StaticGet) {
-    var type = value.target.getterType;
-    if (type is InterfaceType) c = type.classNode;
-  }
+  var c = getAnnotationClass(value);
   return c != null &&
       c.name == expectedName &&
       _isJSLibrary(c.enclosingLibrary);
@@ -48,22 +42,10 @@ bool isPublicJSAnnotation(Expression value) =>
 bool _isJSAnonymousAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('_Anonymous', value);
 
-bool _isBuiltinAnnotation(
-    Expression value, String libraryName, String annotationName) {
-  if (value is ConstructorInvocation) {
-    var c = value.target.enclosingClass;
-    if (c.name == annotationName) {
-      var uri = c.enclosingLibrary.importUri;
-      return uri.scheme == 'dart' && uri.pathSegments[0] == libraryName;
-    }
-  }
-  return false;
-}
-
 /// Whether [value] is a `@JSExportName` (internal annotation used in SDK
 /// instead of `@JS` from `package:js`).
 bool isJSExportNameAnnotation(Expression value) =>
-    _isBuiltinAnnotation(value, '_foreign_helper', 'JSExportName');
+    isBuiltinAnnotation(value, '_foreign_helper', 'JSExportName');
 
 /// Whether [i] is a `spread` invocation (to be used on function arguments
 /// to have them compiled as `...` spread args in ES6 outputs).
@@ -71,18 +53,23 @@ bool isJSSpreadInvocation(Procedure target) =>
     target.name.name == 'spread' && _isJSLibrary(target.enclosingLibrary);
 
 bool isJSName(Expression value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'JSName');
+    isBuiltinAnnotation(value, '_js_helper', 'JSName');
 
 bool isJsPeerInterface(Expression value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'JsPeerInterface');
+    isBuiltinAnnotation(value, '_js_helper', 'JsPeerInterface');
 
 bool isNativeAnnotation(Expression value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'Native');
+    isBuiltinAnnotation(value, '_js_helper', 'Native');
 
 bool isJSAnonymousType(Class namedClass) {
-  return hasJSInteropAnnotation(namedClass) &&
+  var hasJSInterop = hasJSInteropAnnotation(namedClass);
+  var isAnonymous =
       findAnnotation(namedClass, _isJSAnonymousAnnotation) != null;
+  return hasJSInterop && isAnonymous;
 }
+
+bool isUndefinedAnnotation(Expression value) =>
+    isBuiltinAnnotation(value, '_js_helper', '_Undefined');
 
 /// Returns true iff the class has an `@JS(...)` annotation from `package:js`.
 ///

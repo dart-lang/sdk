@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 
 import 'package:test/test.dart';
 
@@ -121,5 +122,18 @@ main() {
         'multi-root:///A/B/a/8.dart');
     expect(await effectiveUriOf('multi-root:///../../A/B/a/8.dart'),
         'multi-root:///A/B/a/8.dart');
+  });
+
+  test('multi-root handles all multi-root scheme uris, even if missing',
+      () async {
+    expect(await effectiveUriOf('multi-root:///doesnt/exist.dart'),
+        'multi-root:///doesnt/exist.dart');
+    expect(await exists('multi-root:///doesnt/exist.dart'), isFalse);
+    expect(
+        read('multi-root:///doesnt/exist.dart'),
+        throwsA(const TypeMatcher<FileSystemException>()
+            .having((e) => e.message, 'message', 'File not found')
+            .having((e) => e.uri, 'uri',
+                equals(Uri.parse('multi-root:///doesnt/exist.dart')))));
   });
 }

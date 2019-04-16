@@ -666,11 +666,8 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
     ASSERT(IsStackEmpty());
     code_ += B->CheckStackOverflowInPrologue(position_);
   } else {
-    // Avoid OSR points inside block-expressions with pending stack slots.
-    // TODO(ajcbik): make sure OSR works for such cases too.
-    if (IsStackEmpty()) {
-      code_ += B->CheckStackOverflow(position_, loop_depth);
-    }
+    const intptr_t stack_depth = B->GetStackDepth();
+    code_ += B->CheckStackOverflow(position_, stack_depth, loop_depth);
   }
 }
 
@@ -783,7 +780,8 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   B->Push(call);
 }
 
-void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
+void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
+    bool is_unchecked_call) {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
@@ -821,8 +819,20 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
 
   // TODO(alexmarkov): add type info - call->SetResultType()
 
+  if (is_unchecked_call) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+
   code_ <<= call;
   B->Push(call);
+}
+
+void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/false);
+}
+
+void BytecodeFlowGraphBuilder::BuildUncheckedInterfaceCall() {
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/true);
 }
 
 void BytecodeFlowGraphBuilder::BuildDynamicCall() {
@@ -1551,9 +1561,11 @@ void BytecodeFlowGraphBuilder::BuildEqualsNull() {
   code_ += B->LoadLocal(scratch_var_);
 }
 
-void BytecodeFlowGraphBuilder::BuildIntOp(const String& name,
-                                          Token::Kind token_kind,
-                                          int num_args) {
+void BytecodeFlowGraphBuilder::BuildPrimitiveOp(
+    const String& name,
+    Token::Kind token_kind,
+    const AbstractType& static_receiver_type,
+    int num_args) {
   ASSERT((num_args == 1) || (num_args == 2));
   ASSERT(MethodTokenRecognizer::RecognizeTokenKind(name) == token_kind);
 
@@ -1564,8 +1576,24 @@ void BytecodeFlowGraphBuilder::BuildIntOp(const String& name,
       position_, name, token_kind, arguments, 0, Array::null_array(), num_args,
       *ic_data_array_, B->GetNextDeoptId());
 
+  call->set_receivers_static_type(&static_receiver_type);
+
   code_ <<= call;
   B->Push(call);
+}
+
+void BytecodeFlowGraphBuilder::BuildIntOp(const String& name,
+                                          Token::Kind token_kind,
+                                          int num_args) {
+  BuildPrimitiveOp(name, token_kind,
+                   AbstractType::ZoneHandle(Z, Type::IntType()), num_args);
+}
+
+void BytecodeFlowGraphBuilder::BuildDoubleOp(const String& name,
+                                             Token::Kind token_kind,
+                                             int num_args) {
+  BuildPrimitiveOp(name, token_kind,
+                   AbstractType::ZoneHandle(Z, Type::Double()), num_args);
 }
 
 void BytecodeFlowGraphBuilder::BuildNegateInt() {
@@ -1630,6 +1658,46 @@ void BytecodeFlowGraphBuilder::BuildCompareIntGe() {
 
 void BytecodeFlowGraphBuilder::BuildCompareIntLe() {
   BuildIntOp(Symbols::LessEqualOperator(), Token::kLTE, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildNegateDouble() {
+  BuildDoubleOp(Symbols::UnaryMinus(), Token::kNEGATE, 1);
+}
+
+void BytecodeFlowGraphBuilder::BuildAddDouble() {
+  BuildDoubleOp(Symbols::Plus(), Token::kADD, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildSubDouble() {
+  BuildDoubleOp(Symbols::Minus(), Token::kSUB, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildMulDouble() {
+  BuildDoubleOp(Symbols::Star(), Token::kMUL, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildDivDouble() {
+  BuildDoubleOp(Symbols::Slash(), Token::kDIV, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildCompareDoubleEq() {
+  BuildDoubleOp(Symbols::EqualOperator(), Token::kEQ, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildCompareDoubleGt() {
+  BuildDoubleOp(Symbols::RAngleBracket(), Token::kGT, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildCompareDoubleLt() {
+  BuildDoubleOp(Symbols::LAngleBracket(), Token::kLT, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildCompareDoubleGe() {
+  BuildDoubleOp(Symbols::GreaterEqualOperator(), Token::kGTE, 2);
+}
+
+void BytecodeFlowGraphBuilder::BuildCompareDoubleLe() {
+  BuildDoubleOp(Symbols::LessEqualOperator(), Token::kLTE, 2);
 }
 
 void BytecodeFlowGraphBuilder::BuildAllocateClosure() {
@@ -1740,6 +1808,13 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     if (KernelBytecode::IsJumpOpcode(instr)) {
       const intptr_t target = pc + KernelBytecode::DecodeT(instr);
       EnsureControlFlowJoin(descriptors, target);
+    } else if ((KernelBytecode::DecodeOpcode(instr) ==
+                KernelBytecode::kCheckStack) &&
+               (KernelBytecode::DecodeA(instr) != 0)) {
+      // (dartbug.com/36590) BlockEntryInstr::FindOsrEntryAndRelink assumes
+      // that CheckStackOverflow instruction is at the beginning of a join
+      // block.
+      EnsureControlFlowJoin(descriptors, pc);
     }
 
     if ((scratch_var_ == nullptr) && RequiresScratchVar(instr)) {

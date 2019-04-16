@@ -5347,6 +5347,7 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _listType;
   InterfaceType _mapType;
   InterfaceType _mapObjectObjectType;
+  InterfaceType _neverType;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
@@ -5429,6 +5430,10 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get mapType =>
       _mapType ??= _buildInterfaceType(_linker.coreLibrary, 'Map');
+
+  @override
+  InterfaceType get neverType =>
+      _neverType ??= _buildInterfaceType(_linker.coreLibrary, 'Never');
 
   @override
   DartObjectImpl get nullObject {

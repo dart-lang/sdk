@@ -536,6 +536,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
+    if (node.operator.type == TokenType.BANG) {
+      // Null-assertion operator (`!`).  There's nothing to do, since this is a
+      // built-in operation (there's no associated operator declaration).
+      return;
+    }
     String methodName = _getPostfixOperator(node);
     DartType staticType = _getStaticType(operand);
     MethodElement staticMethod = _lookUpMethod(operand, staticType, methodName);

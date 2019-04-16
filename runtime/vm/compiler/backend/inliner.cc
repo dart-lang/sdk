@@ -10,6 +10,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
+#include "vm/compiler/backend/flow_graph_checker.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/type_propagator.h"
@@ -1061,6 +1062,10 @@ class CallSiteInliner : public ValueObject {
             entry_kind == Code::EntryKind::kUnchecked);
         {
           callee_graph = builder.BuildGraph();
+
+#if defined(DEBUG)
+          FlowGraphChecker(callee_graph).Check();
+#endif
 
           CalleeGraphValidator::Validate(callee_graph);
         }

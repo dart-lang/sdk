@@ -122,6 +122,9 @@ class OS {
   // Cleanup the OS class.
   static void Cleanup();
 
+  // Only implemented on Windows, prevents cleanup code from running.
+  static void PrepareToAbort();
+
   DART_NORETURN static void Abort();
 
   DART_NORETURN static void Exit(int code);

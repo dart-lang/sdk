@@ -93,6 +93,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kStaticFieldInitializer:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:

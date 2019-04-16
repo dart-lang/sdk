@@ -21,6 +21,7 @@ class AstResolver {
     AstNode node, {
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
+    bool doAstRewrite = false,
   }) {
     var source = _FakeSource();
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
@@ -30,7 +31,13 @@ class AstResolver {
         nameScope: _nameScope);
     node.accept(typeResolverVisitor);
 
-//    expression.accept(_astRewriteVisitor);
+    if (doAstRewrite) {
+      var astRewriteVisitor = new AstRewriteVisitor(_linker.typeSystem,
+          _library, source, _linker.typeProvider, errorListener,
+          nameScope: _nameScope);
+      node.accept(astRewriteVisitor);
+    }
+
 //    expression.accept(_variableResolverVisitor);
 //    if (_linker.getAst != null) {
 //      expression.accept(_partialResolverVisitor);

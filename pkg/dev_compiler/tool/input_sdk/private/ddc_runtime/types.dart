@@ -682,7 +682,7 @@ List<TypeVariable> _typeFormalsFromFunction(Object typeConstructor) {
 }
 
 /// Create a function type.
-FunctionType fnType(returnType, List args, [extra = undefined]) =>
+FunctionType fnType(returnType, List args, [@undefined extra]) =>
     FunctionType.create(returnType, args, extra);
 
 /// Creates a generic function type.

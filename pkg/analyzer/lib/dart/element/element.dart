@@ -46,6 +46,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
+import 'package:meta/meta.dart';
 
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
@@ -1047,8 +1048,15 @@ abstract class FieldElement
   /// Return `true` if this field was explicitly marked as being covariant.
   bool get isCovariant;
 
-  /// Return {@code true} if this element is an enum constant.
+  /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
+
+  /// Return `true` if this field uses lazy evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  @experimental
+  bool get isLazy;
 
   /// Returns `true` if this field can be overridden in strong mode.
   @deprecated
@@ -1324,7 +1332,14 @@ abstract class LocalElement implements Element {
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement implements LocalElement, VariableElement {}
+abstract class LocalVariableElement implements LocalElement, VariableElement {
+  /// Return `true` if this local variable uses lazy evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  @experimental
+  bool get isLazy;
+}
 
 /// An element that represents a method defined within a type.
 ///
@@ -1395,10 +1410,12 @@ abstract class ParameterElement
   bool get isNamed;
 
   /// Return `true` if this parameter is a required parameter. Required
-  /// parameters are always positional.
+  /// parameters are always positional, unless the experiment 'non-nullable' is
+  /// enabled, in which case named parameters can also be required.
   ///
-  /// Note: this will return `false` for a named parameter that is annotated
-  /// with the `@required` annotation.
+  /// Note: regardless of the state of the 'non-nullable' experiment, this will
+  /// return `false` for a named parameter that is annotated with the
+  /// `@required` annotation.
   // TODO(brianwilkerson) Rename this to `isRequired`.
   bool get isNotOptional;
 

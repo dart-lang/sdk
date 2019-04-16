@@ -31,7 +31,7 @@ main() {
   }
 
   test_inFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   var v = 1;
   v = 2;
@@ -40,7 +40,7 @@ main() {
   }
 
   test_inMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   foo() {
     var v = 1;
@@ -72,7 +72,7 @@ doSomething() => 42;
   }
 
   test_isRead_notUsed_compoundAssign() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   var v = 1;
   v += 2;
@@ -81,7 +81,7 @@ main() {
   }
 
   test_isRead_notUsed_postfixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   var v = 1;
   v++;
@@ -90,7 +90,7 @@ main() {
   }
 
   test_isRead_notUsed_prefixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   var v = 1;
   ++v;

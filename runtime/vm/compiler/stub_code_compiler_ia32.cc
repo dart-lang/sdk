@@ -4,6 +4,9 @@
 
 #include "vm/globals.h"
 
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -30,6 +33,34 @@ DEFINE_FLAG(bool,
             "Set to true for debugging & verifying the slow paths.");
 
 namespace compiler {
+
+// Ensures that [EAX] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+//
+// WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
+// The caller should simply call LeaveFrame() and return.
+static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                    bool preserve_registers = true) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ testl(EAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  if (preserve_registers) {
+    __ EnterCallRuntimeFrame(2 * target::kWordSize);
+  } else {
+    __ ReserveAlignedFrameSpace(2 * target::kWordSize);
+  }
+  __ movl(Address(ESP, 1 * target::kWordSize), THR);
+  __ movl(Address(ESP, 0 * target::kWordSize), EAX);
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  if (preserve_registers) {
+    __ LeaveCallRuntimeFrame();
+  }
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   ESP : points to return address.
@@ -104,6 +135,22 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // function we called (which has return type "void").
   // (See GenerateDeoptimizationSequence::saved_result_slot_from_fp.)
   __ xorl(EAX, EAX);
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  __ pushal();
+  __ movl(EAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ call(EAX);
+  __ popal();
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  __ pushal();
+  __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ call(EAX);
+  __ popal();
   __ ret();
 }
 
@@ -757,6 +804,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popl(EAX);  // Pop element type argument.
   __ popl(EDX);  // Pop array length argument (preserved).
   __ popl(EAX);  // Pop return value from return slot.
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveFrame();
   __ ret();
 }
@@ -1115,6 +1168,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ popl(EAX);  // Pop number of context variables argument.
   __ popl(EAX);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
   // EAX: new object
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -1381,6 +1440,13 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop argument (class of object).
   __ popl(EAX);  // Pop result (newly allocated object).
+
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  }
+
   // EAX: new object
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -1970,6 +2036,9 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 
 // ECX: Contains an ICData.
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   // Save IC data.
   __ pushl(ECX);
@@ -1983,9 +2052,13 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
   // Jump to original stub.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ jmp(EAX);
+#endif  // defined(PRODUCT)
 }
 
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
@@ -1996,12 +2069,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   // Jump to original stub.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ jmp(EAX);
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

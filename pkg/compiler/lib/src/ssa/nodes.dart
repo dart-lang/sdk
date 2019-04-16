@@ -3077,8 +3077,12 @@ class HThrow extends HControlFlow {
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }
 
+// TODO(johnniwinther): Change this to a "HStaticLoad" of a field when we use
+// CFE constants. It has been used for static tear-offs even though these should
+// have been constants.
 class HStatic extends HInstruction {
   final MemberEntity element;
+
   HStatic(this.element, AbstractValue type, SourceInformation sourceInformation)
       : super(<HInstruction>[], type) {
     assert(element != null);

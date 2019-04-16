@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class TopLevelInstanceMethodTest extends DriverResolutionTest {
   test_noParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   f() => 0;
 }
@@ -34,7 +34,7 @@ var x = new A().f(0);
   }
 
   test_parameter_generic() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   int f<T>(v) => 0;
 }
@@ -61,7 +61,7 @@ var x = A.f();
   }
 
   test_tearOff() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   f() => 0;
 }
@@ -70,7 +70,7 @@ var x = new A().f;
   }
 
   test_tearOff_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   int f(v) => 0;
 }

@@ -285,6 +285,11 @@ namespace dart {
 //    interface method declaration.
 //    The ICData indicates whether the first argument is a type argument vector.
 //
+//  - UncheckedInterfaceCall ArgC, D
+//
+//    Same as InterfaceCall, but can omit type checks of generic-covariant
+//    parameters.
+//
 //  - DynamicCall ArgC, D
 //
 //    Lookup and invoke method using ICData in PP[D]
@@ -389,6 +394,25 @@ namespace dart {
 //    Receiver and argument should have static type int.
 //    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0] ? true : false.
 //
+//  - NegateDouble
+//
+//    Equivalent to invocation of unary double operator-.
+//    Receiver should have static type double.
+//    Check SP[0] for null; SP[0] = -SP[0].
+//
+//  - AddDouble; SubDouble; MulDouble; DivDouble
+//
+//    Equivalent to invocation of binary int operator +, -, *, /.
+//    Receiver and argument should have static type double.
+//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0].
+//
+//  - CompareDoubleEq; CompareDoubleGt; CompareDoubleLt; CompareDoubleGe;
+//    CompareDoubleLe
+//
+//    Equivalent to invocation of binary double operator ==, >, <, >= or <=.
+//    Receiver and argument should have static type double.
+//    Check SP[-1] and SP[0] for null; push SP[-1] <op> SP[0] ? true : false.
+//
 //  - AllocateClosure D
 //
 //    Allocate closure object for closure function ConstantPool[D].
@@ -490,12 +514,24 @@ namespace dart {
   V(CompareIntLe,                          0, ___, ___, ___)                   \
   V(DirectCall,                          A_D, num, num, ___)                   \
   V(AllocateClosure,                       D, lit, ___, ___)                   \
+  V(UncheckedInterfaceCall,              A_D, num, num, ___)                   \
+  V(NegateDouble,                          0, ___, ___, ___)                   \
+  V(AddDouble,                             0, ___, ___, ___)                   \
+  V(SubDouble,                             0, ___, ___, ___)                   \
+  V(MulDouble,                             0, ___, ___, ___)                   \
+  V(DivDouble,                             0, ___, ___, ___)                   \
+  V(CompareDoubleEq,                       0, ___, ___, ___)                   \
+  V(CompareDoubleGt,                       0, ___, ___, ___)                   \
+  V(CompareDoubleLt,                       0, ___, ___, ___)                   \
+  V(CompareDoubleGe,                       0, ___, ___, ___)                   \
+  V(CompareDoubleLe,                       0, ___, ___, ___)                   \
 
   // These bytecodes are only generated within the VM. Reassinging their
   // opcodes is not a breaking change.
 #define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \
   V(VMInternal_ImplicitGetter,             0, ___, ___, ___)                   \
   V(VMInternal_ImplicitSetter,             0, ___, ___, ___)                   \
+  V(VMInternal_MethodExtractor,            0, ___, ___, ___)                   \
 
 #define KERNEL_BYTECODES_LIST(V)                                               \
   PUBLIC_KERNEL_BYTECODES_LIST(V)                                              \
@@ -514,7 +550,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 4;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 6;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, op1, op2, op3) k##name,
@@ -630,6 +666,7 @@ class KernelBytecode {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kIndirectStaticCall:
       case KernelBytecode::kInterfaceCall:
+      case KernelBytecode::kUncheckedInterfaceCall:
       case KernelBytecode::kDynamicCall:
       case KernelBytecode::kDirectCall:
         return true;

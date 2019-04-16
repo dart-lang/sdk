@@ -56,6 +56,7 @@ import 'flutter_wrap_padding_test.dart' as flutter_wrap_padding;
 import 'flutter_wrap_row_test.dart' as flutter_wrap_row;
 import 'flutter_wrap_stream_builder_test.dart' as flutter_wrap_stream_builder;
 import 'import_add_show_test.dart' as import_add_show;
+import 'inline_invocation_test.dart' as inline_invocation;
 import 'introduce_local_cast_type_test.dart' as introduce_local_cast_type;
 import 'invert_if_statement_test.dart' as invert_if_statement;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
@@ -125,6 +126,7 @@ main() {
     flutter_wrap_row.main();
     flutter_wrap_stream_builder.main();
     import_add_show.main();
+    inline_invocation.main();
     introduce_local_cast_type.main();
     invert_if_statement.main();
     join_if_with_inner.main();

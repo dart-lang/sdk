@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/dart/ast/ast.dart' show AstNode, CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -20,21 +21,26 @@ import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
+import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 LinkResult link(
   AnalysisOptions analysisOptions,
   SourceFactory sourceFactory,
-  List<LinkedNodeBundle> inputs,
-  Map<Source, Map<Source, CompilationUnit>> unitMap,
+  DeclaredVariables declaredVariables,
+  List<LinkedNodeBundle> inputBundles,
+  List<LinkInputLibrary> inputLibraries,
 ) {
-  var linker = Linker(analysisOptions, sourceFactory);
-  linker.link(inputs, unitMap);
+  var linker = Linker(analysisOptions, sourceFactory, declaredVariables);
+  linker.link(inputBundles, inputLibraries);
   return LinkResult(linker.linkingBundle);
 }
 
 class Linker {
+  final DeclaredVariables declaredVariables;
+
   final Reference rootReference = Reference.root();
   LinkedElementFactory elementFactory;
 
@@ -50,7 +56,11 @@ class Linker {
   Dart2TypeSystem typeSystem;
   InheritanceManager2 inheritance;
 
-  Linker(AnalysisOptions analysisOptions, SourceFactory sourceFactory) {
+  Linker(
+    AnalysisOptions analysisOptions,
+    SourceFactory sourceFactory,
+    this.declaredVariables,
+  ) {
     var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
     dynamicRef.element = DynamicElementImpl.instance;
 
@@ -73,15 +83,15 @@ class Linker {
     );
   }
 
-  void link(List<LinkedNodeBundle> inputs,
-      Map<Source, Map<Source, CompilationUnit>> unitMap) {
-    for (var input in inputs) {
+  void link(List<LinkedNodeBundle> inputBundles,
+      List<LinkInputLibrary> inputLibraries) {
+    for (var input in inputBundles) {
       var inputBundleContext = LinkedBundleContext(elementFactory, input);
       elementFactory.addBundle(inputBundleContext);
     }
 
-    for (var librarySource in unitMap.keys) {
-      SourceLibraryBuilder.build(this, librarySource, unitMap[librarySource]);
+    for (var inputLibrary in inputLibraries) {
+      SourceLibraryBuilder.build(this, inputLibrary);
     }
     // TODO(scheglov) do in build() ?
     elementFactory.addBundle(bundleContext);
@@ -104,11 +114,13 @@ class Linker {
   }
 
   void _buildOutlines() {
+    _resolveUriDirectives();
     _addExporters();
     _computeLibraryScopes();
     _addSyntheticConstructors();
     _createTypeSystem();
     _resolveTypes();
+    _createLoadLibraryFunctions();
     _performTopLevelInference();
     _resolveConstructors();
     _resolveDefaultValues();
@@ -196,6 +208,12 @@ class Linker {
     );
   }
 
+  void _createLoadLibraryFunctions() {
+    for (var library in builders.values) {
+      library.element.createLoadLibraryFunction(typeProvider);
+    }
+  }
+
   void _createTypeSystem() {
     var coreRef = rootReference.getChild('dart:core');
     var coreLib = elementFactory.elementOfReference(coreRef);
@@ -215,21 +233,19 @@ class Linker {
   }
 
   void _performTopLevelInference() {
-    for (var library in builders.values) {
-      library.performTopLevelInference();
-    }
+    TopLevelInference(this).infer();
   }
 
   void _resolveConstructors() {
-//    for (var library in builders.values) {
-//      library.resolveConstructors();
-//    }
+    for (var library in builders.values) {
+      library.resolveConstructors();
+    }
   }
 
   void _resolveDefaultValues() {
-//    for (var library in builders.values) {
-//      library.resolveDefaultValues();
-//    }
+    for (var library in builders.values) {
+      library.resolveDefaultValues();
+    }
   }
 
   void _resolveMetadata() {
@@ -239,13 +255,33 @@ class Linker {
   }
 
   void _resolveTypes() {
-    var nodesToBuildType = NodesToBuildType();
+    var nodesToBuildType = <AstNode>[];
     for (var library in builders.values) {
       library.resolveTypes(nodesToBuildType);
     }
-//    computeSimplyBounded(bundleContext, builders.values);
-    TypeBuilder(linkingBundleContext).build(nodesToBuildType);
+    computeSimplyBounded(bundleContext, builders.values);
+    TypeBuilder(typeSystem).build(nodesToBuildType);
   }
+
+  void _resolveUriDirectives() {
+    for (var library in builders.values) {
+      library.resolveUriDirectives();
+    }
+  }
+}
+
+class LinkInputLibrary {
+  final Source source;
+  final List<LinkInputUnit> units;
+
+  LinkInputLibrary(this.source, this.units);
+}
+
+class LinkInputUnit {
+  final Source source;
+  final CompilationUnit unit;
+
+  LinkInputUnit(this.source, this.unit);
 }
 
 class LinkResult {

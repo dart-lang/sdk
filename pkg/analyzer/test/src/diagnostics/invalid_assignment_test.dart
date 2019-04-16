@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class InvalidAssignmentTest extends DriverResolutionTest {
   test_instanceVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int x;
 }
@@ -30,7 +30,7 @@ f(var y) {
   }
 
   test_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(var y) {
   if (y is String) {
     int x = y;
@@ -58,7 +58,7 @@ void f<X extends A, Y extends B>(X x) {
   }
 
   test_staticVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   static int x;
 }
@@ -71,7 +71,7 @@ f(var y) {
   }
 
   test_typeParameterRecursion_regress35306() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {}
 class C extends D {}
@@ -87,7 +87,7 @@ void f<X extends A, Y extends B>(X x) {
 
   test_variableDeclaration() async {
     // 17971
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class Point {
   final num x, y;
   Point(this.x, this.y);

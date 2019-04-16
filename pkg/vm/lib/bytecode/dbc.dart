@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 4;
+const int currentBytecodeFormatVersion = 6;
 
 /// Version of experimental / bleeding edge bytecode format.
 /// Produced by bytecode generator when --use-future-bytecode-format
@@ -125,6 +125,20 @@ enum Opcode {
   kDirectCall,
 
   kAllocateClosure,
+
+  kUncheckedInterfaceCall,
+
+  // Double operations.
+  kNegateDouble,
+  kAddDouble,
+  kSubDouble,
+  kMulDouble,
+  kDivDouble,
+  kCompareDoubleEq,
+  kCompareDoubleGt,
+  kCompareDoubleLt,
+  kCompareDoubleGe,
+  kCompareDoubleLe,
 }
 
 enum Encoding {
@@ -304,6 +318,28 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
   Opcode.kAllocateClosure: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kUncheckedInterfaceCall: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
+  Opcode.kNegateDouble: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kAddDouble: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kSubDouble: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kMulDouble: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kDivDouble: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareDoubleEq: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareDoubleGt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareDoubleLt: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareDoubleGe: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCompareDoubleLe: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
 };
 
 // Should match constant in runtime/vm/stack_frame_dbc.h.
@@ -322,6 +358,7 @@ bool isCall(Opcode opcode) {
   switch (opcode) {
     case Opcode.kIndirectStaticCall:
     case Opcode.kInterfaceCall:
+    case Opcode.kUncheckedInterfaceCall:
     case Opcode.kDynamicCall:
     case Opcode.kNativeCall:
     case Opcode.kDirectCall:

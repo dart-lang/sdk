@@ -27,7 +27,7 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.constantUpdate2018: false,
-  ExperimentalFlag.controlFlowCollections: false,
+  ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.setLiterals: true,
-  ExperimentalFlag.spreadCollections: false,
+  ExperimentalFlag.spreadCollections: true,
 };

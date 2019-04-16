@@ -97,7 +97,7 @@ dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field), false);
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.
-dload(obj, field, [mirrors = undefined]) {
+dload(obj, field, [@undefined mirrors]) {
   if (JS('!', 'typeof # == "function" && # == "call"', obj, field)) {
     return obj;
   }
@@ -136,7 +136,7 @@ dputMirror(obj, field, value) => dput(obj, field, value, true);
 dputRepl(obj, field, value) =>
     dput(obj, replNameLookup(obj, field), value, false);
 
-dput(obj, field, value, [mirrors = undefined]) {
+dput(obj, field, value, [@undefined mirrors]) {
   var f = _canonicalMember(obj, field);
   trackCall(obj);
   if (f != null) {
@@ -308,10 +308,10 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
   return callNSM();
 })()''');
 
-dcall(f, args, [named = undefined]) =>
+dcall(f, args, [@undefined named]) =>
     _checkAndCall(f, null, JS('', 'void 0'), null, args, named, 'call');
 
-dgcall(f, typeArgs, args, [named = undefined]) =>
+dgcall(f, typeArgs, args, [@undefined named]) =>
     _checkAndCall(f, null, JS('', 'void 0'), typeArgs, args, named, 'call');
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
@@ -377,16 +377,16 @@ callMethod(obj, name, typeArgs, args, named, displayName) {
   return _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName);
 }
 
-dsend(obj, method, args, [named = undefined]) =>
+dsend(obj, method, args, [@undefined named]) =>
     callMethod(obj, method, null, args, named, method);
 
-dgsend(obj, typeArgs, method, args, [named = undefined]) =>
+dgsend(obj, typeArgs, method, args, [@undefined named]) =>
     callMethod(obj, method, typeArgs, args, named, method);
 
-dsendRepl(obj, method, args, [named = undefined]) =>
+dsendRepl(obj, method, args, [@undefined named]) =>
     callMethod(obj, replNameLookup(obj, method), null, args, named, method);
 
-dgsendRepl(obj, typeArgs, method, args, [named = undefined]) =>
+dgsendRepl(obj, typeArgs, method, args, [@undefined named]) =>
     callMethod(obj, replNameLookup(obj, method), typeArgs, args, named, method);
 
 dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');

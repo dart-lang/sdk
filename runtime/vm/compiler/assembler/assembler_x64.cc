@@ -164,6 +164,63 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
   EmitUint8(0xC0 + (dst & 0x07));
 }
 
+void Assembler::TransitionGeneratedToNative(Register destination_address) {
+  // Save exit frame information to enable stack walking.
+  movq(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
+
+  movq(Assembler::VMTagAddress(), destination_address);
+  movq(Address(THR, compiler::target::Thread::execution_state_offset()),
+       Immediate(compiler::target::Thread::native_execution_state()));
+
+  // Compare and swap the value at Thread::safepoint_state from unacquired to
+  // acquired. If the CAS fails, go to a slow-path stub.
+  Label done;
+  pushq(RAX);
+  movq(RAX, Immediate(Thread::safepoint_state_unacquired()));
+  movq(TMP, Immediate(Thread::safepoint_state_acquired()));
+  LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
+  movq(TMP, RAX);
+  popq(RAX);
+  cmpq(TMP, Immediate(Thread::safepoint_state_unacquired()));
+  j(EQUAL, &done);
+
+  movq(TMP,
+       Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
+  movq(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  CallCFunction(TMP);
+
+  Bind(&done);
+}
+
+void Assembler::TransitionNativeToGenerated() {
+  // Compare and swap the value at Thread::safepoint_state from acquired to
+  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  Label done;
+  pushq(RAX);
+  movq(RAX, Immediate(Thread::safepoint_state_acquired()));
+  movq(TMP, Immediate(Thread::safepoint_state_unacquired()));
+  LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
+  movq(TMP, RAX);
+  popq(RAX);
+  cmpq(TMP, Immediate(Thread::safepoint_state_acquired()));
+  j(EQUAL, &done);
+
+  movq(TMP,
+       Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
+  movq(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  CallCFunction(TMP);
+
+  Bind(&done);
+
+  movq(Assembler::VMTagAddress(),
+       Immediate(compiler::target::Thread::vm_tag_compiled_id()));
+  movq(Address(THR, Thread::execution_state_offset()),
+       Immediate(compiler::target::Thread::generated_execution_state()));
+
+  // Reset exit frame information in Isolate structure.
+  movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+}
+
 void Assembler::EmitQ(int reg,
                       const Address& address,
                       int opcode,
@@ -1527,7 +1584,11 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
-  EnterStubFrame();
+  EnterFrame(0);
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    pushq(CODE_REG);
+    pushq(PP);
+  }
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
   PushRegisters(CallingConventions::kVolatileCpuRegisters,
@@ -2132,26 +2193,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
-    "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
-    "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
-
-const char* Assembler::FpuRegisterName(FpuRegister reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));
-  return xmm_reg_names[reg];
-}
-
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-    "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
-
-// Used by disassembler, so it is declared outside of
-// !defined(DART_PRECOMPILED_RUNTIME) section.
-const char* Assembler::RegisterName(Register reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
-  return cpu_reg_names[reg];
-}
 
 }  // namespace compiler
 }  // namespace dart

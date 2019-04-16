@@ -2078,6 +2078,72 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   }
 }
 
+void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register scratch) {
+  // Save exit frame information to enable stack walking.
+  movl(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
+
+  // Mark that the thread is executing native code.
+  movl(VMTagAddress(), destination_address);
+  movl(Address(THR, Thread::execution_state_offset()),
+       Immediate(compiler::target::Thread::native_execution_state()));
+
+  // Compare and swap the value at Thread::safepoint_state from unacquired to
+  // acquired. On success, jump to 'success'; otherwise, fallthrough.
+  pushl(EAX);
+  movl(EAX, Immediate(Thread::safepoint_state_unacquired()));
+  movl(scratch, Immediate(Thread::safepoint_state_acquired()));
+  LockCmpxchgl(Address(THR, Thread::safepoint_state_offset()), scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(Thread::safepoint_state_unacquired()));
+
+  Label done;
+  j(EQUAL, &done);
+
+  movl(scratch,
+       Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
+  movl(scratch,
+       FieldAddress(scratch, compiler::target::Code::entry_point_offset()));
+  call(scratch);
+
+  Bind(&done);
+}
+
+void Assembler::TransitionNativeToGenerated(Register scratch) {
+  // Compare and swap the value at Thread::safepoint_state from acquired to
+  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  pushl(EAX);
+  movl(EAX, Immediate(compiler::target::Thread::safepoint_state_acquired()));
+  movl(scratch,
+       Immediate(compiler::target::Thread::safepoint_state_unacquired()));
+  LockCmpxchgl(Address(THR, compiler::target::Thread::safepoint_state_offset()),
+               scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(Thread::safepoint_state_acquired()));
+
+  Label done;
+  j(EQUAL, &done);
+
+  movl(scratch,
+       Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
+  movl(scratch,
+       FieldAddress(scratch, compiler::target::Code::entry_point_offset()));
+  call(scratch);
+
+  Bind(&done);
+
+  // Mark that the thread is executing Dart code.
+  movl(Assembler::VMTagAddress(),
+       Immediate(compiler::target::Thread::vm_tag_compiled_id()));
+  movl(Address(THR, Thread::execution_state_offset()),
+       Immediate(compiler::target::Thread::generated_execution_state()));
+
+  // Reset exit frame information in Isolate structure.
+  movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+}
+
 static const intptr_t kNumberOfVolatileCpuRegisters = 3;
 static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
     EAX, ECX, EDX};
@@ -2593,24 +2659,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-// Used by disassembler, so it is declared outside of
-// !defined(DART_PRECOMPILED_RUNTIME) section.
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
-
-const char* Assembler::RegisterName(Register reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
-  return cpu_reg_names[reg];
-}
-
-static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
-    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"};
-
-const char* Assembler::FpuRegisterName(FpuRegister reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));
-  return xmm_reg_names[reg];
-}
 
 }  // namespace compiler
 }  // namespace dart

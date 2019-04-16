@@ -205,6 +205,9 @@ class BaseFlowGraphBuilder {
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 
+  Fragment StrictCompare(TokenPosition position,
+                         Token::Kind kind,
+                         bool number_check = false);
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
   Fragment Goto(JoinEntryInstr* destination);
   Fragment IntConstant(int64_t value);
@@ -226,7 +229,9 @@ class BaseFlowGraphBuilder {
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(TokenPosition position);
-  Fragment CheckStackOverflow(TokenPosition position, intptr_t loop_depth);
+  Fragment CheckStackOverflow(TokenPosition position,
+                              intptr_t stack_depth,
+                              intptr_t loop_depth);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);

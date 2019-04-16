@@ -915,6 +915,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.assignmentExpression)
   int get assignmentExpression_element;
 
+  @VariantId(23, variant: LinkedNodeKind.assignmentExpression)
+  LinkedNodeType get assignmentExpression_elementType;
+
   @VariantId(6, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_leftHandSide;
 
@@ -932,6 +935,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.binaryExpression)
   int get binaryExpression_element;
+
+  @VariantId(23, variant: LinkedNodeKind.binaryExpression)
+  LinkedNodeType get binaryExpression_elementType;
 
   @VariantId(24, variant: LinkedNodeKind.binaryExpression)
   LinkedNodeType get binaryExpression_invokeType;
@@ -1228,6 +1234,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.constructorName)
   int get constructorName_element;
+
+  @VariantId(23, variant: LinkedNodeKind.constructorName)
+  LinkedNodeType get constructorName_elementType;
 
   @VariantId(6, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_name;
@@ -1668,6 +1677,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_element;
 
+  @VariantId(23, variant: LinkedNodeKind.indexExpression)
+  LinkedNodeType get indexExpression_elementType;
+
   @VariantId(6, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_index;
 
@@ -1862,13 +1874,11 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   List<LinkedNode> get namespaceDirective_configurations;
 
-  @VariantId(23, variantList: [
+  @VariantId(20, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
-    LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
   ])
-  String get namespaceDirective_selectedUriContent;
+  String get namespaceDirective_selectedUri;
 
   @VariantId(6, variant: LinkedNodeKind.nativeClause)
   LinkedNode get nativeClause_name;
@@ -1950,6 +1960,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.postfixExpression)
   int get postfixExpression_element;
 
+  @VariantId(23, variant: LinkedNodeKind.postfixExpression)
+  LinkedNodeType get postfixExpression_elementType;
+
   @VariantId(6, variant: LinkedNodeKind.postfixExpression)
   LinkedNode get postfixExpression_operand;
 
@@ -1967,6 +1980,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.prefixExpression)
   int get prefixExpression_element;
+
+  @VariantId(23, variant: LinkedNodeKind.prefixExpression)
+  LinkedNodeType get prefixExpression_elementType;
 
   @VariantId(6, variant: LinkedNodeKind.prefixExpression)
   LinkedNode get prefixExpression_operand;
@@ -1991,6 +2007,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.redirectingConstructorInvocation)
   int get redirectingConstructorInvocation_element;
+
+  @VariantId(23, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  LinkedNodeType get redirectingConstructorInvocation_elementType;
 
   @VariantId(16, variant: LinkedNodeKind.redirectingConstructorInvocation)
   int get redirectingConstructorInvocation_period;
@@ -2040,6 +2059,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_element;
 
+  @VariantId(23, variant: LinkedNodeKind.simpleIdentifier)
+  LinkedNodeType get simpleIdentifier_elementType;
+
   @VariantId(16, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_token;
 
@@ -2075,6 +2097,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.superConstructorInvocation)
   int get superConstructorInvocation_element;
+
+  @VariantId(23, variant: LinkedNodeKind.superConstructorInvocation)
+  LinkedNodeType get superConstructorInvocation_elementType;
 
   @VariantId(16, variant: LinkedNodeKind.superConstructorInvocation)
   int get superConstructorInvocation_period;
@@ -2210,7 +2235,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.typeName)
   int get typeName_question;
 
-  @VariantId(24, variant: LinkedNodeKind.typeName)
+  @VariantId(23, variant: LinkedNodeKind.typeName)
   LinkedNodeType get typeName_type;
 
   @VariantId(7, variant: LinkedNodeKind.typeName)
@@ -2221,6 +2246,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.typeParameter)
   int get typeParameter_extendsKeyword;
+
+  @VariantId(16, variant: LinkedNodeKind.typeParameter)
+  int get typeParameter_id;
 
   @VariantId(7, variant: LinkedNodeKind.typeParameter)
   LinkedNode get typeParameter_name;
@@ -2501,9 +2529,8 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(1)
   LinkedNodeType get functionReturnType;
 
-  /// References to [LinkedNodeReferences].
   @Id(2)
-  List<int> get functionTypeParameters;
+  List<LinkedNodeTypeTypeParameter> get functionTypeParameters;
 
   @Id(7)
   int get genericTypeAliasReference;
@@ -2521,9 +2548,8 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(5)
   LinkedNodeTypeKind get kind;
 
-  /// Reference to a [LinkedNodeReferences].
   @Id(6)
-  int get typeParameterParameter;
+  int get typeParameterId;
 }
 
 /// Information about a formal parameter in a function type.
@@ -2543,10 +2569,18 @@ enum LinkedNodeTypeKind {
   bottom,
   dynamic_,
   function,
-  genericTypeAlias,
   interface,
   typeParameter,
   void_
+}
+
+/// Information about a type parameter in a function type.
+abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
+  @Id(1)
+  LinkedNodeType get bound;
+
+  @Id(0)
+  String get name;
 }
 
 /// Information about a single library in a [LinkedNodeLibrary].

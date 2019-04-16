@@ -539,10 +539,23 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    // TODO(jmesserly): restore testing on this once we have everyone migrated
-    // to DDC's Kernel backend. At that point we'd like to migrate from Analyzer
-    // summaries to Kernel IL.
-    final useDillFormat = false;
+    /// This can be disabled to test DDC's hybrid mode (automatically converting
+    /// Analyzer summaries to Kernel files).
+    ///
+    /// The current DDC configurations are:
+    ///
+    /// - using Analyzer ASTs and Analyzer summaries: the current default
+    ///   configuration; used in internal builds.
+    /// - using Kernel trees and Kernel IL files: the new default for external
+    ///   users (e.g. Flutter Web), and in the future, the only DDC mode.
+    /// - using Kernel trees, but Analyzer summaries (converted automatically):
+    ///   this was intended to help migrate internal users, but is currently
+    ///   unused.
+    ///
+    /// The first two are tested on the bots and are called "dartdevc" and
+    /// "dartdevk" respectively. This flag switches "dartdevk" to use either
+    /// Kernel IL files, or the Analyzer summaries.
+    final useDillFormat = useKernel;
 
     var args = <String>[];
     if (useKernel) {
@@ -1095,11 +1108,18 @@ abstract class VMKernelCompilerMixin {
     final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
     final genKernel = '${pkgVmDir}/tool/gen_kernel${executableScriptSuffix}';
 
-    final kernelBinariesFolder = _useSdk
-        ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-        : '${_configuration.buildDirectory}';
+    final String useAbiVersion = arguments.firstWhere(
+        (arg) => arg.startsWith('--use-abi-version='),
+        orElse: () => null);
 
-    // Always use strong platform as preview_dart_2 implies strong.
+    var kernelBinariesFolder = '${_configuration.buildDirectory}';
+    if (useAbiVersion != null) {
+      var version = useAbiVersion.split('=')[1];
+      kernelBinariesFolder += '/dart-sdk/lib/_internal/abiversions/$version';
+    } else if (_useSdk) {
+      kernelBinariesFolder += '/dart-sdk/lib/_internal';
+    }
+
     final vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
 
     final dillFile = tempKernelFile(tempDir);
@@ -1110,6 +1130,11 @@ abstract class VMKernelCompilerMixin {
       '-o',
       dillFile,
     ];
+
+    final batchArgs = <String>[];
+    if (useAbiVersion != null) {
+      batchArgs.add(useAbiVersion);
+    }
 
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
     args.addAll(arguments.where((name) =>
@@ -1132,7 +1157,7 @@ abstract class VMKernelCompilerMixin {
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
-        genKernel, args, environmentOverrides);
+        genKernel, args, environmentOverrides, batchArgs);
   }
 }
 

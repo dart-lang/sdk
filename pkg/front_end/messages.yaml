@@ -193,6 +193,9 @@ ConstEvalIterationInConstMap:
   template: "Iteration can't be used in a constant map."
   analyzerCode: NON_CONSTANT_MAP_ELEMENT
 
+ConstEvalUnevaluated:
+  template: "Could not evaluate constant expression."
+
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
@@ -218,7 +221,7 @@ Encoding:
 
 ExperimentNotEnabled:
   index: 93
-  template: "This requires the --#string experiment to be enabled."
+  template: "This requires the '#string' experiment to be enabled."
   tip: "Try enabling this experiment by adding it to the command line when compiling and running."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
@@ -629,11 +632,11 @@ NonConstConstructor:
   tip: "Try using a constructor or factory that is 'const'."
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
-ConstAfterFactory:
+ModifierOutOfOrder:
   index: 56
-  template: "The modifier 'const' should be before the modifier 'factory'."
+  template: "The modifier '#string' should be before the modifier '#string2'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.CONST_AFTER_FACTORY
+  analyzerCode: ParserErrorCode.MODIFIER_OUT_OF_ORDER
   script:
     - "class C { factory const C() = prefix.B.foo; }"
 
@@ -3196,6 +3199,10 @@ CantUsePrefixWithNullAware:
     main() {
       prefix?.Object;
     }
+
+CantUseControlFlowOrSpreadAsConstant:
+  template: "'#lexeme' is not supported in constant expressions."
+  analyzerCode: NOT_CONSTANT_EXPRESSION
 
 CantUseDeferredPrefixAsConstant:
   template: >

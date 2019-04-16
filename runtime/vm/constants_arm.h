@@ -265,6 +265,18 @@ const FpuRegister FpuTMP = QTMP;
 const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+    "r0", "r1",  "r2", "r3", "r4", "r5", "r6", "r7",
+    "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
+};
+
+static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
+    "q0", "q1", "q2",  "q3",  "q4",  "q5",  "q6",  "q7",
+#if defined(VFPv3_D32)
+    "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
+#endif
+};
+
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
@@ -331,6 +343,46 @@ const int kDartVolatileCpuRegCount = 5;
 const QRegister kDartFirstVolatileFpuReg = Q0;
 const QRegister kDartLastVolatileFpuReg = Q3;
 const int kDartVolatileFpuRegCount = 4;
+
+#define R(REG) (1 << REG)
+
+class CallingConventions {
+ public:
+  static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kNumArgRegs = 4;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters = 0;
+  static const intptr_t kNumFpuArgRegs = 0;
+
+  static constexpr bool kArgumentIntRegXorFpuReg = false;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp"). Android and iOS always use the "softfp" calling convention, even
+  // when hardfp support is present.
+#if defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_ANDROID)
+  static constexpr bool kAbiSoftFP = true;
+#else
+  static constexpr bool kAbiSoftFP = false;
+#endif
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. True for ARM 32-bit, see "Procedure Call Standard for the
+  // ARM Architecture".
+  static constexpr bool kAlignArguments = true;
+
+  static constexpr Register kReturnReg = R0;
+  static constexpr Register kSecondReturnReg = R1;
+  static constexpr FpuRegister kReturnFpuReg = kNoFpuRegister;
+
+  // We choose these to avoid overlap between themselves and reserved registers.
+  static constexpr Register kFirstNonArgumentRegister = R8;
+  static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kFirstCalleeSavedCpuReg = NOTFP;
+};
+
+#undef R
 
 // Values for the condition field as defined in section A3.2.
 enum Condition {

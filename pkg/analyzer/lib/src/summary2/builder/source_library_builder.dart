@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart' as ast;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -20,8 +20,6 @@ import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
-import 'package:analyzer/src/summary2/top_level_inference.dart';
-import 'package:analyzer/src/summary2/type_builder.dart';
 
 class SourceLibraryBuilder {
   final Linker linker;
@@ -31,7 +29,7 @@ class SourceLibraryBuilder {
 
   LinkedLibraryContext context;
 
-  LibraryElement element;
+  LibraryElementImpl element;
   LibraryScope libraryScope;
 
   /// Local declarations.
@@ -48,22 +46,33 @@ class SourceLibraryBuilder {
     var unitContext = context.units[0];
     for (var directive in unitContext.unit_withDirectives.directives) {
       if (directive is ast.ExportDirective) {
-        var relativeUriStr = directive.uri.stringValue;
-        var relativeUri = Uri.parse(relativeUriStr);
-        var uri = resolveRelativeUri(this.uri, relativeUri);
-        var exported = linker.builders[uri];
-        if (exported != null) {
-          var combinators = directive.combinators.map((node) {
-            if (node is ast.ShowCombinator) {
-              var nameList = node.shownNames.map((i) => i.name).toList();
-              return Combinator.show(nameList);
-            } else if (node is ast.HideCombinator) {
-              var nameList = node.hiddenNames.map((i) => i.name).toList();
-              return Combinator.hide(nameList);
-            }
-          }).toList();
+        Uri uri;
+        try {
+          uri = _selectAbsoluteUri(directive);
+          if (uri == null) continue;
+        } on FormatException {
+          continue;
+        }
 
-          exported.exporters.add(new Export(this, exported, combinators));
+        var combinators = directive.combinators.map((node) {
+          if (node is ast.ShowCombinator) {
+            var nameList = node.shownNames.map((i) => i.name).toList();
+            return Combinator.show(nameList);
+          } else if (node is ast.HideCombinator) {
+            var nameList = node.hiddenNames.map((i) => i.name).toList();
+            return Combinator.hide(nameList);
+          }
+        }).toList();
+
+        var exported = linker.builders[uri];
+        var export = Export(this, exported, combinators);
+        if (exported != null) {
+          exported.exporters.add(export);
+        } else {
+          var references = linker.elementFactory.exportsOfLibrary('$uri');
+          for (var reference in references) {
+            export.addToExportScope(reference.name, reference);
+          }
         }
       }
     }
@@ -275,16 +284,12 @@ class SourceLibraryBuilder {
     });
   }
 
-  void performTopLevelInference() {
-    TopLevelInference(linker, reference).infer();
-  }
-
   void resolveConstructors() {
-    ConstructorInitializerResolver(linker, reference).resolve();
+    ConstructorInitializerResolver(linker, element).resolve();
   }
 
   void resolveDefaultValues() {
-    DefaultValueResolver(linker, reference).resolve();
+    DefaultValueResolver(linker, element).resolve();
   }
 
   void resolveMetadata() {
@@ -294,11 +299,12 @@ class SourceLibraryBuilder {
     }
   }
 
-  void resolveTypes(NodesToBuildType nodesToBuildType) {
+  void resolveTypes(List<ast.AstNode> nodesToBuildType) {
     for (var unitContext in context.units) {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);
       var resolver = ReferenceResolver(
+        linker.linkingBundleContext,
         nodesToBuildType,
         linker.elementFactory,
         element,
@@ -306,6 +312,20 @@ class SourceLibraryBuilder {
         libraryScope,
       );
       unitContext.unit.accept(resolver);
+    }
+  }
+
+  void resolveUriDirectives() {
+    var unitContext = context.units[0];
+    for (var directive in unitContext.unit.directives) {
+      if (directive is ast.NamespaceDirective) {
+        try {
+          var uri = _selectAbsoluteUri(directive);
+          if (uri != null) {
+            LazyDirective.setSelectedUri(directive, '$uri');
+          }
+        } on FormatException {}
+      }
     }
   }
 
@@ -317,48 +337,40 @@ class SourceLibraryBuilder {
     }
   }
 
-  static void build(Linker linker, Source librarySource,
-      Map<Source, ast.CompilationUnit> libraryUnits) {
-    var libraryUriStr = librarySource.uri.toString();
+  Uri _selectAbsoluteUri(ast.NamespaceDirective directive) {
+    var relativeUriStr = _selectRelativeUri(
+      directive.configurations,
+      directive.uri.stringValue,
+    );
+    if (relativeUriStr.isEmpty) return null;
+    var relativeUri = Uri.parse(relativeUriStr);
+    return resolveRelativeUri(this.uri, relativeUri);
+  }
+
+  String _selectRelativeUri(
+    List<ast.Configuration> configurations,
+    String defaultUri,
+  ) {
+    for (var configuration in configurations) {
+      var name = configuration.name.components.join('.');
+      var value = configuration.value ?? 'true';
+      if (linker.declaredVariables.get(name) == (value)) {
+        return configuration.uri.stringValue;
+      }
+    }
+    return defaultUri;
+  }
+
+  static void build(Linker linker, LinkInputLibrary inputLibrary) {
+    var libraryUri = inputLibrary.source.uri;
+    var libraryUriStr = '$libraryUri';
     var libraryReference = linker.rootReference.getChild(libraryUriStr);
 
-    var unitNodeList = <LinkedNodeUnitBuilder>[];
     var libraryNode = LinkedNodeLibraryBuilder(
-      units: unitNodeList,
       uriStr: libraryUriStr,
     );
 
-    var builder = SourceLibraryBuilder(
-      linker,
-      librarySource.uri,
-      libraryReference,
-      libraryNode,
-    );
-    linker.builders[builder.uri] = builder;
-
-    var unitMap = <String, ast.CompilationUnit>{};
-    ast.CompilationUnit definingUnit;
-    for (var unitSource in libraryUnits.keys) {
-      var unit = libraryUnits[unitSource];
-      definingUnit ??= unit;
-      unitMap['${unitSource.uri}'] = unit;
-    }
-
-    builder.context = linker.bundleContext
-        .addLinkingLibrary(libraryUriStr, libraryNode, unitMap);
-
-//      if (libraryUriStr == 'dart:core') {
-//        for (var declaration in unitNode.compilationUnit_declarations) {
-//          if (declaration.kind == LinkedNodeKind.classDeclaration) {
-//            var nameNode = declaration.namedCompilationUnitMember_name;
-//            if (unitContext.getSimpleName(nameNode) == 'Object') {
-//              declaration.classDeclaration_isDartObject = true;
-//            }
-//          }
-//        }
-//      }
-//    }
-
+    var definingUnit = inputLibrary.units[0].unit;
     for (var directive in definingUnit.directives) {
       if (directive is ast.LibraryDirective) {
         var name = directive.name;
@@ -368,6 +380,20 @@ class SourceLibraryBuilder {
         break;
       }
     }
+
+    var builder = SourceLibraryBuilder(
+      linker,
+      libraryUri,
+      libraryReference,
+      libraryNode,
+    );
+    linker.builders[builder.uri] = builder;
+
+    builder.context = linker.bundleContext.addLinkingLibrary(
+      libraryUriStr,
+      libraryNode,
+      inputLibrary,
+    );
   }
 }
 

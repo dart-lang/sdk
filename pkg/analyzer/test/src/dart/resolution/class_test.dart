@@ -32,7 +32,8 @@ abstract class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo; // ref'), findElement.getter('foo'));
   }
 
@@ -50,7 +51,8 @@ class Baz extends Bar {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(
       findNode.simple('foo; // ref'),
       findElement.getter('foo', of: 'Foo'),
@@ -69,7 +71,8 @@ abstract class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo; // ref'), findElement.method('foo'));
   }
 
@@ -155,7 +158,8 @@ abstract class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo = 0;'), findElement.setter('foo'));
   }
 
@@ -167,7 +171,8 @@ class B implements I<String> {}
 class C extends A implements B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_conflictingGenericInterfaces_viaMixin() async {
@@ -178,7 +183,8 @@ class B implements I<String> {}
 class C extends A with B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_element_allSupertypes() async {
@@ -296,7 +302,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
     ]);
   }
@@ -309,7 +315,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
     ]);
   }
@@ -346,7 +352,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
     ]);
   }
@@ -359,7 +365,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
     ]);
   }
@@ -398,7 +404,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
   }
 
   test_error_conflictingFieldAndMethod_inSuper_getter() async {
@@ -411,7 +418,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
   }
 
   test_error_conflictingFieldAndMethod_inSuper_setter() async {
@@ -424,7 +432,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
   }
 
   test_error_conflictingMethodAndField_inSuper_field() async {
@@ -437,7 +446,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
   }
 
   test_error_conflictingMethodAndField_inSuper_getter() async {
@@ -450,7 +460,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
   }
 
   test_error_conflictingMethodAndField_inSuper_setter() async {
@@ -463,7 +474,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_getter_getter() async {
@@ -474,7 +486,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_getter_method() async {
@@ -485,7 +498,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_getter_setter() async {
@@ -496,7 +510,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_method_getter() async {
@@ -507,7 +522,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_method_method() async {
@@ -518,7 +534,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_method_setter() async {
@@ -529,7 +546,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_setter_getter() async {
@@ -540,7 +558,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_setter_method() async {
@@ -551,7 +570,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_setter_setter() async {
@@ -562,7 +582,8 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_getter_getter() async {
@@ -575,7 +596,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_getter_method() async {
@@ -588,7 +610,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_getter_setter() async {
@@ -601,7 +624,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_method_getter() async {
@@ -614,7 +638,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_method_method() async {
@@ -627,7 +652,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_method_setter() async {
@@ -640,7 +666,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_setter_method() async {
@@ -653,7 +680,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_setter_setter() async {
@@ -666,7 +694,8 @@ abstract class B implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_getter_getter() async {
@@ -679,7 +708,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_getter_method() async {
@@ -692,7 +722,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_getter_setter() async {
@@ -705,7 +736,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_method_getter() async {
@@ -718,7 +750,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_method_method() async {
@@ -731,7 +764,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_method_setter() async {
@@ -744,7 +778,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_setter_method() async {
@@ -757,7 +792,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inMixin_setter_setter() async {
@@ -770,7 +806,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_getter_getter() async {
@@ -783,7 +820,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_getter_method() async {
@@ -796,7 +834,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_getter_setter() async {
@@ -809,7 +848,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_method_getter() async {
@@ -822,7 +862,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_method_method() async {
@@ -835,7 +876,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_method_setter() async {
@@ -848,7 +890,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_setter_method() async {
@@ -861,7 +904,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_conflictingStaticAndInstance_inSuper_setter_setter() async {
@@ -874,7 +918,8 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
   }
 
   test_error_duplicateConstructorDefault() async {
@@ -885,7 +930,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
     ]);
   }
@@ -898,7 +943,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
     ]);
   }
@@ -911,7 +956,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_field_field_static() async {
@@ -922,7 +967,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_field_getter() async {
@@ -933,7 +978,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_field_method() async {
@@ -944,7 +989,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_getter_getter() async {
@@ -955,7 +1000,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_getter_method() async {
@@ -966,7 +1011,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_method_getter() async {
@@ -977,7 +1022,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_method_method() async {
@@ -988,7 +1033,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_method_setter() async {
@@ -999,7 +1044,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_OK_fieldFinal_setter() async {
@@ -1043,7 +1088,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_duplicateDefinition_setter_setter() async {
@@ -1054,7 +1099,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
   test_error_extendsNonClass_dynamic() async {
@@ -1062,7 +1107,7 @@ class C {
 class A extends dynamic {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
 
@@ -1076,7 +1121,7 @@ enum E { ONE }
 class A extends E {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
 
@@ -1093,7 +1138,7 @@ mixin M {}
 class A extends M {} // ref
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
 
@@ -1110,7 +1155,7 @@ int v;
 class A extends v {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
 
@@ -1124,7 +1169,7 @@ class A {}
 class B implements A, A {} // ref
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
 
     var a = findElement.class_('A');
     assertTypeName(findNode.typeName('A, A {} // ref'), a, 'A');
@@ -1136,7 +1181,7 @@ class B implements A, A {} // ref
 class A {} class C{}
 class B implements A, A, A, A {}''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       CompileTimeErrorCode.IMPLEMENTS_REPEATED
@@ -1150,7 +1195,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
   test_error_memberWithClassName_getter_static() async {
@@ -1160,7 +1205,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
 
     var method = findNode.methodDeclaration('C =>');
     expect(method.isGetter, isTrue);
@@ -1175,7 +1220,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
   test_error_memberWithClassName_setter_static() async {
@@ -1185,7 +1230,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
 
     var method = findNode.methodDeclaration('C(_)');
     expect(method.isSetter, isTrue);
@@ -1200,7 +1245,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
   }
@@ -1220,7 +1265,7 @@ class B {
 abstract class X implements A, B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
   }
@@ -1307,7 +1352,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
     ]);
   }
@@ -1320,7 +1365,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
     ]);
   }
@@ -1336,7 +1381,7 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
   }
@@ -1352,7 +1397,7 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
   }
@@ -1368,7 +1413,7 @@ abstract class B {
 abstract class C implements A, B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
@@ -1384,7 +1429,7 @@ abstract class B {
 abstract class C implements A, B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
@@ -1400,7 +1445,7 @@ abstract class B {
 abstract class C implements A, B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
@@ -1416,7 +1461,7 @@ abstract class B {
 abstract class C implements A, B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
@@ -1432,7 +1477,7 @@ abstract class B {
 abstract class C implements A, B {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
@@ -1458,7 +1503,7 @@ main() {
 class A extends B {}
 class B extends A {}''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
     ]);
@@ -1469,7 +1514,7 @@ class B extends A {}''');
 class A extends B {}
 class B implements A {}''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
     ]);
@@ -1480,7 +1525,7 @@ class B implements A {}''');
 class A implements B {}
 class B implements A {}''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
     ]);
@@ -1491,7 +1536,7 @@ class B implements A {}''');
 class M1 = Object with M2;
 class M2 = Object with M1;''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
     ]);
@@ -1506,7 +1551,7 @@ class D = C with M;
 class M {}
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
     ]);
@@ -1517,7 +1562,7 @@ class M {}
 abstract class A implements A {}
 class B implements A {}''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
   }
 
@@ -1527,7 +1572,7 @@ abstract class A implements B {}
 abstract class B implements A {}
 class C implements A {}''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
     ]);
@@ -1540,7 +1585,7 @@ abstract class B implements C {}
 abstract class C implements A {}
 class D implements A {}''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
@@ -1550,7 +1595,7 @@ class D implements A {}''');
   test_recursiveInterfaceInheritanceExtends() async {
     addTestFile("class A extends A {}");
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS]);
   }
 
@@ -1562,7 +1607,7 @@ class C extends C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
     ]);
   }
@@ -1570,7 +1615,7 @@ class C extends C {
   test_recursiveInterfaceInheritanceImplements() async {
     addTestFile("class A implements A {}");
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
   }
 
@@ -1580,14 +1625,14 @@ class A {}
 class M {}
 class B = A with M implements B;''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
   }
 
   test_recursiveInterfaceInheritanceWith() async {
     addTestFile("class M = Object with M;");
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH,
     ]);
   }
@@ -1601,7 +1646,7 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
+    assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
   }
 
   test_undefinedSuperMethod() async {
@@ -1613,7 +1658,7 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+    assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
   }
 
   test_undefinedSuperOperator_binaryExpression() async {
@@ -1625,7 +1670,7 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+    assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperOperator_indexBoth() async {
@@ -1637,7 +1682,7 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
       StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
     ]);
@@ -1652,7 +1697,7 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+    assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperOperator_indexSetter() async {
@@ -1664,7 +1709,7 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+    assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperSetter() async {
@@ -1676,6 +1721,6 @@ class B extends A {
   }
 }''');
     await resolveTestFile();
-    assertTestErrors([StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
+    assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
   }
 }

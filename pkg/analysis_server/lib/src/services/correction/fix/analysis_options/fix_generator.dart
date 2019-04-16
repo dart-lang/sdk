@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -17,8 +18,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:meta/meta.dart';
-import 'package:source_span/src/span.dart';
 import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in analysis options files.
@@ -173,66 +172,5 @@ class AnalysisOptionsFixGenerator {
     int endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
     return new SourceRange(startOffset, endOffset - startOffset);
-  }
-}
-
-/// An object used to locate the [YamlNode] associated with a source range.
-/// More specifically, it will return the deepest [YamlNode] which completely
-/// encompasses the specified range.
-class YamlNodeLocator {
-  /// The inclusive start offset of the range used to identify the node.
-  int _startOffset = 0;
-
-  /// The inclusive end offset of the range used to identify the node.
-  int _endOffset = 0;
-
-  /// Initialize a newly created locator to locate the deepest [YamlNode] for
-  /// which `node.offset <= [start]` and `[end] < node.end`.
-  ///
-  /// If the [end] offset is not provided, then it is considered the same as the
-  /// [start] offset.
-  YamlNodeLocator({@required int start, int end})
-      : this._startOffset = start,
-        this._endOffset = end ?? start;
-
-  /// Search within the given Yaml [node] and return the path to the most deeply
-  /// nested node that includes the whole target range, or an empty list if no
-  /// node was found. The path is represented by all of the elements from the
-  /// starting [node] to the most deeply nested node, in reverse order.
-  List<YamlNode> searchWithin(YamlNode node) {
-    List<YamlNode> path = [];
-    _searchWithin(path, node);
-    return path;
-  }
-
-  void _searchWithin(List<YamlNode> path, YamlNode node) {
-    SourceSpan span = node.span;
-    if (span.start.offset > _endOffset || span.end.offset < _startOffset) {
-      return;
-    }
-    if (node is YamlList) {
-      for (YamlNode element in node.nodes) {
-        _searchWithin(path, element);
-        if (path.isNotEmpty) {
-          path.add(node);
-          return;
-        }
-      }
-    } else if (node is YamlMap) {
-      Map<dynamic, YamlNode> nodeMap = node.nodes;
-      for (YamlNode key in nodeMap.keys) {
-        _searchWithin(path, key);
-        if (path.isNotEmpty) {
-          path.add(node);
-          return;
-        }
-        _searchWithin(path, nodeMap[key]);
-        if (path.isNotEmpty) {
-          path.add(node);
-          return;
-        }
-      }
-    }
-    path.add(node);
   }
 }

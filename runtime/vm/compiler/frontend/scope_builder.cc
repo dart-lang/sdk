@@ -5,7 +5,6 @@
 #include "vm/compiler/frontend/scope_builder.h"
 
 #include "vm/compiler/backend/il.h"  // For CompileType.
-#include "vm/kernel.h"               // For IsFieldInitializer.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -313,10 +312,15 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // In addition to static field initializers, scopes/local variables
       // are needed for implicit getters of static const fields, in order to
       // be able to evaluate their initializers in constant evaluator.
-      if (IsFieldInitializer(function, Z) ||
-          Field::Handle(Z, function.accessor_field()).is_const()) {
+      if (Field::Handle(Z, function.accessor_field()).is_const()) {
         VisitNode();
       }
+      break;
+    }
+    case RawFunction::kStaticFieldInitializer: {
+      ASSERT(helper_.PeekTag() == kField);
+      ASSERT(function.IsStaticFunction());
+      VisitNode();
       break;
     }
     case RawFunction::kDynamicInvocationForwarder: {
@@ -883,7 +887,12 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kNullLiteral:
       return;
-    case kConstantExpression: {
+    case kConstantExpression:
+      helper_.ReadPosition();
+      helper_.SkipDartType();
+      helper_.SkipConstantReference();
+      return;
+    case kDeprecated_ConstantExpression: {
       helper_.SkipConstantReference();
       return;
     }

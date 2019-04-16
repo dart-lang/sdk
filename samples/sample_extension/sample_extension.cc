@@ -102,7 +102,11 @@ void wrappedRandomArray(Dart_Port dest_port_id,
         result.value.as_typed_data.type = Dart_TypedData_kUint8;
         result.value.as_typed_data.values = values;
         result.value.as_typed_data.length = length;
-        Dart_PostCObject(reply_port_id, &result);
+        if (Dart_PostCObject(reply_port_id, &result)) {
+          Dart_CObject error;
+          error.type = Dart_CObject_kNull;
+          Dart_PostCObject(reply_port_id, &error);
+        }
         free(values);
         // It is OK that result is destroyed when function exits.
         // Dart_PostCObject has copied its data.
@@ -110,9 +114,8 @@ void wrappedRandomArray(Dart_Port dest_port_id,
       }
     }
   }
-  Dart_CObject result;
-  result.type = Dart_CObject_kNull;
-  Dart_PostCObject(reply_port_id, &result);
+  fprintf(stderr, "Invalid message received, cannot proceed. Aborting the process.\n");
+  abort();
 }
 
 

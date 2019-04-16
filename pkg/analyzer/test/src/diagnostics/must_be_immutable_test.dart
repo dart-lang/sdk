@@ -22,7 +22,7 @@ class MustBeImmutableTest extends DriverResolutionTest with PackageMixin {
   }
 
   test_directAnnotation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
@@ -32,7 +32,7 @@ class A {
   }
 
   test_directMixinAnnotation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 mixin A {
@@ -42,7 +42,7 @@ mixin A {
   }
 
   test_extendsClassWithAnnotation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {}
@@ -64,7 +64,7 @@ class A {
   }
 
   test_fromMixinWithAnnotation() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {}
@@ -76,7 +76,7 @@ class C extends A with B {}
   }
 
   test_mixinApplication() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {}
@@ -88,7 +88,7 @@ class C = A with B;
   }
 
   test_mixinApplicationBase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   int x;

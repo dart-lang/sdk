@@ -134,6 +134,11 @@ class CompilerOptions {
   /// unevaluated and can be evaluated by a constant evaluator later.
   Map<String, String> environmentDefines = null;
 
+  /// Report an error if a constant could not be evaluated (either because it
+  /// is an environment constant and no environment was specified, or because
+  /// it refers to a constructor or variable initializer that is not available).
+  bool errorOnUnevaluatedConstant = false;
+
   /// The target platform that will consume the compiled code.
   ///
   /// Used to provide platform-specific details to the compiler like:

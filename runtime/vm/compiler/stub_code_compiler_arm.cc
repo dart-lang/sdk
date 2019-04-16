@@ -4,6 +4,9 @@
 
 #include "vm/globals.h"
 
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -31,6 +34,34 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, precompiled_mode);
 
 namespace compiler {
+
+// Ensures that [R0] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+//
+// WARNING: This might clobber all registers except for [R0], [THR] and [FP].
+// The caller should simply call LeaveStubFrame() and return.
+static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                    bool preserve_registers = true) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ tst(R0, Operand(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  if (preserve_registers) {
+    __ EnterCallRuntimeFrame(0);
+  } else {
+    __ ReserveAlignedFrameSpace(0);
+  }
+  // [R0] already contains first argument.
+  __ mov(R1, Operand(THR));
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  if (preserve_registers) {
+    __ LeaveCallRuntimeFrame();
+  }
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   LR : return address.
@@ -236,6 +267,26 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
       R1);
 
   __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers);
+  __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ blx(R0);
+  __ PopRegisters(all_registers);
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers);
+  __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ blx(R0);
+  __ PopRegisters(all_registers);
   __ Ret();
 }
 
@@ -955,6 +1006,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Pop arguments; result is popped in IP.
   __ PopList((1 << R1) | (1 << R2) | (1 << IP));  // R2 is restored.
   __ mov(R0, Operand(IP));
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -1349,6 +1406,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ Drop(1);  // Pop number of context variables argument.
   __ Pop(R0);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
   // R0: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
@@ -1677,6 +1740,14 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       kInstanceReg,
       Address(SP,
               2 * target::kWordSize));  // Pop result (newly allocated object).
+
+  ASSERT(kInstanceReg == R0);
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  }
+
   __ LeaveDartFrameAndReturn();         // Restores correct SP.
 }
 
@@ -2252,6 +2323,9 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 
 // R9: Contains an ICData.
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ LoadImmediate(R0, 0);
   // Preserve arguments descriptor and make room for result.
@@ -2261,9 +2335,13 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ mov(CODE_REG, Operand(R0));
   __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
 }
 
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ LoadImmediate(R0, 0);
   // Make room for result.
@@ -2272,12 +2350,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ PopList((1 << CODE_REG));
   __ LeaveStubFrame();
   __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code. All relevant registers have been saved.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ Ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

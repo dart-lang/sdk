@@ -30,7 +30,7 @@ class A {
 
   test_method() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @immutable

@@ -77,16 +77,20 @@ static void* MapAligned(zx_handle_t vmar,
                         uword alignment,
                         uword vmar_base,
                         uword padded_size) {
+  // Allocate a larger mapping than needed in order to find a suitable aligned
+  // mapping within it.
   uword base;
   zx_status_t status =
       zx_vmar_map(vmar, options, 0, vmo, 0u, padded_size, &base);
   LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", options, base, padded_size);
-
   if (status != ZX_OK) {
     LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", options, base,
             padded_size, zx_status_get_string(status));
     return NULL;
   }
+
+  // Allocate a smaller aligned mapping inside the larger mapping.
+  const uword orig_base = base;
   const uword aligned_base = Utils::RoundUp(base, alignment);
   const zx_vm_option_t overwrite_options = options | ZX_VM_SPECIFIC_OVERWRITE;
   status = zx_vmar_map(vmar, overwrite_options, aligned_base - vmar_base, vmo,
@@ -100,6 +104,11 @@ static void* MapAligned(zx_handle_t vmar,
     return NULL;
   }
   ASSERT(base == aligned_base);
+
+  // Unmap the unused prefix and suffix.
+  Unmap(vmar, orig_base, base);
+  Unmap(vmar, base + size, orig_base + padded_size);
+
   return reinterpret_cast<void*>(base);
 }
 

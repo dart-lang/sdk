@@ -11,6 +11,8 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
+  static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
+  static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeKey = 'lazyAst_type';
 
@@ -26,8 +28,24 @@ class LazyAst {
     return node.getProperty(_typeKey);
   }
 
+  static bool hasOverrideInferenceDone(AstNode node) {
+    return node.getProperty(_hasOverrideInferenceKey) ?? false;
+  }
+
+  static bool isSimplyBounded(AstNode node) {
+    return node.getProperty(_isSimplyBoundedKey);
+  }
+
+  static void setOverrideInferenceDone(AstNode node) {
+    node.setProperty(_hasOverrideInferenceKey, true);
+  }
+
   static void setReturnType(AstNode node, DartType type) {
     node.setProperty(_returnTypeKey, type);
+  }
+
+  static void setSimplyBounded(AstNode node, bool simplyBounded) {
+    node.setProperty(_isSimplyBoundedKey, simplyBounded);
   }
 
   static void setType(AstNode node, DartType type) {
@@ -45,7 +63,6 @@ class LazyClassDeclaration {
   bool _hasImplementsClause = false;
   bool _hasMembers = false;
   bool _hasMetadata = false;
-  bool _hasTypeParameters = false;
   bool _hasWithClause = false;
 
   LazyClassDeclaration(this.data);
@@ -123,19 +140,6 @@ class LazyClassDeclaration {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    ClassDeclaration node,
-  ) {
-    var lazy = LazyClassDeclaration.get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.classOrMixinDeclaration_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void readWithClause(
     AstBinaryReader reader,
     ClassDeclaration node,
@@ -151,6 +155,7 @@ class LazyClassDeclaration {
 
   static void setData(ClassDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyClassDeclaration(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -163,7 +168,6 @@ class LazyClassTypeAlias {
   bool _hasImplementsClause = false;
   bool _hasMetadata = false;
   bool _hasSuperclass = false;
-  bool _hasTypeParameters = false;
   bool _hasWithClause = false;
 
   LazyClassTypeAlias(this.data);
@@ -228,19 +232,6 @@ class LazyClassTypeAlias {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    ClassTypeAlias node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.classTypeAlias_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void readWithClause(
     AstBinaryReader reader,
     ClassTypeAlias node,
@@ -256,6 +247,7 @@ class LazyClassTypeAlias {
 
   static void setData(ClassTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyClassTypeAlias(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -267,7 +259,9 @@ class LazyConstructorDeclaration {
   bool _hasBody = false;
   bool _hasDocumentationComment = false;
   bool _hasFormalParameters = false;
+  bool _hasInitializers = false;
   bool _hasMetadata = false;
+  bool _hasRedirectedConstructor = false;
 
   LazyConstructorDeclaration(this.data);
 
@@ -314,6 +308,21 @@ class LazyConstructorDeclaration {
     }
   }
 
+  static void readInitializers(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasInitializers) {
+      var dataList = lazy.data.constructorDeclaration_initializers;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.initializers[i] = reader.readNode(data);
+      }
+      lazy._hasInitializers = true;
+    }
+  }
+
   static void readMetadata(
     AstBinaryReader reader,
     ConstructorDeclaration node,
@@ -329,6 +338,19 @@ class LazyConstructorDeclaration {
     }
   }
 
+  static void readRedirectedConstructor(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasRedirectedConstructor) {
+      node.redirectedConstructor = reader.readNode(
+        lazy.data.constructorDeclaration_redirectedConstructor,
+      );
+      lazy._hasRedirectedConstructor = true;
+    }
+  }
+
   static void setData(ConstructorDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyConstructorDeclaration(data));
   }
@@ -336,6 +358,7 @@ class LazyConstructorDeclaration {
 
 class LazyDirective {
   static const _key = 'lazyAst';
+  static const _uriKey = 'lazyAst_selectedUri';
 
   final LinkedNode data;
 
@@ -345,6 +368,10 @@ class LazyDirective {
 
   static LazyDirective get(Directive node) {
     return node.getProperty(_key);
+  }
+
+  static String getSelectedUri(UriBasedDirective node) {
+    return node.getProperty(_uriKey);
   }
 
   static void readMetadata(AstBinaryReader reader, Directive node) {
@@ -361,6 +388,13 @@ class LazyDirective {
 
   static void setData(Directive node, LinkedNode data) {
     node.setProperty(_key, LazyDirective(data));
+    if (node is NamespaceDirective) {
+      node.setProperty(_uriKey, data.namespaceDirective_selectedUri);
+    }
+  }
+
+  static void setSelectedUri(UriBasedDirective node, String uriStr) {
+    node.setProperty(_uriKey, uriStr);
   }
 }
 
@@ -605,6 +639,7 @@ class LazyFunctionDeclaration {
     AstBinaryReader reader,
     FunctionDeclaration node,
   ) {
+    readFunctionExpression(reader, node);
     if (reader.isLazy) {
       var lazy = get(node);
       if (!lazy._hasReturnType) {
@@ -668,7 +703,6 @@ class LazyFunctionExpression {
 
   bool _hasBody = false;
   bool _hasFormalParameters = false;
-  bool _hasTypeParameters = false;
 
   LazyFunctionExpression(this.data);
 
@@ -702,19 +736,6 @@ class LazyFunctionExpression {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    FunctionExpression node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.functionExpression_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(FunctionExpression node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionExpression(data));
   }
@@ -729,7 +750,6 @@ class LazyFunctionTypeAlias {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasReturnType = false;
-  bool _hasTypeParameters = false;
 
   LazyFunctionTypeAlias(this.data);
 
@@ -793,21 +813,9 @@ class LazyFunctionTypeAlias {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    FunctionTypeAlias node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.functionTypeAlias_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(FunctionTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionTypeAlias(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -865,7 +873,6 @@ class LazyGenericTypeAlias {
 
   bool _hasDocumentationComment = false;
   bool _hasFunction = false;
-  bool _hasTypeParameters = false;
 
   LazyGenericTypeAlias(this.data);
 
@@ -899,21 +906,9 @@ class LazyGenericTypeAlias {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    GenericTypeAlias node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.genericTypeAlias_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(GenericTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyGenericTypeAlias(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 
@@ -927,7 +922,6 @@ class LazyMethodDeclaration {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasReturnType = false;
-  bool _hasTypeParameters = false;
 
   LazyMethodDeclaration(this.data);
 
@@ -1004,19 +998,6 @@ class LazyMethodDeclaration {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    MethodDeclaration node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.methodDeclaration_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(MethodDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyMethodDeclaration(data));
   }
@@ -1031,7 +1012,6 @@ class LazyMixinDeclaration {
   bool _hasOnClause = false;
   bool _hasImplementsClause = false;
   bool _hasMembers = false;
-  bool _hasTypeParameters = false;
 
   LazyMixinDeclaration(this.data);
 
@@ -1085,7 +1065,7 @@ class LazyMixinDeclaration {
     MixinDeclarationImpl node,
   ) {
     var lazy = get(node);
-    if (!lazy._hasOnClause) {
+    if (lazy != null && !lazy._hasOnClause) {
       node.onClause = reader.readNode(
         lazy.data.mixinDeclaration_onClause,
       );
@@ -1093,21 +1073,9 @@ class LazyMixinDeclaration {
     }
   }
 
-  static void readTypeParameters(
-    AstBinaryReader reader,
-    MixinDeclarationImpl node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasTypeParameters) {
-      node.typeParameters = reader.readNode(
-        lazy.data.classOrMixinDeclaration_typeParameters,
-      );
-      lazy._hasTypeParameters = true;
-    }
-  }
-
   static void setData(MixinDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyMixinDeclaration(data));
+    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 

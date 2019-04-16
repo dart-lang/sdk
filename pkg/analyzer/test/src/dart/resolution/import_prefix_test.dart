@@ -29,7 +29,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
 
@@ -70,7 +70,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
 

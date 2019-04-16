@@ -43,6 +43,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
 
+  final bool _constantUpdate2018Enabled;
+
   ConstantEvaluationEngine _evaluationEngine;
 
   /// Initialize a newly created constant verifier.
@@ -52,7 +54,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       this._typeProvider, this.declaredVariables,
       {bool forAnalysisDriver: false})
       : _currentLibrary = currentLibrary,
-        _typeSystem = currentLibrary.context.typeSystem {
+        _typeSystem = currentLibrary.context.typeSystem,
+        _constantUpdate2018Enabled =
+            (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
+                .experimentStatus
+                .constant_update_2018 {
     this._intType = _typeProvider.intType;
     this._evaluationEngine = new ConstantEvaluationEngine(
         _typeProvider, declaredVariables,
@@ -613,6 +619,10 @@ class _ConstLiteralVerifier {
       verifier._errorReporter.reportErrorForNode(errorCode, element);
       return false;
     } else if (element is IfElement) {
+      if (!verifier._constantUpdate2018Enabled) {
+        verifier._errorReporter.reportErrorForNode(errorCode, element);
+        return false;
+      }
       var conditionValue = verifier._validate(element.condition, errorCode);
       var conditionBool = conditionValue?.toBoolValue();
 
@@ -642,6 +652,10 @@ class _ConstLiteralVerifier {
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element);
     } else if (element is SpreadElement) {
+      if (!verifier._constantUpdate2018Enabled) {
+        verifier._errorReporter.reportErrorForNode(errorCode, element);
+        return false;
+      }
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
 

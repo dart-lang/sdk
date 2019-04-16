@@ -664,6 +664,9 @@ class FieldElementHandle extends PropertyInducingElementHandle
   @override
   bool get isEnumConstant => actualElement.isEnumConstant;
 
+  @override
+  bool get isLazy => actualElement.isLazy;
+
   @deprecated
   @override
   bool get isVirtual => actualElement.isVirtual;
@@ -984,6 +987,9 @@ class LocalVariableElementHandle extends VariableElementHandle
       super.actualElement as LocalVariableElement;
 
   @override
+  bool get isLazy => actualElement.isLazy;
+
+  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
@@ -1171,12 +1177,12 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   @override
   PropertyAccessorElement get getter => actualElement.getter;
 
+  @override
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+
   @deprecated
   @override
   DartType get propagatedType => null;
-
-  @override
-  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
   @override
   PropertyAccessorElement get setter => actualElement.setter;
@@ -1259,10 +1265,10 @@ abstract class VariableElementHandle extends ElementHandle
   FunctionElement get initializer => actualElement.initializer;
 
   @override
-  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+  bool get isConst => actualElement.isConst;
 
   @override
-  bool get isConst => actualElement.isConst;
+  bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
   @override
   bool get isFinal => actualElement.isFinal;

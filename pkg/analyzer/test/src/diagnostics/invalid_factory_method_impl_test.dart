@@ -31,7 +31,7 @@ class State { }
 
   test_badReturn() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   State _s = new State();
@@ -131,7 +131,7 @@ class MyState extends State { }
 
   test_voidReturn() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 class Stateful {

@@ -65,6 +65,9 @@ bool isNotNullAnnotation(DartObjectImpl value) =>
 bool isNullCheckAnnotation(DartObjectImpl value) =>
     isBuiltinAnnotation(value, '_js_helper', '_NullCheck');
 
+bool isUndefinedAnnotation(DartObjectImpl value) =>
+    isBuiltinAnnotation(value, '_js_helper', '_Undefined');
+
 /// Returns the name value of the `JSExportName` annotation (when compiling
 /// the SDK), or `null` if there's none. This is used to control the name
 /// under which functions are compiled and exported.

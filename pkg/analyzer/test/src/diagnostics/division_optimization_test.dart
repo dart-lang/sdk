@@ -24,7 +24,7 @@ f(int x, int y) {
   }
 
   test_double() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(double x, double y) {
   var v = (x / y).toInt();
 }
@@ -40,7 +40,7 @@ f(x, y) {
   }
 
   test_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(int x, int y) {
   var v = (x / y).toInt();
 }
@@ -59,7 +59,7 @@ f(A x, A y) {
   }
 
   test_wrappedInParentheses() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(int x, int y) {
   var v = (((x / y))).toInt();
 }

@@ -374,6 +374,7 @@ abstract class AstFactory {
       {Comment comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       Token keyword,
       TypeAnnotation type,
       @required Token thisKeyword,
@@ -511,6 +512,7 @@ abstract class AstFactory {
       {Comment comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       TypeAnnotation returnType,
       @required SimpleIdentifier identifier,
       TypeParameterList typeParameters,
@@ -800,6 +802,7 @@ abstract class AstFactory {
       {Comment comment,
       List<Annotation> metadata,
       Token covariantKeyword,
+      Token requiredKeyword,
       Token keyword,
       TypeAnnotation type,
       @required SimpleIdentifier identifier});

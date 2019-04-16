@@ -46,6 +46,12 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
+  test_infer_generic_typedef_complex() async {
+    await super.test_infer_generic_typedef_complex();
+  }
+
+  @override
+  @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
   }

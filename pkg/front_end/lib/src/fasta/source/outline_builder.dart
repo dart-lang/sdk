@@ -944,8 +944,20 @@ class OutlineBuilder extends StackListener {
       library.endNestedDeclaration("<syntax-error>");
       return;
     }
-    library.addNamedMixinApplication(documentationComment, metadata, name,
-        typeVariables, modifiers, mixinApplication, interfaces, charOffset);
+
+    int startCharOffset = beginToken.charOffset;
+    int charEndOffset = endToken.charOffset;
+    library.addNamedMixinApplication(
+        documentationComment,
+        metadata,
+        name,
+        typeVariables,
+        modifiers,
+        mixinApplication,
+        interfaces,
+        startCharOffset,
+        charOffset,
+        charEndOffset);
   }
 
   @override
@@ -1168,13 +1180,14 @@ class OutlineBuilder extends StackListener {
     String documentationComment = getDocumentationComment(enumKeyword);
     List<EnumConstantInfo> enumConstantInfos =
         const FixedNullableList<EnumConstantInfo>().pop(stack, count);
-    int charOffset = pop();
+    int charOffset = pop(); // identifier char offset.
+    int startCharOffset = enumKeyword.charOffset;
     Object name = pop();
     List<MetadataBuilder<KernelTypeBuilder>> metadata = pop();
     checkEmpty(enumKeyword.charOffset);
     if (name is ParserRecovery) return;
     library.addEnum(documentationComment, metadata, name, enumConstantInfos,
-        charOffset, leftBrace?.endGroup?.charOffset);
+        startCharOffset, charOffset, leftBrace?.endGroup?.charOffset);
   }
 
   @override

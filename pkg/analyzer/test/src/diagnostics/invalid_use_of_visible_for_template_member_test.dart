@@ -52,7 +52,8 @@ void main() {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    assertTestErrorsWithCodes(
+        [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
   }
 
   test_export() async {
@@ -91,7 +92,8 @@ class B {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    assertTestErrorsWithCodes(
+        [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
   }
 
   test_method_fromTemplate() async {
@@ -140,7 +142,7 @@ void main() {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
       HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER
     ]);
@@ -214,7 +216,8 @@ void main() {
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    assertTestErrorsWithCodes(
+        [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
   }
 
   /// Resolve the test file at [path].

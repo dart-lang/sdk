@@ -24,7 +24,8 @@ import 'dart:_js_helper'
         PrivateSymbol,
         ReifyFunctionTypes,
         NoReifyGeneric,
-        notNull;
+        notNull,
+        undefined;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 

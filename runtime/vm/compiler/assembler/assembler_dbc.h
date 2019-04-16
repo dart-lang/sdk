@@ -44,10 +44,6 @@ class Assembler : public AssemblerBase {
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
-  static const char* RegisterName(Register reg);
-
-  static const char* FpuRegisterName(FpuRegister reg);
-
   static uword GetBreakInstructionFiller() { return SimulatorBytecode::kTrap; }
 
   static bool IsSafe(const Object& value) { return true; }

@@ -25,13 +25,13 @@ class NotNullAwareNullSpreadTest extends DriverResolutionTest {
     ];
 
   test_listLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = [...null];
 ''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
   }
 
   test_listLiteral_notNullAware_nullTyped() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 Null a = null;
 var v = [...a];
 ''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
@@ -51,13 +51,13 @@ var v = [...?a];
   }
 
   test_mapLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = <int, int>{...null};
 ''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
   }
 
   test_mapLiteral_notNullAware_nullType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 Null a = null;
 var v = <int, int>{...a};
 ''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
@@ -77,13 +77,13 @@ var v = <int, int>{...?a};
   }
 
   test_setLiteral_notNullAware_nullLiteral() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = <int>{...null};
 ''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
   }
 
   test_setLiteral_notNullAware_nullTyped() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 Null a = null;
 var v = <int>{...a};
 ''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);

@@ -127,8 +127,8 @@ visitCompilationUnit(CompilationUnitElement unit) {
 }
 
 void visitClass(ClassElement classElement) {
-  // Platform operations cause too many divergences.
-  if (classElement.name == 'Platform') {
+  // Classes that cause too many false divergences.
+  if (classElement.name == 'ProcessInfo' || classElement.name == 'Platform') {
     return;
   }
   // Every class element contains elements for the members, viz. `methods` visits
@@ -252,13 +252,14 @@ void addToTable(String ret, String name, String proto) {
   if (ret.contains('?') || proto.contains('?')) {
     return;
   }
-  // Restrict parameters for a few hardcoded cases, for
-  // example, to avoid excessive runtime or memory allocation
-  // in the generated fuzzing program or to avoid obvious
-  // divergences.
+  // Restrict parameters for a few hardcoded cases,
+  // for example, to avoid excessive runtime or memory
+  // allocation in the generated fuzzing program or to
+  // avoid false divergences.
   if (name == 'padLeft' || name == 'padRight') {
     proto = proto.replaceAll('I', 'i');
-  } else if (name == 'Platform.executable' ||
+  } else if (name == 'pid' ||
+      name == 'Platform.executable' ||
       name == 'Platform.resolvedExecutable') {
     return;
   }

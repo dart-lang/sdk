@@ -32,7 +32,7 @@ int f() {
   }
 
   test_async() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'dart:async';
 Future<int> f() async {}
 ''', [HintCode.MISSING_RETURN]);
@@ -66,7 +66,7 @@ int f() => 0;
   }
 
   test_factory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   factory A() {}
 }
@@ -74,20 +74,20 @@ class A {
   }
 
   test_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 int f() {}
 ''', [HintCode.MISSING_RETURN]);
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int m() {}
 }''', [HintCode.MISSING_RETURN]);
   }
 
   test_method_inferred() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 abstract class A {
   int m();
 }

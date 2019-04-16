@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -45,25 +41,29 @@ class LinkedBundleContext {
   LinkedBundleContext.forAst(this.elementFactory, this._references)
       : _bundle = null;
 
-  LinkedLibraryContext addLinkingLibrary(String uriStr,
-      LinkedNodeLibraryBuilder data, Map<String, CompilationUnit> unitMap) {
+  LinkedLibraryContext addLinkingLibrary(
+    String uriStr,
+    LinkedNodeLibraryBuilder data,
+    LinkInputLibrary inputLibrary,
+  ) {
     var uriStr = data.uriStr;
     var libraryContext = LinkedLibraryContext(uriStr, this, data);
     libraryMap[uriStr] = libraryContext;
 
-    var uriUriStrList = unitMap.keys.toList();
-    for (var unitIndex = 0; unitIndex < uriUriStrList.length; ++unitIndex) {
-      var unitUriStr = uriUriStrList[unitIndex];
-      var unit = unitMap[unitUriStr];
-      var unitContext = LinkedUnitContext(
-        this,
-        libraryContext,
-        unitIndex,
-        unitUriStr,
-        null,
-        unit: unit,
+    var unitIndex = 0;
+    for (var inputUnit in inputLibrary.units) {
+      var source = inputUnit.source;
+      var unitUriStr = source != null ? '${source.uri}' : '';
+      libraryContext.units.add(
+        LinkedUnitContext(
+          this,
+          libraryContext,
+          unitIndex++,
+          unitUriStr,
+          null,
+          unit: inputUnit.unit,
+        ),
       );
-      libraryContext.units.add(unitContext);
     }
     return libraryContext;
   }
@@ -80,52 +80,6 @@ class LinkedBundleContext {
       result[i] = elementOfIndex(index);
     }
     return result;
-  }
-
-  InterfaceType getInterfaceType(LinkedNodeType linkedType) {
-    var type = getType(linkedType);
-    if (type is InterfaceType && !type.element.isEnum) {
-      return type;
-    }
-    return null;
-  }
-
-  DartType getType(LinkedNodeType linkedType) {
-    var kind = linkedType.kind;
-    if (kind == LinkedNodeTypeKind.dynamic_) {
-      return DynamicTypeImpl.instance;
-    } else if (kind == LinkedNodeTypeKind.genericTypeAlias) {
-      var reference = referenceOfIndex(linkedType.genericTypeAliasReference);
-      return GenericTypeAliasElementImpl.typeAfterSubstitution(
-        elementFactory.elementOfReference(reference),
-        linkedType.genericTypeAliasTypeArguments.map(getType).toList(),
-      );
-    } else if (kind == LinkedNodeTypeKind.function) {
-      var returnType = getType(linkedType.functionReturnType);
-      var formalParameters = linkedType.functionFormalParameters.map((p) {
-        return ParameterElementImpl.synthetic(
-          p.name,
-          getType(p.type),
-          _formalParameterKind(p.kind),
-        );
-      }).toList();
-      return FunctionElementImpl.synthetic(formalParameters, returnType).type;
-    } else if (kind == LinkedNodeTypeKind.interface) {
-      var reference = referenceOfIndex(linkedType.interfaceClass);
-      Element element = elementFactory.elementOfReference(reference);
-      return InterfaceTypeImpl.explicit(
-        element,
-        linkedType.interfaceTypeArguments.map(getType).toList(),
-      );
-    } else if (kind == LinkedNodeTypeKind.typeParameter) {
-      var reference = referenceOfIndex(linkedType.typeParameterParameter);
-      Element element = elementFactory.elementOfReference(reference);
-      return TypeParameterTypeImpl(element);
-    } else if (kind == LinkedNodeTypeKind.void_) {
-      return VoidTypeImpl.instance;
-    } else {
-      throw UnimplementedError('$kind');
-    }
   }
 
   Reference referenceOfIndex(int index) {
@@ -146,16 +100,6 @@ class LinkedBundleContext {
     _references[index] = reference;
 
     return reference;
-  }
-
-  ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
-    if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
-      return ParameterKind.NAMED;
-    }
-    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
-      return ParameterKind.POSITIONAL;
-    }
-    return ParameterKind.REQUIRED;
   }
 }
 

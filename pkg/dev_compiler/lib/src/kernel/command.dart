@@ -96,7 +96,23 @@ Future<CompilerResult> _compile(List<String> args,
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
-  var argResults = argParser.parse(filterUnknownArguments(args, argParser));
+  ArgResults argResults;
+  try {
+    argResults = argParser.parse(filterUnknownArguments(args, argParser));
+  } on FormatException catch (error) {
+    print(error);
+    print(_usageMessage(argParser));
+    return CompilerResult(64);
+  }
+
+  var output = argResults['out'] as String;
+  if (output == null) {
+    print('Please specify the output file location. For example:\n'
+        '    -o PATH/TO/OUTPUT_FILE.js'
+        '');
+    print(_usageMessage(argParser));
+    return CompilerResult(64);
+  }
 
   if (argResults['help'] as bool || args.isEmpty) {
     print(_usageMessage(argParser));
@@ -230,7 +246,6 @@ Future<CompilerResult> _compile(List<String> args,
 
   List<Uri> inputSummaries = compilerState.options.inputSummaries;
 
-  var output = argResults['out'] as String;
   // TODO(jmesserly): is there a cleaner way to do this?
   //
   // Ideally we'd manage our own batch compilation caching rather than rely on

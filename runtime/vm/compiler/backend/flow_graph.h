@@ -120,6 +120,13 @@ class FlowGraph : public ZoneAllocated {
     return num_direct_parameters_ + parsed_function_.num_stack_locals();
   }
 
+  // The number of variables during OSR, which may include stack slots
+  // that pass in initial contents for the expression stack.
+  intptr_t osr_variable_count() const {
+    ASSERT(IsCompiledForOsr());
+    return variable_count() + graph_entry()->osr_entry()->stack_depth();
+  }
+
   // The number of variables (or boxes) inside the functions frame - meaning
   // below the frame pointer.  This does not include the expression stack.
   intptr_t num_stack_locals() const {
@@ -414,6 +421,8 @@ class FlowGraph : public ZoneAllocated {
 
   // SSA transformation methods and fields.
   void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
+
+  void CreateCommonConstants();
 
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure

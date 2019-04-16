@@ -38,28 +38,28 @@ var v = <int, int>{...?null};
   }
 
   test_notMap_direct() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = <int, int>{...a};
 ''', [CompileTimeErrorCode.NOT_MAP_SPREAD]);
   }
 
   test_notMap_forElement() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = <int, int>{for (var i in []) ...a};
 ''', [CompileTimeErrorCode.NOT_MAP_SPREAD]);
   }
 
   test_notMap_ifElement_else() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = <int, int>{if (1 > 0) ...<int, int>{} else ...a};
 ''', [CompileTimeErrorCode.NOT_MAP_SPREAD]);
   }
 
   test_notMap_ifElement_then() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = <int, int>{if (1 > 0) ...a};
 ''', [CompileTimeErrorCode.NOT_MAP_SPREAD]);

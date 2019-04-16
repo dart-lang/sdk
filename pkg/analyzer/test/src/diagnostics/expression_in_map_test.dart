@@ -22,7 +22,7 @@ class ExpressionInMapTest extends DriverResolutionTest {
   bool get isUiAsCode => analysisOptions.experimentStatus.spread_collections;
 
   test_map() async {
-    await assertErrorsInCode(
+    await assertErrorCodesInCode(
       '''
 var m = <String, int>{'a', 'b' : 2};
 ''',
@@ -38,7 +38,7 @@ var m = <String, int>{'a', 'b' : 2};
   }
 
   test_map_const() async {
-    await assertErrorsInCode(
+    await assertErrorCodesInCode(
       '''
 var m = <String, int>{'a', 'b' : 2};
 ''',
@@ -64,13 +64,13 @@ class ExpressionInMapWithUiAsCodeTest extends ExpressionInMapTest {
     ];
 
   test_map() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var m = <String, int>{'a', 'b' : 2};
 ''', [CompileTimeErrorCode.EXPRESSION_IN_MAP]);
   }
 
   test_map_const() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var m = <String, int>{'a', 'b' : 2};
 ''', [CompileTimeErrorCode.EXPRESSION_IN_MAP]);
   }

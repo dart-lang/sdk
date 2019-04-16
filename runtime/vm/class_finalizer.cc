@@ -1181,6 +1181,14 @@ RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    // TODO(36584) : We expect is_type_finalized to be true for all classes
+    // here, but with eager reading of the constant table we get into
+    // situations where we see classes whose types have not been finalized yet,
+    // the real solution is to implement lazy evaluation of constants. This is
+    // a temporary workaround until lazy evaluation is implemented.
+    if (!cls.is_type_finalized()) {
+      FinalizeTypesInClass(cls);
+    }
     ClassFinalizer::FinalizeClass(cls);
     return Error::null();
   } else {

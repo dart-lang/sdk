@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UndefinedSetterTest extends DriverResolutionTest {
   test_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {
   set b(x) {}
@@ -30,7 +30,7 @@ f(var a) {
   }
 
   test_inType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 f(var a) {
   if(a is A) {

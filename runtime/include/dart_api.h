@@ -3372,4 +3372,10 @@ DART_EXPORT bool Dart_IsPrecompiledRuntime();
  */
 DART_EXPORT void Dart_DumpNativeStackTrace(void* context);
 
+/**
+ *  Indicate that the process is about to abort, and the Dart VM should not
+ *  attempt to cleanup resources.
+ */
+DART_EXPORT void Dart_PrepareToAbort();
+
 #endif /* INCLUDE_DART_API_H_ */ /* NOLINT */

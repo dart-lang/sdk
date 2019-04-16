@@ -79,7 +79,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::AnyOrConstant(value()));
+  locs->set_in(0, LocationAnyOrConstant(value()));
   return locs;
 }
 
@@ -558,12 +558,12 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RegisterOrConstant(left()));
+    locs->set_in(0, LocationRegisterOrConstant(left()));
     // Only one input can be a constant operand. The case of two constant
     // operands should be handled by constant propagation.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::RegisterOrConstant(right()));
+                        : LocationRegisterOrConstant(right()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -794,7 +794,7 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   locs->set_in(0, Location::RequiresRegister());
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_in(1, LocationRegisterOrConstant(right()));
   return locs;
 }
 
@@ -894,12 +894,12 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
   ASSERT(operation_cid() == kSmiCid);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RegisterOrConstant(left()));
+  summary->set_in(0, LocationRegisterOrConstant(left()));
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
   summary->set_in(1, summary->in(0).IsConstant()
                          ? Location::RequiresRegister()
-                         : Location::RegisterOrConstant(right()));
+                         : LocationRegisterOrConstant(right()));
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -983,7 +983,97 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
+
+  // Save frame pointer because we're going to update it when we enter the exit
+  // frame.
+  __ mov(saved_fp, Operand(FPREG));
+
+  // Make a space to put the return address.
+  __ PushImmediate(0);
+
+  // We need to create a dummy "exit frame". It will have a null code object.
+  __ LoadObject(CODE_REG, Object::null_object());
+  __ set_constant_pool_allowed(false);
+  __ EnterDartFrame(0, /*load_pool_pointer=*/false);
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
+                              kWordSize);
+
+  // Load a 32-bit argument, or a 32-bit component of a 64-bit argument.
+  auto load_single_slot = [&](Location from, Location to) {
+    if (!to.IsStackSlot()) return;
+    if (from.IsRegister()) {
+      __ str(from.reg(), LocationToStackSlotAddress(to));
+    } else if (from.IsFpuRegister()) {
+      __ vstrs(EvenSRegisterOf(EvenDRegisterOf(from.fpu_reg())),
+               LocationToStackSlotAddress(to));
+    } else if (from.IsStackSlot() || from.IsDoubleStackSlot()) {
+      ASSERT(from.base_reg() == FPREG);
+      __ ldr(TMP, Address(saved_fp, from.ToStackSlotOffset()));
+      __ str(TMP, LocationToStackSlotAddress(to));
+    } else {
+      UNREACHABLE();
+    }
+  };
+
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    Location origin = locs()->in(i);
+    Location target = arg_locations_[i];
+
+    if (target.IsStackSlot()) {
+      load_single_slot(origin, target);
+    } else if (target.IsDoubleStackSlot()) {
+      if (origin.IsFpuRegister()) {
+        __ vstrd(EvenDRegisterOf(origin.fpu_reg()),
+                 LocationToStackSlotAddress(target));
+      } else {
+        ASSERT(origin.IsDoubleStackSlot() && origin.base_reg() == FPREG);
+        __ vldrd(DTMP, Address(saved_fp, origin.ToStackSlotOffset()));
+        __ vstrd(DTMP, LocationToStackSlotAddress(target));
+      }
+    } else if (target.IsPairLocation()) {
+      ASSERT(origin.IsPairLocation());
+      load_single_slot(origin.AsPairLocation()->At(0),
+                       target.AsPairLocation()->At(0));
+      load_single_slot(origin.AsPairLocation()->At(1),
+                       target.AsPairLocation()->At(1));
+    }
+  }
+
+  // We need to copy the return address up into the dummy stack frame so the
+  // stack walker will know which safepoint to use.
+  __ mov(TMP, Operand(PC));
+  __ str(TMP, Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize));
+
+  // For historical reasons, the PC on ARM points 8 bytes past the current
+  // instruction. Therefore we emit the metadata here, 8 bytes (2 instructions)
+  // after the original mov.
+  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
+                                 RawPcDescriptors::Kind::kOther, locs());
+
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(branch, saved_fp, locs()->temp(1).reg());
+
+  __ blx(branch);
+
+  // Update information in the thread object and leave the safepoint.
+  __ TransitionNativeToGenerated(saved_fp, locs()->temp(1).reg());
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, Thread::global_object_pool_offset()));
+  }
+
+  // Leave dummy exit frame.
+  __ LeaveDartFrame();
+  __ set_constant_pool_allowed(true);
+
+  // Instead of returning to the "fake" return address, we just pop it.
+  __ PopRegister(TMP);
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
@@ -1521,7 +1611,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::RegisterLocation(kWriteBarrierValueReg)
-                          : Location::RegisterOrConstant(value()));
+                          : LocationRegisterOrConstant(value()));
       if (ShouldEmitStoreBarrier()) {
         locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
         locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
@@ -2210,7 +2300,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::RegisterLocation(kWriteBarrierValueReg)
-                           : Location::RegisterOrConstant(value()));
+                           : LocationRegisterOrConstant(value()));
   }
   return summary;
 }
@@ -3524,7 +3614,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     return summary;
   }
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
@@ -3836,7 +3926,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
@@ -5867,8 +5957,8 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  locs->set_in(kLengthPos, LocationRegisterOrSmiConstant(length()));
+  locs->set_in(kIndexPos, LocationRegisterOrSmiConstant(index()));
   return locs;
 }
 
@@ -6234,7 +6324,7 @@ LocationSummary* SpeculativeShiftInt64OpInstr::MakeLocationSummary(
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_in(1, Location::WritableRegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationWritableRegisterOrSmiConstant(right()));
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
   return summary;
@@ -6369,7 +6459,7 @@ LocationSummary* SpeculativeShiftUint32OpInstr::MakeLocationSummary(
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
@@ -6647,6 +6737,83 @@ void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/0, LocationSummary::kNoCall);
+  switch (from()) {
+    case kUnboxedInt32:
+      summary->set_in(0, Location::RequiresRegister());
+      break;
+    case kUnboxedInt64:
+      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+      break;
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      summary->set_in(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  switch (to()) {
+    case kUnboxedInt32:
+      summary->set_out(0, Location::RequiresRegister());
+      break;
+    case kUnboxedInt64:
+      summary->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                         Location::RequiresRegister()));
+      break;
+    case kUnboxedFloat:
+    case kUnboxedDouble:
+      summary->set_out(0, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return summary;
+}
+
+void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  switch (from()) {
+    case kUnboxedInt32: {
+      ASSERT(to() == kUnboxedFloat);
+      const Register from_reg = locs()->in(0).reg();
+      const FpuRegister to_reg = locs()->out(0).fpu_reg();
+      __ vmovsr(EvenSRegisterOf(EvenDRegisterOf(to_reg)), from_reg);
+      break;
+    }
+    case kUnboxedFloat: {
+      ASSERT(to() == kUnboxedInt32);
+      const FpuRegister from_reg = locs()->in(0).fpu_reg();
+      const Register to_reg = locs()->out(0).reg();
+      __ vmovrs(to_reg, EvenSRegisterOf(EvenDRegisterOf(from_reg)));
+      break;
+    }
+    case kUnboxedInt64: {
+      ASSERT(to() == kUnboxedDouble);
+      const Register from_lo = locs()->in(0).AsPairLocation()->At(0).reg();
+      const Register from_hi = locs()->in(0).AsPairLocation()->At(1).reg();
+      const FpuRegister to_reg = locs()->out(0).fpu_reg();
+      __ vmovsr(EvenSRegisterOf(EvenDRegisterOf(to_reg)), from_lo);
+      __ vmovsr(OddSRegisterOf(EvenDRegisterOf(to_reg)), from_hi);
+      break;
+    }
+    case kUnboxedDouble: {
+      ASSERT(to() == kUnboxedInt64);
+      const FpuRegister from_reg = locs()->in(0).fpu_reg();
+      const Register to_lo = locs()->out(0).AsPairLocation()->At(0).reg();
+      const Register to_hi = locs()->out(0).AsPairLocation()->At(1).reg();
+      __ vmovrs(to_lo, EvenSRegisterOf(EvenDRegisterOf(from_reg)));
+      __ vmovrs(to_hi, OddSRegisterOf(EvenDRegisterOf(from_reg)));
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+}
+
 LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
 }
@@ -6763,7 +6930,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   if ((constant != NULL) && !left()->IsSingleUse()) {
     locs->set_in(0, Location::RequiresRegister());
   } else {
-    locs->set_in(0, Location::RegisterOrConstant(left()));
+    locs->set_in(0, LocationRegisterOrConstant(left()));
   }
 
   constant = right()->definition()->AsConstant();
@@ -6774,7 +6941,7 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
     // one is a constant.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::RegisterOrConstant(right()));
+                        : LocationRegisterOrConstant(right()));
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
@@ -6875,10 +7042,14 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#ifdef PRODUCT
+  UNREACHABLE();
+#else
   ASSERT(!compiler->is_optimizing());
   __ BranchLinkPatchable(StubCode::DebugStepCheck());
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
+#endif
 }
 
 }  // namespace dart

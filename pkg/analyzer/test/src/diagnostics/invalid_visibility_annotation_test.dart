@@ -24,7 +24,7 @@ class InvalidVisibilityAnnotationTest extends DriverResolutionTest
   }
 
   test_fields_multipleMixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a, b;
@@ -33,7 +33,7 @@ class C {
   }
 
   test_fields_multiplePrivate() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a, _b;
@@ -54,14 +54,14 @@ class C {
   }
 
   test_privateClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting class _C {}
 ''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
   }
 
   test_privateConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting C._() {}
@@ -70,14 +70,14 @@ class C {
   }
 
   test_privateEnum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting enum _E {a, b, c}
 ''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
   }
 
   test_privateField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a;
@@ -86,7 +86,7 @@ class C {
   }
 
   test_privateMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting void _m() {}
@@ -95,42 +95,42 @@ class C {
   }
 
   test_privateMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting mixin _M {}
 ''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
   }
 
   test_privateTopLevelFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting void _f() {}
 ''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
   }
 
   test_privateTopLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1;
 ''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
   }
 
   test_privateTypedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting typedef _T = Function();
 ''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
   }
 
   test_topLevelVariable_multipleMixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, b = 2;
 ''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
   }
 
   test_topLevelVariable_multiplePrivate() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, _b = 2;
 ''', [

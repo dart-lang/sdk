@@ -27,7 +27,7 @@ static method main() → dynamic {}
 
 library non_simple_many_libs_same_name_cycle_lib;
 import self as self2;
-import "./non_simple_many_libs_same_name_cycle.dart" as self;
+import "non_simple_many_libs_same_name_cycle.dart" as self;
 import "dart:core" as core;
 
 import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle.dart" as lib;

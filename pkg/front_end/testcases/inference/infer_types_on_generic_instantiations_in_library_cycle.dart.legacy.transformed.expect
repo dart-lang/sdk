@@ -1,7 +1,7 @@
 library test;
 import self as self;
 import "dart:core" as core;
-import "./infer_types_on_generic_instantiations_in_library_cycle_a.dart" as inf;
+import "infer_types_on_generic_instantiations_in_library_cycle_a.dart" as inf;
 
 import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle_a.dart";
 
@@ -34,7 +34,7 @@ static method main() → dynamic {}
 library;
 import self as inf;
 import "dart:core" as core;
-import "./infer_types_on_generic_instantiations_in_library_cycle.dart" as self;
+import "infer_types_on_generic_instantiations_in_library_cycle.dart" as self;
 
 import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle.dart";
 

@@ -17,14 +17,14 @@ main() {
 class UndefinedHiddenNameTest extends DriverResolutionTest {
   test_export() async {
     newFile('/test/lib/lib1.dart');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 export 'lib1.dart' hide a;
 ''', [HintCode.UNDEFINED_HIDDEN_NAME]);
   }
 
   test_import() async {
     newFile('/test/lib/lib1.dart');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' hide a;
 ''', [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
   }

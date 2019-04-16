@@ -958,7 +958,7 @@ class Dart2TypeSystem extends TypeSystem {
           type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
       return new InterfaceTypeImpl(
-          type.element, type.prunedTypedefs, type.nullability)
+          type.element, type.prunedTypedefs, type.nullabilitySuffix)
         ..typeArguments = newTypeArgs;
     }
     if (type is FunctionType) {
@@ -982,7 +982,7 @@ class Dart2TypeSystem extends TypeSystem {
 
       return new FunctionTypeImpl.synthetic(
           newReturnType, type.typeFormals, newParameters,
-          nullability: (type as TypeImpl).nullability);
+          nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
     }
     return type;
   }
@@ -1229,8 +1229,8 @@ class GenericInferrer {
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
           ' Inferred candidate type $inferred has type parameters'
-          ' ${(inferred as FunctionType).typeFormals}, but a function with'
-          ' type parameters cannot be used as a type argument.'
+              ' ${(inferred as FunctionType).typeFormals}, but a function with'
+              ' type parameters cannot be used as a type argument.'
         ]);
 
         // Heuristic: Using a generic function type as a bound makes subtyping
@@ -1261,8 +1261,8 @@ class GenericInferrer {
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
           "\nRecursive bound cannot be instantiated: '$typeParamBound'."
-          "\nConsider passing explicit type argument(s) "
-          "to the generic.\n\n'"
+              "\nConsider passing explicit type argument(s) "
+              "to the generic.\n\n'"
         ]);
       }
     }
@@ -1922,12 +1922,39 @@ abstract class TypeSystem implements public.TypeSystem {
    */
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
+  @override
+  bool isNonNullable(DartType type) {
+    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+      return false;
+    } else if (type.isDartAsyncFutureOr) {
+      isNonNullable((type as InterfaceType).typeArguments[0]);
+    }
+    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.question &&
+        (type is TypeParameterType ? isNonNullable(type.bound) : true);
+  }
+
+  @override
+  bool isNullable(DartType type) {
+    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+      return true;
+    } else if (type.isDartAsyncFutureOr) {
+      isNullable((type as InterfaceType).typeArguments[0]);
+    }
+    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.none;
+  }
+
   /// Check that [f1] is a subtype of [f2] for a member override.
   ///
   /// This is different from the normal function subtyping in two ways:
   /// - we know the function types are strict arrows,
   /// - it allows opt-in covariant parameters.
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2);
+
+  @override
+  bool isPotentiallyNonNullable(DartType type) => !isNullable(type);
+
+  @override
+  bool isPotentiallyNullable(DartType type) => !isNonNullable(type);
 
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
@@ -2231,7 +2258,7 @@ class UnknownInferredType extends TypeImpl {
   bool get isDynamic => true;
 
   @override
-  Nullability get nullability => Nullability.indeterminate;
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.star;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -2293,7 +2320,7 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
-  TypeImpl withNullability(Nullability nullability) => this;
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   /// Given a [type] T, return true if it does not have an unknown type `?`.
   static bool isKnown(DartType type) => !isUnknown(type);

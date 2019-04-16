@@ -66,6 +66,36 @@ linter:
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 
+  test_androidManifestFile() async {
+    String filePath = join(projectPath, 'android', 'AndroidManifest.xml');
+    String manifestFile = newFile(filePath, content: '''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.software.home_screen" />
+</manifest>
+''').path;
+    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks: true
+''');
+
+    Request request =
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    List<AnalysisError> errors = filesErrors[manifestFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+  }
+
   test_importError() async {
     createProject();
 

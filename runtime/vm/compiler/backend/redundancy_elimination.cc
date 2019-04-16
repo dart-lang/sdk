@@ -951,8 +951,8 @@ class AliasedSet : public ZoneAllocated {
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if ((instr->IsRedefinition() || instr->IsAssertAssignable()) &&
-          HasLoadsFromPlace(instr->AsDefinition(), place)) {
+      if (UseIsARedefinition(use) &&
+          HasLoadsFromPlace(instr->Cast<Definition>(), place)) {
         return true;
       }
       bool is_load = false, is_store;
@@ -964,6 +964,14 @@ class AliasedSet : public ZoneAllocated {
     }
 
     return false;
+  }
+
+  // Returns true if the given [use] is a redefinition (e.g. RedefinitionInstr,
+  // CheckNull, CheckArrayBound, etc).
+  static bool UseIsARedefinition(Value* use) {
+    Instruction* instr = use->instruction();
+    return instr->IsDefinition() &&
+           (instr->Cast<Definition>()->RedefinedValue() == use);
   }
 
   // Check if any use of the definition can create an alias.
@@ -978,8 +986,8 @@ class AliasedSet : public ZoneAllocated {
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {
         return true;
-      } else if ((instr->IsAssertAssignable() || instr->IsRedefinition()) &&
-                 AnyUseCreatesAlias(instr->AsDefinition())) {
+      } else if (UseIsARedefinition(use) &&
+                 AnyUseCreatesAlias(instr->Cast<Definition>())) {
         return true;
       } else if ((instr->IsStoreInstanceField() &&
                   (use->use_index() !=
@@ -1017,15 +1025,14 @@ class AliasedSet : public ZoneAllocated {
     // Find all stores into this object.
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
-      if (use->instruction()->IsRedefinition() ||
-          use->instruction()->IsAssertAssignable()) {
-        MarkStoredValuesEscaping(use->instruction()->AsDefinition());
+      auto instr = use->instruction();
+      if (UseIsARedefinition(use)) {
+        MarkStoredValuesEscaping(instr->AsDefinition());
         continue;
       }
       if ((use->use_index() == StoreInstanceFieldInstr::kInstancePos) &&
-          use->instruction()->IsStoreInstanceField()) {
-        StoreInstanceFieldInstr* store =
-            use->instruction()->AsStoreInstanceField();
+          instr->IsStoreInstanceField()) {
+        StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
         Definition* value = store->value()->definition()->OriginalDefinition();
         if (value->Identity().IsNotAliased()) {
           value->SetIdentity(AliasIdentity::Aliased());

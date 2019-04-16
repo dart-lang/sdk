@@ -708,14 +708,17 @@ class LibraryHelper {
     kProblemsAsJson,
     kAnnotations,
     kDependencies,
-    kAdditionalExports,
-    kParts,
-    kTypedefs,
-    kClasses,
-    kToplevelField,
-    kToplevelProcedures,
-    kLibraryIndex,
-    kEnd,
+    // There are other fields in a library:
+    // * kAdditionalExports
+    // * kParts
+    // * kTypedefs
+    // * kClasses
+    // * kToplevelField
+    // * kToplevelProcedures
+    // * kSourceReferences
+    // * kLibraryIndex
+    // but we never read them via this helper and it makes extending the format
+    // harder to keep the code around.
   };
 
   enum Flag {
@@ -742,8 +745,6 @@ class LibraryHelper {
   NameIndex canonical_name_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
-  intptr_t class_count_;
-  intptr_t procedure_count_;
 
  private:
   KernelReaderHelper* helper_;

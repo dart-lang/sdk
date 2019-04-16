@@ -439,11 +439,15 @@ Future<Null> newWorldTest(
       for (Library lib in component.libraries) {
         for (Class c in lib.classes) {
           for (Procedure p in c.procedures) {
-            if (p.function.body is! EmptyStatement) throw "Got body";
+            if (p.function.body != null && p.function.body is! EmptyStatement) {
+              throw "Got body (${p.function.body.runtimeType})";
+            }
           }
         }
         for (Procedure p in lib.procedures) {
-          if (p.function.body is! EmptyStatement) throw "Got body";
+          if (p.function.body != null && p.function.body is! EmptyStatement) {
+            throw "Got body (${p.function.body.runtimeType})";
+          }
         }
       }
     }

@@ -101,7 +101,11 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
         // These only occur inside unevaluated constants, so if we decide to
         // remove support for late evaluation of environment constants from
         // dill files in the VM, an implementation here will not be necessary.
-        UNIMPLEMENTED();
+        H.ReportError(
+            script_, TokenPosition::kNoSource,
+            "Unexpected unevaluated constant, All constant expressions"
+            " are expected to be evaluated at this point %s (%d)",
+            Reader::TagName(tag), tag);
         break;
       case kSymbolLiteral:
         EvaluateSymbolLiteral();
@@ -118,7 +122,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kConstSetLiteral:
         // Set literals are currently desugared in the frontend and will not
         // reach the VM. See http://dartbug.com/35124 for discussion.
-        UNREACHABLE();
+        H.ReportError(script_, TokenPosition::kNoSource,
+                      "Unexpected set literal constant, this constant"
+                      " is expected to be evaluated at this point %s (%d)",
+                      Reader::TagName(tag), tag);
         break;
       case kConstMapLiteral:
         EvaluateMapLiteralInternal();
@@ -161,7 +168,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
         EvaluateNullLiteral();
         break;
       case kConstantExpression:
-        EvaluateConstantExpression();
+        EvaluateConstantExpression(tag);
+        break;
+      case kDeprecated_ConstantExpression:
+        EvaluateConstantExpression(tag);
         break;
       default:
         H.ReportError(
@@ -389,7 +399,6 @@ void ConstantEvaluator::EvaluateStaticGet() {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(Error::Cast(value), script_, position,
                       "Not a constant expression.");
-        UNREACHABLE();
       }
       Thread* thread = H.thread();
       const Error& error =
@@ -397,7 +406,6 @@ void ConstantEvaluator::EvaluateStaticGet() {
       if (!error.IsNull()) {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(error, script_, position, "Not a constant expression.");
-        UNREACHABLE();
       }
       ASSERT(value.IsNull() || value.IsInstance());
       field.SetStaticValue(value.IsNull() ? Instance::null_instance()
@@ -860,12 +868,16 @@ void ConstantEvaluator::EvaluateNullLiteral() {
   result_ = Instance::null();
 }
 
-void ConstantEvaluator::EvaluateConstantExpression() {
+void ConstantEvaluator::EvaluateConstantExpression(Tag tag) {
   // Please note that this constants array is constructed exactly once, see
   // ReadConstantTable() and is immutable from that point on, so there is no
   // need to guard against concurrent access between mutator and background
   // compiler.
   KernelConstantsMap constant_map(H.constants().raw());
+  if (tag == kConstantExpression) {
+    helper_->ReadPosition();
+    helper_->SkipDartType();
+  }
   result_ ^= constant_map.GetOrDie(helper_->ReadUInt());
   ASSERT(constant_map.Release().raw() == H.constants().raw());
 }
@@ -1038,7 +1050,8 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return false;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+  if ((function.kind() == RawFunction::kImplicitStaticFinalGetter ||
+       function.kind() == RawFunction::kStaticFieldInitializer) &&
       !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.
@@ -1070,7 +1083,8 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+  if ((function.kind() == RawFunction::kImplicitStaticFinalGetter ||
+       function.kind() == RawFunction::kStaticFieldInitializer) &&
       !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.
@@ -1218,7 +1232,10 @@ const Array& ConstantHelper::ReadConstantTable() {
       case kSetConstant:
         // Set literals are currently desugared in the frontend and will not
         // reach the VM. See http://dartbug.com/35124 for discussion.
-        UNREACHABLE();
+        H.ReportError(script(), TokenPosition::kNoSource,
+                      "Unexpected set constant, this constant"
+                      " is expected to be evaluated at this point (%" Pd ")",
+                      constant_tag);
         break;
       case kInstanceConstant: {
         const NameIndex index = helper_.ReadCanonicalNameReference();
@@ -1278,6 +1295,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
           temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
         }
+        temp_type_arguments_ = temp_type_arguments_.Canonicalize();
 
         // Make a copy of the old closure, with the delayed type arguments
         // set to [temp_type_arguments_].
@@ -1311,12 +1329,19 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kMapConstant:
         // Note: This is already lowered to InstanceConstant/ListConstant.
-        UNREACHABLE();
+        H.ReportError(script(), TokenPosition::kNoSource,
+                      "Unexpected map constant, this constant"
+                      " is expected to be evaluated at this point (%" Pd ")",
+                      constant_tag);
         break;
       case kUnevaluatedConstant:
         // We should not see unevaluated constants in the constant table, they
         // should have been fully evaluated before we get them.
-        UNREACHABLE();
+        H.ReportError(
+            script(), TokenPosition::kNoSource,
+            "Unexpected unevaluated constant, All constant expressions"
+            " are expected to be evaluated at this point (%" Pd ")",
+            constant_tag);
         break;
       default:
         UNREACHABLE();

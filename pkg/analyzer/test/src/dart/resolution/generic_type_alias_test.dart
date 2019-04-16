@@ -29,7 +29,7 @@ typedef G = Function<S>();
 C<G> x;
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -41,7 +41,7 @@ class C<T> {}
 C<Function<S>()> x;
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -55,7 +55,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -69,7 +69,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -85,7 +85,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -97,7 +97,7 @@ typedef T F<T>(T t);
 F<Function<S>()> x;
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }

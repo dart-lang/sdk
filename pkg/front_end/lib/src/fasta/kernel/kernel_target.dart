@@ -70,7 +70,7 @@ import '../messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
-import '../problems.dart' show unhandled, unimplemented;
+import '../problems.dart' show unhandled;
 
 import '../scope.dart' show AmbiguousBuilder;
 
@@ -135,6 +135,9 @@ class KernelTarget extends TargetImplementation {
 
   final Map<String, String> environmentDefines =
       CompilerContext.current.options.environmentDefines;
+
+  final bool errorOnUnevaluatedConstant =
+      CompilerContext.current.options.errorOnUnevaluatedConstant;
 
   final bool enableAsserts = CompilerContext.current.options.enableAsserts;
 
@@ -777,7 +780,8 @@ class KernelTarget extends TargetImplementation {
           environment,
           new KernelConstantErrorReporter(loader),
           enableAsserts: enableAsserts,
-          desugarSets: !backendTarget.supportsSetLiterals);
+          desugarSets: !backendTarget.supportsSetLiterals,
+          errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(
@@ -790,10 +794,6 @@ class KernelTarget extends TargetImplementation {
   }
 
   void runProcedureTransformations(Procedure procedure) {
-    if (loader.target.enableConstantUpdate2018) {
-      unimplemented('constant evaluation during expression evaluation',
-          procedure.fileOffset, procedure.fileUri);
-    }
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));

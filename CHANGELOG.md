@@ -1,3 +1,12 @@
+## 2.3.0-dev.0.0
+
+### Tool Changes
+
+#### Linter
+
+The Linter was updated to `0.1.86` which includes the following change:
+* new lint: `prefer_inlined_adds`
+
 ## 2.2.1-dev.4.2
 
 * Cherry-pick ab66a3808b28dfc94eaf0ed151c13f4fc696b5dc to dev
@@ -19,7 +28,7 @@
 
 The Linter was updated to `0.1.85` which includes the following changes:
 
-* (**BREAKING**) renamed `spread_collections` to `prefer_spread_collections`
+* new lint: `prefer_inlined_adds`
 * new lint: `prefer_for_elements_to_map_fromIterable`
 * new lint: `prefer_if_elements_to_conditional_expressions`
 * new lint: `diagnostic_describe_all_properties`

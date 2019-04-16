@@ -219,30 +219,6 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
   Exceptions::ThrowByType(Exceptions::kIntegerDivisionByZeroException, args);
 }
 
-static void EnsureNewOrRemembered(Thread* thread, const Object& result) {
-  // For generational write barrier elimination, we need to ensure that the
-  // allocation ends up in the new space if Heap::IsGuaranteedNewSpaceAllocation
-  // is true for this size or else the object needs to go into the store buffer.
-  NoSafepointScope no_safepoint_scope;
-
-  RawObject* object = result.raw();
-  if (!object->IsNewObject()) {
-    object->AddToRememberedSet(thread);
-  }
-}
-
-static void EnsureNewOrDeferredMarking(Thread* thread, const Object& result) {
-  // For incremental write barrier elimination, we need to ensure that the
-  // allocation ends up in the new space or else the object needs to added
-  // to deferred marking stack so it will be [re]scanned.
-  NoSafepointScope no_safepoint_scope;
-
-  RawObject* object = result.raw();
-  if (object->IsOldObject() && thread->is_marking()) {
-    thread->DeferredMarkingStackAddObject(object);
-  }
-}
-
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.
@@ -272,14 +248,6 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
       ASSERT(element_type.IsNull() ||
              (element_type.Length() >= 1 && element_type.IsInstantiated()));
       array.SetTypeArguments(element_type);  // May be null.
-
-      ASSERT(Array::UseCardMarkingForAllocation(len) ==
-             array.raw()->IsCardRemembered());
-      if (!array.raw()->IsCardRemembered()) {
-        EnsureNewOrRemembered(thread, array);
-      }
-      EnsureNewOrDeferredMarking(thread, array);
-
       return;
     }
   }
@@ -325,12 +293,56 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
             (type_arguments.Length() >= cls.NumTypeArguments())));
     instance.SetTypeArguments(type_arguments);
   }
-
-  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
-    EnsureNewOrRemembered(thread, instance);
-    EnsureNewOrDeferredMarking(thread, instance);
-  }
 }
+
+DEFINE_LEAF_RUNTIME_ENTRY(RawObject*,
+                          AddAllocatedObjectToRememberedSet,
+                          2,
+                          RawObject* object,
+                          Thread* thread) {
+  // The allocation stubs in will call this leaf method for newly allocated
+  // old space objects.
+  RELEASE_ASSERT(object->IsOldObject() && !object->IsRemembered());
+
+  // If we eliminate a generational write barriers on allocations of an object
+  // we need to ensure it's either a new-space object or it has been added to
+  // the remebered set.
+  //
+  // NOTE: We use reinterpret_cast<>() instead of ::RawCast() to avoid handle
+  // allocations in debug mode. Handle allocations in leaf runtimes can cause
+  // memory leaks because they will allocate into a handle scope from the next
+  // outermost runtime code (to which the genenerated Dart code might not return
+  // in a long time).
+  bool add_to_remembered_set = true;
+  if (object->IsArray()) {
+    const intptr_t length =
+        Array::LengthOf(reinterpret_cast<RawArray*>(object));
+    add_to_remembered_set =
+        CreateArrayInstr::WillAllocateNewOrRemembered(length);
+  } else if (object->IsContext()) {
+    const intptr_t num_context_variables =
+        Context::NumVariables(reinterpret_cast<RawContext*>(object));
+    add_to_remembered_set =
+        AllocateContextInstr::WillAllocateNewOrRemembered(
+            num_context_variables) ||
+        AllocateUninitializedContextInstr::WillAllocateNewOrRemembered(
+            num_context_variables);
+  }
+
+  if (add_to_remembered_set) {
+    object->AddToRememberedSet(thread);
+  }
+
+  // For incremental write barrier elimination, we need to ensure that the
+  // allocation ends up in the new space or else the object needs to added
+  // to deferred marking stack so it will be [re]scanned.
+  if (thread->is_marking()) {
+    thread->DeferredMarkingStackAddObject(object);
+  }
+
+  return object;
+}
+END_LEAF_RUNTIME_ENTRY
 
 // Instantiate type.
 // Arg0: uninstantiated type.
@@ -433,15 +445,6 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Context& context =
       Context::Handle(zone, Context::New(num_variables.Value()));
   arguments.SetReturn(context);
-
-  const intptr_t num_context_variables = num_variables.Value();
-  if (AllocateContextInstr::WillAllocateNewOrRemembered(
-          num_context_variables) ||
-      AllocateUninitializedContextInstr::WillAllocateNewOrRemembered(
-          num_context_variables)) {
-    EnsureNewOrRemembered(thread, context);
-    EnsureNewOrDeferredMarking(thread, context);
-  }
 }
 
 // Make a copy of the given context, including the values of the captured
@@ -459,28 +462,6 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
     cloned_ctx.SetAt(i, inst);
   }
   arguments.SetReturn(cloned_ctx);
-}
-
-// Extract a method by allocating and initializing a new Closure.
-// Arg0: receiver.
-// Arg1: method.
-// Return value: newly allocated Closure.
-DEFINE_RUNTIME_ENTRY(ExtractMethod, 2) {
-  ASSERT(FLAG_enable_interpreter);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const Function& method = Function::CheckedHandle(zone, arguments.ArgAt(1));
-  const TypeArguments& instantiator_type_arguments =
-      method.HasInstantiatedSignature(kCurrentClass)
-          ? Object::null_type_arguments()
-          : TypeArguments::Handle(zone, receiver.GetTypeArguments());
-  ASSERT(method.HasInstantiatedSignature(kFunctions));
-  const Context& context = Context::Handle(zone, Context::New(1));
-  context.SetAt(0, receiver);
-  const Closure& closure = Closure::Handle(
-      zone,
-      Closure::New(instantiator_type_arguments, Object::null_type_arguments(),
-                   Object::empty_type_arguments(), method, context));
-  arguments.SetReturn(closure);
 }
 
 // Result of an invoke may be an unhandled exception, in which case we
@@ -2760,5 +2741,21 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   return result;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
+
+extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->top_exit_frame_info() != 0);
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  thread->EnterSafepoint();
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint, 0, false, &DFLRT_EnterSafepoint);
+
+extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->top_exit_frame_info() != 0);
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  thread->ExitSafepoint();
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
 
 }  // namespace dart

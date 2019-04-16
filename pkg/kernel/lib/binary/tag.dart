@@ -122,7 +122,10 @@ class Tag {
   static const int ClassReference = 100;
   static const int MemberReference = 101;
 
-  static const int ConstantExpression = 107;
+  static const int ConstantExpression = 106;
+
+  // Tag is deprecated since version 24.
+  static const int Deprecated_ConstantExpression = 107;
 
   /// 108 is occupied by [RedirectingFactoryConstructor] (member).
   /// 109 is occupied by [SetLiteral] (expression).
@@ -147,7 +150,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 23;
+  static const int BinaryFormatVersion = 25;
 }
 
 abstract class ConstantTag {

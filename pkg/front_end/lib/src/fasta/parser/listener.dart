@@ -1405,6 +1405,15 @@ class Listener implements UnescapeErrorListener {
     logEvent("Script");
   }
 
+  /// A language version comment was parsed of the form
+  /// // @dart = <major>.<minor>
+  ///
+  /// For more information, see
+  /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md#individual-library-language-version-override
+  void handleLanguageVersion(Token commentToken, int major, int minor) {
+    // TODO(danrubel): Update listeners to handle this
+  }
+
   /// A type has been just parsed, and the parser noticed that the next token
   /// has a type substitution comment /*=T*. So, the type that has been just
   /// parsed should be discarded, and a new type should be parsed instead.

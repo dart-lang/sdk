@@ -94,6 +94,14 @@ const FpuRegister FpuTMP = XMM0;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+    "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
+
+static const char* fpu_reg_names[kNumberOfXmmRegisters] = {
+    "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
+    "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
+
 enum RexBits {
   REX_NONE = 0,
   REX_B = 1 << 0,
@@ -194,6 +202,14 @@ class CallingConventions {
   static constexpr Register kReturnReg = RAX;
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp").
+  static constexpr bool kAbiSoftFP = false;
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. Not relevant on X64 since the word size is 64-bits already.
+  static constexpr bool kAlignArguments = false;
 #else
   static const Register kArg1Reg = RDI;
   static const Register kArg2Reg = RSI;
@@ -208,7 +224,7 @@ class CallingConventions {
   static const intptr_t kNumArgRegs = 6;
 
   static const XmmRegister FpuArgumentRegisters[];
-  static const intptr_t kXmmArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
+  static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
                                                 R(XMM3) | R(XMM4) | R(XMM5) |
                                                 R(XMM6) | R(XMM7);
   static const intptr_t kNumFpuArgRegs = 8;
@@ -238,6 +254,14 @@ class CallingConventions {
   static constexpr Register kReturnReg = RAX;
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp").
+  static constexpr bool kAbiSoftFP = false;
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. Not relevant on X64 since the word size is 64-bits already.
+  static constexpr bool kAlignArguments = false;
 #endif
 
   COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);

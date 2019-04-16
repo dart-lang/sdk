@@ -8,7 +8,7 @@ import 'dart:math' show max, min;
 import 'package:front_end/src/api_unstable/ddc.dart' show TypeSchemaEnvironment;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -1808,7 +1808,7 @@ class ProgramCompiler extends Object
 
   /// Emits a Dart factory constructor to a JS static method.
   JS.Method _emitFactoryConstructor(Procedure node) {
-    if (isUnsupportedFactoryConstructor(node)) return null;
+    if (node.isExternal || isUnsupportedFactoryConstructor(node)) return null;
 
     var function = node.function;
 
@@ -1983,9 +1983,6 @@ class ProgramCompiler extends Object
       var lazyFields = <Field>[];
       var savedUri = _currentUri;
       for (var field in fields) {
-        // Skip our magic undefined constant.
-        if (field.name.name == 'undefined') continue;
-
         var init = field.initializer;
         if (init == null ||
             init is BasicLiteral ||
@@ -2954,21 +2951,13 @@ class ProgramCompiler extends Object
   }
 
   JS.Expression _defaultParamValue(VariableDeclaration p) {
-    if (p.initializer != null) {
-      var value = p.initializer;
-      return _isJSUndefined(value) ? null : _visitExpression(value);
+    if (p.annotations.any(isUndefinedAnnotation)) {
+      return null;
+    } else if (p.initializer != null) {
+      return _visitExpression(p.initializer);
     } else {
       return JS.LiteralNull();
     }
-  }
-
-  bool _isJSUndefined(Expression expr) {
-    expr = expr is AsExpression ? expr.operand : expr;
-    if (expr is StaticGet) {
-      var t = expr.target;
-      return isSdkInternalRuntime(getLibrary(t)) && t.name.name == 'undefined';
-    }
-    return false;
   }
 
   void _emitCovarianceBoundsCheck(
@@ -3786,15 +3775,11 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStaticGet(StaticGet node) {
-    var target = node.target;
+  visitStaticGet(StaticGet node) => _emitStaticGet(node.target);
 
+  JS.Expression _emitStaticGet(Member target) {
     // TODO(vsm): Re-inline constants.  See:
     // https://github.com/dart-lang/sdk/issues/36285
-
-    // TODO(markzipan): reifyTearOff check can be removed when we enable
-    // front-end constant evaluation because static tear-offs will be
-    // treated as constants and handled by visitTearOffConstant.
     var result = _emitStaticTarget(target);
     if (_reifyTearoff(target)) {
       // TODO(jmesserly): we could tag static/top-level function types once
@@ -5092,13 +5077,8 @@ class ProgramCompiler extends Object
         isBuiltinAnnotation(a, '_js_helper', 'ReifyFunctionTypes');
     while (parent != null) {
       var a = findAnnotation(parent, reifyFunctionTypes);
-      if (a is ConstructorInvocation) {
-        var args = a.arguments.positional;
-        if (args.length == 1) {
-          var arg = args[0];
-          if (arg is BoolLiteral) return arg.value;
-        }
-      }
+      var value = _constants.getFieldValueFromAnnotation(a, 'value');
+      if (value is bool) return value;
       parent = parent.parent;
     }
     return true;
@@ -5128,7 +5108,8 @@ class ProgramCompiler extends Object
   ///
   /// Calls [findAnnotation] followed by [getNameFromAnnotation].
   String getAnnotationName(NamedNode node, bool test(Expression value)) {
-    return _constants.getNameFromAnnotation(findAnnotation(node, test));
+    return _constants.getFieldValueFromAnnotation(
+        findAnnotation(node, test), 'name');
   }
 
   JS.Expression visitConstant(Constant node) => node.accept(this);
@@ -5139,7 +5120,23 @@ class ProgramCompiler extends Object
   @override
   visitIntConstant(IntConstant node) => js.number(node.value);
   @override
-  visitDoubleConstant(DoubleConstant node) => js.number(node.value);
+  visitDoubleConstant(DoubleConstant node) {
+    var value = node.value;
+
+    // Emit the constant as an integer, if possible.
+    if (value.isFinite) {
+      var intValue = value.toInt();
+      const int _MIN_INT32 = -0x80000000;
+      const int _MAX_INT32 = 0x7FFFFFFF;
+      if (intValue.toDouble() == value &&
+          intValue >= _MIN_INT32 &&
+          intValue <= _MAX_INT32) {
+        return js.number(intValue);
+      }
+    }
+    return js.number(value);
+  }
+
   @override
   visitStringConstant(StringConstant node) => js.escapedString(node.value, '"');
 
@@ -5174,13 +5171,11 @@ class ProgramCompiler extends Object
 
   @override
   visitInstanceConstant(node) {
-    entryToProperty(entry) {
-      var field = entry.key.asField.name.name;
+    entryToProperty(MapEntry<Reference, Constant> entry) {
       var constant = entry.value.accept(this);
       var member = entry.key.asField;
-      var result =
-          JS.Property(_emitMemberName(field, member: member), constant);
-      return result;
+      return JS.Property(
+          _emitMemberName(member.name.name, member: member), constant);
     }
 
     var type = visitInterfaceType(node.getType(types) as InterfaceType);
@@ -5192,14 +5187,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTearOffConstant(node) {
-    var target = node.procedure;
-    var result = _emitStaticTarget(target);
-    // TODO(jmesserly): we could tag static/top-level function types once
-    // in the module initialization, rather than at the point where they
-    // escape.
-    return _emitFunctionTagged(result, target.function.functionType);
-  }
+  visitTearOffConstant(node) => _emitStaticGet(node.procedure);
 
   @override
   visitTypeLiteralConstant(node) => _emitTypeLiteral(node.type);

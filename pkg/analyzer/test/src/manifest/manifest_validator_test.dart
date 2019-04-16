@@ -65,10 +65,42 @@ class ManifestValidatorTest with ResourceProviderMixin {
 ''', [ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE]);
   }
 
+  test_screenOrientation_error() {
+    assertErrors('''
+<manifest
+     xmlns:android="http://schemas.android.com/apk/res/android">
+  <application android:label="@string/app_name">
+    <activity android:name="testActivity"
+      android:screenOrientation="landscape"
+      android:exported="false">
+    </activity>
+  </application>
+</manifest>
+''', [ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY]);
+  }
+
+  test_resizeableactivity_error() {
+    assertErrors('''
+<manifest
+     xmlns:android="http://schemas.android.com/apk/res/android">
+   <application android:label="@string/app_name">
+  <activity android:name="testActivity"
+    android:resizeableActivity="false"
+    android:exported="false">
+  </activity>
+  </application>
+</manifest>
+''', [ManifestWarningCode.NON_RESIZABLE_ACTIVITY]);
+  }
+
   test_no_errors() {
     assertErrors('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
+  <activity android:name="testActivity"
+    android:resizeableActivity="true"
+    android:exported="false">
+  </activity>
 </manifest>
 ''', []);
   }

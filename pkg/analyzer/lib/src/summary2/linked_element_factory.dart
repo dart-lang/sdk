@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -19,8 +20,14 @@ class LinkedElementFactory {
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
 
+  CoreTypes _coreTypes;
+
   LinkedElementFactory(
       this.analysisContext, this.analysisSession, this.rootReference);
+
+  CoreTypes get coreTypes {
+    return _coreTypes ??= CoreTypes(this);
+  }
 
   void addBundle(LinkedBundleContext context) {
     libraryMap.addAll(context.libraryMap);
@@ -152,11 +159,6 @@ class _ElementRequest {
       return _typeAlias(unit, reference);
     }
 
-    if (parentName == '@typeParameter') {
-      var enclosing = elementOfReference(parent2) as TypeParameterizedElement;
-      return _typeParameter(enclosing, reference);
-    }
-
     if (parentName == '@unit') {
       elementOfReference(parent2);
       // Creating a library fills all its units.
@@ -248,7 +250,14 @@ class _ElementRequest {
 
     libraryElement.definingCompilationUnit = units[0];
     libraryElement.parts = units.skip(1).toList();
-    return reference.element = libraryElement;
+    reference.element = libraryElement;
+
+    var typeProvider = elementFactory.analysisContext.typeProvider;
+    if (typeProvider != null) {
+      libraryElement.createLoadLibraryFunction(typeProvider);
+    }
+
+    return libraryElement;
   }
 
   EnumElementImpl _enum(CompilationUnitElementImpl unit, Reference reference) {
@@ -296,14 +305,6 @@ class _ElementRequest {
     return reference.element;
   }
 
-  Element _typeParameter(
-      TypeParameterizedElement enclosing, Reference reference) {
-    enclosing.typeParameters;
-    // Requesting type parameters sets elements for all their references.
-    assert(reference.element != null);
-    return reference.element;
-  }
-
   /// Index nodes for which we choose to create elements individually,
   /// for example [ClassDeclaration], so that its [Reference] has the node,
   /// and we can call the [ClassElementImpl] constructor.
@@ -314,20 +315,33 @@ class _ElementRequest {
   ) {
     var classRef = unitRef.getChild('@class');
     var enumRef = unitRef.getChild('@enum');
+    var functionRef = unitRef.getChild('@function');
     var typeAliasRef = unitRef.getChild('@typeAlias');
+    var variableRef = unitRef.getChild('@variable');
     for (var declaration in unitNode.declarations) {
       if (declaration is ClassDeclaration) {
+        var name = declaration.name.name;
+        classRef.getChild(name).node2 = declaration;
+      } else if (declaration is ClassTypeAlias) {
         var name = declaration.name.name;
         classRef.getChild(name).node2 = declaration;
       } else if (declaration is EnumDeclaration) {
         var name = declaration.name.name;
         enumRef.getChild(name).node2 = declaration;
+      } else if (declaration is FunctionDeclaration) {
+        var name = declaration.name.name;
+        functionRef.getChild(name).node2 = declaration;
       } else if (declaration is FunctionTypeAlias) {
         var name = declaration.name.name;
         typeAliasRef.getChild(name).node2 = declaration;
       } else if (declaration is GenericTypeAlias) {
         var name = declaration.name.name;
         typeAliasRef.getChild(name).node2 = declaration;
+      } else if (declaration is TopLevelVariableDeclaration) {
+        for (var variable in declaration.variables.variables) {
+          var name = variable.name.name;
+          variableRef.getChild(name).node2 = declaration;
+        }
       }
     }
   }

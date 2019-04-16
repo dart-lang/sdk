@@ -378,7 +378,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       T mixinApplication,
       List<T> interfaces,
-      int charOffset);
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset);
 
   void addField(
       String documentationComment,
@@ -453,6 +455,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
+      int startCharOffset,
       int charOffset,
       int charEndOffset);
 

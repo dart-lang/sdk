@@ -4,7 +4,7 @@
 
 #include "vm/compiler/frontend/bytecode_scope_builder.h"
 
-#include "vm/compiler/frontend/bytecode_reader.h"  // For IsBytecodeFieldInitializer.
+#include "vm/compiler/frontend/bytecode_reader.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -107,7 +107,7 @@ void BytecodeScopeBuilder::BuildScopes() {
       break;
     }
     case RawFunction::kImplicitStaticFinalGetter:
-      ASSERT(!IsBytecodeFieldInitializer(function, Z));
+      ASSERT(!IsStaticFieldGetterGeneratedAsInitializer(function, Z));
       break;
     case RawFunction::kDynamicInvocationForwarder: {
       // Create [this] variable.

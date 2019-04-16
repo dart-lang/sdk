@@ -41,9 +41,10 @@ class Command {
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
-      Map<String, String> environment) {
+      Map<String, String> environment,
+      List<String> batchArgs) {
     return new VMKernelCompilationCommand._(outputFile, neverSkipCompilation,
-        bootstrapDependencies, executable, arguments, environment);
+        bootstrapDependencies, executable, arguments, environment, batchArgs);
   }
 
   static Command analysis(String executable, List<String> arguments,
@@ -419,6 +420,8 @@ class FastaCompilationCommand extends CompilationCommand {
 }
 
 class VMKernelCompilationCommand extends CompilationCommand {
+  final List<String> batchArgs;
+
   VMKernelCompilationCommand._(
       String outputFile,
       bool alwaysCompile,
@@ -426,17 +429,29 @@ class VMKernelCompilationCommand extends CompilationCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      this.batchArgs,
       {int index = 0})
-      : super._('vm_compile_to_kernel', outputFile, alwaysCompile,
+      : super._('vm_compile_to_kernel $batchArgs', outputFile, alwaysCompile,
             bootstrapDependencies, executable, arguments, environmentOverrides,
             index: index);
 
   VMKernelCompilationCommand indexedCopy(int index) =>
-      VMKernelCompilationCommand._(_outputFile, _alwaysCompile,
-          _bootstrapDependencies, executable, arguments, environmentOverrides,
+      VMKernelCompilationCommand._(
+          _outputFile,
+          _alwaysCompile,
+          _bootstrapDependencies,
+          executable,
+          arguments,
+          environmentOverrides,
+          batchArgs,
           index: index);
 
   int get maxNumRetries => 1;
+
+  @override
+  List<String> get batchArguments {
+    return batchArgs;
+  }
 }
 
 /// This is just a Pair(String, Map) class with hashCode and operator ==

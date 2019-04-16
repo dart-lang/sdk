@@ -12,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapKeyTest);
+    defineReflectiveTests(NonConstantMapKeyWithUiAsCodeAndConstantsTest);
     defineReflectiveTests(NonConstantMapKeyWithUiAsCodeTest);
   });
 }
@@ -19,11 +20,23 @@ main() {
 @reflectiveTest
 class NonConstantMapKeyTest extends DriverResolutionTest {
   test_const_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 final dynamic a = 0;
 var v = const {a : 0};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
   }
+}
+
+@reflectiveTest
+class NonConstantMapKeyWithUiAsCodeAndConstantsTest
+    extends NonConstantMapKeyWithUiAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
 }
 
 @reflectiveTest
@@ -36,18 +49,26 @@ class NonConstantMapKeyWithUiAsCodeTest extends NonConstantMapKeyTest {
     ];
 
   test_const_ifElement_thenTrue_elseFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 0: 1 else a : 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
   test_const_ifElement_thenTrue_thenFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) a : 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 }

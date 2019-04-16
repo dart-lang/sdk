@@ -2309,8 +2309,8 @@ abstract class FormalParameter implements AstNode {
   /// Return `true` if this parameter is a required parameter. Required
   /// parameters are always positional.
   ///
-  /// Note: this will return `false` for a named parameter that is annotated with
-  /// the `@required` annotation.
+  /// Note: this will return `false` for a named parameter that is annotated
+  /// with the `@required` annotation.
   bool get isRequired;
 
   /// Return the kind of this parameter.
@@ -2319,6 +2319,9 @@ abstract class FormalParameter implements AstNode {
 
   /// Return the annotations associated with this parameter.
   NodeList<Annotation> get metadata;
+
+  /// The 'required' keyword, or `null` if the keyword was not used.
+  Token get requiredKeyword;
 }
 
 /// The formal parameter list of a method declaration, function declaration, or

@@ -1,7 +1,7 @@
 library private;
 import self as self;
 import "dart:core" as core;
-import "./private_module.dart" as pri;
+import "private_module.dart" as pri;
 
 import "org-dartlang-testcase:///private_module.dart";
 

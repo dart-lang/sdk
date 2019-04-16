@@ -306,6 +306,9 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
+  void TransitionGeneratedToNative(Register destination_address);
+  void TransitionNativeToGenerated();
+
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
   void name(Register dst, Register src) { Emit##width(dst, src, __VA_ARGS__); }
@@ -928,10 +931,6 @@ class Assembler : public AssemblerBase {
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  static const char* RegisterName(Register reg);
-
-  static const char* FpuRegisterName(FpuRegister reg);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,

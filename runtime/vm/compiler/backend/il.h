@@ -453,6 +453,7 @@ struct InstrAttrs {
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
   M(IntConverter, _)                                                           \
+  M(BitCast, _)                                                                \
   M(UnboxedWidthExtender, _)                                                   \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
@@ -1621,8 +1622,10 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
   OsrEntryInstr(GraphEntryInstr* graph_entry,
                 intptr_t block_id,
                 intptr_t try_index,
-                intptr_t deopt_id)
+                intptr_t deopt_id,
+                intptr_t stack_depth)
       : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
+        stack_depth_(stack_depth),
         graph_entry_(graph_entry) {}
 
   DECLARE_INSTRUCTION(OsrEntry)
@@ -1635,6 +1638,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     return graph_entry_;
   }
 
+  intptr_t stack_depth() const { return stack_depth_; }
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   PRINT_TO_SUPPORT
@@ -1646,6 +1650,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     graph_entry_ = predecessor->AsGraphEntry();
   }
 
+  const intptr_t stack_depth_;
   GraphEntryInstr* graph_entry_;
 
   DISALLOW_COPY_AND_ASSIGN(OsrEntryInstr);
@@ -1958,6 +1963,12 @@ class Definition : public Instruction {
   // Find the original definition of [this] by following through any
   // redefinition and check instructions.
   Definition* OriginalDefinition();
+
+  // If this definition is a redefinition (in a broad sense, this includes
+  // CheckArrayBound and CheckNull instructions) return [Value] corresponding
+  // to the input which is being redefined.
+  // Otherwise return [nullptr].
+  virtual Value* RedefinedValue() const;
 
   // Find the original definition of [this].
   //
@@ -2801,6 +2812,8 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual Value* RedefinedValue() const;
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -3025,6 +3038,8 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual Value* RedefinedValue() const;
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -5120,7 +5135,11 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!length.IsSmi()) return false;
     const intptr_t value = Smi::Cast(length).Value();
     if (value < 0) return false;
-    return !Array::UseCardMarkingForAllocation(value);
+    return WillAllocateNewOrRemembered(value);
+  }
+
+  static bool WillAllocateNewOrRemembered(const intptr_t length) {
+    return !Array::UseCardMarkingForAllocation(length);
   }
 
  private:
@@ -6606,6 +6625,9 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
 
   Range* shift_range() const { return shift_range_; }
 
+  // Set the range directly (takes ownership).
+  void set_shift_range(Range* shift_range) { shift_range_ = shift_range; }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DEFINE_INSTRUCTION_TYPE_CHECK(ShiftIntegerOp)
@@ -6806,11 +6828,13 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   };
 
   CheckStackOverflowInstr(TokenPosition token_pos,
+                          intptr_t stack_depth,
                           intptr_t loop_depth,
                           intptr_t deopt_id,
-                          Kind kind = kOsrAndPreemption)
+                          Kind kind)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
+        stack_depth_(stack_depth),
         loop_depth_(loop_depth),
         kind_(kind) {
     ASSERT(kind != kOsrOnly || loop_depth > 0);
@@ -6818,6 +6842,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
+  intptr_t stack_depth() const { return stack_depth_; }
   intptr_t loop_depth() const { return loop_depth_; }
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
@@ -6836,6 +6861,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
+  const intptr_t stack_depth_;
   const intptr_t loop_depth_;
   const Kind kind_;
 
@@ -7381,6 +7407,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                         FlowGraphCompiler* compiler);
 
+  virtual Value* RedefinedValue() const;
+
  private:
   const TokenPosition token_pos_;
   const String& function_name_;
@@ -7434,6 +7462,7 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual bool IsCheckBoundBase() { return true; }
   virtual CheckBoundBase* AsCheckBoundBase() { return this; }
+  virtual Value* RedefinedValue() const;
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };
@@ -7619,6 +7648,56 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(IntConverterInstr);
+};
+
+// Moves a floating-point value between CPU and FPU registers. Used to implement
+// "softfp" calling conventions, where FPU arguments/return values are passed in
+// normal CPU registers.
+class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  BitCastInstr(Representation from, Representation to, Value* value)
+      : TemplateDefinition(DeoptId::kNone),
+        from_representation_(from),
+        to_representation_(to) {
+    ASSERT(from != to);
+    ASSERT(to == kUnboxedInt32 && from == kUnboxedFloat ||
+           to == kUnboxedFloat && from == kUnboxedInt32 ||
+           to == kUnboxedInt64 && from == kUnboxedDouble ||
+           to == kUnboxedDouble && from == kUnboxedInt64);
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Representation from() const { return from_representation_; }
+  Representation to() const { return to_representation_; }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return to(); }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return from();
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsBitCast());
+    BitCastInstr* converter = other->AsBitCast();
+    return converter->from() == from() && converter->to() == to();
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+
+  DECLARE_INSTRUCTION(BitCast);
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Representation from_representation_;
+  const Representation to_representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
 };
 
 // Sign- or zero-extends an integer in unboxed 32-bit representation.

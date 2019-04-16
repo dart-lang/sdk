@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "7e743ef29b4c06f1a2b8b9dc70ead60b31aab526",
+  "co19_2_rev": "a0a24a4bd5e4d913264fccfd600139af5b20c8e9",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -64,7 +64,7 @@ vars = {
   "collection_tag": "1.14.11",
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
-  "csslib_tag" : "0.14.4+1",
+  "csslib_tag" : "0.15.0",
   "dart2js_info_tag" : "0.6.0",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -84,21 +84,21 @@ vars = {
   "dartdoc_tag" : "v0.28.2",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
-  "html_tag" : "0.14.0",
+  "html_tag" : "0.14.0+1",
   "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
-  "http_tag" : "0.12.0",
+  "http_tag" : "0.12.0+2",
   "http_throttle_tag" : "1.0.2",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.85",
+  "linter_tag": "0.1.86",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "2.0.2",
+  "markdown_tag": "2.0.3",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
@@ -108,6 +108,7 @@ vars = {
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
+  "pedantic_tag": "v1.5.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "0c77167b16d00b561a6055bfe26690af7f26ae88",
@@ -125,13 +126,13 @@ vars = {
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
   "source_span_tag": "1.5.5",
   "stack_trace_tag": "1.9.3",
-  "stream_channel_tag": "1.6.8",
+  "stream_channel_tag": "2.0.0",
   "string_scanner_tag": "1.0.3",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "1.3.4",
+  "test_tag": "test-v1.6.1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -162,7 +163,7 @@ deps = {
   Var("dart_root") + "/third_party/d8": {
       "packages": [{
           "package": "dart/d8",
-          "version": "version:6.9.427.23+1",
+          "version": "version:7.5.149",
       }],
       "dep_type": "cipd",
   },
@@ -301,6 +302,8 @@ deps = {
       + "@" + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_tag"),
+  Var("dart_root") + "/third_party/pkg/pedantic":
+      Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":

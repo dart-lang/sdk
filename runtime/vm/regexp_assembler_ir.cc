@@ -1718,6 +1718,7 @@ void IRRegExpMacroAssembler::CheckPreemption(bool is_backtrack) {
   // not act as an OSR entry outside loops.
   AppendInstruction(new (Z) CheckStackOverflowInstr(
       TokenPosition::kNoSource,
+      /*stack_depth=*/0,
       /*loop_depth=*/1, GetNextDeoptId(),
       is_backtrack ? CheckStackOverflowInstr::kOsrAndPreemption
                    : CheckStackOverflowInstr::kOsrOnly));

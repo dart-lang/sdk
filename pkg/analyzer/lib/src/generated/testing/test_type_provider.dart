@@ -119,6 +119,11 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _mapObjectObjectType;
 
   /**
+   * The type representing the built-in type 'Never'.
+   */
+  InterfaceType _neverType;
+
+  /**
    * An shared object representing the value 'null'.
    */
   DartObjectImpl _nullObject;
@@ -442,6 +447,16 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   @override
+  InterfaceType get neverType {
+    if (_neverType == null) {
+      ClassElementImpl neverElement =
+          ElementFactory.classElement('Never', objectType);
+      _neverType = neverElement.type;
+    }
+    return _neverType;
+  }
+
+  @override
   DartObjectImpl get nullObject {
     if (_nullObject == null) {
       _nullObject = new DartObjectImpl(nullType, NullState.NULL_STATE);
@@ -607,11 +622,13 @@ class TestTypeProvider extends TypeProviderBase {
 
   void _initDartAsync() {
     Source asyncSource;
-    if (_driver == null) {
+    if (_driver != null) {
+      asyncSource = _driver.sourceFactory.forUri(DartSdk.DART_ASYNC);
+    } else if (_context != null) {
       asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
       _context.setContents(asyncSource, "");
     } else {
-      asyncSource = _driver.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      asyncSource = null;
     }
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(

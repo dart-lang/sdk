@@ -258,14 +258,17 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     state.options.onDiagnostic = onDiagnostic;
     Component incrementalComponent = await state.incrementalCompiler
         .computeDelta(entryPoints: sources, fullComponent: true);
-    if (summaryOnly) {
-      incrementalComponent.uriToSource.clear();
-      incrementalComponent.problemsAsJson = null;
-      incrementalComponent.mainMethod = null;
-      target.performOutlineTransformations(incrementalComponent);
-    }
 
-    kernel = fe.serializeComponent(incrementalComponent);
+    kernel = await state.incrementalCompiler.context.runInContext((_) {
+      if (summaryOnly) {
+        incrementalComponent.uriToSource.clear();
+        incrementalComponent.problemsAsJson = null;
+        incrementalComponent.mainMethod = null;
+        target.performOutlineTransformations(incrementalComponent);
+      }
+
+      return Future.value(fe.serializeComponent(incrementalComponent));
+    });
   } else {
     kernel = await fe.compile(state, sources, onDiagnostic,
         summaryOnly: summaryOnly);

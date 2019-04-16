@@ -25,6 +25,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool> _sourcesFromRealImplementation = new List<bool>();
+  final List<bool> _sourcesFromRealImplementationInLibrary = new List<bool>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
 
@@ -263,16 +264,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   // Returns the new active file uri.
-  Uri writeUriReference(Uri uri) {
+  void writeUriReference(Uri uri) {
     final int index = _sourceUriIndexer.put(uri);
     writeUInt30(index);
     if (!_currentlyInNonimplementation) {
+      if (_sourcesFromRealImplementationInLibrary.length <= index) {
+        _sourcesFromRealImplementationInLibrary.length = index + 1;
+      }
+      _sourcesFromRealImplementationInLibrary[index] = true;
       if (_sourcesFromRealImplementation.length <= index) {
         _sourcesFromRealImplementation.length = index + 1;
       }
       _sourcesFromRealImplementation[index] = true;
     }
-    return uri;
   }
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
@@ -921,7 +925,26 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
+    // Dump all source-references used in this library; used by the VM.
+    int sourceReferencesOffset = getBufferOffset();
+    int sourceReferencesCount = 0;
+    // Note: We start at 1 because 0 is the null-entry and we don't want to
+    // include that.
+    for (int i = 1; i < _sourcesFromRealImplementationInLibrary.length; i++) {
+      if (_sourcesFromRealImplementationInLibrary[i] == true) {
+        sourceReferencesCount++;
+      }
+    }
+    writeUInt30(sourceReferencesCount);
+    for (int i = 1; i < _sourcesFromRealImplementationInLibrary.length; i++) {
+      if (_sourcesFromRealImplementationInLibrary[i] == true) {
+        writeUInt30(i);
+        _sourcesFromRealImplementationInLibrary[i] = false;
+      }
+    }
+
     // Fixed-size ints at the end used as an index.
+    writeUInt32(sourceReferencesOffset);
     assert(classOffsets.length > 0);
     for (int i = 0; i < classOffsets.length; ++i) {
       int offset = classOffsets[i];
@@ -1758,6 +1781,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitConstantExpression(ConstantExpression node) {
     writeByte(Tag.ConstantExpression);
+    writeOffset(node.fileOffset);
+    writeDartType(node.type);
     writeConstantReference(node.constant);
   }
 

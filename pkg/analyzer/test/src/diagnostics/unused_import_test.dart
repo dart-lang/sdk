@@ -31,7 +31,7 @@ import 'lib1.dart';
     newFile('/test/lib/lib1.dart', content: r'''
 class A {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' as one;
 one.A a;
@@ -63,7 +63,7 @@ class A {}
     newFile('/test/lib/lib2.dart', content: r'''
 class B {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a;
@@ -131,7 +131,7 @@ Two two;
     newFile('/test/lib/lib1.dart', content: r'''
 class A {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' hide A;
 A a;
@@ -200,7 +200,7 @@ class A {
 class A {}
 class B {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart' show A;
 import 'lib1.dart' show B;
 A a;
@@ -209,7 +209,7 @@ A a;
 
   test_unusedImport() async {
     newFile('/test/lib/lib1.dart');
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'lib1.dart';
 ''', [HintCode.UNUSED_IMPORT]);
   }

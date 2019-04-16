@@ -406,8 +406,6 @@ enum LinkedNodeTypeKind : byte {
 
   function,
 
-  genericTypeAlias,
-
   interface,
 
   typeParameter,
@@ -1861,6 +1859,8 @@ table LinkedNode {
 
   variantField_19:uint (id: 19);
 
+  variantField_23:LinkedNodeType (id: 23);
+
   variantField_27:bool (id: 27);
 
   variantField_9:LinkedNode (id: 9);
@@ -1897,11 +1897,9 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
-  variantField_23:string (id: 23);
+  variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
-
-  variantField_20:string (id: 20);
 
   variantField_22:string (id: 22);
 
@@ -1945,8 +1943,7 @@ table LinkedNodeType {
 
   functionReturnType:LinkedNodeType (id: 1);
 
-  /// References to [LinkedNodeReferences].
-  functionTypeParameters:[uint] (id: 2);
+  functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
 
   genericTypeAliasReference:uint (id: 7);
 
@@ -1959,8 +1956,7 @@ table LinkedNodeType {
 
   kind:LinkedNodeTypeKind (id: 5);
 
-  /// Reference to a [LinkedNodeReferences].
-  typeParameterParameter:uint (id: 6);
+  typeParameterId:uint (id: 6);
 }
 
 /// Information about a formal parameter in a function type.
@@ -1970,6 +1966,13 @@ table LinkedNodeTypeFormalParameter {
   name:string (id: 1);
 
   type:LinkedNodeType (id: 2);
+}
+
+/// Information about a type parameter in a function type.
+table LinkedNodeTypeTypeParameter {
+  bound:LinkedNodeType (id: 1);
+
+  name:string (id: 0);
 }
 
 /// Information about a single library in a [LinkedNodeLibrary].

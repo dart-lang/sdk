@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,6 +13,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
     defineReflectiveTests(
+        ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest);
+    defineReflectiveTests(
       ConstSetElementTypeImplementsEqualsWithUIAsCodeTest,
     );
   });
@@ -20,7 +23,7 @@ main() {
 @reflectiveTest
 class ConstSetElementTypeImplementsEqualsTest extends DriverResolutionTest {
   test_constField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   static const a = const A();
   const A();
@@ -33,7 +36,7 @@ main() {
   }
 
   test_direct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -48,7 +51,7 @@ main() {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -63,7 +66,7 @@ main() {
   }
 
   test_factory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A { const factory A() = B; }
 
 class B implements A {
@@ -79,7 +82,7 @@ main() {
   }
 
   test_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -95,14 +98,30 @@ main() {
 }
 
 @reflectiveTest
+class ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest
+    extends ConstSetElementTypeImplementsEqualsWithUIAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
+}
+
+@reflectiveTest
 class ConstSetElementTypeImplementsEqualsWithUIAsCodeTest
     extends ConstSetElementTypeImplementsEqualsTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections
+    ];
 
   test_spread_list() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -111,11 +130,15 @@ class A {
 main() {
   const {...[A()]};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]
+            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
   test_spread_set() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -124,6 +147,12 @@ class A {
 main() {
   const {...{A()}};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]
+            : [
+                CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+                CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT
+              ]);
   }
 }

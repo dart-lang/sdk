@@ -20,7 +20,7 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
 static const uint32_t kMinSupportedKernelFormatVersion = 18;
-static const uint32_t kMaxSupportedKernelFormatVersion = 23;
+static const uint32_t kMaxSupportedKernelFormatVersion = 25;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -126,7 +126,8 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 23;
   V(NullReference, 99)                                                         \
   V(ClassReference, 100)                                                       \
   V(MemberReference, 101)                                                      \
-  V(ConstantExpression, 107)                                                   \
+  V(ConstantExpression, 106)                                                   \
+  V(Deprecated_ConstantExpression, 107)                                        \
   V(SpecializedVariableGet, 128)                                               \
   V(SpecializedVariableSet, 136)                                               \
   V(SpecializedIntLiteral, 144)

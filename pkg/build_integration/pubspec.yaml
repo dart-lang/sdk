@@ -10,3 +10,6 @@ environment:
 
 dependencies:
   front_end: ^0.1.0
+
+dev_dependencies:
+  test: any

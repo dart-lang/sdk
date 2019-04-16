@@ -1,7 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "./mixin_library.dart" as mix;
+import "mixin_library.dart" as mix;
 
 import "org-dartlang-testcase:///mixin_library.dart";
 

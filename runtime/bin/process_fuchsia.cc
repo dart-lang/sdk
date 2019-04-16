@@ -589,10 +589,24 @@ class ProcessStarter {
       return status;
     }
 
+    // After reading the binary into a VMO, we need to mark it as executable,
+    // since the VMO returned by fdio_get_vmo_clone should be read-only.
+    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    if (status != ZX_OK) {
+      close(exit_pipe_fds[0]);
+      close(exit_pipe_fds[1]);
+      *os_error_message_ = DartUtils::ScopedCopyCString(
+          "Failed to mark binary as executable for process start.");
+      return status;
+    }
+
     fdio_spawn_action_t* actions;
     const intptr_t actions_count = BuildSpawnActions(
         namespc_->namespc()->fdio_ns(), &actions);
     if (actions_count < 0) {
+      zx_handle_close(vmo);
+      close(exit_pipe_fds[0]);
+      close(exit_pipe_fds[1]);
       *os_error_message_ = DartUtils::ScopedCopyCString(
           "Failed to build spawn actions array.");
       return ZX_ERR_IO;
@@ -605,10 +619,9 @@ class ProcessStarter {
     zx_handle_t process = ZX_HANDLE_INVALID;
     char err_msg[FDIO_SPAWN_ERR_MSG_MAX_LENGTH];
     uint32_t flags = FDIO_SPAWN_CLONE_JOB | FDIO_SPAWN_CLONE_LDSVC;
-    status =
-        fdio_spawn_vmo(ZX_HANDLE_INVALID, flags, vmo, program_arguments_,
-                       program_environment_, actions_count, actions, &process,
-                       err_msg);
+    status = fdio_spawn_vmo(ZX_HANDLE_INVALID, flags, vmo, program_arguments_,
+                            program_environment_, actions_count, actions,
+                            &process, err_msg);
     // Handles are consumed by fdio_spawn_vmo even if it fails.
     delete[] actions;
     if (status != ZX_OK) {

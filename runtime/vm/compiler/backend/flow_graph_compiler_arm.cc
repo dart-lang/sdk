@@ -886,7 +886,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
-    intptr_t extra_slots = StackSize() - flow_graph().num_stack_locals();
+    const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
     ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
@@ -943,8 +943,11 @@ void FlowGraphCompiler::CompileGraph() {
   VisitBlocks();
 
   __ bkpt(0);
-  ASSERT(assembler()->constant_pool_allowed());
-  GenerateDeferredCode();
+
+  if (!fully_intrinsified_) {
+    ASSERT(assembler()->constant_pool_allowed());
+    GenerateDeferredCode();
+  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,

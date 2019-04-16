@@ -738,7 +738,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   bool omit_result_type_check = true;
   switch (kind) {
-    // On simdbc we fall back to natives.
+// On simdbc we fall back to natives.
 #if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
@@ -1142,8 +1142,12 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
 }
 
 Fragment FlowGraphBuilder::DebugStepCheck(TokenPosition position) {
+#ifdef PRODUCT
+  return Fragment();
+#else
   return Fragment(new (Z) DebugStepCheckInstr(
       position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+#endif
 }
 
 Fragment FlowGraphBuilder::EvaluateAssertion() {
@@ -2011,7 +2015,12 @@ FunctionEntryInstr* FlowGraphBuilder::BuildSharedUncheckedEntryPoint(
   extra_entry += Drop();
   extra_entry += Goto(join_entry);
 
-  join_entry->LinkTo(prologue_start);
+  if (prologue_start != nullptr) {
+    join_entry->LinkTo(prologue_start);
+  } else {
+    // Prologue is empty.
+    shared_prologue_linked_in.current = join_entry;
+  }
 
   TargetEntryInstr *do_checks, *skip_checks;
   shared_prologue_linked_in +=
@@ -2486,12 +2495,15 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   return rest;
 }
 
+Fragment FlowGraphBuilder::BitCast(Representation from, Representation to) {
+  BitCastInstr* instr = new (Z) BitCastInstr(from, to, Pop());
+  Push(instr);
+  return Fragment(instr);
+}
+
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64) &&                \
-    !defined(TARGET_ARCH_IA32)
-  UNREACHABLE();
-#else
+#if !defined(TARGET_ARCH_DBC)
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
@@ -2531,9 +2543,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
       body += LoadAddressFromFfiPointer();
       body += UnboxTruncate(kUnboxedFfiIntPtr);
     } else {
-      Representation rep = arg_reps[pos - 1];
-      body += UnboxTruncate(rep);
-      body += FfiUnboxedExtend(rep, ffi_type);
+      Representation from_rep = compiler::ffi::TypeRepresentation(ffi_type);
+      body += UnboxTruncate(from_rep);
+
+      Representation to_rep = arg_reps[pos - 1];
+      if (from_rep != to_rep) {
+        body += BitCast(from_rep, to_rep);
+      } else {
+        body += FfiUnboxedExtend(from_rep, ffi_type);
+      }
     }
   }
 
@@ -2556,15 +2574,22 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     body += Drop();
     body += NullConstant();
   } else {
-    Representation rep = compiler::ffi::ResultRepresentation(signature);
-    body += FfiUnboxedExtend(rep, ffi_type);
-    body += Box(rep);
+    Representation from_rep = compiler::ffi::ResultRepresentation(signature);
+    Representation to_rep = compiler::ffi::TypeRepresentation(ffi_type);
+    if (from_rep != to_rep) {
+      body += BitCast(from_rep, to_rep);
+    } else {
+      body += FfiUnboxedExtend(from_rep, ffi_type);
+    }
+    body += Box(to_rep);
   }
 
   body += Return(TokenPosition::kNoSource);
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
+#else
+  UNREACHABLE();
 #endif
 }
 

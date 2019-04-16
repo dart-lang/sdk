@@ -215,6 +215,7 @@ static bool HasLoadFromPool(KBCInstr instr) {
     case KernelBytecode::kPushConstant:
     case KernelBytecode::kIndirectStaticCall:
     case KernelBytecode::kInterfaceCall:
+    case KernelBytecode::kUncheckedInterfaceCall:
     case KernelBytecode::kDynamicCall:
     case KernelBytecode::kStoreStaticTOS:
     case KernelBytecode::kPushStatic:

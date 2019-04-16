@@ -85,7 +85,7 @@ main() {
   }
 
   test_class_notUsed_inClassMember() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class _A {
   static staticMethod() {
     new _A();
@@ -98,7 +98,7 @@ class _A {
   }
 
   test_class_notUsed_inConstructorName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class _A {
   _A() {}
   _A.named() {}
@@ -107,7 +107,7 @@ class _A {
   }
 
   test_class_notUsed_isExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class _A {}
 main(p) {
   if (p is _A) {
@@ -117,7 +117,7 @@ main(p) {
   }
 
   test_class_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class _A {}
 main() {
 }
@@ -125,7 +125,7 @@ main() {
   }
 
   test_class_notUsed_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class _A {}
 main() {
   _A v;
@@ -145,7 +145,7 @@ main() {
   }
 
   test_enum_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 enum _MyEnum {A, B, C}
 main() {
 }
@@ -181,7 +181,7 @@ print(x) {}
   }
 
   test_functionLocal_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   f() {}
 }
@@ -189,7 +189,7 @@ main() {
   }
 
   test_functionLocal_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   _f(int p) {
     _f(p - 1);
@@ -218,7 +218,7 @@ print(x) {}
   }
 
   test_functionTop_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 _f() {}
 main() {
 }
@@ -226,7 +226,7 @@ main() {
   }
 
   test_functionTop_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 _f(int p) {
   _f(p - 1);
 }
@@ -274,7 +274,7 @@ class A {
   }
 
   test_functionTypeAlias_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 typedef _F(a, b);
 main() {
 }
@@ -315,7 +315,7 @@ main() {
   }
 
   test_getter_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   get _g => null;
 }
@@ -323,7 +323,7 @@ class A {
   }
 
   test_getter_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   get _g {
     return _g;
@@ -477,7 +477,7 @@ main() {
   }
 
   test_method_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   static _m() {}
 }
@@ -485,7 +485,7 @@ class A {
   }
 
   test_method_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   static _m(int p) {
     _m(p - 1);
@@ -528,7 +528,7 @@ main() {
   }
 
   test_setter_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   set _s(x) {}
 }
@@ -536,7 +536,7 @@ class A {
   }
 
   test_setter_notUsed_referenceFromItself() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   set _s(int x) {
     if (x > 5) {
@@ -567,7 +567,7 @@ main() {
   }
 
   test_topLevelVariable_notUsed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 int _a = 1;
 main() {
   _a = 2;

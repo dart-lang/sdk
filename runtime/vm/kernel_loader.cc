@@ -143,8 +143,9 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return loader_->LookupClass(library_lookup_handle_, klass);
 }
 
-LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
-    : reader_(kernel_data) {
+LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data,
+                           int32_t binary_version)
+    : reader_(kernel_data), binary_version_(binary_version) {
   intptr_t data_size = reader_.size();
 
   procedure_count_ = reader_.ReadUInt32At(data_size - 4);
@@ -152,6 +153,11 @@ LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
 
   class_count_ = reader_.ReadUInt32At(procedure_index_offset_ - 4);
   class_index_offset_ = procedure_index_offset_ - 4 - (class_count_ + 1) * 4;
+
+  source_references_offset_ = -1;
+  if (binary_version >= 25) {
+    source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
+  }
 }
 
 ClassIndex::ClassIndex(const uint8_t* buffer,
@@ -539,11 +545,16 @@ void KernelLoader::AnnotateNativeProcedures(const Array& constant_table_array) {
       const intptr_t annotation_count = helper_.ReadListLength();
       for (intptr_t j = 0; j < annotation_count; ++j) {
         const intptr_t tag = helper_.PeekTag();
-        if (tag == kConstantExpression) {
+        if (tag == kConstantExpression ||
+            tag == kDeprecated_ConstantExpression) {
           helper_.ReadByte();  // Skip the tag.
 
           // We have a candiate.  Let's look if it's an instance of the
           // ExternalName class.
+          if (tag == kConstantExpression) {
+            helper_.ReadPosition();  // Skip fileOffset.
+            helper_.SkipDartType();  // Skip type.
+          }
           const intptr_t constant_table_offset = helper_.ReadUInt();
           constant ^= constant_table.GetOrDie(constant_table_offset);
           if (constant.clazz() == external_name_class_.raw()) {
@@ -654,9 +665,13 @@ void KernelLoader::LoadNativeExtensionLibraries(
       uri_path = String::null();
 
       const intptr_t tag = helper_.PeekTag();
-      if (tag == kConstantExpression) {
+      if (tag == kConstantExpression || tag == kDeprecated_ConstantExpression) {
         helper_.ReadByte();  // Skip the tag.
 
+        if (tag == kConstantExpression) {
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
+        }
         const intptr_t constant_table_index = helper_.ReadUInt();
         constant ^= constant_table.GetOrDie(constant_table_index);
         if (constant.clazz() == external_name_class_.raw()) {
@@ -910,7 +925,8 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
       library_kernel_data_ =
           helper_.reader_.ExternalDataFromTo(kernel_offset, library_end);
 
-      LibraryIndex library_index(library_kernel_data_);
+      LibraryIndex library_index(library_kernel_data_,
+                                 program_->binary_version());
       num_classes += library_index.class_count();
       num_procedures += library_index.procedure_count();
     }
@@ -1001,7 +1017,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
 
-  LibraryIndex library_index(library_kernel_data_);
+  LibraryIndex library_index(library_kernel_data_, program_->binary_version());
   intptr_t class_count = library_index.class_count();
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);
@@ -1084,6 +1100,19 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
 
   if (register_class) {
     classes.Add(toplevel_class, Heap::kOld);
+
+    if (library_index.HasSourceReferences()) {
+      helper_.SetOffset(library_index.SourceReferencesOffset());
+      intptr_t count = helper_.ReadUInt();
+      const GrowableObjectArray& owned_scripts =
+          GrowableObjectArray::Handle(library.owned_scripts());
+      Script& script = Script::Handle(Z);
+      for (intptr_t i = 0; i < count; i++) {
+        intptr_t uri_index = helper_.ReadUInt();
+        script = ScriptAt(uri_index);
+        owned_scripts.Add(script);
+      }
+    }
   }
   if (!library.Loaded()) library.SetLoaded();
 
@@ -1668,7 +1697,7 @@ void KernelLoader::FinishLoading(const Class& klass) {
 
   KernelLoader kernel_loader(script, library_kernel_data,
                              library_kernel_offset);
-  LibraryIndex library_index(library_kernel_data);
+  LibraryIndex library_index(library_kernel_data, /*binary_version=*/-1);
 
   if (klass.IsTopLevel()) {
     ASSERT(klass.raw() == toplevel_class.raw());
@@ -1725,7 +1754,8 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
       if (DetectPragmaCtor()) {
         *has_pragma_annotation = true;
       }
-    } else if (tag == kConstantExpression) {
+    } else if (tag == kConstantExpression ||
+               tag == kDeprecated_ConstantExpression) {
       const Array& constant_table_array =
           Array::Handle(kernel_program_info_.constants());
       if (constant_table_array.IsNull()) {
@@ -1747,6 +1777,10 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
 
         helper_.ReadByte();  // Skip the tag.
 
+        if (tag == kConstantExpression) {
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
+        }
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
 
         AlternativeReadingScope scope(
@@ -1776,6 +1810,10 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
         // Obtain `dart:_internal::pragma`.
         EnsurePragmaClassIsLookedUp();
 
+        if (tag == kConstantExpression) {
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
+        }
         const intptr_t constant_table_index = helper_.ReadUInt();
         const Object& constant =
             Object::Handle(constant_table.GetOrDie(constant_table_index));
@@ -2233,10 +2271,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
 
   // Create a static initializer.
   const Function& initializer_fun = Function::Handle(
-      zone, Function::New(init_name,
-                          // TODO(alexmarkov): Consider creating a separate
-                          // function kind for field initializers.
-                          RawFunction::kImplicitStaticFinalGetter,
+      zone, Function::New(init_name, RawFunction::kStaticFieldInitializer,
                           true,   // is_static
                           false,  // is_const
                           false,  // is_abstract
@@ -2248,6 +2283,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_is_inlinable(false);
   initializer_fun.set_token_pos(field.token_pos());
   initializer_fun.set_end_token_pos(field.end_token_pos());
+  initializer_fun.set_accessor_field(field);
   initializer_fun.InheritBinaryDeclarationFrom(field);
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();

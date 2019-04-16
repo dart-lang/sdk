@@ -1097,6 +1097,7 @@ class C {
       parameters: '()',
       parameterTypes: [],
       requiredParameterCount: 0,
+      returnType: 'C',
     );
     _assertDeclaration(
       _getDeclaration(classDeclaration.children, 'a'),
@@ -1106,6 +1107,7 @@ class C {
       parameters: '()',
       parameterTypes: [],
       requiredParameterCount: 0,
+      returnType: 'C',
     );
     _assertDeclaration(
       _getDeclaration(classDeclaration.children, 'b'),
@@ -1116,6 +1118,7 @@ class C {
       parameterNames: [],
       parameterTypes: [],
       requiredParameterCount: 0,
+      returnType: 'C',
     );
     _assertDeclaration(
       _getDeclaration(classDeclaration.children, 'c'),
@@ -1127,6 +1130,7 @@ class C {
       parameterNames: [],
       parameterTypes: [],
       requiredParameterCount: 0,
+      returnType: 'C',
     );
     _assertDeclaration(
       _getDeclaration(classDeclaration.children, 'd'),
@@ -1138,6 +1142,7 @@ class C {
       parameterNames: ['p1', 'p2', 'p3'],
       parameterTypes: ['Map<String, int>', 'int', 'double'],
       requiredParameterCount: 2,
+      returnType: 'C',
     );
     _assertDeclaration(
       _getDeclaration(classDeclaration.children, 'e'),
@@ -1149,6 +1154,7 @@ class C {
       parameterNames: ['f1', 'f2'],
       parameterTypes: ['', ''],
       requiredParameterCount: 2,
+      returnType: 'C',
     );
   }
 

@@ -28,7 +28,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
 
     var access = findNode.propertyAccess('foo; // ref');
     assertPropertyAccess(access, findElement.getter('foo', of: 'A'), 'int');
@@ -68,7 +69,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
 
     var access = findNode.propertyAccess('foo = v; // ref');
     assertPropertyAccess(

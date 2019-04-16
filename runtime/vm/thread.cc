@@ -76,6 +76,8 @@ Thread::Thread(Isolate* isolate)
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),
       resume_pc_(0),
+      execution_state_(kThreadInNative),
+      safepoint_state_(0),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(new Monitor()),
@@ -97,10 +99,9 @@ Thread::Thread(Isolate* isolate)
       pending_functions_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
-          REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
-      execution_state_(kThreadInNative),
+          REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if defined(USING_SAFE_STACK)
-      saved_safestack_limit_(0),
+              saved_safestack_limit_(0),
 #endif
 #if !defined(DART_PRECOMPILED_RUNTIME)
       interpreter_(nullptr),

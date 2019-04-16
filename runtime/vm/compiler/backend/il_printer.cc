@@ -1006,6 +1006,12 @@ void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
+void BitCastInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(" (%s -> %s)", RepresentationToCString(from()),
+           RepresentationToCString(to()));
+}
+
 void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd, index());
 }
@@ -1022,7 +1028,7 @@ const char* SpecialParameterInstr::ToCString() const {
 }
 
 void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (in_loop()) f->Print("depth %" Pd, loop_depth());
+  f->Print("stack=%" Pd ", loop=%" Pd, stack_depth(), loop_depth());
 }
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
@@ -1039,7 +1045,8 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void OsrEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%" Pd "[osr entry]:%" Pd, block_id(), GetDeoptId());
+  f->Print("B%" Pd "[osr entry]:%" Pd " stack_depth=%" Pd, block_id(),
+           GetDeoptId(), stack_depth());
   if (HasParallelMove()) {
     f->Print("\n");
     parallel_move()->PrintTo(f);
@@ -1068,13 +1075,13 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void LoadIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s[", Assembler::RegisterName(base_reg()));
+  f->Print("%s[", RegisterNames::RegisterName(base_reg()));
   index()->PrintTo(f);
   f->Print(" + %" Pd "]", offset());
 }
 
 void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s[", Assembler::RegisterName(base_reg()));
+  f->Print("%s[", RegisterNames::RegisterName(base_reg()));
   index()->PrintTo(f);
   f->Print(" + %" Pd "], ", offset());
   value()->PrintTo(f);

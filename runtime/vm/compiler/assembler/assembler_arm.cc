@@ -547,6 +547,90 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
+void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register addr,
+                                            Register state) {
+  // Save exit frame information to enable stack walking.
+  StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing native code.
+  StoreToOffset(kWord, destination_address, THR, Thread::vm_tag_offset());
+  LoadImmediate(state, compiler::target::Thread::native_execution_state());
+  StoreToOffset(kWord, state, THR, Thread::execution_state_offset());
+
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    EnterSafepointSlowly();
+  } else {
+    Label slow_path, done, retry;
+    LoadImmediate(addr, compiler::target::Thread::safepoint_state_offset());
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldrex(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_unacquired()));
+    b(&slow_path, NE);
+
+    mov(state, Operand(Thread::safepoint_state_acquired()));
+    strex(TMP, state, addr);
+    cmp(TMP, Operand(0));  // 0 means strex was successful.
+    b(&done, EQ);
+    b(&retry);
+
+    Bind(&slow_path);
+    EnterSafepointSlowly();
+
+    Bind(&done);
+  }
+}
+
+void Assembler::EnterSafepointSlowly() {
+  ldr(TMP,
+      Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
+  ldr(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  blx(TMP);
+}
+
+void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    ExitSafepointSlowly();
+  } else {
+    Label slow_path, done, retry;
+    LoadImmediate(addr, compiler::target::Thread::safepoint_state_offset());
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldrex(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_acquired()));
+    b(&slow_path, NE);
+
+    mov(state, Operand(Thread::safepoint_state_unacquired()));
+    strex(TMP, state, addr);
+    cmp(TMP, Operand(0));  // 0 means strex was successful.
+    b(&done, EQ);
+    b(&retry);
+
+    Bind(&slow_path);
+    ExitSafepointSlowly();
+
+    Bind(&done);
+  }
+
+  // Mark that the thread is executing Dart code.
+  LoadImmediate(state, compiler::target::Thread::vm_tag_compiled_id());
+  StoreToOffset(kWord, state, THR, Thread::vm_tag_offset());
+  LoadImmediate(state, compiler::target::Thread::generated_execution_state());
+  StoreToOffset(kWord, state, THR, Thread::execution_state_offset());
+
+  // Reset exit frame information in Isolate structure.
+  LoadImmediate(state, 0);
+  StoreToOffset(kWord, state, THR, Thread::top_exit_frame_info_offset());
+}
+
+void Assembler::ExitSafepointSlowly() {
+  ldr(TMP,
+      Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
+  ldr(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  blx(TMP);
+}
+
 void Assembler::clrex() {
   ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   int32_t encoding = (kSpecialCondition << kConditionShift) | B26 | B24 | B22 |
@@ -3158,8 +3242,6 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
     }
   }
 
-  LoadPoolPointer();
-
   ReserveAlignedFrameSpace(frame_space);
 }
 
@@ -3202,7 +3284,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::EnterDartFrame(intptr_t frame_size) {
+void Assembler::EnterDartFrame(intptr_t frame_size, bool load_pool_pointer) {
   ASSERT(!constant_pool_allowed());
 
   // Registers are pushed in descending order: R5 | R6 | R7/R11 | R14.
@@ -3214,7 +3296,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
     EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
     // Setup pool pointer for this dart function.
-    LoadPoolPointer();
+    if (load_pool_pointer) LoadPoolPointer();
   } else {
     EnterFrame((1 << FP) | (1 << LR), 0);
   }
@@ -3593,28 +3675,6 @@ void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
   strb(tmp, Address(addr, 2));
   Lsr(tmp, src, Operand(24));
   strb(tmp, Address(addr, 3));
-}
-
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "r0", "r1",  "r2", "r3", "r4", "r5", "r6", "r7",
-    "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
-};
-
-const char* Assembler::RegisterName(Register reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
-  return cpu_reg_names[reg];
-}
-
-static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
-    "q0", "q1", "q2",  "q3",  "q4",  "q5",  "q6",  "q7",
-#if defined(VFPv3_D32)
-    "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
-#endif
-};
-
-const char* Assembler::FpuRegisterName(FpuRegister reg) {
-  ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
-  return fpu_reg_names[reg];
 }
 
 }  // namespace compiler

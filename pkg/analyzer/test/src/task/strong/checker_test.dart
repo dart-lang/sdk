@@ -3649,6 +3649,70 @@ class Child extends Base {
 ''');
   }
 
+  test_strictInference_collectionLiterals() async {
+    addFile(r'''
+main() {
+  var emptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
+  var emptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
+
+  var upwardsInfersDynamicList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[42 as dynamic];
+  var upwardsInfersDynamicSet = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{42 as dynamic};
+
+
+  dynamic d;
+  var upwardsInfersDynamicMap1 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{d: 2};
+  var upwardsInfersDynamicMap2 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{4: d};
+  var upwardsInfersDynamicMap3 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{d: d};
+}
+    ''');
+    await check(strictInference: true);
+  }
+
+  test_strictInference_instanceCreation() async {
+    addFile(r'''
+class C<T> {
+  C([T t]);
+  C.of(T t);
+  factory C.from(Object e) => C();
+}
+
+main() {
+  // These should be allowed:
+  C<int> downwardsInferenceIsOK = C();
+  C<dynamic> downwardsInferenceDynamicIsOK = C();
+  var inferredFromConstructorParameterIsOK = C(42);
+  var explicitDynamicIsOK = C<dynamic>(42);
+
+  var rawConstructorCall = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C();
+  var upwardsInfersDynamic = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C(42 as dynamic);
+  var namedConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.of(42 as dynamic);
+  var factoryConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.from(42);
+}
+    ''');
+    await check(strictInference: true);
+  }
+
+  test_strictInference_instanceCreation_optionalTypeArgs() async {
+    addMetaPackage();
+    addFile(r'''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+class C<T> {
+  C([T t]);
+  C.of(T t);
+  factory C.from(Object e) => C();
+}
+
+main() {
+  var rawConstructorCall = C();
+  var upwardsInfersDynamic = C(42 as dynamic);
+  var namedConstructor = C.of(42 as dynamic);
+  var factoryConstructor = C.from(42);
+}
+    ''');
+    await check(strictInference: true);
+  }
+
   test_strictRawTypes_classes() async {
     addFile(r'''
 class C<T> {
@@ -3679,20 +3743,10 @@ C<int> explicitTypeArgsAreOK;
 
 main() {
   {
-    // These should be allowed:
-    C<int> downwardsInferenceIsOK = C();
-    C<dynamic> downwardsInferenceDynamicIsOK = C();
-    var inferredFromConstructorParameterIsOK = C(42);
-    var explicitDynamicIsOK = C<dynamic>(42);
-
     ClassWithNumBound classWithNumBoundOK;
     ClassWithObjectBound classWithObjectBoundOK;
     /*info:STRICT_RAW_TYPE*/ClassWithDynamicBound classWithDynamicBound;
-
-    var rawConstructorCall = /*info:STRICT_RAW_TYPE*/C();
     /*info:STRICT_RAW_TYPE*/C rawConstructorCallFromType = C();
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/C(42 as dynamic);
   }
 
   {
@@ -3702,11 +3756,8 @@ main() {
     var upwardsInferNonDynamicIsOK = [42];
     var explicitDynamicIsOK = <dynamic>[42];
 
-    var rawList = /*info:STRICT_RAW_TYPE*/[];
     var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
     /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/[42 as dynamic];
   }
 
   {
@@ -3716,11 +3767,8 @@ main() {
     var upwardsInferNonDynamicIsOK = [42];
     var explicitDynamicIsOK = <dynamic>[42];
 
-    var rawList = /*info:STRICT_RAW_TYPE*/[];
     var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
     /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/[42 as dynamic];
   }
 
   {
@@ -3732,8 +3780,6 @@ main() {
 
     var rawSetOfSets = </*info:STRICT_RAW_TYPE*/Set>{};
     /*info:STRICT_RAW_TYPE*/Set rawSetFromType = {};
-
-    var upwardsInfersDynamic = /*info:STRICT_RAW_TYPE*/{42 as dynamic};
   }
 
   {
@@ -3748,11 +3794,6 @@ main() {
 
     var rawMapOfMaps = </*info:STRICT_RAW_TYPE*/Map>{};
     /*info:STRICT_RAW_TYPE*/Map rawMapFromType = {};
-
-    dynamic d;
-    var upwardsInfersDynamic1 = /*info:STRICT_RAW_TYPE*/{d: 2};
-    var upwardsInfersDynamic2 = /*info:STRICT_RAW_TYPE*/{4: d};
-    var upwardsInfersDynamic3 = /*info:STRICT_RAW_TYPE*/{d: d};
   }
 
   {
@@ -3812,15 +3853,6 @@ main() {
 }
     ''');
 
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_emptyMap() async {
-    addFile('''
-main() {
-  var rawMap = /*info:STRICT_RAW_TYPE*/{};
-}
-''');
     await check(strictRawTypes: true);
   }
 

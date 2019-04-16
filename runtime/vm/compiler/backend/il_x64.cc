@@ -74,7 +74,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::AnyOrConstant(value()));
+  locs->set_in(0, LocationAnyOrConstant(value()));
   return locs;
 }
 
@@ -89,7 +89,7 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ PushObject(value.constant());
     } else {
       ASSERT(value.IsStackSlot());
-      __ pushq(value.ToStackSlotAddress());
+      __ pushq(LocationToStackSlotAddress(value));
     }
   }
 }
@@ -243,7 +243,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
   const intptr_t stack_index =
       compiler::target::frame_layout.FrameSlotForVariable(&local());
   return LocationSummary::Make(zone, kNumInputs,
-                               Location::StackSlot(stack_index),
+                               Location::StackSlot(stack_index, FPREG),
                                LocationSummary::kNoCall);
 }
 
@@ -321,16 +321,16 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(tmp, value_);
       __ movsd(XMM0, FieldAddress(tmp, Double::value_offset()));
     }
-    __ movsd(destination.ToStackSlotAddress(), XMM0);
+    __ movsd(LocationToStackSlotAddress(destination), XMM0);
   } else {
     ASSERT(destination.IsStackSlot());
     if (representation() == kUnboxedInt32 ||
         representation() == kUnboxedInt64) {
       const int64_t value = Integer::Cast(value_).AsInt64Value();
-      __ movq(destination.ToStackSlotAddress(), Immediate(value));
+      __ movq(LocationToStackSlotAddress(destination), Immediate(value));
     } else {
       ASSERT(representation() == kTagged);
-      __ StoreObject(destination.ToStackSlotAddress(), value_);
+      __ StoreObject(LocationToStackSlotAddress(destination), value_);
     }
   }
 }
@@ -525,13 +525,13 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RegisterOrConstant(left()));
+    locs->set_in(0, LocationRegisterOrConstant(left()));
     // Only one input can be a constant operand. The case of two constant
     // operands should be handled by constant propagation.
     // Only right can be a stack slot.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::RegisterOrConstant(right()));
+                        : LocationRegisterOrConstant(right()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -632,7 +632,7 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
       __ CompareObject(left.reg(), right.constant());
     }
   } else if (right.IsStackSlot()) {
-    __ cmpq(left.reg(), right.ToStackSlotAddress());
+    __ cmpq(left.reg(), LocationToStackSlotAddress(right));
   } else {
     __ cmpq(left.reg(), right.reg());
   }
@@ -720,7 +720,7 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   locs->set_in(0, Location::RequiresRegister());
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_in(1, LocationRegisterOrConstant(right()));
   return locs;
 }
 
@@ -808,12 +808,12 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
   if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RegisterOrConstant(left()));
+    summary->set_in(0, LocationRegisterOrConstant(left()));
     // Only one input can be a constant operand. The case of two constant
     // operands should be handled by constant propagation.
     summary->set_in(1, summary->in(0).IsConstant()
                            ? Location::RequiresRegister()
-                           : Location::RegisterOrConstant(right()));
+                           : LocationRegisterOrConstant(right()));
     summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
@@ -897,10 +897,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize,
                     PP);
 
-  // Save exit frame information to enable stack walking as we are about to
-  // transition to Dart VM C++ code.
-  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
-
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(SPREG, Immediate(~(OS::ActivationFrameAlignment() - 1)));
@@ -912,50 +908,37 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (target.IsStackSlot()) {
       if (origin.IsRegister()) {
-        __ movq(target.ToStackSlotAddress(), origin.reg());
+        __ movq(LocationToStackSlotAddress(target), origin.reg());
       } else if (origin.IsFpuRegister()) {
         __ movq(TMP, origin.fpu_reg());
-        __ movq(target.ToStackSlotAddress(), TMP);
+        __ movq(LocationToStackSlotAddress(target), TMP);
       } else if (origin.IsStackSlot() || origin.IsDoubleStackSlot()) {
         // The base register cannot be SPREG because we've moved it.
         ASSERT(origin.base_reg() == FPREG);
         __ movq(TMP, Address(saved_fp, origin.ToStackSlotOffset()));
-        __ movq(target.ToStackSlotAddress(), TMP);
+        __ movq(LocationToStackSlotAddress(target), TMP);
       }
     } else {
       ASSERT(origin.Equals(target));
     }
   }
 
-  // Mark that the thread is executing VM code.
-  __ movq(Assembler::VMTagAddress(), target_address);
-
-// We need to copy the return address up into the dummy stack frame so the
-// stack walker will know which safepoint to use.
-#if defined(TARGET_OS_WINDOWS)
-  constexpr intptr_t kCallSequenceLength = 10;
-#else
-  constexpr intptr_t kCallSequenceLength = 6;
-#endif
-
-  // RIP points to the *next* instruction, so 'AddressRIPRelative' loads the
-  // address of the following 'movq'.
-  __ leaq(TMP, Address::AddressRIPRelative(kCallSequenceLength));
-
-  const intptr_t call_sequence_start = __ CodeSize();
-  __ movq(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
-  __ CallCFunction(target_address);
-
-  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
-
+  // We need to copy a dummy return address up into the dummy stack frame so the
+  // stack walker will know which safepoint to use. RIP points to the *next*
+  // instruction, so 'AddressRIPRelative' loads the address of the following
+  // 'movq'.
+  __ leaq(TMP, Address::AddressRIPRelative(0));
   compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
+  __ movq(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(target_address);
 
-  // Reset exit frame information in Isolate structure.
-  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+  __ CallCFunction(target_address);
+
+  // Update information in the thread object and leave the safepoint.
+  __ TransitionNativeToGenerated();
 
   // Although PP is a callee-saved register, it may have been moved by the GC.
   __ LeaveDartFrame(compiler::kRestoreCallerPP);
@@ -1498,7 +1481,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::RegisterLocation(kWriteBarrierValueReg)
-                          : Location::RegisterOrConstant(value()));
+                          : LocationRegisterOrConstant(value()));
       if (ShouldEmitStoreBarrier()) {
         locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
         locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
@@ -1512,7 +1495,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kOneByteStringCid:
       // TODO(fschneider): Add location constraint for byte registers (RAX,
       // RBX, RCX, RDX) instead of using a fixed register.
-      locs->set_in(2, Location::FixedRegisterOrSmiConstant(value(), RAX));
+      locs->set_in(2, LocationFixedRegisterOrSmiConstant(value(), RAX));
       break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
@@ -2019,7 +2002,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::RegisterLocation(kWriteBarrierValueReg)
-                           : Location::RegisterOrConstant(value()));
+                           : LocationRegisterOrConstant(value()));
   }
   return summary;
 }
@@ -3375,7 +3358,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
+    summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
@@ -3386,7 +3369,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
+    summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
     if (kNumTemps == 1) {
       summary->set_temp(0, Location::RequiresRegister());
     }
@@ -3399,7 +3382,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_in(0, Location::RequiresRegister());
     ConstantInstr* constant = right()->definition()->AsConstant();
     if (constant != NULL) {
-      summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+      summary->set_in(1, LocationRegisterOrSmiConstant(right()));
     } else {
       summary->set_in(1, Location::PrefersRegister());
     }
@@ -3499,7 +3482,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }  // locs()->in(1).IsConstant().
 
   if (locs()->in(1).IsStackSlot()) {
-    const Address& right = locs()->in(1).ToStackSlotAddress();
+    const Address& right = LocationToStackSlotAddress(locs()->in(1));
     switch (op_kind()) {
       case Token::kADD: {
         __ addq(left, right);
@@ -5385,8 +5368,8 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  locs->set_in(kLengthPos, LocationRegisterOrSmiConstant(length()));
+  locs->set_in(kIndexPos, LocationRegisterOrSmiConstant(index()));
   return locs;
 }
 
@@ -5669,7 +5652,7 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary* summary = new (zone) LocationSummary(
           zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresRegister());
-      summary->set_in(1, Location::RegisterOrConstant(right()));
+      summary->set_in(1, LocationRegisterOrConstant(right()));
       summary->set_out(0, Location::SameAsFirstInput());
       return summary;
     }
@@ -5856,7 +5839,7 @@ LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, RangeUtils::IsPositive(shift_range())
-                         ? Location::FixedRegisterOrConstant(right(), RCX)
+                         ? LocationFixedRegisterOrConstant(right(), RCX)
                          : Location::RegisterLocation(RCX));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
@@ -5902,7 +5885,7 @@ LocationSummary* SpeculativeShiftInt64OpInstr::MakeLocationSummary(
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
+  summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -5976,7 +5959,7 @@ LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, RangeUtils::IsPositive(shift_range())
-                         ? Location::FixedRegisterOrConstant(right(), RCX)
+                         ? LocationFixedRegisterOrConstant(right(), RCX)
                          : Location::RegisterLocation(RCX));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
@@ -6021,7 +6004,7 @@ LocationSummary* SpeculativeShiftUint32OpInstr::MakeLocationSummary(
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
+  summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -6391,12 +6374,12 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   }
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(0, LocationRegisterOrConstant(left()));
   // Only one of the inputs can be a constant. Choose register if the first one
   // is a constant.
   locs->set_in(1, locs->in(0).IsConstant()
                       ? Location::RequiresRegister()
-                      : Location::RegisterOrConstant(right()));
+                      : LocationRegisterOrConstant(right()));
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
@@ -6498,10 +6481,14 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#ifdef PRODUCT
+  UNREACHABLE();
+#else
   ASSERT(!compiler->is_optimizing());
   __ CallPatchable(StubCode::DebugStepCheck());
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
+#endif
 }
 
 }  // namespace dart

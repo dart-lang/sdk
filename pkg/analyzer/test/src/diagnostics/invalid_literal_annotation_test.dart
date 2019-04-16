@@ -30,7 +30,7 @@ class A {
 
   test_nonConstConstructor() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
@@ -41,7 +41,7 @@ class A {
 
   test_nonConstructor() async {
     addMetaPackage();
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal

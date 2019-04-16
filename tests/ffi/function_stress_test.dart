@@ -18,15 +18,21 @@ import 'dylib_utils.dart';
 import "package:expect/expect.dart";
 import 'gc_helper.dart';
 
-test(GCWatcher watcher, void Function() testee,
-    {bool mustTriggerGC: true}) async {
+test(GCWatcher watcher, Function testee,
+    {bool mustTriggerGC: true, bool batched: false}) async {
   // Warmup.
   for (int i = 0; i < 1000; ++i) {
-    testee();
+    batched ? testee(1) : testee();
   }
   int size = await watcher.size();
-  for (int i = 0; i < 1000000; ++i) {
-    testee();
+  for (int i = 0; i < 1000000;) {
+    if (batched) {
+      testee(1000);
+      i += 1000;
+    } else {
+      testee();
+      i++;
+    }
   }
   int new_size = await watcher.size();
   if (mustTriggerGC) {
@@ -44,6 +50,8 @@ main() async {
     await test(watcher, testBoxInt32, mustTriggerGC: false);
     await test(watcher, testBoxDouble);
     await test(watcher, testBoxPointer);
+    await test(watcher, testAllocateMints, batched: true);
+    await test(watcher, testAllocationsInDart, batched: true);
   } finally {
     watcher.dispose();
   }
@@ -56,9 +64,11 @@ typedef NativeNullaryOp64 = ffi.Int64 Function();
 typedef NativeNullaryOp32 = ffi.Int32 Function();
 typedef NativeNullaryOpDouble = ffi.Double Function();
 typedef NativeNullaryOpPtr = ffi.Pointer<ffi.Void> Function();
+typedef NativeUnaryOp = ffi.Void Function(ffi.Uint64);
 typedef NullaryOp = int Function();
 typedef NullaryOpDbl = double Function();
 typedef NullaryOpPtr = ffi.Pointer<ffi.Void> Function();
+typedef UnaryOp = void Function(int);
 
 //// These functions return values that require boxing into different types.
 
@@ -99,4 +109,35 @@ void testBoxPointer() {
       Expect.equals(0x8100000082000000, pointer.address);
     }
   }
+}
+
+final allocateMint =
+    ffiTestFunctions.lookupFunction<NativeUnaryOp, UnaryOp>("AllocateMints");
+
+// Test GC in the FFI call path by calling a C function which allocates through
+// the Dart API.
+void testAllocateMints(int batchSize) {
+  allocateMint(batchSize);
+}
+
+class C {
+  final int i;
+  C(this.i);
+}
+
+C c = null;
+@pragma("vm:entry-point", "call")
+void testAllocationsInDartHelper(int count) {
+  for (int i = 0; i < count; ++i) {
+    c = C(i);
+  }
+}
+
+final allocateThroughDart = ffiTestFunctions
+    .lookupFunction<NativeUnaryOp, UnaryOp>("AllocateThroughDart");
+
+// Test GC in the FFI call path by calling a C function which allocates by
+// calling back into Dart ('testAllocationsInDartHelper').
+void testAllocationsInDart(int batchSize) {
+  allocateThroughDart(batchSize * 10);
 }

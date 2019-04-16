@@ -233,6 +233,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // the pointer.
   Fragment FfiPointerFromAddress(const Type& result_type);
 
+  // Bit-wise cast between representations.
+  // Pops the input and pushes the converted result.
+  // Currently only works with equal sizes and floating point <-> integer.
+  Fragment BitCast(Representation from, Representation to);
+
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   // Build argument type checks for the current function.

@@ -675,10 +675,10 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       Location loc;
       switch (param->kind()) {
         case SpecialParameterInstr::kException:
-          loc = Location::ExceptionLocation();
+          loc = LocationExceptionLocation();
           break;
         case SpecialParameterInstr::kStackTrace:
-          loc = Location::StackTraceLocation();
+          loc = LocationStackTraceLocation();
           break;
         default:
           UNREACHABLE();
@@ -764,7 +764,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     ASSERT(param->kind() == SpecialParameterInstr::kArgDescriptor);
     Location loc;
 #if defined(TARGET_ARCH_DBC)
-    loc = Location::ArgumentsDescriptorLocation();
+    loc = LocationArgumentsDescriptorLocation();
 #else
     loc = Location::RegisterLocation(ARGS_DESC_REG);
 #endif  // defined(TARGET_ARCH_DBC)
@@ -2049,7 +2049,7 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   if (register_kind_ == Location::kRegister) {
     const intptr_t slot_index =
         compiler::target::frame_layout.FrameSlotForVariableIndex(-idx);
-    range->set_spill_slot(Location::StackSlot(slot_index));
+    range->set_spill_slot(Location::StackSlot(slot_index, FPREG));
   } else {
     // We use the index of the slot with the lowest address as an index for the
     // FPU register spill slot. In terms of indexes this relation is inverted:
@@ -2064,11 +2064,11 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
         (range->representation() == kUnboxedInt32x4) ||
         (range->representation() == kUnboxedFloat64x2)) {
       ASSERT(need_quad);
-      location = Location::QuadStackSlot(slot_idx);
+      location = Location::QuadStackSlot(slot_idx, FPREG);
     } else {
       ASSERT(range->representation() == kUnboxedFloat ||
              range->representation() == kUnboxedDouble);
-      location = Location::DoubleStackSlot(slot_idx);
+      location = Location::DoubleStackSlot(slot_idx, FPREG);
     }
     range->set_spill_slot(location);
   }

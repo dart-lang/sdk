@@ -31,7 +31,7 @@ import 'package:meta/meta.dart';
   }
 
   test_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 @sealed mixin M {}
@@ -51,7 +51,7 @@ abstract class B {}
   }
 
   test_nonClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 
 @sealed m({a = 1}) => null;

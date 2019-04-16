@@ -121,7 +121,9 @@ class Zone;
     StubCode::DeoptimizeLazyFromThrow().raw(), NULL)                           \
   V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest().raw(), NULL)      \
   V(RawCode*, lazy_specialize_type_test_stub_,                                 \
-    StubCode::LazySpecializeTypeTest().raw(), NULL)
+    StubCode::LazySpecializeTypeTest().raw(), NULL)                            \
+  V(RawCode*, enter_safepoint_stub_, StubCode::EnterSafepoint().raw(), NULL)   \
+  V(RawCode*, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), NULL)
 
 #endif
 
@@ -306,6 +308,10 @@ class Thread : public ThreadState {
                : stack_overflow_shared_without_fpu_regs_entry_point_offset();
   }
 #endif
+
+  static intptr_t safepoint_state_offset() {
+    return OFFSET_OF(Thread, safepoint_state_);
+  }
 
   TaskKind task_kind() const { return task_kind_; }
 
@@ -673,8 +679,8 @@ class Thread : public ThreadState {
     do {
       old_state = safepoint_state_;
       new_state = SafepointRequestedField::update(value, old_state);
-    } while (AtomicOperations::CompareAndSwapUint32(
-                 &safepoint_state_, old_state, new_state) != old_state);
+    } while (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state,
+                                                  new_state) != old_state);
     return old_state;
   }
   static bool IsBlockedForSafepoint(uint32_t state) {
@@ -706,7 +712,10 @@ class Thread : public ThreadState {
     return static_cast<ExecutionState>(execution_state_);
   }
   void set_execution_state(ExecutionState state) {
-    execution_state_ = static_cast<uint32_t>(state);
+    execution_state_ = static_cast<uword>(state);
+  }
+  static intptr_t execution_state_offset() {
+    return OFFSET_OF(Thread, execution_state_);
   }
 
   virtual bool MayAllocateHandles() {
@@ -714,10 +723,13 @@ class Thread : public ThreadState {
            (execution_state() == kThreadInGenerated);
   }
 
+  static uword safepoint_state_unacquired() { return SetAtSafepoint(false, 0); }
+  static uword safepoint_state_acquired() { return SetAtSafepoint(true, 0); }
+
   bool TryEnterSafepoint() {
     uint32_t new_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, 0,
-                                               new_state) != 0) {
+    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, 0, new_state) !=
+        0) {
       return false;
     }
     return true;
@@ -735,8 +747,8 @@ class Thread : public ThreadState {
 
   bool TryExitSafepoint() {
     uint32_t old_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, old_state,
-                                               0) != old_state) {
+    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state, 0) !=
+        old_state) {
       return false;
     }
     return true;
@@ -838,6 +850,8 @@ class Thread : public ThreadState {
   RawObject* active_stacktrace_;
   RawObjectPool* global_object_pool_;
   uword resume_pc_;
+  uword execution_state_;
+  uword safepoint_state_;
 
   // ---- End accessed from generated code. ----
 
@@ -889,8 +903,6 @@ class Thread : public ThreadState {
   class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
   class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
   class BypassSafepointsField : public BitField<uint32_t, bool, 3, 1> {};
-  uint32_t safepoint_state_;
-  uint32_t execution_state_;
 
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_;

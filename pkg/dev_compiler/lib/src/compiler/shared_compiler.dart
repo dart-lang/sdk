@@ -234,33 +234,34 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Emits a private name JS Symbol for [name] scoped to the Dart [library].
   ///
   /// If the same name is used in multiple libraries in the same module,
-  /// distinct symbols will be used, so the names cannot be referenced outside
-  /// of their library.
+  /// distinct symbols will be used, so each library will have distinct private
+  /// member names, that won't collide at runtime, as required by the Dart
+  /// language spec.
   @protected
   JS.TemporaryId emitPrivateNameSymbol(Library library, String name) {
-    // TODO(jmesserly): fix this to support referring to private symbols from
-    // libraries that aren't in the current module.
-    //
-    // This is needed for several uses cases:
-    // - const instances of classes (which directly initialize fields via an
-    //   object literal).
-    // - noSuchMethod stubs created when an interface is implemented that had
-    //   private members from another library.
-    // - stateful hot reload, where we need the ability to patch private
-    //   class members.
-    //
-    // See https://github.com/dart-lang/sdk/issues/36252
-    return _privateNames.putIfAbsent(library, () => HashMap()).putIfAbsent(name,
-        () {
-      var idName = name;
-      if (idName.endsWith('=')) {
-        idName = idName.replaceAll('=', '_');
-      }
+    /// Initializes the JS `Symbol` for the private member [name] in [library].
+    ///
+    /// If the library is in the current JS module ([_libraries] contains it),
+    /// the private name will be created and exported. The exported symbol is
+    /// used for a few things:
+    ///
+    /// - private fields of constant objects
+    /// - stateful hot reload (not yet implemented)
+    /// - correct library scope in REPL (not yet implemented)
+    ///
+    /// If the library is imported, then the existing private name will be
+    /// retrieved from it. In both cases, we use the same `dart.privateName`
+    /// runtime call.
+    JS.TemporaryId initPrivateNameSymbol() {
+      var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
       var id = JS.TemporaryId(idName);
-      moduleItems.add(
-          js.statement('const # = Symbol(#);', [id, js.string(name, "'")]));
+      moduleItems.add(js.statement('const # = #.privateName(#, #)',
+          [id, runtimeModule, emitLibraryName(library), js.string(name)]));
       return id;
-    });
+    }
+
+    var privateNames = _privateNames.putIfAbsent(library, () => HashMap());
+    return privateNames.putIfAbsent(name, initPrivateNameSymbol);
   }
 
   /// Emits an expression to set the property [nameExpr] on the class [className],
@@ -409,6 +410,23 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     }
 
     items.add(JS.ExportDeclaration(JS.ExportClause(exports)));
+
+    if (isBuildingSdk) {
+      // Initialize the private name function.
+      // To bootstrap the SDK, this needs to be emitted before other code.
+      var symbol = JS.TemporaryId('_privateNames');
+      items.add(js.statement('const # = Symbol("_privateNames")', symbol));
+      items.add(js.statement(r'''
+        #.privateName = function(library, name) {
+          let names = library[#];
+          if (names == null) names = library[#] = new Map();
+          let symbol = names.get(name);
+          if (symbol == null) names.set(name, symbol = Symbol(name));
+          return symbol;
+        }
+      ''', [runtimeModule, symbol, symbol]));
+    }
+
     return items;
   }
 

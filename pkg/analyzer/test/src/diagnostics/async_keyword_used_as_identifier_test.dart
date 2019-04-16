@@ -23,7 +23,9 @@ f() async {
   g(@async x) {}
   g(0);
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 38, 5),
+    ]);
   }
 
   test_async_argumentLabel() async {
@@ -31,23 +33,33 @@ f() async {
 f(c) async {
   c.g(async: 0);
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 19, 5),
+    ]);
   }
 
   test_async_async() async {
     await assertErrorsInCode('''
 f() async {
   var async = 1;
+  print(async);
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 37, 5),
+    ]);
   }
 
   test_async_asyncStar() async {
     await assertErrorsInCode('''
 f() async* {
   var async = 1;
+  print(async);
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 19, 5),
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 38, 5),
+    ]);
   }
 
   test_async_break() async {
@@ -58,8 +70,8 @@ f() async {
   }
 }
 ''', [
-      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
-      CompileTimeErrorCode.LABEL_UNDEFINED
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 39, 5),
+      error(CompileTimeErrorCode.LABEL_UNDEFINED, 39, 5),
     ]);
   }
 
@@ -71,7 +83,9 @@ f() async {
     g();
   } catch (async) { }
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 47, 5),
+    ]);
   }
 
   test_async_catchStacktrace() async {
@@ -82,7 +96,10 @@ f() async {
     g();
   } catch (e, async) { }
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 50, 5),
+      error(HintCode.UNUSED_CATCH_STACK, 50, 5),
+    ]);
   }
 
   test_async_continue() async {
@@ -93,8 +110,8 @@ f() async {
   }
 }
 ''', [
-      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
-      CompileTimeErrorCode.LABEL_UNDEFINED
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 42, 5),
+      error(CompileTimeErrorCode.LABEL_UNDEFINED, 42, 5),
     ]);
   }
 
@@ -104,7 +121,9 @@ var async;
 f() async {
   for (async in []) {}
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 30, 5),
+    ]);
   }
 
   test_async_formalParameter() async {
@@ -113,7 +132,9 @@ f() async {
   g(int async) {}
   g(0);
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 20, 5),
+    ]);
   }
 
   test_async_getter() async {
@@ -124,7 +145,9 @@ class C {
 f() async {
   return new C().async;
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 63, 5),
+    ]);
   }
 
   test_async_invocation() async {
@@ -135,7 +158,9 @@ class C {
 f() async {
   return new C().async();
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 61, 5),
+    ]);
   }
 
   test_async_invocation_cascaded() async {
@@ -146,7 +171,9 @@ class C {
 f() async {
   return new C()..async();
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 62, 5),
+    ]);
   }
 
   test_async_label() async {
@@ -155,15 +182,22 @@ f() async {
   async: g();
 }
 g() {}
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, HintCode.UNUSED_LABEL]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 14, 5),
+      error(HintCode.UNUSED_LABEL, 14, 6),
+    ]);
   }
 
   test_async_localFunction() async {
     await assertErrorsInCode('''
 f() async {
   int async() => null;
+  async();
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 37, 5),
+    ]);
   }
 
   test_async_prefix() async {
@@ -172,7 +206,9 @@ import 'dart:async' as async;
 f() async {
   return new async.Future.value(0);
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 55, 5),
+    ]);
   }
 
   test_async_setter() async {
@@ -183,7 +219,9 @@ class C {
 f() async {
   new C().async = 1;
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 61, 5),
+    ]);
   }
 
   test_async_setter_cascaded() async {
@@ -194,7 +232,9 @@ class C {
 f() async {
   return new C()..async = 1;
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 69, 5),
+    ]);
   }
 
   test_async_stringInterpolation() async {
@@ -203,7 +243,9 @@ int async = 1;
 f() async {
   return "$async";
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 38, 5),
+    ]);
   }
 
   test_async_suffix() async {
@@ -216,7 +258,9 @@ import 'lib1.dart' as l;
 f() async {
   return l.async;
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 48, 5),
+    ]);
   }
 
   test_async_switchLabel() async {
@@ -226,15 +270,22 @@ f() async {
     async: case 0: break;
   }
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, HintCode.UNUSED_LABEL]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 31, 5),
+      error(HintCode.UNUSED_LABEL, 31, 6),
+    ]);
   }
 
   test_async_syncStar() async {
     await assertErrorsInCode('''
 f() sync* {
   var async = 1;
+  print(async);
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 37, 5),
+    ]);
   }
 
   test_await_async() async {
@@ -242,7 +293,10 @@ f() sync* {
 f() async {
   var await = 1;
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+    ]);
   }
 
   test_await_asyncStar() async {
@@ -250,7 +304,10 @@ f() async {
 f() async* {
   var await = 1;
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 19, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 5),
+    ]);
   }
 
   test_await_syncStar() async {
@@ -258,6 +315,9 @@ f() async* {
 f() sync* {
   var await = 1;
 }
-''', [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+''', [
+      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+    ]);
   }
 }

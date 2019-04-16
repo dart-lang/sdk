@@ -28,7 +28,7 @@ class A {}''');
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.DUPLICATE_IMPORT]);
+    assertTestErrorsWithCodes([HintCode.DUPLICATE_IMPORT]);
   }
 
   test_importsHaveIdenticalShowHide() async {
@@ -45,7 +45,7 @@ class B {}''');
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.DUPLICATE_IMPORT]);
+    assertTestErrorsWithCodes([HintCode.DUPLICATE_IMPORT]);
   }
 
   test_oneImportHasHide() async {
@@ -114,7 +114,8 @@ class A {}''');
 
     await _resolveTestFile('/lib1.dart');
     await _resolveTestFile('/lib2.dart');
-    assertTestErrors([HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
+    assertTestErrorsWithCodes(
+        [HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
   }
 
   /// Resolve the test file at [path].

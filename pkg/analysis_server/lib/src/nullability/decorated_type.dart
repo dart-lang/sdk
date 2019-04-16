@@ -51,8 +51,8 @@ class DecoratedType {
   /// presumed to have come from code that is already migrated.
   factory DecoratedType.forElement(Element element) {
     DecoratedType decorate(DartType type) {
-      assert((type as TypeImpl).nullability ==
-          Nullability.indeterminate); // TODO(paulberry)
+      assert((type as TypeImpl).nullabilitySuffix ==
+          NullabilitySuffix.star); // TODO(paulberry)
       if (type is FunctionType) {
         var decoratedType = DecoratedType(type, NullabilityNode.never,
             returnType: decorate(type.returnType), positionalParameters: []);

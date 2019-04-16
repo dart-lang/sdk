@@ -105,7 +105,7 @@ print(x) {}
   }
 
   test_unusedField_notUsed_compoundAssign() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   main() {
@@ -116,7 +116,7 @@ class A {
   }
 
   test_unusedField_notUsed_constructorFieldInitializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   A() : _f = 0;
@@ -125,7 +125,7 @@ class A {
   }
 
   test_unusedField_notUsed_fieldFormalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   A(this._f);
@@ -134,7 +134,7 @@ class A {
   }
 
   test_unusedField_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
 }
@@ -154,7 +154,7 @@ doSomething() => 0;
   }
 
   test_unusedField_notUsed_postfixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f = 0;
   main() {
@@ -165,7 +165,7 @@ class A {
   }
 
   test_unusedField_notUsed_prefixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f = 0;
   main() {
@@ -176,7 +176,7 @@ class A {
   }
 
   test_unusedField_notUsed_simpleAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   m() {

@@ -2058,6 +2058,30 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   void test_nullCheckPropertyAccess3() {
     parseNNBDCompilationUnit('f() { var x = super.p! + 7; }');
   }
+
+  void test_postfix_null_assertion_and_unary_prefix_operator_precedence() {
+    // -x! is parsed as -(x!).
+    var unit = parseNNBDCompilationUnit('void main() { -x!; }');
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var outerExpression = statement.expression as PrefixExpression;
+    expect(outerExpression.operator.type, TokenType.MINUS);
+    var innerExpression = outerExpression.operand as PostfixExpression;
+    expect(innerExpression.operator.type, TokenType.BANG);
+  }
+
+  void test_postfix_null_assertion_of_postfix_expression() {
+    // x++! is parsed as (x++)!.
+    var unit = parseNNBDCompilationUnit('void main() { x++!; }');
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var outerExpression = statement.expression as PostfixExpression;
+    expect(outerExpression.operator.type, TokenType.BANG);
+    var innerExpression = outerExpression.operand as PostfixExpression;
+    expect(innerExpression.operator.type, TokenType.PLUS_PLUS);
+  }
 }
 
 /**
@@ -2730,6 +2754,101 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
+  void test_languageVersion_afterImport() {
+    var unit = parseCompilationUnit('''
+import 'foo.dart';
+// @dart = 2.3
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_beforeComment() {
+    var unit = parseCompilationUnit('''
+// some other comment
+// @dart = 2.3
+// yet another comment
+import 'foo.dart';
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeFunction() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.3
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeImport() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeImport_afterScript() {
+    var unit = parseCompilationUnit('''
+#!/bin/dart
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_beforeLibrary() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.3
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion.major, 2);
+    expect(unit.languageVersion.minor, 3);
+  }
+
+  void test_languageVersion_incomplete_version() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_invalid_identifier() {
+    var unit = parseCompilationUnit('''
+// @dart = blat
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_invalid_version() {
+    var unit = parseCompilationUnit('''
+// @dart = 2.x
+library foo;
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
+  void test_languageVersion_unspecified() {
+    var unit = parseCompilationUnit('''
+main() {}
+''') as CompilationUnitImpl;
+    expect(unit.languageVersion, isNull);
+  }
+
   void test_parseClassDeclaration_native_allowed() {
     allowNativeClause = true;
     test_parseClassDeclaration_native();

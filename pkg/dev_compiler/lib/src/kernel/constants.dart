@@ -41,10 +41,10 @@ class DevCompilerConstants {
     return result is UnevaluatedConstant ? null : result;
   }
 
-  /// If [node] is an annotation with a field named `name`, returns that field's
+  /// If [node] is an annotation with a field named [name], returns that field's
   /// value.
   ///
-  /// This assumes the `name` field is populated from a named argument `name:`
+  /// This assumes the field is populated from a named argument with that name,
   /// or from the first positional argument.
   ///
   /// For example:
@@ -59,36 +59,56 @@ class DevCompilerConstants {
   ///     main() { ... }
   ///
   /// Given the node for `@MyAnnotation('FooBar')` this will return `'FooBar'`.
-  String getNameFromAnnotation(ConstructorInvocation node) {
-    if (node == null) return null;
+  Object getFieldValueFromAnnotation(Expression node, String name) {
+    node = unwrapUnevaluatedConstant(node);
+    if (node is ConstantExpression) {
+      var constant = node.constant;
+      if (constant is InstanceConstant) {
+        var value = constant.fieldValues.entries
+            .firstWhere((e) => e.key.asField.name.name == name,
+                orElse: () => null)
+            ?.value;
+        if (value is PrimitiveConstant) return value.value;
+        if (value is UnevaluatedConstant) {
+          return _evaluateAnnotationArgument(value.expression);
+        }
+        return null;
+      }
+    }
 
     // TODO(jmesserly): this does not use the normal evaluation engine, because
     // it won't work if we don't have the const constructor body available.
     //
     // We may need to address this in the kernel outline files.
-    Expression first;
-    var named = node.arguments.named;
-    if (named.isNotEmpty) {
-      first =
-          named.firstWhere((n) => n.name == 'name', orElse: () => null)?.value;
-    }
-    var positional = node.arguments.positional;
-    if (positional.isNotEmpty) first ??= positional[0];
-    if (first != null) {
-      first = _followConstFields(first);
-      if (first is StringLiteral) return first.value;
+    if (node is ConstructorInvocation) {
+      Expression first;
+      var named = node.arguments.named;
+      if (named.isNotEmpty) {
+        first =
+            named.firstWhere((n) => n.name == name, orElse: () => null)?.value;
+      }
+      var positional = node.arguments.positional;
+      if (positional.isNotEmpty) first ??= positional[0];
+      if (first != null) {
+        return _evaluateAnnotationArgument(first);
+      }
     }
     return null;
   }
 
-  Expression _followConstFields(Expression expr) {
-    if (expr is StaticGet) {
-      var target = expr.target;
+  Object _evaluateAnnotationArgument(Expression node) {
+    node = unwrapUnevaluatedConstant(node);
+    if (node is ConstantExpression) {
+      var constant = node.constant;
+      if (constant is PrimitiveConstant) return constant.value;
+    }
+    if (node is StaticGet) {
+      var target = node.target;
       if (target is Field) {
-        return _followConstFields(target.initializer);
+        return _evaluateAnnotationArgument(target.initializer);
       }
     }
-    return expr;
+    return node is BasicLiteral ? node.value : null;
   }
 }
 

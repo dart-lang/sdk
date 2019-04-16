@@ -33,7 +33,8 @@ import 'generics.dart'
         getDefaultFunctionTypeArguments,
         getInstantiatorTypeArguments,
         hasFreeTypeParameters,
-        hasInstantiatorTypeArguments;
+        hasInstantiatorTypeArguments,
+        isUncheckedCall;
 import 'local_vars.dart' show LocalVariables;
 import 'nullability_detector.dart' show NullabilityDetector;
 import 'object_table.dart' show ObjectHandle, ObjectTable, NameAndType;
@@ -2252,6 +2253,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         break;
 
       case Opcode.kNegateInt:
+      case Opcode.kNegateDouble:
         _generateNode(node.receiver);
         break;
 
@@ -2270,6 +2272,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       case Opcode.kCompareIntLt:
       case Opcode.kCompareIntGe:
       case Opcode.kCompareIntLe:
+      case Opcode.kAddDouble:
+      case Opcode.kSubDouble:
+      case Opcode.kMulDouble:
+      case Opcode.kDivDouble:
+      case Opcode.kCompareDoubleEq:
+      case Opcode.kCompareDoubleGt:
+      case Opcode.kCompareDoubleLt:
+      case Opcode.kCompareDoubleGe:
+      case Opcode.kCompareDoubleLe:
         _generateNode(node.receiver);
         _generateNode(node.arguments.positional.single);
         break;
@@ -2281,9 +2292,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitBytecode0(opcode);
   }
 
-  void _genInstanceCall(int totalArgCount, int callCpIndex, bool isDynamic) {
+  void _genInstanceCall(
+      int totalArgCount, int callCpIndex, bool isDynamic, bool isUnchecked) {
     if (isDynamic) {
+      assert(!isUnchecked);
       asm.emitDynamicCall(totalArgCount, callCpIndex);
+    } else if (isUnchecked) {
+      asm.emitUncheckedInterfaceCall(totalArgCount, callCpIndex);
     } else {
       asm.emitInterfaceCall(totalArgCount, callCpIndex);
     }
@@ -2305,6 +2320,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       interfaceTarget = null;
     }
     final isDynamic = interfaceTarget == null;
+    final isUnchecked =
+        isUncheckedCall(interfaceTarget, node.receiver, typeEnvironment);
     _genArguments(node.receiver, args);
     final argDesc =
         objectTable.getArgDescHandleByArguments(args, hasReceiver: true);
@@ -2314,7 +2331,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         args.named.length +
         1 /* receiver */ +
         (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
-    _genInstanceCall(totalArgCount, callCpIndex, isDynamic);
+    _genInstanceCall(totalArgCount, callCpIndex, isDynamic, isUnchecked);
   }
 
   @override
@@ -2324,7 +2341,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final argDesc = objectTable.getArgDescHandle(1);
     final callCpIndex = cp.addInstanceCall(
         InvocationKind.getter, node.interfaceTarget, node.name, argDesc);
-    _genInstanceCall(1, callCpIndex, isDynamic);
+    _genInstanceCall(1, callCpIndex, isDynamic, /*isUnchecked=*/ false);
   }
 
   @override
@@ -2340,10 +2357,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     final isDynamic = node.interfaceTarget == null;
+    final isUnchecked =
+        isUncheckedCall(node.interfaceTarget, node.receiver, typeEnvironment);
     final argDesc = objectTable.getArgDescHandle(2);
     final callCpIndex = cp.addInstanceCall(
         InvocationKind.setter, node.interfaceTarget, node.name, argDesc);
-    _genInstanceCall(2, callCpIndex, isDynamic);
+    _genInstanceCall(2, callCpIndex, isDynamic, isUnchecked);
     asm.emitDrop1();
 
     if (hasResult) {

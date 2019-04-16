@@ -30,7 +30,7 @@ import 'package:foo/foo.dart';
 mixin Bar on Foo {}
 ''');
     await _resolveTestFile('/pkg1/lib/lib1.dart');
-    assertTestErrors([HintCode.MIXIN_ON_SEALED_CLASS]);
+    assertTestErrorsWithCodes([HintCode.MIXIN_ON_SEALED_CLASS]);
   }
 
   test_withinLibrary_OK() async {

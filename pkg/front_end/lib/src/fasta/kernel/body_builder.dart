@@ -2316,6 +2316,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
+
+    if (constantContext != ConstantContext.none &&
+        !library.loader.target.enableConstantUpdate2018) {
+      handleRecoverableError(
+          fasta.templateCantUseControlFlowOrSpreadAsConstant
+              .withArguments(forToken),
+          forToken,
+          forToken);
+      push(invalidCollectionElement);
+      return;
+    }
+
     transformCollections = true;
     List<VariableDeclaration> variables =
         buildVariableDeclarations(variableOrExpression);
@@ -3718,6 +3730,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
+
+    if (constantContext != ConstantContext.none &&
+        !library.loader.target.enableConstantUpdate2018) {
+      handleRecoverableError(
+          fasta.templateCantUseControlFlowOrSpreadAsConstant
+              .withArguments(ifToken),
+          ifToken,
+          ifToken);
+      push(invalidCollectionElement);
+      return;
+    }
+
     transformCollections = true;
     if (entry is MapEntry) {
       push(forest.ifMapEntry(toValue(condition), entry, null, ifToken));
@@ -3744,6 +3768,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
+
+    if (constantContext != ConstantContext.none &&
+        !library.loader.target.enableConstantUpdate2018) {
+      handleRecoverableError(
+          fasta.templateCantUseControlFlowOrSpreadAsConstant
+              .withArguments(ifToken),
+          ifToken,
+          ifToken);
+      push(invalidCollectionElement);
+      return;
+    }
+
     transformCollections = true;
     if (thenEntry is MapEntry) {
       if (elseEntry is MapEntry) {
@@ -3804,6 +3840,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
+
+    if (constantContext != ConstantContext.none &&
+        !library.loader.target.enableConstantUpdate2018) {
+      handleRecoverableError(
+          fasta.templateCantUseControlFlowOrSpreadAsConstant
+              .withArguments(spreadToken),
+          spreadToken,
+          spreadToken);
+      push(invalidCollectionElement);
+      return;
+    }
+
     transformCollections = true;
     push(forest.spreadElement(toValue(expression), spreadToken));
   }
@@ -4115,6 +4163,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
+
+    if (constantContext != ConstantContext.none &&
+        !library.loader.target.enableConstantUpdate2018) {
+      handleRecoverableError(
+          fasta.templateCantUseControlFlowOrSpreadAsConstant
+              .withArguments(forToken),
+          forToken,
+          forToken);
+      push(invalidCollectionElement);
+      return;
+    }
+
     transformCollections = true;
     VariableDeclaration variable = buildForInVariable(lvalue);
     Expression problem = checkForInVariable(lvalue, variable, forToken);

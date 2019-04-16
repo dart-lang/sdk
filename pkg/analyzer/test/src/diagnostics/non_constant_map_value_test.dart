@@ -12,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapValueTest);
+    defineReflectiveTests(NonConstantMapValueWithUiAsCodeAndConstantsTest);
     defineReflectiveTests(NonConstantMapValueWithUiAsCodeTest);
   });
 }
@@ -19,11 +20,23 @@ main() {
 @reflectiveTest
 class NonConstantMapValueTest extends DriverResolutionTest {
   test_const_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 final dynamic a = 0;
 var v = const {'a' : a};
 ''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
   }
+}
+
+@reflectiveTest
+class NonConstantMapValueWithUiAsCodeAndConstantsTest
+    extends NonConstantMapValueWithUiAsCodeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.control_flow_collections,
+      EnableString.spread_collections,
+      EnableString.constant_update_2018
+    ];
 }
 
 @reflectiveTest
@@ -36,18 +49,29 @@ class NonConstantMapValueWithUiAsCodeTest extends NonConstantMapValueTest {
     ];
 
   test_const_ifTrue_elseFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a': 'b', 'c' : a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [
+                CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
+                CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT
+              ]);
   }
 
   test_const_ifTrue_thenFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(
+        r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a' : a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 }

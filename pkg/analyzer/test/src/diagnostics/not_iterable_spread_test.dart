@@ -38,28 +38,28 @@ var v = [...?null];
   }
 
   test_notIterable_direct() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = [...a];
 ''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
   }
 
   test_notIterable_forElement() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = [for (var i in []) ...a];
 ''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
   }
 
   test_notIterable_ifElement_else() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = [if (1 > 0) ...[] else ...a];
 ''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
   }
 
   test_notIterable_ifElement_then() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var a = 0;
 var v = [if (1 > 0) ...a];
 ''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);

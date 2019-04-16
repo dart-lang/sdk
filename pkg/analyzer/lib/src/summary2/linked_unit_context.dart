@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -26,6 +27,17 @@ class LinkedUnitContext {
 
   CompilationUnit _unit;
   bool _hasDirectivesRead = false;
+
+  /// Mapping from identifiers to real or synthetic type parameters.
+  ///
+  /// Real type parameters have corresponding [TypeParameter] nodes, and are
+  /// referenced from other AST nodes.
+  ///
+  /// Synthetic type parameters are added when [readType] begins reading a
+  /// [FunctionType], and removed when reading is done.
+  final Map<int, TypeParameterElement> _typeParameters = {};
+
+  int _nextSyntheticTypeParameterId = 0x10000;
 
   LinkedUnitContext(this.bundleContext, this.libraryContext,
       this.indexInLibrary, this.uriStr, this.data,
@@ -59,11 +71,20 @@ class LinkedUnitContext {
     return _unit;
   }
 
-  /// Return the absolute URI referenced in the [directive].
-  Uri directiveUri(Uri libraryUri, UriBasedDirective directive) {
-    var relativeUriStr = directive.uri.stringValue;
-    var relativeUri = Uri.parse(relativeUriStr);
-    return resolveRelativeUri(libraryUri, relativeUri);
+  /// Every [TypeParameter] node has [TypeParameterElement], which is created
+  /// during reading of this node. All type parameter nodes are read before
+  /// any nodes that reference them (bounds are read lazily later).
+  void addTypeParameter(int id, TypeParameter node) {
+    var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
+    _typeParameters[id] = element;
+    node.name.staticElement = element;
+  }
+
+  /// Return the [LibraryElement] referenced in the [node].
+  LibraryElement directiveLibrary(UriBasedDirective node) {
+    var uriStr = LazyDirective.getSelectedUri(node);
+    if (uriStr == null || uriStr.isEmpty) return null;
+    return bundleContext.elementFactory.libraryOfUri(uriStr);
   }
 
   int getCodeLength(AstNode node) {
@@ -114,6 +135,18 @@ class LinkedUnitContext {
       return getSimpleName(name);
     }
     return '';
+  }
+
+  List<ConstructorInitializer> getConstructorInitializers(
+    ConstructorDeclaration node,
+  ) {
+    LazyConstructorDeclaration.readInitializers(_astReader, node);
+    return node.initializers;
+  }
+
+  ConstructorName getConstructorRedirected(ConstructorDeclaration node) {
+    LazyConstructorDeclaration.readRedirectedConstructor(_astReader, node);
+    return node.redirectedConstructor;
   }
 
   Iterable<ConstructorDeclaration> getConstructors(AstNode node) sync* {
@@ -257,7 +290,20 @@ class LinkedUnitContext {
   }
 
   InterfaceType getInterfaceType(LinkedNodeType linkedType) {
-    return bundleContext.getInterfaceType(linkedType);
+    var type = readType(linkedType);
+    if (type is InterfaceType && !type.element.isEnum) {
+      return type;
+    }
+    return null;
+  }
+
+  Comment getLibraryDocumentationComment(CompilationUnit unit) {
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        return directive.documentationComment;
+      }
+    }
+    return null;
   }
 
   List<Annotation> getLibraryMetadata(CompilationUnit unit) {
@@ -448,10 +494,8 @@ class LinkedUnitContext {
 
   TypeParameterList getTypeParameters2(AstNode node) {
     if (node is ClassDeclaration) {
-      LazyClassDeclaration.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is ClassTypeAlias) {
-      LazyClassTypeAlias.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is ConstructorDeclaration) {
       return null;
@@ -459,21 +503,16 @@ class LinkedUnitContext {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return getTypeParameters2(node.functionExpression);
     } else if (node is FunctionExpression) {
-      LazyFunctionExpression.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is FunctionTypeAlias) {
-      LazyFunctionTypeAlias.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is GenericFunctionType) {
       return node.typeParameters;
     } else if (node is GenericTypeAlias) {
-      LazyGenericTypeAlias.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is MethodDeclaration) {
-      LazyMethodDeclaration.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else if (node is MixinDeclaration) {
-      LazyMixinDeclaration.readTypeParameters(_astReader, node);
       return node.typeParameters;
     } else {
       throw UnimplementedError('${node.runtimeType}');
@@ -498,6 +537,30 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  bool hasImplicitReturnType(AstNode node) {
+    if (node is MethodDeclaration) {
+      return node.returnType == null;
+    }
+    return false;
+  }
+
+  bool hasImplicitType(AstNode node) {
+    if (node is VariableDeclaration) {
+      VariableDeclarationList parent = node.parent;
+      return parent.type == null;
+    } else if (node is SimpleFormalParameter) {
+      return node.type == null;
+    }
+    return false;
+  }
+
+  bool hasOverrideInferenceDone(AstNode node) {
+    // Only nodes in the libraries being linked might be not inferred yet.
+    if (_astReader.isLazy) return true;
+
+    return LazyAst.hasOverrideInferenceDone(node);
   }
 
   bool isAbstract(AstNode node) {
@@ -551,8 +614,10 @@ class LinkedUnitContext {
     return isConstKeyword(node.variableDeclarationList_keyword);
   }
 
-  bool isCovariantField(AstNode node) {
-    if (node is VariableDeclaration) {
+  bool isCovariant(AstNode node) {
+    if (node is FormalParameter) {
+      return node.covariantKeyword != null;
+    } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
       return parent2 is FieldDeclaration && parent2.covariantKeyword != null;
     }
@@ -627,6 +692,10 @@ class LinkedUnitContext {
     }
   }
 
+  bool isSimplyBounded(AstNode node) {
+    return LazyAst.isSimplyBounded(node);
+  }
+
   bool isStatic(AstNode node) {
     if (node is FunctionDeclaration) {
       return true;
@@ -659,16 +728,86 @@ class LinkedUnitContext {
     return _astReader.readNode(linkedNode);
   }
 
-  void setReturnType(LinkedNodeBuilder node, DartType type) {
-    throw UnimplementedError();
-//    var typeData = bundleContext.linking.writeType(type);
-//    node.functionDeclaration_returnType2 = typeData;
+  DartType readType(LinkedNodeType linkedType) {
+    if (linkedType == null) return null;
+
+    var kind = linkedType.kind;
+    if (kind == LinkedNodeTypeKind.bottom) {
+      return BottomTypeImpl.instance;
+    } else if (kind == LinkedNodeTypeKind.dynamic_) {
+      return DynamicTypeImpl.instance;
+    } else if (kind == LinkedNodeTypeKind.function) {
+      var typeParameterDataList = linkedType.functionTypeParameters;
+
+      var typeParameters = <TypeParameterElement>[];
+      for (var typeParameterData in typeParameterDataList) {
+        var element = TypeParameterElementImpl(typeParameterData.name, -1);
+        typeParameters.add(element);
+        _typeParameters[_nextSyntheticTypeParameterId++] = element;
+      }
+
+      var returnType = readType(linkedType.functionReturnType);
+      var formalParameters = linkedType.functionFormalParameters.map((p) {
+        var type = readType(p.type);
+        var kind = _formalParameterKind(p.kind);
+        return ParameterElementImpl.synthetic(p.name, type, kind);
+      }).toList();
+
+      for (var i = 0; i < typeParameterDataList.length; ++i) {
+        _typeParameters.remove(--_nextSyntheticTypeParameterId);
+      }
+
+      return FunctionTypeImpl.synthetic(
+        returnType,
+        typeParameters,
+        formalParameters,
+      );
+    } else if (kind == LinkedNodeTypeKind.interface) {
+      var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
+      return InterfaceTypeImpl.explicit(
+        element,
+        linkedType.interfaceTypeArguments.map(readType).toList(),
+      );
+    } else if (kind == LinkedNodeTypeKind.typeParameter) {
+      var id = linkedType.typeParameterId;
+      var element = _typeParameters[id];
+      assert(element != null);
+      return TypeParameterTypeImpl(element);
+    } else if (kind == LinkedNodeTypeKind.void_) {
+      return VoidTypeImpl.instance;
+    } else {
+      throw UnimplementedError('$kind');
+    }
   }
 
-  void setVariableType(LinkedNodeBuilder node, DartType type) {
-    throw UnimplementedError();
-//    var typeData = bundleContext.linking.writeType(type);
-//    node.simpleFormalParameter_type2 = typeData;
+  void setOverrideInferenceDone(AstNode node) {
+    assert(!_astReader.isLazy);
+    LazyAst.setOverrideInferenceDone(node);
+  }
+
+  void setReturnType(AstNode node, DartType type) {
+    LazyAst.setReturnType(node, type);
+  }
+
+  void setVariableType(AstNode node, DartType type) {
+    LazyAst.setType(node, type);
+  }
+
+  bool shouldBeConstFieldElement(AstNode node) {
+    if (node is VariableDeclaration) {
+      VariableDeclarationList variableList = node.parent;
+      if (variableList.isConst) return true;
+
+      if (variableList.isFinal) {
+        ClassDeclaration classDeclaration = variableList.parent.parent;
+        for (var member in classDeclaration.members) {
+          if (member is ConstructorDeclaration && member.constKeyword != null) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   Iterable<VariableDeclaration> topLevelVariables(CompilationUnit unit) sync* {
@@ -679,6 +818,16 @@ class LinkedUnitContext {
         }
       }
     }
+  }
+
+  ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
+    if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
+      return ParameterKind.NAMED;
+    }
+    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
+      return ParameterKind.POSITIONAL;
+    }
+    return ParameterKind.REQUIRED;
   }
 
   List<ClassMember> _getClassOrMixinMembers(ClassOrMixinDeclaration node) {

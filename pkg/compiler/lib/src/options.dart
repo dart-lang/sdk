@@ -314,6 +314,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
+  /// Experimental use of the new (Q2 2019) RTI system.
+  bool experimentNewRti = false;
+
   /// The path to the file that contains the profiled allocations.
   ///
   /// The file must contain the Map that was produced by using
@@ -381,6 +384,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
+      ..experimentNewRti = _hasOption(options, Flags.experimentNewRti)
       ..generateCodeWithCompileTimeErrors =
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)

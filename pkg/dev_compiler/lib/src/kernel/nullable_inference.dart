@@ -242,23 +242,35 @@ class NullableInference extends ExpressionVisitor<bool> {
   visitInstantiation(Instantiation node) => false;
 
   bool isNotNullAnnotation(Expression value) =>
-      _isInternalAnnotationField(value, 'notNull');
+      _isInternalAnnotationField(value, 'notNull', '_NotNull');
 
   bool isNullCheckAnnotation(Expression value) =>
-      _isInternalAnnotationField(value, 'nullCheck');
+      _isInternalAnnotationField(value, 'nullCheck', '_NullCheck');
 
-  bool _isInternalAnnotationField(Expression value, String name) {
-    if (value is StaticGet) {
-      var t = value.target;
-      if (t is Field && t.name.name == name) {
-        var uri = t.enclosingLibrary.importUri;
-        return uri.scheme == 'dart' && uri.pathSegments[0] == '_js_helper' ||
-            allowPackageMetaAnnotations &&
-                uri.scheme == 'package' &&
-                uri.pathSegments[0] == 'meta';
-      }
+  bool _isInternalAnnotationField(
+      Expression node, String fieldName, String className) {
+    node = unwrapUnevaluatedConstant(node);
+    if (node is ConstantExpression) {
+      var constant = node.constant;
+      return constant is InstanceConstant &&
+          constant.classNode.name == className &&
+          _isInternalSdkAnnotation(constant.classNode.enclosingLibrary);
+    }
+    if (node is StaticGet) {
+      var t = node.target;
+      return t is Field &&
+          t.name.name == fieldName &&
+          _isInternalSdkAnnotation(t.enclosingLibrary);
     }
     return false;
+  }
+
+  bool _isInternalSdkAnnotation(Library library) {
+    var uri = library.importUri;
+    return uri.scheme == 'dart' && uri.pathSegments[0] == '_js_helper' ||
+        allowPackageMetaAnnotations &&
+            uri.scheme == 'package' &&
+            uri.pathSegments[0] == 'meta';
   }
 }
 

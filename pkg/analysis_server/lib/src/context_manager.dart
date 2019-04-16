@@ -23,8 +23,8 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -870,6 +870,32 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
+   * Use the given analysis [driver] to analyze the content of the 
+   * AndroidManifest file at the given [path].
+   */
+  void _analyzeManifestFile(AnalysisDriver driver, String path) {
+    List<protocol.AnalysisError> convertedErrors;
+    try {
+      String content = _readFile(path);
+      ManifestValidator validator =
+          new ManifestValidator(resourceProvider.getFile(path).createSource());
+      LineInfo lineInfo = _computeLineInfo(content);
+      List<AnalysisError> errors = validator.validate(
+          content, driver.analysisOptions.chromeOsManifestChecks);
+      AnalyzerConverter converter = new AnalyzerConverter();
+      convertedErrors = converter.convertAnalysisErrors(errors,
+          lineInfo: lineInfo, options: driver.analysisOptions);
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
+    callbacks.notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId,
+        path,
+        convertedErrors ?? <protocol.AnalysisError>[]);
+  }
+
+  /**
    * Use the given analysis [driver] to analyze the content of the pubspec file
    * at the given [path].
    */
@@ -897,32 +923,6 @@ class ContextManagerImpl implements ContextManager {
         convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
-  /**
-   * Use the given analysis [driver] to analyze the content of the 
-   * AndroidManifest file at the given [path].
-   */
-  void _analyzeManifestFile(AnalysisDriver driver, String path) {
-    List<protocol.AnalysisError> convertedErrors;
-    try {
-      String content = _readFile(path);
-      ManifestValidator validator =
-          new ManifestValidator(resourceProvider.getFile(path).createSource());
-      LineInfo lineInfo = _computeLineInfo(content);
-      List<AnalysisError> errors = validator.validate(
-          content, driver.analysisOptions.chromeOsManifestChecks);
-      AnalyzerConverter converter = new AnalyzerConverter();
-      convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: driver.analysisOptions);
-    } catch (exception) {
-      // If the file cannot be analyzed, fall through to clear any previous
-      // errors.
-    }
-    callbacks.notificationManager.recordAnalysisErrors(
-        NotificationManager.serverId,
-        path,
-        convertedErrors ?? <protocol.AnalysisError>[]);
-  }
-
   void _checkForAnalysisOptionsUpdate(String path, ContextInfo info) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       AnalysisDriver driver = info.analysisDriver;
@@ -935,6 +935,19 @@ class ContextManagerImpl implements ContextManager {
       // TODO(brianwilkerson) Set exclusion patterns.
       _analyzeAnalysisOptionsFile(driver, path);
       _updateAnalysisOptions(info);
+    }
+  }
+
+  void _checkForManifestUpdate(String path, ContextInfo info) {
+    if (_isManifest(path)) {
+      AnalysisDriver driver = info.analysisDriver;
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
+      }
+      _analyzeManifestFile(driver, path);
     }
   }
 
@@ -965,19 +978,6 @@ class ContextManagerImpl implements ContextManager {
       }
       _analyzePubspecFile(driver, path);
       _updateAnalysisOptions(info);
-    }
-  }
-
-  void _checkForManifestUpdate(String path, ContextInfo info) {
-    if (_isManifest(path)) {
-      AnalysisDriver driver = info.analysisDriver;
-      if (driver == null) {
-        // I suspect that this happens as a result of a race condition: server
-        // has determined that the file (at [path]) is in a context, but hasn't
-        // yet created a driver for that context.
-        return;
-      }
-      _analyzeManifestFile(driver, path);
     }
   }
 
@@ -1139,10 +1139,23 @@ class ContextManagerImpl implements ContextManager {
     if (pubspecFile.exists) {
       _analyzePubspecFile(info.analysisDriver, pubspecFile.path);
     }
-    File manifestFile = folder.getChildAssumingFile(MANIFEST_NAME);
-    if (manifestFile.exists) {
-      _analyzeManifestFile(info.analysisDriver, manifestFile.path);
+
+    void checkManifestFilesIn(Folder folder) {
+      for (var child in folder.getChildren()) {
+        if (child is File) {
+          if (child.shortName == MANIFEST_NAME &&
+              !excludedPaths.contains(child.path)) {
+            _analyzeManifestFile(info.analysisDriver, child.path);
+          }
+        } else if (child is Folder) {
+          if (!excludedPaths.contains(child.path)) {
+            checkManifestFilesIn(child);
+          }
+        }
+      }
     }
+
+    checkManifestFilesIn(folder);
     return info;
   }
 
@@ -1510,12 +1523,12 @@ class ContextManagerImpl implements ContextManager {
     return false;
   }
 
+  bool _isManifest(String path) => pathContext.basename(path) == MANIFEST_NAME;
+
   bool _isPackagespec(String path) =>
       pathContext.basename(path) == PACKAGE_SPEC_NAME;
 
   bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
-
-  bool _isManifest(String path) => pathContext.basename(path) == MANIFEST_NAME;
 
   /**
    * Merges [info] context into its parent.

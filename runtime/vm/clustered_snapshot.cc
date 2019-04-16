@@ -4685,12 +4685,12 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<empty>");
   AddBaseObject(Object::empty_exception_handlers().raw(), "ExceptionHandlers",
                 "<empty>");
-  ASSERT(Object::implicit_getter_bytecode().raw() != Object::null());
   AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
                 "<implicit getter>");
-  ASSERT(Object::implicit_setter_bytecode().raw() != Object::null());
   AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
                 "<implicit setter>");
+  AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
+                "<method extractor>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -5148,6 +5148,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::empty_exception_handlers().raw());
   AddBaseObject(Object::implicit_getter_bytecode().raw());
   AddBaseObject(Object::implicit_setter_bytecode().raw());
+  AddBaseObject(Object::method_extractor_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);

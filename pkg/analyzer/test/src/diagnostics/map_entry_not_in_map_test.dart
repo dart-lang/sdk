@@ -22,7 +22,7 @@ class MapEntryNotInMapTest extends DriverResolutionTest {
   bool get isUiAsCode => analysisOptions.experimentStatus.spread_collections;
 
   test_set() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = <int>{1:2};
 ''', [
       isUiAsCode
@@ -32,7 +32,7 @@ var c = <int>{1:2};
   }
 
   test_set_const() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const <int>{1:2};
 ''', [
       isUiAsCode
@@ -52,13 +52,13 @@ class MapEntryNotInMapWithUiAsCodeTest extends MapEntryNotInMapTest {
     ];
 
   test_set() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = <int>{1:2};
 ''', [CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP]);
   }
 
   test_set_const() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var c = const <int>{1:2};
 ''', [CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP]);
   }

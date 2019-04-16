@@ -41,7 +41,7 @@ class A {
 final b = new A().a;
 ''');
     await resolveTestFile();
-    assertTestErrors([StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    assertTestErrorsWithCodes([StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
 
     assertElementTypeDynamic(findElement.field('a').type);
     assertElementTypeDynamic(findElement.topVar('b').type);

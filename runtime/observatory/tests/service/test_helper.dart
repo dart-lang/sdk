@@ -132,8 +132,8 @@ class _ServiceTesteeLauncher {
     if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
     }
-    if (!useAuthToken) {
-      fullArgs.add('--disable-service-auth-codes');
+    if (useAuthToken) {
+      fullArgs.add('--enable-service-auth-codes');
     }
     if (pause_on_unhandled_exceptions) {
       fullArgs.add('--pause-isolates-on-unhandled-exceptions');

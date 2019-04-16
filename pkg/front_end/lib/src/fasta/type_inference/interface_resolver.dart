@@ -131,6 +131,7 @@ class AccessorInferenceNode extends InferenceNode {
     }
     if (declaredMethod is SyntheticAccessor) {
       declaredMethod._field.type = inferredType;
+      declaredMethod._field.initializer = null;
     } else {
       if (kind == ProcedureKind.Getter) {
         declaredMethod.function.returnType = inferredType;

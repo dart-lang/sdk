@@ -17,7 +17,7 @@ static method main() → dynamic {}
 
 library;
 import self as self2;
-import "./part_not_part_of_lib1.dart" as par;
+import "part_not_part_of_lib1.dart" as par;
 
 import "org-dartlang-testcase:///part_not_part_of_lib1.dart";
 

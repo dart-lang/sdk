@@ -303,10 +303,8 @@ class BytecodeSourcePositionsIterator : ValueObject {
   intptr_t cur_token_pos_;
 };
 
-// Returns [true] iff [function] body is a field initializer in bytecode.
-// This is [true] for ordinary static field initializers and getters of
-// const static fields.
-bool IsBytecodeFieldInitializer(const Function& function, Zone* zone);
+bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
+                                               Zone* zone);
 
 }  // namespace kernel
 }  // namespace dart

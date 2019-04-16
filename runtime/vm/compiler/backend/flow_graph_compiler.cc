@@ -81,7 +81,8 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
         it.CurrentValue()->definition()->IsPushArgument()) {
       it.SetCurrentLocation(Location::StackSlot(
           compiler::target::frame_layout.FrameSlotForVariableIndex(
-              -*stack_height)));
+              -*stack_height),
+          FPREG));
       (*stack_height)++;
     }
   }
@@ -559,6 +560,14 @@ void FlowGraphCompiler::VisitBlocks() {
     StatsEnd(entry);
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
+
+    // The function was fully intrinsified, so there's no need to generate any
+    // more code.
+    if (fully_intrinsified_) {
+      ASSERT(entry == flow_graph().graph_entry()->normal_entry());
+      break;
+    }
+
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
@@ -612,6 +621,14 @@ intptr_t FlowGraphCompiler::StackSize() const {
   } else {
     return parsed_function_.num_stack_locals();
   }
+}
+
+intptr_t FlowGraphCompiler::ExtraStackSlotsOnOsrEntry() const {
+  ASSERT(flow_graph().IsCompiledForOsr());
+  const intptr_t stack_depth =
+      flow_graph().graph_entry()->osr_entry()->stack_depth();
+  const intptr_t num_stack_locals = flow_graph().num_stack_locals();
+  return StackSize() - stack_depth - num_stack_locals;
 }
 
 Label* FlowGraphCompiler::GetJumpLabel(BlockEntryInstr* block_entry) const {
@@ -952,8 +969,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
     Location loc = it.CurrentLocation();
     Value* value = it.CurrentValue();
-    it.SetCurrentLocation(loc.RemapForSlowPath(value->definition(),
-                                               cpu_reg_slots, fpu_reg_slots));
+    it.SetCurrentLocation(LocationRemapForSlowPath(
+        loc, value->definition(), cpu_reg_slots, fpu_reg_slots));
   }
 
   return env;
@@ -1154,6 +1171,14 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
 
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
+  if (TryIntrinsifyHelper()) {
+    fully_intrinsified_ = true;
+    return true;
+  }
+  return false;
+}
+
+bool FlowGraphCompiler::TryIntrinsifyHelper() {
   Label exit;
   set_intrinsic_slow_path_label(&exit);
 

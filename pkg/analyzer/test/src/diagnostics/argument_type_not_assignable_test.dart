@@ -24,7 +24,9 @@ m() {
 class A {
   n(void f(int i)) {}
 }
-''', [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 7),
+    ]);
   }
 
   test_interfaceType() async {
@@ -34,6 +36,8 @@ m() {
   n(i);
 }
 n(int i) {}
-''', [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 1),
+    ]);
   }
 }

@@ -306,6 +306,7 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
         // over.
         DebugLogger.error("${filePath.toNativePath()}: "
             "Relative import in multitest containing '..' is not allowed.");
+        DebugLogger.close();
         exit(1);
       }
 

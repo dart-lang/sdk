@@ -473,10 +473,6 @@ class Assembler : public AssemblerBase {
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
-  static const char* RegisterName(Register reg);
-
-  static const char* FpuRegisterName(FpuRegister reg);
-
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {
       prologue_offset_ = CodeSize();
@@ -1265,11 +1261,9 @@ class Assembler : public AssemblerBase {
     ldr(reg, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   }
   void PushPair(Register low, Register high) {
-    ASSERT((low != PP) && (high != PP));
     stp(low, high, Address(SP, -2 * target::kWordSize, Address::PairPreIndex));
   }
   void PopPair(Register low, Register high) {
-    ASSERT((low != PP) && (high != PP));
     ldp(low, high, Address(SP, 2 * target::kWordSize, Address::PairPostIndex));
   }
   void PushFloat(VRegister reg) {
@@ -1532,6 +1526,12 @@ class Assembler : public AssemblerBase {
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
   void Ret() { ret(LR); }
+
+  // These require that CSP and SP are equal and aligned.
+  // These require a scratch register (in addition to TMP/TMP2).
+  void TransitionGeneratedToNative(Register destination_address,
+                                   Register scratch);
+  void TransitionNativeToGenerated(Register scratch);
 
   void CheckCodePointer();
   void RestoreCodePointer();

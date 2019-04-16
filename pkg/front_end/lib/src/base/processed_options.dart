@@ -184,6 +184,8 @@ class ProcessedOptions {
 
   final Map<String, String> environmentDefines;
 
+  bool get errorOnUnevaluatedConstant => _raw.errorOnUnevaluatedConstant;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
       : this._raw = options ?? new CompilerOptions(),

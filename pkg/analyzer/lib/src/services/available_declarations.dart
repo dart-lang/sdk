@@ -1242,6 +1242,7 @@ class _File {
               parent: classDeclaration,
               requiredParameterCount:
                   _getFormalParameterRequiredCount(parameters),
+              returnType: node.name.name,
             );
             hasConstructor = true;
           }
@@ -1270,7 +1271,7 @@ class _File {
             parent: classDeclaration,
             relevanceTags: null,
             requiredParameterCount: 0,
-            returnType: null,
+            returnType: node.name.name,
             typeParameters: null,
           ));
         }

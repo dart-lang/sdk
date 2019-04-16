@@ -31,15 +31,14 @@ CannotReadSdkSpecification/analyzerCode: Fail
 CannotReadSdkSpecification/example: Fail
 CantDetermineConstness/analyzerCode: Fail
 CantDisambiguateAmbiguousInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
-CantDisambiguateAmbiguousInformation/script: Fail # Can't be tested until 'spread-collections' flag is on.
 CantDisambiguateNotEnoughInformation/analyzerCode: Fail # There's no analyzer code for that error yet.
-CantDisambiguateNotEnoughInformation/script: Fail # Can't be tested until 'spread-collections' flag is on.
 CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/example: Fail
 CantInferTypeDueToInconsistentOverrides/example: Fail
+CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ColonInPlaceOfIn/example: Fail
@@ -51,7 +50,6 @@ ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
-ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
@@ -93,6 +91,8 @@ ConstEvalNonConstantVariableGet/example: Fail
 ConstEvalNotListOrSetInSpread/example: Fail
 ConstEvalNotMapInSpread/example: Fail
 ConstEvalNullValue/example: Fail
+ConstEvalUnevaluated/analyzerCode: Fail
+ConstEvalUnevaluated/example: Fail
 ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/example: Fail
@@ -275,6 +275,7 @@ MissingMain/analyzerCode: Fail
 MissingMain/example: Fail
 MissingPrefixInDeferredImport/example: Fail
 MixinInferenceNoMatchingClass/example: Fail
+ModifierOutOfOrder/script1: Fail
 MultipleExtends/script: Fail
 MultipleImplements/script: Fail
 MultipleLibraryDirectives/example: Fail
@@ -291,7 +292,6 @@ NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
-NonNullAwareSpreadIsNull/script: Fail # Can't be tested until 'spread-collections' flag is on.
 NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
 NotAType/example: Fail
@@ -358,15 +358,8 @@ SourceBodySummary/analyzerCode: Fail
 SourceBodySummary/example: Fail
 SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
-SpreadElementTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
-SpreadMapEntryElementKeyTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
-SpreadMapEntryElementValueTypeMismatch/script: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadMapEntryTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
-SpreadMapEntryTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
-SpreadMapEntryTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.
 SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
-SpreadTypeMismatch/script1: Fail # Can't be tested until 'spread-collections' flag is on.
-SpreadTypeMismatch/script2: Fail # Can't be tested until 'spread-collections' flag is on.
 StackOverflow/example: Fail
 StaticAfterConst/script1: Fail
 SuperAsExpression/example: Fail

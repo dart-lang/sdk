@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include "platform/assert.h"
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 #include <psapi.h>
@@ -467,6 +468,36 @@ DART_EXPORT double SmallDouble() {
 DART_EXPORT void* LargePointer() {
   uint64_t origin = 0x8100000082000000;
   return *reinterpret_cast<void**>(&origin);
+}
+
+// Allocates 'count'-many Mint boxes, to stress-test GC during an FFI call.
+DART_EXPORT void AllocateMints(uint64_t count) {
+  Dart_EnterScope();
+  for (uint64_t i = 0; i < count; ++i) {
+    Dart_NewInteger(0x8000000000000001);
+  }
+  Dart_ExitScope();
+}
+
+// Calls a Dart function to allocate 'count' objects.
+// Used for stress-testing GC when re-entering the API.
+DART_EXPORT void AllocateThroughDart(uint64_t count) {
+  Dart_EnterScope();
+  Dart_Handle root = Dart_RootLibrary();
+  Dart_Handle arguments[1] = {Dart_NewIntegerFromUint64(count)};
+  Dart_Handle result = Dart_Invoke(
+      root, Dart_NewStringFromCString("testAllocationsInDartHelper"), 1,
+      arguments);
+  const char* error;
+  if (Dart_IsError(result)) {
+    Dart_StringToCString(Dart_ToString(result), &error);
+    fprintf(stderr, "Could not call 'testAllocationsInDartHelper': %s\n",
+            error);
+    Dart_DumpNativeStackTrace(nullptr);
+    Dart_PrepareToAbort();
+    abort();
+  }
+  Dart_ExitScope();
 }
 
 #if !defined(_WIN32)

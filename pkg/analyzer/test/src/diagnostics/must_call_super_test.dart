@@ -38,7 +38,7 @@ class C extends A {
   }
 
   test_fromExtendingClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -67,7 +67,7 @@ class C implements A {
   }
 
   test_indirectlyInherited() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper

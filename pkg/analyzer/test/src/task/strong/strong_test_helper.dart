@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -281,6 +280,7 @@ class AbstractStrongTest with ResourceProviderMixin {
   Future<CompilationUnit> check(
       {bool implicitCasts: true,
       bool implicitDynamic: true,
+      bool strictInference: false,
       bool strictRawTypes: false}) async {
     _checkCalled = true;
 
@@ -291,6 +291,7 @@ class AbstractStrongTest with ResourceProviderMixin {
     analysisOptions.strongModeHints = true;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
+    analysisOptions.strictInference = strictInference;
     analysisOptions.strictRawTypes = strictRawTypes;
     analysisOptions.enabledExperiments = enabledExperiments;
 
@@ -331,9 +332,12 @@ class AbstractStrongTest with ResourceProviderMixin {
           code == TodoCode.TODO) {
         return false;
       }
-      if (strictRawTypes) {
-        // When testing strict-raw-types, ignore anything else.
+      if (strictInference || strictRawTypes) {
+        // When testing strict-inference or strict-raw-types, ignore anything
+        // else.
         return code.errorSeverity.ordinal > ErrorSeverity.INFO.ordinal ||
+            code == HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL ||
+            code == HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION ||
             code == HintCode.STRICT_RAW_TYPE;
       }
       return true;
@@ -344,6 +348,7 @@ class AbstractStrongTest with ResourceProviderMixin {
     LibraryElement mainLibrary =
         resolutionMap.elementDeclaredByCompilationUnit(mainUnit).library;
     Set<LibraryElement> allLibraries = _reachableLibraries(mainLibrary);
+
     for (LibraryElement library in allLibraries) {
       for (CompilationUnitElement unit in library.units) {
         var source = unit.source;

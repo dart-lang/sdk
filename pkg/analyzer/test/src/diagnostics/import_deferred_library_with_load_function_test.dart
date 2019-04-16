@@ -28,7 +28,8 @@ main() { lib1.f(); }''');
 
     await _resolveTestFile('/pkg1/lib/lib1.dart');
     await _resolveTestFile('/pkg1/lib/lib2.dart');
-    assertTestErrors([HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
+    assertTestErrorsWithCodes(
+        [HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
   }
 
   test_deferredImport_withoutLoadLibraryFunction() async {

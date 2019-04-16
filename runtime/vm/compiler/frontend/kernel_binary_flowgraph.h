@@ -202,7 +202,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
-  Fragment StrictCompare(Token::Kind kind, bool number_check = false);
+  Fragment StrictCompare(TokenPosition position,
+                         Token::Kind kind,
+                         bool number_check = false);
   Fragment AllocateObject(TokenPosition position,
                           const Class& klass,
                           intptr_t argument_count);
@@ -321,7 +323,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildBoolLiteral(bool value, TokenPosition* position);
   Fragment BuildNullLiteral(TokenPosition* position);
   Fragment BuildFutureNullValue(TokenPosition* position);
-  Fragment BuildConstantExpression(TokenPosition* position);
+  Fragment BuildConstantExpression(TokenPosition* position, Tag tag);
   Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
 
   Fragment BuildExpressionStatement();

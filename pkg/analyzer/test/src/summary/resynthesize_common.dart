@@ -17,7 +17,6 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../util/element_type_matchers.dart';
 import 'element_text.dart';
@@ -1359,12 +1358,21 @@ class C<T extends F> {}
 typedef F(G value);
 typedef G(F value);
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = dynamic Function(((dynamic) → dynamic) → dynamic value);
+notSimplyBounded typedef G = dynamic Function(((dynamic) → dynamic) → dynamic value);
+notSimplyBounded class C<T extends ((dynamic) → dynamic) → dynamic> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(((...) → dynamic) → dynamic value);
 notSimplyBounded typedef G = dynamic Function(((...) → dynamic) → dynamic value);
 notSimplyBounded class C<T extends ((...) → dynamic) → dynamic> {
 }
 ''');
+    }
   }
 
   test_class_notSimplyBounded_self() async {
@@ -3868,11 +3876,21 @@ const List<C> v = const <
 typedef int F(String id);
 const v = const <F>[];
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+typedef F = int Function(String id);
+const List<(String) → int> v = const <
+        F/*location: test.dart;F*/>[];
+''');
+    } else {
+      // This is wrong.
+      // `F` must be the reference to `typedef F` element, not the type.
+      checkElementText(library, r'''
 typedef F = int Function(String id);
 const List<(String) → int> v = const <
         null/*location: test.dart;F;-*/>[];
 ''');
+    }
   }
 
   test_const_topLevel_typedMap() async {
@@ -3988,7 +4006,16 @@ class C {
   static const b = null;
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  static const dynamic a =
+        b/*location: test.dart;C;b?*/;
+  static const dynamic b = null;
+}
+''');
+    } else {
+      checkElementText(library, r'''
 class C {
   static const dynamic a =
         C/*location: test.dart;C*/.
@@ -3996,6 +4023,7 @@ class C {
   static const dynamic b = null;
 }
 ''');
+    }
   }
 
   test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
@@ -4589,6 +4617,38 @@ class C<E> {
   test_constructor_redirected_thisInvocation_named() async {
     var library = await checkLibrary('''
 class C {
+  const C.named();
+  const C() : this.named();
+}
+''');
+    checkElementText(library, r'''
+class C {
+  const C.named();
+  const C() = C.named : this.
+        named/*location: test.dart;C;named*/();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_named_generic() async {
+    var library = await checkLibrary('''
+class C<T> {
+  const C.named();
+  const C() : this.named();
+}
+''');
+    checkElementText(library, r'''
+class C<T> {
+  const C.named();
+  const C() = C<T>.named : this.
+        named/*location: test.dart;C;named*/();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_named_notConst() async {
+    var library = await checkLibrary('''
+class C {
   C.named();
   C() : this.named();
 }
@@ -4597,8 +4657,7 @@ class C {
       checkElementText(library, r'''
 class C {
   C.named();
-  C() = C.named : this.
-        named/*location: test.dart;C;named*/();
+  C();
 }
 ''');
     } else {
@@ -4611,32 +4670,37 @@ class C {
     }
   }
 
-  test_constructor_redirected_thisInvocation_named_generic() async {
+  test_constructor_redirected_thisInvocation_unnamed() async {
     var library = await checkLibrary('''
-class C<T> {
-  C.named();
-  C() : this.named();
+class C {
+  const C();
+  const C.named() : this();
 }
 ''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-class C<T> {
-  C.named();
-  C() = C<T>.named : this.
-        named/*location: test.dart;C;named*/();
+    checkElementText(library, r'''
+class C {
+  const C();
+  const C.named() = C : this();
 }
 ''');
-    } else {
-      checkElementText(library, r'''
-class C<T> {
-  C.named();
-  C() = C<T>.named;
-}
-''');
-    }
   }
 
-  test_constructor_redirected_thisInvocation_unnamed() async {
+  test_constructor_redirected_thisInvocation_unnamed_generic() async {
+    var library = await checkLibrary('''
+class C<T> {
+  const C();
+  const C.named() : this();
+}
+''');
+    checkElementText(library, r'''
+class C<T> {
+  const C();
+  const C.named() = C<T> : this();
+}
+''');
+  }
+
+  test_constructor_redirected_thisInvocation_unnamed_notConst() async {
     var library = await checkLibrary('''
 class C {
   C();
@@ -4647,7 +4711,7 @@ class C {
       checkElementText(library, r'''
 class C {
   C();
-  C.named() = C : this();
+  C.named();
 }
 ''');
     } else {
@@ -4655,30 +4719,6 @@ class C {
 class C {
   C();
   C.named() = C;
-}
-''');
-    }
-  }
-
-  test_constructor_redirected_thisInvocation_unnamed_generic() async {
-    var library = await checkLibrary('''
-class C<T> {
-  C();
-  C.named() : this();
-}
-''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-class C<T> {
-  C();
-  C.named() = C<T> : this();
-}
-''');
-    } else {
-      checkElementText(library, r'''
-class C<T> {
-  C();
-  C.named() = C<T>;
 }
 ''');
     }
@@ -6002,9 +6042,7 @@ dynamic get y {}
 ''');
   }
 
-  @failingTest
   test_implicitConstructor_named_const() async {
-    // TODO(paulberry, scheglov): get this to pass
     var library = await checkLibrary('''
 class C {
   final Object x;
@@ -6012,7 +6050,27 @@ class C {
 }
 const x = C.named(42);
 ''');
-    checkElementText(library, 'TODO(paulberry, scheglov)');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  final Object x;
+  const C.named(Object this.x);
+}
+const C x =
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(42);
+''');
+    } else {
+      checkElementText(library, r'''
+class C {
+  final Object x;
+  const C.named(Object this.x);
+}
+const C x = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(42);
+''');
+    }
   }
 
   test_implicitTopLevelVariable_getterFirst() async {
@@ -6221,9 +6279,7 @@ D d;
 ''');
   }
 
-  @failingTest
-  void test_infer_generic_typedef_complex() async {
-    // TODO(paulberry, scheglov): get this test to pass.
+  test_infer_generic_typedef_complex() async {
     var library = await checkLibrary('''
 typedef F<T> = D<T,U> Function<U>();
 class C<V> {
@@ -6233,10 +6289,21 @@ class D<T,U> {}
 D<int,U> f<U>() => null;
 const x = const C(f);
 ''');
-    checkElementText(library, '''TODO(paulberry, scheglov)''');
+    checkElementText(library, '''
+typedef F<T> = D<T, U> Function<U>();
+class C<V> {
+  const C(<U>() → D<V, U> f);
+}
+class D<T, U> {
+}
+const C<int> x = const
+        C/*location: test.dart;C*/(
+        f/*location: test.dart;f*/);
+D<int, U> f<U>() {}
+''');
   }
 
-  void test_infer_generic_typedef_simple() async {
+  test_infer_generic_typedef_simple() async {
     var library = await checkLibrary('''
 typedef F = D<T> Function<T>();
 class C {
@@ -6316,7 +6383,7 @@ C x;
   }
 
   test_inference_issue_32394() async {
-    // Test the type inference involed in dartbug.com/32394
+    // Test the type inference involved in dartbug.com/32394
     var library = await checkLibrary('''
 var x = y.map((a) => a.toString());
 var y = [3];
@@ -6450,6 +6517,30 @@ f<T>() {
     checkElementText(library, r'''
 dynamic f<T>() {}
 ''');
+  }
+
+  test_inferred_type_initializer_cycle() async {
+    var library = await checkLibrary(r'''
+var a = b + 1;
+var b = c + 2;
+var c = a + 3;
+var d = 4;
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+dynamic a;
+dynamic b;
+dynamic c;
+int d;
+''');
+    } else {
+      checkElementText(library, r'''
+dynamic a/*error: dependencyCycle*/;
+dynamic b/*error: dependencyCycle*/;
+dynamic c/*error: dependencyCycle*/;
+int d;
+''');
+    }
   }
 
   test_inferred_type_is_typedef() async {
@@ -6650,19 +6741,11 @@ import 'foo.dart' as foo;
 var a1 = foo.A();
 var a2 = foo.A.named();
 ''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-import 'foo.dart' as foo;
-dynamic a1;
-dynamic a2;
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'foo.dart' as foo;
 A a1;
 A a2;
 ''');
-    }
   }
 
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
@@ -9232,11 +9315,19 @@ class A {
 typedef F = void Function(C c);
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<dynamic> c);
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_omitted() async {
@@ -9246,11 +9337,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef F = void Function(C);
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<dynamic> );
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> );
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_param_type_old_style() async {
@@ -9260,11 +9359,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef void F(C c);
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = void Function(C<dynamic> c);
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_return_type_new_style() async {
@@ -9274,11 +9381,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef F = C Function();
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = C<dynamic> Function();
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_notSimplyBounded_dependency_via_return_type_old_style() async {
@@ -9288,11 +9403,19 @@ notSimplyBounded class C<T extends C<T>> {
 typedef C F();
 class C<T extends C<T>> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F = C<dynamic> Function();
+notSimplyBounded class C<T extends C<T>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
 notSimplyBounded class C<T extends C<T>> {
 }
 ''');
+    }
   }
 
   test_typedef_parameter_parameters() async {
@@ -9400,9 +9523,15 @@ notSimplyBounded typedef F<T extends () → void> = void Function();
   test_typedef_type_parameters_bound_recursive2() async {
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F<T extends List<dynamic>> = void Function();
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded typedef F<T extends List<() → void>> = void Function();
 ''');
+    }
   }
 
   test_typedef_type_parameters_f_bound_complex() async {
@@ -9435,9 +9564,7 @@ dynamic g() {}
 ''');
   }
 
-  @failingTest
   test_unresolved_annotation_instanceCreation_argument_super() async {
-    // TODO(scheglov) fix https://github.com/dart-lang/sdk/issues/28553
     var library = await checkLibrary('''
 class A {
   const A(_);
@@ -9448,11 +9575,11 @@ class C {}
 ''', allowErrors: true);
     checkElementText(library, r'''
 class A {
-  A(_);
+  const A(dynamic _);
 }
-
+@
+        A/*location: test.dart;A*/(super)
 class C {
-  synthetic C();
 }
 ''');
   }

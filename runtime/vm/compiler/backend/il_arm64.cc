@@ -79,7 +79,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::AnyOrConstant(value()));
+  locs->set_in(0, LocationAnyOrConstant(value()));
   return locs;
 }
 
@@ -627,13 +627,13 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RegisterOrConstant(left()));
+    locs->set_in(0, LocationRegisterOrConstant(left()));
     // Only one input can be a constant operand. The case of two constant
     // operands should be handled by constant propagation.
     // Only right can be a stack slot.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::RegisterOrConstant(right()));
+                        : LocationRegisterOrConstant(right()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -695,7 +695,7 @@ LocationSummary* TestSmiInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   locs->set_in(0, Location::RequiresRegister());
   // Only one input can be a constant operand. The case of two constant
   // operands should be handled by constant propagation.
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_in(1, LocationRegisterOrConstant(right()));
   return locs;
 }
 
@@ -783,12 +783,12 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
   if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RegisterOrConstant(left()));
+    summary->set_in(0, LocationRegisterOrConstant(left()));
     // Only one input can be a constant operand. The case of two constant
     // operands should be handled by constant propagation.
     summary->set_in(1, summary->in(0).IsConstant()
                            ? Location::RequiresRegister()
-                           : Location::RegisterOrConstant(right()));
+                           : LocationRegisterOrConstant(right()));
     summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
@@ -887,10 +887,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(false);
   __ EnterDartFrame(0, PP);
 
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ StoreToOffset(FPREG, THR,
-                   compiler::target::Thread::top_exit_frame_info_offset());
+  // Save the stack limit address.
+  __ PushRegister(CSP);
 
   // Make space for arguments and align the frame.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
@@ -916,43 +914,29 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 
-  // Mark that the thread is executing VM code.
-  __ StoreToOffset(branch, THR, compiler::target::Thread::vm_tag_offset());
-
-  // We need to copy the return address up into the dummy stack frame so the
+  // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
-  const intptr_t call_sequence_start = __ CodeSize();
-
-  // 5 instructions, 4 bytes each.
-  constexpr intptr_t kCallSequenceLength = 5 * 4;
-
-  __ adr(temp, Immediate(kCallSequenceLength));
-  __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
-
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack. We cache the stack limit address
-  // in a callee-saved register.
-  __ mov(temp, CSP);
-  __ mov(CSP, SP);
-
-  __ blr(branch);
-
-  ASSERT(__ CodeSize() - call_sequence_start == kCallSequenceLength);
-
-  // Restore the Dart stack pointer and the saved C stack pointer.
-  __ mov(SP, CSP);
-  __ mov(CSP, temp);
-
+  __ adr(temp, Immediate(0));
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
 
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(temp, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(temp, THR, compiler::target::Thread::vm_tag_offset());
+  __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
-  // Reset exit frame information in Isolate structure.
-  __ StoreToOffset(ZR, THR,
-                   compiler::target::Thread::top_exit_frame_info_offset());
+  // We are entering runtime code, so the C stack pointer must be restored from
+  // the stack limit to the top of the stack.
+  __ mov(CSP, SP);
+
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(branch, temp);
+
+  __ blr(branch);
+
+  // Update information in the thread object and leave the safepoint.
+  __ TransitionNativeToGenerated(temp);
+
+  // Restore the Dart stack pointer and the saved C stack pointer.
+  __ mov(SP, CSP);
+  __ LoadFromOffset(CSP, FPREG, kFirstLocalSlotFromFp * kWordSize);
 
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
@@ -1465,7 +1449,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
                           ? Location::RegisterLocation(kWriteBarrierValueReg)
-                          : Location::RegisterOrConstant(value()));
+                          : LocationRegisterOrConstant(value()));
       if (ShouldEmitStoreBarrier()) {
         locs->set_in(0, Location::RegisterLocation(kWriteBarrierObjectReg));
         locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
@@ -2015,7 +1999,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::RegisterLocation(kWriteBarrierValueReg)
-                           : Location::RegisterOrConstant(value()));
+                           : LocationRegisterOrConstant(value()));
   }
   return summary;
 }
@@ -3301,7 +3285,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     return summary;
   }
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
@@ -5135,8 +5119,8 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  locs->set_in(kLengthPos, LocationRegisterOrSmiConstant(length()));
+  locs->set_in(kIndexPos, LocationRegisterOrSmiConstant(index()));
   return locs;
 }
 
@@ -5337,7 +5321,7 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary* summary = new (zone) LocationSummary(
           zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresRegister());
-      summary->set_in(1, Location::RegisterOrConstant(right()));
+      summary->set_in(1, LocationRegisterOrConstant(right()));
       summary->set_out(0, Location::RequiresRegister());
       return summary;
     }
@@ -5553,7 +5537,7 @@ LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, RangeUtils::IsPositive(shift_range())
-                         ? Location::RegisterOrConstant(right())
+                         ? LocationRegisterOrConstant(right())
                          : Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
@@ -5597,7 +5581,7 @@ LocationSummary* SpeculativeShiftInt64OpInstr::MakeLocationSummary(
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -5664,7 +5648,7 @@ LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, RangeUtils::IsPositive(shift_range())
-                         ? Location::RegisterOrConstant(right())
+                         ? LocationRegisterOrConstant(right())
                          : Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
@@ -5710,7 +5694,7 @@ LocationSummary* SpeculativeShiftUint32OpInstr::MakeLocationSummary(
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -6102,12 +6086,12 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,
   }
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(0, LocationRegisterOrConstant(left()));
   // Only one of the inputs can be a constant. Choose register if the first one
   // is a constant.
   locs->set_in(1, locs->in(0).IsConstant()
                       ? Location::RequiresRegister()
-                      : Location::RegisterOrConstant(right()));
+                      : LocationRegisterOrConstant(right()));
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
@@ -6201,10 +6185,14 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#ifdef PRODUCT
+  UNREACHABLE();
+#else
   ASSERT(!compiler->is_optimizing());
   __ BranchLinkPatchable(StubCode::DebugStepCheck());
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
   compiler->RecordSafepoint(locs());
+#endif
 }
 
 }  // namespace dart

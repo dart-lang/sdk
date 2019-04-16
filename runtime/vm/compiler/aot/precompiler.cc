@@ -794,6 +794,8 @@ void Precompiler::AddConstObject(const class Instance& instance) {
         Z, Closure::Cast(instance).instantiator_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).function_type_arguments()));
+    AddTypeArguments(TypeArguments::Handle(
+        Z, Closure::Cast(instance).delayed_type_arguments()));
     return;
   }
 

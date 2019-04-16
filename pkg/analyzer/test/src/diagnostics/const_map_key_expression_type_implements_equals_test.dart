@@ -34,7 +34,7 @@ main() {
   }
 
   test_constField() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   const {double.INFINITY: 0};
 }
@@ -42,7 +42,7 @@ main() {
   }
 
   test_direct() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -58,7 +58,7 @@ main() {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -75,7 +75,7 @@ main() {
   }
 
   test_factory() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const factory A() = B;
 }
@@ -92,7 +92,7 @@ main() {
   }
 
   test_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   const A();
   operator ==(other) => false;

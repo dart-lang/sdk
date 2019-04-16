@@ -88,7 +88,7 @@ class CompileTimeErrorCodeTest_WithUIAsCode extends DriverResolutionTest {
 
   test_defaultValueInFunctionTypeAlias_new_named() async {
     // This test used to fail with UI as code enabled. Test the fix here.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 typedef F = int Function({Map<String, String> m: const {}});
 ''', [
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
@@ -98,7 +98,7 @@ typedef F = int Function({Map<String, String> m: const {}});
   test_defaultValueInFunctionTypeAlias_new_named_ambiguous() async {
     // Test that the strong checker does not crash when given an ambiguous
     // set or map literal.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 typedef F = int Function({Object m: const {1, 2: 3}});
 ''', [
       ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
@@ -114,7 +114,7 @@ class ControlFlowCollectionsTest extends DriverResolutionTest {
     ..enabledExperiments = [EnableString.control_flow_collections];
 
   test_awaitForIn_declaredVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 import 'dart:async';
 f() async {
   Stream<String> stream;
@@ -124,7 +124,7 @@ f() async {
   }
 
   test_awaitForIn_existingVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 import 'dart:async';
 f() async {
   Stream<String> stream;
@@ -135,7 +135,7 @@ f() async {
   }
 
   test_awaitForIn_notStream() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() async {
   await for (var i in true) {}
 }
@@ -143,7 +143,7 @@ f() async {
   }
 
   test_duplicateDefinition_for_initializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   for (int i = 0, i = 0; i < 5;) {}
 }
@@ -151,14 +151,14 @@ f() {
   }
 
   test_expectedOneListTypeArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   <int, int>[];
 }''', [StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS]);
   }
 
   test_expectedOneSetTypeArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   <int, int, int>{2, 3};
 }''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
@@ -167,21 +167,21 @@ main() {
   test_expectedTwoMapTypeArguments_three_ambiguous() async {
     // TODO(brianwilkerson) We probably need a new error code for "expected
     //  either one or two type arguments" to handle the ambiguous case.
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   <int, int, int>{};
 }''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
   }
 
   test_expectedTwoMapTypeArguments_three_map() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   <int, int, int>{1:2};
 }''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
   }
 
   test_forIn_declaredVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() {
   for (int i in <String>[]) {}
 }
@@ -189,7 +189,7 @@ f() {
   }
 
   test_forIn_existingVariableWrongType() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() {
   int i;
   for (i in <String>[]) {}
@@ -198,7 +198,7 @@ f() {
   }
 
   test_forIn_notIterable() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 f() {
   for (var i in true) {}
 }
@@ -206,7 +206,7 @@ f() {
   }
 
   test_forIn_typeBoundBad() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (String i in iterable) {}
@@ -216,7 +216,7 @@ class Foo<T extends Iterable<int>> {
   }
 
   test_forInWithConstVariable_forEach_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   const x = 0;
   for (x in [0, 1, 2]) {}
@@ -225,7 +225,7 @@ f() {
   }
 
   test_forInWithConstVariable_forEach_loopVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   for (const x in [0, 1, 2]) {}
 }
@@ -233,7 +233,7 @@ f() {
   }
 
   test_generalizedVoid_useOfInForeachIterableError() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 void main() {
   void x;
   for (var v in x) {}
@@ -242,7 +242,7 @@ void main() {
   }
 
   test_generalizedVoid_useOfVoidInForeachVariableError() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 void main() {
   void x;
   var y;
@@ -252,7 +252,7 @@ void main() {
   }
 
   test_invalidTypeArgumentInConstList() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<E> {
   m() {
     return const <E>[];
@@ -262,7 +262,7 @@ class A<E> {
   }
 
   test_invalidTypeArgumentInConstMap_key() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<E> {
   m() {
     return const <E, String>{};
@@ -272,7 +272,7 @@ class A<E> {
   }
 
   test_invalidTypeArgumentInConstMap_value() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<E> {
   m() {
     return const <String, E>{};
@@ -282,7 +282,7 @@ class A<E> {
   }
 
   test_invalidTypeArgumentInConstSet_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<E> {
   m() {
     return const <E>{};
@@ -292,20 +292,20 @@ class A<E> {
   }
 
   test_listElementTypeNotAssignable_const() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <String>[42];
 ''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_mapValueTypeNotAssignable_const() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <String, String>{'a' : 2};
 ''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_nonBoolCondition_for_declaration() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   for (int i = 0; 3;) {}
 }
@@ -314,7 +314,7 @@ f() {
 
   test_nonBoolCondition_for_expression() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   int i;
   for (i = 0; 3;) {}
@@ -325,7 +325,7 @@ f() {
     // TODO(danrubel) Fasta is not recovering well.
     // Ideally we would produce a single diagnostic:
     // CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   {'a' : 0, 'b' : 1}.length;
 }
@@ -351,7 +351,7 @@ f() {
     // TODO(danrubel) Fasta is not recovering well.
     // Ideally we would produce a single diagnostic:
     // CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f() {
   {'a' : 0, 'b' : 1};
 }
@@ -373,7 +373,7 @@ f() {
   }
 
   test_setElementTypeNotAssignable_const() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 var v = const <String>{42};
 ''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
   }
@@ -382,7 +382,7 @@ var v = const <String>{42};
 @reflectiveTest
 class InvalidTypeArgumentInConstSetTest extends DriverResolutionTest {
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A<E> {
   m() {
     return const <E>{};

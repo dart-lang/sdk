@@ -23,7 +23,6 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         ThisExpression,
-        TreeNode,
         VariableGet;
 
 import 'kernel_shadow_ast.dart' show ShadowClass;
@@ -94,9 +93,10 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.stringType,
       LibraryBuilder parent,
       int startCharOffset,
-      int charOffset)
+      int charOffset,
+      int charEndOffset)
       : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, startCharOffset, charOffset, TreeNode.noOffset,
+            null, startCharOffset, charOffset, charEndOffset,
             cls: cls);
 
   factory KernelEnumBuilder(
@@ -105,6 +105,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       String name,
       List<EnumConstantInfo> enumConstantInfos,
       KernelLibraryBuilder parent,
+      int startCharOffset,
       int charOffset,
       int charEndOffset) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
@@ -226,8 +227,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         members[name] = fieldBuilder..next = existing;
       }
     }
-    final int startCharOffset =
-        metadata == null ? charOffset : metadata.first.charOffset;
+    final int startCharOffsetComputed =
+        metadata == null ? startCharOffset : metadata.first.charOffset;
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
         metadata,
         name,
@@ -241,8 +242,9 @@ class KernelEnumBuilder extends SourceClassBuilder
         objectType,
         stringType,
         parent,
-        startCharOffset,
-        charOffset);
+        startCharOffsetComputed,
+        charOffset,
+        charEndOffset);
     void setParent(String name, MemberBuilder builder) {
       do {
         builder.parent = enumBuilder;

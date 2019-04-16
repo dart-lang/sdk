@@ -88,7 +88,7 @@ class ConstantEvaluator {
   void EvaluateDoubleLiteral();
   void EvaluateBoolLiteral(bool value);
   void EvaluateNullLiteral();
-  void EvaluateConstantExpression();
+  void EvaluateConstantExpression(Tag tag);
 
   void EvaluateGetStringLength(intptr_t expression_offset,
                                TokenPosition position);
@@ -156,6 +156,8 @@ class ConstantHelper {
   const Array& ReadConstantTable();
 
  private:
+  const Script& script() const { return helper_.script_; }
+
   void InstantiateTypeArguments(const Class& receiver_class,
                                 TypeArguments* type_arguments);
 

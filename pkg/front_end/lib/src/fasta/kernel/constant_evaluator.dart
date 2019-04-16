@@ -45,6 +45,7 @@ import '../fasta_codes.dart'
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
         messageConstEvalNullValue,
+        messageConstEvalUnevaluated,
         noLength,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateElement,
@@ -83,6 +84,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
     bool enableAsserts: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
+    bool errorOnUnevaluatedConstant: false,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   coreTypes ??= new CoreTypes(component);
@@ -95,6 +97,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
       keepFields: keepFields,
       enableAsserts: enableAsserts,
       desugarSets: desugarSets,
+      errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
   return component;
 }
@@ -109,6 +112,7 @@ void transformLibraries(
     bool keepVariables: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
+    bool errorOnUnevaluatedConstant: false,
     bool enableAsserts: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
@@ -117,6 +121,7 @@ void transformLibraries(
       keepVariables,
       evaluateAnnotations,
       desugarSets,
+      errorOnUnevaluatedConstant,
       typeEnvironment,
       enableAsserts,
       errorReporter);
@@ -150,6 +155,7 @@ class ConstantsTransformer extends Transformer {
   final bool keepVariables;
   final bool evaluateAnnotations;
   final bool desugarSets;
+  final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
       ConstantsBackend backend,
@@ -158,12 +164,14 @@ class ConstantsTransformer extends Transformer {
       this.keepVariables,
       this.evaluateAnnotations,
       this.desugarSets,
+      this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
       bool enableAsserts,
       ErrorReporter errorReporter)
       : constantEvaluator = new ConstantEvaluator(backend, environmentDefines,
             typeEnvironment, enableAsserts, errorReporter,
-            desugarSets: desugarSets);
+            desugarSets: desugarSets,
+            errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
 
   // Transform the library/class members:
 
@@ -309,7 +317,8 @@ class ConstantsTransformer extends Transformer {
           // So the value of the variable is still available for debugging
           // purposes we convert the constant variable to be a final variable
           // initialized to the evaluated constant expression.
-          node.initializer = makeConstantExpression(constant)..parent = node;
+          node.initializer = makeConstantExpression(constant, node.initializer)
+            ..parent = node;
           node.isFinal = true;
           node.isConst = false;
         } else {
@@ -354,13 +363,13 @@ class ConstantsTransformer extends Transformer {
   // Handle use-sites of constants (and "inline" constant expressions):
 
   visitSymbolLiteral(SymbolLiteral node) {
-    return makeConstantExpression(constantEvaluator.evaluate(node));
+    return makeConstantExpression(constantEvaluator.evaluate(node), node);
   }
 
   visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
-      return evaluateAndTransformWithContext(node, target.initializer);
+      return evaluateAndTransformWithContext(node, node);
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
       return evaluateAndTransformWithContext(node, node);
     }
@@ -426,7 +435,7 @@ class ConstantsTransformer extends Transformer {
   }
 
   evaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
-    return makeConstantExpression(evaluateWithContext(treeContext, node));
+    return makeConstantExpression(evaluateWithContext(treeContext, node), node);
   }
 
   evaluateWithContext(TreeNode treeContext, Expression node) {
@@ -439,12 +448,13 @@ class ConstantsTransformer extends Transformer {
     });
   }
 
-  Expression makeConstantExpression(Constant constant) {
+  Expression makeConstantExpression(Constant constant, Expression node) {
     if (constant is UnevaluatedConstant &&
         constant.expression is InvalidExpression) {
       return constant.expression;
     }
-    return new ConstantExpression(constant);
+    return new ConstantExpression(constant, node.getStaticType(typeEnvironment))
+      ..fileOffset = node.fileOffset;
   }
 }
 
@@ -452,6 +462,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   Map<String, String> environmentDefines;
+  final bool errorOnUnevaluatedConstant;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
   final bool enableAsserts;
@@ -488,7 +499,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.enableAsserts, this.errorReporter,
-      {this.desugarSets = false})
+      {this.desugarSets = false, this.errorOnUnevaluatedConstant = false})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
@@ -537,7 +548,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     seenUnevaluatedChild = false;
     lazyDepth = 0;
     try {
-      return _evaluateSubexpression(node);
+      Constant result = _evaluateSubexpression(node);
+      if (errorOnUnevaluatedConstant && result is UnevaluatedConstant) {
+        return report(node, messageConstEvalUnevaluated);
+      }
+      return result;
     } on _AbortDueToError catch (e) {
       final Uri uri = getFileUri(e.node);
       final int fileOffset = getFileOffset(uri, e.node);
@@ -653,7 +668,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         result = nodeCache[node] ?? report(node, messageConstEvalCircularity);
       } else {
         nodeCache[node] = null;
-        result = nodeCache[node] = node.accept(this);
+        try {
+          result = nodeCache[node] = node.accept(this);
+        } catch (e) {
+          nodeCache.remove(node);
+          rethrow;
+        }
       }
     } else {
       result = node.accept(this);
@@ -1931,6 +1951,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           concatenated.add(new StringBuffer(value));
         }
       } else if (shouldBeUnevaluated) {
+        // The constant is either unevaluated or a non-primitive in an
+        // unevaluated context. In both cases we defer the evaluation and/or
+        // error reporting till later.
         concatenated.add(constant);
       } else {
         return report(
@@ -1943,11 +1966,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       final expressions = new List<Expression>(concatenated.length);
       for (int i = 0; i < concatenated.length; i++) {
         Object value = concatenated[i];
-        if (value is UnevaluatedConstant) {
-          expressions[i] = extract(value);
-        } else {
+        if (value is StringBuffer) {
           expressions[i] = new ConstantExpression(
               canonicalize(new StringConstant(value.toString())));
+        } else {
+          // The value is either unevaluated constant or a non-primitive
+          // constant in an unevaluated expression.
+          expressions[i] = extract(value);
         }
       }
       return unevaluated(node, new StringConcatenation(expressions));
