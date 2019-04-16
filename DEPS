@@ -98,7 +98,7 @@ vars = {
   "linter_tag": "0.1.86",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "2.0.2",
+  "markdown_tag": "2.0.3",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
