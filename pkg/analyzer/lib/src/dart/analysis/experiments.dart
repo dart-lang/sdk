@@ -80,13 +80,13 @@ class ExperimentStatus {
         IsExpired.non_nullable,
         'Non Nullable'),
     EnableString.control_flow_collections: const ExperimentalFeature(
-        2,
+        null,
         EnableString.control_flow_collections,
         IsEnabledByDefault.control_flow_collections,
         IsExpired.control_flow_collections,
         'Control Flow Collections'),
     EnableString.spread_collections: const ExperimentalFeature(
-        3,
+        null,
         EnableString.spread_collections,
         IsEnabledByDefault.spread_collections,
         IsExpired.spread_collections,
@@ -98,7 +98,7 @@ class ExperimentStatus {
         IsExpired.set_literals,
         'Set Literals'),
     EnableString.triple_shift: const ExperimentalFeature(
-        4,
+        2,
         EnableString.triple_shift,
         IsEnabledByDefault.triple_shift,
         IsExpired.triple_shift,
@@ -131,9 +131,6 @@ class ExperimentStatus {
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
           non_nullable ?? IsEnabledByDefault.non_nullable,
-          control_flow_collections ??
-              IsEnabledByDefault.control_flow_collections,
-          spread_collections ?? IsEnabledByDefault.spread_collections,
           triple_shift ?? IsEnabledByDefault.triple_shift,
         ];
 
@@ -157,7 +154,7 @@ class ExperimentStatus {
   bool get constant_update_2018 => _enableFlags[0];
 
   /// Current state for the flag "control_flow_collections"
-  bool get control_flow_collections => _enableFlags[2];
+  bool get control_flow_collections => true;
 
   /// Current state for the flag "non-nullable"
   bool get non_nullable => _enableFlags[1];
@@ -166,10 +163,10 @@ class ExperimentStatus {
   bool get set_literals => true;
 
   /// Current state for the flag "spread_collections"
-  bool get spread_collections => _enableFlags[3];
+  bool get spread_collections => true;
 
   /// Current state for the flag "triple_shift"
-  bool get triple_shift => _enableFlags[4];
+  bool get triple_shift => _enableFlags[2];
 
   /// Queries whether the given [feature] is enabled or disabled.
   bool isEnabled(ExperimentalFeature feature) => feature.isExpired
@@ -188,7 +185,7 @@ class IsEnabledByDefault {
   static const bool constant_update_2018 = false;
 
   /// Default state of the experiment "control-flow-collections"
-  static const bool control_flow_collections = false;
+  static const bool control_flow_collections = true;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = false;
@@ -197,7 +194,7 @@ class IsEnabledByDefault {
   static const bool set_literals = true;
 
   /// Default state of the experiment "spread-collections"
-  static const bool spread_collections = false;
+  static const bool spread_collections = true;
 
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = false;
@@ -217,7 +214,7 @@ class IsExpired {
   static const bool constant_update_2018 = false;
 
   /// Expiration status of the experiment "control-flow-collections"
-  static const bool control_flow_collections = false;
+  static const bool control_flow_collections = true;
 
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = false;
@@ -226,7 +223,7 @@ class IsExpired {
   static const bool set_literals = true;
 
   /// Expiration status of the experiment "spread-collections"
-  static const bool spread_collections = false;
+  static const bool spread_collections = true;
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = false;

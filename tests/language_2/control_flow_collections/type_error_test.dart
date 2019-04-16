@@ -17,7 +17,7 @@ void main() {
   var _ = <int>{if (true) "s"}; //# 07: compile-time error
 
   // Wrong else element type.
-  var _ = <int>[if (false) 1 else "s"]; //# 08 compile-time error
+  var _ = <int>[if (false) 1 else "s"]; //# 08: compile-time error
   var _ = <int, int>{if (false) 1: 1 else "s": 2}; //# 09: compile-time error
   var _ = <int, int>{if (false) 1: 1 else 2: "s"}; //# 10: compile-time error
   var _ = <int>{if (false) 1 else "s"}; //# 11: compile-time error
