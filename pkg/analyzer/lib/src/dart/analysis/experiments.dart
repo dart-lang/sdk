@@ -185,7 +185,7 @@ class ExperimentStatus {
 /// enabled by default.
 class IsEnabledByDefault {
   /// Default state of the experiment "constant-update"
-  static const bool constant_update_2018 = true;
+  static const bool constant_update_2018 = false;
 
   /// Default state of the experiment "control-flow-collections"
   static const bool control_flow_collections = false;

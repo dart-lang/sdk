@@ -20,7 +20,7 @@ class A<T extends core::Object = dynamic> extends core::Object {
 }
 class B<T extends core::Object = dynamic> extends self::A<self::B::T> {
   constructor •() → self::B<self::B::T>
-    : super self::A::•(#C1)
+    : super self::A::•(const self::_Y::•<dynamic>())
     ;
 }
 static method main() → dynamic {

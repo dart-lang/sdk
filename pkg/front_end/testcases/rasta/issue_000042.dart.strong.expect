@@ -47,12 +47,12 @@ static method main() → dynamic {
   #L3:
   switch(1) {
     #L4:
-    case #C1:
+    case 1:
       {
         break #L3;
       }
     #L5:
-    case #C2:
+    case 2:
       {
         break #L3;
       }

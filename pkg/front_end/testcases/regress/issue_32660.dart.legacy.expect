@@ -13,7 +13,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method foo(core::int x, {core::int y = #C1}) → dynamic
+  method foo(core::int x, {core::int y = null}) → dynamic
     return y;
 }
 class C extends self::A implements self::B {
@@ -36,7 +36,7 @@ class E extends self::D {
   synthetic constructor •() → self::E
     : super self::D::•()
     ;
-  abstract method foo(core::int x, {core::int y = #C1}) → dynamic;
+  abstract method foo(core::int x, {core::int y = null}) → dynamic;
   method noSuchMethod(dynamic i) → dynamic {
     core::print(i.namedArguments);
     return 42;

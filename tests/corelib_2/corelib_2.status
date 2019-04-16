@@ -59,6 +59,10 @@ int_modulo_arith_test/none: RuntimeError
 regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
 string_from_environment3_test/03: MissingCompileTimeError
 
+[ $compiler == fasta ]
+bool_from_environment2_test/03: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+
 [ $compiler == precompiler ]
 bigint_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
@@ -230,6 +234,11 @@ string_static_test: MissingCompileTimeError
 
 [ $compiler != dartk && $runtime == vm && $checked ]
 apply_test/01: RuntimeError
+
+[ $compiler != dartkb && $compiler != dartkp && $fasta ]
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 iterable_fold_test/02: RuntimeError

@@ -8,23 +8,23 @@ class Foo<T extends core::Object = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   get v1() → self::Bar<self::Foo::T>
-    return #C1;
+    return const self::Bar::•<core::Null>();
   get v2() → self::Bar<core::List<self::Foo::T>>
-    return #C2;
+    return const self::Bar::•<core::List<core::Null>>();
   get v3() → self::Bar<(self::Foo::T) → self::Foo::T>
-    return #C3;
+    return const self::Bar::•<(core::Object) → core::Null>();
   get v4() → self::Bar<((self::Foo::T) → self::Foo::T) → self::Foo::T>
-    return #C4;
+    return const self::Bar::•<((core::Null) → core::Object) → core::Null>();
   get v5() → core::List<self::Foo::T>
-    return #C5;
+    return const <core::Null>[];
   get v6() → core::List<(self::Foo::T) → self::Foo::T>
-    return #C6;
+    return const <(core::Object) → core::Null>[];
   get v7() → core::Map<self::Foo::T, self::Foo::T>
-    return #C8;
+    return const <core::Null, core::Null>{};
   get v8() → core::Map<(self::Foo::T) → self::Foo::T, self::Foo::T>
-    return #C9;
+    return const <(core::Object) → core::Null, core::Null>{};
   get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
-    return #C10;
+    return const <core::Null, (core::Object) → core::Null>{};
 }
 class Bar<T extends core::Object = dynamic> extends core::Object {
   const constructor •() → self::Bar<self::Bar::T>

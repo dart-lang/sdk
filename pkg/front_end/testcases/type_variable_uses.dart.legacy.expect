@@ -74,22 +74,22 @@ class C<T extends core::Object = dynamic> extends core::Object {
     invalid-type t;
     self::C<invalid-type> l;
     self::C<self::C<invalid-type>> ll;
-    #C1;
-    #C2;
-    #C3;
-    #C5;
-    #C6;
+    const self::C::•<invalid-type>();
+    const <invalid-type>[];
+    const <self::C<invalid-type>>[];
+    const <core::Object>[invalid-type];
+    const <core::Object>[const self::C::•<invalid-type>()];
   }
   method instanceMethod() → self::C<self::C::T> {
     core::print(self::C::T);
     self::C::T t;
     self::C<self::C::T> l;
     self::C<self::C<self::C::T>> ll;
-    #C1;
-    #C2;
-    #C3;
-    #C5;
-    #C6;
+    const self::C::•<invalid-type>();
+    const <invalid-type>[];
+    const <self::C<invalid-type>>[];
+    const <core::Object>[invalid-type];
+    const <core::Object>[const self::C::•<invalid-type>()];
   }
 }
 static method main() → dynamic {}

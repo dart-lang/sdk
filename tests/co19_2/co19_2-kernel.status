@@ -128,8 +128,8 @@ Language/Expressions/Constants/bitwise_operators_t07: Skip # triple-shift flag
 Language/Expressions/Constants/bitwise_operators_t08: Skip # triple-shift flag
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Legal because of implicit const
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Legal because of implicit const
-Language/Expressions/Constants/literal_string_t04: Skip # Issue 36595
-Language/Expressions/Constants/no_other_constant_expressions_t17: Skip # Issue 36595
+Language/Expressions/Constants/depending_on_itself_t03: MissingCompileTimeError # Issue 34189
+Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError # Issue 34192
 Language/Expressions/Equality/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Function_Expressions/syntax_t05: CompileTimeError
 Language/Expressions/Function_Invocation/async_cleanup_t01: CompileTimeError
@@ -150,6 +150,9 @@ Language/Expressions/Lists/constant_list_t01: CompileTimeError
 Language/Expressions/Lists/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/constant_map_type_t01: CompileTimeError
+Language/Expressions/Maps/equal_keys_t01/01: MissingCompileTimeError
+Language/Expressions/Maps/equal_keys_t01/02: MissingCompileTimeError
+Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Expressions/Maps/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t04: CompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: CompileTimeError
@@ -553,6 +556,13 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t15/01: 
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t17/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t18/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t19/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A02_t02: CompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
 LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: RuntimeError
@@ -675,9 +685,37 @@ LibTest/io/stderr/stderr_A01_t01: RuntimeError, Pass
 LibTest/isolate/Isolate/ping_A03_t02: RuntimeError, Pass
 LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash, Pass
 
+[ $compiler != dart2js && $runtime != vm && $fasta ]
+Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError # Issue 34192
+Language/Expressions/Constants/exception_t01: MissingCompileTimeError # Issue 31936
+Language/Expressions/Constants/exception_t03: MissingCompileTimeError # Issue 31936
+Language/Expressions/Constants/exception_t04: MissingCompileTimeError # Issue 31936
+Language/Expressions/Constants/no_other_constant_expressions_t11: MissingCompileTimeError # Issue 34192
+Language/Expressions/Constants/ternary_operator_t02: MissingCompileTimeError # Issue 34192
+Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError # Issue 31936
+Language/Metadata/compilation_t03: MissingCompileTimeError # Issue 34205
+
 [ $compiler != dart2js && $fasta ]
+Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError # Issue 34192
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
+
+[ $compiler != dartkp && $fasta ]
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/05: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A02_t04/06: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError
+LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError
 
 [ $mode == debug && $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Stdin/readByteSync_A02_t01: RuntimeError, Pass
@@ -976,7 +1014,11 @@ LibTest/isolate/ReceivePort/firstWhere_A01_t01: RuntimeError
 LibTest/isolate/ReceivePort/firstWhere_A02_t01: RuntimeError
 LibTest/isolate/ReceivePort/transform_A01_t01: RuntimeError
 
+[ $runtime != vm && $fasta ]
+Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: MissingCompileTimeError # Issue 34192
+
 [ $runtime != vm && ($compiler == dartk || $compiler == dartkb) ]
+Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
 Language/Expressions/Booleans/Boolean_Conversion/definition_t01: RuntimeError
 Language/Expressions/Unary_Expressions/variable_negative_t03: RuntimeError
 Language/Metadata/before_export_t01: RuntimeError
@@ -1126,6 +1168,7 @@ LibTest/typed_data/Uint8List/last_A01_t02: RuntimeError
 [ $strong && ($compiler == dartk || $compiler == dartkb) ]
 Language/Expressions/Additive_Expressions/syntax_t01: RuntimeError
 Language/Expressions/Assignment/null_aware_assignment_static_type_t01: RuntimeError
+Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError

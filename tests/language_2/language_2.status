@@ -74,6 +74,22 @@ compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 
+# Detection of compile-time errors that are related to constants can't be fully
+# done at the front end, because constants are evaluated at back ends.  So, some
+# errors aren't detected by fasta, but reported by back ends as compile-time
+# errors.
+[ $compiler != dart2analyzer && $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
+implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e15: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e18: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e21: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e24: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e27: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e3: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
+
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
 

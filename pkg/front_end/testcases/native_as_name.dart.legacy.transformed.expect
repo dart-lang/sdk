@@ -25,7 +25,7 @@ class Y2 extends self::Y1 {
   synthetic constructor •() → self::Y2
     : super self::Y1::•()
     ;
-  @#C1
+  @core::override
   get native() → core::String
     return "getter";
 }
