@@ -99,7 +99,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     CascadeExpression cascade = invocation.thisOrAncestorOfType();
     NodeList<Expression> sections = cascade.cascadeSections;
     Expression target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
+    if (target is! ListLiteral ||
+        (target as ListLiteral).isConst ||
+        sections[0] != invocation) {
       return;
     }
 
