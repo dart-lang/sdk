@@ -14,7 +14,6 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resynthesize_common.dart';
@@ -115,22 +114,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_const_constructor_inferred_args() async {
     await super.test_const_constructor_inferred_args();
-  }
-
-  @override
-  @failingTest
-  test_import_short_absolute() async {
-    // TODO(scheglov) fails on Windows
-    fail('test_import_short_absolute on Windows');
-//    await super.test_import_short_absolute();
-  }
-
-  @override
-  @failingTest
-  test_nameConflict_importWithRelativeUri_exportWithAbsolute() async {
-    // TODO(scheglov) unexpectedly passes on Windows
-    fail('unexpectedly passes on Windows');
-//    await super.test_nameConflict_importWithRelativeUri_exportWithAbsolute();
   }
 
   @override
