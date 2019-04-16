@@ -539,10 +539,23 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    // TODO(jmesserly): restore testing on this once we have everyone migrated
-    // to DDC's Kernel backend. At that point we'd like to migrate from Analyzer
-    // summaries to Kernel IL.
-    final useDillFormat = false;
+    /// This can be disabled to test DDC's hybrid mode (automatically converting
+    /// Analyzer summaries to Kernel files).
+    ///
+    /// The current DDC configurations are:
+    ///
+    /// - using Analyzer ASTs and Analyzer summaries: the current default
+    ///   configuration; used in internal builds.
+    /// - using Kernel trees and Kernel IL files: the new default for external
+    ///   users (e.g. Flutter Web), and in the future, the only DDC mode.
+    /// - using Kernel trees, but Analyzer summaries (converted automatically):
+    ///   this was intended to help migrate internal users, but is currently
+    ///   unused.
+    ///
+    /// The first two are tested on the bots and are called "dartdevc" and
+    /// "dartdevk" respectively. This flag switches "dartdevk" to use either
+    /// Kernel IL files, or the Analyzer summaries.
+    final useDillFormat = useKernel;
 
     var args = <String>[];
     if (useKernel) {
