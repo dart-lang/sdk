@@ -237,7 +237,7 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) => this;
 
   @override
-  TypeImpl withNullabilitySuffix(NullabilitySuffix nullabilitySuffix) => this;
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   @override
   void _forEachParameterType(
