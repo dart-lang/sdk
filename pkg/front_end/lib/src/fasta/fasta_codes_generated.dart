@@ -639,6 +639,30 @@ Message _withArgumentsCantReadFile(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateCantUseControlFlowOrSpreadAsConstant =
+    const Template<Message Function(Token token)>(
+        messageTemplate:
+            r"""'#lexeme' is not supported in constant expressions.""",
+        withArguments: _withArgumentsCantUseControlFlowOrSpreadAsConstant);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)>
+    codeCantUseControlFlowOrSpreadAsConstant =
+    const Code<Message Function(Token token)>(
+        "CantUseControlFlowOrSpreadAsConstant",
+        templateCantUseControlFlowOrSpreadAsConstant,
+        analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantUseControlFlowOrSpreadAsConstant(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeCantUseControlFlowOrSpreadAsConstant,
+      message: """'${lexeme}' is not supported in constant expressions.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         Token
