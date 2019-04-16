@@ -473,6 +473,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _isInCatchClause = true;
       _checkForTypeAnnotationDeferredClass(node.exceptionType);
+      _checkForPotentiallyNullableType(node.exceptionType);
       super.visitCatchClause(node);
     } finally {
       _isInCatchClause = previousIsInCatchClause;
@@ -4718,6 +4719,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
+   * Verify that the [type] is not potentially nullable.
+   */
+  void _checkForPotentiallyNullableType(TypeAnnotation type) {
+    if (_options.experimentStatus.non_nullable &&
+        type?.type != null &&
+        _typeSystem.isPotentiallyNullable(type.type)) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, type);
+    }
+  }
+
+  /**
    * Check that the given named optional [parameter] does not begin with '_'.
    *
    * See [CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER].
@@ -5195,7 +5208,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Verify that the given type [name] is not a deferred type.
+   * Verify that the [type] is not a deferred type.
    *
    * See [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS].
    */

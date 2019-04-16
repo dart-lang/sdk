@@ -2203,6 +2203,17 @@ class CompileTimeErrorCode extends ErrorCode {
               "making the called constructor not be a factory constructor.");
 
   /**
+   * It is an error if the type `T` in the on-catch clause `on T catch` is
+   * potentially nullable.
+   */
+  static const CompileTimeErrorCode NULLABLE_TYPE_IN_CATCH_CLAUSE =
+      const CompileTimeErrorCode(
+          'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+          "A nullable type cannot be used in an 'on' clause because it isn't valid "
+              "to throw 'null'.",
+          correction: "Try removing the question mark.");
+
+  /**
    * It is a compile-time error for a class to extend, implement, or mixin a
    * type of the form T? for any T.
    */
