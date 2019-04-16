@@ -7147,16 +7147,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  DartType get returnType {
-//    if (linkedNode != null) {
-//      return enclosingUnit.linkedContext.getType(
-//        linkedNode.methodDeclaration_returnType2,
-//      );
-//    }
-    return super.returnType;
-  }
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
   @override
@@ -9556,9 +9546,6 @@ abstract class VariableElementImpl extends ElementImpl
   DartObject get constantValue => evaluationResult?.value;
 
   void set declaredType(DartType type) {
-//    if (linkedNode != null) {
-//      enclosingUnit.linkedContext.setVariableType(linkedNode, type);
-//    }
     _declaredType = _checkElementOfType(type);
   }
 

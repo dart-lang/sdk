@@ -159,12 +159,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     await super.test_syntheticFunctionType_genericClosure();
   }
 
-  @override
-  @failingTest
-  test_unresolved_annotation_instanceCreation_argument_super() async {
-    await super.test_unresolved_annotation_instanceCreation_argument_super();
-  }
-
   void _addLibraryUnits(
     Source definingSource,
     CompilationUnit definingUnit,

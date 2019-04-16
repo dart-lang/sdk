@@ -9556,9 +9556,7 @@ dynamic g() {}
 ''');
   }
 
-  @failingTest
   test_unresolved_annotation_instanceCreation_argument_super() async {
-    // TODO(scheglov) fix https://github.com/dart-lang/sdk/issues/28553
     var library = await checkLibrary('''
 class A {
   const A(_);
@@ -9569,11 +9567,11 @@ class C {}
 ''', allowErrors: true);
     checkElementText(library, r'''
 class A {
-  A(_);
+  const A(dynamic _);
 }
-
+@
+        A/*location: test.dart;A*/(super)
 class C {
-  synthetic C();
 }
 ''');
   }
