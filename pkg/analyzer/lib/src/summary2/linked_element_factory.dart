@@ -250,7 +250,14 @@ class _ElementRequest {
 
     libraryElement.definingCompilationUnit = units[0];
     libraryElement.parts = units.skip(1).toList();
-    return reference.element = libraryElement;
+    reference.element = libraryElement;
+
+    var typeProvider = elementFactory.analysisContext.typeProvider;
+    if (typeProvider != null) {
+      libraryElement.createLoadLibraryFunction(typeProvider);
+    }
+
+    return libraryElement;
   }
 
   EnumElementImpl _enum(CompilationUnitElementImpl unit, Reference reference) {

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -41,25 +41,29 @@ class LinkedBundleContext {
   LinkedBundleContext.forAst(this.elementFactory, this._references)
       : _bundle = null;
 
-  LinkedLibraryContext addLinkingLibrary(String uriStr,
-      LinkedNodeLibraryBuilder data, Map<String, CompilationUnit> unitMap) {
+  LinkedLibraryContext addLinkingLibrary(
+    String uriStr,
+    LinkedNodeLibraryBuilder data,
+    LinkInputLibrary inputLibrary,
+  ) {
     var uriStr = data.uriStr;
     var libraryContext = LinkedLibraryContext(uriStr, this, data);
     libraryMap[uriStr] = libraryContext;
 
-    var uriUriStrList = unitMap.keys.toList();
-    for (var unitIndex = 0; unitIndex < uriUriStrList.length; ++unitIndex) {
-      var unitUriStr = uriUriStrList[unitIndex];
-      var unit = unitMap[unitUriStr];
-      var unitContext = LinkedUnitContext(
-        this,
-        libraryContext,
-        unitIndex,
-        unitUriStr,
-        null,
-        unit: unit,
+    var unitIndex = 0;
+    for (var inputUnit in inputLibrary.units) {
+      var source = inputUnit.source;
+      var unitUriStr = source != null ? '${source.uri}' : '';
+      libraryContext.units.add(
+        LinkedUnitContext(
+          this,
+          libraryContext,
+          unitIndex++,
+          unitUriStr,
+          null,
+          unit: inputUnit.unit,
+        ),
       );
-      libraryContext.units.add(unitContext);
     }
     return libraryContext;
   }

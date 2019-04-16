@@ -30,11 +30,11 @@ LinkResult link(
   AnalysisOptions analysisOptions,
   SourceFactory sourceFactory,
   DeclaredVariables declaredVariables,
-  List<LinkedNodeBundle> inputs,
-  Map<Source, Map<Source, CompilationUnit>> unitMap,
+  List<LinkedNodeBundle> inputBundles,
+  List<LinkInputLibrary> inputLibraries,
 ) {
   var linker = Linker(analysisOptions, sourceFactory, declaredVariables);
-  linker.link(inputs, unitMap);
+  linker.link(inputBundles, inputLibraries);
   return LinkResult(linker.linkingBundle);
 }
 
@@ -83,15 +83,15 @@ class Linker {
     );
   }
 
-  void link(List<LinkedNodeBundle> inputs,
-      Map<Source, Map<Source, CompilationUnit>> unitMap) {
-    for (var input in inputs) {
+  void link(List<LinkedNodeBundle> inputBundles,
+      List<LinkInputLibrary> inputLibraries) {
+    for (var input in inputBundles) {
       var inputBundleContext = LinkedBundleContext(elementFactory, input);
       elementFactory.addBundle(inputBundleContext);
     }
 
-    for (var librarySource in unitMap.keys) {
-      SourceLibraryBuilder.build(this, librarySource, unitMap[librarySource]);
+    for (var inputLibrary in inputLibraries) {
+      SourceLibraryBuilder.build(this, inputLibrary);
     }
     // TODO(scheglov) do in build() ?
     elementFactory.addBundle(bundleContext);
@@ -120,6 +120,7 @@ class Linker {
     _addSyntheticConstructors();
     _createTypeSystem();
     _resolveTypes();
+    _createLoadLibraryFunctions();
     _performTopLevelInference();
     _resolveConstructors();
     _resolveDefaultValues();
@@ -207,6 +208,12 @@ class Linker {
     );
   }
 
+  void _createLoadLibraryFunctions() {
+    for (var library in builders.values) {
+      library.element.createLoadLibraryFunction(typeProvider);
+    }
+  }
+
   void _createTypeSystem() {
     var coreRef = rootReference.getChild('dart:core');
     var coreLib = elementFactory.elementOfReference(coreRef);
@@ -261,6 +268,20 @@ class Linker {
       library.resolveUriDirectives();
     }
   }
+}
+
+class LinkInputLibrary {
+  final Source source;
+  final List<LinkInputUnit> units;
+
+  LinkInputLibrary(this.source, this.units);
+}
+
+class LinkInputUnit {
+  final Source source;
+  final CompilationUnit unit;
+
+  LinkInputUnit(this.source, this.unit);
 }
 
 class LinkResult {

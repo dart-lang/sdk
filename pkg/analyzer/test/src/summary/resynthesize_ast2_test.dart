@@ -38,12 +38,17 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   LinkedNodeBundle get sdkBundle {
     if (_sdkBundle != null) return _sdkBundle;
 
-    var sdkUnitMap = <Source, Map<Source, CompilationUnit>>{};
+    var inputLibraries = <LinkInputLibrary>[];
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
       var text = getFile(source.fullName).readAsStringSync();
       var unit = parseText(text);
-      sdkUnitMap[source] = _unitsOfLibrary(source, unit);
+
+      var inputUnits = <LinkInputUnit>[];
+      _addLibraryUnits(source, unit, inputUnits);
+      inputLibraries.add(
+        LinkInputLibrary(source, inputUnits),
+      );
     }
 
     var sdkLinkResult = link(
@@ -51,7 +56,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       sourceFactory,
       declaredVariables,
       [],
-      sdkUnitMap,
+      inputLibraries,
     );
 
     var bytes = sdkLinkResult.bundle.toBuffer();
@@ -62,25 +67,16 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors = false, bool dumpSummaries = false}) async {
     var source = addTestSource(text);
-    var unit = parseText(text, experimentStatus: experimentStatus);
 
-    var libraryUnitMap = {
-      source: _unitsOfLibrary(source, unit),
-    };
-
-    for (var otherLibrarySource in otherLibrarySources) {
-      var text = getFile(otherLibrarySource.fullName).readAsStringSync();
-      var unit = parseText(text, experimentStatus: experimentStatus);
-      var unitMap = _unitsOfLibrary(otherLibrarySource, unit);
-      libraryUnitMap[otherLibrarySource] = unitMap;
-    }
+    var inputLibraries = <LinkInputLibrary>[];
+    _addNonDartLibraries(Set(), inputLibraries, source);
 
     var linkResult = link(
       AnalysisOptionsImpl(),
       sourceFactory,
       declaredVariables,
       [sdkBundle],
-      libraryUnitMap,
+      inputLibraries,
     );
 
     var analysisContext = _FakeAnalysisContext(sourceFactory);
@@ -109,6 +105,9 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     analysisContext.typeProvider = typeProvider;
     analysisContext.typeSystem = Dart2TypeSystem(typeProvider);
 
+    dartCore.createLoadLibraryFunction(typeProvider);
+    dartAsync.createLoadLibraryFunction(typeProvider);
+
     return elementFactory.libraryOfUri('${source.uri}');
   }
 
@@ -133,12 +132,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_import_invalidUri_metadata() async {
-    await super.test_import_invalidUri_metadata();
-  }
-
-  @override
-  @failingTest
   test_import_short_absolute() async {
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
@@ -147,26 +140,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_inferredType_definedInSdkLibraryPart() async {
-    await super.test_inferredType_definedInSdkLibraryPart();
-  }
-
-  @override
-  @failingTest
   test_inferredType_implicitCreation() async {
     await super.test_inferredType_implicitCreation();
-  }
-
-  @override
-  @failingTest
-  test_invalidUri_part_emptyUri() async {
-    await super.test_invalidUri_part_emptyUri();
-  }
-
-  @override
-  @failingTest
-  test_invalidUris() async {
-    await super.test_invalidUris();
   }
 
   @override
@@ -185,12 +160,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_parts_invalidUri_nullStringValue() async {
-    await super.test_parts_invalidUri_nullStringValue();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_genericClosure() async {
     // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
     // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
@@ -199,33 +168,18 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_type_inference_based_on_loadLibrary() async {
-    await super.test_type_inference_based_on_loadLibrary();
-  }
-
-  @override
-  @failingTest
   test_unresolved_annotation_instanceCreation_argument_super() async {
     await super.test_unresolved_annotation_instanceCreation_argument_super();
   }
 
-  @override
-  @failingTest
-  test_unresolved_export() async {
-    await super.test_unresolved_export();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_import() async {
-    await super.test_unresolved_import();
-  }
-
-  Map<Source, CompilationUnit> _unitsOfLibrary(
-      Source definingSource, CompilationUnit definingUnit) {
-    var result = <Source, CompilationUnit>{
-      definingSource: definingUnit,
-    };
+  void _addLibraryUnits(
+    Source definingSource,
+    CompilationUnit definingUnit,
+    List<LinkInputUnit> units,
+  ) {
+    units.add(
+      LinkInputUnit(definingSource, definingUnit),
+    );
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {
         var relativeUriStr = directive.uri.stringValue;
@@ -235,19 +189,65 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
           relativeUriStr,
         );
 
-        String text;
-        try {
-          var partFile = resourceProvider.getFile(partSource.fullName);
-          text = partFile.readAsStringSync();
-        } catch (_) {
-          text = '';
+        if (partSource != null) {
+          var text = _readSafely(partSource.fullName);
+          var unit = parseText(text, experimentStatus: experimentStatus);
+          units.add(
+            LinkInputUnit(partSource, unit),
+          );
+        } else {
+          var unit = parseText('', experimentStatus: experimentStatus);
+          units.add(
+            LinkInputUnit(partSource, unit),
+          );
         }
-
-        var partUnit = parseText(text, experimentStatus: experimentStatus);
-        result[partSource] = partUnit;
       }
     }
-    return result;
+  }
+
+  void _addNonDartLibraries(
+    Set<Source> addedLibraries,
+    List<LinkInputLibrary> libraries,
+    Source source,
+  ) {
+    if (source == null ||
+        source.uri.isScheme('dart') ||
+        !addedLibraries.add(source)) {
+      return;
+    }
+
+    var text = _readSafely(source.fullName);
+    var unit = parseText(text, experimentStatus: experimentStatus);
+
+    var units = <LinkInputUnit>[];
+    _addLibraryUnits(source, unit, units);
+    libraries.add(
+      LinkInputLibrary(source, units),
+    );
+
+    void addRelativeUriStr(StringLiteral uriNode) {
+      var uriStr = uriNode.stringValue;
+      var uriSource = sourceFactory.resolveUri(source, uriStr);
+      _addNonDartLibraries(addedLibraries, libraries, uriSource);
+    }
+
+    for (var directive in unit.directives) {
+      if (directive is NamespaceDirective) {
+        addRelativeUriStr(directive.uri);
+        for (var configuration in directive.configurations) {
+          addRelativeUriStr(configuration.uri);
+        }
+      }
+    }
+  }
+
+  String _readSafely(String path) {
+    try {
+      var file = resourceProvider.getFile(path);
+      return file.readAsStringSync();
+    } catch (_) {
+      return '';
+    }
   }
 }
 

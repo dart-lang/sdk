@@ -6483,7 +6483,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           .whereType<ImportDirective>()
           .map((node) => ImportElementImpl.forLinkedNode(this, node))
           .toList();
-      var hasCore = _imports.any((import) => import.importedLibrary.isDartCore);
+      var hasCore = _imports.any((import) {
+        return import.importedLibrary?.isDartCore ?? false;
+      });
       if (!hasCore) {
         var elements = linkedContext.bundleContext.elementFactory;
         _imports.add(ImportElementImpl(-1)
@@ -6696,8 +6698,15 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   Namespace get publicNamespace {
+    if (_publicNamespace != null) return _publicNamespace;
+
+    if (linkedNode != null) {
+      return _publicNamespace =
+          NamespaceBuilder().createPublicNamespaceForLibrary(this);
+    }
+
     if (resynthesizerContext != null) {
-      _publicNamespace ??= resynthesizerContext.buildPublicNamespace();
+      return _publicNamespace = resynthesizerContext.buildPublicNamespace();
     }
     return _publicNamespace;
   }
