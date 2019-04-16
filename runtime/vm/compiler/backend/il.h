@@ -6625,6 +6625,9 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
 
   Range* shift_range() const { return shift_range_; }
 
+  // Set the range directly (takes ownership).
+  void set_shift_range(Range* shift_range) { shift_range_ = shift_range; }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DEFINE_INSTRUCTION_TYPE_CHECK(ShiftIntegerOp)
