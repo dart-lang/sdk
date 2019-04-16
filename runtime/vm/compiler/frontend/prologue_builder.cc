@@ -81,12 +81,13 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   // Always do this to preserve deoptid numbering.
   JoinEntryInstr* normal_code = BuildJoinEntry();
-  prologue += Goto(normal_code);
+  Fragment jump_to_normal_code = Goto(normal_code);
 
   if (is_empty_prologue) {
     *prologue_info = PrologueInfo(-1, -1);
     return entry;
   } else {
+    prologue += jump_to_normal_code;
     *prologue_info =
         PrologueInfo(previous_block_id, normal_code->block_id() - 1);
     return normal_code;

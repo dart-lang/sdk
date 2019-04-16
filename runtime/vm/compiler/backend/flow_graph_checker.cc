@@ -119,6 +119,7 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   }
   // Visit regular instructions.
   Instruction* last = block->last_instruction();
+  ASSERT((last == block) == block->IsGraphEntry());
   Instruction* prev = block;
   ASSERT(prev->previous() == nullptr);
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {

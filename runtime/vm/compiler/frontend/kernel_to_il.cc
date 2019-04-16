@@ -1142,8 +1142,12 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
 }
 
 Fragment FlowGraphBuilder::DebugStepCheck(TokenPosition position) {
+#ifdef PRODUCT
+  return Fragment();
+#else
   return Fragment(new (Z) DebugStepCheckInstr(
       position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+#endif
 }
 
 Fragment FlowGraphBuilder::EvaluateAssertion() {
@@ -2011,7 +2015,12 @@ FunctionEntryInstr* FlowGraphBuilder::BuildSharedUncheckedEntryPoint(
   extra_entry += Drop();
   extra_entry += Goto(join_entry);
 
-  join_entry->LinkTo(prologue_start);
+  if (prologue_start != nullptr) {
+    join_entry->LinkTo(prologue_start);
+  } else {
+    // Prologue is empty.
+    shared_prologue_linked_in.current = join_entry;
+  }
 
   TargetEntryInstr *do_checks, *skip_checks;
   shared_prologue_linked_in +=
