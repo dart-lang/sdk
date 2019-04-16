@@ -157,7 +157,7 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
 
   void _resolveInitializer() {
     var astResolver = AstResolver(_walker._linker, _library, _scope);
-    astResolver.resolve(_node.initializer);
+    astResolver.resolve(_node.initializer, doAstRewrite: true);
   }
 }
 

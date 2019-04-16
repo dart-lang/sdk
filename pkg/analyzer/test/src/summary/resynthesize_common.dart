@@ -17,7 +17,6 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../util/element_type_matchers.dart';
 import 'element_text.dart';
@@ -6043,9 +6042,7 @@ dynamic get y {}
 ''');
   }
 
-  @failingTest
   test_implicitConstructor_named_const() async {
-    // TODO(paulberry, scheglov): get this to pass
     var library = await checkLibrary('''
 class C {
   final Object x;
@@ -6053,7 +6050,27 @@ class C {
 }
 const x = C.named(42);
 ''');
-    checkElementText(library, 'TODO(paulberry, scheglov)');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class C {
+  final Object x;
+  const C.named(Object this.x);
+}
+const C x =
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(42);
+''');
+    } else {
+      checkElementText(library, r'''
+class C {
+  final Object x;
+  const C.named(Object this.x);
+}
+const C x = const
+        C/*location: test.dart;C*/.
+        named/*location: test.dart;C;named*/(42);
+''');
+    }
   }
 
   test_implicitTopLevelVariable_getterFirst() async {
@@ -6262,8 +6279,7 @@ D d;
 ''');
   }
 
-  void test_infer_generic_typedef_complex() async {
-    // TODO(paulberry, scheglov): get this test to pass.
+  test_infer_generic_typedef_complex() async {
     var library = await checkLibrary('''
 typedef F<T> = D<T,U> Function<U>();
 class C<V> {
@@ -6287,7 +6303,7 @@ D<int, U> f<U>() {}
 ''');
   }
 
-  void test_infer_generic_typedef_simple() async {
+  test_infer_generic_typedef_simple() async {
     var library = await checkLibrary('''
 typedef F = D<T> Function<T>();
 class C {
@@ -6367,7 +6383,7 @@ C x;
   }
 
   test_inference_issue_32394() async {
-    // Test the type inference involed in dartbug.com/32394
+    // Test the type inference involved in dartbug.com/32394
     var library = await checkLibrary('''
 var x = y.map((a) => a.toString());
 var y = [3];
@@ -6725,19 +6741,11 @@ import 'foo.dart' as foo;
 var a1 = foo.A();
 var a2 = foo.A.named();
 ''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-import 'foo.dart' as foo;
-dynamic a1;
-dynamic a2;
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'foo.dart' as foo;
 A a1;
 A a2;
 ''');
-    }
   }
 
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {

@@ -119,22 +119,10 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_implicitConstructor_named_const() async {
-    await super.test_implicitConstructor_named_const();
-  }
-
-  @override
-  @failingTest
   test_import_short_absolute() async {
     // TODO(scheglov) fails on Windows
     fail('test_import_short_absolute on Windows');
 //    await super.test_import_short_absolute();
-  }
-
-  @override
-  @failingTest
-  test_inferredType_implicitCreation() async {
-    await super.test_inferredType_implicitCreation();
   }
 
   @override
