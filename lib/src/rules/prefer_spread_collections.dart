@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Use spread collections when possible.';
@@ -99,8 +100,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     CascadeExpression cascade = invocation.thisOrAncestorOfType();
     NodeList<Expression> sections = cascade.cascadeSections;
     Expression target = cascade.target;
+    // todo (pq): add support for Set literals.
     if (target is! ListLiteral ||
-        (target as ListLiteral).isConst ||
+        (target is ListLiteralImpl && target.inConstantContext) ||
         sections[0] != invocation) {
       return;
     }
