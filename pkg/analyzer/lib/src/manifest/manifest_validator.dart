@@ -40,9 +40,11 @@ class ManifestValidator {
       var features = manifest?.getElementsByTagName(USES_FEATURE_TAG) ?? [];
       var permissions =
           manifest?.getElementsByTagName(USES_PERMISSION_TAG) ?? [];
+      var activities = _findActivityElements(manifest);
 
       _validateFeatures(features, reporter);
       _validatePermissions(permissions, features, reporter);
+      _validateActivities(activities, reporter);
     }
     return recorder.errors;
   }
@@ -91,6 +93,39 @@ class ManifestValidator {
         }
       }
     });
+  }
+
+  /*
+   * Validate the 'activity' tags.
+   */
+  _validateActivities(List<Element> activites, ErrorReporter reporter) {
+    activites.forEach((activity) {
+      var attributes = activity.attributes;
+      if (attributes.containsKey(ATTRIBUTE_SCREEN_ORIENTATION)) {
+        var value = attributes[ATTRIBUTE_SCREEN_ORIENTATION];
+        if (UNSUPPORTED_ORIENTATIONS
+            .contains(attributes[ATTRIBUTE_SCREEN_ORIENTATION])) {
+          _reportErrorForNode(reporter, activity, ATTRIBUTE_SCREEN_ORIENTATION,
+              ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY);
+        }
+      }
+      if (attributes.containsKey(ATTRIBUTE_RESIZEABLE_ACTIVITY)) {
+        if (attributes[ATTRIBUTE_RESIZEABLE_ACTIVITY] == 'false') {
+          _reportErrorForNode(reporter, activity, ATTRIBUTE_RESIZEABLE_ACTIVITY,
+              ManifestWarningCode.NON_RESIZABLE_ACTIVITY);
+        }
+      }
+    });
+  }
+
+  List<Element> _findActivityElements(Element manifest) {
+    var applications = manifest?.getElementsByTagName(APPLICATION_TAG);
+    var applicationElement = (applications != null && applications.isNotEmpty)
+        ? applications.first
+        : null;
+    var activities =
+        applicationElement?.getElementsByTagName(ACTIVITY_TAG) ?? [];
+    return activities;
   }
 
   bool _hasFeatureCamera(List<Element> features) =>

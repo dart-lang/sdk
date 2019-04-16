@@ -5,7 +5,7 @@
 /*
 *  The arritbute values to check for compatibiltiy with Chrome OS.
 *
- */
+*/
 
 const String MANIFEST_TAG = 'manifest';
 
@@ -13,9 +13,20 @@ const String USES_PERMISSION_TAG = 'uses-permission';
 
 const String USES_FEATURE_TAG = 'uses-feature';
 
+const String APPLICATION_TAG = 'application';
+
+const String ACTIVITY_TAG = 'activity';
+
 const String ANDROID_NAME = 'android:name';
 
 const String ANDROID_REQUIRED = 'android:required';
+
+// The parser does not maintain camelcase for attributes
+// Use 'resizeableactivity' instead of 'resizeableActivity'
+const String ATTRIBUTE_RESIZEABLE_ACTIVITY = 'android:resizeableactivity';
+
+// Use 'screenorientation' instead of 'screenOrientation'
+const String ATTRIBUTE_SCREEN_ORIENTATION = 'android:screenorientation';
 
 const String HARDWARE_FEATURE_CAMERA = 'android.hardware.camera';
 
@@ -99,3 +110,14 @@ String getImpliedUnsupportedHardware(String permission) {
       return null;
   }
 }
+
+const UNSUPPORTED_ORIENTATIONS = <String>[
+  'landscape',
+  'portrait',
+  'reverseLandscape',
+  'reversePortrait',
+  'sensorLandscape',
+  'sensorPortrait',
+  'userLandscape',
+  'userPortrait'
+];

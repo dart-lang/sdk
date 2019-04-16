@@ -46,6 +46,29 @@ class ManifestWarningCode extends ErrorCode {
               "Try adding the uses-feature with required=\"false\" attribute value.");
 
   /**
+   * A code indicating that the activity is set to be non resizable.
+   */
+  static const ManifestWarningCode NON_RESIZABLE_ACTIVITY =
+      const ManifestWarningCode(
+          'NON_RESIZABLE_ACTIVITY',
+          "The `<activity>` element should be allowed to be resized to allow " +
+              "users to take advantage of the multi-window environment on Chrome OS",
+          correction: "Consider declaring the corresponding " +
+              "activity element with `resizableActivity=\"true\"` attribute.");
+
+  /**
+   * A code indicating that the activity is locked to an orientation.
+   */
+  static const ManifestWarningCode SETTING_ORIENTATION_ON_ACTIVITY =
+      const ManifestWarningCode(
+          'SETTING_ORIENTATION_ON_ACTIVITY',
+          "The `<activity>` element should not be locked to any orientation so " +
+              "that users can take advantage of the multi-window environments " +
+              "and larger screens on Chrome OS",
+          correction: "Consider declaring the corresponding activity element with" +
+              " `screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.");
+
+  /**
    * Initialize a newly created warning code to have the given [name], [message]
    * and [correction].
    */
