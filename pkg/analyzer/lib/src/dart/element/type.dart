@@ -2964,6 +2964,7 @@ abstract class TypeImpl implements DartType {
         buffer.write('*');
         break;
       case NullabilitySuffix.none:
+        buffer.write('!');
         break;
     }
   }
