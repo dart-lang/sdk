@@ -65,7 +65,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode COLON_IN_PLACE_OF_IN = _COLON_IN_PLACE_OF_IN;
 
-  static const ParserErrorCode CONST_AFTER_FACTORY = _CONST_AFTER_FACTORY;
+  // TODO(danrubel): Remove this unused error code
+  static const ParserErrorCode CONST_AFTER_FACTORY = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode CONST_AND_COVARIANT = _CONST_AND_COVARIANT;
 
@@ -520,6 +521,8 @@ class ParserErrorCode extends ErrorCode {
       'MIXED_PARAMETER_GROUPS',
       "Can't have both positional and named parameters in a single parameter list.",
       correction: "Try choosing a single style of optional parameters.");
+
+  static const ParserErrorCode MODIFIER_OUT_OF_ORDER = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES =
       _MULTIPLE_EXTENDS_CLAUSES;

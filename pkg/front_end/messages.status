@@ -51,7 +51,6 @@ ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
-ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
@@ -277,6 +276,7 @@ MissingMain/analyzerCode: Fail
 MissingMain/example: Fail
 MissingPrefixInDeferredImport/example: Fail
 MixinInferenceNoMatchingClass/example: Fail
+ModifierOutOfOrder/script1: Fail
 MultipleExtends/script: Fail
 MultipleImplements/script: Fail
 MultipleLibraryDirectives/example: Fail

@@ -240,7 +240,8 @@ class ModifierRecoveryContext {
       varFinalOrConst = constToken = next;
 
       if (afterFactory) {
-        parser.reportRecoverableError(next, fasta.messageConstAfterFactory);
+        parser.reportRecoverableError(next,
+            fasta.templateModifierOutOfOrder.withArguments('const', 'factory'));
       }
       return next;
     }

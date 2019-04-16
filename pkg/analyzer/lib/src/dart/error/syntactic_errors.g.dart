@@ -63,7 +63,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _CLASS_IN_CLASS,
   _COLON_IN_PLACE_OF_IN,
   _CONSTRUCTOR_WITH_RETURN_TYPE,
-  _CONST_AFTER_FACTORY,
+  _MODIFIER_OUT_OF_ORDER,
   _CONST_AND_COVARIANT,
   _CONST_AND_FINAL,
   _CONST_AND_VAR,
@@ -140,11 +140,6 @@ const ParserErrorCode _COLON_IN_PLACE_OF_IN = const ParserErrorCode(
 const ParserErrorCode _CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
     'CONSTRUCTOR_WITH_RETURN_TYPE', r"Constructors can't have a return type.",
     correction: "Try removing the return type.");
-
-const ParserErrorCode _CONST_AFTER_FACTORY = const ParserErrorCode(
-    'CONST_AFTER_FACTORY',
-    r"The modifier 'const' should be before the modifier 'factory'.",
-    correction: "Try re-ordering the modifiers.");
 
 const ParserErrorCode _CONST_AND_COVARIANT = const ParserErrorCode(
     'CONST_AND_COVARIANT',
@@ -449,6 +444,11 @@ const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
 
 const ParserErrorCode _MISSING_STATEMENT =
     const ParserErrorCode('MISSING_STATEMENT', r"Expected a statement.");
+
+const ParserErrorCode _MODIFIER_OUT_OF_ORDER = const ParserErrorCode(
+    'MODIFIER_OUT_OF_ORDER',
+    r"The modifier '#string' should be before the modifier '#string2'.",
+    correction: "Try re-ordering the modifiers.");
 
 const ParserErrorCode _MULTIPLE_EXTENDS_CLAUSES = const ParserErrorCode(
     'MULTIPLE_EXTENDS_CLAUSES',

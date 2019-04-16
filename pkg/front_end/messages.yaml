@@ -632,11 +632,11 @@ NonConstConstructor:
   tip: "Try using a constructor or factory that is 'const'."
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
-ConstAfterFactory:
+ModifierOutOfOrder:
   index: 56
-  template: "The modifier 'const' should be before the modifier 'factory'."
+  template: "The modifier '#string' should be before the modifier '#string2'."
   tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.CONST_AFTER_FACTORY
+  analyzerCode: ParserErrorCode.MODIFIER_OUT_OF_ORDER
   script:
     - "class C { factory const C() = prefix.B.foo; }"
 

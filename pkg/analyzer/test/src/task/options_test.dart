@@ -11,6 +11,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -234,6 +235,8 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
+      } else if (errorType == ParserErrorCode) {
+        declaredNames.remove('CONST_AFTER_FACTORY');
       }
 
       // Assert that all remaining declared names are in errorCodeValues

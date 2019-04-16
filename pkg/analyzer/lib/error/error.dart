@@ -496,6 +496,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
   ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH,
   ParserErrorCode.MIXED_PARAMETER_GROUPS,
+  ParserErrorCode.MODIFIER_OUT_OF_ORDER,
   ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES,
   ParserErrorCode.MULTIPLE_ON_CLAUSES,
   ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES,

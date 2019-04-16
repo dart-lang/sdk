@@ -896,17 +896,6 @@ const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstAfterFactory = messageConstAfterFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstAfterFactory = const MessageCode(
-    "ConstAfterFactory",
-    index: 56,
-    message:
-        r"""The modifier 'const' should be before the modifier 'factory'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstAndCovariant = messageConstAndCovariant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6909,6 +6898,36 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
           """Type parameters could not be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
               labeler.originMessages,
       arguments: {'name': name, 'name2': name2, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateModifierOutOfOrder = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""The modifier '#string' should be before the modifier '#string2'.""",
+    tipTemplate: r"""Try re-ordering the modifiers.""",
+    withArguments: _withArgumentsModifierOutOfOrder);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeModifierOutOfOrder =
+    const Code<Message Function(String string, String string2)>(
+        "ModifierOutOfOrder", templateModifierOutOfOrder,
+        index: 56);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsModifierOutOfOrder(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeModifierOutOfOrder,
+      message:
+          """The modifier '${string}' should be before the modifier '${string2}'.""",
+      tip: """Try re-ordering the modifiers.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
