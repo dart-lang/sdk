@@ -1117,61 +1117,10 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   USE(rD)
 #define DECODE_A_X rD = (static_cast<int32_t>(op) >> KernelBytecode::kDShift);
 
-
-// Exception handling helper. Gets handler FP and PC from the Interpreter where
-// they were stored by Interpreter::Longjmp and proceeds to execute the handler.
-// Corner case: handler PC can be a fake marker that marks entry frame, which
-// means exception was not handled in the Dart code. In this case we return
-// caught exception from Interpreter::Call.
-#if defined(DEBUG)
-
 #define HANDLE_EXCEPTION                                                       \
   do {                                                                         \
-    FP = fp_;                                                                  \
-    pc = pc_;                                                                  \
-    if (IsEntryFrameMarker(pc)) {                                              \
-      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
-      argdesc_ =                                                               \
-          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
-      uword exit_fp =                                                          \
-          reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);           \
-      thread->set_top_exit_frame_info(exit_fp);                                \
-      thread->set_top_resource(top_resource);                                  \
-      thread->set_vm_tag(vm_tag);                                              \
-      if (IsTracingExecution()) {                                              \
-        THR_Print("%" Pu64 " ", icount_);                                      \
-        THR_Print("Returning exception from interpreter 0x%" Px                \
-                  " at fp_ 0x%" Px " exit 0x%" Px "\n",                        \
-                  reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_), \
-                  exit_fp);                                                    \
-      }                                                                        \
-      ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));                          \
-      return special_[KernelBytecode::kExceptionSpecialIndex];                 \
-    }                                                                          \
-    goto DispatchAfterException;                                               \
+    goto HandleException;                                                      \
   } while (0)
-
-#else  // !defined(DEBUG)
-
-#define HANDLE_EXCEPTION                                                       \
-  do {                                                                         \
-    FP = fp_;                                                                  \
-    pc = pc_;                                                                  \
-    if (IsEntryFrameMarker(pc)) {                                              \
-      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
-      argdesc_ =                                                               \
-          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
-      uword exit_fp =                                                          \
-          reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);           \
-      thread->set_top_exit_frame_info(exit_fp);                                \
-      thread->set_top_resource(top_resource);                                  \
-      thread->set_vm_tag(vm_tag);                                              \
-      return special_[KernelBytecode::kExceptionSpecialIndex];                 \
-    }                                                                          \
-    goto DispatchAfterException;                                               \
-  } while (0)
-
-#endif  // !defined(DEBUG)
 
 #define HANDLE_RETURN                                                          \
   do {                                                                         \
@@ -3492,9 +3441,36 @@ SwitchDispatch:
     UNREACHABLE();
   }
 
-  // Single dispatch point used by exception handling macros.
+  // Exception handling helper. Gets handler FP and PC from the Interpreter
+  // where they were stored by Interpreter::Longjmp and proceeds to execute the
+  // handler. Corner case: handler PC can be a fake marker that marks entry
+  // frame, which means exception was not handled in the interpreter. In this
+  // case we return the caught exception from Interpreter::Call.
   {
-  DispatchAfterException:
+  HandleException:
+    FP = fp_;
+    pc = pc_;
+    if (IsEntryFrameMarker(pc)) {
+      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]);
+      argdesc_ =
+          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);
+      uword exit_fp = reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);
+      thread->set_top_exit_frame_info(exit_fp);
+      thread->set_top_resource(top_resource);
+      thread->set_vm_tag(vm_tag);
+#if defined(DEBUG)
+      if (IsTracingExecution()) {
+        THR_Print("%" Pu64 " ", icount_);
+        THR_Print("Returning exception from interpreter 0x%" Px " at fp_ 0x%" Px
+                  " exit 0x%" Px "\n",
+                  reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+                  exit_fp);
+      }
+#endif
+      ASSERT(HasFrame(reinterpret_cast<uword>(fp_)));
+      return special_[KernelBytecode::kExceptionSpecialIndex];
+    }
+
     pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     DISPATCH();
   }
