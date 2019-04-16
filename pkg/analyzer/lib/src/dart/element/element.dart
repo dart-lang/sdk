@@ -4845,8 +4845,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   factory FieldElementImpl.forLinkedNodeFactory(
-      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
-    if (enclosing.enclosingUnit.linkedContext.isConst(linkedNode)) {
+      ClassElementImpl enclosing, Reference reference, AstNode linkedNode) {
+    var context = enclosing.enclosingUnit.linkedContext;
+    if (context.shouldBeConstFieldElement(linkedNode)) {
       return ConstFieldElementImpl.forLinkedNode(
         enclosing,
         reference,

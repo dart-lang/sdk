@@ -119,13 +119,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_const_finalField_hasConstConstructor() async {
-    // TODO(scheglov) Needs initializer, because of const constructor.
-    await super.test_const_finalField_hasConstConstructor();
-  }
-
-  @override
-  @failingTest
   test_implicitConstructor_named_const() async {
     await super.test_implicitConstructor_named_const();
   }

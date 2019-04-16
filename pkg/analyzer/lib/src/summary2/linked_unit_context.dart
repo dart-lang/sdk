@@ -793,6 +793,23 @@ class LinkedUnitContext {
     LazyAst.setType(node, type);
   }
 
+  bool shouldBeConstFieldElement(AstNode node) {
+    if (node is VariableDeclaration) {
+      VariableDeclarationList variableList = node.parent;
+      if (variableList.isConst) return true;
+
+      if (variableList.isFinal) {
+        ClassDeclaration classDeclaration = variableList.parent.parent;
+        for (var member in classDeclaration.members) {
+          if (member is ConstructorDeclaration && member.constKeyword != null) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   Iterable<VariableDeclaration> topLevelVariables(CompilationUnit unit) sync* {
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
