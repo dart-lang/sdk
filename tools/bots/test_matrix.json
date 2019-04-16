@@ -885,6 +885,14 @@
             "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
             "-rnone"
           ]
+        },
+        {
+          "name": "ddc worker tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/worker/worker_test.dart",
+            "-rnone"
+          ]
         }
       ]
     },
@@ -948,6 +956,14 @@
           "script": "xcodebuild/ReleaseX64/dart",
           "arguments": [
             "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc worker tests",
+          "script": "xcodebuild/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/worker/worker_test.dart",
             "-rnone"
           ]
         }
