@@ -1951,6 +1951,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           concatenated.add(new StringBuffer(value));
         }
       } else if (shouldBeUnevaluated) {
+        // The constant is either unevaluated or a non-primitive in an
+        // unevaluated context. In both cases we defer the evaluation and/or
+        // error reporting till later.
         concatenated.add(constant);
       } else {
         return report(
@@ -1963,11 +1966,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       final expressions = new List<Expression>(concatenated.length);
       for (int i = 0; i < concatenated.length; i++) {
         Object value = concatenated[i];
-        if (value is UnevaluatedConstant) {
-          expressions[i] = extract(value);
-        } else {
+        if (value is StringBuffer) {
           expressions[i] = new ConstantExpression(
               canonicalize(new StringConstant(value.toString())));
+        } else {
+          // The value is either unevaluated constant or a non-primitive
+          // constant in an unevaluated expression.
+          expressions[i] = extract(value);
         }
       }
       return unevaluated(node, new StringConcatenation(expressions));

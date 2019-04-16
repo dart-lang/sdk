@@ -99,11 +99,11 @@ const List<TestData> DATA = const [
     const ConstantData(
         'const {0: 1, 2: 3}',
         'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-        'IntConstant(2): IntConstant(3)})'),
+            'IntConstant(2): IntConstant(3)})'),
     const ConstantData(
         'const <int, int>{0: 1, 2: 3}',
         'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-        'IntConstant(2): IntConstant(3)})'),
+            'IntConstant(2): IntConstant(3)})'),
     const ConstantData('const <int, int>{0: 1, 0: 2}', 'NonConstant',
         expectedErrors: 'ConstEvalDuplicateKey'),
     const ConstantData(
@@ -155,36 +155,36 @@ class D extends C {
     const ConstantData(
         'const C()',
         'ConstructedConstant(C(field1=IntConstant(42),'
-        'field2=BoolConstant(false)))'),
+            'field2=BoolConstant(false)))'),
     const ConstantData(
         'const C(field1: 87)',
         'ConstructedConstant(C(field1=IntConstant(87),'
-        'field2=BoolConstant(false)))'),
+            'field2=BoolConstant(false)))'),
     const ConstantData(
         'const C(field2: true)',
         'ConstructedConstant(C(field1=IntConstant(42),'
-        'field2=BoolConstant(true)))'),
+            'field2=BoolConstant(true)))'),
     const ConstantData(
         'const C.named()',
         'ConstructedConstant(C(field1=BoolConstant(false),'
-        'field2=BoolConstant(false)))'),
+            'field2=BoolConstant(false)))'),
     const ConstantData(
         'const C.named(87)',
         'ConstructedConstant(C(field1=IntConstant(87),'
-        'field2=IntConstant(87)))'),
+            'field2=IntConstant(87)))'),
     const ConstantData(
         'const C(field1: a, field2: b)', const <Map<String, String>, String>{
       const {}: 'ConstructedConstant(C(field1=BoolConstant(true),'
           'field2=IntConstant(42)))',
       const {'foo': 'false', 'bar': '87'}:
           'ConstructedConstant(C(field1=BoolConstant(false),'
-          'field2=IntConstant(87)))',
+              'field2=IntConstant(87)))',
     }),
     const ConstantData(
         'const D(42, 87)',
         'ConstructedConstant(D(field1=IntConstant(87),'
-        'field2=IntConstant(42),'
-        'field3=IntConstant(99)))'),
+            'field2=IntConstant(42),'
+            'field3=IntConstant(99)))'),
   ]),
   const TestData('redirect', '''
 class A<T> implements B<Null> {
@@ -252,19 +252,19 @@ class B extends A {
     const ConstantData(
         'const A.named(99, 100)',
         'ConstructedConstant(A('
-        't=IntConstant(100),'
-        'u=IntConstant(42),'
-        'x=IntConstant(3),'
-        'y=IntConstant(499),'
-        'z=IntConstant(99)))'),
+            't=IntConstant(100),'
+            'u=IntConstant(42),'
+            'x=IntConstant(3),'
+            'y=IntConstant(499),'
+            'z=IntConstant(99)))'),
     const ConstantData(
         'const A(99, 100)',
         'ConstructedConstant(A('
-        't=IntConstant(100),'
-        'u=IntConstant(42),'
-        'x=IntConstant(3),'
-        'y=IntConstant(499),'
-        'z=IntConstant(99)))'),
+            't=IntConstant(100),'
+            'u=IntConstant(42),'
+            'x=IntConstant(3),'
+            'y=IntConstant(499),'
+            'z=IntConstant(99)))'),
   ]),
   const TestData('errors', r'''
  const dynamic null_ = const bool.fromEnvironment('x') ? null : null;
@@ -317,9 +317,8 @@ class B extends A {
         r'"$integer $string $boolean"', 'StringConstant("5 baz false")'),
     const ConstantData('integer ? true : false', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    // TODO(sigmund): CFE incorrectly stringifies proxy (issue 36609).
-    //const ConstantData(r'"${proxy}"', 'NonConstant',
-    //    expectedErrors: 'ConstEvalInvalidStringInterpolationOperand'),
+    const ConstantData(r'"${proxy}"', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidStringInterpolationOperand'),
     const ConstantData('0 + string', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
     const ConstantData('string + 0', 'NonConstant',
@@ -442,13 +441,13 @@ class C<T> {
     const ConstantData(
         'const C<int>(0, identity)',
         'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
-        'identityFunction=InstantiationConstant([int],'
-        'FunctionConstant(identity))))'),
+            'identityFunction=InstantiationConstant([int],'
+            'FunctionConstant(identity))))'),
     const ConstantData(
         'const C<double>(0.5, identity)',
         'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
-        'identityFunction=InstantiationConstant([double],'
-        'FunctionConstant(identity))))'),
+            'identityFunction=InstantiationConstant([double],'
+            'FunctionConstant(identity))))'),
   ]),
   const TestData('generic class', '''
 class C<T> {
