@@ -5,6 +5,6 @@ If this is a fix to an existing lint rule or a proposed new one, please include
 the name of the rule in the pull request.
 
 If this is a new lint or feature and there is not an existing tracking bug, please
-consider opening one to better facilate conversation.
+consider opening one to better facilitate conversation.
 
 Fixes # (issue)
