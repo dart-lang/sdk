@@ -1808,6 +1808,13 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     if (KernelBytecode::IsJumpOpcode(instr)) {
       const intptr_t target = pc + KernelBytecode::DecodeT(instr);
       EnsureControlFlowJoin(descriptors, target);
+    } else if ((KernelBytecode::DecodeOpcode(instr) ==
+                KernelBytecode::kCheckStack) &&
+               (KernelBytecode::DecodeA(instr) != 0)) {
+      // (dartbug.com/36590) BlockEntryInstr::FindOsrEntryAndRelink assumes
+      // that CheckStackOverflow instruction is at the beginning of a join
+      // block.
+      EnsureControlFlowJoin(descriptors, pc);
     }
 
     if ((scratch_var_ == nullptr) && RequiresScratchVar(instr)) {
