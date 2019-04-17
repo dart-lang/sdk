@@ -31,7 +31,18 @@ f() {
 ''');
   }
 
-  test_on_class() async {
+  test_on_class_nonNullable() async {
+    assertNoErrorsInCode('''
+class A {}
+f() {
+  try {
+  } on A catch (e) {
+  }
+}
+''');
+  }
+
+  test_on_class_nullable() async {
     assertErrorsInCode('''
 class A {}
 f() {
@@ -56,5 +67,17 @@ class A<B> {
 ''', [
       error(CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 40, 1),
     ]);
+  }
+
+  test_on_typeParameter_nonNullable() async {
+    assertNoErrorsInCode('''
+class A<B extends Object> {
+  m() {
+    try {
+    } on B {
+    }
+  }
+}
+''');
   }
 }
