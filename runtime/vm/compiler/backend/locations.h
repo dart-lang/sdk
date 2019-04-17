@@ -10,6 +10,7 @@
 #include "vm/bitmap.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/constants.h"
+#include "vm/cpu.h"
 
 namespace dart {
 
@@ -562,9 +563,15 @@ class RegisterSet : public ValueObject {
       Add(Location::RegisterLocation(reg));
     }
 
-    for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
-      Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+#if defined(TARGET_ARCH_ARM)
+    if (TargetCPUFeatures::vfp_supported()) {
+#endif
+      for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+        Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+      }
+#if defined(TARGET_ARCH_ARM)
     }
+#endif
   }
 
   void Add(Location loc, Representation rep = kTagged) {
