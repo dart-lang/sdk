@@ -805,19 +805,6 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return findVariable(variableName, failIfAbsent: true);
   }
 
-  test_constExpr_binary_bitShiftRightLogical() {
-    experimentStatus = ExperimentStatus(constant_update_2018: true);
-    UnlinkedVariable variable = serializeVariableText('const v = 1 >>> 2;');
-    assertUnlinkedConst(variable.initializer.bodyExpr, '1 >>> 2', operators: [
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.bitShiftRightLogical
-    ], ints: [
-      1,
-      2
-    ]);
-  }
-
   test_apiSignature() {
     List<int> signature1;
     List<int> signature2;
@@ -1745,6 +1732,19 @@ var v = (() {
       UnlinkedExprOperation.pushInt,
       UnlinkedExprOperation.pushInt,
       UnlinkedExprOperation.bitShiftRight
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_bitShiftRightLogical() {
+    experimentStatus = ExperimentStatus(constant_update_2018: true);
+    UnlinkedVariable variable = serializeVariableText('const v = 1 >>> 2;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '1 >>> 2', operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitShiftRightLogical
     ], ints: [
       1,
       2
