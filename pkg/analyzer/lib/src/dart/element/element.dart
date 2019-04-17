@@ -3376,6 +3376,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasMustCallSuper {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isMustCallSuper) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasOptionalTypeArgs {
     var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -7514,6 +7526,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasLiteral => false;
+
+  @override
+  bool get hasMustCallSuper => false;
 
   @override
   bool get hasOptionalTypeArgs => false;

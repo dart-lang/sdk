@@ -4358,7 +4358,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
-    if (element != null) {
+    if (element != null && _hasConcreteSuperMethod(node)) {
       _InvocationCollector collector = new _InvocationCollector();
       node.accept(collector);
       if (!collector.superCalls.contains(element.name)) {
@@ -5901,20 +5901,40 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return result;
   }
 
+  // Find a method which is overridden by [node] and which is annotated with
+  // `@mustCallSuper`.
+  //
+  // As per the definition of `mustCallSuper` [1], every method which overrides
+  // a method annotated with `@mustCallSuper` is implicitly annotated with
+  // `@mustCallSuper`.
+  //
+  // [1] https://pub.dartlang.org/documentation/meta/latest/meta/mustCallSuper-constant.html
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
-    ExecutableElement overriddenMember =
-        _getOverriddenMember(node.declaredElement);
-    List<ExecutableElement> seen = <ExecutableElement>[];
-    while (
-        overriddenMember is MethodElement && !seen.contains(overriddenMember)) {
-      for (ElementAnnotation annotation in overriddenMember.metadata) {
-        if (annotation.isMustCallSuper) {
-          return overriddenMember;
-        }
+    Element member = node.declaredElement;
+    ClassElement classElement = member.enclosingElement;
+    String name = member.name;
+
+    // Walk up the type hierarchy from [classElement], ignoring direct interfaces.
+    Queue<ClassElement> superclasses =
+        Queue.of(classElement.mixins.map((i) => i.element))
+          ..addAll(classElement.superclassConstraints.map((i) => i.element))
+          ..add(classElement.supertype?.element);
+    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    while (superclasses.isNotEmpty) {
+      ClassElement ancestor = superclasses.removeFirst();
+      if (ancestor == null || !visitedClasses.add(ancestor)) {
+        continue;
       }
-      seen.add(overriddenMember);
-      // Keep looking up the chain.
-      overriddenMember = _getOverriddenMember(overriddenMember);
+      ExecutableElement member = ancestor.getMethod(name) ??
+          ancestor.getGetter(name) ??
+          ancestor.getSetter(name);
+      if (member is MethodElement && member.hasMustCallSuper) {
+        return member;
+      }
+      superclasses
+        ..addAll(ancestor.mixins.map((i) => i.element))
+        ..addAll(ancestor.superclassConstraints.map((i) => i.element))
+        ..add(ancestor.supertype?.element);
     }
     return null;
   }
@@ -6021,23 +6041,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return buffer.toString();
   }
 
-  ExecutableElement _getOverriddenMember(Element member) {
-    ClassElement classElement = member.enclosingElement;
-    String name = member.name;
-    ClassElement superclass = classElement.supertype?.element;
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
-    while (superclass != null && visitedClasses.add(superclass)) {
-      ExecutableElement member = superclass.getMethod(name) ??
-          superclass.getGetter(name) ??
-          superclass.getSetter(name);
-      if (member != null) {
-        return member;
-      }
-      superclass = superclass.supertype?.element;
-    }
-    return null;
-  }
-
   /**
    * Return the type of the first and only parameter of the given [setter].
    */
@@ -6049,6 +6052,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return null;
     }
     return setterParameters[0].type;
+  }
+
+  // Returns whether [node] overrides a concrete method.
+  bool _hasConcreteSuperMethod(MethodDeclaration node) {
+    ClassElement classElement = node.declaredElement.enclosingElement;
+    String name = node.declaredElement.name;
+
+    Queue<ClassElement> superclasses =
+        Queue.of(classElement.mixins.map((i) => i.element))
+          ..addAll(classElement.superclassConstraints.map((i) => i.element))
+          ..add(classElement.supertype?.element);
+    return superclasses.any(
+        (parent) => parent.lookUpConcreteMethod(name, parent.library) != null);
   }
 
   /**
