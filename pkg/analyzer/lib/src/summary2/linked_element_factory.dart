@@ -216,6 +216,9 @@ class _ElementRequest {
     var sourceFactory = elementFactory.analysisContext.sourceFactory;
     var librarySource = sourceFactory.forUri(uriStr);
 
+    // The URI cannot be resolved, we don't know the library.
+    if (librarySource == null) return null;
+
     var libraryContext = elementFactory.libraryMap[uriStr];
     // TODO(scheglov) don't use node
     var node2 = libraryContext.node;
