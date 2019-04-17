@@ -117,9 +117,16 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+  }
+
+  @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    // TODO: implement visitGenericTypeAlias
-//    super.visitGenericTypeAlias(node);
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.functionType.accept(this);
   }
 
   @override
@@ -141,8 +148,9 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    // TODO: implement visitMixinDeclaration
-//    super.visitMixinDeclaration(node);
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
   }
 
   @override

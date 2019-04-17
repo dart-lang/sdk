@@ -873,6 +873,7 @@ class LazyGenericTypeAlias {
 
   bool _hasDocumentationComment = false;
   bool _hasFunction = false;
+  bool _hasMetadata = false;
 
   LazyGenericTypeAlias(this.data);
 
@@ -906,6 +907,21 @@ class LazyGenericTypeAlias {
     }
   }
 
+  static void readMetadata(
+    AstBinaryReader reader,
+    GenericTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
   static void setData(GenericTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyGenericTypeAlias(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
@@ -922,6 +938,7 @@ class LazyMethodDeclaration {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasReturnType = false;
+  bool _hasReturnTypeNode = false;
 
   LazyMethodDeclaration(this.data);
 
@@ -998,6 +1015,19 @@ class LazyMethodDeclaration {
     }
   }
 
+  static void readReturnTypeNode(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnTypeNode) {
+      node.returnType = reader.readNode(
+        lazy.data.methodDeclaration_returnType,
+      );
+      lazy._hasReturnTypeNode = true;
+    }
+  }
+
   static void setData(MethodDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyMethodDeclaration(data));
   }
@@ -1012,6 +1042,7 @@ class LazyMixinDeclaration {
   bool _hasOnClause = false;
   bool _hasImplementsClause = false;
   bool _hasMembers = false;
+  bool _hasMetadata = false;
 
   LazyMixinDeclaration(this.data);
 
@@ -1057,6 +1088,21 @@ class LazyMixinDeclaration {
         node.members[i] = reader.readNode(data);
       }
       lazy._hasMembers = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    MixinDeclaration node,
+  ) {
+    var lazy = LazyMixinDeclaration.get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
     }
   }
 

@@ -22,6 +22,11 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/link.dart' as link2;
+import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -44,6 +49,7 @@ class LibraryContext {
 
   RestrictedAnalysisContext analysisContext;
   SummaryResynthesizer resynthesizer;
+  LinkedElementFactory elementFactory;
   InheritanceManager2 inheritanceManager;
 
   LibraryContext({
@@ -56,6 +62,7 @@ class LibraryContext {
     @required SourceFactory sourceFactory,
     @required SummaryDataStore externalSummaries,
     @required FileState targetLibrary,
+    @required bool useSummary2,
   })  : this.logger = logger,
         this.byteStore = byteStore {
     if (externalSummaries != null) {
@@ -68,13 +75,17 @@ class LibraryContext {
       sourceFactory,
     );
 
-    // Fill the store with summaries required for the initial library.
-    load(targetLibrary);
+    if (useSummary2) {
+      load2(targetLibrary);
+    } else {
+      // Fill the store with summaries required for the initial library.
+      load(targetLibrary);
 
-    resynthesizer = new StoreBasedSummaryResynthesizer(
-        analysisContext, session, sourceFactory, true, store);
-    analysisContext.typeProvider = resynthesizer.typeProvider;
-    resynthesizer.finishCoreAsyncLibraries();
+      resynthesizer = new StoreBasedSummaryResynthesizer(
+          analysisContext, session, sourceFactory, true, store);
+      analysisContext.typeProvider = resynthesizer.typeProvider;
+      resynthesizer.finishCoreAsyncLibraries();
+    }
 
     inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
   }
@@ -88,10 +99,18 @@ class LibraryContext {
    * Computes a [CompilationUnitElement] for the given library/unit pair.
    */
   CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
-    return resynthesizer.getElement(new ElementLocationImpl.con3(<String>[
-      library.uriStr,
-      unit.uriStr,
-    ]));
+    if (elementFactory != null) {
+      var reference = elementFactory.rootReference
+          .getChild(library.uriStr)
+          .getChild('@unit')
+          .getChild(unit.uriStr);
+      return elementFactory.elementOfReference(reference);
+    } else {
+      return resynthesizer.getElement(new ElementLocationImpl.con3(<String>[
+        library.uriStr,
+        unit.uriStr,
+      ]));
+    }
   }
 
   /**
@@ -106,7 +125,11 @@ class LibraryContext {
    */
   bool isLibraryUri(Uri uri) {
     String uriStr = uri.toString();
-    return store.unlinkedMap[uriStr]?.isPartOf == false;
+    if (elementFactory != null) {
+      return elementFactory.isLibraryUri(uriStr);
+    } else {
+      return store.unlinkedMap[uriStr]?.isPartOf == false;
+    }
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -191,6 +214,62 @@ class LibraryContext {
       store.addLinkedLibrary(uri, linked);
       _linkedDataInBytes += bytes.length;
     }
+  }
+
+  /// Load data required to access elements of the given [targetLibrary].
+  ///
+  /// TODO(scheglov) Implement loading cached linked bundles.
+  void load2(FileState targetLibrary) {
+    var rootReference = Reference.root();
+    rootReference.getChild('dart:core').getChild('dynamic').element =
+        DynamicElementImpl.instance;
+
+    elementFactory = LinkedElementFactory(
+      analysisContext,
+      null,
+      rootReference,
+    );
+
+    var inputLibraries = <link2.LinkInputLibrary>[];
+    var transitiveFiles = targetLibrary.transitiveFiles;
+    for (var libraryFile in transitiveFiles) {
+      if (libraryFile.isPart) continue;
+
+      // TODO(scheglov) Why do we even we such invalid files in transitive?
+      var librarySource = libraryFile.source;
+      if (librarySource == null) continue;
+
+      var inputUnits = <link2.LinkInputUnit>[];
+      for (var file in libraryFile.libraryFiles) {
+        inputUnits.add(
+          link2.LinkInputUnit(file.source, file.parse()),
+        );
+      }
+      inputLibraries.add(
+        link2.LinkInputLibrary(librarySource, inputUnits),
+      );
+    }
+    var linkResult = link2.link(
+      analysisContext.analysisOptions,
+      analysisContext.sourceFactory,
+      analysisContext.declaredVariables,
+      [],
+      inputLibraries,
+    );
+
+    elementFactory.addBundle(
+      LinkedBundleContext(elementFactory, linkResult.bundle),
+    );
+
+    var dartCore = elementFactory.libraryOfUri('dart:core');
+    var dartAsync = elementFactory.libraryOfUri('dart:async');
+    var typeProvider = SummaryTypeProvider()
+      ..initializeCore(dartCore)
+      ..initializeAsync(dartAsync);
+    analysisContext.typeProvider = typeProvider;
+
+    dartCore.createLoadLibraryFunction(typeProvider);
+    dartAsync.createLoadLibraryFunction(typeProvider);
   }
 
   /// Return `true` if this context grew too large, and should be recreated.

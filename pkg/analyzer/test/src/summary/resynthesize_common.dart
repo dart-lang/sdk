@@ -7760,6 +7760,24 @@ dynamic f([@
 ''');
   }
 
+  test_metadata_genericTypeAlias() async {
+    var library = await checkLibrary(r'''
+const a = null;
+const b = null;
+@a
+@b
+typedef F = void Function();''');
+    checkElementText(library, r'''
+@
+        a/*location: test.dart;a?*/
+@
+        b/*location: test.dart;b?*/
+typedef F = void Function();
+const dynamic a = null;
+const dynamic b = null;
+''');
+  }
+
   test_metadata_importDirective() async {
     addLibrarySource('/foo.dart', 'const b = null;');
     var library = await checkLibrary('@a import "foo.dart"; const a = b;');
@@ -7839,6 +7857,29 @@ const dynamic b = null;
 ''');
   }
 
+  test_metadata_methodDeclaration_method_mixin() async {
+    var library = await checkLibrary(r'''
+const a = null;
+const b = null;
+mixin M {
+  @a
+  @b
+  m() {}
+}
+''');
+    checkElementText(library, r'''
+mixin M on Object {
+  @
+        a/*location: test.dart;a?*/
+  @
+        b/*location: test.dart;b?*/
+  dynamic m() {}
+}
+const dynamic a = null;
+const dynamic b = null;
+''');
+  }
+
   test_metadata_methodDeclaration_setter() async {
     var library = await checkLibrary('''
 const a = null;
@@ -7854,6 +7895,25 @@ class C {
   void set m(dynamic value) {}
 }
 const dynamic a = null;
+''');
+  }
+
+  test_metadata_mixinDeclaration() async {
+    var library = await checkLibrary(r'''
+const a = null;
+const b = null;
+@a
+@b
+mixin M {}''');
+    checkElementText(library, r'''
+@
+        a/*location: test.dart;a?*/
+@
+        b/*location: test.dart;b?*/
+mixin M on Object {
+}
+const dynamic a = null;
+const dynamic b = null;
 ''');
   }
 
@@ -8107,6 +8167,18 @@ mixin M<T extends num, U> on A, B implements C, D {
   U get g {}
   void set s(int v) {}
   int m(double v) {}
+}
+''');
+  }
+
+  test_mixin_field_inferredType_final() async {
+    var library = await checkLibrary('''
+mixin M {
+  final x = 0;
+}''');
+    checkElementText(library, r'''
+mixin M on Object {
+  final int x;
 }
 ''');
   }

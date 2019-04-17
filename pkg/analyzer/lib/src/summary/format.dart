@@ -1930,6 +1930,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   List<String> _referencedNames;
   List<String> _subtypedNames;
   UnlinkedUnitBuilder _unit;
+  UnlinkedUnit2Builder _unit2;
 
   @override
   List<String> get definedClassMemberNames =>
@@ -1973,21 +1974,32 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     this._unit = value;
   }
 
+  @override
+  UnlinkedUnit2Builder get unit2 => _unit2;
+
+  /// Unlinked information for the unit.
+  set unit2(UnlinkedUnit2Builder value) {
+    this._unit2 = value;
+  }
+
   AnalysisDriverUnlinkedUnitBuilder(
       {List<String> definedClassMemberNames,
       List<String> definedTopLevelNames,
       List<String> referencedNames,
       List<String> subtypedNames,
-      UnlinkedUnitBuilder unit})
+      UnlinkedUnitBuilder unit,
+      UnlinkedUnit2Builder unit2})
       : _definedClassMemberNames = definedClassMemberNames,
         _definedTopLevelNames = definedTopLevelNames,
         _referencedNames = referencedNames,
         _subtypedNames = subtypedNames,
-        _unit = unit;
+        _unit = unit,
+        _unit2 = unit2;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
     _unit?.flushInformative();
+    _unit2?.flushInformative();
   }
 
   /// Accumulate non-[informative] data into [signature].
@@ -2026,6 +2038,8 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
         signature.addString(x);
       }
     }
+    signature.addBool(this._unit2 != null);
+    this._unit2?.collectApiSignature(signature);
   }
 
   List<int> toBuffer() {
@@ -2039,6 +2053,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     fb.Offset offset_referencedNames;
     fb.Offset offset_subtypedNames;
     fb.Offset offset_unit;
+    fb.Offset offset_unit2;
     if (!(_definedClassMemberNames == null ||
         _definedClassMemberNames.isEmpty)) {
       offset_definedClassMemberNames = fbBuilder.writeList(
@@ -2061,6 +2076,9 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     if (_unit != null) {
       offset_unit = _unit.finish(fbBuilder);
     }
+    if (_unit2 != null) {
+      offset_unit2 = _unit2.finish(fbBuilder);
+    }
     fbBuilder.startTable();
     if (offset_definedClassMemberNames != null) {
       fbBuilder.addOffset(3, offset_definedClassMemberNames);
@@ -2076,6 +2094,9 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     }
     if (offset_unit != null) {
       fbBuilder.addOffset(1, offset_unit);
+    }
+    if (offset_unit2 != null) {
+      fbBuilder.addOffset(5, offset_unit2);
     }
     return fbBuilder.endTable();
   }
@@ -2110,6 +2131,7 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
   List<String> _referencedNames;
   List<String> _subtypedNames;
   idl.UnlinkedUnit _unit;
+  idl.UnlinkedUnit2 _unit2;
 
   @override
   List<String> get definedClassMemberNames {
@@ -2146,6 +2168,12 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
     _unit ??= const _UnlinkedUnitReader().vTableGet(_bc, _bcOffset, 1, null);
     return _unit;
   }
+
+  @override
+  idl.UnlinkedUnit2 get unit2 {
+    _unit2 ??= const _UnlinkedUnit2Reader().vTableGet(_bc, _bcOffset, 5, null);
+    return _unit2;
+  }
 }
 
 abstract class _AnalysisDriverUnlinkedUnitMixin
@@ -2161,6 +2189,7 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
       _result["referencedNames"] = referencedNames;
     if (subtypedNames.isNotEmpty) _result["subtypedNames"] = subtypedNames;
     if (unit != null) _result["unit"] = unit.toJson();
+    if (unit2 != null) _result["unit2"] = unit2.toJson();
     return _result;
   }
 
@@ -2171,6 +2200,7 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
         "referencedNames": referencedNames,
         "subtypedNames": subtypedNames,
         "unit": unit,
+        "unit2": unit2,
       };
 
   @override
@@ -28712,6 +28742,241 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
         "references": references,
         "typedefs": typedefs,
         "variables": variables,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class UnlinkedUnit2Builder extends Object
+    with _UnlinkedUnit2Mixin
+    implements idl.UnlinkedUnit2 {
+  List<int> _apiSignature;
+  List<String> _exports;
+  List<String> _imports;
+  bool _isPartOf;
+  List<String> _parts;
+
+  @override
+  List<int> get apiSignature => _apiSignature ??= <int>[];
+
+  /// The MD5 hash signature of the API portion of this unit. It depends on all
+  /// tokens that might affect APIs of declarations in the unit.
+  set apiSignature(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._apiSignature = value;
+  }
+
+  @override
+  List<String> get exports => _exports ??= <String>[];
+
+  /// URIs of `export` directives.
+  set exports(List<String> value) {
+    this._exports = value;
+  }
+
+  @override
+  List<String> get imports => _imports ??= <String>[];
+
+  /// URIs of `import` directives.
+  set imports(List<String> value) {
+    this._imports = value;
+  }
+
+  @override
+  bool get isPartOf => _isPartOf ??= false;
+
+  /// Is `true` if the unit contains a `part of` directive.
+  set isPartOf(bool value) {
+    this._isPartOf = value;
+  }
+
+  @override
+  List<String> get parts => _parts ??= <String>[];
+
+  /// URIs of `part` directives.
+  set parts(List<String> value) {
+    this._parts = value;
+  }
+
+  UnlinkedUnit2Builder(
+      {List<int> apiSignature,
+      List<String> exports,
+      List<String> imports,
+      bool isPartOf,
+      List<String> parts})
+      : _apiSignature = apiSignature,
+        _exports = exports,
+        _imports = imports,
+        _isPartOf = isPartOf,
+        _parts = parts;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {}
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._apiSignature == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._apiSignature.length);
+      for (var x in this._apiSignature) {
+        signature.addInt(x);
+      }
+    }
+    if (this._exports == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._exports.length);
+      for (var x in this._exports) {
+        signature.addString(x);
+      }
+    }
+    if (this._imports == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._imports.length);
+      for (var x in this._imports) {
+        signature.addString(x);
+      }
+    }
+    signature.addBool(this._isPartOf == true);
+    if (this._parts == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parts.length);
+      for (var x in this._parts) {
+        signature.addString(x);
+      }
+    }
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "UUN2");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_apiSignature;
+    fb.Offset offset_exports;
+    fb.Offset offset_imports;
+    fb.Offset offset_parts;
+    if (!(_apiSignature == null || _apiSignature.isEmpty)) {
+      offset_apiSignature = fbBuilder.writeListUint32(_apiSignature);
+    }
+    if (!(_exports == null || _exports.isEmpty)) {
+      offset_exports = fbBuilder
+          .writeList(_exports.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_imports == null || _imports.isEmpty)) {
+      offset_imports = fbBuilder
+          .writeList(_imports.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_parts == null || _parts.isEmpty)) {
+      offset_parts = fbBuilder
+          .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_apiSignature != null) {
+      fbBuilder.addOffset(0, offset_apiSignature);
+    }
+    if (offset_exports != null) {
+      fbBuilder.addOffset(1, offset_exports);
+    }
+    if (offset_imports != null) {
+      fbBuilder.addOffset(2, offset_imports);
+    }
+    if (_isPartOf == true) {
+      fbBuilder.addBool(3, true);
+    }
+    if (offset_parts != null) {
+      fbBuilder.addOffset(4, offset_parts);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.UnlinkedUnit2 readUnlinkedUnit2(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _UnlinkedUnit2Reader().read(rootRef, 0);
+}
+
+class _UnlinkedUnit2Reader extends fb.TableReader<_UnlinkedUnit2Impl> {
+  const _UnlinkedUnit2Reader();
+
+  @override
+  _UnlinkedUnit2Impl createObject(fb.BufferContext bc, int offset) =>
+      new _UnlinkedUnit2Impl(bc, offset);
+}
+
+class _UnlinkedUnit2Impl extends Object
+    with _UnlinkedUnit2Mixin
+    implements idl.UnlinkedUnit2 {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedUnit2Impl(this._bc, this._bcOffset);
+
+  List<int> _apiSignature;
+  List<String> _exports;
+  List<String> _imports;
+  bool _isPartOf;
+  List<String> _parts;
+
+  @override
+  List<int> get apiSignature {
+    _apiSignature ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+    return _apiSignature;
+  }
+
+  @override
+  List<String> get exports {
+    _exports ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    return _exports;
+  }
+
+  @override
+  List<String> get imports {
+    _imports ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    return _imports;
+  }
+
+  @override
+  bool get isPartOf {
+    _isPartOf ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    return _isPartOf;
+  }
+
+  @override
+  List<String> get parts {
+    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
+    return _parts;
+  }
+}
+
+abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (apiSignature.isNotEmpty) _result["apiSignature"] = apiSignature;
+    if (exports.isNotEmpty) _result["exports"] = exports;
+    if (imports.isNotEmpty) _result["imports"] = imports;
+    if (isPartOf != false) _result["isPartOf"] = isPartOf;
+    if (parts.isNotEmpty) _result["parts"] = parts;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "apiSignature": apiSignature,
+        "exports": exports,
+        "imports": imports,
+        "isPartOf": isPartOf,
+        "parts": parts,
       };
 
   @override

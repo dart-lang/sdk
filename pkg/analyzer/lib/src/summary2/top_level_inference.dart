@@ -210,13 +210,8 @@ class _InitializerInference {
     for (var builder in _linker.builders.values) {
       _library = builder.element;
       for (var unit in _library.units) {
-        for (var class_ in unit.types) {
-          var node = _getLinkedNode(class_);
-          _scope = LinkingNodeContext.get(node).scope;
-          for (var element in class_.fields) {
-            _addNode(element);
-          }
-        }
+        unit.types.forEach(_addClassElementFields);
+        unit.mixins.forEach(_addClassElementFields);
 
         _scope = builder.libraryScope;
         for (var element in unit.topLevelVariables) {
@@ -225,6 +220,14 @@ class _InitializerInference {
       }
     }
     _walker.walkNodes();
+  }
+
+  void _addClassElementFields(ClassElement class_) {
+    var node = _getLinkedNode(class_);
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in class_.fields) {
+      _addNode(element);
+    }
   }
 
   void _addNode(PropertyInducingElement element) {

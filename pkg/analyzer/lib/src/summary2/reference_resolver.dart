@@ -816,6 +816,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.name.staticElement = element;
     scope = new TypeParameterScope(scope, element);
     scope = new ClassScope(scope, element);
+    LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);

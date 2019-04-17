@@ -32,6 +32,7 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -53,6 +54,7 @@ class LibraryAnalyzer {
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
+  final LinkedElementFactory _elementFactory;
   final TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
@@ -85,6 +87,7 @@ class LibraryAnalyzer {
       this._isLibraryUri,
       this._context,
       this._resynthesizer,
+      this._elementFactory,
       this._inheritance,
       this._library,
       this._resourceProvider)
@@ -119,8 +122,12 @@ class LibraryAnalyzer {
       _resolveUriBasedDirectives(file, unit);
     });
 
-    _libraryElement = _resynthesizer
-        .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    if (_elementFactory != null) {
+      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    } else {
+      _libraryElement = _resynthesizer
+          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    }
     _libraryScope = new LibraryScope(_libraryElement);
 
     _resolveDirectives(units);

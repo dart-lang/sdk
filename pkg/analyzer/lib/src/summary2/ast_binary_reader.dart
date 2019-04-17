@@ -48,6 +48,10 @@ class AstBinaryReader {
     var definingType = _readType(definingTypeNode);
     if (element is ConstructorElement) {
       return ConstructorMember.from(element, definingType);
+    } else if (element is MethodElement) {
+      return MethodMember.from(element, definingType);
+    } else if (element is PropertyAccessorElement) {
+      return PropertyAccessorMember.from(element, definingType);
     } else {
       throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -659,7 +663,7 @@ class AstBinaryReader {
   GenericTypeAlias _read_genericTypeAlias(LinkedNode data) {
     var node = astFactory.genericTypeAlias(
       _readNodeLazy(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.typeAlias_typedefKeyword),
       _readNode(data.namedCompilationUnitMember_name),
       _readNode(data.genericTypeAlias_typeParameters),
@@ -862,7 +866,7 @@ class AstBinaryReader {
   MixinDeclaration _read_mixinDeclaration(LinkedNode data) {
     var node = astFactory.mixinDeclaration(
       _readNodeLazy(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.mixinDeclaration_mixinKeyword),
       _readNode(data.namedCompilationUnitMember_name),
       _readNode(data.classOrMixinDeclaration_typeParameters),

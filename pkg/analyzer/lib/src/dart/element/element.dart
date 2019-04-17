@@ -2811,7 +2811,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
 
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
-      return _constantInitializer = context.readInitializer(this, linkedNode);
+      return _constantInitializer = context.readInitializer(linkedNode);
     }
 
     if (_unlinkedConst != null) {
@@ -4985,6 +4985,9 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   FieldElement get field {
     if (_field == null) {
       String fieldName;
+      if (linkedNode != null) {
+        fieldName = linkedContext.getFieldFormalParameterName(linkedNode);
+      }
       if (unlinkedParam != null) {
         fieldName = unlinkedParam.name;
       }
@@ -6262,6 +6265,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
+    setResolutionCapability(
+        LibraryResolutionCapability.resolvedTypeNames, true);
+    setResolutionCapability(
+        LibraryResolutionCapability.constantExpressions, true);
   }
 
   /// Initialize a newly created library element in the given [context] to have
@@ -7786,6 +7793,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   FunctionElement get initializer {
     if (_initializer == null) {
+      if (linkedNode != null) {
+        if (linkedContext.readInitializer(linkedNode) != null) {
+          _initializer = new FunctionElementImpl('', -1)..isSynthetic = true;
+        }
+      }
       if (_unlinkedVariable != null) {
         UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
         if (unlinkedInitializer != null) {
@@ -8076,6 +8088,11 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   FunctionElement get initializer {
     if (_initializer == null) {
+      if (linkedNode != null) {
+        if (linkedContext.readInitializer(linkedNode) != null) {
+          _initializer = new FunctionElementImpl('', -1)..isSynthetic = true;
+        }
+      }
       if (unlinkedParam != null) {
         UnlinkedExecutable unlinkedInitializer = unlinkedParam.initializer;
         if (unlinkedInitializer != null) {

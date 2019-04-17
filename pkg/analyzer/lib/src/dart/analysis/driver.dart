@@ -327,6 +327,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final bool enableIndex;
 
   /**
+   * Whether summary2 should be used to resynthesize elements.
+   */
+  final bool useSummary2 = false;
+
+  /**
    * The cache to use with [disableChangesAndCacheAllResults].
    */
   final Map<String, AnalysisResult> _allCachedResults = {};
@@ -1432,6 +1437,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.isLibraryUri,
             libraryContext.analysisContext,
             libraryContext.resynthesizer,
+            libraryContext.elementFactory,
             libraryContext.inheritanceManager,
             library,
             _resourceProvider);
@@ -1500,6 +1506,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.isLibraryUri,
           libraryContext.analysisContext,
           libraryContext.resynthesizer,
+          libraryContext.elementFactory,
           libraryContext.inheritanceManager,
           library,
           _resourceProvider);
@@ -1594,6 +1601,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _unlinkedSalt,
       _linkedSalt,
       externalSummaries: _externalSummaries,
+      useSummary2: useSummary2,
     );
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
   }
@@ -1608,7 +1616,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    if (_libraryContext == null) {
+    if (_libraryContext == null || useSummary2) {
       _libraryContext = new LibraryContext(
         session: currentSession,
         logger: _logger,
@@ -1619,6 +1627,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         sourceFactory: _sourceFactory,
         externalSummaries: _externalSummaries,
         targetLibrary: library,
+        useSummary2: useSummary2,
       );
     } else {
       _libraryContext.load(library);

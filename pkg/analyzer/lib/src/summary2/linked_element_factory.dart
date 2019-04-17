@@ -68,6 +68,10 @@ class LinkedElementFactory {
     return exportReferences;
   }
 
+  bool isLibraryUri(String uriStr) {
+    return libraryMap.containsKey(uriStr);
+  }
+
   LibraryElementImpl libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference);

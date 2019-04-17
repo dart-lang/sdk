@@ -340,6 +340,7 @@ class LinkedAnalysisDriver {
         (uri) => _isLibraryUri('$uri'),
         resynthesizer.context,
         resynthesizer,
+        null,
         InheritanceManager2(resynthesizer.typeSystem),
         libraryFile,
         _resourceProvider);

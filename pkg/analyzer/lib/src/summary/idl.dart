@@ -283,6 +283,10 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
   /// Unlinked information for the unit.
   @Id(1)
   UnlinkedUnit get unit;
+
+  /// Unlinked information for the unit.
+  @Id(5)
+  UnlinkedUnit2 get unit2;
 }
 
 /// Information about a single declaration.
@@ -4735,6 +4739,34 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /// Top level variables declared in the compilation unit.
   @Id(3)
   List<UnlinkedVariable> get variables;
+}
+
+/// Unlinked summary information about a compilation unit.
+@TopLevel('UUN2')
+abstract class UnlinkedUnit2 extends base.SummaryClass {
+  factory UnlinkedUnit2.fromBuffer(List<int> buffer) =>
+      generated.readUnlinkedUnit2(buffer);
+
+  /// The MD5 hash signature of the API portion of this unit. It depends on all
+  /// tokens that might affect APIs of declarations in the unit.
+  @Id(0)
+  List<int> get apiSignature;
+
+  /// URIs of `export` directives.
+  @Id(1)
+  List<String> get exports;
+
+  /// URIs of `import` directives.
+  @Id(2)
+  List<String> get imports;
+
+  /// Is `true` if the unit contains a `part of` directive.
+  @Id(3)
+  bool get isPartOf;
+
+  /// URIs of `part` directives.
+  @Id(4)
+  List<String> get parts;
 }
 
 /// Unlinked summary information about a top level variable, local variable, or

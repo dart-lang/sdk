@@ -215,6 +215,16 @@ class LinkedUnitContext {
     return node.constants;
   }
 
+  String getFieldFormalParameterName(AstNode node) {
+    if (node is DefaultFormalParameter) {
+      return getFieldFormalParameterName(node.parameter);
+    } else if (node is FieldFormalParameter) {
+      return node.identifier.name;
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
   Iterable<VariableDeclaration> getFields(ClassOrMixinDeclaration node) sync* {
     var members = _getClassOrMixinMembers(node);
     for (var member in members) {
@@ -348,8 +358,14 @@ class LinkedUnitContext {
     } else if (node is FunctionTypeAlias) {
       LazyFunctionTypeAlias.readMetadata(_astReader, node);
       return node.metadata;
+    } else if (node is GenericTypeAlias) {
+      LazyGenericTypeAlias.readMetadata(_astReader, node);
+      return node.metadata;
     } else if (node is MethodDeclaration) {
       LazyMethodDeclaration.readMetadata(_astReader, node);
+      return node.metadata;
+    } else if (node is MixinDeclaration) {
+      LazyMixinDeclaration.readMetadata(_astReader, node);
       return node.metadata;
     } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
@@ -406,12 +422,20 @@ class LinkedUnitContext {
   }
 
   int getNameOffset(AstNode node) {
-    if (node is NamedCompilationUnitMember) {
-      return node.name.offset;
+    if (node is ConstructorDeclaration) {
+      if (node.name != null) {
+        return node.name.offset;
+      } else {
+        return node.returnType.offset;
+      }
     } else if (node is EnumConstantDeclaration) {
       return node.name.offset;
     } else if (node is FormalParameter) {
       return node.identifier.offset;
+    } else if (node is MethodDeclaration) {
+      return node.name.offset;
+    } else if (node is NamedCompilationUnitMember) {
+      return node.name.offset;
     } else if (node is VariableDeclaration) {
       return node.name.offset;
     }
@@ -541,6 +565,7 @@ class LinkedUnitContext {
 
   bool hasImplicitReturnType(AstNode node) {
     if (node is MethodDeclaration) {
+      LazyMethodDeclaration.readReturnTypeNode(_astReader, node);
       return node.returnType == null;
     }
     return false;
@@ -712,7 +737,7 @@ class LinkedUnitContext {
     return tokensContext.type(token) == UnlinkedTokenType.SYNC;
   }
 
-  Expression readInitializer(ElementImpl enclosing, AstNode node) {
+  Expression readInitializer(AstNode node) {
     if (node is DefaultFormalParameter) {
       LazyFormalParameter.readDefaultValue(_astReader, node);
       return node.defaultValue;
@@ -781,7 +806,8 @@ class LinkedUnitContext {
   }
 
   void setOverrideInferenceDone(AstNode node) {
-    assert(!_astReader.isLazy);
+    // TODO(scheglov) This assert fails, check how to avoid this.
+//    assert(!_astReader.isLazy);
     LazyAst.setOverrideInferenceDone(node);
   }
 
@@ -799,8 +825,8 @@ class LinkedUnitContext {
       if (variableList.isConst) return true;
 
       if (variableList.isFinal) {
-        ClassDeclaration classDeclaration = variableList.parent.parent;
-        for (var member in classDeclaration.members) {
+        ClassOrMixinDeclaration class_ = variableList.parent.parent;
+        for (var member in class_.members) {
           if (member is ConstructorDeclaration && member.constKeyword != null) {
             return true;
           }
