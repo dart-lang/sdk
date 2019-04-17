@@ -27,4 +27,16 @@ main() {
   var x3 = {a * int ? -3 : 3};
   Expect.isTrue(x3 is Set<dynamic>);
   Set<dynamic> y3 = x3;
+
+  // { a is bool ? ? - 3 : 3 } is parsed as a set literal { (a is bool?) ? - 3 : 3 }.
+  a = true;
+  var x4 = {a is bool ? ? -3 : 3};
+  Expect.isTrue(x4 is Set<dynamic>);
+  Set<dynamic> y4 = x4;
+
+  // { a is bool ?? true : 3 } is parsed as a map literal { ((a is bool) ?? true) : 3 }.
+  a = true;
+  var x5 = {a is bool ?? true : 3};
+  Expect.isTrue(x5 is Map<dynamic, dynamic>);
+  Map<dynamic, dynamic> y5 = x5;
 }
