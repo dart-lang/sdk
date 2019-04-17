@@ -533,6 +533,7 @@ namespace dart {
   V(VMInternal_ImplicitSetter,             0, ___, ___, ___)                   \
   V(VMInternal_ImplicitStaticGetter,       0, ___, ___, ___)                   \
   V(VMInternal_MethodExtractor,            0, ___, ___, ___)                   \
+  V(VMInternal_InvokeClosure,              0, ___, ___, ___)                   \
 
 #define KERNEL_BYTECODES_LIST(V)                                               \
   PUBLIC_KERNEL_BYTECODES_LIST(V)                                              \

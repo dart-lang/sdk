@@ -969,7 +969,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
         (function.kind() != RawFunction::kImplicitGetter) &&
         (function.kind() != RawFunction::kImplicitSetter) &&
         (function.kind() != RawFunction::kImplicitStaticGetter) &&
-        (function.kind() != RawFunction::kMethodExtractor)) {
+        (function.kind() != RawFunction::kMethodExtractor) &&
+        (function.kind() != RawFunction::kInvokeFieldDispatcher)) {
       BytecodeFlowGraphBuilder bytecode_compiler(
           flow_graph_builder_, parsed_function(),
           &(flow_graph_builder_->ic_data_array_));

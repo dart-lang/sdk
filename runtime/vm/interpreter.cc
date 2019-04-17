@@ -3370,6 +3370,83 @@ SwitchDispatch:
     DISPATCH();
   }
 
+  {
+    BYTECODE(VMInternal_InvokeClosure, 0);
+
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+
+    RawClosure* receiver =
+        Closure::RawCast(FrameArguments(FP, argc)[receiver_idx]);
+    RawFunction* function = receiver->ptr()->function_;
+
+    if (LIKELY(Function::HasBytecode(function))) {
+      goto TailCallBytecode;
+    }
+    if (LIKELY(Function::HasCode(function))) {
+      goto CallMachineCode;
+    }
+
+    {
+      // Compile the function to either generate code or load bytecode.
+      SP[1] = argdesc_;
+      SP[2] = 0;  // Code result.
+      SP[3] = function;
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments native_args(thread, 1, /* argv */ SP + 3,
+                                  /* retval */ SP + 2);
+      if (!InvokeRuntime(thread, this, DRT_CompileFunction, native_args)) {
+        HANDLE_EXCEPTION;
+      }
+      function = Function::RawCast(SP[3]);
+      argdesc_ = Array::RawCast(SP[1]);
+    }
+
+    if (LIKELY(Function::HasBytecode(function))) {
+      goto TailCallBytecode;
+    }
+    if (LIKELY(Function::HasCode(function))) {
+      goto CallMachineCode;
+    }
+
+    UNREACHABLE();
+
+    {
+    TailCallBytecode:
+      ASSERT(function->IsFunction());
+      RawBytecode* bytecode = function->ptr()->bytecode_;
+      ASSERT(bytecode->IsBytecode());
+      FP[kKBCFunctionSlotFromFp] = function;
+      FP[kKBCPcMarkerSlotFromFp] = bytecode;
+      pp_ = bytecode->ptr()->object_pool_;
+      pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+      NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
+      DISPATCH();
+    }
+
+    {
+    CallMachineCode:
+      RawObject** argv = FrameArguments(FP, argc);
+      for (intptr_t i = 0; i < argc; i++) {
+        *++SP = argv[i];
+      }
+
+      RawObject** call_base = SP - argc + 1;
+      RawObject** call_top = SP + 1;
+      call_top[0] = function;
+      if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP,
+                          &SP)) {
+        HANDLE_EXCEPTION;
+      } else {
+        HANDLE_RETURN;
+      }
+      DISPATCH();
+    }
+  }
+
   // Helper used to handle noSuchMethod on closures.
   {
   ClosureNoSuchMethod:

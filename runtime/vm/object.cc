@@ -925,6 +925,17 @@ void Object::Init(Isolate* isolate) {
   method_extractor_bytecode_->set_exception_handlers(
       Object::empty_exception_handlers());
 
+  static const KBCInstr invoke_closure_instr[2] = {
+      KernelBytecode::Encode(KernelBytecode::kVMInternal_InvokeClosure),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *invoke_closure_bytecode_ = Bytecode::New(
+      reinterpret_cast<uword>(invoke_closure_instr),
+      sizeof(invoke_closure_instr), -1, Object::empty_object_pool());
+  invoke_closure_bytecode_->set_pc_descriptors(Object::empty_descriptors());
+  invoke_closure_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -990,6 +1001,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(implicit_static_getter_bytecode_->IsBytecode());
   ASSERT(!method_extractor_bytecode_->IsSmi());
   ASSERT(method_extractor_bytecode_->IsBytecode());
+  ASSERT(!invoke_closure_bytecode_->IsSmi());
+  ASSERT(invoke_closure_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(Isolate* isolate) {
@@ -5707,12 +5720,13 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
   }
   switch (kind()) {
     case RawFunction::kNoSuchMethodDispatcher:
-    case RawFunction::kInvokeFieldDispatcher:
     case RawFunction::kDynamicInvocationForwarder:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kIrregexpFunction:
     case RawFunction::kFfiTrampoline:
       return false;
+    case RawFunction::kInvokeFieldDispatcher:
+      return Class::Handle(zone, Owner()).id() == kClosureCid;
     default:
       return true;
   }
@@ -15168,6 +15182,8 @@ static const char* BytecodeStubName(const Bytecode& bytecode) {
     return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
   } else if (bytecode.raw() == Object::method_extractor_bytecode().raw()) {
     return "[Bytecode Stub] VMInternal_MethodExtractor";
+  } else if (bytecode.raw() == Object::invoke_closure_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_InvokeClosure";
   }
   return "[unknown stub]";
 }
