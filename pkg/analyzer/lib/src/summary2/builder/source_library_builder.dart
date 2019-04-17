@@ -293,9 +293,9 @@ class SourceLibraryBuilder {
   }
 
   void resolveMetadata() {
-    var metadataResolver = MetadataResolver(linker, element);
-    for (var unitContext in context.units) {
-      unitContext.unit.accept(metadataResolver);
+    for (CompilationUnitElementImpl unit in element.units) {
+      var resolver = MetadataResolver(linker, element, unit);
+      unit.linkedNode.accept(resolver);
     }
   }
 

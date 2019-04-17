@@ -13,18 +13,17 @@ import 'package:analyzer/src/summary2/link.dart';
 class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final LibraryElement _libraryElement;
+  final CompilationUnitElement _unitElement;
 
   Scope scope;
 
-  MetadataResolver(this._linker, this._libraryElement);
+  MetadataResolver(this._linker, this._libraryElement, this._unitElement);
 
   @override
   void visitAnnotation(Annotation node) {
-    // TODO(scheglov) get rid of?
-    node.elementAnnotation = ElementAnnotationImpl(null);
+    node.elementAnnotation = ElementAnnotationImpl(_unitElement);
 
     var astResolver = AstResolver(_linker, _libraryElement, scope);
-    // TODO(scheglov) enclosing elements?
     astResolver.resolve(node);
   }
 

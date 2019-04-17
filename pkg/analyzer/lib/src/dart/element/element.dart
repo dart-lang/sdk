@@ -3763,8 +3763,7 @@ abstract class ElementImpl implements Element {
     var annotations = new List<ElementAnnotation>(length);
     for (int i = 0; i < length; i++) {
       var ast = nodeList[i];
-      annotations[i] = ElementAnnotationImpl(enclosingUnit)
-        ..annotationAst = ast;
+      annotations[i] = ElementAnnotationImpl(unit)..annotationAst = ast;
     }
     return annotations;
   }
@@ -6676,7 +6675,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
     if (linkedNode != null) {
       var metadata = linkedContext.getLibraryMetadata(linkedNode);
-      return _metadata = _buildAnnotations2(enclosingUnit, metadata);
+      return _metadata = _buildAnnotations2(definingCompilationUnit, metadata);
     }
 
     if (unlinkedDefiningUnit != null) {
