@@ -1379,36 +1379,53 @@ class Parser {
     final bool inFunctionType =
         memberKind == MemberKind.GeneralizedFunctionType;
 
+    Token requiredToken;
     Token covariantToken;
     Token varFinalOrConst;
     if (isModifier(next)) {
-      if (optional('covariant', next)) {
-        if (memberKind != MemberKind.StaticMethod &&
-            memberKind != MemberKind.TopLevelMethod) {
-          covariantToken = token = next;
+      if (optional('required', next)) {
+        if (parameterKind == FormalParameterKind.optionalNamed) {
+          requiredToken = token = next;
           next = token.next;
         }
       }
 
       if (isModifier(next)) {
-        if (!inFunctionType) {
-          if (optional('var', next)) {
-            varFinalOrConst = token = next;
-            next = token.next;
-          } else if (optional('final', next)) {
-            varFinalOrConst = token = next;
+        if (optional('covariant', next)) {
+          if (memberKind != MemberKind.StaticMethod &&
+              memberKind != MemberKind.TopLevelMethod) {
+            covariantToken = token = next;
             next = token.next;
           }
         }
 
         if (isModifier(next)) {
-          // Recovery
-          ModifierRecoveryContext context = new ModifierRecoveryContext(this);
-          token = context.parseFormalParameterModifiers(token, memberKind,
-              covariantToken: covariantToken, varFinalOrConst: varFinalOrConst);
-          covariantToken = context.covariantToken;
-          varFinalOrConst = context.varFinalOrConst;
-          context = null;
+          if (!inFunctionType) {
+            if (optional('var', next)) {
+              varFinalOrConst = token = next;
+              next = token.next;
+            } else if (optional('final', next)) {
+              varFinalOrConst = token = next;
+              next = token.next;
+            }
+          }
+
+          if (isModifier(next)) {
+            // Recovery
+            ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+              ..covariantToken = covariantToken
+              ..requiredToken = requiredToken
+              ..varFinalOrConst = varFinalOrConst;
+
+            token = context.parseFormalParameterModifiers(token, memberKind);
+            next = token.next;
+
+            covariantToken = context.covariantToken;
+            requiredToken = context.requiredToken;
+            varFinalOrConst = context.varFinalOrConst;
+
+            context = null;
+          }
         }
       }
     }
@@ -2206,13 +2223,16 @@ class Parser {
             // If another `var`, `final`, or `const` then fall through
             // to parse that as part of the next top level declaration.
           } else {
-            ModifierRecoveryContext context = new ModifierRecoveryContext(this);
-            token = context.parseTopLevelModifiers(token,
-                externalToken: externalToken, varFinalOrConst: varFinalOrConst);
+            ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+              ..externalToken = externalToken
+              ..varFinalOrConst = varFinalOrConst;
+
+            token = context.parseTopLevelModifiers(token);
             next = token.next;
 
             externalToken = context.externalToken;
             varFinalOrConst = context.varFinalOrConst;
+
             context = null;
           }
         }
@@ -2911,12 +2931,13 @@ class Parser {
             next = token.next;
           }
           if (isModifier(next)) {
-            ModifierRecoveryContext context = new ModifierRecoveryContext(this);
-            token = context.parseClassMemberModifiers(token,
-                externalToken: externalToken,
-                staticToken: staticToken,
-                covariantToken: covariantToken,
-                varFinalOrConst: varFinalOrConst);
+            ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+              ..covariantToken = covariantToken
+              ..externalToken = externalToken
+              ..staticToken = staticToken
+              ..varFinalOrConst = varFinalOrConst;
+
+            token = context.parseClassMemberModifiers(token);
             next = token.next;
 
             covariantToken = context.covariantToken;
@@ -3184,15 +3205,18 @@ class Parser {
 
     if (!isValidTypeReference(token.next)) {
       // Recovery
-      ModifierRecoveryContext context = new ModifierRecoveryContext(this);
-      token = context.parseModifiersAfterFactory(token,
-          externalToken: externalToken,
-          staticOrCovariant: staticOrCovariant,
-          varFinalOrConst: varFinalOrConst);
+      ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+        ..externalToken = externalToken
+        ..staticOrCovariant = staticOrCovariant
+        ..varFinalOrConst = varFinalOrConst;
+
+      token = context.parseModifiersAfterFactory(token);
 
       externalToken = context.externalToken;
       staticOrCovariant = context.staticToken ?? context.covariantToken;
       varFinalOrConst = context.varFinalOrConst;
+
+      context = null;
     }
 
     if (staticOrCovariant != null) {
@@ -5090,14 +5114,15 @@ class Parser {
 
       if (isModifier(next)) {
         // Recovery
-        ModifierRecoveryContext modifierContext =
-            new ModifierRecoveryContext(this);
-        token = modifierContext.parseVariableDeclarationModifiers(token,
-            varFinalOrConst: varFinalOrConst);
+        ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+          ..varFinalOrConst = varFinalOrConst;
+
+        token = context.parseVariableDeclarationModifiers(token);
         next = token.next;
 
-        varFinalOrConst = modifierContext.varFinalOrConst;
-        modifierContext = null;
+        varFinalOrConst = context.varFinalOrConst;
+
+        context = null;
       }
     }
 

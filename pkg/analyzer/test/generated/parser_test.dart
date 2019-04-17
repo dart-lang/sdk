@@ -16413,6 +16413,18 @@ mixin TopLevelParserTestMixin implements AbstractParserTestCase {
     }
   }
 
+  void test_parseCompilationUnit_pseudo_asTypeName() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isPseudo) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('$lexeme f;');
+        parseCompilationUnit('class C {$lexeme f;}');
+        parseCompilationUnit('f($lexeme g) {}');
+        parseCompilationUnit('f() {$lexeme g;}');
+      }
+    }
+  }
+
   void test_parseCompilationUnit_script() {
     createParser('#! /bin/dart');
     CompilationUnit unit = parser.parseCompilationUnit2();
