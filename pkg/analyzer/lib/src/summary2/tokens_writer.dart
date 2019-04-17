@@ -306,6 +306,8 @@ class TokensWriter {
       return UnlinkedTokenType.INTERFACE;
     } else if (type == TokenType.IS) {
       return UnlinkedTokenType.IS;
+    } else if (type == Keyword.LATE) {
+      return UnlinkedTokenType.LATE;
     } else if (type == Keyword.LIBRARY) {
       return UnlinkedTokenType.LIBRARY;
     } else if (type == TokenType.LT) {
@@ -374,6 +376,8 @@ class TokensWriter {
       return UnlinkedTokenType.QUESTION_QUESTION;
     } else if (type == TokenType.QUESTION_QUESTION_EQ) {
       return UnlinkedTokenType.QUESTION_QUESTION_EQ;
+    } else if (type == Keyword.REQUIRED) {
+      return UnlinkedTokenType.REQUIRED;
     } else if (type == Keyword.RETHROW) {
       return UnlinkedTokenType.RETHROW;
     } else if (type == Keyword.RETURN) {

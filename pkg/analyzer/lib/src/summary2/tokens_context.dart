@@ -277,6 +277,8 @@ class TokensContext {
         return Keyword.INTERFACE;
       case UnlinkedTokenType.IS:
         return TokenType.IS;
+      case UnlinkedTokenType.LATE:
+        return Keyword.LATE;
       case UnlinkedTokenType.LIBRARY:
         return Keyword.LIBRARY;
       case UnlinkedTokenType.LT:
@@ -345,6 +347,8 @@ class TokensContext {
         return TokenType.QUESTION_QUESTION;
       case UnlinkedTokenType.QUESTION_QUESTION_EQ:
         return TokenType.QUESTION_QUESTION_EQ;
+      case UnlinkedTokenType.REQUIRED:
+        return Keyword.REQUIRED;
       case UnlinkedTokenType.RETHROW:
         return Keyword.RETHROW;
       case UnlinkedTokenType.RETURN:

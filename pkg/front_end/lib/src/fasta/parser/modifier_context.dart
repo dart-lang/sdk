@@ -11,10 +11,9 @@ import 'util.dart' show optional;
 bool isModifier(Token token) {
   if (!token.isModifier) {
     return false;
-  }
-  if (token.type.isBuiltIn) {
-    // A built-in identifier can only be a modifier as long as it is
-    // followed by another modifier or an identifier. Otherwise, it is the
+  } else if (token.type.isBuiltIn) {
+    // A built-in keyword can only be a modifier as long as it is
+    // followed by another keyword or an identifier. Otherwise, it is the
     // identifier.
     //
     // For example, `external` is a modifier in this declaration:
@@ -22,6 +21,21 @@ bool isModifier(Token token) {
     // but is the identifier in this declaration
     //   external() => true;
     if (!token.next.type.isKeyword && !token.next.isIdentifier) {
+      return false;
+    }
+  } else if (token.type.isPseudo) {
+    // A pseudo keyword can only be a modifier as long as it is
+    // followed by another keyword or two identifiers. Otherwise, it is the
+    // identifier or the type before the identifier.
+    //
+    // For example, `required` is a modifier in this declaration:
+    //   bar({required Foo foo});
+    // but is the type in this declaration
+    //   bar({required foo});
+    // and is the identifier in this declaration
+    //   bar({required});
+    if (!token.next.type.isKeyword &&
+        (!token.next.isIdentifier || !token.next.next.isIdentifier)) {
       return false;
     }
   }
@@ -199,6 +213,10 @@ class ModifierRecoveryContext {
           token = parseExternal(token);
         } else if (identical('final', value)) {
           token = parseFinal(token);
+        } else if (identical('late', value)) {
+          token = parseLate(token);
+        } else if (identical('required', value)) {
+          token = parseRequired(token);
         } else if (identical('static', value)) {
           token = parseStatic(token);
         } else if (identical('var', value)) {
@@ -338,6 +356,20 @@ class ModifierRecoveryContext {
     } else {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
+    return next;
+  }
+
+  Token parseLate(Token token) {
+    Token next = token.next;
+    assert(optional('late', next));
+    reportExtraneousModifier(next);
+    return next;
+  }
+
+  Token parseRequired(Token token) {
+    Token next = token.next;
+    assert(optional('required', next));
+    reportExtraneousModifier(next);
     return next;
   }
 

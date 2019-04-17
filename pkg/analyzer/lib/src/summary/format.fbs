@@ -1234,6 +1234,8 @@ enum UnlinkedTokenType : byte {
 
   IS,
 
+  LATE,
+
   LIBRARY,
 
   LT,
@@ -1301,6 +1303,8 @@ enum UnlinkedTokenType : byte {
   QUESTION_QUESTION,
 
   QUESTION_QUESTION_EQ,
+
+  REQUIRED,
 
   RETHROW,
 
