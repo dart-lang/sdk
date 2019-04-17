@@ -82,20 +82,20 @@ def ProcessOptions(options, args):
   options.os = options.os.split(',')
   for mode in options.mode:
     if not mode in ['debug', 'release', 'product']:
-      print "Unknown mode %s" % mode
+      print ("Unknown mode %s" % mode)
       return False
   for arch in options.arch:
     if not arch in AVAILABLE_ARCHS:
-      print "Unknown arch %s" % arch
+      print ("Unknown arch %s" % arch)
       return False
   options.os = [ProcessOsOption(os_name) for os_name in options.os]
   for os_name in options.os:
     if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
-      print "Unknown os %s" % os_name
+      print ("Unknown os %s" % os_name)
       return False
     if os_name != HOST_OS:
       if os_name != 'android':
-        print "Unsupported target os %s" % os_name
+        print ("Unsupported target os %s" % os_name)
         return False
       if not HOST_OS in ['linux', 'macos']:
         print ("Cross-compilation to %s is not supported on host os %s."
@@ -109,14 +109,14 @@ def ProcessOptions(options, args):
       # We have not yet tweaked the v8 dart build to work with the Android
       # NDK/SDK, so don't try to build it.
       if not args:
-        print "For android builds you must specify a target, such as 'runtime'."
+        print ("For android builds you must specify a target, such as 'runtime'.")
         return False
   return True
 
 
 def NotifyBuildDone(build_config, success, start):
   if not success:
-    print "BUILD FAILED"
+    print ("BUILD FAILED")
 
   sys.stdout.flush()
 
@@ -223,10 +223,10 @@ def EnsureGomaStarted(out_dir):
         words = line.split()
         goma_dir = words[2][1:-1]  # goma_dir = "/path/to/goma"
   if not goma_dir:
-    print 'Could not find goma for ' + out_dir
+    print ('Could not find goma for ' + out_dir)
     return False
   if not os.path.exists(goma_dir) or not os.path.isdir(goma_dir):
-    print 'Could not find goma at ' + goma_dir
+    print ('Could not find goma at ' + goma_dir)
     return False
   goma_ctl = os.path.join(goma_dir, 'goma_ctl.py')
   goma_ctl_command = [
@@ -270,7 +270,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
 
 def RunOneBuildCommand(build_config, args):
   start_time = time.time()
-  print ' '.join(args)
+  print (' '.join(args))
   process = subprocess.Popen(args, stdin=None)
   process.wait()
   if process.returncode != 0:
@@ -284,7 +284,7 @@ def RunOneBuildCommand(build_config, args):
 
 def RunOneGomaBuildCommand(args):
   try:
-    print ' '.join(args)
+    print (' '.join(args))
     process = subprocess.Popen(args, stdin=None)
     process.wait()
     print (' '.join(args) + " done.")

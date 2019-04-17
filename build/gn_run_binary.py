@@ -48,7 +48,7 @@ def main(argv):
     path = './' + argv[2]
 
   if not os.path.isfile(path):
-    print "Binary not found: " + path
+    print ("Binary not found: " + path)
     return error_exit
 
   # The rest of the arguments are passed directly to the executable.
@@ -56,7 +56,7 @@ def main(argv):
 
   result = run_command(args)
   if result != 0:
-    print result
+    print (result)
     return error_exit
   return 0
 

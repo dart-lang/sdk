@@ -301,23 +301,23 @@ def ProcessOptions(args):
   args.os = args.os.split(',')
   for mode in args.mode:
     if not mode in ['debug', 'release', 'product']:
-      print "Unknown mode %s" % mode
+      print ("Unknown mode %s" % mode)
       return False
   for arch in args.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simarm64', 'arm64',
              'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
-      print "Unknown arch %s" % arch
+      print ("Unknown arch %s" % arch)
       return False
   oses = [ProcessOsOption(os_name) for os_name in args.os]
   for os_name in oses:
     if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
-      print "Unknown os %s" % os_name
+      print ("Unknown os %s" % os_name)
       return False
     if os_name != HOST_OS:
       if os_name != 'android':
-        print "Unsupported target os %s" % os_name
+        print ("Unsupported target os %s" % os_name)
         return False
       if not HOST_OS in ['linux', 'macos']:
         print ("Cross-compilation to %s is not supported on host os %s."
@@ -329,7 +329,7 @@ def ProcessOptions(args):
                % (os_name, arch))
         return False
   if HOST_OS != 'win' and args.use_crashpad:
-    print "Crashpad is only supported on Windows"
+    print ("Crashpad is only supported on Windows")
     return False
   return True
 
@@ -501,7 +501,7 @@ def Main(argv):
   gn = os.path.join(DART_ROOT, 'buildtools',
       'gn.exe' if utils.IsWindows() else 'gn')
   if not os.path.isfile(gn):
-    print "Couldn't find the gn binary at path: " + gn
+    print ("Couldn't find the gn binary at path: " + gn)
     return 1
 
   commands = []
@@ -516,7 +516,7 @@ def Main(argv):
         gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
         gn_args += GetGNArgs(args)
         if args.verbose:
-          print "gn gen --check in %s" % out_dir
+          print ("gn gen --check in %s" % out_dir)
         if args.ide:
           command.append(ide_switch(HOST_OS))
         command.append('--args=%s' % ' '.join(gn_args))
@@ -526,7 +526,7 @@ def Main(argv):
   results = pool.map(RunCommand, commands, chunksize=1)
   for r in results:
     if r != 0:
-      print r.strip()
+      print (r.strip())
       return 1
 
   endtime = time.time()
