@@ -130,21 +130,24 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   Code& code = Code::Handle();
   Bytecode& bytecode = Bytecode::Handle();
   Smi& offset = Smi::Handle();
-  while (frame != NULL) {
-    if (frame->IsDartFrame()) {
-      if (frame->is_interpreted()) {
-        bytecode = frame->LookupDartBytecode();
-        ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
-        offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-        builder->AddFrame(bytecode, offset);
-      } else {
-        code = frame->LookupDartCode();
-        ASSERT(code.ContainsInstructionAt(frame->pc()));
-        offset = Smi::New(frame->pc() - code.PayloadStart());
-        builder->AddFrame(code, offset);
-      }
+  for (; frame != NULL; frame = frames.NextFrame()) {
+    if (!frame->IsDartFrame()) {
+      continue;
     }
-    frame = frames.NextFrame();
+    if (frame->is_interpreted()) {
+      bytecode = frame->LookupDartBytecode();
+      ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
+      if (bytecode.function() == Function::null()) {
+        continue;
+      }
+      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
+      builder->AddFrame(bytecode, offset);
+    } else {
+      code = frame->LookupDartCode();
+      ASSERT(code.ContainsInstructionAt(frame->pc()));
+      offset = Smi::New(frame->pc() - code.PayloadStart());
+      builder->AddFrame(code, offset);
+    }
   }
 }
 

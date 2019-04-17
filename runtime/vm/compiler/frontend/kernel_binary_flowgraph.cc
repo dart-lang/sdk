@@ -968,6 +968,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     if (function.HasBytecode() &&
         (function.kind() != RawFunction::kImplicitGetter) &&
         (function.kind() != RawFunction::kImplicitSetter) &&
+        (function.kind() != RawFunction::kImplicitStaticGetter) &&
         (function.kind() != RawFunction::kMethodExtractor)) {
       BytecodeFlowGraphBuilder bytecode_compiler(
           flow_graph_builder_, parsed_function(),

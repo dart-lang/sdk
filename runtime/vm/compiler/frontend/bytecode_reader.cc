@@ -58,6 +58,12 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     case RawFunction::kImplicitSetter:
       function.AttachBytecode(Object::implicit_setter_bytecode());
       return;
+    case RawFunction::kImplicitStaticGetter:
+      if (IsStaticFieldGetterGeneratedAsInitializer(function, helper_->zone_)) {
+        break;
+      }
+      function.AttachBytecode(Object::implicit_static_getter_bytecode());
+      return;
     case RawFunction::kMethodExtractor:
       function.AttachBytecode(Object::method_extractor_bytecode());
       return;
@@ -103,6 +109,7 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
   if (function.HasBytecode() &&
       (function.kind() != RawFunction::kImplicitGetter) &&
       (function.kind() != RawFunction::kImplicitSetter) &&
+      (function.kind() != RawFunction::kImplicitStaticGetter) &&
       (function.kind() != RawFunction::kMethodExtractor)) {
     return;
   }

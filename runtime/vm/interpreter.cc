@@ -627,33 +627,6 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
   ASSERT(function == call_top[0]);
   RawFunction::Kind kind = Function::kind(function);
   switch (kind) {
-    case RawFunction::kImplicitStaticGetter: {
-      // Field object is cached in function's data_.
-      RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-      RawInstance* value = field->ptr()->value_.static_value_;
-      if (value == Object::sentinel().raw() ||
-          value == Object::transition_sentinel().raw()) {
-        call_top[1] = 0;  // Unused result of invoking the initializer.
-        call_top[2] = field;
-        Exit(thread, *FP, call_top + 3, *pc);
-        NativeArguments native_args(thread, 1, call_top + 2, call_top + 1);
-        if (!InvokeRuntime(thread, this, DRT_InitStaticField, native_args)) {
-          *invoked = true;
-          return false;
-        }
-        // Reload objects after the call which may trigger GC.
-        function = reinterpret_cast<RawFunction*>(call_top[0]);
-        field = reinterpret_cast<RawField*>(function->ptr()->data_);
-        pp_ = InterpreterHelpers::FrameBytecode(*FP)->ptr()->object_pool_;
-        // The field is initialized by the runtime call, but not returned.
-        value = field->ptr()->value_.static_value_;
-      }
-      // Field was initialized. Return its value.
-      *SP = call_base;
-      **SP = value;
-      *invoked = true;
-      return true;
-    }
     case RawFunction::kInvokeFieldDispatcher: {
       const intptr_t type_args_len =
           InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
@@ -3120,6 +3093,8 @@ SwitchDispatch:
     BYTECODE(VMInternal_ImplicitGetter, 0);
 
     RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kImplicitGetter);
+
     int32_t counter = ++(function->ptr()->usage_counter_);
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
                  counter >= FLAG_compilation_counter_threshold &&
@@ -3177,6 +3152,8 @@ SwitchDispatch:
     BYTECODE(VMInternal_ImplicitSetter, 0);
 
     RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kImplicitSetter);
+
     int32_t counter = ++(function->ptr()->usage_counter_);
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
                  counter >= FLAG_compilation_counter_threshold &&
@@ -3302,9 +3279,53 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(VMInternal_ImplicitStaticGetter, 0);
+
+    RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kImplicitStaticGetter);
+
+    int32_t counter = ++(function->ptr()->usage_counter_);
+    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
+                 counter >= FLAG_compilation_counter_threshold &&
+                 !Function::HasCode(function))) {
+      SP[1] = 0;  // Unused code result.
+      SP[2] = function;
+      Exit(thread, FP, SP + 3, pc);
+      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
+      function = FrameFunction(FP);
+    }
+
+    // Field object is cached in function's data_.
+    RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
+    RawInstance* value = field->ptr()->value_.static_value_;
+    if (value == Object::sentinel().raw() ||
+        value == Object::transition_sentinel().raw()) {
+      SP[1] = 0;  // Unused result of invoking the initializer.
+      SP[2] = field;
+      Exit(thread, FP, SP + 3, pc);
+      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_InitStaticField, native_args);
+
+      // Reload objects after the call which may trigger GC.
+      function = FrameFunction(FP);
+      field = reinterpret_cast<RawField*>(function->ptr()->data_);
+      // The field is initialized by the runtime call, but not returned.
+      value = field->ptr()->value_.static_value_;
+    }
+
+    // Field was initialized. Return its value.
+    *++SP = value;
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(VMInternal_MethodExtractor, 0);
 
     RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kMethodExtractor);
+
     int32_t counter = ++(function->ptr()->usage_counter_);
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
                  counter >= FLAG_compilation_counter_threshold &&

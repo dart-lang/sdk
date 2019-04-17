@@ -902,6 +902,18 @@ void Object::Init(Isolate* isolate) {
   implicit_setter_bytecode_->set_exception_handlers(
       Object::empty_exception_handlers());
 
+  static const KBCInstr static_getter_instr[2] = {
+      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitStaticGetter),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *implicit_static_getter_bytecode_ = Bytecode::New(
+      reinterpret_cast<uword>(static_getter_instr), sizeof(static_getter_instr),
+      -1, Object::empty_object_pool());
+  implicit_static_getter_bytecode_->set_pc_descriptors(
+      Object::empty_descriptors());
+  implicit_static_getter_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
   static const KBCInstr method_extractor_instr[2] = {
       KernelBytecode::Encode(KernelBytecode::kVMInternal_MethodExtractor),
       KernelBytecode::Encode(KernelBytecode::kReturnTOS),
@@ -974,6 +986,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(implicit_getter_bytecode_->IsBytecode());
   ASSERT(!implicit_setter_bytecode_->IsSmi());
   ASSERT(implicit_setter_bytecode_->IsBytecode());
+  ASSERT(!implicit_static_getter_bytecode_->IsSmi());
+  ASSERT(implicit_static_getter_bytecode_->IsBytecode());
   ASSERT(!method_extractor_bytecode_->IsSmi());
   ASSERT(method_extractor_bytecode_->IsBytecode());
 }
@@ -5699,8 +5713,6 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     case RawFunction::kIrregexpFunction:
     case RawFunction::kFfiTrampoline:
       return false;
-    case RawFunction::kImplicitStaticGetter:
-      return is_const();
     default:
       return true;
   }
@@ -14879,7 +14891,7 @@ const char* Code::Name() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(EntryPoint());
     if (name == NULL) {
-      return zone->PrintToString("[unknown stub]");  // Not yet recorded.
+      return "[unknown stub]";  // Not yet recorded.
     }
     return zone->PrintToString("[Stub] %s", name);
   } else if (obj.IsClass()) {
@@ -15146,35 +15158,37 @@ const char* Bytecode::ToCString() const {
                                                   QualifiedName());
 }
 
-const char* Bytecode::Name() const {
-  if (raw() == Object::implicit_getter_bytecode().raw()) {
+static const char* BytecodeStubName(const Bytecode& bytecode) {
+  if (bytecode.raw() == Object::implicit_getter_bytecode().raw()) {
     return "[Bytecode Stub] VMInternal_ImplicitGetter";
-  } else if (raw() == Object::implicit_setter_bytecode().raw()) {
+  } else if (bytecode.raw() == Object::implicit_setter_bytecode().raw()) {
     return "[Bytecode Stub] VMInternal_ImplicitSetter";
-  } else if (raw() == Object::method_extractor_bytecode().raw()) {
+  } else if (bytecode.raw() ==
+             Object::implicit_static_getter_bytecode().raw()) {
+    return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
+  } else if (bytecode.raw() == Object::method_extractor_bytecode().raw()) {
     return "[Bytecode Stub] VMInternal_MethodExtractor";
   }
+  return "[unknown stub]";
+}
 
+const char* Bytecode::Name() const {
   Zone* zone = Thread::Current()->zone();
   const Function& fun = Function::Handle(zone, function());
-  ASSERT(!fun.IsNull());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
   const char* function_name =
       String::Handle(zone, fun.UserVisibleName()).ToCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
 const char* Bytecode::QualifiedName() const {
-  if (raw() == Object::implicit_getter_bytecode().raw()) {
-    return "[Bytecode Stub] VMInternal_ImplicitGetter";
-  } else if (raw() == Object::implicit_setter_bytecode().raw()) {
-    return "[Bytecode Stub] VMInternal_ImplicitSetter";
-  } else if (raw() == Object::method_extractor_bytecode().raw()) {
-    return "[Bytecode Stub] VMInternal_MethodExtractor";
-  }
-
   Zone* zone = Thread::Current()->zone();
   const Function& fun = Function::Handle(zone, function());
-  ASSERT(!fun.IsNull());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
   const char* function_name =
       String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
