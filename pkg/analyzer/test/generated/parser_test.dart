@@ -8150,6 +8150,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8167,6 +8168,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8184,6 +8186,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8204,6 +8207,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8222,6 +8226,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8239,6 +8244,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8257,6 +8263,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isGenericFunctionType);
@@ -8274,6 +8281,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8292,6 +8300,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8309,6 +8318,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8329,6 +8339,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8346,6 +8357,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8363,6 +8375,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8382,6 +8395,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8399,6 +8413,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8415,6 +8430,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8434,6 +8450,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8451,6 +8468,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8467,6 +8485,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8485,6 +8504,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isGenericFunctionType);
@@ -8501,6 +8521,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8520,6 +8541,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8537,6 +8559,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8553,6 +8576,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8572,6 +8596,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8591,6 +8616,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8608,6 +8634,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8624,6 +8651,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);

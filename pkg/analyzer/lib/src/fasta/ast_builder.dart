@@ -793,8 +793,9 @@ class AstBuilder extends StackListener {
     Token keyword = modifiers?.finalConstOrVarKeyword;
     Token covariantKeyword = modifiers?.covariantKeyword;
     Token requiredKeyword = modifiers?.requiredToken;
-    // TODO(danrubel): handle required token
-    reportNonNullableModifierError(requiredKeyword);
+    if (!enableNonNullable) {
+      reportNonNullableModifierError(requiredKeyword);
+    }
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
@@ -810,6 +811,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             returnType: typeOrFunctionTypedParameter.returnType,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters);
@@ -819,6 +821,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             type: typeOrFunctionTypedParameter.returnType,
             thisKeyword: thisKeyword,
             period: periodAfterThis,
@@ -832,6 +835,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             keyword: keyword,
             type: type,
             identifier: name);
@@ -840,6 +844,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             keyword: keyword,
             type: type,
             thisKeyword: thisKeyword,

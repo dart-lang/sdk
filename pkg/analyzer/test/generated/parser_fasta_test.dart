@@ -1782,7 +1782,170 @@ class FastaParserTestCase
  */
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
-    with FormalParameterParserTestMixin {}
+    with FormalParameterParserTestMixin {
+  FormalParameter parseNNBDFormalParameter(String code, ParameterKind kind,
+      {List<ExpectedError> errors}) {
+    String parametersCode;
+    if (kind == ParameterKind.REQUIRED) {
+      parametersCode = '($code)';
+    } else if (kind == ParameterKind.POSITIONAL) {
+      parametersCode = '([$code])';
+    } else if (kind == ParameterKind.NAMED) {
+      parametersCode = '({$code})';
+    } else {
+      fail('$kind');
+    }
+    createParser(parametersCode);
+    _parserProxy.enableNonNullable = true;
+    FormalParameterList list =
+        _parserProxy.parseFormalParameterList(inFunctionType: false);
+    assertErrors(errors: errors);
+    return list.parameters.single;
+  }
+
+  void test_parseFormalParameter_covariant_required_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseNNBDFormalParameter(
+        'covariant required A a : null', kind,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 12, 8)]);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_final_required_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseNNBDFormalParameter(
+        'final required a : null', kind,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 8, 8)]);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_covariant_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required covariant A a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_final_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required final a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_type_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required A a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_var_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required var a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_var_required_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseNNBDFormalParameter(
+        'var required a : null', kind,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 8)]);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+}
 
 /**
  * Tests of the fasta parser based on [ComplexParserTestMixin].
