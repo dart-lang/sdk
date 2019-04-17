@@ -862,6 +862,7 @@ class FileState {
     var exports = <String>[];
     var imports = <String>['dart:core'];
     var parts = <String>[];
+    var isPartOf = false;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var uriStr = directive.uri.stringValue;
@@ -878,6 +879,8 @@ class FileState {
         if (uriStr != null) {
           parts.add(uriStr);
         }
+      } else if (directive is PartOfDirective) {
+        isPartOf = true;
       }
     }
     return UnlinkedUnit2Builder(
@@ -885,6 +888,7 @@ class FileState {
       exports: exports,
       imports: imports,
       parts: parts,
+      isPartOf: isPartOf,
     );
   }
 

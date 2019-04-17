@@ -84,5 +84,20 @@ class Reference {
     return map[name] ??= new Reference._(this, name);
   }
 
+  /// If the reference has element, and it is for the [node], return `true`.
+  ///
+  /// The element might be not `null`, but the node is different in case of
+  /// duplicate declarations.
+  bool hasElementFor(AstNode node) {
+    if (element != null && node2 == node) {
+      return true;
+    } else {
+      if (node == null) {
+        node2 = node;
+      }
+      return false;
+    }
+  }
+
   String toString() => parent == null ? 'root' : '$parent::$name';
 }

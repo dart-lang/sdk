@@ -555,11 +555,10 @@ class ClassElementImpl extends AbstractClassElementImpl
       _constructors = context.getConstructors(linkedNode).map((node) {
         var name = node.name?.name ?? '';
         var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          ConstructorElementImpl.forLinkedNode(this, reference, node);
+        if (reference.hasElementFor(node)) {
+          return reference.element as ConstructorElement;
         }
-        return reference.element as ConstructorElement;
+        return ConstructorElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     }
 
@@ -882,11 +881,10 @@ class ClassElementImpl extends AbstractClassElementImpl
           .map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          MethodElementImpl.forLinkedNode(this, reference, node);
+        if (reference.hasElementFor(node)) {
+          return reference.element as MethodElement;
         }
-        return reference.element as MethodElement;
+        return MethodElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     }
 
@@ -1712,11 +1710,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       _enums = linkedNode.declarations.whereType<EnumDeclaration>().map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          EnumElementImpl.forLinkedNode(this, reference, node);
+        if (reference.hasElementFor(node)) {
+          return reference.element as EnumElementImpl;
         }
-        return reference.element as EnumElementImpl;
+        return EnumElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     }
 
@@ -1750,11 +1747,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           .map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          FunctionElementImpl.forLinkedNode(this, reference, node);
+        if (reference.hasElementFor(node)) {
+          return reference.element as FunctionElementImpl;
         }
-        return reference.element as FunctionElementImpl;
+        return FunctionElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     } else if (_unlinkedUnit != null) {
       _functions = _unlinkedUnit.executables
@@ -1792,11 +1788,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         }
 
         var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          GenericTypeAliasElementImpl.forLinkedNode(this, reference, node);
+        if (reference.hasElementFor(node)) {
+          return reference.element as GenericTypeAliasElementImpl;
         }
-        return reference.element as GenericTypeAliasElement;
+        return GenericTypeAliasElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     }
 
@@ -1851,11 +1846,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       return _mixins = declarations.whereType<MixinDeclaration>().map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          MixinElementImpl.forLinkedNode(this, reference, node);
+        if (reference.hasElementFor(node)) {
+          return reference.element as MixinElementImpl;
         }
-        return reference.element as MixinElementImpl;
+        return MixinElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     }
 
@@ -1954,11 +1948,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           continue;
         }
         var reference = containerRef.getChild(name);
-        if (reference.element == null) {
-          reference.node2 = node;
-          ClassElementImpl.forLinkedNode(this, reference, node);
+        if (reference.hasElementFor(node)) {
+          _types.add(reference.element);
+        } else {
+          _types.add(
+            ClassElementImpl.forLinkedNode(this, reference, node),
+          );
         }
-        _types.add(reference.element);
       }
       return _types;
     }
@@ -3232,7 +3228,7 @@ abstract class ElementImpl implements Element {
   /// Initialize from linked node.
   ElementImpl.forLinkedNode(
       this._enclosingElement, this.reference, this.linkedNode) {
-    reference?.element = this;
+    reference?.element ??= this;
   }
 
   /// Initialize a newly created element to have the given [name].
@@ -4295,9 +4291,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   ExecutableElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : serializedExecutable = null,
-        super.forLinkedNode(enclosing, reference, linkedNode) {
-    reference.element = this;
-  }
+        super.forLinkedNode(enclosing, reference, linkedNode);
 
   /// Initialize a newly created executable element to have the given [name].
   ExecutableElementImpl.forNode(Identifier name)
@@ -8413,15 +8407,14 @@ class ParameterElementImpl extends VariableElementImpl
         } else {
           var name = node.identifier.name;
           var reference = containerRef.getChild(name);
-          if (reference.element == null) {
-            reference.node2 = node;
-            ParameterElementImpl.forLinkedNodeFactory(
-              enclosing,
-              reference,
-              node,
-            );
+          if (reference.hasElementFor(node)) {
+            return reference.element as ParameterElement;
           }
-          return reference.element as ParameterElement;
+          return ParameterElementImpl.forLinkedNodeFactory(
+            enclosing,
+            reference,
+            node,
+          );
         }
       }
     }).toList();
