@@ -2091,7 +2091,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
       Z,
       Function::New(
           getter_name,
-          field_helper->IsStatic() ? RawFunction::kImplicitStaticFinalGetter
+          field_helper->IsStatic() ? RawFunction::kImplicitStaticGetter
                                    : RawFunction::kImplicitGetter,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields

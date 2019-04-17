@@ -106,7 +106,7 @@ void BytecodeScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
       ASSERT(!IsStaticFieldGetterGeneratedAsInitializer(function, Z));
       break;
     case RawFunction::kDynamicInvocationForwarder: {

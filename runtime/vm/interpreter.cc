@@ -627,7 +627,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
   ASSERT(function == call_top[0]);
   RawFunction::Kind kind = Function::kind(function);
   switch (kind) {
-    case RawFunction::kImplicitStaticFinalGetter: {
+    case RawFunction::kImplicitStaticGetter: {
       // Field object is cached in function's data_.
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       RawInstance* value = field->ptr()->value_.static_value_;

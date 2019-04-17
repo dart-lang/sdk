@@ -13,7 +13,7 @@ enum FunctionKind {
   constructor,
   implicitGetter,
   implicitSetter,
-  implicitStaticFinalGetter,
+  implicitStaticGetter,
   staticFieldInitializer,
   irregexpFunction,
   methodExtractor,

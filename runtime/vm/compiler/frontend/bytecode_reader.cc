@@ -1536,15 +1536,14 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
 
     if ((flags & kHasGetterFlag) != 0) {
       name ^= ReadObject();
-      function =
-          Function::New(name,
-                        is_static ? RawFunction::kImplicitStaticFinalGetter
-                                  : RawFunction::kImplicitGetter,
-                        is_static, is_const,
-                        false,  // is_abstract
-                        false,  // is_external
-                        false,  // is_native
-                        script_class, position);
+      function = Function::New(name,
+                               is_static ? RawFunction::kImplicitStaticGetter
+                                         : RawFunction::kImplicitGetter,
+                               is_static, is_const,
+                               false,  // is_abstract
+                               false,  // is_external
+                               false,  // is_native
+                               script_class, position);
       function.set_end_token_pos(end_position);
       function.set_result_type(type);
       function.set_is_debuggable(false);
@@ -1902,7 +1901,7 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
     case RawFunction::kImplicitSetter:
       BytecodeScopeBuilder(parsed_function).BuildScopes();
       break;
-    case RawFunction::kImplicitStaticFinalGetter: {
+    case RawFunction::kImplicitStaticGetter: {
       if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
         ReadCode(function, function.bytecode_offset());
       } else {
@@ -2234,7 +2233,7 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone) {
-  ASSERT(function.kind() == RawFunction::kImplicitStaticFinalGetter);
+  ASSERT(function.kind() == RawFunction::kImplicitStaticGetter);
 
   const auto& field = Field::Handle(zone, function.accessor_field());
   return field.is_declared_in_bytecode() && field.is_const() &&

@@ -1080,7 +1080,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+        if (function.kind() == RawFunction::kImplicitStaticGetter &&
             !implicit_static_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
             field ^= implicit_static_getters.At(i);

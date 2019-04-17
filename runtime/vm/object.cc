@@ -5699,7 +5699,7 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     case RawFunction::kIrregexpFunction:
     case RawFunction::kFfiTrampoline:
       return false;
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
       return is_const();
     default:
       return true;
@@ -5925,7 +5925,7 @@ void Function::set_saved_args_desc(const Array& value) const {
 RawField* Function::accessor_field() const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
-         kind() == RawFunction::kImplicitStaticFinalGetter ||
+         kind() == RawFunction::kImplicitStaticGetter ||
          kind() == RawFunction::kStaticFieldInitializer ||
          kind() == RawFunction::kDynamicInvocationForwarder);
   return Field::RawCast(raw_ptr()->data_);
@@ -5934,7 +5934,7 @@ RawField* Function::accessor_field() const {
 void Function::set_accessor_field(const Field& value) const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
-         kind() == RawFunction::kImplicitStaticFinalGetter ||
+         kind() == RawFunction::kImplicitStaticGetter ||
          kind() == RawFunction::kStaticFieldInitializer);
   // Top level classes may be finalized multiple times.
   ASSERT(raw_ptr()->data_ == Object::null() || raw_ptr()->data_ == value.raw());
@@ -6160,8 +6160,8 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kImplicitSetter:
       return "ImplicitSetter";
       break;
-    case RawFunction::kImplicitStaticFinalGetter:
-      return "ImplicitStaticFinalGetter";
+    case RawFunction::kImplicitStaticGetter:
+      return "ImplicitStaticGetter";
       break;
     case RawFunction::kStaticFieldInitializer:
       return "StaticFieldInitializer";
@@ -8067,8 +8067,8 @@ const char* Function::ToCString() const {
     case RawFunction::kImplicitSetter:
       kind_str = " setter";
       break;
-    case RawFunction::kImplicitStaticFinalGetter:
-      kind_str = " static-final-getter";
+    case RawFunction::kImplicitStaticGetter:
+      kind_str = " static-getter";
       break;
     case RawFunction::kStaticFieldInitializer:
       kind_str = " static-field-initializer";

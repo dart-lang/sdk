@@ -2218,7 +2218,7 @@ class Function : public Object {
   bool IsImplicitGetterOrSetter() const {
     return kind() == RawFunction::kImplicitGetter ||
            kind() == RawFunction::kImplicitSetter ||
-           kind() == RawFunction::kImplicitStaticFinalGetter;
+           kind() == RawFunction::kImplicitStaticGetter;
   }
 
   // Returns true iff an implicit closure function has been created
@@ -2296,7 +2296,7 @@ class Function : public Object {
       case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
-      case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kImplicitStaticGetter:
       case RawFunction::kStaticFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return false;
@@ -2315,7 +2315,7 @@ class Function : public Object {
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kImplicitStaticGetter:
       case RawFunction::kStaticFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return true;
@@ -2595,7 +2595,7 @@ class Function : public Object {
     switch (kind()) {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kImplicitStaticGetter:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
       case RawFunction::kDynamicInvocationForwarder:

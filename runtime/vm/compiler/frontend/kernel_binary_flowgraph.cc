@@ -936,7 +936,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
         return B->BuildGraphOfFieldAccessor(function);
-      case RawFunction::kImplicitStaticFinalGetter: {
+      case RawFunction::kImplicitStaticGetter: {
         if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
           break;
         }
@@ -991,7 +991,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return BuildGraphOfFunction(!function.IsFactory());
     }
     case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter: {
       const Field& field = Field::Handle(Z, function.accessor_field());
       if (field.is_const() && field.IsUninitialized()) {
@@ -1053,7 +1053,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kClosureFunction:
     case RawFunction::kConstructor:
     case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter:
     case RawFunction::kStaticFieldInitializer:
     case RawFunction::kMethodExtractor:
