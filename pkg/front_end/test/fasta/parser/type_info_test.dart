@@ -2768,8 +2768,9 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
+    // TODO(danrubel): Update tests to include required and covariant
     calls.add('beginFormalParameter $token $kind');
   }
 

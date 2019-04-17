@@ -1417,7 +1417,8 @@ class Parser {
               ..requiredToken = requiredToken
               ..varFinalOrConst = varFinalOrConst;
 
-            token = context.parseFormalParameterModifiers(token, memberKind);
+            token = context.parseFormalParameterModifiers(
+                token, parameterKind, memberKind);
             next = token.next;
 
             covariantToken = context.covariantToken;
@@ -1431,7 +1432,7 @@ class Parser {
     }
 
     listener.beginFormalParameter(
-        start, memberKind, covariantToken, varFinalOrConst);
+        start, memberKind, requiredToken, covariantToken, varFinalOrConst);
 
     // Type is required in a generalized function type, but optional otherwise.
     final Token beforeType = token;

@@ -272,8 +272,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("FactoryMethod");
   }
 
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {}
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {}
 
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
@@ -964,6 +964,17 @@ class Listener implements UnescapeErrorListener {
           templateExperimentNotEnabled.withArguments('non-nullable'),
           questionMark,
           questionMark);
+    }
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle nullable types
+  void reportNonNullableModifierError(Token modifierToken) {
+    if (modifierToken != null) {
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments('non-nullable'),
+          modifierToken,
+          modifierToken);
     }
   }
 

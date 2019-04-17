@@ -172,10 +172,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
     listener?.beginFormalParameter(
-        token, kind, covariantToken, varFinalOrConst);
+        token, kind, requiredToken, covariantToken, varFinalOrConst);
   }
 
   @override
@@ -1468,6 +1468,11 @@ class ForwardingListener implements Listener {
   @override
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     listener?.reportNonNullAssertExpressionNotEnabled(bang);
+  }
+
+  @override
+  void reportNonNullableModifierError(Token modifierToken) {
+    listener?.reportNonNullableModifierError(modifierToken);
   }
 
   @override

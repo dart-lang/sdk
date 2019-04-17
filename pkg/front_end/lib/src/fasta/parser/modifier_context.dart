@@ -4,6 +4,7 @@
 
 import '../../scanner/token.dart' show Token;
 import '../messages.dart' as fasta;
+import 'formal_parameter_kind.dart';
 import 'member_kind.dart' show MemberKind;
 import 'parser.dart' show Parser;
 import 'util.dart' show optional;
@@ -117,9 +118,13 @@ class ModifierRecoveryContext {
   }
 
   /// Parse modifiers for formal parameters.
-  Token parseFormalParameterModifiers(Token token, MemberKind memberKind) {
+  Token parseFormalParameterModifiers(
+      Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     token = parseModifiers(token);
 
+    if (parameterKind != FormalParameterKind.optionalNamed) {
+      reportExtraneousModifier(requiredToken);
+    }
     if (memberKind == MemberKind.StaticMethod ||
         memberKind == MemberKind.TopLevelMethod) {
       reportExtraneousModifier(this.covariantToken);
@@ -136,7 +141,6 @@ class ModifierRecoveryContext {
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(externalToken);
     reportExtraneousModifier(lateToken);
-    reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
     return token;
   }
@@ -248,8 +252,7 @@ class ModifierRecoveryContext {
       constToken = next;
 
       if (afterFactory) {
-        parser.reportRecoverableError(next,
-            fasta.templateModifierOutOfOrder.withArguments('const', 'factory'));
+        reportModifierOutOfOrder(next, 'factory');
       }
       return next;
     }
@@ -368,6 +371,16 @@ class ModifierRecoveryContext {
     assert(optional('required', next));
     if (requiredToken == null) {
       requiredToken = next;
+
+      if (constToken != null) {
+        reportModifierOutOfOrder(requiredToken, constToken.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(requiredToken, covariantToken.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(requiredToken, finalToken.lexeme);
+      } else if (varToken != null) {
+        reportModifierOutOfOrder(requiredToken, varToken.lexeme);
+      }
       return next;
     }
 
@@ -436,5 +449,12 @@ class ModifierRecoveryContext {
       parser.reportRecoverableErrorWithToken(
           token, fasta.templateExtraneousModifier);
     }
+  }
+
+  void reportModifierOutOfOrder(Token modifier, String beforeModifier) {
+    parser.reportRecoverableError(
+        modifier,
+        fasta.templateModifierOutOfOrder
+            .withArguments(modifier.lexeme, beforeModifier));
   }
 }

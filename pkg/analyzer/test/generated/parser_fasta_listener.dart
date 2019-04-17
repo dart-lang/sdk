@@ -244,9 +244,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
-    super.beginFormalParameter(token, kind, covariantToken, varFinalOrConst);
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
+    super.beginFormalParameter(
+        token, kind, requiredToken, covariantToken, varFinalOrConst);
     begin('FormalParameter');
   }
 

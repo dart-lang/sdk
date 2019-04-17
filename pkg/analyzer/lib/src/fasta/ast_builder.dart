@@ -169,11 +169,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
     push(new _Modifiers()
       ..covariantKeyword = covariantToken
-      ..finalConstOrVarKeyword = varFinalOrConst);
+      ..finalConstOrVarKeyword = varFinalOrConst
+      ..requiredToken = requiredToken);
   }
 
   @override
@@ -791,6 +792,9 @@ class AstBuilder extends StackListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     Token covariantKeyword = modifiers?.covariantKeyword;
+    Token requiredKeyword = modifiers?.requiredToken;
+    // TODO(danrubel): handle required token
+    reportNonNullableModifierError(requiredKeyword);
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
@@ -3291,34 +3295,7 @@ class _Modifiers {
   Token finalConstOrVarKeyword;
   Token staticKeyword;
   Token covariantKeyword;
-
-  _Modifiers([List<Token> modifierTokens]) {
-    // No need to check the order and uniqueness of the modifiers, or that
-    // disallowed modifiers are not used; the parser should do that.
-    // TODO(paulberry,ahe): implement the necessary logic in the parser.
-    if (modifierTokens != null) {
-      for (var token in modifierTokens) {
-        var s = token.lexeme;
-        if (identical('abstract', s)) {
-          abstractKeyword = token;
-        } else if (identical('const', s)) {
-          finalConstOrVarKeyword = token;
-        } else if (identical('external', s)) {
-          externalKeyword = token;
-        } else if (identical('final', s)) {
-          finalConstOrVarKeyword = token;
-        } else if (identical('static', s)) {
-          staticKeyword = token;
-        } else if (identical('var', s)) {
-          finalConstOrVarKeyword = token;
-        } else if (identical('covariant', s)) {
-          covariantKeyword = token;
-        } else {
-          unhandled("$s", "modifier", token.charOffset, null);
-        }
-      }
-    }
-  }
+  Token requiredToken;
 
   /// Return the token that is lexically first.
   Token get beginToken {
@@ -3328,7 +3305,8 @@ class _Modifiers {
       externalKeyword,
       finalConstOrVarKeyword,
       staticKeyword,
-      covariantKeyword
+      covariantKeyword,
+      requiredToken,
     ]) {
       if (firstToken == null) {
         firstToken = token;
