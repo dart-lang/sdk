@@ -2405,6 +2405,43 @@ SwitchDispatch:
     FP[rA] = Smi::New(static_cast<intptr_t>(value32));
     DISPATCH();
   }
+
+  {
+    BYTECODE(UnboxInt64, A_D);
+    const intptr_t box_cid = SimulatorHelpers::GetClassId(FP[rD]);
+    if (box_cid == kSmiCid) {
+      const int64_t value = Smi::Value(RAW_CAST(Smi, FP[rD]));
+      FP[rA] = reinterpret_cast<RawObject*>(value);
+    } else if (box_cid == kMintCid) {
+      RawMint* mint = RAW_CAST(Mint, FP[rD]);
+      const int64_t value = mint->ptr()->value_;
+      FP[rA] = reinterpret_cast<RawObject*>(value);
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt64, A_D);
+    const int64_t value = reinterpret_cast<int64_t>(FP[rD]);
+    if (Smi::IsValid(value)) {
+      FP[rA] = Smi::New(static_cast<intptr_t>(value));
+    } else {
+      // If the value does not fit into a Smi the following instruction is
+      // skipped. (The following instruction should be a jump to a label after
+      // the slow path allocating a Mint box and writing into the Mint box.)
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(WriteIntoMint, A_D);
+    const int64_t value = bit_cast<int64_t, RawObject*>(FP[rD]);
+    RawMint* box = RAW_CAST(Mint, FP[rA]);
+    box->ptr()->value_ = value;
+    DISPATCH();
+  }
+
 #else   // defined(ARCH_IS_64_BIT)
   {
     BYTECODE(WriteIntoDouble, A_D);

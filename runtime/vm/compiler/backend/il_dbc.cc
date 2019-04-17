@@ -32,7 +32,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
   M(BinaryInt32Op)                                                             \
   M(BinaryUint32Op)                                                            \
-  M(BoxInt64)                                                                  \
   M(CheckCondition)                                                            \
   M(DoubleToInteger)                                                           \
   M(ExtractNthOutput)                                                          \
@@ -1681,33 +1680,43 @@ EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
   }
 }
 
-EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
-  ASSERT(from_representation() == kUnboxedDouble);
-  const Register value = locs()->in(0).reg();
+void BoxInstr::EmitAllocateBox(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
-  const intptr_t instance_size = compiler->double_class().instance_size();
+  const Class& box_class = compiler->BoxClassFor(from_representation());
+  const intptr_t instance_size = box_class.instance_size();
   Isolate* isolate = Isolate::Current();
   ASSERT(Heap::IsAllocatableInNewSpace(instance_size));
-  if (!compiler->double_class().TraceAllocation(isolate)) {
+  if (!box_class.TraceAllocation(isolate)) {
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
-    tags = RawObject::ClassIdTag::update(compiler->double_class().id(), tags);
+    tags = RawObject::ClassIdTag::update(box_class.id(), tags);
     // tags also has the initial zero hash code on 64 bit.
     if (Smi::IsValid(tags)) {
       const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
       __ AllocateOpt(out, tags_kidx);
     }
   }
-  const intptr_t kidx = __ AddConstant(compiler->double_class());
+  const intptr_t kidx = __ AddConstant(box_class);
   __ Allocate(kidx);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   compiler->RecordSafepoint(locs());
   __ PopLocal(out);
+}
+
+EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
+  ASSERT(from_representation() == kUnboxedDouble);
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  EmitAllocateBox(compiler);
   __ WriteIntoDouble(out, value);
 }
 
 EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
+  if (representation() == kUnboxedInt64) {
+    EmitLoadInt64FromBoxOrSmi(compiler);
+    return;
+  }
   ASSERT(representation() == kUnboxedDouble);
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t box_cid = BoxCid();
@@ -1755,6 +1764,33 @@ EMIT_NATIVE_CODE(BoxInteger32, 1, Location::RequiresRegister()) {
     ASSERT(from_representation() == kUnboxedUint32);
     __ BoxUint32(out, value);
   }
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
+}
+
+EMIT_NATIVE_CODE(BoxInt64, 1, Location::RequiresRegister()) {
+#if defined(ARCH_IS_64_BIT)
+  Label done;
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  __ BoxInt64(out, value);
+  __ Jump(&done);
+  EmitAllocateBox(compiler);
+  __ WriteIntoMint(out, value);
+  __ Bind(&done);
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
+}
+
+void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
+#if defined(ARCH_IS_64_BIT)
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  __ UnboxInt64(out, value);
 #else
   Unsupported(compiler);
   UNREACHABLE();

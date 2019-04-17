@@ -300,6 +300,21 @@ namespace dart {
 //
 //    Boxes the unboxed unsigned 32-bit integer in FP[rD] into FP[rA].
 //
+//  - UnboxInt64 rA, rD
+//
+//    Unboxes the integer in FP[rD] into FP[rA].
+//
+//  - BoxInt64 rA, rD
+//
+//    Boxes the unboxed signed 64-bit integer in FP[rD] into FP[rA]. If the
+//    value does not fit into a Smi the following instruction is skipped. (The
+//    following instruction should be a jump to a label after the slow path
+//    allocating a Mint box and writing into the Mint box.)
+//
+//  - WriteIntoMint rA, rD
+//
+//    Box the integer in FP[rD] using the Mint box in FP[rA].
+//
 //  - SmiToDouble rA, rD
 //
 //    Convert the Smi in FP[rD] to an unboxed double in FP[rA].
@@ -810,11 +825,14 @@ namespace dart {
   V(Min,                               A_B_C, reg, reg, reg) \
   V(Max,                               A_B_C, reg, reg, reg) \
   V(WriteIntoDouble,                     A_D, reg, reg, ___) \
+  V(WriteIntoMint,                       A_D, reg, reg, ___) \
   V(UnboxDouble,                         A_D, reg, reg, ___) \
   V(CheckedUnboxDouble,                  A_D, reg, reg, ___) \
   V(UnboxInt32,                        A_B_C, reg, reg, num) \
   V(BoxInt32,                            A_D, reg, reg, ___) \
   V(BoxUint32,                           A_D, reg, reg, ___) \
+  V(UnboxInt64,                          A_D, reg, reg, ___) \
+  V(BoxInt64,                            A_D, reg, reg, ___) \
   V(SmiToDouble,                         A_D, reg, reg, ___) \
   V(DoubleToSmi,                         A_D, reg, reg, ___) \
   V(DAdd,                              A_B_C, reg, reg, reg) \
@@ -895,8 +913,8 @@ namespace dart {
   V(LoadArgDescriptorOpt,                  A, reg, ___, ___) \
   V(LoadFpRelativeSlot,                    X, reg, ___, ___) \
   V(LoadFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
-  V(StoreFpRelativeSlot,                    X, reg, ___, ___) \
-  V(StoreFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
+  V(StoreFpRelativeSlot,                   X, reg, ___, ___) \
+  V(StoreFpRelativeSlotOpt,            A_B_Y, reg, reg, reg) \
   V(LoadIndexedTOS,                        0, ___, ___, ___) \
   V(LoadIndexed,                       A_B_C, reg, reg, reg) \
   V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg) \
