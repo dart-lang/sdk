@@ -19,32 +19,40 @@ class DivisionOptimizationTest extends DriverResolutionTest {
     await assertNoErrorsInCode(r'''
 f(int x, int y) {
   var v = x / y.toInt();
+  print(v);
 }
 ''');
   }
 
   test_double() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f(double x, double y) {
   var v = (x / y).toInt();
+  print(v);
 }
-''', [HintCode.DIVISION_OPTIMIZATION]);
+''', [
+      error(HintCode.DIVISION_OPTIMIZATION, 34, 15),
+    ]);
   }
 
   test_dynamic() async {
     await assertNoErrorsInCode(r'''
 f(x, y) {
   var v = (x / y).toInt();
+  print(v);
 }
 ''');
   }
 
   test_int() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f(int x, int y) {
   var v = (x / y).toInt();
+  print(v);
 }
-''', [HintCode.DIVISION_OPTIMIZATION]);
+''', [
+      error(HintCode.DIVISION_OPTIMIZATION, 28, 15),
+    ]);
   }
 
   test_nonNumeric() async {
@@ -54,15 +62,19 @@ class A {
 }
 f(A x, A y) {
   var v = (x / y).toInt();
+  print(v);
 }
 ''');
   }
 
   test_wrappedInParentheses() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f(int x, int y) {
   var v = (((x / y))).toInt();
+  print(v);
 }
-''', [HintCode.DIVISION_OPTIMIZATION]);
+''', [
+      error(HintCode.DIVISION_OPTIMIZATION, 28, 19),
+    ]);
   }
 }

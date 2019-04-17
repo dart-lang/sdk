@@ -22,33 +22,33 @@ class ExpressionInMapTest extends DriverResolutionTest {
   bool get isUiAsCode => analysisOptions.experimentStatus.spread_collections;
 
   test_map() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
       '''
 var m = <String, int>{'a', 'b' : 2};
 ''',
       isUiAsCode
           ? [
-              CompileTimeErrorCode.EXPRESSION_IN_MAP,
+              error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 3),
             ]
           : [
-              ParserErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.MISSING_IDENTIFIER
+              error(ParserErrorCode.EXPECTED_TOKEN, 25, 1),
+              error(ParserErrorCode.MISSING_IDENTIFIER, 25, 1),
             ],
     );
   }
 
   test_map_const() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
       '''
 var m = <String, int>{'a', 'b' : 2};
 ''',
       isUiAsCode
           ? [
-              CompileTimeErrorCode.EXPRESSION_IN_MAP,
+              error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 3),
             ]
           : [
-              ParserErrorCode.EXPECTED_TOKEN,
-              ParserErrorCode.MISSING_IDENTIFIER
+              error(ParserErrorCode.EXPECTED_TOKEN, 25, 1),
+              error(ParserErrorCode.MISSING_IDENTIFIER, 25, 1),
             ],
     );
   }
@@ -64,14 +64,18 @@ class ExpressionInMapWithUiAsCodeTest extends ExpressionInMapTest {
     ];
 
   test_map() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var m = <String, int>{'a', 'b' : 2};
-''', [CompileTimeErrorCode.EXPRESSION_IN_MAP]);
+''', [
+      error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 22, 3),
+    ]);
   }
 
   test_map_const() async {
-    await assertErrorCodesInCode('''
-var m = <String, int>{'a', 'b' : 2};
-''', [CompileTimeErrorCode.EXPRESSION_IN_MAP]);
+    await assertErrorsInCode('''
+const m = <String, int>{'a', 'b' : 2};
+''', [
+      error(CompileTimeErrorCode.EXPRESSION_IN_MAP, 24, 3),
+    ]);
   }
 }

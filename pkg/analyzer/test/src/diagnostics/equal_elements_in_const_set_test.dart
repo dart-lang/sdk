@@ -20,19 +20,23 @@ main() {
 @reflectiveTest
 class EqualElementsInConstSetTest extends DriverResolutionTest {
   test_const_entry() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var c = const {1, 2, 1};
-''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
+''', [
+      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1),
+    ]);
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A<T> {
   const A();
 }
 
 var c = const {const A<int>(), const A<int>()};
-''', [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]);
+''', [
+      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14),
+    ]);
   }
 
   test_const_instanceCreation_notEqualTypeArgs() async {
@@ -76,82 +80,104 @@ class EqualElementsInConstSetWithUIAsCodeTest
     ];
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1, if (1 < 0) 2 else 1};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 19),
+              ]);
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {if (0 < 1) 1 else 1};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 15, 19),
+              ]);
   }
 
   test_const_ifElement_thenElseTrue() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1, if (0 < 1) 2 else 1};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 19),
+              ]);
   }
 
   test_const_ifElement_thenElseTrue_onlyThen() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {if (0 < 1) 1 else 1};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 15, 19),
+              ]);
   }
 
   test_const_ifElement_thenFalse() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {2, if (1 < 0) 2};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 12),
+              ]);
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1, if (0 < 1) 1};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 12),
+              ]);
   }
 
   test_const_spread__noDuplicate() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1, ...{2}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),
+              ]);
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1, ...{1}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET]
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),
+              ]);
   }
 }

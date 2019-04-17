@@ -23,7 +23,7 @@ main() {
 @reflectiveTest
 class ConstSetElementTypeImplementsEqualsTest extends DriverResolutionTest {
   test_constField() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   static const a = const A();
   const A();
@@ -32,11 +32,14 @@ class A {
 main() {
   const {A.a};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 104,
+          3),
+    ]);
   }
 
   test_direct() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -44,14 +47,17 @@ class A {
 main() {
   const {const A()};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 74, 9),
+    ]);
   }
 
   test_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -62,11 +68,14 @@ class B {
 main() {
   const {B.a};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 116,
+          3),
+    ]);
   }
 
   test_factory() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A { const factory A() = B; }
 
 class B implements A {
@@ -77,12 +86,16 @@ class B implements A {
 
 main() {
   var m = const {const A()};
+  print(m);
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 128,
+          9),
+    ]);
   }
 
   test_super() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -93,7 +106,10 @@ class B extends A {
 main() {
   const {const B()};
 }
-''', [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 109,
+          9),
+    ]);
   }
 }
 
@@ -120,7 +136,7 @@ class ConstSetElementTypeImplementsEqualsWithUIAsCodeTest
     ];
 
   test_spread_list() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 class A {
   const A();
@@ -132,12 +148,20 @@ main() {
 }
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+                    75,
+                    8),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 75, 8),
+              ]);
   }
 
   test_spread_set() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 class A {
   const A();
@@ -149,10 +173,20 @@ main() {
 }
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS]
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+                    79,
+                    3),
+              ]
             : [
-                CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 75, 8),
+                error(
+                    CompileTimeErrorCode
+                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+                    79,
+                    3),
               ]);
   }
 }

@@ -30,12 +30,14 @@ class A {
 
   test_method() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @immutable
   void m() {}
 }
-''', [HintCode.INVALID_IMMUTABLE_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_IMMUTABLE_ANNOTATION, 45, 10),
+    ]);
   }
 }

@@ -20,19 +20,23 @@ main() {
 @reflectiveTest
 class EqualKeysInConstMapTest extends DriverResolutionTest {
   test_const_entry() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var c = const {1: null, 2: null, 1: null};
-''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 33, 1),
+    ]);
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A<T> {
   const A();
 }
 
 var c = const {const A<int>(): null, const A<int>(): null};
-''', [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]);
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 66, 14),
+    ]);
   }
 
   test_const_instanceCreation_notEqualTypeArgs() async {
@@ -75,82 +79,104 @@ class EqualKeysInConstMapWithUIAsCodeTest extends EqualKeysInConstMapTest {
     ];
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1: null, if (1 < 0) 2: null else 1: null};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 48, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 31),
+              ]);
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {if (0 < 1) 1: null else 1: null};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 15, 31),
+              ]);
   }
 
   test_const_ifElement_thenElseTrue() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1: null, if (0 < 1) 2: null else 1: null};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 31),
+              ]);
   }
 
   test_const_ifElement_thenElseTrue_onlyThen() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {if (0 < 1) 1: null else 1: null};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 15, 31),
+              ]);
   }
 
   test_const_ifElement_thenFalse() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {2: null, if (1 < 0) 2: 2};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 15),
+              ]);
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1: null, if (0 < 1) 1: null};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 35, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 18),
+              ]);
   }
 
   test_const_spread__noDuplicate() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1: null, ...{2: null}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 12),
+              ]);
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var c = const {1: null, ...{1: null}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 27, 9),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 24, 12),
+              ]);
   }
 }

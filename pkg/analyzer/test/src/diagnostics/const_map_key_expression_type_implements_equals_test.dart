@@ -34,15 +34,20 @@ main() {
   }
 
   test_constField() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   const {double.INFINITY: 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          18,
+          15),
+    ]);
   }
 
   test_direct() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -51,14 +56,19 @@ class A {
 main() {
   const {const A() : 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          75,
+          9),
+    ]);
   }
 
   test_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -71,11 +81,16 @@ class B {
 main() {
   const {B.a : 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          118,
+          3),
+    ]);
   }
 
   test_factory() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const factory A() = B;
 }
@@ -88,11 +103,16 @@ class B implements A {
 main() {
   const {const A(): 42};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          121,
+          9),
+    ]);
   }
 
   test_super() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -105,7 +125,12 @@ class B extends A {
 main() {
   const {const B() : 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          111,
+          9),
+    ]);
   }
 }
 

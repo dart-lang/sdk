@@ -25,15 +25,6 @@ main() {
 class ConstEvalThrowsExceptionTest extends DriverResolutionTest {
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
-    addTestFile(r'''
-import 'other.dart';
-
-void main() {
-  const foo = Foo(1);
-  const bar = Bar.some();
-  print("$foo, $bar");
-}
-''');
     newFile('/test/lib/other.dart', content: '''
 class Foo {
   final double value;
@@ -48,8 +39,15 @@ class Bar {
 
   const Bar.some() : this(const Foo(1));
 }''');
-    await resolveTestFile();
-    assertNoTestErrors();
+    await assertNoErrorsInCode(r'''
+import 'other.dart';
+
+void main() {
+  const foo = Foo(1);
+  const bar = Bar.some();
+  print("$foo, $bar");
+}
+''');
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
@@ -57,15 +55,6 @@ class Bar {
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
     // See dartbug.com/35993
-    addTestFile(r'''
-import 'other.dart';
-
-void main() {
-  const foo = Foo(1);
-  const bar = Bar.some();
-  print("$foo, $bar");
-}
-''');
     newFile('/test/lib/other.dart', content: '''
 class Foo {
   final double value;
@@ -80,21 +69,21 @@ class Bar {
 
   const Bar.some() : this(const Foo(1));
 }''');
+    await assertNoErrorsInCode(r'''
+import 'other.dart';
+
+void main() {
+  const foo = Foo(1);
+  const bar = Bar.some();
+  print("$foo, $bar");
+}
+''');
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_default_constructor_arg_empty_map_importAnalyzedAfter() async {
-    addTestFile('''
-import 'other.dart';
-
-main() {
-  var c = const C();
-}
-''');
     newFile('/test/lib/other.dart', content: '''
 class C {
   final Map<String, int> m;
@@ -102,21 +91,19 @@ class C {
     : assert(m != null);
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
+    await assertNoErrorsInCode('''
+import 'other.dart';
+
+main() {
+  var c = const C();
+}
+''');
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_default_constructor_arg_empty_map_importAnalyzedBefore() async {
-    addTestFile('''
-import 'other.dart';
-
-main() {
-  var c = const C();
-}
-''');
     newFile('/test/lib/other.dart', content: '''
 class C {
   final Map<String, int> m;
@@ -124,11 +111,16 @@ class C {
     : assert(m != null);
 }
 ''');
+    await assertNoErrorsInCode('''
+import 'other.dart';
+
+main() {
+  var c = const C();
+}
+''');
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 }
 
@@ -175,66 +167,76 @@ class ConstEvalThrowsExceptionWithUIAsCodeTest
     ];
 
   test_ifElement_false_thenNotEvaluated() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic nil = null;
 const c = [if (1 < 0) nil + 1];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 37, 18),
+              ]);
   }
 
   test_ifElement_nonBoolCondition_list() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic nonBool = 3;
 const c = const [if (nonBool) 'a'];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]
+            ? [
+                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 48, 7),
+              ]
             : [
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-                CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 44, 16),
+                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 48, 7),
               ]);
   }
 
   test_ifElement_nonBoolCondition_map() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]
+            ? [
+                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 51, 7),
+              ]
             : [
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-                CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 47, 20),
+                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 51, 7),
               ]);
   }
 
   test_ifElement_nonBoolCondition_set() async {
-    assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]
+            ? [
+                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 50, 7),
+              ]
             : [
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-                CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 46, 14),
+                error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 50, 7),
               ]);
   }
 
   test_ifElement_true_elseNotEvaluated() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic nil = null;
 const c = [if (0 < 1) 3 else nil + 1];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 37, 25),
+              ]);
   }
 }

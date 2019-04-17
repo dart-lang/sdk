@@ -21,7 +21,7 @@ class InvalidCastNewExprTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = ['set-literals'];
 
   test_listLiteral_const() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 const c = <B>[A()];
 class A {
   const A();
@@ -30,13 +30,13 @@ class B extends A {
   const B();
 }
 ''', [
-      StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
-      StrongModeCode.INVALID_CAST_NEW_EXPR,
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3),
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 14, 3),
     ]);
   }
 
   test_listLiteral_nonConst() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 var c = <B>[A()];
 class A {
   const A();
@@ -44,11 +44,13 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 12, 3),
+    ]);
   }
 
   test_setLiteral_const() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 const c = <B>{A()};
 class A {
   const A();
@@ -57,13 +59,13 @@ class B extends A {
   const B();
 }
 ''', [
-      StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
-      StrongModeCode.INVALID_CAST_NEW_EXPR,
+      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3),
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 14, 3),
     ]);
   }
 
   test_setLiteral_nonConst() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 var c = <B>{A()};
 class A {
   const A();
@@ -71,6 +73,8 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 12, 3),
+    ]);
   }
 }

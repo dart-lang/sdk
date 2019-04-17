@@ -23,35 +23,43 @@ class InvalidRequiredParamTest extends DriverResolutionTest with PackageMixin {
   }
 
   test_namedParameter_withDefault() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m({@required a = 1}) => null;
-''', [HintCode.INVALID_REQUIRED_PARAM]);
+''', [
+      error(HintCode.INVALID_REQUIRED_PARAM, 37, 15),
+    ]);
   }
 
   test_positionalParameter_noDefault() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m([@required a]) => null;
-''', [HintCode.INVALID_REQUIRED_PARAM]);
+''', [
+      error(HintCode.INVALID_REQUIRED_PARAM, 37, 11),
+    ]);
   }
 
   test_positionalParameter_withDefault() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m([@required a = 1]) => null;
-''', [HintCode.INVALID_REQUIRED_PARAM]);
+''', [
+      error(HintCode.INVALID_REQUIRED_PARAM, 37, 15),
+    ]);
   }
 
   test_requiredParameter() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 m(@required a) => null;
-''', [HintCode.INVALID_REQUIRED_PARAM]);
+''', [
+      error(HintCode.INVALID_REQUIRED_PARAM, 36, 11),
+    ]);
   }
 
   test_valid() async {

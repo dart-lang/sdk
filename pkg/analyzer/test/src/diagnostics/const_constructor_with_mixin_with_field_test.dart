@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ConstConstructorWithMixinWithFieldTest extends DriverResolutionTest {
   test_class_instance() async {
-    addTestFile(r'''
+    await assertErrorsInCode('''
 class A {
   var a;
 }
@@ -24,16 +24,16 @@ class A {
 class B extends Object with A {
   const B();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 56, 10),
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
     ]);
   }
 
   test_class_instance_final() async {
-    addTestFile(r'''
+    await assertErrorsInCode('''
 class A {
   final a = 0;
 }
@@ -41,27 +41,24 @@ class A {
 class B extends Object with A {
   const B();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 68, 1),
     ]);
   }
 
   test_class_noFields() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode('''
 class M {}
 
 class X extends Object with M {
   const X();
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_class_static() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode('''
 class M {
   static final a = 0;
 }
@@ -70,12 +67,10 @@ class X extends Object with M {
   const X();
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_mixin_instance() async {
-    addTestFile(r'''
+    await assertErrorsInCode('''
 mixin M {
   var a;
 }
@@ -83,16 +78,16 @@ mixin M {
 class X extends Object with M {
   const X();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 56, 10),
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
     ]);
   }
 
   test_mixin_instance_final() async {
-    addTestFile(r'''
+    await assertErrorsInCode('''
 mixin M {
   final a = 0;
 }
@@ -100,27 +95,24 @@ mixin M {
 class X extends Object with M {
   const X();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 68, 1),
     ]);
   }
 
   test_mixin_noFields() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode('''
 mixin M {}
 
 class X extends Object with M {
   const X();
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_mixin_static() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode('''
 mixin M {
   static final a = 0;
 }
@@ -129,7 +121,5 @@ class X extends Object with M {
   const X();
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 }
