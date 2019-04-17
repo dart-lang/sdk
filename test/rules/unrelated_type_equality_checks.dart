@@ -166,6 +166,18 @@ void function23() {
   if (aFuture == aVoidFuture) print('someFunction23'); // OK
 }
 
+void function30() {
+  ClassWMethod c =  ClassWMethod();
+  if (c.determinant == 0.0) print('someFunction30'); // LINT
+  if (c.determinant == double) print('someFunction30'); // LINT
+  if (c.determinant == c.determinspider) print('someFunction30'); // OK
+  if (int == double) print('someFunction30'); // OK
+  ClassWCall callable = ClassWCall();
+  if (c.determinant == callable) print('someFunction30'); // OK
+  SubClassWCall callable2 = SubClassWCall2();
+  if (c.determinant == callable2) print('someFunction30'); // OK
+}
+
 class ClassBase {}
 
 class DerivedClass1 extends ClassBase {}
@@ -179,3 +191,15 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 class DerivedClass4 extends DerivedClass2 {}
 
 class DerivedClass5 extends DerivedClass3 {}
+
+class ClassWMethod {
+  double determinant() => 7.0;
+
+  String determinspider() => "";
+}
+
+class ClassWCall {
+  String call() => 'hey';
+}
+
+class SubClassWCall extends ClassWCall {}
