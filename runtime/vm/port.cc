@@ -236,7 +236,7 @@ void PortMap::ClosePorts(MessageHandler* handler) {
   handler->CloseAllPorts();
 }
 
-bool PortMap::PostMessage(Message* message) {
+bool PortMap::PostMessage(Message* message, bool before_events) {
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(message->dest_port());
   if (index < 0) {
@@ -248,7 +248,7 @@ bool PortMap::PostMessage(Message* message) {
   MessageHandler* handler = map_[index].handler;
   ASSERT(map_[index].port != 0);
   ASSERT((handler != NULL) && (handler != deleted_entry_));
-  handler->PostMessage(message);
+  handler->PostMessage(message, before_events);
   return true;
 }
 

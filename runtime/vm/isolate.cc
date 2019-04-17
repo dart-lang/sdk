@@ -395,6 +395,31 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       I->heap()->NotifyLowMemory();
       break;
     }
+    case Isolate::kDrainServiceExtensionsMsg: {
+#ifndef PRODUCT
+      Object& obj = Object::Handle(zone, message.At(2));
+      if (!obj.IsSmi()) return Error::null();
+      const intptr_t priority = Smi::Cast(obj).Value();
+      if (priority == Isolate::kImmediateAction) {
+        return I->InvokePendingServiceExtensionCalls();
+      } else {
+        ASSERT((priority == Isolate::kBeforeNextEventAction) ||
+               (priority == Isolate::kAsEventAction));
+        // Update the message so that it will be handled immediately when it
+        // is picked up from the message queue the next time.
+        message.SetAt(
+            0, Smi::Handle(zone, Smi::New(Message::kDelayedIsolateLibOOBMsg)));
+        message.SetAt(2,
+                      Smi::Handle(zone, Smi::New(Isolate::kImmediateAction)));
+        this->PostMessage(
+            SerializeMessage(Message::kIllegalPort, message),
+            priority == Isolate::kBeforeNextEventAction /* at_head */);
+      }
+#else
+      UNREACHABLE();
+#endif  // !PRODUCT
+      break;
+    }
 
     case Isolate::kAddExitMsg:
     case Isolate::kDelExitMsg:
@@ -450,7 +475,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
 #if defined(DEBUG)
     // Malformed OOB messages are silently ignored in release builds.
     default:
-      UNREACHABLE();
+      FATAL1("Unknown OOB message type: %" Pd "\n", msg_type);
       break;
 #endif  // defined(DEBUG)
   }
@@ -616,17 +641,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     }
   }
   delete message;
-#ifndef PRODUCT
-  if (status == kOK) {
-    const Object& result =
-        Object::Handle(zone, I->InvokePendingServiceExtensionCalls());
-    if (result.IsError()) {
-      status = ProcessUnhandledException(Error::Cast(result));
-    } else {
-      ASSERT(result.IsNull());
-    }
-  }
-#endif  // !PRODUCT
   return status;
 }
 
@@ -2386,14 +2400,14 @@ RawField* Isolate::GetDeoptimizingBoxedField() {
 }
 
 #ifndef PRODUCT
-RawObject* Isolate::InvokePendingServiceExtensionCalls() {
+RawError* Isolate::InvokePendingServiceExtensionCalls() {
   if (!FLAG_support_service) {
-    return Object::null();
+    return Error::null();
   }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
   if (calls.IsNull()) {
-    return Object::null();
+    return Error::null();
   }
   // Grab run function.
   const Library& developer_lib = Library::Handle(Library::DeveloperLibrary());
@@ -2449,17 +2463,17 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
         Service::PostError(method_name, parameter_keys, parameter_values,
                            reply_port, id, Error::Cast(result));
       }
-      return result.raw();
+      return Error::Cast(result).raw();
     }
     // Drain the microtask queue.
     result = DartLibraryCalls::DrainMicrotaskQueue();
     // Propagate the error.
     if (result.IsError()) {
       // Remaining service extension calls are dropped.
-      return result.raw();
+      return Error::Cast(result).raw();
     }
   }
-  return Object::null();
+  return Error::null();
 }
 
 RawGrowableObjectArray* Isolate::GetAndClearPendingServiceExtensionCalls() {
@@ -2481,10 +2495,12 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
   }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(pending_service_extension_calls());
+  bool schedule_drain = false;
   if (calls.IsNull()) {
     calls ^= GrowableObjectArray::New();
     ASSERT(!calls.IsNull());
     set_pending_service_extension_calls(calls);
+    schedule_drain = true;
   }
   ASSERT(kPendingHandlerIndex == 0);
   calls.Add(closure);
@@ -2498,6 +2514,22 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
   calls.Add(reply_port);
   ASSERT(kPendingIdIndex == 5);
   calls.Add(id);
+
+  if (schedule_drain) {
+    const Array& msg = Array::Handle(Array::New(3));
+    Object& element = Object::Handle();
+    element = Smi::New(Message::kIsolateLibOOBMsg);
+    msg.SetAt(0, element);
+    element = Smi::New(Isolate::kDrainServiceExtensionsMsg);
+    msg.SetAt(1, element);
+    element = Smi::New(Isolate::kBeforeNextEventAction);
+    msg.SetAt(2, element);
+    MessageWriter writer(false);
+    Message* message =
+        writer.WriteMessage(msg, main_port(), Message::kOOBPriority);
+    bool posted = PortMap::PostMessage(message);
+    ASSERT(posted);
+  }
 }
 
 // This function is written in C++ and not Dart because we must do this

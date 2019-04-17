@@ -170,6 +170,7 @@ class Isolate : public BaseIsolate {
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
     kLowMemoryMsg = 12,     // Run compactor, etc.
+    kDrainServiceExtensionsMsg = 13,  // Invoke pending service extensions
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -658,7 +659,7 @@ class Isolate : public BaseIsolate {
   RawField* GetDeoptimizingBoxedField();
 
 #ifndef PRODUCT
-  RawObject* InvokePendingServiceExtensionCalls();
+  RawError* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                                   const String& method_name,
                                   const Array& parameter_keys,
