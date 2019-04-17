@@ -212,7 +212,7 @@ class Keyword extends TokenType {
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
   static const Keyword LATE =
-      const Keyword("late", "LATE", isPseudo: true, isModifier: true);
+      const Keyword("late", "LATE", isBuiltIn: true, isModifier: true);
 
   static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
       isBuiltIn: true, isTopLevelKeyword: true);
@@ -240,7 +240,7 @@ class Keyword extends TokenType {
   static const Keyword PATCH = const Keyword("patch", "PATCH", isPseudo: true);
 
   static const Keyword REQUIRED =
-      const Keyword("required", "REQUIRED", isPseudo: true, isModifier: true);
+      const Keyword("required", "REQUIRED", isBuiltIn: true, isModifier: true);
 
   static const Keyword RETHROW = const Keyword("rethrow", "RETHROW");
 
