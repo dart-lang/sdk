@@ -160,6 +160,11 @@ class LinkedUnitContext {
     }
   }
 
+  int getDirectiveOffset(AstNode node) {
+    LazyDirective.readMetadata(_astReader, node);
+    return node.offset;
+  }
+
   Comment getDocumentationComment(AstNode node) {
     if (node is ClassDeclaration) {
       LazyClassDeclaration.readDocumentationComment(_astReader, node);

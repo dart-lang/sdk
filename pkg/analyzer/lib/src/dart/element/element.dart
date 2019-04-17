@@ -4753,7 +4753,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   int get nameOffset {
     if (linkedNode != null) {
-      return linkedNode.offset;
+      return linkedContext.getDirectiveOffset(linkedNode);
     }
 
     int offset = super.nameOffset;
@@ -5972,7 +5972,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   int get nameOffset {
     if (linkedNode != null) {
-      return linkedNode.offset;
+      return linkedContext.getDirectiveOffset(linkedNode);
     }
 
     int offset = super.nameOffset;
