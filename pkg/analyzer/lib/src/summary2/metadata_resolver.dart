@@ -173,8 +173,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitTypeParameter(TypeParameter node) {
+    node.metadata.accept(this);
+  }
+
+  @override
   void visitTypeParameterList(TypeParameterList node) {
-    // TODO: implement visitTypeParameterList
-//    super.visitTypeParameterList(node);
+    node.typeParameters.accept(this);
   }
 }

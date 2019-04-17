@@ -367,6 +367,9 @@ class LinkedUnitContext {
     } else if (node is MixinDeclaration) {
       LazyMixinDeclaration.readMetadata(_astReader, node);
       return node.metadata;
+    } else if (node is TypeParameter) {
+      LazyTypeParameter.readMetadata(_astReader, node);
+      return node.metadata;
     } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
       if (parent2 is FieldDeclaration) {

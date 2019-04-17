@@ -7997,7 +7997,9 @@ int v;
   test_metadata_typeParameter_ofClass() async {
     var library = await checkLibrary('const a = null; class C<@a T> {}');
     checkElementText(library, r'''
-class C<T> {
+class C<@
+        a/*location: test.dart;a?*/
+T> {
 }
 const dynamic a = null;
 ''');
@@ -8010,7 +8012,9 @@ class C<@a T> = D with E;
 class D {}
 class E {}''');
     checkElementText(library, r'''
-class alias C<T> extends D with E {
+class alias C<@
+        a/*location: test.dart;a?*/
+T> extends D with E {
   synthetic C() = D;
 }
 class D {
@@ -8025,14 +8029,18 @@ const dynamic a = null;
     var library = await checkLibrary('const a = null; f<@a T>() {}');
     checkElementText(library, r'''
 const dynamic a = null;
-dynamic f<T>() {}
+dynamic f<@
+        a/*location: test.dart;a?*/
+T>() {}
 ''');
   }
 
   test_metadata_typeParameter_ofTypedef() async {
     var library = await checkLibrary('const a = null; typedef F<@a T>();');
     checkElementText(library, r'''
-typedef F<T> = dynamic Function();
+typedef F<@
+        a/*location: test.dart;a?*/
+T> = dynamic Function();
 const dynamic a = null;
 ''');
   }

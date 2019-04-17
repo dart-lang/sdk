@@ -1178,6 +1178,7 @@ class LazyTypeParameter {
   final LinkedNode data;
 
   bool _hasBound = false;
+  bool _hasMetadata = false;
 
   LazyTypeParameter(this.data);
 
@@ -1190,6 +1191,21 @@ class LazyTypeParameter {
     if (lazy != null && !lazy._hasBound) {
       node.bound = reader.readNode(lazy.data.typeParameter_bound);
       lazy._hasBound = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    TypeParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
     }
   }
 

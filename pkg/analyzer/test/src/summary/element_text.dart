@@ -915,6 +915,7 @@ class _ElementWriter {
   }
 
   void writeTypeParameterElement(TypeParameterElement e) {
+    writeMetadata(e, '', '\n');
     writeName(e);
     writeCodeRange(e);
     if (e.bound != null && !e.bound.isObject) {
