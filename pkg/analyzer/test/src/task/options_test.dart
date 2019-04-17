@@ -238,9 +238,6 @@ class ErrorCodeValuesTest {
         declaredNames.remove('TODO_REGEX');
       } else if (errorType == ParserErrorCode) {
         declaredNames.remove('CONST_AFTER_FACTORY');
-      } else if (errorType == ManifestWarningCode) {
-        declaredNames.remove('NON_RESIZABLE_ACTIVITY');
-        declaredNames.remove('SETTING_ORIENTATION_ON_ACTIVITY');
       }
 
       // Assert that all remaining declared names are in errorCodeValues

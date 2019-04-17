@@ -367,6 +367,8 @@ const List<ErrorCode> errorCodeValues = const [
   ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
   ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE,
   ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE,
+  ManifestWarningCode.NON_RESIZABLE_ACTIVITY,
+  ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY,
   ParserErrorCode.ABSTRACT_CLASS_MEMBER,
   ParserErrorCode.ABSTRACT_ENUM,
   ParserErrorCode.ABSTRACT_STATIC_METHOD,
