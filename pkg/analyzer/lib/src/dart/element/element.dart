@@ -3763,7 +3763,9 @@ abstract class ElementImpl implements Element {
     var annotations = new List<ElementAnnotation>(length);
     for (int i = 0; i < length; i++) {
       var ast = nodeList[i];
-      annotations[i] = ElementAnnotationImpl(unit)..annotationAst = ast;
+      annotations[i] = ElementAnnotationImpl(unit)
+        ..annotationAst = ast
+        ..element = ast.element;
     }
     return annotations;
   }

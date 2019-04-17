@@ -1856,17 +1856,17 @@ table LinkedNode {
 
   variantField_7:LinkedNode (id: 7);
 
+  variantField_17:uint (id: 17);
+
+  variantField_23:LinkedNodeType (id: 23);
+
   variantField_8:LinkedNode (id: 8);
 
   variantField_16:uint (id: 16);
 
-  variantField_17:uint (id: 17);
-
   variantField_18:uint (id: 18);
 
   variantField_19:uint (id: 19);
-
-  variantField_23:LinkedNodeType (id: 23);
 
   variantField_27:bool (id: 27);
 

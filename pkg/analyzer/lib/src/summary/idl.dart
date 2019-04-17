@@ -853,6 +853,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_constructorName;
 
+  @VariantId(17, variant: LinkedNodeKind.annotation)
+  int get annotation_element;
+
+  @VariantId(23, variant: LinkedNodeKind.annotation)
+  LinkedNodeType get annotation_elementType;
+
   @VariantId(8, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_name;
 

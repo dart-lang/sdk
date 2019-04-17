@@ -88,7 +88,10 @@ class AstBinaryReader {
       _getToken(data.annotation_period),
       _readNode(data.annotation_constructorName),
       _readNode(data.annotation_arguments),
-    );
+    )..element = _elementOfComponents(
+        data.annotation_element,
+        data.annotation_elementType,
+      );
   }
 
   ArgumentList _read_argumentList(LinkedNode data) {

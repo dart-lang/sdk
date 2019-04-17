@@ -36,10 +36,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitAnnotation(Annotation node) {
+    var elementComponents = _componentsOfElement(node.element);
     return LinkedNodeBuilder.annotation(
       annotation_arguments: node.arguments?.accept(this),
       annotation_atSign: _getToken(node.atSign),
       annotation_constructorName: node.constructorName?.accept(this),
+      annotation_element: elementComponents.rawElement,
+      annotation_elementType: elementComponents.definingType,
       annotation_name: node.name?.accept(this),
       annotation_period: _getToken(node.period),
     );
