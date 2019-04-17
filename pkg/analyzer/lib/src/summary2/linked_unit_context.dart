@@ -431,7 +431,7 @@ class LinkedUnitContext {
     } else if (node is EnumConstantDeclaration) {
       return node.name.offset;
     } else if (node is FormalParameter) {
-      return node.identifier.offset;
+      return node.identifier?.offset ?? -1;
     } else if (node is MethodDeclaration) {
       return node.name.offset;
     } else if (node is NamedCompilationUnitMember) {
