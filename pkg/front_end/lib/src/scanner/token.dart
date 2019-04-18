@@ -318,6 +318,7 @@ class Keyword extends TokenType {
     IN,
     INTERFACE,
     IS,
+    LATE,
     LIBRARY,
     MIXIN,
     NATIVE,
