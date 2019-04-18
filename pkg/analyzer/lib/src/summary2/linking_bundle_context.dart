@@ -46,13 +46,10 @@ class LinkingBundleContext {
 
   int indexOfElement(Element element) {
     if (element == null) return 0;
+    assert(element is! Member);
 
     if (identical(element, DynamicElementImpl.instance)) {
       return indexOfReference(dynamicReference);
-    }
-
-    if (element is Member) {
-      element = (element as Member).baseElement;
     }
 
     var reference = (element as ElementImpl).reference;

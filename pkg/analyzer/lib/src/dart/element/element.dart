@@ -560,6 +560,19 @@ class ClassElementImpl extends AbstractClassElementImpl
         }
         return ConstructorElementImpl.forLinkedNode(this, reference, node);
       }).toList();
+
+      if (_constructors.isEmpty) {
+        return _constructors = [
+          ConstructorElementImpl.forLinkedNode(
+            this,
+            containerRef.getChild(''),
+            null,
+          )
+            ..isSynthetic = true
+            ..name = ''
+            ..nameOffset = -1,
+        ];
+      }
     }
 
     if (_unlinkedClass != null) {
