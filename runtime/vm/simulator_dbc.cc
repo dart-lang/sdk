@@ -2646,6 +2646,24 @@ SwitchDispatch:
     UNREACHABLE();
     DISPATCH();
   }
+
+  {
+    BYTECODE(UnboxInt64, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt64, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(WriteIntoMint, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
 #endif  // defined(ARCH_IS_64_BIT)
 
   // Return and return like instructions (Instrinsic).
