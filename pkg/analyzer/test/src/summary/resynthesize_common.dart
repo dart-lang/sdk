@@ -1270,12 +1270,21 @@ class C<T extends C<dynamic>> {
 class C<T extends D> {}
 class D<T extends C> {}
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded class C<T extends D<dynamic>> {
+}
+notSimplyBounded class D<T extends C<dynamic>> {
+}
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded class C<T extends D<dynamic>> {
 }
 notSimplyBounded class D<T extends C<D<dynamic>>> {
 }
 ''');
+    }
   }
 
   test_class_notSimplyBounded_complex_by_reference_to_cycle() async {
@@ -6872,11 +6881,19 @@ void f() {}
 class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded class C<S extends num, T extends C<S, T>> {
+}
+C<dynamic, dynamic> c;
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded class C<S extends num, T extends C<S, T>> {
 }
 C<num, C<num, dynamic>> c;
 ''');
+    }
   }
 
   test_instantiateToBounds_boundRefersToItself() async {
@@ -6888,7 +6905,18 @@ class B {
   var c3 = new C();
 }
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded class C<T extends C<T>> {
+}
+class B {
+  C<C<dynamic>> c3;
+}
+C<dynamic> c;
+C<C<dynamic>> c2;
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded class C<T extends C<T>> {
 }
 class B {
@@ -6897,6 +6925,7 @@ class B {
 C<C<dynamic>> c;
 C<C<dynamic>> c2;
 ''');
+    }
   }
 
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
@@ -6904,11 +6933,19 @@ C<C<dynamic>> c2;
 class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
-    checkElementText(library, r'''
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded class C<T extends C<T, U>, U extends num> {
+}
+C<dynamic, dynamic> c;
+''');
+    } else {
+      checkElementText(library, r'''
 notSimplyBounded class C<T extends C<T, U>, U extends num> {
 }
 C<C<dynamic, num>, num> c;
 ''');
+    }
   }
 
   test_instantiateToBounds_functionTypeAlias_reexported() async {

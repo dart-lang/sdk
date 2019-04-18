@@ -554,6 +554,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
     node.members.accept(this);
+    nodesToBuildType.add(node);
 
     scope = outerScope;
     reference = outerReference;

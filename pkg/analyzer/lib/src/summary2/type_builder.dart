@@ -49,6 +49,11 @@ class TypeBuilder {
     }
   }
 
+  void _buildElement(Element element) {
+    var node = (element as ElementImpl).linkedNode;
+    _build(node);
+  }
+
   FunctionType _buildFunctionType(
     TypeParameterList typeParameterList,
     TypeAnnotation returnTypeNode,
@@ -82,7 +87,9 @@ class TypeBuilder {
   }
 
   void _declaration(AstNode node) {
-    if (node is FieldFormalParameter) {
+    if (node is ClassDeclaration) {
+      _typeParameterList(node.typeParameters);
+    } else if (node is FieldFormalParameter) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
       var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
@@ -183,19 +190,28 @@ class TypeBuilder {
     }
   }
 
+  List<DartType> _typeArgumentList(TypeArgumentList node) {
+    if (node == null) return null;
+
+    var argumentNodes = node.arguments;
+    var argumentTypes = List<DartType>(argumentNodes.length);
+    for (var i = 0; i < argumentNodes.length; ++i) {
+      var argumentNode = argumentNodes[i];
+      _build(argumentNode);
+      argumentTypes[i] = argumentNode.type;
+    }
+    return argumentTypes;
+  }
+
   void _typeName(TypeName node) {
     var element = node.name.staticElement;
-
-    List<DartType> typeArguments;
-    var typeArgumentList = node.typeArguments;
-    if (typeArgumentList != null) {
-      typeArguments = typeArgumentList.arguments.map((a) => a.type).toList();
-    }
-
     if (element is ClassElement) {
       if (element.isEnum) {
         node.type = InterfaceTypeImpl.explicit(element, const []);
       } else {
+        _buildElement(element);
+        var typeArguments = _typeArgumentList(node.typeArguments);
+
         var rawType = element.type;
 
         var typeParametersLength = element.typeParameters.length;
@@ -205,7 +221,12 @@ class TypeBuilder {
         }
 
         if (typeArguments == null) {
-          node.type = typeSystem.instantiateToBounds(rawType);
+          if (element.isSimplyBounded) {
+            node.type = typeSystem.instantiateToBounds(rawType);
+          } else {
+            typeArguments = _listOfDynamic(typeParametersLength);
+            node.type = InterfaceTypeImpl.explicit(element, typeArguments);
+          }
           return;
         }
 
@@ -216,7 +237,8 @@ class TypeBuilder {
         node.type = InterfaceTypeImpl.explicit(element, typeArguments);
       }
     } else if (element is GenericTypeAliasElement) {
-      _build((element as ElementImpl).linkedNode);
+      _buildElement(element);
+      var typeArguments = _typeArgumentList(node.typeArguments);
 
       var rawType = element.function.type;
 
@@ -228,9 +250,13 @@ class TypeBuilder {
       }
 
       if (typeArguments == null) {
-        typeArguments = typeSystem.instantiateTypeFormalsToBounds(
-          typeParameters,
-        );
+        if (element.isSimplyBounded) {
+          typeArguments = typeSystem.instantiateTypeFormalsToBounds(
+            typeParameters,
+          );
+        } else {
+          typeArguments = _listOfDynamic(typeParametersLength);
+        }
       } else if (typeArguments.length != typeParametersLength) {
         typeArguments = _listOfDynamic(typeParametersLength);
       }

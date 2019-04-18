@@ -29,6 +29,8 @@ mixin InferredTypeMixin {
    */
   bool get mayCheckTypesOfLocals;
 
+  bool get useSummary2;
+
   /**
    * Add a new file with the given [name] and [content].
    */
@@ -3549,13 +3551,23 @@ class A<T1 extends int, T2 extends T1> {}
 class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
-    checkElementText(unit.library, r'''
+    if (useSummary2) {
+      checkElementText(unit.library, r'''
+notSimplyBounded class A<T1 extends int, T2 extends T1> {
+}
+notSimplyBounded class B<T extends A<dynamic, dynamic>> {
+}
+B<dynamic> v;
+''');
+    } else {
+      checkElementText(unit.library, r'''
 notSimplyBounded class A<T1 extends int, T2 extends T1> {
 }
 notSimplyBounded class B<T extends A<int, int>> {
 }
 B<A<int, int>> v;
 ''');
+    }
   }
 
   test_instantiateToBounds_typeName_error2() async {
@@ -3564,13 +3576,23 @@ class A<T1 extends T2, T2 extends int> {}
 class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
-    checkElementText(unit.library, r'''
+    if (useSummary2) {
+      checkElementText(unit.library, r'''
+notSimplyBounded class A<T1 extends T2, T2 extends int> {
+}
+notSimplyBounded class B<T extends A<dynamic, dynamic>> {
+}
+B<dynamic> v;
+''');
+    } else {
+      checkElementText(unit.library, r'''
 notSimplyBounded class A<T1 extends T2, T2 extends int> {
 }
 notSimplyBounded class B<T extends A<int, int>> {
 }
 B<A<int, int>> v;
 ''');
+    }
   }
 
   test_instantiateToBounds_typeName_error3() async {
@@ -3579,13 +3601,23 @@ class A<T1 extends int, T2 extends List<T1>> {}
 class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
 B v = null;
 ''');
-    checkElementText(unit.library, r'''
+    if (useSummary2) {
+      checkElementText(unit.library, r'''
+notSimplyBounded class A<T1 extends int, T2 extends List<T1>> {
+}
+notSimplyBounded class B<T extends A<dynamic, dynamic>> {
+}
+B<dynamic> v;
+''');
+    } else {
+      checkElementText(unit.library, r'''
 notSimplyBounded class A<T1 extends int, T2 extends List<T1>> {
 }
 notSimplyBounded class B<T extends A<int, List<int>>> {
 }
 B<A<int, List<int>>> v;
 ''');
+    }
   }
 
   test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {

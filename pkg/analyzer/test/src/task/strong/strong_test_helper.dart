@@ -242,9 +242,11 @@ class AbstractStrongTest with ResourceProviderMixin {
   AnalysisContext _context = null;
   AnalysisDriver _driver = null;
 
+  Map<String, List<Folder>> packageMap;
+
   List<String> get enabledExperiments => [];
 
-  Map<String, List<Folder>> packageMap;
+  bool get useSummary2 => _driver.useSummary2;
 
   /// Adds a file to check. The file should contain:
   ///
