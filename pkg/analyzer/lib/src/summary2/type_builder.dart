@@ -68,7 +68,7 @@ class TypeBuilder {
     var formalParameters = parameterList.parameters.map((parameter) {
       return ParameterElementImpl.synthetic(
         parameter.identifier?.name ?? '',
-        LazyAst.getType(parameter),
+        _getType(parameter),
         // ignore: deprecated_member_use_from_same_package
         parameter.kind,
       );
@@ -256,5 +256,12 @@ class TypeBuilder {
     for (var typeParameter in node.typeParameters) {
       _build(typeParameter.bound);
     }
+  }
+
+  static DartType _getType(FormalParameter node) {
+    if (node is DefaultFormalParameter) {
+      return _getType(node.parameter);
+    }
+    return LazyAst.getType(node);
   }
 }
