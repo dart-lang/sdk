@@ -843,9 +843,6 @@ int main(int argc, char** argv) {
 #if !defined(TARGET_ARCH_IA32)
     vm_options.AddArgument("--link_natives_lazily");
 #endif
-#if !defined(PRODUCT)
-    vm_options.AddArgument("--collect_code=false");
-#endif
   }
 
   char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());

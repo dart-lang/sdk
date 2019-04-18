@@ -40,18 +40,6 @@ DEFINE_FLAG(bool,
             print_free_list_after_gc,
             false,
             "Print free list statistics after a GC");
-DEFINE_FLAG(int,
-            code_collection_interval_in_us,
-            30000000,
-            "Time between attempts to collect unused code.");
-DEFINE_FLAG(bool,
-            log_code_drop,
-            false,
-            "Emit a log message when pointers to unused code are dropped.");
-DEFINE_FLAG(bool,
-            always_drop_code,
-            false,
-            "Always try to drop code if the function's usage counter is >= 0");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
@@ -919,23 +907,6 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
 }
 #endif  // PRODUCT
 
-bool PageSpace::ShouldCollectCode() {
-  // Try to collect code if enough time has passed since the last attempt.
-  const int64_t start = OS::GetCurrentMonotonicMicros();
-  const int64_t last_code_collection_in_us =
-      page_space_controller_.last_code_collection_in_us();
-
-  if ((start - last_code_collection_in_us) >
-      FLAG_code_collection_interval_in_us) {
-    if (FLAG_log_code_drop) {
-      OS::PrintErr("Trying to detach code.\n");
-    }
-    page_space_controller_.set_last_code_collection_in_us(start);
-    return true;
-  }
-  return false;
-}
-
 void PageSpace::WriteProtectCode(bool read_only) {
   if (FLAG_write_protect_code) {
     MutexLocker ml(pages_lock_);
@@ -1107,13 +1078,6 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   SpaceUsage usage_before = GetCurrentUsage();
 
   // Mark all reachable old-gen objects.
-#if defined(PRODUCT)
-  bool collect_code = FLAG_collect_code && ShouldCollectCode();
-#else
-  bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
-                      !isolate->HasAttemptedReload();
-#endif  // !defined(PRODUCT)
-
   if (marker_ == NULL) {
     ASSERT(phase() == kDone);
     marker_ = new GCMarker(isolate, heap_);
@@ -1123,12 +1087,12 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   if (!finalize) {
     ASSERT(phase() == kDone);
-    marker_->StartConcurrentMark(this, collect_code);
+    marker_->StartConcurrentMark(this);
     return;
   }
 
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
-  marker_->MarkObjects(this, collect_code);
+  marker_->MarkObjects(this);
   usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
   allocated_black_in_words_ = 0;
   mark_words_per_micro_ = marker_->MarkedWordsPerMicro();
@@ -1393,7 +1357,6 @@ PageSpaceController::PageSpaceController(Heap* heap,
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
-      last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()),
       idle_gc_threshold_in_words_(0) {
   intptr_t grow_heap = heap_growth_max / 2;
   gc_threshold_in_words_ =

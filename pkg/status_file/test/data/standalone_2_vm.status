@@ -48,7 +48,6 @@ io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/test_extension_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
 io/platform_test: Skip # Platform.executable
-io/code_collection_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
 regress_26031_test: Skip # Platform.resolvedExecutable
 

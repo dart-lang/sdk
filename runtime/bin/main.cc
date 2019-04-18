@@ -1076,9 +1076,6 @@ void main(int argc, char** argv) {
 
   if (Options::gen_snapshot_kind() == kAppJIT) {
     vm_options.AddArgument("--fields_may_be_reset");
-#if !defined(PRODUCT)
-    vm_options.AddArgument("--collect_code=false");
-#endif
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");

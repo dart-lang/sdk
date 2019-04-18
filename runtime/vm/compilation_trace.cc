@@ -365,11 +365,6 @@ RawObject* CompilationTraceLoader::CompileFunction(const Function& function) {
     return Object::null();
   }
 
-  // Prevent premature code collection due to major GC during startup.
-  if (function.usage_counter() < Function::kGraceUsageCounter) {
-    function.set_usage_counter(Function::kGraceUsageCounter);
-  }
-
   error_ = Compiler::CompileFunction(thread_, function);
   if (error_.IsError()) {
     return error_.raw();

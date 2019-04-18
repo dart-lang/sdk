@@ -101,7 +101,6 @@ static void PrecompilationModeHandler(bool value) {
 #endif
 
     FLAG_background_compilation = false;
-    FLAG_collect_code = false;
     FLAG_enable_mirrors = false;
     // TODO(dacoharkes): Ffi support in AOT
     // https://github.com/dart-lang/sdk/issues/35765
@@ -427,12 +426,6 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   }
 #endif  // !defined(PRODUCT)
 
-  if (function.is_intrinsic() &&
-      (function.usage_counter() < Function::kGraceUsageCounter)) {
-    // Intrinsic functions may execute without incrementing their usage counter.
-    // Give them a non-zero initial usage to prevent premature code collection.
-    function.set_usage_counter(Function::kGraceUsageCounter);
-  }
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
@@ -786,7 +779,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
         done = true;
       }
-
     }
   }
   return result->raw();

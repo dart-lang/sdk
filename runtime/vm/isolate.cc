@@ -69,7 +69,6 @@ DECLARE_FLAG(bool, trace_reload);
 static void DeterministicModeHandler(bool value) {
   if (value) {
     FLAG_background_compilation = false;  // Timing dependent.
-    FLAG_collect_code = false;            // Timing dependent.
     FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
     FLAG_random_seed = 0x44617274;  // "Dart"

@@ -15,8 +15,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, log_code_drop);
-DECLARE_FLAG(bool, always_drop_code);
 DECLARE_FLAG(bool, write_protect_code);
 
 // Forward declarations.
@@ -227,11 +225,6 @@ class PageSpaceController {
                                  int64_t end);
   void EvaluateAfterLoading(SpaceUsage after);
 
-  int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
-  void set_last_code_collection_in_us(int64_t t) {
-    last_code_collection_in_us_ = t;
-  }
-
   void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
   void Enable() { is_enabled_ = true; }
@@ -260,10 +253,6 @@ class PageSpaceController {
   // If the relative GC time goes above garbage_collection_time_ratio_ %,
   // we grow the heap more aggressively.
   const int garbage_collection_time_ratio_;
-
-  // The time in microseconds of the last time we tried to collect unused
-  // code.
-  int64_t last_code_collection_in_us_;
 
   // Perform a synchronous GC when capacity exceeds this amount.
   intptr_t gc_threshold_in_words_;
@@ -345,10 +334,6 @@ class PageSpace {
 
   RawObject* FindObject(FindObjectVisitor* visitor,
                         HeapPage::PageType type) const;
-
-  // Checks if enough time has elapsed since the last attempt to collect
-  // code.
-  bool ShouldCollectCode();
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
   void CollectGarbage(bool compact, bool finalize);

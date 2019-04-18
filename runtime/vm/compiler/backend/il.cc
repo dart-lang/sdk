@@ -1173,9 +1173,6 @@ bool Value::NeedsWriteBarrier() {
   // immediate objects (Smis) or permanent objects (vm-isolate heap or
   // image pages). Here we choose to skip the barrier for any constant on
   // the assumption it will remain reachable through the object pool.
-  // TODO(concurrent-marking): Consider ensuring marking is not in progress
-  // when code is disabled or only omitting the barrier if code collection
-  // is disabled.
 
   return !BindsToConstant();
 }

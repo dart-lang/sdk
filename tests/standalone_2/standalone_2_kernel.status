@@ -73,7 +73,6 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 
 # The failures below still need to be investigated and possibly fixed, or marked as skipped.
 [ $compiler == dartkb && $strong ]
-io/code_collection_test: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/dart_std_io_pipe_test: Pass, Timeout # Please triage
 io/platform_resolved_executable_test/00: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/platform_resolved_executable_test/01: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.

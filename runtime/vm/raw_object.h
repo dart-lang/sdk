@@ -693,7 +693,6 @@ class RawObject {
   friend class SizeExcludingClassVisitor;  // GetClassId
   friend class InstanceAccumulator;        // GetClassId
   friend class RetainingPathVisitor;       // GetClassId
-  friend class SkippedCodeFunctions;       // StorePointer
   friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -875,14 +874,9 @@ class RawFunction : public RawObject {
   static constexpr intptr_t kMaxOptionalParametersBits = 14;
 
  private:
-  // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
-  friend class SkippedCodeFunctions;
   friend class Class;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
-
-  static bool ShouldVisitCode(RawCode* raw_code);
-  static bool CheckUsageCounter(RawFunction* raw_fun);
 
   uword entry_point_;  // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
@@ -1329,7 +1323,6 @@ class RawCode : public RawObject {
   friend class Function;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class SkippedCodeFunctions;
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
@@ -1415,7 +1408,6 @@ class RawInstructions : public RawObject {
   friend class StackFrame;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class SkippedCodeFunctions;
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
