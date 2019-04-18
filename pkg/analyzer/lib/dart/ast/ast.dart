@@ -5227,6 +5227,9 @@ abstract class VariableDeclaration implements Declaration {
   /// even though they are implicitly final.
   bool get isFinal;
 
+  /// Return `true` if this variable was declared with the 'late' modifier.
+  bool get isLate;
+
   /// Return the name of the variable being declared.
   SimpleIdentifier get name;
 
@@ -5240,10 +5243,10 @@ abstract class VariableDeclaration implements Declaration {
 ///        finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
 ///
 ///    finalConstVarOrType ::=
-///      | 'final' [TypeAnnotation]?
+///      'final' 'late'? [TypeAnnotation]?
 ///      | 'const' [TypeAnnotation]?
 ///      | 'var'
-///      | [TypeAnnotation]
+///      | 'late'? [TypeAnnotation]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableDeclarationList implements AnnotatedNode {
@@ -5257,6 +5260,10 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   /// this is a syntactic check rather than a semantic check.)
   bool get isFinal;
 
+  /// Return `true` if the variables in this list were declared with the 'late'
+  /// modifier.
+  bool get isLate;
+
   /// Return the token representing the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was included.
   Token get keyword;
@@ -5264,6 +5271,10 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   /// Set the token representing the 'final', 'const' or 'var' keyword to the
   /// given [token].
   void set keyword(Token token);
+
+  /// Return the token representing the 'late' keyword, or `null` if the late
+  /// modifier was not included.
+  Token get lateKeyword;
 
   /// Return the type of the variables being declared, or `null` if no type was
   /// provided.

@@ -10381,6 +10381,12 @@ class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @override
+  bool get isLate {
+    AstNode parent = this.parent;
+    return parent is VariableDeclarationList && parent.isLate;
+  }
+
+  @override
   SimpleIdentifier get name => _name;
 
   @override
@@ -10406,15 +10412,19 @@ class VariableDeclarationImpl extends DeclarationImpl
 ///        (',' [VariableDeclaration])*
 ///
 ///    finalConstVarOrType ::=
-///      | 'final' [TypeName]?
-///      | 'const' [TypeName]?
+///      'final' 'late'? [TypeAnnotation]?
+///      | 'const' [TypeAnnotation]?
 ///      | 'var'
-///      | [TypeName]
+///      | 'late'? [TypeAnnotation]
 class VariableDeclarationListImpl extends AnnotatedNodeImpl
     implements VariableDeclarationList {
   /// The token representing the 'final', 'const' or 'var' keyword, or `null` if
   /// no keyword was included.
   Token keyword;
+
+  /// The token representing the 'late' keyword, or `null` if the late modifier
+  /// was not included.
+  Token lateKeyword;
 
   /// The type of the variables being declared, or `null` if no type was
   /// provided.
@@ -10463,6 +10473,9 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
+
+  @override
+  bool get isLate => lateKeyword != null;
 
   @override
   TypeAnnotation get type => _type;
