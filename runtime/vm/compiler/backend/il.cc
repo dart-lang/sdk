@@ -4048,8 +4048,8 @@ static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   switch (kind) {
     case Token::kADD:
       return StubCode::SmiAddInlineCache().raw();
-    case Token::kSUB:
-      return StubCode::SmiSubInlineCache().raw();
+    case Token::kLT:
+      return StubCode::SmiLessInlineCache().raw();
     case Token::kEQ:
       return StubCode::SmiEqualInlineCache().raw();
     default:

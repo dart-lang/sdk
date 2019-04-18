@@ -1841,8 +1841,8 @@ static void EmitFastSmiOp(Assembler* assembler,
                           intptr_t num_args,
                           Label* not_smi_or_overflow) {
   __ Comment("Fast Smi op");
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R1, Address(SP, 1 * target::kWordSize));
+  __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Left.
+  __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Right.
   __ orr(TMP, R0, Operand(R1));
   __ tst(TMP, Operand(kSmiTagMask));
   __ b(not_smi_or_overflow, NE);
@@ -1852,9 +1852,10 @@ static void EmitFastSmiOp(Assembler* assembler,
       __ b(not_smi_or_overflow, VS);  // Branch if overflow.
       break;
     }
-    case Token::kSUB: {
-      __ subs(R0, R1, Operand(R0));   // Subtract.
-      __ b(not_smi_or_overflow, VS);  // Branch if overflow.
+    case Token::kLT: {
+      __ cmp(R0, Operand(R1));
+      __ LoadObject(R0, CastHandle<Object>(TrueObject()), LT);
+      __ LoadObject(R0, CastHandle<Object>(FalseObject()), GE);
       break;
     }
     case Token::kEQ: {
@@ -2114,10 +2115,10 @@ void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD);
 }
 
-void StubCodeCompiler::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R8);
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT);
 }
 
 void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {

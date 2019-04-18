@@ -1872,8 +1872,8 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Label* not_smi_or_overflow) {
   __ Comment("Fast Smi op");
   ASSERT(num_args == 2);
-  __ movq(RCX, Address(RSP, +1 * target::kWordSize));  // Right
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Left.
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));  // Right
   __ movq(R13, RCX);
   __ orq(R13, RAX);
   __ testq(R13, Immediate(kSmiTagMask));
@@ -1884,20 +1884,24 @@ static void EmitFastSmiOp(Assembler* assembler,
       __ j(OVERFLOW, not_smi_or_overflow);
       break;
     }
-    case Token::kSUB: {
-      __ subq(RAX, RCX);
-      __ j(OVERFLOW, not_smi_or_overflow);
+    case Token::kLT: {
+      __ cmpq(RAX, RCX);
+      __ setcc(GREATER_EQUAL, ByteRegisterOf(RAX));
+      __ movzxb(RAX, RAX);  // RAX := RAX < RCX ? 0 : 1
+      __ movq(RAX,
+              Address(THR, RAX, TIMES_8, target::Thread::bool_true_offset()));
+      ASSERT(target::Thread::bool_true_offset() + 8 ==
+             target::Thread::bool_false_offset());
       break;
     }
     case Token::kEQ: {
-      Label done, is_true;
       __ cmpq(RAX, RCX);
-      __ j(EQUAL, &is_true, Assembler::kNearJump);
-      __ LoadObject(RAX, CastHandle<Object>(FalseObject()));
-      __ jmp(&done, Assembler::kNearJump);
-      __ Bind(&is_true);
-      __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
-      __ Bind(&done);
+      __ setcc(NOT_EQUAL, ByteRegisterOf(RAX));
+      __ movzxb(RAX, RAX);  // RAX := RAX == RCX ? 0 : 1
+      __ movq(RAX,
+              Address(THR, RAX, TIMES_8, target::Thread::bool_true_offset()));
+      ASSERT(target::Thread::bool_true_offset() + 8 ==
+             target::Thread::bool_false_offset());
       break;
     }
     default:
@@ -2192,10 +2196,10 @@ void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD);
 }
 
-void StubCodeCompiler::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
+void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
+      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT);
 }
 
 void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
