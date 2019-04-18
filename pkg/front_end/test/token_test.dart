@@ -97,7 +97,6 @@ class Foo {
       Keyword.IMPORT,
       Keyword.INTERFACE,
       Keyword.LIBRARY,
-      Keyword.LATE,
       Keyword.MIXIN,
       Keyword.OPERATOR,
       Keyword.PART,
