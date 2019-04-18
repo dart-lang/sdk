@@ -1527,6 +1527,12 @@ class B {}
     expect(coreLibrary.getType('Object'), isNotNull);
   }
 
+  test_getLibraryByUri_unresolvedUri() async {
+    expect(() async {
+      await driver.getLibraryByUri('package:foo/foo.dart');
+    }, throwsArgumentError);
+  }
+
   test_getParsedLibrary_external() async {
     var a1 = convertPath('/aaa/lib/a1.dart');
     var a2 = convertPath('/aaa/lib/a2.dart');

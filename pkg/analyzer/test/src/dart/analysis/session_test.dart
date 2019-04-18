@@ -73,6 +73,12 @@ class B {}
     expect(library.getType('C'), isNull);
   }
 
+  test_getLibraryByUri_unresolvedUri() async {
+    expect(() async {
+      await session.getLibraryByUri('package:foo/foo.dart');
+    }, throwsArgumentError);
+  }
+
   test_getParsedLibrary() async {
     newFile(testPath, content: r'''
 class A {}

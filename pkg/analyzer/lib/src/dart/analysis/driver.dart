@@ -745,11 +745,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * [uri], which is either resynthesized from the provided external summary
    * store, or built for a file to which the given [uri] is resolved.
    *
+   * Throw [ArgumentError] if the [uri] does not correspond to a file.
+   *
    * Throw [ArgumentError] if the [uri] corresponds to a part.
    */
   Future<LibraryElement> getLibraryByUri(String uri) async {
     var uriObj = Uri.parse(uri);
     var file = _fsState.getFileForUri(uriObj);
+
+    if (file.isUnresolved) {
+      throw ArgumentError('$uri cannot be resolved to a file.');
+    }
 
     if (file.isExternalLibrary) {
       return _createLibraryContext(file).getLibraryElement(file);
