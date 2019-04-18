@@ -84,12 +84,13 @@ class TopLevelInference {
   }
 
   void _performOverrideInference() {
+    var inferrer = new InstanceMemberInferrer(
+      linker.typeProvider,
+      linker.inheritance,
+    )..onlyOverrideInference = true;
     for (var builder in linker.builders.values) {
       for (var unit in builder.element.units) {
-        new InstanceMemberInferrer(
-          linker.typeProvider,
-          linker.inheritance,
-        ).inferCompilationUnit(unit);
+        inferrer.inferCompilationUnit(unit);
       }
     }
   }
@@ -140,8 +141,7 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
   void evaluate() {
     _resolveInitializer();
 
-    VariableDeclarationList parent = _node.parent;
-    if (parent.type == null) {
+    if (LazyAst.getType(_node) == null) {
       var initializerType = _node.initializer.staticType;
       initializerType = _dynamicIfNull(initializerType);
       LazyAst.setType(_node, initializerType);
@@ -234,8 +234,7 @@ class _InitializerInference {
     if (element.isSynthetic) return;
 
     VariableDeclaration node = _getLinkedNode(element);
-    VariableDeclarationList variableList = node.parent;
-    if (variableList.type == null || element.isConst) {
+    if (LazyAst.getType(node) == null || element.isConst) {
       if (node.initializer != null) {
         _walker.addNode(element, _library, _scope, node);
       } else {

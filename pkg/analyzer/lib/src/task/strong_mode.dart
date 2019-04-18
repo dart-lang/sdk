@@ -42,6 +42,12 @@ class InstanceMemberInferrer {
   InterfaceType interfaceType;
 
   /**
+   * When `true`, only inference using override is performed, and initializers
+   * of fields are ignored.
+   */
+  bool onlyOverrideInference = false;
+
+  /**
    * Initialize a newly create inferrer.
    */
   InstanceMemberInferrer(this.typeProvider, this.inheritance);
@@ -420,15 +426,22 @@ class InstanceMemberInferrer {
 
     if (field.hasImplicitType) {
       DartType newType = typeResult.type;
-      if (newType == null && field.initializer != null) {
-        newType = field.initializer.returnType;
-      }
 
-      if (newType == null || newType.isBottom || newType.isDartCoreNull) {
-        newType = typeProvider.dynamicType;
-      }
+      if (onlyOverrideInference) {
+        if (newType != null) {
+          setFieldType(field, newType);
+        }
+      } else {
+        if (newType == null && field.initializer != null) {
+          newType = field.initializer.returnType;
+        }
 
-      setFieldType(field, newType);
+        if (newType == null || newType.isBottom || newType.isDartCoreNull) {
+          newType = typeProvider.dynamicType;
+        }
+
+        setFieldType(field, newType);
+      }
     }
 
     if (field.setter != null) {
