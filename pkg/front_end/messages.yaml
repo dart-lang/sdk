@@ -594,11 +594,11 @@ ConstAndFinal:
     - "const final int x = 5;"
     - "final const int x = 5;"
 
-ConstAndVar:
+ConflictingModifiers:
   index: 59
-  template: "Members can't be declared to be both 'const' and 'var'."
-  tip: "Try removing either the 'const' or 'var' keyword."
-  analyzerCode: ParserErrorCode.CONST_AND_VAR
+  template: "Members can't be declared to be both '#string' and '#string2'."
+  tip: "Try removing one of the keywords."
+  analyzerCode: ParserErrorCode.CONFLICTING_MODIFIERS
   script:
     - "class C { const var x; }"
     - "class C { var const x; }"

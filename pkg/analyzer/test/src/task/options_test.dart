@@ -237,6 +237,7 @@ class ErrorCodeValuesTest {
         declaredNames.remove('TODO_REGEX');
       } else if (errorType == ParserErrorCode) {
         declaredNames.remove('CONST_AFTER_FACTORY');
+        declaredNames.remove('CONST_AND_VAR');
       }
 
       // Assert that all remaining declared names are in errorCodeValues

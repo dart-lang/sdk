@@ -381,6 +381,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,
   ParserErrorCode.CLASS_IN_CLASS,
   ParserErrorCode.COLON_IN_PLACE_OF_IN,
+  ParserErrorCode.CONFLICTING_MODIFIERS,
   ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
   ParserErrorCode.CONST_AFTER_FACTORY,
   ParserErrorCode.CONST_AND_COVARIANT,

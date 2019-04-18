@@ -66,7 +66,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _MODIFIER_OUT_OF_ORDER,
   _CONST_AND_COVARIANT,
   _CONST_AND_FINAL,
-  _CONST_AND_VAR,
+  _CONFLICTING_MODIFIERS,
   _CONST_CLASS,
   _VAR_AS_TYPE_NAME,
   _CONST_FACTORY,
@@ -137,6 +137,11 @@ const ParserErrorCode _COLON_IN_PLACE_OF_IN = const ParserErrorCode(
     'COLON_IN_PLACE_OF_IN', r"For-in loops use 'in' rather than a colon.",
     correction: "Try replacing the colon with the keyword 'in'.");
 
+const ParserErrorCode _CONFLICTING_MODIFIERS = const ParserErrorCode(
+    'CONFLICTING_MODIFIERS',
+    r"Members can't be declared to be both '#string' and '#string2'.",
+    correction: "Try removing one of the keywords.");
+
 const ParserErrorCode _CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
     'CONSTRUCTOR_WITH_RETURN_TYPE', r"Constructors can't have a return type.",
     correction: "Try removing the return type.");
@@ -150,10 +155,6 @@ const ParserErrorCode _CONST_AND_FINAL = const ParserErrorCode(
     'CONST_AND_FINAL',
     r"Members can't be declared to be both 'const' and 'final'.",
     correction: "Try removing either the 'const' or 'final' keyword.");
-
-const ParserErrorCode _CONST_AND_VAR = const ParserErrorCode(
-    'CONST_AND_VAR', r"Members can't be declared to be both 'const' and 'var'.",
-    correction: "Try removing either the 'const' or 'var' keyword.");
 
 const ParserErrorCode _CONST_CLASS = const ParserErrorCode(
     'CONST_CLASS', r"Classes can't be declared to be 'const'.",

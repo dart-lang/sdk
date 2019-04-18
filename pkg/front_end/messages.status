@@ -42,6 +42,7 @@ CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ColonInPlaceOfIn/example: Fail
+ConflictingModifiers/script1: Fail
 ConflictsWithConstructor/example: Fail
 ConflictsWithFactory/analyzerCode: Fail
 ConflictsWithFactory/example: Fail
@@ -53,7 +54,6 @@ ConflictsWithTypeVariable/example: Fail
 ConstAndCovariant/script2: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
-ConstAndVar/script1: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
