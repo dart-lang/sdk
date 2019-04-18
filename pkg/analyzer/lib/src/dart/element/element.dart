@@ -9444,7 +9444,8 @@ mixin TypeParameterizedElementMixin
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }
-      return _typeParameterElements = typeParameters.typeParameters.map((node) {
+      return _typeParameterElements =
+          typeParameters.typeParameters.map<TypeParameterElement>((node) {
         TypeParameterElementImpl element = node.declaredElement;
         element.enclosingElement = this;
         return element;
