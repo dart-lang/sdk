@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (returnType != null &&
         returnType.isDartAsyncFuture &&
-        type.isAssignableTo(returnType)) {
+        type.isSubtypeOf(returnType)) {
       rule.reportLintForToken((expression as AwaitExpression).awaitKeyword);
     }
   }
