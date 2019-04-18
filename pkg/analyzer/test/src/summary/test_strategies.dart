@@ -361,7 +361,8 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
 
   /// Serialize the given library [text], then deserialize it and store its
   /// summary in [lib].
-  void serializeLibraryText(String text, {bool allowErrors: false});
+  void serializeLibraryText(String text,
+      {bool allowErrors: false, bool nnbd: false});
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -373,8 +374,9 @@ class SummaryBlackBoxTestStrategyPrelink
   bool get skipFullyLinkedData => true;
 
   @override
-  void serializeLibraryText(String text, {bool allowErrors: false}) {
-    super.serializeLibraryText(text, allowErrors: allowErrors);
+  void serializeLibraryText(String text,
+      {bool allowErrors: false, bool nnbd: false}) {
+    super.serializeLibraryText(text, allowErrors: allowErrors, nnbd: nnbd);
 
     UnlinkedUnit getPart(String absoluteUri) {
       return _linkerInputs.getUnit(absoluteUri);
@@ -571,15 +573,17 @@ abstract class _SummaryBaseTestStrategyTwoPhase
     return assembler.assemble();
   }
 
-  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
-      serializeAstUnlinked(parseText(text, experimentStatus: experimentStatus));
+  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text,
+          {bool nnbd: false}) =>
+      serializeAstUnlinked(parseText(text, experimentStatus: experimentStatus),
+          nnbd: nnbd);
 
   _LinkerInputs _createLinkerInputs(String text,
-      {String path: '/test.dart', String uri}) {
+      {String path: '/test.dart', String uri, bool nnbd: false}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
     UnlinkedUnitBuilder unlinkedDefiningUnit =
-        createUnlinkedSummary(testDartUri, text);
+        createUnlinkedSummary(testDartUri, text, nnbd: nnbd);
     _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
     _LinkerInputs linkerInputs = new _LinkerInputs(
         _allowMissingFiles,
@@ -620,9 +624,10 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
   bool get containsNonConstExprs => true;
 
   @override
-  void serializeLibraryText(String text, {bool allowErrors: false}) {
+  void serializeLibraryText(String text,
+      {bool allowErrors: false, bool nnbd: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
-    _linkerInputs = _createLinkerInputs(text);
+    _linkerInputs = _createLinkerInputs(text, nnbd: nnbd);
     linked = link(
         _linkerInputs.linkedLibraries,
         _linkerInputs.getDependency,

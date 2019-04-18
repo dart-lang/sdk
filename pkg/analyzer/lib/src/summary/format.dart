@@ -47,6 +47,22 @@ class _EntityRefKindReader extends fb.Reader<idl.EntityRefKind> {
   }
 }
 
+class _EntityRefNullabilitySuffixReader
+    extends fb.Reader<idl.EntityRefNullabilitySuffix> {
+  const _EntityRefNullabilitySuffixReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.EntityRefNullabilitySuffix read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
+    return index < idl.EntityRefNullabilitySuffix.values.length
+        ? idl.EntityRefNullabilitySuffix.values[index]
+        : idl.EntityRefNullabilitySuffix.starOrIrrelevant;
+  }
+}
+
 class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
   const _IndexNameKindReader() : super();
 
@@ -3640,6 +3656,7 @@ class EntityRefBuilder extends Object
     implements idl.EntityRef {
   idl.EntityRefKind _entityKind;
   List<int> _implicitFunctionTypeIndices;
+  idl.EntityRefNullabilitySuffix _nullabilitySuffix;
   int _paramReference;
   int _reference;
   int _refinedSlot;
@@ -3690,6 +3707,15 @@ class EntityRefBuilder extends Object
   set implicitFunctionTypeIndices(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._implicitFunctionTypeIndices = value;
+  }
+
+  @override
+  idl.EntityRefNullabilitySuffix get nullabilitySuffix =>
+      _nullabilitySuffix ??= idl.EntityRefNullabilitySuffix.starOrIrrelevant;
+
+  /// If the reference represents a type, the nullability of the type.
+  set nullabilitySuffix(idl.EntityRefNullabilitySuffix value) {
+    this._nullabilitySuffix = value;
   }
 
   @override
@@ -3804,6 +3830,7 @@ class EntityRefBuilder extends Object
   EntityRefBuilder(
       {idl.EntityRefKind entityKind,
       List<int> implicitFunctionTypeIndices,
+      idl.EntityRefNullabilitySuffix nullabilitySuffix,
       int paramReference,
       int reference,
       int refinedSlot,
@@ -3814,6 +3841,7 @@ class EntityRefBuilder extends Object
       List<UnlinkedTypeParamBuilder> typeParameters})
       : _entityKind = entityKind,
         _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
+        _nullabilitySuffix = nullabilitySuffix,
         _paramReference = paramReference,
         _reference = reference,
         _refinedSlot = refinedSlot,
@@ -3872,6 +3900,8 @@ class EntityRefBuilder extends Object
     }
     signature.addInt(this._entityKind == null ? 0 : this._entityKind.index);
     signature.addInt(this._refinedSlot ?? 0);
+    signature.addInt(
+        this._nullabilitySuffix == null ? 0 : this._nullabilitySuffix.index);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -3906,6 +3936,10 @@ class EntityRefBuilder extends Object
     }
     if (offset_implicitFunctionTypeIndices != null) {
       fbBuilder.addOffset(4, offset_implicitFunctionTypeIndices);
+    }
+    if (_nullabilitySuffix != null &&
+        _nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant) {
+      fbBuilder.addUint8(10, _nullabilitySuffix.index);
     }
     if (_paramReference != null && _paramReference != 0) {
       fbBuilder.addUint32(3, _paramReference);
@@ -3953,6 +3987,7 @@ class _EntityRefImpl extends Object
 
   idl.EntityRefKind _entityKind;
   List<int> _implicitFunctionTypeIndices;
+  idl.EntityRefNullabilitySuffix _nullabilitySuffix;
   int _paramReference;
   int _reference;
   int _refinedSlot;
@@ -3974,6 +4009,13 @@ class _EntityRefImpl extends Object
     _implicitFunctionTypeIndices ??=
         const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 4, const <int>[]);
     return _implicitFunctionTypeIndices;
+  }
+
+  @override
+  idl.EntityRefNullabilitySuffix get nullabilitySuffix {
+    _nullabilitySuffix ??= const _EntityRefNullabilitySuffixReader().vTableGet(
+        _bc, _bcOffset, 10, idl.EntityRefNullabilitySuffix.starOrIrrelevant);
+    return _nullabilitySuffix;
   }
 
   @override
@@ -4040,6 +4082,8 @@ abstract class _EntityRefMixin implements idl.EntityRef {
       _result["entityKind"] = entityKind.toString().split('.')[1];
     if (implicitFunctionTypeIndices.isNotEmpty)
       _result["implicitFunctionTypeIndices"] = implicitFunctionTypeIndices;
+    if (nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant)
+      _result["nullabilitySuffix"] = nullabilitySuffix.toString().split('.')[1];
     if (paramReference != 0) _result["paramReference"] = paramReference;
     if (reference != 0) _result["reference"] = reference;
     if (refinedSlot != 0) _result["refinedSlot"] = refinedSlot;
@@ -4062,6 +4106,7 @@ abstract class _EntityRefMixin implements idl.EntityRef {
   Map<String, Object> toMap() => {
         "entityKind": entityKind,
         "implicitFunctionTypeIndices": implicitFunctionTypeIndices,
+        "nullabilitySuffix": nullabilitySuffix,
         "paramReference": paramReference,
         "reference": reference,
         "refinedSlot": refinedSlot,

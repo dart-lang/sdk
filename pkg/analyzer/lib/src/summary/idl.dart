@@ -491,6 +491,10 @@ abstract class EntityRef extends base.SummaryClass {
   @Id(4)
   List<int> get implicitFunctionTypeIndices;
 
+  /// If the reference represents a type, the nullability of the type.
+  @Id(10)
+  EntityRefNullabilitySuffix get nullabilitySuffix;
+
   /// If this is a reference to a type parameter, one-based index into the list
   /// of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
   /// Bruijn index conventions; that is, innermost parameters come first, and
@@ -573,6 +577,30 @@ enum EntityRefKind {
   /// The entity represents a function type that was synthesized by a LUB
   /// computation.
   syntheticFunction
+}
+
+/// Enum representing nullability suffixes in summaries.
+///
+/// This enum is similar to [NullabilitySuffix], but the order is different so
+/// that [EntityRefNullabilitySuffix.starOrIrrelevant] can be the default.
+enum EntityRefNullabilitySuffix {
+  /// An indication that the canonical representation of the type under
+  /// consideration ends with `*`.  Types having this nullability suffix are
+  /// called "legacy types"; it has not yet been determined whether they should
+  /// be unioned with the Null type.
+  ///
+  /// Also used in circumstances where no nullability suffix information is
+  /// needed.
+  starOrIrrelevant,
+
+  /// An indication that the canonical representation of the type under
+  /// consideration ends with `?`.  Types having this nullability suffix should
+  /// be interpreted as being unioned with the Null type.
+  question,
+
+  /// An indication that the canonical representation of the type under
+  /// consideration does not end with either `?` or `*`.
+  none,
 }
 
 /// Enum used to indicate the kind of a name in index.
