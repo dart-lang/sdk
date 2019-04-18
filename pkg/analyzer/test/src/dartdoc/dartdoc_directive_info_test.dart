@@ -81,4 +81,30 @@ After macro.''');
     expect(result, '''
 Comment without a macro.''');
   }
+
+  test_processDartdoc_youtube_directive() {
+    String result = info.processDartdoc('''
+/// {@youtube 560 315 https://www.youtube.com/watch?v=2uaoEDOgk_I}
+''');
+    expect(result, '''
+[www.youtube.com/watch?v=2uaoEDOgk_I](https://www.youtube.com/watch?v=2uaoEDOgk_I)''');
+  }
+
+  test_processDartdoc_youtube_malformed() {
+    String result = info.processDartdoc('''
+/// {@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}
+''');
+    expect(result,
+        '{@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}');
+  }
+
+  test_processDartdoc_animation_directive() {
+    String result = info.processDartdoc('''
+/// {@animation 464 192 https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4}
+''');
+    expect(
+        result,
+        '[flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4]'
+        '(https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4)');
+  }
 }
