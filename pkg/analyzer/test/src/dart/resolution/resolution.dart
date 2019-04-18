@@ -26,8 +26,6 @@ final isBottomType = new TypeMatcher<BottomTypeImpl>();
 
 final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
 
-final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
-
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.

@@ -902,9 +902,6 @@ class ConstantEvaluationEngine {
     if (obj.isNull) {
       return true;
     }
-    if (type.isUndefined) {
-      return false;
-    }
     var objType = obj.type;
     if (objType.isDartCoreInt && type.isDartCoreDouble) {
       // Work around dartbug.com/35993 by allowing `int` to be used in a place

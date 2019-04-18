@@ -735,7 +735,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// corresponding type arguments of the [typeArguments].
   static void _applyTypeArgumentsToList(LibraryElement enclosingLibraryElement,
       DartType type, List<TypeAnnotation> typeArguments) {
-    if (type != null && type.isUndefined) {
+    if (type != null && type.isDynamic) {
       for (TypeAnnotation argument in typeArguments) {
         applyToTypeAnnotation(enclosingLibraryElement, type, argument);
       }

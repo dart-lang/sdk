@@ -1,3 +1,6 @@
+## 0.36.1
+* Deprecated `DartType.isUndefined`, and now it always returns `false`.
+
 ## 0.36.0
 * Changed the return type of `Expression.precendence` to `Precedence`.  Clients
   that prepared for this change by switching to `Expression.precedence2` should

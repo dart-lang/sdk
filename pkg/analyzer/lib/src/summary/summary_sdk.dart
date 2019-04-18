@@ -349,9 +349,6 @@ class SummaryTypeProvider extends TypeProviderBase {
     return _typeType;
   }
 
-  @override
-  DartType get undefinedType => UndefinedTypeImpl.instance;
-
   /**
    * Initialize the `dart:async` types provided by this type provider.
    */

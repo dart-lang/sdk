@@ -35,8 +35,6 @@ final isBottomType = new TypeMatcher<BottomTypeImpl>();
 
 final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
 
-final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
-
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
 /**
@@ -1837,12 +1835,12 @@ main() {
     VariableDeclarationStatement statement = statements[0];
 
     TypeName typeName = statement.variables.type;
-    expect(typeName.type, isUndefinedType);
+    expect(typeName.type, isDynamicType);
     expect(typeName.typeArguments.arguments[0].type, typeProvider.intType);
 
     VariableDeclaration vNode = statement.variables.variables[0];
-    expect(vNode.name.staticType, isUndefinedType);
-    expect(vNode.declaredElement.type, isUndefinedType);
+    expect(vNode.name.staticType, isDynamicType);
+    expect(vNode.declaredElement.type, isDynamicType);
   }
 
   test_field_context() async {
@@ -8095,7 +8093,6 @@ class C<T> {
     assertType(identifier, 'Type');
   }
 
-  @failingTest
   test_unresolved_instanceCreation_name_11() async {
     addTestFile(r'''
 int arg1, arg2;
@@ -8226,12 +8223,12 @@ main() {
     ExpressionStatement statement = statements[0];
 
     InstanceCreationExpression creation = statement.expression;
-    expect(creation.staticType, isUndefinedType);
+    expect(creation.staticType, isDynamicType);
 
     ConstructorName constructorName = creation.constructorName;
 
     TypeName typeName = constructorName.type;
-    expect(typeName.type, isUndefinedType);
+    expect(typeName.type, isDynamicType);
 
     PrefixedIdentifier typePrefixed = typeName.name;
     assertElementNull(typePrefixed);
@@ -8273,12 +8270,12 @@ main() {
     ExpressionStatement statement = statements[0];
 
     InstanceCreationExpression creation = statement.expression;
-    expect(creation.staticType, isUndefinedType);
+    expect(creation.staticType, isDynamicType);
 
     ConstructorName constructorName = creation.constructorName;
 
     TypeName typeName = constructorName.type;
-    expect(typeName.type, isUndefinedType);
+    expect(typeName.type, isDynamicType);
 
     PrefixedIdentifier typePrefixed = typeName.name;
     assertElementNull(typePrefixed);

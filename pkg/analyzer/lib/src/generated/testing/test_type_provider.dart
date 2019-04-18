@@ -179,11 +179,6 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _typeType;
 
   /**
-   * The type representing type names that can't be resolved.
-   */
-  DartType _undefinedType;
-
-  /**
    * The analysis context, if any. Used to create an appropriate 'dart:async'
    * library to back `Future<T>`.
    */
@@ -610,14 +605,6 @@ class TestTypeProvider extends TypeProviderBase {
       _typeType = typeClass.type;
     }
     return _typeType;
-  }
-
-  @override
-  DartType get undefinedType {
-    if (_undefinedType == null) {
-      _undefinedType = UndefinedTypeImpl.instance;
-    }
-    return _undefinedType;
   }
 
   void _initDartAsync() {

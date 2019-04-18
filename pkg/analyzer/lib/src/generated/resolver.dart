@@ -6255,7 +6255,6 @@ class ToDoFinder {
 class TypeNameResolver {
   final TypeSystem typeSystem;
   final DartType dynamicType;
-  final DartType undefinedType;
   final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
@@ -6280,7 +6279,6 @@ class TypeNameResolver {
       this.errorListener,
       {this.shouldUseWithClauseInferredTypes: true})
       : dynamicType = typeProvider.dynamicType,
-        undefinedType = typeProvider.undefinedType,
         analysisOptions = definingLibrary.context.analysisOptions;
 
   /// Report an error with the given error code and arguments.
@@ -6322,8 +6320,8 @@ class TypeNameResolver {
         return;
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = undefinedType;
-        node.type = undefinedType;
+        typeName.staticType = dynamicType;
+        node.type = dynamicType;
         return;
       }
       //
@@ -6343,8 +6341,8 @@ class TypeNameResolver {
           element = nameScope.lookup(prefix, definingLibrary);
           if (element is PrefixElement) {
             if (nameScope.shouldIgnoreUndefined(typeName)) {
-              typeName.staticType = undefinedType;
-              node.type = undefinedType;
+              typeName.staticType = dynamicType;
+              node.type = dynamicType;
               return;
             }
             AstNode grandParent = parent.parent;
@@ -6382,8 +6380,8 @@ class TypeNameResolver {
         }
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = undefinedType;
-        node.type = undefinedType;
+        typeName.staticType = dynamicType;
+        node.type = dynamicType;
         return;
       }
     }
@@ -6500,8 +6498,8 @@ class TypeNameResolver {
       if (element is MultiplyDefinedElement) {
         _setElement(typeName, element);
       }
-      typeName.staticType = undefinedType;
-      node.type = undefinedType;
+      typeName.staticType = dynamicType;
+      node.type = dynamicType;
       return;
     }
 
@@ -6674,7 +6672,7 @@ class TypeNameResolver {
   DartType _getType(TypeAnnotation annotation) {
     DartType type = annotation.type;
     if (type == null) {
-      return undefinedType;
+      return dynamicType;
     }
     return type;
   }
@@ -7231,9 +7229,6 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Type'.
   InterfaceType get typeType;
 
-  /// Return the type representing typenames that can't be resolved.
-  DartType get undefinedType;
-
   /// Return 'true' if [id] is the name of a getter on
   /// the Object type.
   bool isObjectGetter(String id);
@@ -7372,9 +7367,6 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'Type'.
   InterfaceType _typeType;
 
-  /// The type representing typenames that can't be resolved.
-  DartType _undefinedType;
-
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl(LibraryElement coreLibrary, LibraryElement asyncLibrary) {
@@ -7476,9 +7468,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get typeType => _typeType;
 
-  @override
-  DartType get undefinedType => _undefinedType;
-
   InterfaceType _createNever(Namespace namespace) {
     // TODO(brianwilkerson) Remove this method when the class is defined in the
     //  SDK.
@@ -7533,7 +7522,6 @@ class TypeProviderImpl extends TypeProviderBase {
     _stringType = _getType(coreNamespace, 'String');
     _symbolType = _getType(coreNamespace, 'Symbol');
     _typeType = _getType(coreNamespace, 'Type');
-    _undefinedType = UndefinedTypeImpl.instance;
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
@@ -7586,9 +7574,6 @@ enum TypeResolverMode {
 class TypeResolverVisitor extends ScopedVisitor {
   /// The type representing the type 'dynamic'.
   DartType _dynamicType;
-
-  /// The type representing typenames that can't be resolved.
-  DartType _undefinedType;
 
   /// The flag specifying if currently visited class references 'super'
   /// expression.
@@ -7645,7 +7630,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
         isNonNullableUnit, definingLibrary, source, errorListener,

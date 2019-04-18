@@ -5481,9 +5481,6 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType get typeType =>
       _typeType ??= _buildInterfaceType(_linker.coreLibrary, 'Type');
 
-  @override
-  DartType get undefinedType => UndefinedTypeImpl.instance;
-
   InterfaceType _buildInterfaceType(
       LibraryElementForLink library, String name) {
     return library.getContainedName(name).buildType((int i) {

@@ -1953,7 +1953,7 @@ A v = new A();
       ..staticElement = new _StaleElement();
     TypeName typeName = astFactory.typeName(id, null);
     _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.type, DynamicTypeImpl.instance);
     expect(typeName.name.staticElement, null);
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
@@ -1994,7 +1994,7 @@ A v = new A();
     TypeName typeName =
         astFactory.typeName(AstTestFactory.identifier(prefix, suffix), null);
     _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.type, DynamicTypeImpl.instance);
     expect(prefix.staticElement, null);
     expect(suffix.staticElement, null);
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
