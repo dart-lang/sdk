@@ -7941,6 +7941,16 @@ class ParameterElementImpl extends VariableElementImpl
   /// The unlinked representation of the parameter in the summary.
   final UnlinkedParam unlinkedParam;
 
+  /// A list containing all of the parameters defined by this parameter element.
+  /// There will only be parameters if this parameter is a function typed
+  /// parameter.
+  List<ParameterElement> _parameters;
+
+  /// A list containing all of the type parameters defined for this parameter
+  /// element. There will only be parameters if this parameter is a function
+  /// typed parameter.
+  List<TypeParameterElement> _typeParameters;
+
   /// The kind of this parameter.
   ParameterKind _parameterKind;
 
@@ -8275,7 +8285,39 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    return const <ParameterElement>[];
+    if (_parameters != null) return _parameters;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var formalParameters = context.getFormalParameters(linkedNode);
+      if (formalParameters != null) {
+        var containerRef = reference.getChild('@parameter');
+        return _parameters = ParameterElementImpl.forLinkedNodeList(
+          this,
+          context,
+          containerRef,
+          formalParameters,
+        );
+      } else {
+        return _parameters ??= const <ParameterElement>[];
+      }
+    }
+
+    if (unlinkedParam != null) {
+      _resynthesizeTypeAndParameters();
+      return _parameters ??= const <ParameterElement>[];
+    }
+
+    return _parameters ??= const <ParameterElement>[];
+  }
+
+  /// Set the parameters defined by this executable element to the given
+  /// [parameters].
+  void set parameters(List<ParameterElement> parameters) {
+    for (ParameterElement parameter in parameters) {
+      (parameter as ParameterElementImpl).enclosingElement = this;
+    }
+    this._parameters = parameters;
   }
 
   @override
@@ -8301,7 +8343,18 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return const <TypeParameterElement>[];
+    if (_typeParameters != null) return _typeParameters;
+
+    return _typeParameters ??= const <TypeParameterElement>[];
+  }
+
+  /// Set the type parameters defined by this parameter element to the given
+  /// [typeParameters].
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement parameter in typeParameters) {
+      (parameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
   }
 
   @override
@@ -8373,9 +8426,10 @@ class ParameterElementImpl extends VariableElementImpl
         var typeElement = new GenericFunctionTypeElementImpl.forOffset(-1);
         typeElement.enclosingElement = this;
 
-        typeElement.parameters = ParameterElementImpl.resynthesizeList(
+        _parameters = ParameterElementImpl.resynthesizeList(
             unlinkedParam.parameters, typeElement,
             synthetic: isSynthetic);
+        typeElement.parameters = _parameters;
 
         typeElement.returnType = enclosingUnit.resynthesizerContext
             .resolveTypeRef(this, unlinkedParam.type);

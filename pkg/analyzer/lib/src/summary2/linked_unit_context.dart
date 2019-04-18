@@ -255,6 +255,18 @@ class LinkedUnitContext {
     } else if (node is FunctionExpression) {
       LazyFunctionExpression.readFormalParameters(_astReader, node);
       return node.parameters?.parameters;
+    } else if (node is FormalParameter) {
+      if (node is DefaultFormalParameter) {
+        return getFormalParameters(node.parameter);
+      } else if (node is FieldFormalParameter) {
+        LazyFormalParameter.readFormalParameters(_astReader, node);
+        return node.parameters?.parameters;
+      } else if (node is FunctionTypedFormalParameter) {
+        LazyFormalParameter.readFormalParameters(_astReader, node);
+        return node.parameters.parameters;
+      } else {
+        return null;
+      }
     } else if (node is FunctionTypeAlias) {
       LazyFunctionTypeAlias.readFormalParameters(_astReader, node);
       return node.parameters.parameters;

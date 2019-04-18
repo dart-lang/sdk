@@ -561,6 +561,7 @@ class LazyFormalParameter {
   final LinkedNode data;
 
   bool _hasDefaultValue = false;
+  bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasType = false;
 
@@ -597,6 +598,25 @@ class LazyFormalParameter {
         );
         lazy._hasDefaultValue = true;
       }
+    }
+  }
+
+  static void readFormalParameters(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFormalParameters) {
+      if (node is FunctionTypedFormalParameter) {
+        node.parameters = reader.readNode(
+          lazy.data.functionTypedFormalParameter_formalParameters,
+        );
+      } else if (node is FieldFormalParameter) {
+        node.parameters = reader.readNode(
+          lazy.data.fieldFormalParameter_formalParameters,
+        );
+      }
+      lazy._hasFormalParameters = true;
     }
   }
 

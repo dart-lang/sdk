@@ -1834,6 +1834,7 @@ A v = new A();
         AstTestFactory.functionTypedFormalParameter(
             AstTestFactory.typeName4('R'), 'g', [eNode]);
     ParameterElementImpl gElement = ElementFactory.requiredParameter('g');
+    gElement.typeParameters = [elementE];
     gNode.identifier.staticElement = gElement;
 
     FunctionTypeImpl gType =

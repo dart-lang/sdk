@@ -5948,8 +5948,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new EnclosedScope(nameScope);
-        GenericFunctionTypeElement typeElement = parameterElement.type.element;
-        List<TypeParameterElement> typeParameters = typeElement.typeParameters;
+        var typeParameters = parameterElement.typeParameters;
         int length = typeParameters.length;
         for (int i = 0; i < length; i++) {
           nameScope.define(typeParameters[i]);
@@ -8316,7 +8315,10 @@ class TypeResolverVisitor extends ScopedVisitor {
       TypeAnnotation returnType, FormalParameterList parameterList) {
     DartType type = parameter.type;
     GenericFunctionTypeElementImpl typeElement = type.element;
-    typeElement.returnType = _computeReturnType(returnType);
+    // With summary2 we use synthetic FunctionType(s).
+    if (typeElement != null) {
+      typeElement.returnType = _computeReturnType(returnType);
+    }
   }
 }
 
