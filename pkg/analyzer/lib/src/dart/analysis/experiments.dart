@@ -111,7 +111,7 @@ class ExperimentalFeatures {
       IsEnabledByDefault.bogus_enabled,
       IsExpired.bogus_enabled,
       null,
-      firstSupportedVersion: '1.0');
+      firstSupportedVersion: '1.0.0');
 }
 
 /// A representation of the set of experiments that are active and whether they
