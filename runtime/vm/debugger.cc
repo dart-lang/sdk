@@ -1367,15 +1367,21 @@ RawTypeArguments* ActivationFrame::BuildParameters(
     TypeArguments& type_params = TypeArguments::Handle();
     TypeParameter& type_param = TypeParameter::Handle();
     Function& current = Function::Handle(function().raw());
+    intptr_t mapping_offset = num_vars;
     for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
                   current = current.parent_function()) {
       type_params = current.type_parameters();
-      for (intptr_t j = 0; j < current.NumTypeParameters(); ++j) {
+      intptr_t size = current.NumTypeParameters();
+      mapping_offset -= size;
+      for (intptr_t j = 0; j < size; ++j) {
         type_param = TypeParameter::RawCast(type_params.TypeAt(j));
         name = type_param.Name();
-        // Write the names in backwards so they match up with the order of the
-        // types in 'type_arguments'.
-        type_params_names.SetAt(num_vars - (i + j) - 1, name);
+        // Write the names in backwards in terms of chain of functions.
+        // But keep the order of names within the same function. so they
+        // match up with the order of the types in 'type_arguments'.
+        // Index:0 1 2 3 ...
+        //       |Names in Grandparent| |Names in Parent| ..|Names in Child|
+        type_params_names.SetAt(mapping_offset + j, name);
       }
     }
     if (!type_arguments.IsNull()) {
