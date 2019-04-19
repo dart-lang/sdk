@@ -2649,6 +2649,40 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     expect(forStatement.body, isNotNull);
   }
 
+  void test_parseForStatement_each_finalRequired() {
+    ForStatement forStatement = parseStatement(
+      'for (final required in list) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable.identifier.name, 'required');
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_finalExternal() {
+    ForStatement forStatement = parseStatement(
+      'for (final external in list) {}',
+      parseControlFlowCollections: true,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable.identifier.name, 'external');
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
   void test_parseForStatement_each_type2() {
     ForStatement forStatement = parseStatement(
       'for (A element in list) {}',

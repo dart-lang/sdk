@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Keyword, Token;
 import '../messages.dart' as fasta;
 import 'formal_parameter_kind.dart';
 import 'member_kind.dart' show MemberKind;
@@ -21,22 +21,11 @@ bool isModifier(Token token) {
     //   external Foo foo();
     // but is the identifier in this declaration
     //   external() => true;
-    if (!token.next.type.isKeyword && !token.next.isIdentifier) {
-      return false;
-    }
-  } else if (token.type.isPseudo) {
-    // A pseudo keyword can only be a modifier as long as it is
-    // followed by another keyword or two identifiers. Otherwise, it is the
-    // identifier or the type before the identifier.
-    //
-    // For example, `required` is a modifier in this declaration:
-    //   bar({required Foo foo});
-    // but is the type in this declaration
-    //   bar({required foo});
-    // and is the identifier in this declaration
-    //   bar({required});
-    if (!token.next.type.isKeyword &&
-        (!token.next.isIdentifier || !token.next.next.isIdentifier)) {
+    // and in
+    //   for (final external in list) { }
+    Token next = token.next;
+    Keyword keyword = next.keyword;
+    if (keyword == null && !next.isIdentifier || keyword == Keyword.IN) {
       return false;
     }
   }

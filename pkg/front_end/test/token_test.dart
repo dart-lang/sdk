@@ -156,6 +156,14 @@ class Foo {
     }
   }
 
+  void test_noPseudoModifiers() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isModifier) {
+        expect(keyword.isPseudo, isFalse, reason: keyword.lexeme);
+      }
+    }
+  }
+
   void test_pseudo_keywords() {
     var pseudoKeywords = new Set<Keyword>.from([
       Keyword.ASYNC,
