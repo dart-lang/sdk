@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,16 +7,19 @@
 
 #include "bin/socket_base.h"
 
-#include <errno.h>        // NOLINT
-#include <netinet/tcp.h>  // NOLINT
-#include <stdio.h>        // NOLINT
-#include <stdlib.h>       // NOLINT
-#include <string.h>       // NOLINT
-#include <sys/stat.h>     // NOLINT
-#include <unistd.h>       // NOLINT
+#include <errno.h>
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <netinet/tcp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
+#include "bin/ifaddrs-android.h"
 #include "bin/socket_base_android.h"
 #include "platform/signal_blocker.h"
 
@@ -241,21 +244,57 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   return (result == 1);
 }
 
+static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
+  if (ifa->ifa_addr == NULL) {
+    // OpenVPN's virtual device tun0.
+    return false;
+  }
+  int family = ifa->ifa_addr->sa_family;
+  return ((lookup_family == family) ||
+          (((lookup_family == AF_UNSPEC) &&
+            ((family == AF_INET) || (family == AF_INET6)))));
+}
+
 bool SocketBase::ListInterfacesSupported() {
-  return false;
+  return true;
 }
 
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {
-  // The ifaddrs.h header is not provided on Android.  An Android
-  // implementation would have to use IOCTL or netlink.
-  ASSERT(*os_error == NULL);
-  *os_error = new OSError(-1,
-                          "Listing interfaces is not supported "
-                          "on this platform",
-                          OSError::kSystem);
-  return NULL;
+  struct ifaddrs* ifaddr;
+
+  int status = NO_RETRY_EXPECTED(getifaddrs(&ifaddr));
+  if (status != 0) {
+    ASSERT(*os_error == NULL);
+    *os_error =
+        new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
+    return NULL;
+  }
+
+  int lookup_family = SocketAddress::FromType(type);
+
+  intptr_t count = 0;
+  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      count++;
+    }
+  }
+
+  AddressList<InterfaceSocketAddress>* addresses =
+      new AddressList<InterfaceSocketAddress>(count);
+  int i = 0;
+  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
+      addresses->SetAt(
+          i, new InterfaceSocketAddress(ifa->ifa_addr, ifa_name,
+                                        if_nametoindex(ifa->ifa_name)));
+      i++;
+    }
+  }
+  freeifaddrs(ifaddr);
+  return addresses;
 }
 
 void SocketBase::Close(intptr_t fd) {
