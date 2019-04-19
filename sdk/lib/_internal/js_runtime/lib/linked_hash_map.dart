@@ -173,15 +173,18 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
   V internalRemove(Object key) {
     var rest = _rest;
     if (rest == null) return null;
-    var bucket = _getBucket(rest, key);
+    var hash = internalComputeHashCode(key);
+    var bucket = _getTableBucket(rest, hash);
     int index = internalFindBucketIndex(bucket, key);
     if (index < 0) return null;
     // Use splice to remove the [cell] element at the index and
     // unlink the cell before returning its value.
     LinkedHashMapCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
     _unlinkCell(cell);
-    // TODO(kasperl): Consider getting rid of the bucket list when
-    // the length reaches zero.
+    // Remove empty bucket list to avoid memory leak.
+    if (JS('int', '#.length', bucket) == 0) {
+      _deleteTableEntry(rest, hash);
+    }
     return JS('', '#', cell.hashMapCellValue);
   }
 
