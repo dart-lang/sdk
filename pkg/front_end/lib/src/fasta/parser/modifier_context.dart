@@ -112,7 +112,6 @@ class ModifierRecoveryContext {
       parser.reportRecoverableError(
           abstractToken, fasta.messageAbstractClassMember);
     }
-    reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
     return token;
   }
@@ -163,7 +162,6 @@ class ModifierRecoveryContext {
     token = parseModifiers(token);
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
-    reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
     return token;
@@ -175,7 +173,6 @@ class ModifierRecoveryContext {
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
     reportExtraneousModifier(externalToken);
-    reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
     return token;
@@ -253,6 +250,8 @@ class ModifierRecoveryContext {
 
       if (afterFactory) {
         reportModifierOutOfOrder(next, 'factory');
+      } else if (lateToken != null) {
+        reportConflictingModifiers(next, lateToken);
       }
       return next;
     }
@@ -286,6 +285,8 @@ class ModifierRecoveryContext {
         parser.reportRecoverableError(next, fasta.messageCovariantAfterVar);
       } else if (finalToken != null) {
         parser.reportRecoverableError(next, fasta.messageCovariantAfterFinal);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken.lexeme);
       }
       return next;
     }
@@ -318,6 +319,8 @@ class ModifierRecoveryContext {
         parser.reportRecoverableError(next, fasta.messageExternalAfterConst);
       } else if (staticToken != null) {
         parser.reportRecoverableError(next, fasta.messageExternalAfterStatic);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken.lexeme);
       }
       return next;
     }
@@ -346,6 +349,8 @@ class ModifierRecoveryContext {
       parser.reportRecoverableError(next, fasta.messageConstAndFinal);
     } else if (varToken != null) {
       parser.reportRecoverableError(next, fasta.messageFinalAndVar);
+    } else if (lateToken != null) {
+      reportModifierOutOfOrder(next, lateToken.lexeme);
     } else {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
@@ -357,6 +362,14 @@ class ModifierRecoveryContext {
     assert(optional('late', next));
     if (lateToken == null) {
       lateToken = next;
+
+      if (constToken != null) {
+        reportConflictingModifiers(next, constToken);
+      } else if (varToken != null) {
+        reportConflictingModifiers(next, varToken);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(next, finalToken.lexeme);
+      }
       return next;
     }
 
@@ -402,6 +415,8 @@ class ModifierRecoveryContext {
         parser.reportRecoverableError(next, fasta.messageStaticAfterFinal);
       } else if (varToken != null) {
         parser.reportRecoverableError(next, fasta.messageStaticAfterVar);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken.lexeme);
       }
       return next;
     }
@@ -425,6 +440,10 @@ class ModifierRecoveryContext {
     assert(optional('var', next));
     if (varFinalOrConst == null && !afterFactory) {
       varToken = next;
+
+      if (lateToken != null) {
+        reportConflictingModifiers(next, lateToken);
+      }
       return next;
     }
 
