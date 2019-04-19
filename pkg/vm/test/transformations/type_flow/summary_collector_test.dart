@@ -9,11 +9,10 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
-import 'package:vm/transformations/pragma.dart'
-    show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/summary_collector.dart';
 import 'package:vm/transformations/type_flow/analysis.dart';
+import 'annotation_matcher.dart';
 import 'package:kernel/target/targets.dart';
 
 import '../../common_test_utils.dart';
@@ -32,7 +31,7 @@ class PrintSummaries extends RecursiveVisitor<Null> {
             hierarchy,
             new EmptyEntryPointsListener(),
             new NativeCodeOracle(
-                null, new ConstantPragmaAnnotationParser(coreTypes)),
+                null, new ExpressionPragmaAnnotationParser(coreTypes)),
             new GenericInterfacesInfoImpl(hierarchy));
 
   String print(TreeNode node) {

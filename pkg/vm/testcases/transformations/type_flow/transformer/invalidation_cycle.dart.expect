@@ -21,13 +21,13 @@ abstract class Stream extends core::Object {
   synthetic constructor •() → self::Stream
     : super core::Object::•()
     ;
-  abstract method foobar((dynamic) → void onData, {core::Function onError = #C1}) → self::StreamSubscription;
+  abstract method foobar((dynamic) → void onData, {core::Function onError = null}) → self::StreamSubscription;
 }
 abstract class _StreamImpl extends self::Stream {
   synthetic constructor •() → self::_StreamImpl
     : super self::Stream::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foobar([@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData, {[@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = #C1}) → self::StreamSubscription {
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foobar([@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData, {[@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = null}) → self::StreamSubscription {
     return [@vm.inferred-type.metadata=!] this.{self::_StreamImpl::_createSubscription}();
   }
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  method _createSubscription() → self::StreamSubscription {
@@ -52,7 +52,7 @@ abstract class StreamView extends self::Stream {
   constructor •([@vm.inferred-type.metadata=!] self::Stream stream) → self::StreamView
     : self::StreamView::_stream = stream, super self::Stream::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasTearOffUses:false]  method foobar([@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData, {[@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = #C1}) → self::StreamSubscription {
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasTearOffUses:false]  method foobar([@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData, {[@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = null}) → self::StreamSubscription {
     return [@vm.direct-call.metadata=#lib::StreamView::_stream] [@vm.inferred-type.metadata=!] this.{self::StreamView::_stream}.{self::Stream::foobar}(onData, onError: onError);
   }
 }
@@ -66,7 +66,7 @@ class ByteStream extends self::StreamView {
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method super_foobar2([@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData) → dynamic {
     super.{self::StreamView::foobar}(onData);
   }
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method super_foobar3({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = #C1, [@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = #C1}) → dynamic {
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method super_foobar3({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = null, [@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = null}) → dynamic {
     super.{self::StreamView::foobar}(onData, onError: onError);
   }
   get super_stream() → self::Stream
@@ -80,23 +80,23 @@ class _HandleErrorStream extends self::Stream {
 static method round0() → void {
   new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
 }
-static method round1({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = #C1}) → void {
+static method round1({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = null}) → void {
   self::ByteStream x = new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
   [@vm.direct-call.metadata=#lib::ByteStream::super_foobar1] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar1}(onData);
 }
-static method round2({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = #C1, [@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = #C1}) → void {
+static method round2({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = null, [@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = null}) → void {
   new self::_ControllerStream::•();
   self::Stream x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
   x.{self::Stream::foobar}(onData, onError: onError);
 }
-static method round3({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = #C1, [@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = #C1}) → void {
+static method round3({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = null, [@vm.inferred-type.metadata=dart.core::Null?] core::Function onError = null}) → void {
   self::Stream x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
   x = new self::_ControllerStream::•();
   x.{self::Stream::foobar}(onData, onError: onError);
 }
-static method round4({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = #C1}) → void {
+static method round4({[@vm.inferred-type.metadata=dart.core::Null?] (dynamic) → void onData = null}) → void {
   self::ByteStream x = new self::ByteStream::•(new self::_ControllerStream::•());
   self::Stream y = [@vm.direct-call.metadata=#lib::ByteStream::super_stream] [@vm.inferred-type.metadata=!] x.{self::ByteStream::super_stream};
   self::Stream z = [@vm.direct-call.metadata=#lib::StreamView::_stream] [@vm.inferred-type.metadata=!] x.{self::StreamView::_stream};
