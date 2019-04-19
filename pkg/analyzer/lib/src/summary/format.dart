@@ -4754,6 +4754,7 @@ class LinkedNodeBuilder extends Object
   idl.LinkedNodeKind _kind;
   String _variantField_20;
   bool _variantField_31;
+  TopLevelInferenceErrorBuilder _variantField_35;
   String _variantField_22;
   LinkedNodeVariablesDeclarationBuilder _variantField_32;
 
@@ -10009,6 +10010,17 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  TopLevelInferenceErrorBuilder get topLevelTypeInferenceError {
+    assert(kind == idl.LinkedNodeKind.variableDeclaration);
+    return _variantField_35;
+  }
+
+  set topLevelTypeInferenceError(TopLevelInferenceErrorBuilder value) {
+    assert(kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_35 = value;
+  }
+
+  @override
   String get uriBasedDirective_uriContent {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
@@ -10240,6 +10252,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder variableDeclaration_name,
     int codeLength,
     int codeOffset,
+    TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
     LinkedNodeVariablesDeclarationBuilder variableDeclaration_declaration,
   })  : _kind = idl.LinkedNodeKind.variableDeclaration,
         _variantField_24 = actualType,
@@ -10250,6 +10263,7 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = variableDeclaration_name,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
+        _variantField_35 = topLevelTypeInferenceError,
         _variantField_32 = variableDeclaration_declaration;
 
   LinkedNodeBuilder.binaryExpression({
@@ -11621,6 +11635,7 @@ class LinkedNodeBuilder extends Object
     _variantField_10?.flushInformative();
     _variantField_25?.flushInformative();
     _variantField_14?.flushInformative();
+    _variantField_35?.flushInformative();
     _variantField_32?.flushInformative();
   }
 
@@ -11711,6 +11726,8 @@ class LinkedNodeBuilder extends Object
     this._variantField_32?.collectApiSignature(signature);
     signature.addInt(this._variantField_33 ?? 0);
     signature.addInt(this._variantField_34 ?? 0);
+    signature.addBool(this._variantField_35 != null);
+    this._variantField_35?.collectApiSignature(signature);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -11733,6 +11750,7 @@ class LinkedNodeBuilder extends Object
     fb.Offset offset_variantField_30;
     fb.Offset offset_variantField_14;
     fb.Offset offset_variantField_20;
+    fb.Offset offset_variantField_35;
     fb.Offset offset_variantField_22;
     fb.Offset offset_variantField_32;
     if (_variantField_24 != null) {
@@ -11795,6 +11813,9 @@ class LinkedNodeBuilder extends Object
     }
     if (_variantField_20 != null) {
       offset_variantField_20 = fbBuilder.writeString(_variantField_20);
+    }
+    if (_variantField_35 != null) {
+      offset_variantField_35 = _variantField_35.finish(fbBuilder);
     }
     if (_variantField_22 != null) {
       offset_variantField_22 = fbBuilder.writeString(_variantField_22);
@@ -11904,6 +11925,9 @@ class LinkedNodeBuilder extends Object
     if (_variantField_31 == true) {
       fbBuilder.addBool(31, true);
     }
+    if (offset_variantField_35 != null) {
+      fbBuilder.addOffset(35, offset_variantField_35);
+    }
     if (offset_variantField_22 != null) {
       fbBuilder.addOffset(22, offset_variantField_22);
     }
@@ -11963,6 +11987,7 @@ class _LinkedNodeImpl extends Object
   idl.LinkedNodeKind _kind;
   String _variantField_20;
   bool _variantField_31;
+  idl.TopLevelInferenceError _variantField_35;
   String _variantField_22;
   idl.LinkedNodeVariablesDeclaration _variantField_32;
 
@@ -15591,6 +15616,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.TopLevelInferenceError get topLevelTypeInferenceError {
+    assert(kind == idl.LinkedNodeKind.variableDeclaration);
+    _variantField_35 ??= const _TopLevelInferenceErrorReader()
+        .vTableGet(_bc, _bcOffset, 35, null);
+    return _variantField_35;
+  }
+
+  @override
   String get uriBasedDirective_uriContent {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
@@ -15865,6 +15898,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["variableDeclaration_name"] = variableDeclaration_name.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (topLevelTypeInferenceError != null)
+        _result["topLevelTypeInferenceError"] =
+            topLevelTypeInferenceError.toJson();
       if (variableDeclaration_declaration != null)
         _result["variableDeclaration_declaration"] =
             variableDeclaration_declaration.toJson();
@@ -17518,6 +17554,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "codeOffset": codeOffset,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "topLevelTypeInferenceError": topLevelTypeInferenceError,
         "variableDeclaration_declaration": variableDeclaration_declaration,
       };
     }

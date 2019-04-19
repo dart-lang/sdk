@@ -1267,6 +1267,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       variableDeclaration_name: node.name.accept(this),
       variableDeclaration_declaration: _variablesDeclaration,
     );
+    builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
     _writeActualType(builder, node);
     return builder;
   }

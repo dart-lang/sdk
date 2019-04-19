@@ -11,6 +11,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -150,8 +152,27 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
     isEvaluated = true;
   }
 
-  void markCircular() {
+  void markCircular(List<_InferenceNode> cycle) {
     LazyAst.setType(_node, DynamicTypeImpl.instance);
+
+    var cycleNames = Set<String>();
+    for (var inferenceNode in cycle) {
+      var node = inferenceNode._node;
+      if (node is VariableDeclaration) {
+        cycleNames.add(node.name.name);
+      } else {
+        cycleNames.add('<unknown>');
+      }
+    }
+
+    LazyAst.setTypeInferenceError(
+      _node,
+      TopLevelInferenceErrorBuilder(
+        kind: TopLevelInferenceErrorKind.dependencyCycle,
+        arguments: cycleNames.toList(),
+      ),
+    );
+
     isEvaluated = true;
   }
 
@@ -180,7 +201,7 @@ class _InferenceWalker extends graph.DependencyWalker<_InferenceNode> {
   @override
   void evaluateScc(List<_InferenceNode> scc) {
     for (var node in scc) {
-      node.markCircular();
+      node.markCircular(scc);
     }
   }
 

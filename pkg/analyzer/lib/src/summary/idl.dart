@@ -2211,6 +2211,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.throwExpression)
   int get throwExpression_throwKeyword;
 
+  @VariantId(35, variantList: [
+    LinkedNodeKind.variableDeclaration,
+  ])
+  TopLevelInferenceError get topLevelTypeInferenceError;
+
   @VariantId(15, variant: LinkedNodeKind.topLevelVariableDeclaration)
   int get topLevelVariableDeclaration_semicolon;
 

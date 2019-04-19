@@ -7935,6 +7935,10 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   TopLevelInferenceError get typeInferenceError {
+    if (linkedNode != null) {
+      return linkedContext.getTypeInferenceError(linkedNode);
+    }
+
     if (_unlinkedVariable != null) {
       return enclosingUnit.resynthesizerContext
           .getTypeInferenceError(_unlinkedVariable.inferredTypeSlot);

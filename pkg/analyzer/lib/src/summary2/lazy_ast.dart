@@ -14,6 +14,7 @@ class LazyAst {
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
   static const _returnTypeKey = 'lazyAst_returnType';
+  static const _typeInferenceErrorKey = 'lazyAst_typeInferenceError';
   static const _typeKey = 'lazyAst_type';
 
   final LinkedNode data;
@@ -26,6 +27,10 @@ class LazyAst {
 
   static DartType getType(AstNode node) {
     return node.getProperty(_typeKey);
+  }
+
+  static TopLevelInferenceError getTypeInferenceError(AstNode node) {
+    return node.getProperty(_typeInferenceErrorKey);
   }
 
   static bool hasOverrideInferenceDone(AstNode node) {
@@ -50,6 +55,11 @@ class LazyAst {
 
   static void setType(AstNode node, DartType type) {
     node.setProperty(_typeKey, type);
+  }
+
+  static void setTypeInferenceError(
+      AstNode node, TopLevelInferenceError error) {
+    node.setProperty(_typeInferenceErrorKey, error);
   }
 }
 
@@ -1241,6 +1251,7 @@ class LazyVariableDeclaration {
 
   bool _hasInitializer = false;
   bool _hasType = false;
+  bool _hasTypeInferenceError = false;
 
   LazyVariableDeclaration(this.data);
 
@@ -1261,6 +1272,17 @@ class LazyVariableDeclaration {
       }
     }
     return LazyAst.getType(node);
+  }
+
+  static TopLevelInferenceError getTypeInferenceError(
+      VariableDeclaration node) {
+    var lazy = get(node);
+    if (!lazy._hasTypeInferenceError) {
+      var error = lazy.data.topLevelTypeInferenceError;
+      LazyAst.setTypeInferenceError(node, error);
+      lazy._hasTypeInferenceError = true;
+    }
+    return LazyAst.getTypeInferenceError(node);
   }
 
   static void readInitializer(

@@ -531,6 +531,14 @@ class LinkedUnitContext {
     }
   }
 
+  TopLevelInferenceError getTypeInferenceError(AstNode node) {
+    if (node is VariableDeclaration) {
+      return LazyVariableDeclaration.getTypeInferenceError(node);
+    } else {
+      return null;
+    }
+  }
+
   TypeAnnotation getTypeParameterBound(TypeParameter node) {
     LazyTypeParameter.readBound(_astReader, node);
     return node.bound;

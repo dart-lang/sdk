@@ -1935,6 +1935,8 @@ table LinkedNode {
 
   variantField_31:bool (id: 31);
 
+  variantField_35:TopLevelInferenceError (id: 35);
+
   variantField_22:string (id: 22);
 
   variantField_32:LinkedNodeVariablesDeclaration (id: 32);

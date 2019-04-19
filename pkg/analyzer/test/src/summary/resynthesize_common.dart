@@ -6535,21 +6535,12 @@ var b = c + 2;
 var c = a + 3;
 var d = 4;
 ''');
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-dynamic a;
-dynamic b;
-dynamic c;
-int d;
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 dynamic a/*error: dependencyCycle*/;
 dynamic b/*error: dependencyCycle*/;
 dynamic c/*error: dependencyCycle*/;
 int d;
 ''');
-    }
   }
 
   test_inferred_type_is_typedef() async {
