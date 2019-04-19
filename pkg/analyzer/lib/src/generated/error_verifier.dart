@@ -5613,7 +5613,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     NodeList<FormalParameter> parameters = parameterList.parameters;
-    if (parameters.length != 1 || !parameters[0].isRequired) {
+    if (parameters.length != 1 || !parameters[0].isRequiredPositional) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
           setterName);

@@ -2407,9 +2407,10 @@ enum LinkedNodeCommentType { block, documentation, endOfLine }
 
 /// Kinds of formal parameters.
 enum LinkedNodeFormalParameterKind {
-  required,
+  requiredPositional,
   optionalPositional,
-  optionalNamed
+  optionalNamed,
+  requiredNamed
 }
 
 /// Kinds of [LinkedNode].
@@ -4300,14 +4301,17 @@ abstract class UnlinkedParam extends base.SummaryClass {
 
 /// Enum used to indicate the kind of a parameter.
 enum UnlinkedParamKind {
-  /// Parameter is required.
-  required,
+  /// Parameter is required and positional.
+  requiredPositional,
 
-  /// Parameter is positional optional (enclosed in `[]`)
-  positional,
+  /// Parameter is optional and positional (enclosed in `[]`)
+  optionalPositional,
 
-  /// Parameter is named optional (enclosed in `{}`)
-  named
+  /// Parameter is optional and named (enclosed in `{}`)
+  optionalNamed,
+
+  /// Parameter is required and named (enclosed in `{}`).
+  requiredNamed
 }
 
 /// Unlinked summary information about a part declaration.

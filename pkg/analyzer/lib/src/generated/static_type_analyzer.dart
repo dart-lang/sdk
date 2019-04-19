@@ -123,9 +123,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       List<ParameterElement> parameters = node.parameterElements;
       {
         Iterator<ParameterElement> positional =
-            parameters.where((p) => !p.isNamed).iterator;
+            parameters.where((p) => p.isPositional).iterator;
         Iterator<ParameterElement> fnPositional =
-            functionType.parameters.where((p) => !p.isNamed).iterator;
+            functionType.parameters.where((p) => p.isPositional).iterator;
         while (positional.moveNext() && fnPositional.moveNext()) {
           inferType(positional.current, fnPositional.current.type);
         }

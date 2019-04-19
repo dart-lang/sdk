@@ -853,7 +853,8 @@ class AstBuilder extends StackListener {
       }
     }
 
-    ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
+    ParameterKind analyzerKind =
+        _toAnalyzerParameterKind(kind, requiredKeyword);
     FormalParameter parameter = node;
     if (analyzerKind != ParameterKind.REQUIRED) {
       parameter = ast.defaultFormalParameter(
@@ -3262,10 +3263,14 @@ class AstBuilder extends StackListener {
     return variableDeclaration;
   }
 
-  ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
+  ParameterKind _toAnalyzerParameterKind(
+      FormalParameterKind type, Token requiredKeyword) {
     if (type == FormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
     } else if (type == FormalParameterKind.optionalNamed) {
+      if (requiredKeyword != null) {
+        return ParameterKind.NAMED_REQUIRED;
+      }
       return ParameterKind.NAMED;
     } else {
       return ParameterKind.REQUIRED;

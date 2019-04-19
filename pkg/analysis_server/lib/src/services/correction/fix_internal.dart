@@ -1747,7 +1747,7 @@ class FixProcessor {
       // prepare parameters and arguments
       Iterable<ParameterElement> requiredParameters = superConstructor
           .parameters
-          .where((parameter) => parameter.isNotOptional);
+          .where((parameter) => parameter.isRequiredPositional);
       // add proposal
       ClassMemberLocation targetLocation =
           utils.prepareNewConstructorLocation(targetClassNode);
@@ -3908,7 +3908,7 @@ class FixProcessor {
     // Prepare the last required parameter.
     FormalParameter lastRequiredParameter;
     for (FormalParameter parameter in parameters) {
-      if (parameter.isRequired) {
+      if (parameter.isRequiredPositional) {
         lastRequiredParameter = parameter;
       }
     }
@@ -4692,7 +4692,7 @@ class _ExecutableParameters {
 
   _ExecutableParameters._(this.sessionHelper, this.executable) {
     for (var parameter in executable.parameters) {
-      if (parameter.isNotOptional) {
+      if (parameter.isRequiredPositional) {
         required.add(parameter);
       } else if (parameter.isOptionalPositional) {
         optionalPositional.add(parameter);

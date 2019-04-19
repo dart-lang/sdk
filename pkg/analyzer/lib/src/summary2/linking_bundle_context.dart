@@ -109,11 +109,12 @@ class LinkingBundleContext {
     var kind = p.parameterKind;
     if (kind == ParameterKind.NAMED) {
       return LinkedNodeFormalParameterKind.optionalNamed;
-    }
-    if (kind == ParameterKind.POSITIONAL) {
+    } else if (kind == ParameterKind.POSITIONAL) {
       return LinkedNodeFormalParameterKind.optionalPositional;
+    } else if (kind == ParameterKind.NAMED_REQUIRED) {
+      return LinkedNodeFormalParameterKind.requiredNamed;
     }
-    return LinkedNodeFormalParameterKind.required;
+    return LinkedNodeFormalParameterKind.requiredPositional;
   }
 
   FunctionType _toSyntheticFunctionType(FunctionType type) {

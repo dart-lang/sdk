@@ -4223,11 +4223,15 @@ abstract class FormalParameterImpl extends AstNodeImpl
   ParameterElement get element => declaredElement;
 
   @override
-  bool get isNamed => kind == ParameterKind.NAMED;
+  bool get isNamed =>
+      kind == ParameterKind.NAMED || kind == ParameterKind.NAMED_REQUIRED;
 
   @override
   bool get isOptional =>
       kind == ParameterKind.NAMED || kind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalNamed => kind == ParameterKind.NAMED;
 
   @override
   bool get isOptionalPositional => kind == ParameterKind.POSITIONAL;
@@ -4237,7 +4241,14 @@ abstract class FormalParameterImpl extends AstNodeImpl
       kind == ParameterKind.POSITIONAL || kind == ParameterKind.REQUIRED;
 
   @override
-  bool get isRequired => kind == ParameterKind.REQUIRED;
+  bool get isRequired =>
+      kind == ParameterKind.REQUIRED || kind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredNamed => kind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredPositional => kind == ParameterKind.REQUIRED;
 
   @override
   // Overridden to remove the 'deprecated' annotation.

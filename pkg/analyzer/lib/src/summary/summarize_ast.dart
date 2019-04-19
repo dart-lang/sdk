@@ -44,6 +44,10 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
         super(forConst);
 
   @override
+  EntityRefNullabilitySuffix computeNullabilitySuffix(Token question) =>
+      visitor.computeNullabilitySuffix(question);
+
+  @override
   bool isParameterName(String name) {
     return variableNames?.contains(name) ?? false;
   }
@@ -167,10 +171,6 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       EntityRefNullabilitySuffix nullabilitySuffix) {
     return visitor.serializeTypeName(name, arguments, nullabilitySuffix);
   }
-
-  @override
-  EntityRefNullabilitySuffix computeNullabilitySuffix(Token question) =>
-      visitor.computeNullabilitySuffix(question);
 }
 
 /// A [_Scope] represents a set of name/value pairs defined locally within a
@@ -363,6 +363,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     return scope;
+  }
+
+  EntityRefNullabilitySuffix computeNullabilitySuffix(Token question) {
+    if (!_nnbd) return EntityRefNullabilitySuffix.starOrIrrelevant;
+    if (question != null) return EntityRefNullabilitySuffix.question;
+    return EntityRefNullabilitySuffix.none;
   }
 
   /// Serialize the given list of [annotations].  If there are no annotations,
@@ -837,12 +843,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (_parametersMayInheritCovariance) {
       b.inheritsCovariantSlot = assignSlot();
     }
-    if (node.isRequired) {
-      b.kind = UnlinkedParamKind.required;
+    if (node.isRequiredPositional) {
+      b.kind = UnlinkedParamKind.requiredPositional;
+    } else if (node.isRequiredNamed) {
+      b.kind = UnlinkedParamKind.requiredNamed;
     } else if (node.isOptionalPositional) {
-      b.kind = UnlinkedParamKind.positional;
-    } else if (node.isNamed) {
-      b.kind = UnlinkedParamKind.named;
+      b.kind = UnlinkedParamKind.optionalPositional;
+    } else if (node.isOptionalNamed) {
+      b.kind = UnlinkedParamKind.optionalNamed;
     } else {
       // ignore: deprecated_member_use_from_same_package
       throw new StateError('Unexpected parameter kind: ${node.kind}');
@@ -903,12 +911,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       throw new ArgumentError('Cannot serialize a ${node.runtimeType}');
     }
     return null;
-  }
-
-  EntityRefNullabilitySuffix computeNullabilitySuffix(Token question) {
-    if (!_nnbd) return EntityRefNullabilitySuffix.starOrIrrelevant;
-    if (question != null) return EntityRefNullabilitySuffix.question;
-    return EntityRefNullabilitySuffix.none;
   }
 
   /// Serialize a type name (which might be defined in a nested scope, at top

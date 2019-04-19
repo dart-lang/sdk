@@ -651,10 +651,10 @@ class MethodMember extends ExecutableMember implements MethodElement {
         if (closing != null) {
           buffer.write(closing);
         }
-        if (parameterKind == ParameterKind.POSITIONAL) {
+        if (parameter.isOptionalPositional) {
           buffer.write("[");
           closing = "]";
-        } else if (parameterKind == ParameterKind.NAMED) {
+        } else if (parameter.isNamed) {
           buffer.write("{");
           closing = "}";
         } else {

@@ -1009,7 +1009,7 @@ class AssistProcessor {
         if (expression is FunctionExpression) {
           NodeList<FormalParameter> parameters =
               expression.parameters.parameters;
-          if (parameters.length == 1 && parameters[0].isRequired) {
+          if (parameters.length == 1 && parameters[0].isRequiredPositional) {
             if (extractBody(expression) != null) {
               return expression;
             }

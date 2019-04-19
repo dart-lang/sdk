@@ -1426,6 +1426,9 @@ abstract class ParameterElement
   /// parameters can either be positional or named.
   bool get isOptional;
 
+  /// Return `true` if this parameter is both an optional and named parameter.
+  bool get isOptionalNamed;
+
   /// Return `true` if this parameter is both an optional and positional
   /// parameter.
   bool get isOptionalPositional;
@@ -1433,6 +1436,13 @@ abstract class ParameterElement
   /// Return `true` if this parameter is a positional parameter. Positional
   /// parameters can either be required or optional.
   bool get isPositional;
+
+  /// Return `true` if this parameter is both a required and named parameter.
+  bool get isRequiredNamed;
+
+  /// Return `true` if this parameter is both a required and positional
+  /// parameter.
+  bool get isRequiredPositional;
 
   /// Return the kind of this parameter.
   @deprecated

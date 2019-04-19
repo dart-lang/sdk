@@ -343,6 +343,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitDefaultFormalParameter(DefaultFormalParameter node) {
+    // TODO(brianwilkerson) Record whether the node is required, either by
+    //  adding a new bool field or by recording a parameter kind.
     var builder = LinkedNodeBuilder.defaultFormalParameter(
       defaultFormalParameter_defaultValue: node.defaultValue?.accept(this),
       defaultFormalParameter_isNamed: node.isNamed,
@@ -1437,11 +1439,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   void _storeForLoopParts(LinkedNodeBuilder builder, ForLoopParts node) {}
 
   void _storeFormalParameter(LinkedNodeBuilder builder, FormalParameter node) {
-    var kind = LinkedNodeFormalParameterKind.required;
-    if (node.isNamed) {
-      kind = LinkedNodeFormalParameterKind.optionalNamed;
+    var kind;
+    if (node.isRequiredPositional) {
+      kind = LinkedNodeFormalParameterKind.requiredPositional;
+    } else if (node.isRequiredNamed) {
+      kind = LinkedNodeFormalParameterKind.requiredNamed;
     } else if (node.isOptionalPositional) {
       kind = LinkedNodeFormalParameterKind.optionalPositional;
+    } else if (node.isOptionalNamed) {
+      kind = LinkedNodeFormalParameterKind.optionalNamed;
+    } else {
+      throw new StateError('Unknown kind of parameter');
     }
     builder.formalParameter_kind = kind;
 

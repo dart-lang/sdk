@@ -311,6 +311,22 @@ class _ElementWriter {
     buffer.writeln(';');
   }
 
+  void writeExportScope(LibraryElement e) {
+    if (!withExportScope) return;
+
+    buffer.writeln();
+    buffer.writeln('-' * 20);
+    buffer.writeln('Exports:');
+
+    var map = e.exportNamespace.definedNames;
+    var names = map.keys.toList()..sort();
+    for (var name in names) {
+      var element = map[name];
+      var elementLocationStr = _getElementLocationString(element);
+      buffer.writeln('  $name: $elementLocationStr');
+    }
+  }
+
   void writeFunctionElement(FunctionElement e) {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
@@ -705,7 +721,7 @@ class _ElementWriter {
     String defaultValueSeparator;
     Expression defaultValue;
     String closeString;
-    if (e.isNotOptional) {
+    if (e.isRequiredPositional) {
       closeString = '';
     } else if (e.isOptionalPositional) {
       buffer.write('[');
@@ -937,22 +953,6 @@ class _ElementWriter {
     e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);
-  }
-
-  void writeExportScope(LibraryElement e) {
-    if (!withExportScope) return;
-
-    buffer.writeln();
-    buffer.writeln('-' * 20);
-    buffer.writeln('Exports:');
-
-    var map = e.exportNamespace.definedNames;
-    var names = map.keys.toList()..sort();
-    for (var name in names) {
-      var element = map[name];
-      var elementLocationStr = _getElementLocationString(element);
-      buffer.writeln('  $name: $elementLocationStr');
-    }
   }
 
   void writeUri(Source source) {

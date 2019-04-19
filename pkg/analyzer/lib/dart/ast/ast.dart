@@ -2289,14 +2289,16 @@ abstract class FormalParameter implements AstNode {
   /// even though they are implicitly final.
   bool get isFinal;
 
-  /// Return `true` if this parameter is a named parameter. Named parameters are
-  /// always optional, even when they are annotated with the `@required`
-  /// annotation.
+  /// Return `true` if this parameter is a named parameter. Named parameters can
+  /// either be required or optional.
   bool get isNamed;
 
   /// Return `true` if this parameter is an optional parameter. Optional
   /// parameters can either be positional or named.
   bool get isOptional;
+
+  /// Return `true` if this parameter is both an optional and named parameter.
+  bool get isOptionalNamed;
 
   /// Return `true` if this parameter is both an optional and positional
   /// parameter.
@@ -2307,11 +2309,21 @@ abstract class FormalParameter implements AstNode {
   bool get isPositional;
 
   /// Return `true` if this parameter is a required parameter. Required
-  /// parameters are always positional.
+  /// parameters can either be positional or named.
   ///
   /// Note: this will return `false` for a named parameter that is annotated
   /// with the `@required` annotation.
   bool get isRequired;
+
+  /// Return `true` if this parameter is both a required and named parameter.
+  ///
+  /// Note: this will return `false` for a named parameter that is annotated
+  /// with the `@required` annotation.
+  bool get isRequiredNamed;
+
+  /// Return `true` if this parameter is both a required and positional
+  /// parameter.
+  bool get isRequiredPositional;
 
   /// Return the kind of this parameter.
   @deprecated

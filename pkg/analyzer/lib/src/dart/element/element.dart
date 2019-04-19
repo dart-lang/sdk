@@ -4621,10 +4621,10 @@ abstract class ExecutableElementImpl extends ElementImpl
           if (closing != null) {
             buffer.write(closing);
           }
-          if (parameterKind == ParameterKind.POSITIONAL) {
+          if (parameter.isOptionalPositional) {
             buffer.write("[");
             closing = "]";
-          } else if (parameterKind == ParameterKind.NAMED) {
+          } else if (parameter.isNamed) {
             buffer.write("{");
             closing = "}";
           } else {
@@ -8026,7 +8026,7 @@ class ParameterElementImpl extends VariableElementImpl
       {bool synthetic: false}) {
     ParameterElementImpl element;
     if (unlinkedParameter.isInitializingFormal) {
-      if (unlinkedParameter.kind == UnlinkedParamKind.required) {
+      if (unlinkedParameter.kind == UnlinkedParamKind.requiredPositional) {
         element = new FieldFormalParameterElementImpl.forSerialized(
             unlinkedParameter, enclosingElement);
       } else {
@@ -8034,7 +8034,7 @@ class ParameterElementImpl extends VariableElementImpl
             unlinkedParameter, enclosingElement);
       }
     } else {
-      if (unlinkedParameter.kind == UnlinkedParamKind.required) {
+      if (unlinkedParameter.kind == UnlinkedParamKind.requiredPositional) {
         element = new ParameterElementImpl.forSerialized(
             unlinkedParameter, enclosingElement);
       } else {
@@ -8260,7 +8260,8 @@ class ParameterElementImpl extends VariableElementImpl
       if (unlinkedParam != null) {
         if (isSynthetic ||
             (unlinkedParam.name.isEmpty &&
-                unlinkedParam.kind != UnlinkedParamKind.named &&
+                unlinkedParam.kind != UnlinkedParamKind.requiredNamed &&
+                unlinkedParam.kind != UnlinkedParamKind.optionalNamed &&
                 enclosingElement is GenericFunctionTypeElement)) {
           return -1;
         }
@@ -8281,14 +8282,17 @@ class ParameterElementImpl extends VariableElementImpl
     }
     if (unlinkedParam != null) {
       switch (unlinkedParam.kind) {
-        case UnlinkedParamKind.named:
+        case UnlinkedParamKind.optionalNamed:
           _parameterKind = ParameterKind.NAMED;
           break;
-        case UnlinkedParamKind.positional:
+        case UnlinkedParamKind.optionalPositional:
           _parameterKind = ParameterKind.POSITIONAL;
           break;
-        case UnlinkedParamKind.required:
+        case UnlinkedParamKind.requiredPositional:
           _parameterKind = ParameterKind.REQUIRED;
+          break;
+        case UnlinkedParamKind.requiredNamed:
+          _parameterKind = ParameterKind.NAMED_REQUIRED;
           break;
       }
     }
@@ -8397,21 +8401,17 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
-    String left = "";
-    String right = "";
-    while (true) {
-      if (parameterKind == ParameterKind.NAMED) {
-        left = "{";
-        right = "}";
-      } else if (parameterKind == ParameterKind.POSITIONAL) {
-        left = "[";
-        right = "]";
-      } else if (parameterKind == ParameterKind.REQUIRED) {}
-      break;
+    if (isNamed) {
+      buffer.write("{");
+      appendToWithoutDelimiters(buffer);
+      buffer.write("}");
+    } else if (isOptionalPositional) {
+      buffer.write("[");
+      appendToWithoutDelimiters(buffer);
+      buffer.write("]");
+    } else {
+      appendToWithoutDelimiters(buffer);
     }
-    buffer.write(left);
-    appendToWithoutDelimiters(buffer);
-    buffer.write(right);
   }
 
   @deprecated
@@ -8587,15 +8587,22 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 /// [ParameterElement].
 mixin ParameterElementMixin implements ParameterElement {
   @override
-  bool get isNamed => parameterKind == ParameterKind.NAMED;
+  bool get isNamed =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
-  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+  bool get isNotOptional =>
+      parameterKind == ParameterKind.REQUIRED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
   bool get isOptional =>
       parameterKind == ParameterKind.NAMED ||
       parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
 
   @override
   bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
@@ -8604,6 +8611,12 @@ mixin ParameterElementMixin implements ParameterElement {
   bool get isPositional =>
       parameterKind == ParameterKind.POSITIONAL ||
       parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
 
   @override
   // Overridden to remove the 'deprecated' annotation.

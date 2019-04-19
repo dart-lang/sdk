@@ -63,7 +63,7 @@ CompletionSuggestion createSuggestion(Element element,
     }).toList();
 
     Iterable<ParameterElement> requiredParameters = element.parameters
-        .where((ParameterElement param) => param.isNotOptional);
+        .where((ParameterElement param) => param.isRequiredPositional);
     suggestion.requiredParameterCount = requiredParameters.length;
 
     Iterable<ParameterElement> namedParameters =

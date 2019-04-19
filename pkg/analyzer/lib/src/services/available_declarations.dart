@@ -1488,6 +1488,10 @@ class _File {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
+        if (parameter.isNamed) {
+          buffer.write(parameter.identifier.name);
+          buffer.write(': ');
+        }
         var valueOffset = buffer.length;
         buffer.write(parameter.identifier.name);
         var valueLength = buffer.length - valueOffset;
@@ -1527,7 +1531,7 @@ class _File {
     if (parameters == null) return null;
 
     return parameters.parameters
-        .takeWhile((parameter) => parameter.isRequired)
+        .takeWhile((parameter) => parameter.isRequiredPositional)
         .length;
   }
 

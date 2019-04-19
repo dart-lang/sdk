@@ -317,12 +317,14 @@ UnlinkedParamBuilder _serializeSyntheticParam(
     TypeParameterSerializationContext typeParameterContext) {
   UnlinkedParamBuilder b = new UnlinkedParamBuilder();
   b.name = parameter.name;
-  if (parameter.isNotOptional) {
-    b.kind = UnlinkedParamKind.required;
+  if (parameter.isRequiredPositional) {
+    b.kind = UnlinkedParamKind.requiredPositional;
+  } else if (parameter.isRequiredNamed) {
+    b.kind = UnlinkedParamKind.requiredNamed;
   } else if (parameter.isOptionalPositional) {
-    b.kind = UnlinkedParamKind.positional;
-  } else if (parameter.isNamed) {
-    b.kind = UnlinkedParamKind.named;
+    b.kind = UnlinkedParamKind.optionalPositional;
+  } else if (parameter.isOptionalNamed) {
+    b.kind = UnlinkedParamKind.optionalNamed;
   }
   DartType type = parameter.type;
   if (!parameter.hasImplicitType) {
@@ -4290,15 +4292,22 @@ class ParameterElementForLink implements ParameterElementImpl {
   bool get isInitializingFormal => unlinkedParam.isInitializingFormal;
 
   @override
-  bool get isNamed => parameterKind == ParameterKind.NAMED;
+  bool get isNamed =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
-  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+  bool get isNotOptional =>
+      parameterKind == ParameterKind.REQUIRED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
   bool get isOptional =>
       parameterKind == ParameterKind.NAMED ||
       parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
 
   @override
   bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
@@ -4309,16 +4318,24 @@ class ParameterElementForLink implements ParameterElementImpl {
       parameterKind == ParameterKind.REQUIRED;
 
   @override
+  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
+
+  @override
   String get name => unlinkedParam.name;
 
   @override
   ParameterKind get parameterKind {
     switch (unlinkedParam.kind) {
-      case UnlinkedParamKind.required:
+      case UnlinkedParamKind.requiredPositional:
         return ParameterKind.REQUIRED;
-      case UnlinkedParamKind.positional:
+      case UnlinkedParamKind.requiredNamed:
+        return ParameterKind.NAMED_REQUIRED;
+      case UnlinkedParamKind.optionalPositional:
         return ParameterKind.POSITIONAL;
-      case UnlinkedParamKind.named:
+      case UnlinkedParamKind.optionalNamed:
         return ParameterKind.NAMED;
     }
     return null;
@@ -4402,15 +4419,22 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   bool get isInitializingFormal => unlinkedParam.isInitializingFormal;
 
   @override
-  bool get isNamed => parameterKind == ParameterKind.NAMED;
+  bool get isNamed =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
-  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+  bool get isNotOptional =>
+      parameterKind == ParameterKind.REQUIRED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
   bool get isOptional =>
       parameterKind == ParameterKind.NAMED ||
       parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
 
   @override
   bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
@@ -4419,6 +4443,12 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   bool get isPositional =>
       parameterKind == ParameterKind.POSITIONAL ||
       parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
 
   @override
   bool get isSynthetic => true;

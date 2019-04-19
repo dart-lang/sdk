@@ -877,9 +877,10 @@ class LinkedUnitContext {
   ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
     if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
       return ParameterKind.NAMED;
-    }
-    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
+    } else if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
+    } else if (kind == LinkedNodeFormalParameterKind.requiredNamed) {
+      return ParameterKind.NAMED_REQUIRED;
     }
     return ParameterKind.REQUIRED;
   }

@@ -137,7 +137,7 @@ class _LinkedNodeFormalParameterKindReader
     int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.LinkedNodeFormalParameterKind.values.length
         ? idl.LinkedNodeFormalParameterKind.values[index]
-        : idl.LinkedNodeFormalParameterKind.required;
+        : idl.LinkedNodeFormalParameterKind.requiredPositional;
   }
 }
 
@@ -292,7 +292,7 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
     int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.UnlinkedParamKind.values.length
         ? idl.UnlinkedParamKind.values[index]
-        : idl.UnlinkedParamKind.required;
+        : idl.UnlinkedParamKind.requiredPositional;
   }
 }
 
@@ -9841,7 +9841,8 @@ class LinkedNodeBuilder extends Object
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
-    return _variantField_26 ??= idl.LinkedNodeFormalParameterKind.required;
+    return _variantField_26 ??=
+        idl.LinkedNodeFormalParameterKind.requiredPositional;
   }
 
   set formalParameter_kind(idl.LinkedNodeFormalParameterKind value) {
@@ -11904,7 +11905,8 @@ class LinkedNodeBuilder extends Object
       fbBuilder.addOffset(25, offset_variantField_25);
     }
     if (_variantField_26 != null &&
-        _variantField_26 != idl.LinkedNodeFormalParameterKind.required) {
+        _variantField_26 !=
+            idl.LinkedNodeFormalParameterKind.requiredPositional) {
       fbBuilder.addUint8(26, _variantField_26.index);
     }
     if (offset_variantField_30 != null) {
@@ -15501,7 +15503,10 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
     _variantField_26 ??= const _LinkedNodeFormalParameterKindReader().vTableGet(
-        _bc, _bcOffset, 26, idl.LinkedNodeFormalParameterKind.required);
+        _bc,
+        _bcOffset,
+        26,
+        idl.LinkedNodeFormalParameterKind.requiredPositional);
     return _variantField_26;
   }
 
@@ -15810,7 +15815,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             normalFormalParameter_identifier.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+      if (formalParameter_kind !=
+          idl.LinkedNodeFormalParameterKind.requiredPositional)
         _result["formalParameter_kind"] =
             formalParameter_kind.toString().split('.')[1];
       if (normalFormalParameter_comment != null)
@@ -15844,7 +15850,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             normalFormalParameter_identifier.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+      if (formalParameter_kind !=
+          idl.LinkedNodeFormalParameterKind.requiredPositional)
         _result["formalParameter_kind"] =
             formalParameter_kind.toString().split('.')[1];
       if (normalFormalParameter_comment != null)
@@ -15875,7 +15882,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             normalFormalParameter_identifier.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind != idl.LinkedNodeFormalParameterKind.required)
+      if (formalParameter_kind !=
+          idl.LinkedNodeFormalParameterKind.requiredPositional)
         _result["formalParameter_kind"] =
             formalParameter_kind.toString().split('.')[1];
       if (normalFormalParameter_comment != null)
@@ -19647,7 +19655,7 @@ class LinkedNodeTypeFormalParameterBuilder extends Object
 
   @override
   idl.LinkedNodeFormalParameterKind get kind =>
-      _kind ??= idl.LinkedNodeFormalParameterKind.required;
+      _kind ??= idl.LinkedNodeFormalParameterKind.requiredPositional;
 
   set kind(idl.LinkedNodeFormalParameterKind value) {
     this._kind = value;
@@ -19698,7 +19706,8 @@ class LinkedNodeTypeFormalParameterBuilder extends Object
       offset_type = _type.finish(fbBuilder);
     }
     fbBuilder.startTable();
-    if (_kind != null && _kind != idl.LinkedNodeFormalParameterKind.required) {
+    if (_kind != null &&
+        _kind != idl.LinkedNodeFormalParameterKind.requiredPositional) {
       fbBuilder.addUint8(0, _kind.index);
     }
     if (offset_name != null) {
@@ -19735,8 +19744,8 @@ class _LinkedNodeTypeFormalParameterImpl extends Object
 
   @override
   idl.LinkedNodeFormalParameterKind get kind {
-    _kind ??= const _LinkedNodeFormalParameterKindReader().vTableGet(
-        _bc, _bcOffset, 0, idl.LinkedNodeFormalParameterKind.required);
+    _kind ??= const _LinkedNodeFormalParameterKindReader().vTableGet(_bc,
+        _bcOffset, 0, idl.LinkedNodeFormalParameterKind.requiredPositional);
     return _kind;
   }
 
@@ -19758,7 +19767,7 @@ abstract class _LinkedNodeTypeFormalParameterMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (kind != idl.LinkedNodeFormalParameterKind.required)
+    if (kind != idl.LinkedNodeFormalParameterKind.requiredPositional)
       _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
     if (type != null) _result["type"] = type.toJson();
@@ -26036,7 +26045,8 @@ class UnlinkedParamBuilder extends Object
   }
 
   @override
-  idl.UnlinkedParamKind get kind => _kind ??= idl.UnlinkedParamKind.required;
+  idl.UnlinkedParamKind get kind =>
+      _kind ??= idl.UnlinkedParamKind.requiredPositional;
 
   /// Kind of the parameter.
   set kind(idl.UnlinkedParamKind value) {
@@ -26240,7 +26250,7 @@ class UnlinkedParamBuilder extends Object
     if (_isInitializingFormal == true) {
       fbBuilder.addBool(6, true);
     }
-    if (_kind != null && _kind != idl.UnlinkedParamKind.required) {
+    if (_kind != null && _kind != idl.UnlinkedParamKind.requiredPositional) {
       fbBuilder.addUint8(4, _kind.index);
     }
     if (offset_name != null) {
@@ -26371,7 +26381,7 @@ class _UnlinkedParamImpl extends Object
   @override
   idl.UnlinkedParamKind get kind {
     _kind ??= const _UnlinkedParamKindReader()
-        .vTableGet(_bc, _bcOffset, 4, idl.UnlinkedParamKind.required);
+        .vTableGet(_bc, _bcOffset, 4, idl.UnlinkedParamKind.requiredPositional);
     return _kind;
   }
 
@@ -26433,7 +26443,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     if (isFunctionTyped != false) _result["isFunctionTyped"] = isFunctionTyped;
     if (isInitializingFormal != false)
       _result["isInitializingFormal"] = isInitializingFormal;
-    if (kind != idl.UnlinkedParamKind.required)
+    if (kind != idl.UnlinkedParamKind.requiredPositional)
       _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;

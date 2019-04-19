@@ -4708,7 +4708,7 @@ int foo() => 0;
 ''').executables);
     UnlinkedParam param = executable.parameters[0];
     expect(param.isFunctionTyped, isTrue);
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.defaultValueCode, 'foo');
     assertUnlinkedConst(param.initializer.bodyExpr, 'foo', operators: [
       UnlinkedExprOperation.pushReference
@@ -4741,7 +4741,7 @@ int foo() => 0;
         executables: serializeClassText('class C { C({this.x}); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.named);
+    expect(parameter.kind, UnlinkedParamKind.optionalNamed);
     expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
@@ -4751,7 +4751,7 @@ int foo() => 0;
         executables: serializeClassText('class C { C({this.x: 42}); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.named);
+    expect(parameter.kind, UnlinkedParamKind.optionalNamed);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 10);
@@ -4772,7 +4772,7 @@ int foo() => 0;
         executables: serializeClassText('class C { C([this.x]); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.positional);
+    expect(parameter.kind, UnlinkedParamKind.optionalPositional);
     expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
@@ -4783,7 +4783,7 @@ int foo() => 0;
             serializeClassText('class C { C([this.x = 42]); final x; }')
                 .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.positional);
+    expect(parameter.kind, UnlinkedParamKind.optionalPositional);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 11);
@@ -4796,7 +4796,7 @@ int foo() => 0;
         executables:
             serializeClassText('class C { C(this.x); final x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.required);
+    expect(parameter.kind, UnlinkedParamKind.requiredPositional);
   }
 
   test_constructor_initializing_formal_typedef() {
@@ -4817,7 +4817,7 @@ class C {
   final int x;
 }''').executables);
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.defaultValueCode, '42');
     assertUnlinkedConst(param.initializer.bodyExpr, '42',
         operators: [UnlinkedExprOperation.pushInt], ints: [42]);
@@ -6357,7 +6357,7 @@ f([int p(int a2, String b2) = foo]) {}
 int foo(int a, String b) => 0;
 ''');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, 'foo');
     assertUnlinkedConst(param.initializer.bodyExpr, 'foo', operators: [
@@ -6381,7 +6381,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_named() {
     UnlinkedExecutable executable = serializeExecutableText('f({x}) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.named);
+    expect(param.kind, UnlinkedParamKind.optionalNamed);
     expect(param.initializer, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
@@ -6389,7 +6389,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_named_withDefault() {
     UnlinkedExecutable executable = serializeExecutableText('f({x: 42}) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.named);
+    expect(param.kind, UnlinkedParamKind.optionalNamed);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 5);
@@ -6400,7 +6400,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_positional() {
     UnlinkedExecutable executable = serializeExecutableText('f([x]) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.initializer, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
@@ -6408,7 +6408,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_positional_withDefault() {
     UnlinkedExecutable executable = serializeExecutableText('f([x = 42]) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 6);
@@ -6419,7 +6419,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_required() {
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.required);
+    expect(param.kind, UnlinkedParamKind.requiredPositional);
     expect(param.initializer, isNull);
     expect(param.defaultValueCode, isEmpty);
   }

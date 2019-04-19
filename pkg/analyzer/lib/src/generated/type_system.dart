@@ -771,6 +771,8 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Union the named parameters together.
+    // TODO(brianwilkerson) Handle the fact that named parameters can now be
+    //  required.
     Map<String, DartType> fNamed = f.namedParameterTypes;
     Map<String, DartType> gNamed = g.namedParameterTypes;
     for (String name in fNamed.keys.toSet()..addAll(gNamed.keys)) {
@@ -2166,6 +2168,8 @@ abstract class TypeSystem implements public.TypeSystem {
           ParameterKind.POSITIONAL));
     }
 
+    // TODO(brianwilkerson) Handle the fact that named parameters can now be
+    //  required.
     Map<String, DartType> fNamed = f.namedParameterTypes;
     Map<String, DartType> gNamed = g.namedParameterTypes;
     for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {

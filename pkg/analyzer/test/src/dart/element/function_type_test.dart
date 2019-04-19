@@ -497,7 +497,7 @@ class FunctionTypeTest {
         normalParameterNames: ['x'],
         normalParameterTypes: [same(objectType)],
         parameters: hasLength(1));
-    expect(f.parameters[0].isNotOptional, isTrue);
+    expect(f.parameters[0].isRequiredPositional, isTrue);
     expect(f.parameters[0].name, 'x');
     expect(f.parameters[0].type, same(objectType));
   }
@@ -1226,7 +1226,9 @@ class MockMethodElement extends MockFunctionTypedElement
   ClassElement get enclosingElement => super.enclosingElement;
 }
 
-class MockParameterElement implements ParameterElementImpl {
+class MockParameterElement
+    with ParameterElementMixin
+    implements ParameterElementImpl {
   @override
   Element enclosingElement;
 
@@ -1244,15 +1246,6 @@ class MockParameterElement implements ParameterElementImpl {
 
   @override
   get displayName => name;
-
-  @override
-  bool get isNamed => parameterKind == ParameterKind.NAMED;
-
-  @override
-  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
-
-  @override
-  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
 
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);

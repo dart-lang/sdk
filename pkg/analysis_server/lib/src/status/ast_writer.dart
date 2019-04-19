@@ -71,12 +71,16 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static keyword'] = node.staticKeyword;
     } else if (node is FormalParameter) {
       properties['declaredElement'] = node.declaredElement;
-      if (node.isNamed) {
-        properties['kind'] = 'named';
+      if (node.isRequiredPositional) {
+        properties['kind'] = 'required-positional';
+      } else if (node.isRequiredNamed) {
+        properties['kind'] = 'required-named';
       } else if (node.isOptionalPositional) {
-        properties['kind'] = 'positional';
+        properties['kind'] = 'optional-positional';
+      } else if (node.isOptionalNamed) {
+        properties['kind'] = 'optional-named';
       } else {
-        properties['kind'] = 'required';
+        properties['kind'] = 'unknown kind';
       }
     } else if (node is FunctionDeclaration) {
       properties['declaredElement'] = node.declaredElement;

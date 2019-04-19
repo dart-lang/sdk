@@ -673,9 +673,10 @@ class ExprBuilder {
     simpleParam.identifier.staticElement = param;
     simpleParam.declaredElement = param;
     var unlinkedParam = (param as ParameterElementImpl).unlinkedParam;
-    if (unlinkedParam.kind == UnlinkedParamKind.positional) {
+    if (unlinkedParam.kind == UnlinkedParamKind.optionalPositional) {
       return AstTestFactory.positionalFormalParameter(simpleParam, null);
-    } else if (unlinkedParam.kind == UnlinkedParamKind.named) {
+    } else if (unlinkedParam.kind == UnlinkedParamKind.requiredNamed ||
+        unlinkedParam.kind == UnlinkedParamKind.optionalNamed) {
       return AstTestFactory.namedFormalParameter(simpleParam, null);
     } else {
       return simpleParam;

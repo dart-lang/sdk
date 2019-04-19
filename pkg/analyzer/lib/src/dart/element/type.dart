@@ -602,8 +602,14 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   Map<String, DartType> get namedParameterTypes {
+    // TODO(brianwilkerson) This implementation breaks the contract because the
+    //  parameters will not necessarily be returned in the order in which they
+    //  were declared.
     Map<String, DartType> types = <String, DartType>{};
     _forEachParameterType(ParameterKind.NAMED, (name, type) {
+      types[name] = type;
+    });
+    _forEachParameterType(ParameterKind.NAMED_REQUIRED, (name, type) {
       types[name] = type;
     });
     return types;
@@ -1055,7 +1061,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var tOptional = <ParameterElement>[];
     var tNamed = <String, ParameterElement>{};
     for (var p in tParams) {
-      if (p.isNotOptional) {
+      if (p.isRequiredPositional) {
         tRequired.add(p);
       } else if (p.isOptionalPositional) {
         tOptional.add(p);
@@ -1069,7 +1075,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var sOptional = <ParameterElement>[];
     var sNamed = <String, ParameterElement>{};
     for (var p in sParams) {
-      if (p.isNotOptional) {
+      if (p.isRequiredPositional) {
         sRequired.add(p);
       } else if (p.isOptionalPositional) {
         sOptional.add(p);
@@ -3430,7 +3436,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
   @override
   List<String> get normalParameterNames {
     return baseParameters
-        .where((parameter) => parameter.isNotOptional)
+        .where((parameter) => parameter.isRequiredPositional)
         .map((parameter) => parameter.name)
         .toList();
   }
@@ -3717,8 +3723,10 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   List<FunctionTypeAliasElement> get newPrune => const [];
 
   @override
-  List<String> get normalParameterNames =>
-      parameters.where((p) => p.isNotOptional).map((p) => p.name).toList();
+  List<String> get normalParameterNames => parameters
+      .where((p) => p.isRequiredPositional)
+      .map((p) => p.name)
+      .toList();
 
   @override
   List<String> get optionalParameterNames => parameters

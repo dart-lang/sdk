@@ -224,7 +224,7 @@ class ArgListContributor extends DartCompletionContributor {
       return;
     }
     Iterable<ParameterElement> requiredParam =
-        parameters.where((ParameterElement p) => p.isNotOptional);
+        parameters.where((ParameterElement p) => p.isRequiredPositional);
     int requiredCount = requiredParam.length;
     // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,
