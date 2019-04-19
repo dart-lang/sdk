@@ -68,11 +68,10 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
       function.AttachBytecode(Object::method_extractor_bytecode());
       return;
     case RawFunction::kInvokeFieldDispatcher:
-      if (Class::Handle(function.Owner()).id() == kClosureCid) {
-        function.AttachBytecode(Object::invoke_closure_bytecode());
-      } else {
-        function.AttachBytecode(Object::invoke_field_bytecode());
+      if (Class::Handle(function.Owner()).id() != kClosureCid) {
+        break;
       }
+      function.AttachBytecode(Object::invoke_closure_bytecode());
       return;
     default: {
     }

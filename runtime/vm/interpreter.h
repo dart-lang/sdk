@@ -153,15 +153,16 @@ class Interpreter {
               RawObject*** FP,
               RawObject*** SP);
 
-  bool InvokeCompiled(Thread* thread,
-                      RawFunction* function,
-                      RawObject** call_base,
-                      RawObject** call_top,
-                      uint32_t** pc,
-                      RawObject*** FP,
-                      RawObject*** SP);
+  bool ProcessInvocation(bool* invoked,
+                         Thread* thread,
+                         RawFunction* function,
+                         RawObject** call_base,
+                         RawObject** call_top,
+                         uint32_t** pc,
+                         RawObject*** FP,
+                         RawObject*** SP);
 
-  bool InvokeBytecode(Thread* thread,
+  bool InvokeCompiled(Thread* thread,
                       RawFunction* function,
                       RawObject** call_base,
                       RawObject** call_top,

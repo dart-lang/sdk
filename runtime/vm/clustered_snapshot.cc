@@ -4695,8 +4695,6 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<method extractor>");
   AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
                 "<invoke closure>");
-  AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
-                "<invoke field>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -5157,7 +5155,6 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::implicit_static_getter_bytecode().raw());
   AddBaseObject(Object::method_extractor_bytecode().raw());
   AddBaseObject(Object::invoke_closure_bytecode().raw());
-  AddBaseObject(Object::invoke_field_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
