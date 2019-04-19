@@ -2,21 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: the plan is to generate this file from a YAML representation somewhere
-// in the SDK repo.  Please do not add any code to this file that can't be
-// easily code generated based on a knowledge of the current set of experimental
-// flags and their status.
-// TODO(paulberry,kmillikin): once code generation is implemented, replace this
-// notice with a notice that this file is generated and a pointer to the source
-// YAML file and the regeneration tool.
-
-// Note: to demonstrate how code is supposed to be generated for expired flags,
-// this file contains bogus expired flags called "bogus-enabled" and
-// "bogus-disabled".  They are not used and can be removed at the time that code
-// generation is implemented.
-
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/src/version.dart';
 
 export 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show
@@ -62,59 +52,83 @@ class EnableString {
   static const String bogus_enabled = 'bogus-enabled';
 }
 
+class ExperimentalFeatures {
+  static const constant_update_2018 = const ExperimentalFeature(
+      0,
+      EnableString.constant_update_2018,
+      IsEnabledByDefault.constant_update_2018,
+      IsExpired.constant_update_2018,
+      'Q4 2018 Constant Update');
+
+  static const non_nullable = const ExperimentalFeature(
+      1,
+      EnableString.non_nullable,
+      IsEnabledByDefault.non_nullable,
+      IsExpired.non_nullable,
+      'Non Nullable');
+
+  static const control_flow_collections = const ExperimentalFeature(
+      null,
+      EnableString.control_flow_collections,
+      IsEnabledByDefault.control_flow_collections,
+      IsExpired.control_flow_collections,
+      'Control Flow Collections',
+      firstSupportedVersion: '2.2.2');
+
+  static const spread_collections = const ExperimentalFeature(
+      null,
+      EnableString.spread_collections,
+      IsEnabledByDefault.spread_collections,
+      IsExpired.spread_collections,
+      'Spread Collections',
+      firstSupportedVersion: '2.2.2');
+
+  static const set_literals = const ExperimentalFeature(
+      null,
+      EnableString.set_literals,
+      IsEnabledByDefault.set_literals,
+      IsExpired.set_literals,
+      'Set Literals',
+      firstSupportedVersion: '2.2.0');
+
+  static const triple_shift = const ExperimentalFeature(
+      2,
+      EnableString.triple_shift,
+      IsEnabledByDefault.triple_shift,
+      IsExpired.triple_shift,
+      'Triple-shift operator');
+
+  static const bogus_disabled = const ExperimentalFeature(
+      null,
+      EnableString.bogus_disabled,
+      IsEnabledByDefault.bogus_disabled,
+      IsExpired.bogus_disabled,
+      null);
+
+  static const bogus_enabled = const ExperimentalFeature(
+      null,
+      EnableString.bogus_enabled,
+      IsEnabledByDefault.bogus_enabled,
+      IsExpired.bogus_enabled,
+      null,
+      firstSupportedVersion: '1.0');
+}
+
 /// A representation of the set of experiments that are active and whether they
 /// are enabled.
-class ExperimentStatus {
+class ExperimentStatus implements FeatureSet {
   /// A map containing information about all known experimental flags.
   static const knownFeatures = <String, ExperimentalFeature>{
-    EnableString.constant_update_2018: const ExperimentalFeature(
-        0,
-        EnableString.constant_update_2018,
-        IsEnabledByDefault.constant_update_2018,
-        IsExpired.constant_update_2018,
-        'Q4 2018 Constant Update'),
-    EnableString.non_nullable: const ExperimentalFeature(
-        1,
-        EnableString.non_nullable,
-        IsEnabledByDefault.non_nullable,
-        IsExpired.non_nullable,
-        'Non Nullable'),
-    EnableString.control_flow_collections: const ExperimentalFeature(
-        null,
-        EnableString.control_flow_collections,
-        IsEnabledByDefault.control_flow_collections,
-        IsExpired.control_flow_collections,
-        'Control Flow Collections'),
-    EnableString.spread_collections: const ExperimentalFeature(
-        null,
-        EnableString.spread_collections,
-        IsEnabledByDefault.spread_collections,
-        IsExpired.spread_collections,
-        'Spread Collections'),
-    EnableString.set_literals: const ExperimentalFeature(
-        null,
-        EnableString.set_literals,
-        IsEnabledByDefault.set_literals,
-        IsExpired.set_literals,
-        'Set Literals'),
-    EnableString.triple_shift: const ExperimentalFeature(
-        2,
-        EnableString.triple_shift,
-        IsEnabledByDefault.triple_shift,
-        IsExpired.triple_shift,
-        'Triple-shift operator'),
-    EnableString.bogus_disabled: const ExperimentalFeature(
-        null,
-        EnableString.bogus_disabled,
-        IsEnabledByDefault.bogus_disabled,
-        IsExpired.bogus_disabled,
-        null),
-    EnableString.bogus_enabled: const ExperimentalFeature(
-        null,
-        EnableString.bogus_enabled,
-        IsEnabledByDefault.bogus_enabled,
-        IsExpired.bogus_enabled,
-        null),
+    EnableString.constant_update_2018:
+        ExperimentalFeatures.constant_update_2018,
+    EnableString.non_nullable: ExperimentalFeatures.non_nullable,
+    EnableString.control_flow_collections:
+        ExperimentalFeatures.control_flow_collections,
+    EnableString.spread_collections: ExperimentalFeatures.spread_collections,
+    EnableString.set_literals: ExperimentalFeatures.set_literals,
+    EnableString.triple_shift: ExperimentalFeatures.triple_shift,
+    EnableString.bogus_disabled: ExperimentalFeatures.bogus_disabled,
+    EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
   };
 
   final List<bool> _enableFlags;
@@ -133,6 +147,17 @@ class ExperimentStatus {
           non_nullable ?? IsEnabledByDefault.non_nullable,
           triple_shift ?? IsEnabledByDefault.triple_shift,
         ];
+
+  /// Computes a set of features for use in a unit test.  Computes the set of
+  /// features enabled in [sdkVersion], plus any specified [additionalFeatures].
+  ///
+  /// If [sdkVersion] is not supplied (or is `null`), then the current set of
+  /// enabled features is used as the starting point.
+  @visibleForTesting
+  ExperimentStatus.forTesting(
+      {String sdkVersion, List<Feature> additionalFeatures: const []})
+      : this._(enableFlagsForTesting(
+            sdkVersion: sdkVersion, additionalFeatures: additionalFeatures));
 
   /// Decodes the strings given in [flags] into a representation of the set of
   /// experiments that should be enabled.
@@ -156,6 +181,15 @@ class ExperimentStatus {
   /// Current state for the flag "control_flow_collections"
   bool get control_flow_collections => true;
 
+  @override
+  int get hashCode {
+    int hash = 0;
+    for (var flag in _enableFlags) {
+      hash = JenkinsSmiHash.combine(hash, flag.hashCode);
+    }
+    return JenkinsSmiHash.finish(hash);
+  }
+
   /// Current state for the flag "non-nullable"
   bool get non_nullable => _enableFlags[1];
 
@@ -168,10 +202,26 @@ class ExperimentStatus {
   /// Current state for the flag "triple_shift"
   bool get triple_shift => _enableFlags[2];
 
+  @override
+  operator ==(Object other) {
+    if (other is ExperimentStatus) {
+      if (_enableFlags.length != other._enableFlags.length) return false;
+      for (int i = 0; i < _enableFlags.length; i++) {
+        if (_enableFlags[i] != other._enableFlags[i]) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
   /// Queries whether the given [feature] is enabled or disabled.
   bool isEnabled(ExperimentalFeature feature) => feature.isExpired
       ? feature.isEnabledByDefault
       : _enableFlags[feature.index];
+
+  @override
+  FeatureSet restrictToVersion(Version version) =>
+      ExperimentStatus._(restrictEnableFlagsToVersion(_enableFlags, version));
 
   /// Returns a list of strings suitable for passing to
   /// [ExperimentStatus.fromStrings].

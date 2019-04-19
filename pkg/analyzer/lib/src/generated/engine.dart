@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -803,6 +804,9 @@ abstract class AnalysisOptions {
   /// see if it is complaint with Chrome OS.
   bool get chromeOsManifestChecks;
 
+  /// The set of features that are globally enabled for this context.
+  FeatureSet get contextFeatures;
+
   /// Return `true` if analysis is to generate dart2js related hint results.
   bool get dart2jsHint;
 
@@ -994,8 +998,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   List<String> _enabledExperiments = const <String>[];
 
-  /// Parsed [enabledExperiments].
-  ExperimentStatus _experimentStatus = ExperimentStatus();
+  ExperimentStatus _contextFeatures = ExperimentStatus();
 
   @override
   List<String> enabledPluginNames = const <String>[];
@@ -1145,6 +1148,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _analyzeFunctionBodiesPredicate = value;
   }
 
+  @override
+  FeatureSet get contextFeatures => _contextFeatures;
+
+  set contextFeatures(FeatureSet featureSet) {
+    _contextFeatures = featureSet;
+    _enabledExperiments = _contextFeatures.toStringList();
+  }
+
   @deprecated
   @override
   bool get enableAssertInitializer => true;
@@ -1177,7 +1188,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   set enabledExperiments(List<String> enabledExperiments) {
     _enabledExperiments = enabledExperiments;
-    _experimentStatus = ExperimentStatus.fromStrings(enabledExperiments);
+    _contextFeatures = ExperimentStatus.fromStrings(enabledExperiments);
   }
 
   @override
@@ -1230,7 +1241,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   /// The set of enabled experiments.
-  ExperimentStatus get experimentStatus => _experimentStatus;
+  ExperimentStatus get experimentStatus => _contextFeatures;
 
   /// Return `true` to enable mixin declarations.
   /// https://github.com/dart-lang/language/issues/12
