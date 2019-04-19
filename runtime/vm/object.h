@@ -401,6 +401,7 @@ class Object {
   V(Bytecode, implicit_static_getter_bytecode)                                 \
   V(Bytecode, method_extractor_bytecode)                                       \
   V(Bytecode, invoke_closure_bytecode)                                         \
+  V(Bytecode, invoke_field_bytecode)                                           \
   V(Instance, sentinel)                                                        \
   V(Instance, transition_sentinel)                                             \
   V(Instance, unknown_constant)                                                \
@@ -2150,7 +2151,7 @@ class Function : public Object {
   bool HasCode() const;
   static bool HasCode(RawFunction* function);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static bool HasBytecode(RawFunction* function);
+  static inline bool HasBytecode(RawFunction* function);
 #endif
 
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
@@ -2171,7 +2172,7 @@ class Function : public Object {
   bool IsBytecodeAllowed(Zone* zone) const;
   void AttachBytecode(const Bytecode& bytecode) const;
   RawBytecode* bytecode() const { return raw_ptr()->bytecode_; }
-  bool HasBytecode() const;
+  inline bool HasBytecode() const;
 #endif
 
   virtual intptr_t Hash() const;
@@ -9381,6 +9382,14 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
     }
   }
 #endif
+}
+
+bool Function::HasBytecode() const {
+  return raw_ptr()->bytecode_ != Bytecode::null();
+}
+
+bool Function::HasBytecode(RawFunction* function) {
+  return function->ptr()->bytecode_ != Bytecode::null();
 }
 
 intptr_t Field::Offset() const {

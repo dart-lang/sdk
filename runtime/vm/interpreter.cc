@@ -615,194 +615,14 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   return true;
 }
 
-DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
-                                                  Thread* thread,
-                                                  RawFunction* function,
-                                                  RawObject** call_base,
-                                                  RawObject** call_top,
-                                                  uint32_t** pc,
-                                                  RawObject*** FP,
-                                                  RawObject*** SP) {
-  ASSERT(!Function::HasCode(function) && !Function::HasBytecode(function));
-  ASSERT(function == call_top[0]);
-  RawFunction::Kind kind = Function::kind(function);
-  switch (kind) {
-    case RawFunction::kInvokeFieldDispatcher: {
-      const intptr_t type_args_len =
-          InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
-      const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
-      RawObject* receiver = call_base[receiver_idx];
-      RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
-      ASSERT(function == FrameFunction(callee_fp));
-      RawFunction* call_function = Function::null();
-      if (function->ptr()->name_ == Symbols::Call().raw()) {
-        RawObject* owner = function->ptr()->owner_;
-        if (owner->GetClassId() == kPatchClassCid) {
-          owner = PatchClass::RawCast(owner)->ptr()->patched_class_;
-        }
-        if (owner == thread->isolate()->object_store()->closure_class()) {
-          // Closure call.
-          call_function = Closure::RawCast(receiver)->ptr()->function_;
-        }
-      }
-      if (call_function == Function::null()) {
-        // Invoke field getter on receiver.
-        call_top[1] = argdesc_;                // Save argdesc_.
-        call_top[2] = 0;                       // Result of runtime call.
-        call_top[3] = receiver;                // Receiver.
-        call_top[4] = function->ptr()->name_;  // Field name.
-        Exit(thread, *FP, call_top + 5, *pc);
-        NativeArguments native_args(thread, 2, call_top + 3, call_top + 2);
-        if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch,
-                           native_args)) {
-          return false;
-        }
-        argdesc_ = Array::RawCast(call_top[1]);
-
-        // Replace receiver with field value, keep all other arguments, and
-        // invoke 'call' function, or if not found, invoke noSuchMethod.
-        receiver = call_top[2];
-        call_base[receiver_idx] = receiver;
-
-        // If the field value is a closure, no need to resolve 'call' function.
-        // Otherwise, call runtime to resolve 'call' function.
-        if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
-          // Closure call.
-          call_function = Closure::RawCast(receiver)->ptr()->function_;
-        } else {
-          // Resolve and invoke the 'call' function.
-          call_top[3] = argdesc_;
-          call_top[4] = 0;  // Result of runtime call.
-          Exit(thread, *FP, call_top + 5, *pc);
-          NativeArguments native_args(thread, 2, call_top + 2, call_top + 4);
-          if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction,
-                             native_args)) {
-            return false;
-          }
-          argdesc_ = Array::RawCast(call_top[1]);
-          call_function = Function::RawCast(call_top[4]);
-          if (call_function == Function::null()) {
-            // Function 'call' could not be resolved for argdesc_.
-            // Invoke noSuchMethod.
-            const intptr_t argc =
-                receiver_idx + InterpreterHelpers::ArgDescArgCount(argdesc_);
-            RawObject* null_value = Object::null();
-            call_top[1] = null_value;
-            call_top[2] = call_base[receiver_idx];
-            call_top[3] = argdesc_;
-            call_top[4] = null_value;  // Array of arguments (will be filled).
-
-            // Allocate array of arguments.
-            {
-              call_top[5] = Smi::New(argc);  // length
-              call_top[6] = null_value;      // type
-              Exit(thread, *FP, call_top + 7, *pc);
-              NativeArguments native_args(thread, 2, call_top + 5,
-                                          call_top + 4);
-              if (!InvokeRuntime(thread, this, DRT_AllocateArray,
-                                 native_args)) {
-                return false;
-              }
-
-              // Copy arguments into the newly allocated array.
-              RawArray* array = static_cast<RawArray*>(call_top[4]);
-              ASSERT(array->GetClassId() == kArrayCid);
-              for (intptr_t i = 0; i < argc; i++) {
-                array->ptr()->data()[i] = call_base[i];
-              }
-            }
-
-            // We failed to resolve 'call' function.
-            call_top[5] = Symbols::Call().raw();
-
-            // Invoke noSuchMethod passing down receiver, argument descriptor,
-            // array of arguments, and target name.
-            {
-              Exit(thread, *FP, call_top + 6, *pc);
-              NativeArguments native_args(thread, 4, call_top + 2,
-                                          call_top + 1);
-              if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod,
-                                 native_args)) {
-                return false;
-              }
-            }
-            *SP = call_base;
-            **SP = call_top[1];
-            *invoked = true;
-            return true;
-          }
-        }
-      }
-      ASSERT(call_function != Function::null());
-      // Patch field dispatcher in callee frame with call function.
-      callee_fp[kKBCFunctionSlotFromFp] = call_function;
-      // Do not compile function if it has code or bytecode.
-      if (Function::HasCode(call_function)) {
-        *invoked = true;
-        return InvokeCompiled(thread, call_function, call_base, call_top, pc,
-                              FP, SP);
-      }
-      if (Function::HasBytecode(call_function)) {
-        *invoked = false;
-        return true;
-      }
-      function = call_function;
-      break;  // Compile and invoke the function.
-    }
-    case RawFunction::kNoSuchMethodDispatcher:
-      // TODO(regis): Implement. For now, use jitted version.
-      break;
-    case RawFunction::kDynamicInvocationForwarder:
-      // TODO(regis): Implement. For now, use jitted version.
-      break;
-    default:
-      break;
-  }
-  // Compile the function to either generate code or load bytecode.
-  call_top[1] = 0;  // Code result.
-  call_top[2] = function;
-  Exit(thread, *FP, call_top + 3, *pc);
-  NativeArguments native_args(thread, 1, call_top + 2, call_top + 1);
-  if (!InvokeRuntime(thread, this, DRT_CompileFunction, native_args)) {
-    return false;
-  }
-  // Reload objects after the call which may trigger GC.
-  function = Function::RawCast(call_top[2]);
-  if (Function::HasCode(function)) {
-    *invoked = true;
-    return InvokeCompiled(thread, function, call_base, call_top, pc, FP, SP);
-  }
+DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
+                                                   RawFunction* function,
+                                                   RawObject** call_base,
+                                                   RawObject** call_top,
+                                                   uint32_t** pc,
+                                                   RawObject*** FP,
+                                                   RawObject*** SP) {
   ASSERT(Function::HasBytecode(function));
-  // Bytecode was loaded in the above compilation step.
-  // The caller will dispatch to the function's bytecode.
-  *invoked = false;
-  ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
-  ASSERT(thread->top_exit_frame_info() == 0);
-  return true;
-}
-
-DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
-                                           RawObject** call_base,
-                                           RawObject** call_top,
-                                           uint32_t** pc,
-                                           RawObject*** FP,
-                                           RawObject*** SP) {
-  RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
-
-  RawFunction* function = FrameFunction(callee_fp);
-  if (Function::HasCode(function)) {
-    return InvokeCompiled(thread, function, call_base, call_top, pc, FP, SP);
-  }
-  if (!Function::HasBytecode(function)) {
-    bool invoked = false;
-    bool result = ProcessInvocation(&invoked, thread, function, call_base,
-                                    call_top, pc, FP, SP);
-    if (invoked || !result) {
-      return result;
-    }
-    function = FrameFunction(callee_fp);  // Function may have been patched.
-    ASSERT(Function::HasBytecode(function));
-  }
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
@@ -810,6 +630,8 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
               Function::Handle(function).ToFullyQualifiedCString());
   }
 #endif
+  RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
+  ASSERT(function == FrameFunction(callee_fp));
   RawBytecode* bytecode = function->ptr()->bytecode_;
   callee_fp[kKBCPcMarkerSlotFromFp] = bytecode;
   callee_fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(*pc);
@@ -821,6 +643,38 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   NOT_IN_PRODUCT(fp_ = callee_fp);  // For the profiler.
   *SP = *FP - 1;
   return true;
+}
+
+DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
+                                           RawObject** call_base,
+                                           RawObject** call_top,
+                                           uint32_t** pc,
+                                           RawObject*** FP,
+                                           RawObject*** SP) {
+  RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
+  RawFunction* function = FrameFunction(callee_fp);
+
+  for (;;) {
+    if (Function::HasCode(function)) {
+      return InvokeCompiled(thread, function, call_base, call_top, pc, FP, SP);
+    }
+    if (Function::HasBytecode(function)) {
+      return InvokeBytecode(thread, function, call_base, call_top, pc, FP, SP);
+    }
+
+    // Compile the function to either generate code or load bytecode.
+    call_top[1] = 0;  // Code result.
+    call_top[2] = function;
+    Exit(thread, *FP, call_top + 3, *pc);
+    NativeArguments native_args(thread, 1, call_top + 2, call_top + 1);
+    if (!InvokeRuntime(thread, this, DRT_CompileFunction, native_args)) {
+      return false;
+    }
+    // Reload objects after the call which may trigger GC.
+    function = Function::RawCast(call_top[2]);
+
+    ASSERT(Function::HasCode(function) || Function::HasBytecode(function));
+  }
 }
 
 void Interpreter::InlineCacheMiss(int checked_args,
@@ -3373,6 +3227,9 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_InvokeClosure, 0);
 
+    ASSERT(Function::kind(FrameFunction(FP)) ==
+           RawFunction::kInvokeFieldDispatcher);
+
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
@@ -3383,14 +3240,185 @@ SwitchDispatch:
         Closure::RawCast(FrameArguments(FP, argc)[receiver_idx]);
     RawFunction* function = receiver->ptr()->function_;
 
-    if (LIKELY(Function::HasBytecode(function))) {
-      goto TailCallBytecode;
-    }
-    if (LIKELY(Function::HasCode(function))) {
-      goto CallMachineCode;
+    SP[1] = function;
+    goto TailCallSP1;
+  }
+
+  {
+    BYTECODE(VMInternal_InvokeField, 0);
+
+    RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
+
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+
+    RawObject* receiver = FrameArguments(FP, argc)[receiver_idx];
+
+    // Invoke field getter on receiver.
+    {
+      SP[1] = argdesc_;                // Save argdesc_.
+      SP[2] = 0;                       // Result of runtime call.
+      SP[3] = receiver;                // Receiver.
+      SP[4] = function->ptr()->name_;  // Field name.
+      Exit(thread, FP, SP + 5, pc);
+      NativeArguments native_args(thread, 2, SP + 3, SP + 2);
+      if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch, native_args)) {
+        HANDLE_EXCEPTION;
+      }
+      argdesc_ = Array::RawCast(SP[1]);
     }
 
+    // Replace receiver with field value, keep all other arguments, and
+    // invoke 'call' function, or if not found, invoke noSuchMethod.
+    FrameArguments(FP, argc)[receiver_idx] = receiver = SP[2];
+
+    // If the field value is a closure, no need to resolve 'call' function.
+    if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
+      SP[1] = Closure::RawCast(receiver)->ptr()->function_;
+      goto TailCallSP1;
+    }
+
+    // Otherwise, call runtime to resolve 'call' function.
     {
+      SP[1] = 0;  // Result slot.
+      SP[2] = receiver;
+      SP[3] = argdesc_;
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments native_args(thread, 2, SP + 2, SP + 1);
+      if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction, native_args)) {
+        HANDLE_EXCEPTION;
+      }
+      argdesc_ = Array::RawCast(SP[3]);
+      function = Function::RawCast(SP[1]);
+      receiver = SP[2];
+    }
+
+    if (function != Function::null()) {
+      SP[1] = function;
+      goto TailCallSP1;
+    }
+
+    // Function 'call' could not be resolved for argdesc_.
+    // Invoke noSuchMethod.
+    RawObject* null_value = Object::null();
+    SP[1] = null_value;
+    SP[2] = receiver;
+    SP[3] = argdesc_;
+    SP[4] = null_value;  // Array of arguments (will be filled).
+
+    // Allocate array of arguments.
+    {
+      SP[5] = Smi::New(argc);  // length
+      SP[6] = null_value;      // type
+      Exit(thread, FP, SP + 7, pc);
+      NativeArguments native_args(thread, 2, SP + 5, SP + 4);
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray, native_args)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    // Copy arguments into the newly allocated array.
+    RawObject** argv = FrameArguments(FP, argc);
+    RawArray* array = static_cast<RawArray*>(SP[4]);
+    ASSERT(array->GetClassId() == kArrayCid);
+    for (intptr_t i = 0; i < argc; i++) {
+      array->ptr()->data()[i] = argv[i];
+    }
+
+    // We failed to resolve 'call' function.
+    SP[5] = Symbols::Call().raw();
+
+    // Invoke noSuchMethod passing down receiver, argument descriptor,
+    // array of arguments, and target name.
+    {
+      Exit(thread, FP, SP + 6, pc);
+      NativeArguments native_args(thread, 4, SP + 2, SP + 1);
+      if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod, native_args)) {
+        HANDLE_EXCEPTION;
+      }
+
+      ++SP;  // Result at SP[0]
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ForwardDynamicInvocation, 0);
+    RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) ==
+           RawFunction::kDynamicInvocationForwarder);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_DispatchNoSuchMethod, 0);
+    RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kNoSuchMethodDispatcher);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitStaticClosure, 0);
+    RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitInstanceClosure, 0);
+    RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
+    UNIMPLEMENTED();
+    DISPATCH();
+  }
+
+  {
+  TailCallSP1:
+    RawFunction* function = Function::RawCast(SP[1]);
+
+    for (;;) {
+      if (Function::HasBytecode(function)) {
+        ASSERT(function->IsFunction());
+        RawBytecode* bytecode = function->ptr()->bytecode_;
+        ASSERT(bytecode->IsBytecode());
+        FP[kKBCFunctionSlotFromFp] = function;
+        FP[kKBCPcMarkerSlotFromFp] = bytecode;
+        pp_ = bytecode->ptr()->object_pool_;
+        pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+        NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
+        DISPATCH();
+      }
+
+      if (Function::HasCode(function)) {
+        const intptr_t type_args_len =
+            InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+        const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+        const intptr_t argc =
+            InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+        RawObject** argv = FrameArguments(FP, argc);
+        for (intptr_t i = 0; i < argc; i++) {
+          *++SP = argv[i];
+        }
+
+        RawObject** call_base = SP - argc + 1;
+        RawObject** call_top = SP + 1;
+        call_top[0] = function;
+        if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP,
+                            &SP)) {
+          HANDLE_EXCEPTION;
+        } else {
+          HANDLE_RETURN;
+        }
+        DISPATCH();
+      }
+
       // Compile the function to either generate code or load bytecode.
       SP[1] = argdesc_;
       SP[2] = 0;  // Code result.
@@ -3403,47 +3431,8 @@ SwitchDispatch:
       }
       function = Function::RawCast(SP[3]);
       argdesc_ = Array::RawCast(SP[1]);
-    }
 
-    if (LIKELY(Function::HasBytecode(function))) {
-      goto TailCallBytecode;
-    }
-    if (LIKELY(Function::HasCode(function))) {
-      goto CallMachineCode;
-    }
-
-    UNREACHABLE();
-
-    {
-    TailCallBytecode:
-      ASSERT(function->IsFunction());
-      RawBytecode* bytecode = function->ptr()->bytecode_;
-      ASSERT(bytecode->IsBytecode());
-      FP[kKBCFunctionSlotFromFp] = function;
-      FP[kKBCPcMarkerSlotFromFp] = bytecode;
-      pp_ = bytecode->ptr()->object_pool_;
-      pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
-      NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
-      DISPATCH();
-    }
-
-    {
-    CallMachineCode:
-      RawObject** argv = FrameArguments(FP, argc);
-      for (intptr_t i = 0; i < argc; i++) {
-        *++SP = argv[i];
-      }
-
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
-      call_top[0] = function;
-      if (!InvokeCompiled(thread, function, call_base, call_top, &pc, &FP,
-                          &SP)) {
-        HANDLE_EXCEPTION;
-      } else {
-        HANDLE_RETURN;
-      }
-      DISPATCH();
+      ASSERT(Function::HasCode(function) || Function::HasBytecode(function));
     }
   }
 
