@@ -68,7 +68,7 @@ class ExperimentalFeatures {
       'Non Nullable');
 
   static const control_flow_collections = const ExperimentalFeature(
-      null,
+      2,
       EnableString.control_flow_collections,
       IsEnabledByDefault.control_flow_collections,
       IsExpired.control_flow_collections,
@@ -76,7 +76,7 @@ class ExperimentalFeatures {
       firstSupportedVersion: '2.2.2');
 
   static const spread_collections = const ExperimentalFeature(
-      null,
+      3,
       EnableString.spread_collections,
       IsEnabledByDefault.spread_collections,
       IsExpired.spread_collections,
@@ -84,7 +84,7 @@ class ExperimentalFeatures {
       firstSupportedVersion: '2.2.2');
 
   static const set_literals = const ExperimentalFeature(
-      null,
+      4,
       EnableString.set_literals,
       IsEnabledByDefault.set_literals,
       IsExpired.set_literals,
@@ -92,21 +92,21 @@ class ExperimentalFeatures {
       firstSupportedVersion: '2.2.0');
 
   static const triple_shift = const ExperimentalFeature(
-      2,
+      5,
       EnableString.triple_shift,
       IsEnabledByDefault.triple_shift,
       IsExpired.triple_shift,
       'Triple-shift operator');
 
   static const bogus_disabled = const ExperimentalFeature(
-      null,
+      6,
       EnableString.bogus_disabled,
       IsEnabledByDefault.bogus_disabled,
       IsExpired.bogus_disabled,
       null);
 
   static const bogus_enabled = const ExperimentalFeature(
-      null,
+      7,
       EnableString.bogus_enabled,
       IsEnabledByDefault.bogus_enabled,
       IsExpired.bogus_enabled,
@@ -145,7 +145,12 @@ class ExperimentStatus implements FeatureSet {
       : _enableFlags = <bool>[
           constant_update_2018 ?? IsEnabledByDefault.constant_update_2018,
           non_nullable ?? IsEnabledByDefault.non_nullable,
+          true, // control-flow-collections
+          true, // spread-collections
+          true, // set-literals
           triple_shift ?? IsEnabledByDefault.triple_shift,
+          false, // bogus-disabled
+          true, // bogus-enabled
         ];
 
   /// Computes a set of features for use in a unit test.  Computes the set of
@@ -169,17 +174,19 @@ class ExperimentStatus implements FeatureSet {
 
   ExperimentStatus._(this._enableFlags);
 
-  /// Hardcoded state for the expired flag "bogus_disabled"
-  bool get bogus_disabled => false;
+  /// Current state for the flag "bogus_disabled"
+  bool get bogus_disabled => isEnabled(ExperimentalFeatures.bogus_disabled);
 
-  /// Hardcoded state for the expired flag "bogus_enabled"
-  bool get bogus_enabled => true;
+  /// Current state for the flag "bogus_enabled"
+  bool get bogus_enabled => isEnabled(ExperimentalFeatures.bogus_enabled);
 
   /// Current state for the flag "constant-update-2018"
-  bool get constant_update_2018 => _enableFlags[0];
+  bool get constant_update_2018 =>
+      isEnabled(ExperimentalFeatures.constant_update_2018);
 
   /// Current state for the flag "control_flow_collections"
-  bool get control_flow_collections => true;
+  bool get control_flow_collections =>
+      isEnabled(ExperimentalFeatures.control_flow_collections);
 
   @override
   int get hashCode {
@@ -191,16 +198,17 @@ class ExperimentStatus implements FeatureSet {
   }
 
   /// Current state for the flag "non-nullable"
-  bool get non_nullable => _enableFlags[1];
+  bool get non_nullable => isEnabled(ExperimentalFeatures.non_nullable);
 
   /// Current state for the flag "set-literals"
-  bool get set_literals => true;
+  bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);
 
   /// Current state for the flag "spread_collections"
-  bool get spread_collections => true;
+  bool get spread_collections =>
+      isEnabled(ExperimentalFeatures.spread_collections);
 
   /// Current state for the flag "triple_shift"
-  bool get triple_shift => _enableFlags[2];
+  bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);
 
   @override
   operator ==(Object other) {
@@ -215,9 +223,7 @@ class ExperimentStatus implements FeatureSet {
   }
 
   /// Queries whether the given [feature] is enabled or disabled.
-  bool isEnabled(ExperimentalFeature feature) => feature.isExpired
-      ? feature.isEnabledByDefault
-      : _enableFlags[feature.index];
+  bool isEnabled(ExperimentalFeature feature) => _enableFlags[feature.index];
 
   @override
   FeatureSet restrictToVersion(Version version) =>

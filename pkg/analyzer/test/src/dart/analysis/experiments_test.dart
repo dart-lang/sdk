@@ -80,28 +80,28 @@ class ExperimentsTest {
 
   test_fromStrings_illegal_use_of_expired_flag_disable() {
     // Expired flags are ignored even if they would fail validation.
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', true, true, 'a',
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', true, true, 'a',
         firstSupportedVersion: '1.0.0');
-    expect(getFlags(fromStrings(['no-a'])), []);
+    expect(getFlags(fromStrings(['no-a'])), [true]);
   }
 
   test_fromStrings_illegal_use_of_expired_flag_enable() {
     // Expired flags are ignored even if they would fail validation.
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', false, true, 'a');
-    expect(getFlags(fromStrings(['a'])), []);
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', false, true, 'a');
+    expect(getFlags(fromStrings(['a'])), [false]);
   }
 
   test_fromStrings_unnecessary_use_of_expired_flag_disable() {
     // Expired flags are ignored.
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', false, true, 'a');
-    expect(getFlags(fromStrings(['no-a'])), []);
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', false, true, 'a');
+    expect(getFlags(fromStrings(['no-a'])), [false]);
   }
 
   test_fromStrings_unnecessary_use_of_expired_flag_enable() {
     // Expired flags are ignored.
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', true, true, 'a',
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', true, true, 'a',
         firstSupportedVersion: '1.0.0');
-    expect(getFlags(fromStrings(['a'])), []);
+    expect(getFlags(fromStrings(['a'])), [true]);
   }
 
   test_fromStrings_unrecognized_flag() {
@@ -178,7 +178,7 @@ class ExperimentsTest {
   }
 
   test_validateFlags_illegal_use_of_expired_flag_disable() {
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', true, true, 'a',
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', true, true, 'a',
         firstSupportedVersion: '1.0.0');
     var validationResult = getValidationResult(['no-a']);
     expect(validationResult, hasLength(1));
@@ -190,7 +190,7 @@ class ExperimentsTest {
   }
 
   test_validateFlags_illegal_use_of_expired_flag_enable() {
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', false, true, 'a');
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', false, true, 'a');
     var validationResult = getValidationResult(['a']);
     expect(validationResult, hasLength(1));
     var error = validationResult[0] as IllegalUseOfExpiredFlag;
@@ -201,7 +201,7 @@ class ExperimentsTest {
   }
 
   test_validateFlags_unnecessary_use_of_expired_flag_disable() {
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', false, true, 'a');
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', false, true, 'a');
     var validationResult = getValidationResult(['no-a']);
     expect(validationResult, hasLength(1));
     var error = validationResult[0] as UnnecessaryUseOfExpiredFlag;
@@ -212,7 +212,7 @@ class ExperimentsTest {
   }
 
   test_validateFlags_unnecessary_use_of_expired_flag_enable() {
-    knownFeatures['a'] = ExperimentalFeature(null, 'a', true, true, 'a',
+    knownFeatures['a'] = ExperimentalFeature(0, 'a', true, true, 'a',
         firstSupportedVersion: '1.0.0');
     var validationResult = getValidationResult(['a']);
     expect(validationResult, hasLength(1));

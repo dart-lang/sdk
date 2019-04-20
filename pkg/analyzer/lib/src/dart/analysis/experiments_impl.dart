@@ -19,14 +19,9 @@ Map<String, ExperimentalFeature> _knownFeatures =
 /// unrecognized flags are ignored, conflicting flags are resolved in favor of
 /// the flag appearing last.
 List<bool> decodeFlags(List<String> flags) {
-  var decodedFlags = <bool>[];
+  var decodedFlags = List<bool>.filled(_knownFeatures.length, false);
   for (var feature in _knownFeatures.values) {
-    if (feature.isExpired) continue;
-    var index = feature.index;
-    while (decodedFlags.length <= index) {
-      decodedFlags.add(false);
-    }
-    decodedFlags[index] = feature.isEnabledByDefault;
+    decodedFlags[feature.index] = feature.isEnabledByDefault;
   }
   for (var entry in _flagStringsToMap(flags).entries) {
     decodedFlags[entry.key] = entry.value;
@@ -46,11 +41,6 @@ List<bool> enableFlagsForTesting(
     flags = restrictEnableFlagsToVersion(flags, Version.parse(sdkVersion));
   }
   for (ExperimentalFeature feature in additionalFeatures) {
-    if (feature.isExpired) {
-      // At the moment we can't enable features in the "expired" state.
-      // TODO(paulberry): fix this by including such features in enable flags.
-      continue;
-    }
     flags[feature.index] = true;
   }
   return flags;
@@ -93,11 +83,6 @@ T overrideKnownFeatures<T>(
 List<bool> restrictEnableFlagsToVersion(List<bool> flags, Version version) {
   flags = List.from(flags);
   for (var feature in _knownFeatures.values) {
-    if (feature.isExpired) {
-      // At the moment we can't disable features in the "expired" state.
-      // TODO(paulberry): fix this by including such features in enable flags.
-      continue;
-    }
     if (!feature.isEnabledByDefault ||
         feature.firstSupportedVersion > version) {
       flags[feature.index] = false;
@@ -251,9 +236,6 @@ class ExperimentalFeature implements Feature {
   /// Index of the flag in the private data structure maintained by
   /// [ExperimentStatus].
   ///
-  /// For expired features, the index should be null, since no enable/disable
-  /// state needs to be stored.
-  ///
   /// This index should not be relied upon to be stable over time.  For instance
   /// it should not be used to serialize the state of experiments to long term
   /// storage if there is any expectation of compatibility between analyzer
@@ -279,7 +261,7 @@ class ExperimentalFeature implements Feature {
       this.isEnabledByDefault, this.isExpired, this.documentation,
       {String firstSupportedVersion})
       : _firstSupportedVersion = firstSupportedVersion,
-        assert(isExpired ? index == null : index != null),
+        assert(index != null),
         assert(isEnabledByDefault
             ? firstSupportedVersion != null
             : firstSupportedVersion == null);
