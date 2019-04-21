@@ -5279,8 +5279,8 @@ import 'unknown.dart';
   }
 
   test_uriDoesNotExist_import_appears_after_deleting_target() async {
-    newFile('/test/lib/target.dart', content: '''
-''');
+    String filePath = newFile('/test/lib/target.dart').path;
+
     await assertErrorsInCode('''
 import 'target.dart';
 ''', [
@@ -5288,8 +5288,8 @@ import 'target.dart';
     ]);
 
     // Remove the overlay in the same way as AnalysisServer.
-    deleteFile('/test/lib/target.dart');
-    driver.removeFile('/test/lib/target.dart');
+    deleteFile(filePath);
+    driver.removeFile(filePath);
 
     await resolveTestFile();
     GatheringErrorListener errorListener = new GatheringErrorListener();
