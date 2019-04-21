@@ -4,9 +4,10 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,9 +16,10 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryNullAwareCallTest extends ResolverTestCase {
+class UnnecessaryNullAwareCallTest extends DriverResolutionTest {
   @override
-  List<String> get enabledExperiments => [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_getter_parenthesized_nonNull() async {
     await assertErrorsInCode('''
@@ -28,7 +30,9 @@ f() {
   int x;
   (x)?.isEven;
 }
-''', [HintCode.UNNECESSARY_NULL_AWARE_CALL]);
+''', [
+      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 67, 2),
+    ]);
   }
 
   test_getter_parenthesized_nullable() async {
@@ -52,7 +56,9 @@ f() {
   int x;
   x?.isEven;
 }
-''', [HintCode.UNNECESSARY_NULL_AWARE_CALL]);
+''', [
+      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 65, 2),
+    ]);
   }
 
   test_getter_simple_nullable() async {
@@ -76,7 +82,9 @@ f() {
   int x;
   (x)?.round();
 }
-''', [HintCode.UNNECESSARY_NULL_AWARE_CALL]);
+''', [
+      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 67, 2),
+    ]);
   }
 
   test_method_parenthesized_nullable() async {
@@ -100,7 +108,9 @@ f() {
   int x;
   x?.round();
 }
-''', [HintCode.UNNECESSARY_NULL_AWARE_CALL]);
+''', [
+      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 65, 2),
+    ]);
   }
 
   test_method_simple_nullable() async {
