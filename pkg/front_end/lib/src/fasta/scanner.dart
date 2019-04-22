@@ -72,6 +72,7 @@ ScannerResult scan(List<int> bytes,
 ScannerResult scanString(String source,
     {bool enableGtGtGt: false,
     bool enableGtGtGtEq: false,
+    bool enableNonNullable: false,
     bool includeComments: false,
     bool scanLazyAssignmentOperators: false,
     Recover recover}) {
@@ -82,6 +83,7 @@ ScannerResult scanString(String source,
       new StringScanner(source, includeComments: includeComments);
   scanner.enableGtGtGt = enableGtGtGt;
   scanner.enableGtGtGtEq = enableGtGtGtEq;
+  scanner.enableNonNullable = enableNonNullable;
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

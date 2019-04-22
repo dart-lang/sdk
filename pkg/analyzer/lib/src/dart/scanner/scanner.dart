@@ -59,6 +59,12 @@ class Scanner {
   bool enableGtGtGt = false;
 
   /**
+   * A flag indicating whether the scanner should recognize the `late` and
+   * `required` keywords.
+   */
+  bool enableNonNullable = false;
+
+  /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [reader] will be used to read the characters
    * in the source. The given [_errorListener] will be informed of any errors
@@ -105,6 +111,7 @@ class Scanner {
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(_contents,
         enableGtGtGt: enableGtGtGt,
+        enableNonNullable: enableNonNullable,
         includeComments: _preserveComments,
         scanLazyAssignmentOperators: scanLazyAssignmentOperators);
 

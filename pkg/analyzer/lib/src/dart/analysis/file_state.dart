@@ -711,6 +711,7 @@ class FileState {
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
     scanner.enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
+    scanner.enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
