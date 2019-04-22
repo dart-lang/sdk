@@ -1267,6 +1267,8 @@ class FastaParserTestCase
   final nonNullable = FeatureSet.forTesting(
       sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
 
+  final preNonNullable = FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   ParserProxy _parserProxy;
 
   analyzer.Token _fastaTokens;
@@ -2075,7 +2077,6 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_late_as_identifier() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
     parseCompilationUnit('''
 class C {
   int late;
@@ -2088,7 +2089,7 @@ void f(C c) {
 main() {
   f(new C());
 }
-''');
+''', featureSet: preNonNullable);
   }
 
   void test_is_nullable_parenthesis() {
@@ -2120,11 +2121,12 @@ main() {
   }
 
   void test_nullCheck_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    var unit = parseCompilationUnit('f(int? y) { var x = y!; }', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-    ]);
+    var unit = parseCompilationUnit('f(int? y) { var x = y!; }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+        ],
+        featureSet: preNonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     VariableDeclarationStatement statement = body.block.statements[0];
@@ -2149,11 +2151,12 @@ main() {
   }
 
   void test_nullCheckInExpression_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    parseCompilationUnit('f(int? y) { var x = y! + 7; }', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-    ]);
+    parseCompilationUnit('f(int? y) { var x = y! + 7; }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+        ],
+        featureSet: preNonNullable);
   }
 
   void test_nullCheckMethodResult() {
@@ -2177,9 +2180,9 @@ main() {
   }
 
   void test_nullCheckOnLiteral_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
     parseCompilationUnit('f() { var x = 0!; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
+        featureSet: preNonNullable);
   }
 
   void test_nullCheckOnLiteralDouble() {
@@ -2227,9 +2230,9 @@ main() {
   }
 
   void test_nullCheckOnValue_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
     parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)],
+        featureSet: preNonNullable);
   }
 
   void test_nullCheckParenthesizedExpression() {

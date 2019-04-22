@@ -260,8 +260,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     if (varFinalOrConst != null) {
       push(new _Modifiers()..finalConstOrVarKeyword = varFinalOrConst);
     } else {
@@ -715,10 +718,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token semicolon) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("Fields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
@@ -1753,10 +1758,18 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelDeclaration");
   }
 
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();

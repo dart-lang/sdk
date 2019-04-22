@@ -902,7 +902,9 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {
+    // TODO(danrubel): update to include lateToken
     calls.add('beginVariablesDeclaration $token $varFinalOrConst');
   }
 

@@ -298,8 +298,8 @@ class Listener implements UnescapeErrorListener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     logEvent("Fields");
   }
 
@@ -901,8 +901,14 @@ class Listener implements UnescapeErrorListener {
   ///   - Field initializer
   /// Doesn't have a corresponding begin event.
   /// Use [beginTopLevelMember] instead.
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     logEvent("TopLevelFields");
   }
 
@@ -1061,7 +1067,8 @@ class Listener implements UnescapeErrorListener {
   /// Handle the start of a variables declaration.  Substructures:
   /// - Metadata
   /// - Type
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {}
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {}
 
   void endVariablesDeclaration(int count, Token endToken) {
     logEvent("VariablesDeclaration");

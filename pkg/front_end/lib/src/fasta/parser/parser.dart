@@ -2401,11 +2401,11 @@ class Parser {
     }
     token = ensureSemicolon(token);
     if (isTopLevel) {
-      listener.endTopLevelFields(staticToken, covariantToken, varFinalOrConst,
-          fieldCount, beforeStart.next, token);
+      listener.endTopLevelFields(staticToken, covariantToken, lateToken,
+          varFinalOrConst, fieldCount, beforeStart.next, token);
     } else {
-      listener.endFields(staticToken, covariantToken, varFinalOrConst,
-          fieldCount, beforeStart.next, token);
+      listener.endFields(staticToken, covariantToken, lateToken,
+          varFinalOrConst, fieldCount, beforeStart.next, token);
     }
     return token;
   }
@@ -5330,7 +5330,7 @@ class Parser {
     }
     token = typeInfo.parseType(beforeType, this);
     next = token.next;
-    listener.beginVariablesDeclaration(next, varFinalOrConst);
+    listener.beginVariablesDeclaration(next, lateToken, varFinalOrConst);
     if (!onlyParseVariableDeclarationStart) {
       token = parseVariablesDeclarationRest(token, true);
     }
