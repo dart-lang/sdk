@@ -909,12 +909,26 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the variable list does not have
   /// the corresponding attribute. The [keyword] can be `null` if a type was
   /// specified. The [type] must be `null` if the keyword is 'var'.
+  ///
+  /// Use [variableDeclarationList2] instead.
   VariableDeclarationList variableDeclarationList(
       Comment comment,
       List<Annotation> metadata,
       Token keyword,
       TypeAnnotation type,
       List<VariableDeclaration> variables);
+
+  /// Returns a newly created variable declaration list. Either or both of the
+  /// [comment] and [metadata] can be `null` if the variable list does not have
+  /// the corresponding attribute. The [keyword] can be `null` if a type was
+  /// specified. The [type] must be `null` if the keyword is 'var'.
+  VariableDeclarationList variableDeclarationList2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token lateKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      List<VariableDeclaration> variables});
 
   /// Returns a newly created variable declaration statement.
   VariableDeclarationStatement variableDeclarationStatement(

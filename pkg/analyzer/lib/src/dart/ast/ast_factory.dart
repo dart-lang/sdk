@@ -1023,7 +1023,19 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation type,
           List<VariableDeclaration> variables) =>
       new VariableDeclarationListImpl(
-          comment, metadata, keyword, type, variables);
+          comment, metadata, null, keyword, type, variables);
+
+  @override
+  VariableDeclarationList variableDeclarationList2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token lateKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      List<VariableDeclaration> variables}) {
+    return new VariableDeclarationListImpl(
+        comment, metadata, lateKeyword, keyword, type, variables);
+  }
 
   @override
   VariableDeclarationStatement variableDeclarationStatement(

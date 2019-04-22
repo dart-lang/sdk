@@ -59,6 +59,184 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   final tripleShift = FeatureSet.forTesting(
       sdkVersion: '2.0.0', additionalFeatures: [Feature.triple_shift]);
 
+  void test_parseField_const_late() {
+    createParser('const late T f = 0;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 6, 4),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isTrue);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_final_late() {
+    createParser('final late T f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4),
+    ]);
+    expect(member, isNotNull);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isTrue);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late() {
+    createParser('late T f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late_const() {
+    createParser('late const T f = 0;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 5),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isTrue);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late_final() {
+    createParser('late final T f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isTrue);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late_var() {
+    createParser('late var f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 3),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_var_late() {
+    createParser('var late f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 4, 4),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
   void test_parseClassMember_operator_gtgtgt() {
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { bool operator >>>(other) => false; }',
@@ -1458,10 +1636,13 @@ class FastaParserTestCase
     // Scan tokens
     bool enableTripleShift =
         featureSet != null && featureSet.isEnabled(Feature.triple_shift);
+    bool enableNonNullable =
+        featureSet != null && featureSet.isEnabled(Feature.non_nullable);
     ScannerResult result = scanString(content,
         includeComments: true,
         enableGtGtGt: enableTripleShift,
-        enableGtGtGtEq: enableTripleShift);
+        enableGtGtGtEq: enableTripleShift,
+        enableNonNullable: enableNonNullable);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -2546,6 +2727,58 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
+  void test_parseVariableDeclaration_final_late() {
+    var statement = parseStatement('final late a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late() {
+    var statement = parseStatement('late a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_final() {
+    var statement = parseStatement('late final a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_init() {
+    var statement = parseStatement('late a = 0;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_type() {
+    var statement = parseStatement('late A a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.lateKeyword, isNotNull);
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
   test_parseArgument() {
     Expression result = parseArgument('3');
     expect(result, const TypeMatcher<IntegerLiteral>());
@@ -3314,5 +3547,53 @@ mixin A {
     createParser('/// Doc\nmixin M {}');
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expectCommentText(declaration.documentationComment, '/// Doc');
+  }
+
+  void test_parseTopLevelVariable_final_late() {
+    var unit = parseCompilationUnit('final late a;',
+        featureSet: nonNullable,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late() {
+    var unit = parseCompilationUnit('late a;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late_final() {
+    var unit = parseCompilationUnit('late final a;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late_init() {
+    var unit = parseCompilationUnit('late a = 0;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late_type() {
+    var unit = parseCompilationUnit('late A a;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.lateKeyword, isNotNull);
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
   }
 }

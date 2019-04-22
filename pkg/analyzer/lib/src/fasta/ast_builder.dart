@@ -265,10 +265,10 @@ class AstBuilder extends StackListener {
   void beginVariablesDeclaration(
       Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
-    // TODO(danrubel): handle NNBD 'late' modifier
-    reportNonNullableModifierError(lateToken);
-    if (varFinalOrConst != null) {
-      push(new _Modifiers()..finalConstOrVarKeyword = varFinalOrConst);
+    if (varFinalOrConst != null || lateToken != null) {
+      push(new _Modifiers()
+        ..finalConstOrVarKeyword = varFinalOrConst
+        ..lateToken = lateToken);
     } else {
       push(NullValue.Modifiers);
     }
@@ -724,25 +724,23 @@ class AstBuilder extends StackListener {
       Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("Fields");
-    // TODO(danrubel): handle NNBD 'late' modifier
-    reportNonNullableModifierError(lateToken);
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = new _Modifiers()
-      ..staticKeyword = staticToken
-      ..covariantKeyword = covariantToken
-      ..finalConstOrVarKeyword = varFinalOrConst;
-    var variableList = ast.variableDeclarationList(
-        null, null, modifiers?.finalConstOrVarKeyword, type, variables);
-    Token covariantKeyword = modifiers?.covariantKeyword;
+    var variableList = ast.variableDeclarationList2(
+      lateKeyword: lateToken,
+      keyword: varFinalOrConst,
+      type: type,
+      variables: variables,
+    );
+    Token covariantKeyword = covariantToken;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     (classDeclaration ?? mixinDeclaration).members.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
         covariantKeyword: covariantKeyword,
-        staticKeyword: modifiers?.staticKeyword,
+        staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
   }
@@ -1770,18 +1768,15 @@ class AstBuilder extends StackListener {
       Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
-    // TODO(danrubel): handle NNBD 'late' modifier
-    reportNonNullableModifierError(lateToken);
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = new _Modifiers()
-      ..staticKeyword = staticToken
-      ..covariantKeyword = covariantToken
-      ..finalConstOrVarKeyword = varFinalOrConst;
-    Token keyword = modifiers?.finalConstOrVarKeyword;
-    var variableList =
-        ast.variableDeclarationList(null, null, keyword, type, variables);
+    var variableList = ast.variableDeclarationList2(
+      lateKeyword: lateToken,
+      keyword: varFinalOrConst,
+      type: type,
+      variables: variables,
+    );
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
@@ -1891,8 +1886,14 @@ class AstBuilder extends StackListener {
     Comment comment = _findComment(metadata,
         variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
     push(ast.variableDeclarationStatement(
-        ast.variableDeclarationList(
-            comment, metadata, keyword, type, variables),
+        ast.variableDeclarationList2(
+          comment: comment,
+          metadata: metadata,
+          lateKeyword: modifiers?.lateToken,
+          keyword: keyword,
+          type: type,
+          variables: variables,
+        ),
         semicolon));
   }
 
@@ -3339,6 +3340,7 @@ class _Modifiers {
   Token staticKeyword;
   Token covariantKeyword;
   Token requiredToken;
+  Token lateToken;
 
   /// Return the token that is lexically first.
   Token get beginToken {
@@ -3350,6 +3352,7 @@ class _Modifiers {
       staticKeyword,
       covariantKeyword,
       requiredToken,
+      lateToken,
     ]) {
       if (firstToken == null) {
         firstToken = token;

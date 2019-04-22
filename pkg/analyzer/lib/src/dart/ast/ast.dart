@@ -10460,6 +10460,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   VariableDeclarationListImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      this.lateKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       List<VariableDeclaration> variables)
