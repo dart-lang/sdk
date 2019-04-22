@@ -4,6 +4,7 @@
 
 #include "vm/symbols.h"
 
+#include "platform/unicode.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
@@ -13,7 +14,6 @@
 #include "vm/reusable_handles.h"
 #include "vm/snapshot_ids.h"
 #include "vm/type_table.h"
-#include "vm/unicode.h"
 #include "vm/visitor.h"
 
 namespace dart {

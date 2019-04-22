@@ -4,6 +4,7 @@
 
 #include "vm/regexp.h"
 
+#include "platform/unicode.h"
 #include "vm/dart_entry.h"
 #include "vm/regexp_assembler.h"
 #include "vm/regexp_assembler_bytecode.h"
@@ -12,7 +13,6 @@
 #include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/unibrow-inl.h"
-#include "vm/unicode.h"
 
 #define Z (zone())
 

@@ -24,11 +24,11 @@
 
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 // The EventHandler for Fuchsia uses its "ports v2" API:
@@ -56,14 +56,14 @@
 #define LOG_ERR(msg, ...)                                                      \
   {                                                                            \
     int err = errno;                                                           \
-    Log::PrintErr("Dart EventHandler ERROR: %s:%d: " msg, __FILE__, __LINE__,  \
-                  ##__VA_ARGS__);                                              \
+    Syslog::PrintErr("Dart EventHandler ERROR: %s:%d: " msg, __FILE__,         \
+                     __LINE__, ##__VA_ARGS__);                                 \
     errno = err;                                                               \
   }
 #if defined(EVENTHANDLER_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Log::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__, __LINE__,        \
-             ##__VA_ARGS__)
+  Syslog::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__, __LINE__,     \
+                ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(EVENTHANDLER_LOG_INFO)

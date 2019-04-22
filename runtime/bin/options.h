@@ -6,9 +6,9 @@
 #define RUNTIME_BIN_OPTIONS_H_
 
 #include "bin/dartutils.h"
-#include "bin/log.h"
 #include "platform/globals.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -68,7 +68,7 @@ class CallbackOptionProcessor : public OptionProcessor {
         return false;                                                          \
       }                                                                        \
       if (*value == '\0') {                                                    \
-        Log::PrintErr("Empty value for option " #name "\n");                   \
+        Syslog::PrintErr("Empty value for option " #name "\n");                \
         return false;                                                          \
       }                                                                        \
       callback;                                                                \
@@ -89,12 +89,12 @@ class CallbackOptionProcessor : public OptionProcessor {
         return true;                                                           \
       }                                                                        \
     }                                                                          \
-    Log::PrintErr(                                                             \
+    Syslog::PrintErr(                                                          \
         "Unrecognized value for " #name ": '%s'\nValid values are: ", value);  \
     for (intptr_t i = 0; kNames[i] != NULL; i++) {                             \
-      Log::PrintErr("%s%s", i > 0 ? ", " : "", kNames[i]);                     \
+      Syslog::PrintErr("%s%s", i > 0 ? ", " : "", kNames[i]);                  \
     }                                                                          \
-    Log::PrintErr("\n");                                                       \
+    Syslog::PrintErr("\n");                                                    \
   })
 
 #define DEFINE_BOOL_OPTION_CB(name, callback)                                  \
@@ -106,7 +106,7 @@ class CallbackOptionProcessor : public OptionProcessor {
         return false;                                                          \
       }                                                                        \
       if (*value == '=') {                                                     \
-        Log::PrintErr("Non-empty value for option " #name "\n");               \
+        Syslog::PrintErr("Non-empty value for option " #name "\n");            \
         return false;                                                          \
       }                                                                        \
       if (*value != '\0') {                                                    \
@@ -127,7 +127,7 @@ class CallbackOptionProcessor : public OptionProcessor {
         return false;                                                          \
       }                                                                        \
       if (*value == '=') {                                                     \
-        Log::PrintErr("Non-empty value for option " #name "\n");               \
+        Syslog::PrintErr("Non-empty value for option " #name "\n");            \
         return false;                                                          \
       }                                                                        \
       if (*value != '\0') {                                                    \
@@ -152,7 +152,7 @@ class CallbackOptionProcessor : public OptionProcessor {
         return false;                                                          \
       }                                                                        \
       if (*value == '=') {                                                     \
-        Log::PrintErr("Non-empty value for option " #long_name "\n");          \
+        Syslog::PrintErr("Non-empty value for option " #long_name "\n");       \
         return false;                                                          \
       }                                                                        \
       if (*value != '\0') {                                                    \

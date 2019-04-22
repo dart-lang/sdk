@@ -108,4 +108,30 @@ uint32_t Utils::WordHash(intptr_t key) {
   return static_cast<uint32_t>(a);
 }
 
+char* Utils::SCreate(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  char* buffer = VSCreate(format, args);
+  va_end(args);
+  return buffer;
+}
+
+char* Utils::VSCreate(const char* format, va_list args) {
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  ASSERT(buffer != NULL);
+
+  // Print.
+  va_list print_args;
+  va_copy(print_args, args);
+  VSNPrint(buffer, len + 1, format, print_args);
+  va_end(print_args);
+  return buffer;
+}
+
 }  // namespace dart

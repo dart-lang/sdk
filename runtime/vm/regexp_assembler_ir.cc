@@ -6,6 +6,7 @@
 
 #include "vm/regexp_assembler_ir.h"
 
+#include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
@@ -17,7 +18,6 @@
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
-#include "vm/unicode.h"
 
 #define Z zone()
 

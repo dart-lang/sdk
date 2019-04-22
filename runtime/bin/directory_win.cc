@@ -12,10 +12,10 @@
 
 #include "bin/dartutils.h"
 #include "bin/file.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 #undef DeleteFile
 

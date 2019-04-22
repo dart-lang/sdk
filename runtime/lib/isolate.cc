@@ -4,6 +4,7 @@
 
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
+#include "platform/unicode.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
@@ -21,7 +22,6 @@
 #include "vm/service.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
-#include "vm/unicode.h"
 
 namespace dart {
 

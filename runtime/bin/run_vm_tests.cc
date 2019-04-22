@@ -53,15 +53,15 @@ static const char* kernel_snapshot = NULL;
 static int run_matches = 0;
 
 void TestCase::Run() {
-  bin::Log::Print("Running test: %s\n", name());
+  Syslog::Print("Running test: %s\n", name());
   (*run_)();
-  bin::Log::Print("Done: %s\n", name());
+  Syslog::Print("Done: %s\n", name());
 }
 
 void RawTestCase::Run() {
-  bin::Log::Print("Running raw test: %s\n", name());
+  Syslog::Print("Running raw test: %s\n", name());
   (*run_)();
-  bin::Log::Print("Done: %s\n", name());
+  Syslog::Print("Done: %s\n", name());
 }
 
 void TestCaseBase::RunTest() {
@@ -69,7 +69,7 @@ void TestCaseBase::RunTest() {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {
-    bin::Log::Print("%s\n", this->name());
+    Syslog::Print("%s\n", this->name());
     run_matches++;
   }
 }
@@ -78,17 +78,17 @@ void Benchmark::RunBenchmark() {
   if ((run_filter == kAllBenchmarks) ||
       (strcmp(run_filter, this->name()) == 0)) {
     this->Run();
-    bin::Log::Print("%s(%s): %" Pd64 "\n", this->name(), this->score_kind(),
-                    this->score());
+    Syslog::Print("%s(%s): %" Pd64 "\n", this->name(), this->score_kind(),
+                  this->score());
     run_matches++;
   } else if (run_filter == kList) {
-    bin::Log::Print("%s\n", this->name());
+    Syslog::Print("%s\n", this->name());
     run_matches++;
   }
 }
 
 static void PrintUsage() {
-  bin::Log::PrintErr(
+  Syslog::PrintErr(
       "Usage: one of the following\n"
       "  run_vm_tests --list\n"
       "  run_vm_tests [--dfe=<snapshot file name>] --benchmarks\n"
@@ -235,7 +235,7 @@ static int Main(int argc, const char** argv) {
 
   // Perform platform specific initialization.
   if (!dart::bin::Platform::Initialize()) {
-    bin::Log::PrintErr("Initialization failed\n");
+    Syslog::PrintErr("Initialization failed\n");
     return 1;
   }
 
@@ -278,7 +278,7 @@ static int Main(int argc, const char** argv) {
   if (strncmp(argv[arg_pos], "--dfe", strlen("--dfe")) == 0) {
     const char* delim = strstr(argv[arg_pos], "=");
     if (delim == NULL || strlen(delim + 1) == 0) {
-      bin::Log::PrintErr("Invalid value for the option: %s\n", argv[arg_pos]);
+      Syslog::PrintErr("Invalid value for the option: %s\n", argv[arg_pos]);
       PrintUsage();
       return 1;
     }
@@ -304,7 +304,7 @@ static int Main(int argc, const char** argv) {
 
   char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
   if (error != NULL) {
-    bin::Log::PrintErr("Failed to parse flags: %s\n", error);
+    Syslog::PrintErr("Failed to parse flags: %s\n", error);
     free(error);
     return 1;
   }
@@ -324,7 +324,7 @@ static int Main(int argc, const char** argv) {
       nullptr /* entropy_source */, nullptr /* get_service_assets */,
       start_kernel_isolate);
   if (error != nullptr) {
-    bin::Log::PrintErr("Failed to initialize VM: %s\n", error);
+    Syslog::PrintErr("Failed to initialize VM: %s\n", error);
     free(error);
     return 1;
   }
@@ -336,7 +336,7 @@ static int Main(int argc, const char** argv) {
 
   error = Dart::Cleanup();
   if (error != nullptr) {
-    bin::Log::PrintErr("Failed shutdown VM: %s\n", error);
+    Syslog::PrintErr("Failed shutdown VM: %s\n", error);
     free(error);
     return 1;
   }
@@ -347,7 +347,7 @@ static int Main(int argc, const char** argv) {
 
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
-    bin::Log::PrintErr("No tests matched: %s\n", run_filter);
+    Syslog::PrintErr("No tests matched: %s\n", run_filter);
     return 1;
   }
   if (Expect::failed()) {

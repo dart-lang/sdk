@@ -18,10 +18,10 @@
 
 #include "bin/builtin.h"
 #include "bin/directory.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -59,7 +59,7 @@ void File::Close() {
   } else {
     int err = close(closing_fd);
     if (err != 0) {
-      Log::PrintErr("%s\n", strerror(errno));
+      Syslog::PrintErr("%s\n", strerror(errno));
     }
   }
   handle_->set_fd(kClosedFd);
@@ -91,13 +91,13 @@ MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
 
   void* addr = VirtualAlloc(NULL, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
   if (addr == NULL) {
-    Log::PrintErr("VirtualAlloc failed %d\n", GetLastError());
+    Syslog::PrintErr("VirtualAlloc failed %d\n", GetLastError());
     return NULL;
   }
 
   SetPosition(position);
   if (!ReadFully(addr, length)) {
-    Log::PrintErr("ReadFully failed %d\n", GetLastError());
+    Syslog::PrintErr("ReadFully failed %d\n", GetLastError());
     VirtualFree(addr, 0, MEM_RELEASE);
     return NULL;
   }
@@ -105,7 +105,7 @@ MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
   DWORD old_prot;
   bool result = VirtualProtect(addr, length, prot_final, &old_prot);
   if (!result) {
-    Log::PrintErr("VirtualProtect failed %d\n", GetLastError());
+    Syslog::PrintErr("VirtualProtect failed %d\n", GetLastError());
     VirtualFree(addr, 0, MEM_RELEASE);
     return NULL;
   }

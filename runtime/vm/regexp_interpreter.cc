@@ -6,12 +6,12 @@
 
 #include "vm/regexp_interpreter.h"
 
+#include "platform/unicode.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
 #include "vm/regexp_bytecodes.h"
 #include "vm/unibrow-inl.h"
 #include "vm/unibrow.h"
-#include "vm/unicode.h"
 
 namespace dart {
 

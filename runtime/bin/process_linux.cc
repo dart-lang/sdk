@@ -22,9 +22,9 @@
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/reference_counting.h"
 #include "bin/thread.h"
+#include "platform/syslog.h"
 
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"

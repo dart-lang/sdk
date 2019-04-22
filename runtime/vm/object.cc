@@ -6,6 +6,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
@@ -55,7 +56,6 @@
 #include "vm/timeline.h"
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
-#include "vm/unicode.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {

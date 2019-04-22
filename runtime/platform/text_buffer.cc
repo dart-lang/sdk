@@ -6,8 +6,8 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/unicode.h"
 #include "platform/utils.h"
-#include "vm/unicode.h"
 
 namespace dart {
 

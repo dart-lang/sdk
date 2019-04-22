@@ -6,6 +6,7 @@
 
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
+#include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
 #include "vm/dart_api_impl.h"
@@ -17,7 +18,6 @@
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
 #include "vm/timer.h"
-#include "vm/unicode.h"
 #include "vm/unit_test.h"
 
 namespace dart {

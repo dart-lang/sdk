@@ -5,18 +5,17 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_ANDROID)
 
-#include "bin/log.h"
+#include "platform/syslog.h"
 
 #include <android/log.h>  // NOLINT
 #include <stdio.h>        // NOLINT
 
 namespace dart {
-namespace bin {
 
 // TODO(gram): We should be buffering the data and only outputting
 // it when we see a '\n'.
 
-void Log::VPrint(const char* format, va_list args) {
+void Syslog::VPrint(const char* format, va_list args) {
   // If we launch the DartVM inside "adb shell" we will only get messages
   // (critical ones or not) if we print them to stdout/stderr.
   // We also log using android's logging system.
@@ -25,7 +24,7 @@ void Log::VPrint(const char* format, va_list args) {
   __android_log_vprint(ANDROID_LOG_INFO, "Dart", format, args);
 }
 
-void Log::VPrintErr(const char* format, va_list args) {
+void Syslog::VPrintErr(const char* format, va_list args) {
   // If we launch the DartVM inside "adb shell" we will only get messages
   // (critical ones or not) if we print them to stdout/stderr.
   // We also log using android's logging system.
@@ -34,7 +33,6 @@ void Log::VPrintErr(const char* format, va_list args) {
   __android_log_vprint(ANDROID_LOG_ERROR, "Dart", format, args);
 }
 
-}  // namespace bin
 }  // namespace dart
 
 #endif  // defined(HOST_OS_ANDROID)

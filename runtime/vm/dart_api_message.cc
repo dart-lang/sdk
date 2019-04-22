@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/dart_api_message.h"
+#include "platform/unicode.h"
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
 #include "vm/symbols.h"
-#include "vm/unicode.h"
 
 namespace dart {
 

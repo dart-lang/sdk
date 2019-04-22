@@ -26,7 +26,6 @@
 #include "bin/gzip.h"
 #include "bin/isolate_data.h"
 #include "bin/loader.h"
-#include "bin/log.h"
 #include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/process.h"
@@ -37,6 +36,7 @@
 #include "platform/globals.h"
 #include "platform/growable_array.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 #include "platform/text_buffer.h"
 
 extern "C" {
@@ -186,7 +186,7 @@ static void WriteDepsFile(Dart_Isolate isolate) {
 
 static void OnExitHook(int64_t exit_code) {
   if (Dart_CurrentIsolate() != main_isolate) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "A snapshot was requested, but a secondary isolate "
         "performed a hard exit (%" Pd64 ").\n",
         exit_code);
@@ -450,7 +450,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   }
 
   if (isolate == NULL) {
-    Log::PrintErr("%s\n", *error);
+    Syslog::PrintErr("%s\n", *error);
     delete isolate_data;
     return NULL;
   }
@@ -698,7 +698,7 @@ static void OnIsolateShutdown(void* callback_data) {
 
   Dart_Handle sticky_error = Dart_GetStickyError();
   if (!Dart_IsNull(sticky_error) && !Dart_IsFatalError(sticky_error)) {
-    Log::PrintErr("%s\n", Dart_GetError(sticky_error));
+    Syslog::PrintErr("%s\n", Dart_GetError(sticky_error));
   }
 
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
@@ -812,13 +812,13 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       &exit_code);
 
   if (isolate == NULL) {
-    Log::PrintErr("%s\n", error);
+    Syslog::PrintErr("%s\n", error);
     free(error);
     error = NULL;
     Process::TerminateExitCodeHandler();
     error = Dart_Cleanup();
     if (error != NULL) {
-      Log::PrintErr("VM cleanup failed: %s\n", error);
+      Syslog::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
     Process::ClearAllSignalHandlers();
@@ -838,7 +838,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
   if (Options::gen_snapshot_kind() == kKernel) {
     if (vm_run_app_snapshot) {
-      Log::PrintErr("Cannot create a script snapshot from an app snapshot.\n");
+      Syslog::PrintErr(
+          "Cannot create a script snapshot from an app snapshot.\n");
       // The snapshot would contain references to the app snapshot instead of
       // the core snapshot.
       Platform::Exit(kErrorExitCode);
@@ -977,7 +978,7 @@ void main(int argc, char** argv) {
 
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
-    Log::PrintErr("Initialization failed\n");
+    Syslog::PrintErr("Initialization failed\n");
     Platform::Exit(kErrorExitCode);
   }
 
@@ -1018,7 +1019,7 @@ void main(int argc, char** argv) {
       // script was specified on the command line.
       char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
       if (error != NULL) {
-        Log::PrintErr("Setting VM flags failed: %s\n", error);
+        Syslog::PrintErr("Setting VM flags failed: %s\n", error);
         free(error);
         Platform::Exit(kErrorExitCode);
       }
@@ -1047,11 +1048,13 @@ void main(int argc, char** argv) {
 #else
   AppSnapshot* shared_blobs = NULL;
   if (Options::shared_blobs_filename() != NULL) {
-    Log::PrintErr("Shared blobs in the standalone VM are for testing only.\n");
+    Syslog::PrintErr(
+        "Shared blobs in the standalone VM are for testing only.\n");
     shared_blobs =
         Snapshot::TryReadAppSnapshot(Options::shared_blobs_filename());
     if (shared_blobs == NULL) {
-      Log::PrintErr("Failed to load: %s\n", Options::shared_blobs_filename());
+      Syslog::PrintErr("Failed to load: %s\n",
+                       Options::shared_blobs_filename());
       Platform::Exit(kErrorExitCode);
     }
     const uint8_t* ignored;
@@ -1089,14 +1092,14 @@ void main(int argc, char** argv) {
 
   char* error = nullptr;
   if (!dart::embedder::InitOnce(&error)) {
-    Log::PrintErr("Stanalone embedder initialization failed: %s\n", error);
+    Syslog::PrintErr("Stanalone embedder initialization failed: %s\n", error);
     free(error);
     Platform::Exit(kErrorExitCode);
   }
 
   error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
   if (error != NULL) {
-    Log::PrintErr("Setting VM flags failed: %s\n", error);
+    Syslog::PrintErr("Setting VM flags failed: %s\n", error);
     free(error);
     Platform::Exit(kErrorExitCode);
   }
@@ -1142,7 +1145,7 @@ void main(int argc, char** argv) {
   error = Dart_Initialize(&init_params);
   if (error != NULL) {
     EventHandler::Stop();
-    Log::PrintErr("VM initialization failed: %s\n", error);
+    Syslog::PrintErr("VM initialization failed: %s\n", error);
     free(error);
     Platform::Exit(kErrorExitCode);
   }
@@ -1154,7 +1157,7 @@ void main(int argc, char** argv) {
 
   // Run the main isolate until we aren't told to restart.
   while (RunMainIsolate(script_name, &dart_options)) {
-    Log::PrintErr("Restarting VM\n");
+    Syslog::PrintErr("Restarting VM\n");
   }
 
   // Terminate process exit-code handler.
@@ -1162,7 +1165,7 @@ void main(int argc, char** argv) {
 
   error = Dart_Cleanup();
   if (error != NULL) {
-    Log::PrintErr("VM cleanup failed: %s\n", error);
+    Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
   Process::ClearAllSignalHandlers();

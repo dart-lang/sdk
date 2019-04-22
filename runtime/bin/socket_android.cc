@@ -10,8 +10,8 @@
 #include <errno.h>  // NOLINT
 
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -104,7 +104,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
 
   if (reusePort) {
     // ignore reusePort - not supported on this platform.
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
         "Android.",
         __FILE__, __LINE__);

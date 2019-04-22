@@ -19,9 +19,9 @@
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -62,7 +62,7 @@ void File::Close() {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
       Utils::StrError(errno, error_message, kBufferSize);
-      Log::PrintErr("%s\n", error_message);
+      Syslog::PrintErr("%s\n", error_message);
     }
   }
   handle_->set_fd(kClosedFd);

@@ -386,6 +386,10 @@ class Utils {
   static int SNPrint(char* str, size_t size, const char* format, ...)
       PRINTF_ATTRIBUTE(3, 4);
   static int VSNPrint(char* str, size_t size, const char* format, va_list args);
+
+  // Allocate a string and print formatted output into a malloc'd buffer.
+  static char* SCreate(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
+  static char* VSCreate(const char* format, va_list args);
 };
 
 }  // namespace dart

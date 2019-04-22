@@ -31,7 +31,7 @@ template("build_libdart_builtin") {
   if (defined(invoker.extra_configs)) {
     extra_configs += invoker.extra_configs
   }
-  static_library(target_name) {
+  source_set(target_name) {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
@@ -51,13 +51,7 @@ template("build_libdart_builtin") {
                                     "*_test.cc",
                                     "*_test.h",
                                   ])
-    sources = [
-                "log_android.cc",
-                "log_fuchsia.cc",
-                "log_linux.cc",
-                "log_macos.cc",
-                "log_win.cc",
-              ] + builtin_impl_sources
+    sources = builtin_impl_sources
   }
 }
 
@@ -155,7 +149,6 @@ template("build_gen_snapshot") {
 
       # Very limited native resolver provided.
       "$target_gen_dir/abi_version.cc",
-      "builtin_common.cc",
       "builtin_gen_snapshot.cc",
       "dfe.cc",
       "dfe.h",
@@ -278,9 +271,6 @@ template("build_gen_snapshot_dart_io") {
     custom_sources_filter = [
       "*_test.cc",
       "*_test.h",
-      "builtin.cc",
-      "builtin_common.cc",
-      "builtin_gen_snapshot.cc",
     ]
     if (!is_mac && !is_ios) {
       # Dart tree uses *_macos.* instead of *_mac.*
@@ -293,7 +283,7 @@ template("build_gen_snapshot_dart_io") {
 
     defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
 
-    sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
+    sources = io_impl_sources + cli_impl_sources
     sources += [
       "io_natives.cc",
       "io_natives.h",
@@ -392,16 +382,11 @@ template("dart_io") {
       ]
     }
 
-    sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
+    sources = io_impl_sources + cli_impl_sources
     sources += [
                  "builtin_natives.cc",
                  "io_natives.cc",
                  "io_natives.h",
-                 "log_android.cc",
-                 "log_linux.cc",
-                 "log_macos.cc",
-                 "log_win.cc",
-                 "log.h",
                ] + extra_sources
 
     if (is_linux || is_win || is_fuchsia) {

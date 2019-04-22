@@ -11,11 +11,11 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket_base_win.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -51,7 +51,7 @@ bool SocketBase::Initialize() {
   if (err == 0) {
     socket_initialized = true;
   } else {
-    Log::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
+    Syslog::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
   }
   return (err == 0);
 }

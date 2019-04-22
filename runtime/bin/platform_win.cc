@@ -12,7 +12,7 @@
 #include "bin/console.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
+#include "platform/syslog.h"
 #if !defined(PLATFORM_DISABLE_SOCKET)
 #include "bin/socket.h"
 #endif
@@ -73,7 +73,7 @@ class PlatformWin {
          EXCEPTION_ACCESS_VIOLATION) ||
         (ExceptionInfo->ExceptionRecord->ExceptionCode ==
          EXCEPTION_ILLEGAL_INSTRUCTION)) {
-      Log::PrintErr(
+      Syslog::PrintErr(
           "\n===== CRASH =====\n"
           "ExceptionCode=%d, ExceptionFlags=%d, ExceptionAddress=%p\n",
           ExceptionInfo->ExceptionRecord->ExceptionCode,

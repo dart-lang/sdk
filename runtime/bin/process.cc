@@ -6,11 +6,11 @@
 
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/platform.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
+#include "platform/syslog.h"
 
 #include "include/dart_api.h"
 

@@ -8,6 +8,7 @@
 #include "include/dart_native_api.h"
 #include "platform/globals.h"
 
+#include "platform/unicode.h"
 #include "vm/base64.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
@@ -41,7 +42,6 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/type_table.h"
-#include "vm/unicode.h"
 #include "vm/version.h"
 
 namespace dart {

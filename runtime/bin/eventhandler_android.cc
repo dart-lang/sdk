@@ -20,11 +20,11 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 // Android doesn't define EPOLLRDHUP.
@@ -269,33 +269,33 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 #ifdef DEBUG_POLL
 static void PrintEventMask(intptr_t fd, intptr_t events) {
-  Log::Print("%d ", fd);
+  Syslog::Print("%d ", fd);
   if ((events & EPOLLIN) != 0) {
-    Log::Print("EPOLLIN ");
+    Syslog::Print("EPOLLIN ");
   }
   if ((events & EPOLLPRI) != 0) {
-    Log::Print("EPOLLPRI ");
+    Syslog::Print("EPOLLPRI ");
   }
   if ((events & EPOLLOUT) != 0) {
-    Log::Print("EPOLLOUT ");
+    Syslog::Print("EPOLLOUT ");
   }
   if ((events & EPOLLERR) != 0) {
-    Log::Print("EPOLLERR ");
+    Syslog::Print("EPOLLERR ");
   }
   if ((events & EPOLLHUP) != 0) {
-    Log::Print("EPOLLHUP ");
+    Syslog::Print("EPOLLHUP ");
   }
   if ((events & EPOLLRDHUP) != 0) {
-    Log::Print("EPOLLRDHUP ");
+    Syslog::Print("EPOLLRDHUP ");
   }
   int all_events =
       EPOLLIN | EPOLLPRI | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP;
   if ((events & ~all_events) != 0) {
-    Log::Print("(and %08x) ", events & ~all_events);
+    Syslog::Print("(and %08x) ", events & ~all_events);
   }
-  Log::Print("(available %d) ", FDUtils::AvailableBytes(fd));
+  Syslog::Print("(available %d) ", FDUtils::AvailableBytes(fd));
 
-  Log::Print("\n");
+  Syslog::Print("\n");
 }
 #endif
 

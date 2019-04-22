@@ -69,12 +69,12 @@ bool OptionProcessor::ProcessEnvironmentOption(
   const char* equals_pos = strchr(arg, '=');
   if (equals_pos == NULL) {
     // No equal sign (name without value) currently not supported.
-    Log::PrintErr("No value given to -D option\n");
+    Syslog::PrintErr("No value given to -D option\n");
     return true;
   }
   int name_len = equals_pos - arg;
   if (name_len == 0) {
-    Log::PrintErr("No name given to -D option\n");
+    Syslog::PrintErr("No name given to -D option\n");
     return true;
   }
   // Split name=value into name and value.

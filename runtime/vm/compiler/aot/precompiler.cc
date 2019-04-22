@@ -4,6 +4,7 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
+#include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
@@ -49,7 +50,6 @@
 #include "vm/timer.h"
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
-#include "vm/unicode.h"
 #include "vm/version.h"
 
 namespace dart {

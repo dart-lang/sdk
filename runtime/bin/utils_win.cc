@@ -8,10 +8,10 @@
 #include <errno.h>  // NOLINT
 #include <time.h>   // NOLINT
 
-#include "bin/log.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 #include "platform/assert.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -22,8 +22,8 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, buffer_length, NULL);
   if (message_size == 0) {
     if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-      Log::PrintErr("FormatMessage failed for error code %d (error %d)\n", code,
-                    GetLastError());
+      Syslog::PrintErr("FormatMessage failed for error code %d (error %d)\n",
+                       code, GetLastError());
     }
     _snwprintf(buffer, buffer_length, L"OS Error %d", code);
   }

@@ -5,6 +5,7 @@
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
+#include "platform/unicode.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/isolate.h"
@@ -12,7 +13,6 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
-#include "vm/unicode.h"
 
 namespace dart {
 

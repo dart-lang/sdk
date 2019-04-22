@@ -345,7 +345,6 @@ vm_sources = [
   "unibrow.cc",
   "unibrow.h",
   "unicode.cc",
-  "unicode.h",
   "unicode_data.cc",
   "uri.cc",
   "uri.h",

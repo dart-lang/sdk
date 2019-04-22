@@ -4,9 +4,9 @@
 
 #include "platform/assert.h"
 
+#include "platform/unicode.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
-#include "vm/unicode.h"
 
 namespace dart {
 

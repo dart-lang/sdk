@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_BIN_LOG_H_
-#define RUNTIME_BIN_LOG_H_
+#ifndef RUNTIME_PLATFORM_SYSLOG_H_
+#define RUNTIME_PLATFORM_SYSLOG_H_
 
 #include <stdarg.h>
 
 #include "platform/globals.h"
 
 namespace dart {
-namespace bin {
 
-class Log {
+class Syslog {
  public:
   // Print formatted output for debugging.
   static void Print(const char* format, ...) PRINTF_ATTRIBUTE(1, 2) {
@@ -35,10 +34,9 @@ class Log {
 
  private:
   DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(Log);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Syslog);
 };
 
-}  // namespace bin
 }  // namespace dart
 
-#endif  // RUNTIME_BIN_LOG_H_
+#endif  // RUNTIME_PLATFORM_SYSLOG_H_

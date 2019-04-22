@@ -20,6 +20,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel_loader.h"
 #endif
+#include "platform/unicode.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -49,7 +50,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
-#include "vm/unicode.h"
 #include "vm/uri.h"
 #include "vm/version.h"
 

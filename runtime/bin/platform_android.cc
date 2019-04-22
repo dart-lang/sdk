@@ -26,7 +26,7 @@ int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
-  Log::PrintErr(
+  Syslog::PrintErr(
       "\n===== CRASH =====\n"
       "si_signo=%s(%d), si_code=%d, si_addr=%p\n",
       strsignal(siginfo->si_signo), siginfo->si_signo, siginfo->si_code,
