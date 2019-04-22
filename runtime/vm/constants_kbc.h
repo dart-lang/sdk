@@ -528,7 +528,7 @@ namespace dart {
   V(CompareDoubleGe,                       0, ___, ___, ___)                   \
   V(CompareDoubleLe,                       0, ___, ___, ___)                   \
 
-  // These bytecodes are only generated within the VM. Reassinging their
+  // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.
 #define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \
   V(VMInternal_ImplicitGetter,             0, ___, ___, ___)                   \
@@ -536,6 +536,11 @@ namespace dart {
   V(VMInternal_ImplicitStaticGetter,       0, ___, ___, ___)                   \
   V(VMInternal_MethodExtractor,            0, ___, ___, ___)                   \
   V(VMInternal_InvokeClosure,              0, ___, ___, ___)                   \
+  V(VMInternal_InvokeField,                0, ___, ___, ___)                   \
+  V(VMInternal_ForwardDynamicInvocation,   0, ___, ___, ___)                   \
+  V(VMInternal_DispatchNoSuchMethod,       0, ___, ___, ___)                   \
+  V(VMInternal_ImplicitStaticClosure,      0, ___, ___, ___)                   \
+  V(VMInternal_ImplicitInstanceClosure,    0, ___, ___, ___)                   \
 
 #define KERNEL_BYTECODES_LIST(V)                                               \
   PUBLIC_KERNEL_BYTECODES_LIST(V)                                              \
