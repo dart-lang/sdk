@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -575,6 +574,7 @@ class LazyFormalParameter {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasType = false;
+  bool _hasTypeNode = false;
 
   LazyFormalParameter(this.data);
 
@@ -646,6 +646,23 @@ class LazyFormalParameter {
     }
   }
 
+  static void readTypeNode(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      if (lazy != null && !lazy._hasTypeNode) {
+        if (node is SimpleFormalParameter) {
+          node.type = reader.readNode(
+            lazy.data.simpleFormalParameter_type,
+          );
+        }
+        lazy._hasTypeNode = true;
+      }
+    }
+  }
+
   static void setData(FormalParameter node, LinkedNode data) {
     node.setProperty(_key, LazyFormalParameter(data));
   }
@@ -659,6 +676,7 @@ class LazyFunctionDeclaration {
   bool _hasDocumentationComment = false;
   bool _hasMetadata = false;
   bool _hasReturnType = false;
+  bool _hasReturnTypeNode = false;
 
   LazyFunctionDeclaration(this.data);
 
@@ -722,6 +740,19 @@ class LazyFunctionDeclaration {
     }
   }
 
+  static void readReturnTypeNode(
+    AstBinaryReader reader,
+    FunctionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnTypeNode) {
+      node.returnType = reader.readNode(
+        lazy.data.functionDeclaration_returnType,
+      );
+      lazy._hasReturnTypeNode = true;
+    }
+  }
+
   static void setData(FunctionDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionDeclaration(data));
   }
@@ -781,6 +812,7 @@ class LazyFunctionTypeAlias {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasReturnType = false;
+  bool _hasReturnTypeNode = false;
 
   LazyFunctionTypeAlias(this.data);
 
@@ -844,6 +876,19 @@ class LazyFunctionTypeAlias {
     }
   }
 
+  static void readReturnTypeNode(
+    AstBinaryReader reader,
+    FunctionTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnTypeNode) {
+      node.returnType = reader.readNode(
+        lazy.data.functionTypeAlias_returnType,
+      );
+      lazy._hasReturnTypeNode = true;
+    }
+  }
+
   static void setData(FunctionTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionTypeAlias(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
@@ -857,6 +902,7 @@ class LazyGenericFunctionType {
 
   bool _hasFormalParameters = false;
   bool _hasReturnType = false;
+  bool _hasReturnTypeNode = false;
 
   LazyGenericFunctionType(this.data);
 
@@ -889,6 +935,19 @@ class LazyGenericFunctionType {
         lazy.data.genericFunctionType_formalParameters,
       );
       lazy._hasFormalParameters = true;
+    }
+  }
+
+  static void readReturnTypeNode(
+    AstBinaryReader reader,
+    GenericFunctionType node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnTypeNode) {
+      node.returnType = reader.readNode(
+        lazy.data.genericFunctionType_returnType,
+      );
+      lazy._hasReturnTypeNode = true;
     }
   }
 
@@ -1303,5 +1362,38 @@ class LazyVariableDeclaration {
 
   static void setData(VariableDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyVariableDeclaration(data));
+  }
+}
+
+class LazyVariableDeclarationList {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  bool _hasTypeNode = false;
+
+  LazyVariableDeclarationList(this.data);
+
+  static LazyVariableDeclarationList get(VariableDeclarationList node) {
+    return node.getProperty(_key);
+  }
+
+  static void readTypeNode(
+    AstBinaryReader reader,
+    VariableDeclarationList node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      if (!lazy._hasTypeNode) {
+        node.type = reader.readNode(
+          lazy.data.variableDeclarationList_type,
+        );
+        lazy._hasTypeNode = true;
+      }
+    }
+  }
+
+  static void setData(VariableDeclarationList node, LinkedNode data) {
+    node.setProperty(_key, LazyVariableDeclarationList(data));
   }
 }

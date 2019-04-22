@@ -1233,13 +1233,15 @@ class AstBinaryReader {
   }
 
   VariableDeclarationList _read_variableDeclarationList(LinkedNode data) {
-    return astFactory.variableDeclarationList(
+    var node = astFactory.variableDeclarationList(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.variableDeclarationList_keyword),
       _readNodeLazy(data.variableDeclarationList_type),
       _readNodeList(data.variableDeclarationList_variables),
     );
+    LazyVariableDeclarationList.setData(node, data);
+    return node;
   }
 
   VariableDeclarationStatement _read_variableDeclarationStatement(

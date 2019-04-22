@@ -2213,7 +2213,7 @@ A Function([B, C]) test() {}
 
   test_function_shadow_typeParameters() async {
     var library = await buildTestLibrary(a, r'''
-A Function<T extends U, U>(B) test() {}
+A Function<T2 extends U2, U2>(B) test() {}
 ''');
     _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
   }

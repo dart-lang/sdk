@@ -532,6 +532,24 @@ class LinkedUnitContext {
     }
   }
 
+  TypeAnnotation getReturnTypeNode(AstNode node) {
+    if (node is FunctionTypeAlias) {
+      LazyFunctionTypeAlias.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else if (node is GenericFunctionType) {
+      LazyGenericFunctionType.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else if (node is FunctionDeclaration) {
+      LazyFunctionDeclaration.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else if (node is MethodDeclaration) {
+      LazyMethodDeclaration.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
+  }
+
   String getSimpleName(LinkedNode node) {
     return getTokenLexeme(node.simpleIdentifier_token);
   }
@@ -895,6 +913,7 @@ class LinkedUnitContext {
     reference.element.accept(
       _TypeParameterReader(),
     );
+    _RecursiveTypeReader(this).read(unit);
 
     var context = LinkedUnitContext._(bundleContext, libraryContext,
         indexInLibrary, uriStr, reference, data, TokensContext(data.tokens));
@@ -1029,6 +1048,94 @@ class LinkedUnitContext {
       throw UnimplementedError('$kind');
     }
     return typeParameterList?.typeParameterList_typeParameters;
+  }
+}
+
+/// Ensure that all [GenericFunctionType] and [TypeParameter] nodes are read,
+/// so their elements are created and set in [Reference]s.
+class _RecursiveTypeReader {
+  final LinkedUnitContext context;
+
+  _RecursiveTypeReader(this.context);
+
+  void read(AstNode node) {
+    if (node == null) {
+    } else if (node is ClassDeclaration) {
+      _readTypeParameters(node);
+      node.members.forEach(read);
+    } else if (node is ClassTypeAlias) {
+      _readTypeParameters(node);
+    } else if (node is CompilationUnit) {
+      for (var declaration in node.declarations) {
+        read(declaration);
+      }
+    } else if (node is ConstructorDeclaration) {
+      _readFormalParameters(node);
+    } else if (node is EnumDeclaration) {
+    } else if (node is FieldDeclaration) {
+      read(node.fields);
+    } else if (node is FunctionDeclaration) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is FunctionTypeAlias) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is GenericFunctionType) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is GenericTypeAlias) {
+      _readTypeParameters(node);
+      LazyGenericTypeAlias.readFunctionType(context._astReader, node);
+      read(node.functionType);
+    } else if (node is MethodDeclaration) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is MixinDeclaration) {
+      _readTypeParameters(node);
+      node.members.forEach(read);
+    } else if (node is TopLevelVariableDeclaration) {
+      read(node.variables);
+    } else if (node is TypeName) {
+      node.typeArguments?.arguments?.forEach(read);
+    } else if (node is VariableDeclarationList) {
+      LazyVariableDeclarationList.readTypeNode(context._astReader, node);
+      read(node.type);
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
+  void _readFormalParameters(AstNode node) {
+    var formalParameters = context.getFormalParameters(node);
+    if (formalParameters == null) return;
+
+    for (var formalParameter in formalParameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        read(formalParameter.type);
+      }
+    }
+  }
+
+  void _readReturnType(AstNode node) {
+    var returnType = context.getReturnTypeNode(node);
+    read(returnType);
+  }
+
+  void _readTypeParameters(AstNode node) {
+    var typeParameters = context.getTypeParameters2(node);
+    if (typeParameters == null) return;
+
+    for (var typeParameter in typeParameters.typeParameters) {
+      var bound = context.getTypeParameterBound(typeParameter);
+      read(bound);
+
+      TypeParameterElementImpl element = typeParameter.declaredElement;
+      element.enclosingElement = context.reference.element;
+    }
   }
 }
 
