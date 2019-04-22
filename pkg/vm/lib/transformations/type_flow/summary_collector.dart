@@ -592,8 +592,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           param.defaultValue =
               constantAllocationCollector.typeFor(initializer.constant);
         } else {
-          param.defaultValue =
-              new Type.fromStatic(initializer.getStaticType(_environment));
+          param.defaultValue = _staticType(initializer);
         }
       } else {
         param.defaultValue = _nullType;
@@ -673,8 +672,18 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
   }
 
+  DartType _staticDartType(Expression node) {
+    // TODO(dartbug.com/34496): Remove this try/catch once
+    // getStaticType() is reliable.
+    try {
+      return node.getStaticType(_environment);
+    } catch (e) {
+      return const DynamicType();
+    }
+  }
+
   Type _staticType(Expression node) =>
-      new Type.fromStatic(node.getStaticType(_environment));
+      new Type.fromStatic(_staticDartType(node));
 
   Type _cachedBoolType;
   Type get _boolType =>
@@ -772,7 +781,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitConditionalExpression(ConditionalExpression node) {
     _addUse(_visit(node.condition));
 
-    Join v = new Join(null, node.getStaticType(_environment));
+    Join v = new Join(null, _staticDartType(node));
     _summary.add(v);
     v.values.add(_visit(node.then));
     v.values.add(_visit(node.otherwise));
@@ -926,7 +935,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         return new Type.nullable(_boolType);
       }
       if (node.name.name == 'call') {
-        final recvType = node.receiver.getStaticType(_environment);
+        final recvType = _staticDartType(node.receiver);
         if ((recvType is FunctionType) ||
             (recvType == _environment.rawFunctionType)) {
           // Call to a Function.
