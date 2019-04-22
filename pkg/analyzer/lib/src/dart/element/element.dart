@@ -9417,13 +9417,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   TypeParameterType get type {
-    if (linkedNode != null) {
-      _type ??= new TypeParameterTypeImpl(this);
-    }
-    if (_unlinkedTypeParam != null) {
-      _type ??= new TypeParameterTypeImpl(this);
-    }
-    return _type;
+    return _type ??= new TypeParameterTypeImpl(this);
   }
 
   void set type(TypeParameterType type) {

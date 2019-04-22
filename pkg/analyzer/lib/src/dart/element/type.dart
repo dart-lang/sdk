@@ -502,7 +502,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var name = original.name ?? "";
     var element = original.element;
     var function = new FunctionElementImpl(name, -1);
-    function.enclosingElement = element.enclosingElement;
+    function.enclosingElement = element?.enclosingElement;
     function.isSynthetic = true;
     function.returnType = newType.returnType;
     function.typeParameters = freshVarElements;
