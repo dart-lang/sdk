@@ -4514,6 +4514,8 @@ enum UnlinkedTokenType {
   GT_EQ,
   GT_GT,
   GT_GT_EQ,
+  GT_GT_GT,
+  GT_GT_GT_EQ,
   HASH,
   HEXADECIMAL,
   HIDE,

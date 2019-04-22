@@ -251,6 +251,10 @@ class TokensContext {
         return TokenType.GT_GT;
       case UnlinkedTokenType.GT_GT_EQ:
         return TokenType.GT_GT_EQ;
+      case UnlinkedTokenType.GT_GT_GT:
+        return TokenType.GT_GT_GT;
+      case UnlinkedTokenType.GT_GT_GT_EQ:
+        return TokenType.GT_GT_GT_EQ;
       case UnlinkedTokenType.HASH:
         return TokenType.HASH;
       case UnlinkedTokenType.HEXADECIMAL:

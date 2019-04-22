@@ -280,6 +280,10 @@ class TokensWriter {
       return UnlinkedTokenType.GT_GT;
     } else if (type == TokenType.GT_GT_EQ) {
       return UnlinkedTokenType.GT_GT_EQ;
+    } else if (type == TokenType.GT_GT_GT) {
+      return UnlinkedTokenType.GT_GT_GT;
+    } else if (type == TokenType.GT_GT_GT_EQ) {
+      return UnlinkedTokenType.GT_GT_GT_EQ;
     } else if (type == TokenType.HASH) {
       return UnlinkedTokenType.HASH;
     } else if (type == TokenType.HEXADECIMAL) {
