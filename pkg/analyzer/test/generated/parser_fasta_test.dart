@@ -59,6 +59,43 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   final tripleShift = FeatureSet.forTesting(
       sdkVersion: '2.0.0', additionalFeatures: [Feature.triple_shift]);
 
+  void test_parseClassMember_operator_gtgtgt() {
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { bool operator >>>(other) => false; }',
+        featureSet: tripleShift);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, '>>>');
+    expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_operator_gtgtgteq() {
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { foo(int value) { x >>>= value; } }',
+        featureSet: tripleShift);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+    BlockFunctionBody blockFunctionBody = method.body;
+    NodeList<Statement> statements = blockFunctionBody.block.statements;
+    expect(statements, hasLength(1));
+    ExpressionStatement statement = statements[0];
+    AssignmentExpression assignment = statement.expression;
+    SimpleIdentifier leftHandSide = assignment.leftHandSide;
+    expect(leftHandSide.name, 'x');
+    expect(assignment.operator.lexeme, '>>>=');
+    SimpleIdentifier rightHandSide = assignment.rightHandSide;
+    expect(rightHandSide.name, 'value');
+  }
+
   void test_parseField_const_late() {
     createParser('const late T f = 0;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -235,43 +272,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
-  }
-
-  void test_parseClassMember_operator_gtgtgt() {
-    CompilationUnitImpl unit = parseCompilationUnit(
-        'class C { bool operator >>>(other) => false; }',
-        featureSet: tripleShift);
-    ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
-
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.name, '>>>');
-    expect(method.operatorKeyword, isNotNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_operator_gtgtgteq() {
-    CompilationUnitImpl unit = parseCompilationUnit(
-        'class C { foo(int value) { x >>>= value; } }',
-        featureSet: tripleShift);
-    ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
-    BlockFunctionBody blockFunctionBody = method.body;
-    NodeList<Statement> statements = blockFunctionBody.block.statements;
-    expect(statements, hasLength(1));
-    ExpressionStatement statement = statements[0];
-    AssignmentExpression assignment = statement.expression;
-    SimpleIdentifier leftHandSide = assignment.leftHandSide;
-    expect(leftHandSide.name, 'x');
-    expect(assignment.operator.lexeme, '>>>=');
-    SimpleIdentifier rightHandSide = assignment.rightHandSide;
-    expect(rightHandSide.name, 'value');
   }
 }
 
@@ -2257,22 +2257,6 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     expect(elseExpression, isSimpleIdentifier);
   }
 
-  void test_late_as_identifier() {
-    parseCompilationUnit('''
-class C {
-  int late;
-}
-
-void f(C c) {
-  print(c.late);
-}
-
-main() {
-  f(new C());
-}
-''', featureSet: preNonNullable);
-  }
-
   void test_is_nullable_parenthesis() {
     CompilationUnit unit =
         parseNNBDCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
@@ -2288,6 +2272,22 @@ main() {
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_late_as_identifier() {
+    parseCompilationUnit('''
+class C {
+  int late;
+}
+
+void f(C c) {
+  print(c.late);
+}
+
+main() {
+  f(new C());
+}
+''', featureSet: preNonNullable);
   }
 
   void test_nullCheck() {
@@ -2727,6 +2727,31 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
+  test_parseArgument() {
+    Expression result = parseArgument('3');
+    expect(result, const TypeMatcher<IntegerLiteral>());
+    IntegerLiteral literal = result;
+    expect(literal.value, 3);
+  }
+
+  test_parseArgument_named() {
+    Expression result = parseArgument('foo: "a"');
+    expect(result, const TypeMatcher<NamedExpression>());
+    NamedExpression expression = result;
+    StringLiteral literal = expression.expression;
+    expect(literal.stringValue, 'a');
+  }
+
+  @failingTest
+  @override
+  void test_parseCommentReferences_skipLink_direct_multiLine() =>
+      super.test_parseCommentReferences_skipLink_direct_multiLine();
+
+  @failingTest
+  @override
+  void test_parseCommentReferences_skipLink_reference_multiLine() =>
+      super.test_parseCommentReferences_skipLink_reference_multiLine();
+
   void test_parseVariableDeclaration_final_late() {
     var statement = parseStatement('final late a;', featureSet: nonNullable)
         as VariableDeclarationStatement;
@@ -2778,31 +2803,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
   }
-
-  test_parseArgument() {
-    Expression result = parseArgument('3');
-    expect(result, const TypeMatcher<IntegerLiteral>());
-    IntegerLiteral literal = result;
-    expect(literal.value, 3);
-  }
-
-  test_parseArgument_named() {
-    Expression result = parseArgument('foo: "a"');
-    expect(result, const TypeMatcher<NamedExpression>());
-    NamedExpression expression = result;
-    StringLiteral literal = expression.expression;
-    expect(literal.stringValue, 'a');
-  }
-
-  @failingTest
-  @override
-  void test_parseCommentReferences_skipLink_direct_multiLine() =>
-      super.test_parseCommentReferences_skipLink_direct_multiLine();
-
-  @failingTest
-  @override
-  void test_parseCommentReferences_skipLink_reference_multiLine() =>
-      super.test_parseCommentReferences_skipLink_reference_multiLine();
 }
 
 /**
@@ -2864,6 +2864,40 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     expect(forStatement.body, isNotNull);
   }
 
+  void test_parseForStatement_each_finalExternal() {
+    ForStatement forStatement = parseStatement(
+      'for (final external in list) {}',
+      featureSet: controlFlow,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable.identifier.name, 'external');
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_finalRequired() {
+    ForStatement forStatement = parseStatement(
+      'for (final required in list) {}',
+      featureSet: controlFlow,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable.identifier.name, 'required');
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
   void test_parseForStatement_each_genericFunctionType2() {
     ForStatement forStatement = parseStatement(
       'for (void Function<T>(T) element in list) {}',
@@ -2910,40 +2944,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
     expect(forLoopParts.loopVariable, isNotNull);
     expect(forLoopParts.loopVariable.metadata, hasLength(1));
-    expect(forLoopParts.inKeyword, isNotNull);
-    expect(forLoopParts.iterable, isNotNull);
-    expect(forStatement.rightParenthesis, isNotNull);
-    expect(forStatement.body, isNotNull);
-  }
-
-  void test_parseForStatement_each_finalRequired() {
-    ForStatement forStatement = parseStatement(
-      'for (final required in list) {}',
-      featureSet: controlFlow,
-    );
-    assertNoErrors();
-    expect(forStatement.awaitKeyword, isNull);
-    expect(forStatement.forKeyword, isNotNull);
-    expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
-    expect(forLoopParts.loopVariable.identifier.name, 'required');
-    expect(forLoopParts.inKeyword, isNotNull);
-    expect(forLoopParts.iterable, isNotNull);
-    expect(forStatement.rightParenthesis, isNotNull);
-    expect(forStatement.body, isNotNull);
-  }
-
-  void test_parseForStatement_each_finalExternal() {
-    ForStatement forStatement = parseStatement(
-      'for (final external in list) {}',
-      featureSet: controlFlow,
-    );
-    assertNoErrors();
-    expect(forStatement.awaitKeyword, isNull);
-    expect(forStatement.forKeyword, isNotNull);
-    expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
-    expect(forLoopParts.loopVariable.identifier.name, 'external');
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
