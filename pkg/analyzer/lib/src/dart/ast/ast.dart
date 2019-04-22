@@ -5212,6 +5212,10 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   @override
   DartType type;
 
+  /// Return the element associated with the function type, or `null` if the
+  /// AST structure has not been resolved.
+  GenericFunctionTypeElement declaredElement;
+
   /// Initialize a newly created generic function type.
   GenericFunctionTypeImpl(TypeAnnotationImpl returnType, this.functionKeyword,
       TypeParameterListImpl typeParameters, FormalParameterListImpl parameters,

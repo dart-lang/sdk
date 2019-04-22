@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 
 /// This class takes a [CompilationUnitElement] lazily resynthesized from a
 /// fully resolved, but partial AST (contains only APIs), and full unresolved
@@ -200,7 +199,7 @@ class DeclarationSplicer {
     GenericFunctionType full,
     GenericFunctionType partial,
   ) {
-    GenericFunctionTypeElementImpl element = LazyAst.getElement(partial);
+    var element = (partial as GenericFunctionTypeImpl).declaredElement;
     _walk(_ElementWalker.forGenericFunctionType(element), () {
       _node(full.returnType, partial.returnType);
       _node(full.typeParameters, partial.typeParameters);

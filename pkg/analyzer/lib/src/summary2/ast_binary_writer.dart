@@ -638,7 +638,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _writeActualReturnType(builder, node);
 
-    var element = LazyAst.getElement(node);
+    var element = (node as GenericFunctionTypeImpl).declaredElement;
     var id = _linkingContext.idOfGenericFunctionType(element);
     builder.genericFunctionType_id = id;
 

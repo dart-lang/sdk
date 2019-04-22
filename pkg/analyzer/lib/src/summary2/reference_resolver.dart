@@ -5,11 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
@@ -895,20 +895,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.mixinTypes.accept(this);
   }
 
-  void _createTypeParameterElement(TypeParameter node) {
-    var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
-    var id = linkingContext.addTypeParameter(element);
-
-    // Each element that might be referenced should have a Reference.
-    var containerRef = unitReference.getChild('@typeParameter');
-    var reference = containerRef.getChild('$id');
-    reference.element = element;
-    element.reference = reference;
-
-    node.name.staticElement = element;
-  }
-
-  void _createGenericFunctionTypeElement(GenericFunctionType node) {
+  void _createGenericFunctionTypeElement(GenericFunctionTypeImpl node) {
     var element =
         GenericFunctionTypeElementImpl.forLinkedNode(null, null, node);
     var id = linkingContext.addGenericFunctionType(element);
@@ -922,8 +909,20 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     reference.element = element;
     element.reference = reference;
 
-    // TODO(scheglov) should we have the field in the node?
-    LazyAst.setElement(node, element);
+    node.declaredElement = element;
+  }
+
+  void _createTypeParameterElement(TypeParameter node) {
+    var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
+    var id = linkingContext.addTypeParameter(element);
+
+    // Each element that might be referenced should have a Reference.
+    var containerRef = unitReference.getChild('@typeParameter');
+    var reference = containerRef.getChild('$id');
+    reference.element = element;
+    element.reference = reference;
+
+    node.name.staticElement = element;
   }
 
   void _createTypeParameterElements(TypeParameterList typeParameterList) {

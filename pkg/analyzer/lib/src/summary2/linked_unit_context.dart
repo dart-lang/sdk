@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -88,7 +89,7 @@ class LinkedUnitContext {
 
   /// Every [GenericFunctionType] node has [GenericFunctionTypeElement], which
   /// is created during reading of this node.
-  void addGenericFunctionType(int id, GenericFunctionType node) {
+  void addGenericFunctionType(int id, GenericFunctionTypeImpl node) {
     if (this.reference == null) return;
 
     var element = _genericFunctionTypes[id];
@@ -101,7 +102,7 @@ class LinkedUnitContext {
       _genericFunctionTypes[id] = element;
     }
 
-    LazyAst.setElement(node, element);
+    node.declaredElement = element;
 
     var containerRef = this.reference.getChild('@genericFunctionType');
     var reference = containerRef.getChild('$id');
