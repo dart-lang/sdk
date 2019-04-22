@@ -4,9 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
