@@ -231,7 +231,7 @@ namespace dart {
 //    Store SP[0] into array SP[-2] at index SP[-1]. No typechecking is done.
 //    SP[-2] is assumed to be a RawArray, SP[-1] to be a smi.
 //
-//  - PushStatic
+//  - PushStatic D
 //
 //    Pushes value of the static field PP[D] on to the stack.
 //
@@ -346,10 +346,12 @@ namespace dart {
 //    Instantiate type PP[D] with instantiator type arguments SP[-1] and
 //    function type arguments SP[0].
 //
-//  - InstantiateTypeArgumentsTOS D
+//  - InstantiateTypeArgumentsTOS A, D
 //
 //    Instantiate type arguments PP[D] with instantiator type arguments SP[-1]
-//    and function type arguments SP[0].
+//    and function type arguments SP[0]. A != 0 indicates that resulting type
+//    arguments are all dynamic if both instantiator and function type
+//    arguments are all dynamic.
 //
 //  - Throw A
 //

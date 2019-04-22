@@ -1077,18 +1077,24 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #define DECLARE_A
 #define DECODE_A
 
-#define DECLARE___D                                                            \
+#define DECLARE_T
+#define DECODE_T
+
+#define DECLARE_D                                                              \
   uint32_t rD;                                                                 \
   USE(rD)
-#define DECODE___D rD = (op >> KernelBytecode::kDShift);
+#define DECODE_D rD = (op >> KernelBytecode::kDShift);
 
-#define DECLARE_A_D DECLARE___D
-#define DECODE_A_D DECODE___D
+#define DECLARE_A_D DECLARE_D
+#define DECODE_A_D DECODE_D
 
-#define DECLARE_A_X                                                            \
+#define DECLARE_X                                                              \
   int32_t rD;                                                                  \
   USE(rD)
-#define DECODE_A_X rD = (static_cast<int32_t>(op) >> KernelBytecode::kDShift);
+#define DECODE_X rD = (static_cast<int32_t>(op) >> KernelBytecode::kDShift);
+
+#define DECLARE_A_X DECLARE_X
+#define DECODE_A_X DECODE_X
 
 #define HANDLE_EXCEPTION                                                       \
   do {                                                                         \
@@ -1592,7 +1598,7 @@ SwitchDispatch:
 
   // KernelBytecode handlers (see constants_kbc.h for bytecode descriptions).
   {
-    BYTECODE(Entry, A_D);
+    BYTECODE(Entry, D);
     const uint16_t num_locals = rD;
 
     // Initialize locals with null & set SP.
@@ -1747,7 +1753,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(Frame, A_D);
+    BYTECODE(Frame, D);
     // Initialize locals with null and increment SP.
     const uint16_t num_locals = rD;
     for (intptr_t i = 1; i <= num_locals; i++) {
@@ -1813,7 +1819,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InstantiateType, A_D);
+    BYTECODE(InstantiateType, D);
     // Stack: instantiator type args, function type args
     RawObject* type = LOAD_CONSTANT(rD);
     SP[1] = type;
@@ -1898,7 +1904,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(PushConstant, __D);
+    BYTECODE(PushConstant, D);
     *++SP = LOAD_CONSTANT(rD);
     DISPATCH();
   }
@@ -1922,25 +1928,25 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(PushInt, A_X);
+    BYTECODE(PushInt, X);
     *++SP = Smi::New(rD);
     DISPATCH();
   }
 
   {
-    BYTECODE(Push, A_X);
+    BYTECODE(Push, X);
     *++SP = FP[rD];
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreLocal, A_X);
+    BYTECODE(StoreLocal, X);
     FP[rD] = *SP;
     DISPATCH();
   }
 
   {
-    BYTECODE(PopLocal, A_X);
+    BYTECODE(PopLocal, X);
     FP[rD] = *SP--;
     DISPATCH();
   }
@@ -2125,7 +2131,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(NativeCall, __D);
+    BYTECODE(NativeCall, D);
     RawTypedData* data = static_cast<RawTypedData*>(LOAD_CONSTANT(rD));
     MethodRecognizer::Kind kind = NativeEntryData::GetKind(data);
     switch (kind) {
@@ -2356,7 +2362,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreStaticTOS, A_D);
+    BYTECODE(StoreStaticTOS, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
     field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
@@ -2364,7 +2370,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(PushStatic, A_D);
+    BYTECODE(PushStatic, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     // Note: field is also on the stack, hence no increment.
     *SP = field->ptr()->value_.static_value_;
@@ -2372,7 +2378,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreFieldTOS, __D);
+    BYTECODE(StoreFieldTOS, D);
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
@@ -2462,7 +2468,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreContextVar, __D);
+    BYTECODE(StoreContextVar, A_D);
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rD) / kWordSize);
     RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
@@ -2477,7 +2483,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(LoadFieldTOS, __D);
+    BYTECODE(LoadFieldTOS, D);
 #if defined(DEBUG)
     // Currently only used to load closure fields, which are not unboxed.
     // If used for general field, code for copying the mutable box must be
@@ -2496,7 +2502,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(LoadTypeArgumentsField, __D);
+    BYTECODE(LoadTypeArgumentsField, D);
     const uword offset_in_words =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
     RawInstance* instance = static_cast<RawInstance*>(SP[0]);
@@ -2514,7 +2520,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(LoadContextVar, __D);
+    BYTECODE(LoadContextVar, A_D);
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rD) / kWordSize);
     RawContext* instance = static_cast<RawContext*>(SP[0]);
@@ -2534,7 +2540,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(CloneContext, A);
+    BYTECODE(CloneContext, A_D);
     {
       SP[1] = SP[0];  // Context to clone.
       Exit(thread, FP, SP + 2, pc);
@@ -2545,7 +2551,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(Allocate, A_D);
+    BYTECODE(Allocate, D);
     RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
@@ -2640,7 +2646,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AssertSubtype, A);
+    BYTECODE(AssertSubtype, 0);
     RawObject** args = SP - 4;
 
     // TODO(kustermann): Implement fast case for common arguments.
@@ -2693,13 +2699,13 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(Jump, 0);
+    BYTECODE(Jump, T);
     LOAD_JUMP_TARGET();
     DISPATCH();
   }
 
   {
-    BYTECODE(JumpIfNoAsserts, 0);
+    BYTECODE(JumpIfNoAsserts, T);
     if (!thread->isolate()->asserts()) {
       LOAD_JUMP_TARGET();
     }
@@ -2707,7 +2713,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(JumpIfNotZeroTypeArgs, 0);
+    BYTECODE(JumpIfNotZeroTypeArgs, T);
     if (InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) != 0) {
       LOAD_JUMP_TARGET();
     }
@@ -2715,7 +2721,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(JumpIfEqStrict, 0);
+    BYTECODE(JumpIfEqStrict, T);
     SP -= 2;
     if (SP[1] == SP[2]) {
       LOAD_JUMP_TARGET();
@@ -2724,7 +2730,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(JumpIfNeStrict, 0);
+    BYTECODE(JumpIfNeStrict, T);
     SP -= 2;
     if (SP[1] != SP[2]) {
       LOAD_JUMP_TARGET();
@@ -2733,7 +2739,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(JumpIfTrue, 0);
+    BYTECODE(JumpIfTrue, T);
     SP -= 1;
     if (SP[1] == true_value) {
       LOAD_JUMP_TARGET();
@@ -2742,7 +2748,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(JumpIfFalse, 0);
+    BYTECODE(JumpIfFalse, T);
     SP -= 1;
     if (SP[1] == false_value) {
       LOAD_JUMP_TARGET();
@@ -2751,7 +2757,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(JumpIfNull, 0);
+    BYTECODE(JumpIfNull, T);
     SP -= 1;
     if (SP[1] == null_value) {
       LOAD_JUMP_TARGET();
@@ -2760,7 +2766,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(JumpIfNotNull, 0);
+    BYTECODE(JumpIfNotNull, T);
     SP -= 1;
     if (SP[1] != null_value) {
       LOAD_JUMP_TARGET();
@@ -3075,7 +3081,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AllocateClosure, A_D);
+    BYTECODE(AllocateClosure, D);
     ++SP;
     if (!AllocateClosure(thread, pc, FP, SP)) {
       HANDLE_EXCEPTION;
