@@ -7,7 +7,6 @@ import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
-import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -64,6 +63,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     }
     decoratedType.node.trackPossiblyOptional();
     _variables.recordPossiblyOptional(_source, node, decoratedType.node);
+    return null;
   }
 
   @override

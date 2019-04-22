@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/unit_propagation.dart';
 
 /// Container for information gathered during nullability migration about a
 /// conditional check that might need to be discarded.
