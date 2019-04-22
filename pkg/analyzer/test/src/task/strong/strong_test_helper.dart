@@ -246,7 +246,7 @@ class AbstractStrongTest with ResourceProviderMixin {
 
   List<String> get enabledExperiments => [];
 
-  bool get useSummary2 => _driver.useSummary2;
+  bool get useSummary2 => AnalysisDriver.useSummary2;
 
   /// Adds a file to check. The file should contain:
   ///

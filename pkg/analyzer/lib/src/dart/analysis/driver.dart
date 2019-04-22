@@ -103,6 +103,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   static int allowedNumberOfContextsToWrite = 10;
 
   /**
+   * Whether summary2 should be used to resynthesize elements.
+   */
+  static final bool useSummary2 = false;
+
+  /**
    * The scheduler that schedules analysis work in this, and possibly other
    * analysis drivers.
    */
@@ -325,11 +330,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Whether resolved units should be indexed.
    */
   final bool enableIndex;
-
-  /**
-   * Whether summary2 should be used to resynthesize elements.
-   */
-  final bool useSummary2 = false;
 
   /**
    * The cache to use with [disableChangesAndCacheAllResults].
