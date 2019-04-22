@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 
 /// Defines the AST model. The AST (Abstract Syntax Tree) model describes the
@@ -1222,6 +1223,17 @@ abstract class CompilationUnit implements AstNode {
   /// Set the last token included in this node's source range to the given
   /// [token].
   void set endToken(Token token);
+
+  /// The set of features available to this compilation unit, or `null` if
+  /// unknown.
+  ///
+  /// Determined by some combination of the .packages file, the enclosing
+  /// package's SDK version constraint, and/or the presence of a `@dart`
+  /// directive in a comment at the top of the file.
+  ///
+  /// Might be `null` if, for example, this [CompilationUnit] has been
+  /// resynthesized from a summary,
+  FeatureSet get featureSet;
 
   /// Return the line information for this compilation unit.
   LineInfo get lineInfo;

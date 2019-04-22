@@ -195,6 +195,8 @@ class Parser {
 
   bool allowNativeClause;
 
+  FeatureSet _featureSet;
+
   /// Initialize a newly created parser to parse tokens in the given [_source]
   /// and to report any errors that are found to the given [_errorListener].
   factory Parser(Source source, AnalysisErrorListener errorListener,
@@ -363,6 +365,7 @@ class Parser {
       throw new UnimplementedError('triple_shift experiment'
           ' not supported by analyzer parser');
     }
+    _featureSet = featureSet;
   }
 
   /// Return a synthetic identifier.
@@ -1932,7 +1935,8 @@ class Parser {
         } on _TooDeepTreeError {
           _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
           Token eof = new Token.eof(0);
-          return astFactory.compilationUnit(eof, null, null, null, eof);
+          return astFactory.compilationUnit(
+              eof, null, null, null, eof, _featureSet);
         }
         if (member != null) {
           declarations.add(member);
@@ -1981,8 +1985,8 @@ class Parser {
 //        }
       }
     }
-    return astFactory.compilationUnit(
-        firstToken, scriptTag, directives, declarations, _currentToken);
+    return astFactory.compilationUnit(firstToken, scriptTag, directives,
+        declarations, _currentToken, _featureSet);
   }
 
   /// Parse a compilation unit member. The [commentAndMetadata] is the metadata
@@ -2432,12 +2436,12 @@ class Parser {
         while (!_matches(TokenType.EOF)) {
           _advance();
         }
-        return astFactory.compilationUnit(
-            firstToken, scriptTag, directives, null, _currentToken);
+        return astFactory.compilationUnit(firstToken, scriptTag, directives,
+            null, _currentToken, _featureSet);
       }
     }
     return astFactory.compilationUnit(
-        firstToken, scriptTag, directives, null, _currentToken);
+        firstToken, scriptTag, directives, null, _currentToken, _featureSet);
   }
 
   /// Parse a documentation comment based on the given list of documentation

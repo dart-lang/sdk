@@ -122,6 +122,8 @@ class AstBuilder extends StackListener {
   /// `true` if triple-shift behavior is enabled
   bool enableTripleShift = false;
 
+  FeatureSet _featureSet;
+
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
@@ -296,6 +298,7 @@ class AstBuilder extends StackListener {
     enableControlFlowCollections =
         featureSet.isEnabled(Feature.control_flow_collections);
     enableTripleShift = featureSet.isEnabled(Feature.triple_shift);
+    _featureSet = featureSet;
   }
 
   @override
@@ -503,9 +506,8 @@ class AstBuilder extends StackListener {
     Token beginToken = pop();
     checkEmpty(endToken.charOffset);
 
-    CompilationUnitImpl unit = ast.compilationUnit(
-            beginToken, scriptTag, directives, declarations, endToken)
-        as CompilationUnitImpl;
+    CompilationUnitImpl unit = ast.compilationUnit(beginToken, scriptTag,
+        directives, declarations, endToken, _featureSet) as CompilationUnitImpl;
     unit.languageVersion = languageVersion;
     unit.isNonNullable = enableNonNullable;
     push(unit);

@@ -290,7 +290,8 @@ class AstCloner
         cloneNode(node.scriptTag),
         cloneNodeList(node.directives),
         cloneNodeList(node.declarations),
-        cloneToken(node.endToken));
+        cloneToken(node.endToken),
+        node.featureSet);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
@@ -2647,7 +2648,8 @@ class IncrementalAstCloner
         _cloneNode(node.scriptTag),
         _cloneNodeList(node.directives),
         _cloneNodeList(node.declarations),
-        _mapToken(node.endToken));
+        _mapToken(node.endToken),
+        node.featureSet);
     copy.lineInfo = node.lineInfo;
     copy.declaredElement = node.declaredElement;
     return copy;

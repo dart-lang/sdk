@@ -438,7 +438,8 @@ class FileState {
         return _parse(errorListener);
       });
     } catch (_) {
-      return _createEmptyCompilationUnit();
+      AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
+      return _createEmptyCompilationUnit(analysisOptions.contextFeatures);
     }
   }
 
@@ -651,9 +652,9 @@ class FileState {
     return new _ExportedDeclarations(firstCycleId, declarations);
   }
 
-  CompilationUnit _createEmptyCompilationUnit() {
+  CompilationUnit _createEmptyCompilationUnit(FeatureSet featureSet) {
     var token = new Token.eof(0);
-    return astFactory.compilationUnit(token, null, [], [], token)
+    return astFactory.compilationUnit(token, null, [], [], token, featureSet)
       ..lineInfo = new LineInfo(const <int>[0]);
   }
 
@@ -696,18 +697,20 @@ class FileState {
   }
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
+    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
+    FeatureSet featureSet = analysisOptions.contextFeatures;
     if (source == null) {
-      return _createEmptyCompilationUnit();
+      return _createEmptyCompilationUnit(featureSet);
     }
 
-    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    FeatureSet fileFeatures = analysisOptions.contextFeatures;
-    // TODO(paulberry): adjust fileFeatures as appropriate if there is a "@dart"
+    // TODO(paulberry): adjust featureSet as appropriate if there is a "@dart"
     // comment and/or an SDK constraint that restricts what features should be
-    // available.
+    // available.  Ideally we would like the parser to make this adjustment (at
+    // least in the case of "@dart") because it's the component that recognizes
+    // "@dart" comments.
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.enableGtGtGt = fileFeatures.isEnabled(Feature.triple_shift);
+    scanner.enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -715,7 +718,7 @@ class FileState {
 
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta)
-      ..configureFeatures(fileFeatures);
+      ..configureFeatures(featureSet);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

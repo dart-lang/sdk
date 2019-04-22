@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -160,7 +161,8 @@ abstract class AstFactory {
       ScriptTag scriptTag,
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
-      Token endToken);
+      Token endToken,
+      [FeatureSet featureSet]);
 
   /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(

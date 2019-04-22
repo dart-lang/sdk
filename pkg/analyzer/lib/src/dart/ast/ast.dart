@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -2062,6 +2063,9 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// Is `true` if this unit has been parsed as non-nullable.
   bool isNonNullable = false;
 
+  @override
+  final FeatureSet featureSet;
+
   /// Initialize a newly created compilation unit to have the given directives
   /// and declarations. The [scriptTag] can be `null` if there is no script tag
   /// in the compilation unit. The list of [directives] can be `null` if there
@@ -2072,7 +2076,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       ScriptTagImpl scriptTag,
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
-      this.endToken) {
+      this.endToken,
+      this.featureSet) {
     _scriptTag = _becomeParentOf(scriptTag);
     _directives = new NodeListImpl<Directive>(this, directives);
     _declarations = new NodeListImpl<CompilationUnitMember>(this, declarations);

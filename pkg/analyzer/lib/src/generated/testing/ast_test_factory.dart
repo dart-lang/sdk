@@ -282,7 +282,8 @@ class AstTestFactory {
           declarations == null
               ? new List<CompilationUnitMember>()
               : declarations,
-          TokenFactory.tokenFromType(TokenType.EOF));
+          TokenFactory.tokenFromType(TokenType.EOF),
+          null);
 
   static ConditionalExpression conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>

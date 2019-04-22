@@ -279,7 +279,8 @@ class C {
         null,
         [],
         [topLevelVariableDeclaration],
-        topLevelVariableDeclaration.endToken);
+        topLevelVariableDeclaration.endToken,
+        null);
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     unit.beginToken.offset = 10;
