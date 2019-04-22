@@ -92,8 +92,14 @@ class TypeBuilder {
     } else if (node is FieldFormalParameter) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
-      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
-      var returnType = node.returnType?.type ?? defaultReturnType;
+      var returnType = node.returnType?.type;
+      if (returnType == null) {
+        if (node.isSetter) {
+          returnType = _voidType;
+        } else {
+          returnType = _dynamicType;
+        }
+      }
       LazyAst.setReturnType(node, returnType);
     } else if (node is FunctionTypeAlias) {
       _functionTypeAlias(node);
@@ -102,8 +108,16 @@ class TypeBuilder {
     } else if (node is GenericFunctionType) {
       _genericFunctionType(node);
     } else if (node is MethodDeclaration) {
-      var defaultReturnType = node.isSetter ? _voidType : _dynamicType;
-      var returnType = node.returnType?.type ?? defaultReturnType;
+      var returnType = node.returnType?.type;
+      if (returnType == null) {
+        if (node.isSetter) {
+          returnType = _voidType;
+        } else if (node.isOperator && node.name.name == '[]=') {
+          returnType = _voidType;
+        } else {
+          returnType = _dynamicType;
+        }
+      }
       LazyAst.setReturnType(node, returnType);
     } else if (node is SimpleFormalParameter) {
       _build(node.type);
