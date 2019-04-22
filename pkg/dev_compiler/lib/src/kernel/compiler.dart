@@ -1586,6 +1586,15 @@ class ProgramCompiler extends Object
                   throw Error("use `new " + #.typeName(#.getReifiedType(this)) +
                       ".new(...)` to create a Dart object");
               }''', [runtimeModule, runtimeModule])));
+    } else if (c == _jsArrayClass) {
+      // Provide access to the Array constructor property, so it works like
+      // other native types (rather than calling the Dart Object "constructor"
+      // above, which throws).
+      //
+      // This will become obsolete when
+      // https://github.com/dart-lang/sdk/issues/31003 is addressed.
+      jsMethods.add(JS.Method(
+          propertyName('constructor'), js.fun(r'function() { return []; }')));
     }
 
     Set<Member> redirectingFactories;
