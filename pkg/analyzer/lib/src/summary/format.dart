@@ -9574,6 +9574,7 @@ class LinkedNodeBuilder extends Object
   int get codeLength {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
@@ -9593,6 +9594,7 @@ class LinkedNodeBuilder extends Object
   set codeLength(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
@@ -9614,6 +9616,7 @@ class LinkedNodeBuilder extends Object
   int get codeOffset {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
@@ -9643,6 +9646,7 @@ class LinkedNodeBuilder extends Object
   set codeOffset(int value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
@@ -10378,12 +10382,16 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder compilationUnit_scriptTag,
     int compilationUnit_beginToken,
     int compilationUnit_endToken,
+    int codeLength,
+    int codeOffset,
     List<LinkedNodeBuilder> compilationUnit_directives,
   })  : _kind = idl.LinkedNodeKind.compilationUnit,
         _variantField_2 = compilationUnit_declarations,
         _variantField_6 = compilationUnit_scriptTag,
         _variantField_15 = compilationUnit_beginToken,
         _variantField_16 = compilationUnit_endToken,
+        _variantField_34 = codeLength,
+        _variantField_33 = codeOffset,
         _variantField_3 = compilationUnit_directives;
 
   LinkedNodeBuilder.constructorDeclaration({
@@ -15364,6 +15372,7 @@ class _LinkedNodeImpl extends Object
   int get codeLength {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
@@ -15386,6 +15395,7 @@ class _LinkedNodeImpl extends Object
   int get codeOffset {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
@@ -16062,6 +16072,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["compilationUnit_beginToken"] = compilationUnit_beginToken;
       if (compilationUnit_endToken != 0)
         _result["compilationUnit_endToken"] = compilationUnit_endToken;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (compilationUnit_directives.isNotEmpty)
         _result["compilationUnit_directives"] = compilationUnit_directives
             .map((_value) => _value.toJson())
@@ -17696,6 +17708,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "compilationUnit_scriptTag": compilationUnit_scriptTag,
         "compilationUnit_beginToken": compilationUnit_beginToken,
         "compilationUnit_endToken": compilationUnit_endToken,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "compilationUnit_directives": compilationUnit_directives,
         "isSynthetic": isSynthetic,
         "kind": kind,

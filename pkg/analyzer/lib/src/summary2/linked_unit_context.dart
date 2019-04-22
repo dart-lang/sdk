@@ -142,14 +142,20 @@ class LinkedUnitContext {
       return LazyClassDeclaration.get(node).data.codeLength;
     } else if (node is ClassTypeAlias) {
       return LazyClassTypeAlias.get(node).data.codeLength;
+    } else if (node is CompilationUnit) {
+      return data.node.codeLength;
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.get(node).data.codeLength;
+    } else if (node is EnumDeclaration) {
+      return LazyEnumDeclaration.get(node).data.codeLength;
     } else if (node is FormalParameter) {
       return LazyFormalParameter.get(node).data.codeLength;
     } else if (node is FunctionDeclaration) {
       return LazyFunctionDeclaration.get(node).data.codeLength;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.get(node).data.codeLength;
+    } else if (node is MixinDeclaration) {
+      return LazyMixinDeclaration.get(node).data.codeLength;
     } else if (node is TypeParameter) {
       return LazyTypeParameter.get(node).data.codeLength;
     } else if (node is VariableDeclaration) {
@@ -163,14 +169,20 @@ class LinkedUnitContext {
       return LazyClassDeclaration.get(node).data.codeOffset;
     } else if (node is ClassTypeAlias) {
       return LazyClassTypeAlias.get(node).data.codeOffset;
+    } else if (node is CompilationUnit) {
+      return data.node.codeOffset;
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.get(node).data.codeOffset;
+    } else if (node is EnumDeclaration) {
+      return LazyEnumDeclaration.get(node).data.codeOffset;
     } else if (node is FormalParameter) {
       return LazyFormalParameter.get(node).data.codeOffset;
     } else if (node is FunctionDeclaration) {
       return LazyFunctionDeclaration.get(node).data.codeOffset;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.get(node).data.codeOffset;
+    } else if (node is MixinDeclaration) {
+      return LazyMixinDeclaration.get(node).data.codeOffset;
     } else if (node is TypeParameter) {
       return LazyTypeParameter.get(node).data.codeOffset;
     } else if (node is VariableDeclaration) {

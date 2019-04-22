@@ -1124,6 +1124,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(34, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.compilationUnit,
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.defaultFormalParameter,
     LinkedNodeKind.enumDeclaration,
@@ -1143,6 +1144,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(33, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.compilationUnit,
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.defaultFormalParameter,
     LinkedNodeKind.enumDeclaration,

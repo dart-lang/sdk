@@ -237,13 +237,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitCompilationUnit(CompilationUnit node) {
-    return LinkedNodeBuilder.compilationUnit(
+    var builder = LinkedNodeBuilder.compilationUnit(
       compilationUnit_beginToken: _getToken(node.beginToken),
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
       compilationUnit_endToken: _getToken(node.endToken),
       compilationUnit_scriptTag: node.scriptTag?.accept(this),
     );
+    _storeCodeOffsetLength(builder, node);
+    return builder;
   }
 
   @override

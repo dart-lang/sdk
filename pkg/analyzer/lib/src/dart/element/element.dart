@@ -1694,6 +1694,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   int get codeLength {
+    if (linkedNode != null) {
+      return linkedContext.getCodeLength(linkedNode);
+    }
     if (_unlinkedUnit != null) {
       return _unlinkedUnit.codeRange?.length;
     }
@@ -1702,6 +1705,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   int get codeOffset {
+    if (linkedNode != null) {
+      return linkedContext.getCodeOffset(linkedNode);
+    }
     if (_unlinkedUnit != null) {
       return _unlinkedUnit.codeRange?.offset;
     }
