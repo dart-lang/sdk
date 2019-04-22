@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
@@ -514,6 +515,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   final List<AstNode> nodesToBuildType;
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
+  final Reference unitReference;
 
   Reference reference;
   Scope scope;
@@ -523,9 +525,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     this.nodesToBuildType,
     this.elementFactory,
     this._libraryElement,
-    this.reference,
+    this.unitReference,
     this.scope,
-  );
+  ) : reference = unitReference;
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -726,6 +728,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = '${outerReference.numOfChildren}';
     reference = reference.getChild(name);
 
+    _createGenericFunctionTypeElement(node);
     _createTypeParameterElements(node.typeParameters);
     var element = GenericFunctionTypeElementImpl.forLinkedNode(
       outerReference.element,
@@ -894,8 +897,33 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   void _createTypeParameterElement(TypeParameter node) {
     var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
+    var id = linkingContext.addTypeParameter(element);
+
+    // Each element that might be referenced should have a Reference.
+    var containerRef = unitReference.getChild('@typeParameter');
+    var reference = containerRef.getChild('$id');
+    reference.element = element;
+    element.reference = reference;
+
     node.name.staticElement = element;
-    linkingContext.addTypeParameter(element);
+  }
+
+  void _createGenericFunctionTypeElement(GenericFunctionType node) {
+    var element =
+        GenericFunctionTypeElementImpl.forLinkedNode(null, null, node);
+    var id = linkingContext.addGenericFunctionType(element);
+
+    // Each element that might be referenced should have a Reference.
+    // While GenericFunctionType itself does not have a name, so cannot be
+    // referenced itself, it hosts other elements, such as formal parameters,
+    // that can be referenced.
+    var containerRef = unitReference.getChild('@genericFunctionType');
+    var reference = containerRef.getChild('$id');
+    reference.element = element;
+    element.reference = reference;
+
+    // TODO(scheglov) should we have the field in the node?
+    LazyAst.setElement(node, element);
   }
 
   void _createTypeParameterElements(TypeParameterList typeParameterList) {

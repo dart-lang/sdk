@@ -660,6 +660,7 @@ class AstBinaryReader {
     );
     node.type = _readType(data.genericFunctionType_type);
     LazyGenericFunctionType.setData(node, data);
+    _unitContext.addGenericFunctionType(data.genericFunctionType_id, node);
     return node;
   }
 
@@ -1064,6 +1065,7 @@ class AstBinaryReader {
   SimpleIdentifier _read_simpleIdentifier(LinkedNode data) {
     return astFactory.simpleIdentifier(
       _getToken(data.simpleIdentifier_token),
+      isDeclaration: data.simpleIdentifier_isDeclaration,
     )
       ..staticElement = _elementOfComponents(
         data.simpleIdentifier_element,

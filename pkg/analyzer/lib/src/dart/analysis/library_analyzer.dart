@@ -32,6 +32,7 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary2/declaration_splicer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -630,7 +631,11 @@ class LibraryAnalyzer {
       }
     }
 
-    new DeclarationResolver().resolve(unit, unitElement);
+    if (_elementFactory != null) {
+      new DeclarationSplicer(unitElement).splice(unit);
+    } else {
+      new DeclarationResolver().resolve(unit, unitElement);
+    }
 
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
         source, _typeProvider, errorListener,

@@ -34,10 +34,26 @@ class LinkingBundleContext {
   int _nextTypeParameterId = 1;
   int _nextSyntheticTypeParameterId = 0x10000;
 
+  final Map<GenericFunctionTypeElement, int> _genericFunctionTypes =
+      Map.identity();
+  int _nextGenericFunctionTypeId = 1;
+
   LinkingBundleContext(this.dynamicReference);
 
-  void addTypeParameter(TypeParameterElement element) {
-    _typeParameters[element] = _nextTypeParameterId++;
+  int addGenericFunctionType(GenericFunctionTypeElement element) {
+    var id = _nextGenericFunctionTypeId++;
+    _genericFunctionTypes[element] = id;
+    return id;
+  }
+
+  int addTypeParameter(TypeParameterElement element) {
+    var id = _nextTypeParameterId++;
+    _typeParameters[element] = id;
+    return id;
+  }
+
+  int idOfGenericFunctionType(GenericFunctionTypeElement element) {
+    return _genericFunctionTypes[element];
   }
 
   int idOfTypeParameter(TypeParameterElement element) {

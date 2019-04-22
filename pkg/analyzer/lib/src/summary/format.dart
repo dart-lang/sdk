@@ -7833,6 +7833,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  int get genericFunctionType_id {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
+    return _variantField_17 ??= 0;
+  }
+
+  @override
   int get ifMixin_leftParenthesis {
     assert(kind == idl.LinkedNodeKind.ifElement ||
         kind == idl.LinkedNodeKind.ifStatement);
@@ -7962,6 +7968,12 @@ class LinkedNodeBuilder extends Object
   set forMixin_leftParenthesis(int value) {
     assert(kind == idl.LinkedNodeKind.forElement ||
         kind == idl.LinkedNodeKind.forStatement);
+    assert(value == null || value >= 0);
+    _variantField_17 = value;
+  }
+
+  set genericFunctionType_id(int value) {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
     assert(value == null || value >= 0);
     _variantField_17 = value;
   }
@@ -9385,6 +9397,12 @@ class LinkedNodeBuilder extends Object
     return _variantField_27 ??= false;
   }
 
+  @override
+  bool get simpleIdentifier_isDeclaration {
+    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
+    return _variantField_27 ??= false;
+  }
+
   set booleanLiteral_value(bool value) {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     _variantField_27 = value;
@@ -9409,6 +9427,11 @@ class LinkedNodeBuilder extends Object
 
   set setOrMapLiteral_isMap(bool value) {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
+    _variantField_27 = value;
+  }
+
+  set simpleIdentifier_isDeclaration(bool value) {
+    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
     _variantField_27 = value;
   }
 
@@ -10114,6 +10137,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder genericFunctionType_typeParameters,
     int genericFunctionType_functionKeyword,
     LinkedNodeBuilder genericFunctionType_returnType,
+    int genericFunctionType_id,
     LinkedNodeBuilder genericFunctionType_formalParameters,
     int genericFunctionType_question,
     LinkedNodeTypeBuilder genericFunctionType_type,
@@ -10122,6 +10146,7 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = genericFunctionType_typeParameters,
         _variantField_15 = genericFunctionType_functionKeyword,
         _variantField_7 = genericFunctionType_returnType,
+        _variantField_17 = genericFunctionType_id,
         _variantField_8 = genericFunctionType_formalParameters,
         _variantField_16 = genericFunctionType_question,
         _variantField_25 = genericFunctionType_type;
@@ -11572,11 +11597,13 @@ class LinkedNodeBuilder extends Object
     int simpleIdentifier_element,
     LinkedNodeTypeBuilder simpleIdentifier_elementType,
     int simpleIdentifier_token,
+    bool simpleIdentifier_isDeclaration,
     LinkedNodeTypeBuilder expression_type,
   })  : _kind = idl.LinkedNodeKind.simpleIdentifier,
         _variantField_15 = simpleIdentifier_element,
         _variantField_23 = simpleIdentifier_elementType,
         _variantField_16 = simpleIdentifier_token,
+        _variantField_27 = simpleIdentifier_isDeclaration,
         _variantField_25 = expression_type;
 
   LinkedNodeBuilder.simpleStringLiteral({
@@ -14212,6 +14239,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  int get genericFunctionType_id {
+    assert(kind == idl.LinkedNodeKind.genericFunctionType);
+    _variantField_17 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 17, 0);
+    return _variantField_17;
+  }
+
+  @override
   int get ifMixin_leftParenthesis {
     assert(kind == idl.LinkedNodeKind.ifElement ||
         kind == idl.LinkedNodeKind.ifStatement);
@@ -15221,6 +15256,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  bool get simpleIdentifier_isDeclaration {
+    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
+    _variantField_27 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
+    return _variantField_27;
+  }
+
+  @override
   idl.LinkedNode get catchClause_stackTraceParameter {
     assert(kind == idl.LinkedNodeKind.catchClause);
     _variantField_9 ??=
@@ -15734,6 +15777,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (genericFunctionType_returnType != null)
         _result["genericFunctionType_returnType"] =
             genericFunctionType_returnType.toJson();
+      if (genericFunctionType_id != 0)
+        _result["genericFunctionType_id"] = genericFunctionType_id;
       if (genericFunctionType_formalParameters != null)
         _result["genericFunctionType_formalParameters"] =
             genericFunctionType_formalParameters.toJson();
@@ -17358,6 +17403,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             simpleIdentifier_elementType.toJson();
       if (simpleIdentifier_token != 0)
         _result["simpleIdentifier_token"] = simpleIdentifier_token;
+      if (simpleIdentifier_isDeclaration != false)
+        _result["simpleIdentifier_isDeclaration"] =
+            simpleIdentifier_isDeclaration;
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
@@ -17456,6 +17504,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "genericFunctionType_functionKeyword":
             genericFunctionType_functionKeyword,
         "genericFunctionType_returnType": genericFunctionType_returnType,
+        "genericFunctionType_id": genericFunctionType_id,
         "genericFunctionType_formalParameters":
             genericFunctionType_formalParameters,
         "genericFunctionType_question": genericFunctionType_question,
@@ -18745,6 +18794,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "simpleIdentifier_element": simpleIdentifier_element,
         "simpleIdentifier_elementType": simpleIdentifier_elementType,
         "simpleIdentifier_token": simpleIdentifier_token,
+        "simpleIdentifier_isDeclaration": simpleIdentifier_isDeclaration,
         "expression_type": expression_type,
         "isSynthetic": isSynthetic,
         "kind": kind,

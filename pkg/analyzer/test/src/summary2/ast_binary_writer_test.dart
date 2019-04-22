@@ -152,6 +152,7 @@ var a = [1, 2, 3];
       null,
       0,
       null,
+      null,
       LinkedNodeUnitBuilder(
         node: builder,
         tokens: tokensResult.tokens,

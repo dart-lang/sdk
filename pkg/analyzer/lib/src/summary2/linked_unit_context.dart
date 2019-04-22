@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/tokens_context.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
@@ -20,6 +22,7 @@ class LinkedUnitContext {
   final LinkedLibraryContext libraryContext;
   final int indexInLibrary;
   final String uriStr;
+  final Reference reference;
   final LinkedNodeUnit data;
   final TokensContext tokensContext;
 
@@ -28,6 +31,9 @@ class LinkedUnitContext {
   CompilationUnit _unit;
   bool _hasDirectivesRead = false;
 
+  /// Mapping from identifiers to elements for generic function types.
+  final Map<int, GenericFunctionTypeElementImpl> _genericFunctionTypes = {};
+
   /// Mapping from identifiers to real or synthetic type parameters.
   ///
   /// Real type parameters have corresponding [TypeParameter] nodes, and are
@@ -35,12 +41,12 @@ class LinkedUnitContext {
   ///
   /// Synthetic type parameters are added when [readType] begins reading a
   /// [FunctionType], and removed when reading is done.
-  final Map<int, TypeParameterElement> _typeParameters = {};
+  final Map<int, TypeParameterElementImpl> _typeParameters = {};
 
   int _nextSyntheticTypeParameterId = 0x10000;
 
   LinkedUnitContext(this.bundleContext, this.libraryContext,
-      this.indexInLibrary, this.uriStr, this.data,
+      this.indexInLibrary, this.uriStr, this.reference, this.data,
       {CompilationUnit unit})
       : tokensContext = data != null ? TokensContext(data.tokens) : null {
     _astReader = AstBinaryReader(this);
@@ -49,6 +55,15 @@ class LinkedUnitContext {
     _unit = unit;
     _hasDirectivesRead = _unit != null;
   }
+
+  LinkedUnitContext._(
+      this.bundleContext,
+      this.libraryContext,
+      this.indexInLibrary,
+      this.uriStr,
+      this.reference,
+      this.data,
+      this.tokensContext);
 
   CompilationUnit get unit => _unit;
 
@@ -71,13 +86,47 @@ class LinkedUnitContext {
     return _unit;
   }
 
+  /// Every [GenericFunctionType] node has [GenericFunctionTypeElement], which
+  /// is created during reading of this node.
+  void addGenericFunctionType(int id, GenericFunctionType node) {
+    if (this.reference == null) return;
+
+    var element = _genericFunctionTypes[id];
+    if (element == null) {
+      element = GenericFunctionTypeElementImpl.forLinkedNode(
+        this.reference.element,
+        null,
+        node,
+      );
+      _genericFunctionTypes[id] = element;
+    }
+
+    LazyAst.setElement(node, element);
+
+    var containerRef = this.reference.getChild('@genericFunctionType');
+    var reference = containerRef.getChild('$id');
+    reference.element = element;
+    element.reference = reference;
+  }
+
   /// Every [TypeParameter] node has [TypeParameterElement], which is created
   /// during reading of this node. All type parameter nodes are read before
   /// any nodes that reference them (bounds are read lazily later).
   void addTypeParameter(int id, TypeParameter node) {
-    var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
-    _typeParameters[id] = element;
+    if (this.reference == null) return;
+
+    var element = _typeParameters[id];
+    if (element == null) {
+      element = TypeParameterElementImpl.forLinkedNode(null, null, node);
+      _typeParameters[id] = element;
+    }
+
     node.name.staticElement = element;
+
+    var containerRef = this.reference.getChild('@typeParameter');
+    var reference = containerRef.getChild('$id');
+    reference.element = element;
+    element.reference = reference;
   }
 
   /// Return the [LibraryElement] referenced in the [node].
@@ -833,6 +882,27 @@ class LinkedUnitContext {
     }
   }
 
+  /// Read new resolved [CompilationUnit] from the [data], and in contrast to
+  /// reading AST for element model, read it eagerly. We can do this, because
+  /// the element model is fully accessible, so we don't need to worry about
+  /// potential forward references.
+  ///
+  /// The new instance of [CompilationUnit] is required because the client of
+  /// this method is going to modify the unit - merge parsed, not yet resolved
+  /// function bodies into it, and resolve them.
+  CompilationUnit readUnitEagerly() {
+    reference.element.accept(
+      _TypeParameterReader(),
+    );
+
+    var context = LinkedUnitContext._(bundleContext, libraryContext,
+        indexInLibrary, uriStr, reference, data, TokensContext(data.tokens));
+    context._genericFunctionTypes.addAll(_genericFunctionTypes);
+    context._typeParameters.addAll(_typeParameters);
+    var astReader = AstBinaryReader(context);
+    return astReader.readNode(data.node);
+  }
+
   void setOverrideInferenceDone(AstNode node) {
     // TODO(scheglov) This assert fails, check how to avoid this.
 //    assert(!_astReader.isLazy);
@@ -958,5 +1028,12 @@ class LinkedUnitContext {
       throw UnimplementedError('$kind');
     }
     return typeParameterList?.typeParameterList_typeParameters;
+  }
+}
+
+class _TypeParameterReader extends RecursiveElementVisitor<void> {
+  @override
+  void visitTypeParameterElement(TypeParameterElement element) {
+    super.visitTypeParameterElement(element);
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
+  static const _elementKey = 'lazyAst_element';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeInferenceErrorKey = 'lazyAst_typeInferenceError';
@@ -20,6 +22,10 @@ class LazyAst {
   final LinkedNode data;
 
   LazyAst(this.data);
+
+  static Element getElement(AstNode node) {
+    return node.getProperty(_elementKey);
+  }
 
   static DartType getReturnType(AstNode node) {
     return node.getProperty(_returnTypeKey);
@@ -39,6 +45,11 @@ class LazyAst {
 
   static bool isSimplyBounded(AstNode node) {
     return node.getProperty(_isSimplyBoundedKey);
+  }
+
+  /// TODO(scheglov) Maybe remove when GenericFunctionType has declaredElement.
+  static void setElement(AstNode node, Element element) {
+    node.setProperty(_elementKey, element);
   }
 
   static void setOverrideInferenceDone(AstNode node) {

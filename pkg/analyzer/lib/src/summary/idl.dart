@@ -1631,6 +1631,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.genericFunctionType)
   int get genericFunctionType_functionKeyword;
 
+  @VariantId(17, variant: LinkedNodeKind.genericFunctionType)
+  int get genericFunctionType_id;
+
   @VariantId(16, variant: LinkedNodeKind.genericFunctionType)
   int get genericFunctionType_question;
 
@@ -2099,6 +2102,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(23, variant: LinkedNodeKind.simpleIdentifier)
   LinkedNodeType get simpleIdentifier_elementType;
+
+  @VariantId(27, variant: LinkedNodeKind.simpleIdentifier)
+  bool get simpleIdentifier_isDeclaration;
 
   @VariantId(16, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_token;
