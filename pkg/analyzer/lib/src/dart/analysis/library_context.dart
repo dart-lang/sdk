@@ -40,6 +40,7 @@ class LibraryContext {
 
   final PerformanceLog logger;
   final ByteStore byteStore;
+  final AnalysisSession analysisSession;
   final SummaryDataStore store = new SummaryDataStore([]);
 
   /// The size of the linked data that is loaded by this context.
@@ -64,7 +65,8 @@ class LibraryContext {
     @required FileState targetLibrary,
     @required bool useSummary2,
   })  : this.logger = logger,
-        this.byteStore = byteStore {
+        this.byteStore = byteStore,
+        this.analysisSession = session {
     if (externalSummaries != null) {
       store.addStore(externalSummaries);
     }
@@ -226,7 +228,7 @@ class LibraryContext {
 
     elementFactory = LinkedElementFactory(
       analysisContext,
-      null,
+      analysisSession,
       rootReference,
     );
 

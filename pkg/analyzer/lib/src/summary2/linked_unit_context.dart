@@ -506,6 +506,8 @@ class LinkedUnitContext {
       return node.name.offset;
     } else if (node is NamedCompilationUnitMember) {
       return node.name.offset;
+    } else if (node is TypeParameter) {
+      return node.name.offset;
     } else if (node is VariableDeclaration) {
       return node.name.offset;
     }

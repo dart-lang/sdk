@@ -1020,6 +1020,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+    }
+
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedClass != null) {
       return _unlinkedClass.nameOffset;
@@ -4157,6 +4161,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+    }
+
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedEnum != null && _unlinkedEnum.nameOffset != 0) {
       return _unlinkedEnum.nameOffset;
@@ -5650,6 +5658,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+    }
+
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedTypedef != null) {
       return _unlinkedTypedef.nameOffset;
@@ -9393,6 +9405,10 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+    }
+
     int offset = super.nameOffset;
     if (offset == 0 && _unlinkedTypeParam != null) {
       return _unlinkedTypeParam.nameOffset;
