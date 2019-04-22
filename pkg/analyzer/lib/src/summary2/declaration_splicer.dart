@@ -124,6 +124,13 @@ class DeclarationSplicer {
     _metadata(partial.metadata, element);
   }
 
+  void _fieldDeclaration(FieldDeclaration full, FieldDeclaration partial) {
+    _node(full.fields, partial.fields);
+
+    var first = partial.fields.variables[0];
+    _metadata(partial.metadata, first.declaredElement);
+  }
+
   void _fieldFormalParameter(
     FieldFormalParameter full,
     FieldFormalParameter partial,
@@ -284,7 +291,7 @@ class DeclarationSplicer {
       _enumDeclaration(full, partial);
       return partial;
     } else if (full is FieldDeclaration && partial is FieldDeclaration) {
-      _node(full.fields, partial.fields);
+      _fieldDeclaration(full, partial);
       return partial;
     } else if (full is FieldFormalParameter &&
         partial is FieldFormalParameter) {
@@ -324,7 +331,7 @@ class DeclarationSplicer {
       return partial;
     } else if (full is TopLevelVariableDeclaration &&
         partial is TopLevelVariableDeclaration) {
-      _node(full.variables, partial.variables);
+      _topLevelVariableDeclaration(full, partial);
       return partial;
     } else if (full is TypeName && partial is TypeName) {
       _typeName(full, partial);
@@ -357,6 +364,16 @@ class DeclarationSplicer {
     _match(partial.identifier, element);
     (partial as SimpleFormalParameterImpl).declaredElement = element;
     _metadata(partial.metadata, element);
+  }
+
+  void _topLevelVariableDeclaration(
+    TopLevelVariableDeclaration full,
+    TopLevelVariableDeclaration partial,
+  ) {
+    _node(full.variables, partial.variables);
+
+    var first = partial.variables.variables[0];
+    _metadata(partial.metadata, first.declaredElement);
   }
 
   void _typeName(TypeName full, TypeName partial) {
@@ -395,7 +412,6 @@ class DeclarationSplicer {
       var elementBuilder = LocalElementBuilder(ElementHolder(), null);
       partial.initializer?.accept(elementBuilder);
     }
-    _metadata(partial.metadata, element);
   }
 
   void _variableDeclarationList(
