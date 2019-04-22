@@ -19,6 +19,7 @@ class LinkedElementFactory {
   final AnalysisSession analysisSession;
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
+  final Set<String> partUriSet = Set<String>();
 
   CoreTypes _coreTypes;
 
@@ -69,7 +70,7 @@ class LinkedElementFactory {
   }
 
   bool isLibraryUri(String uriStr) {
-    return libraryMap.containsKey(uriStr);
+    return !partUriSet.contains(uriStr);
   }
 
   LibraryElementImpl libraryOfUri(String uriStr) {

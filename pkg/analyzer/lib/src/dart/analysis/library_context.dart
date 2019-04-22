@@ -233,7 +233,9 @@ class LibraryContext {
     var inputLibraries = <link2.LinkInputLibrary>[];
     var transitiveFiles = targetLibrary.transitiveFiles;
     for (var libraryFile in transitiveFiles) {
-      if (libraryFile.isPart) continue;
+      if (libraryFile.isPart) {
+        elementFactory.partUriSet.add(libraryFile.uriStr);
+      }
 
       // TODO(scheglov) Why do we even we such invalid files in transitive?
       var librarySource = libraryFile.source;
