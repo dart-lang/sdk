@@ -35,11 +35,7 @@ class ParseBase with ResourceProviderMixin {
     var useFasta = analysisOptions.useFastaParser;
     var parser = Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
-    parser.enableNonNullable = experimentStatus.non_nullable;
-    parser.enableSpreadCollections = experimentStatus.spread_collections;
-    parser.enableControlFlowCollections =
-        experimentStatus.control_flow_collections;
-    parser.enableTripleShift = experimentStatus.triple_shift;
+    parser.configureFeatures(experimentStatus);
 
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);

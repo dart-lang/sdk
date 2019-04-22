@@ -223,7 +223,9 @@ class ExperimentStatus implements FeatureSet {
   }
 
   /// Queries whether the given [feature] is enabled or disabled.
-  bool isEnabled(ExperimentalFeature feature) => _enableFlags[feature.index];
+  @override
+  bool isEnabled(covariant ExperimentalFeature feature) =>
+      _enableFlags[feature.index];
 
   @override
   FeatureSet restrictToVersion(Version version) =>

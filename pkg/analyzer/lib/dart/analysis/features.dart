@@ -61,6 +61,9 @@ abstract class FeatureSet {
   factory FeatureSet.fromEnableFlags(List<String> flags) =
       ExperimentStatus.fromStrings;
 
+  /// Queries whether the given [feature] is contained in this feature set.
+  bool isEnabled(Feature feature);
+
   /// Computes a subset of this FeatureSet by removing any features that weren't
   /// available in the given Dart SDK version.
   FeatureSet restrictToVersion(Version version);

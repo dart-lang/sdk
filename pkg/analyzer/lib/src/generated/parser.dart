@@ -7,6 +7,7 @@ library analyzer.parser;
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -337,6 +338,31 @@ class Parser {
       index = _translateCharacter(buffer, lexeme, index);
     }
     return buffer.toString();
+  }
+
+  /// Configures the parser appropriately for the given [featureSet].
+  ///
+  /// TODO(paulberry): stop exposing `enableNonNullable`,
+  /// `enableSpreadCollections`, `enableControlFlowCollections`, and
+  /// `enableTripleShift` so that callers are forced to use this API.  Note that
+  /// this would be a breaking change.
+  void configureFeatures(FeatureSet featureSet) {
+    if (featureSet.isEnabled(Feature.control_flow_collections)) {
+      throw new UnimplementedError('control_flow_collections experiment'
+          ' not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.non_nullable)) {
+      throw new UnimplementedError(
+          'non-nullable experiment not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.spread_collections)) {
+      throw new UnimplementedError(
+          'spread_collections experiment not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.triple_shift)) {
+      throw new UnimplementedError('triple_shift experiment'
+          ' not supported by analyzer parser');
+    }
   }
 
   /// Return a synthetic identifier.

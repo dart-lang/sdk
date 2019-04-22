@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
@@ -55,10 +56,13 @@ typedef analyzer.Token ParseFunction(analyzer.Token token);
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
+  final tripleShift = FeatureSet.forTesting(
+      sdkVersion: '2.0.0', additionalFeatures: [Feature.triple_shift]);
+
   void test_parseClassMember_operator_gtgtgt() {
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { bool operator >>>(other) => false; }',
-        enableGtGtGt: true);
+        featureSet: tripleShift);
     ClassDeclaration declaration = unit.declarations[0];
     MethodDeclaration method = declaration.members[0];
 
@@ -77,7 +81,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   void test_parseClassMember_operator_gtgtgteq() {
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { foo(int value) { x >>>= value; } }',
-        enableGtGtGtEq: true);
+        featureSet: tripleShift);
     ClassDeclaration declaration = unit.declarations[0];
     MethodDeclaration method = declaration.members[0];
     BlockFunctionBody blockFunctionBody = method.body;
@@ -108,8 +112,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
         errors: errors,
         expectedEndOffset: expectedEndOffset,
         inAsync: inAsync,
-        parseSpreadCollections: true,
-        parseControlFlowCollections: true);
+        featureSet: FeatureSet.forTesting(
+            sdkVersion: '2.0.0',
+            additionalFeatures: [
+              Feature.spread_collections,
+              Feature.control_flow_collections
+            ]));
   }
 
   void test_listLiteral_for() {
@@ -1248,6 +1256,17 @@ class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
+
+  final controlFlow = FeatureSet.forTesting(
+      sdkVersion: '2.0.0',
+      additionalFeatures: [Feature.control_flow_collections]);
+
+  final spread = FeatureSet.forTesting(
+      sdkVersion: '2.0.0', additionalFeatures: [Feature.spread_collections]);
+
+  final nonNullable = FeatureSet.forTesting(
+      sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+
   ParserProxy _parserProxy;
 
   analyzer.Token _fastaTokens;
@@ -1305,12 +1324,14 @@ class FastaParserTestCase
   }
 
   @override
-  void createParser(String content, {int expectedEndOffset}) {
+  void createParser(String content,
+      {int expectedEndOffset, FeatureSet featureSet}) {
     var scanner = new StringScanner(content, includeComments: true);
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens,
         allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset);
+        expectedEndOffset: expectedEndOffset,
+        featureSet: featureSet);
   }
 
   @override
@@ -1399,16 +1420,12 @@ class FastaParserTestCase
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      bool enableControlFlowCollections,
-      bool enableGtGtGt,
-      bool enableGtGtGtEq}) {
+      FeatureSet featureSet}) {
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
 
-    CompilationUnit unit = parseCompilationUnit2(content, listener,
-        enableControlFlowCollections: enableControlFlowCollections,
-        enableGtGtGt: enableGtGtGt,
-        enableGtGtGtEq: enableGtGtGtEq);
+    CompilationUnit unit =
+        parseCompilationUnit2(content, listener, featureSet: featureSet);
 
     // Assert and return result
     if (codes != null) {
@@ -1424,9 +1441,7 @@ class FastaParserTestCase
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener,
-      {bool enableControlFlowCollections,
-      bool enableGtGtGt,
-      bool enableGtGtGtEq}) {
+      {FeatureSet featureSet}) {
     var source = new StringSource(content, 'parser_test_StringSource.dart');
 
     void reportError(
@@ -1436,10 +1451,12 @@ class FastaParserTestCase
     }
 
     // Scan tokens
+    bool enableTripleShift =
+        featureSet != null && featureSet.isEnabled(Feature.triple_shift);
     ScannerResult result = scanString(content,
         includeComments: true,
-        enableGtGtGt: enableGtGtGt ?? enableGtGtGtEq ?? false,
-        enableGtGtGtEq: enableGtGtGtEq ?? false);
+        enableGtGtGt: enableTripleShift,
+        enableGtGtGtEq: enableTripleShift);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -1458,11 +1475,9 @@ class FastaParserTestCase
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
-    if (enableControlFlowCollections != null) {
-      astBuilder.enableControlFlowCollections = enableControlFlowCollections;
+    if (featureSet != null) {
+      astBuilder.configureFeatures(featureSet);
     }
-    astBuilder.enableTripleShift =
-        enableGtGtGt == true || enableGtGtGtEq == true;
     parser.parseUnit(_fastaTokens);
     CompilationUnitImpl unit = astBuilder.pop();
     unit.localDeclarations = astBuilder.localDeclarations;
@@ -1514,12 +1529,9 @@ class FastaParserTestCase
       List<ExpectedError> errors,
       int expectedEndOffset,
       bool inAsync = false,
-      bool parseSpreadCollections = false,
-      bool parseControlFlowCollections = false}) {
-    createParser(source, expectedEndOffset: expectedEndOffset);
-    _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
-    _parserProxy.astBuilder.enableControlFlowCollections =
-        parseControlFlowCollections;
+      FeatureSet featureSet}) {
+    createParser(source,
+        expectedEndOffset: expectedEndOffset, featureSet: featureSet);
     if (inAsync) {
       _parserProxy.fastaParser.asyncState = AsyncModifier.Async;
     }
@@ -1704,14 +1716,10 @@ class FastaParserTestCase
   Statement parseStatement(String source,
       {bool enableLazyAssignmentOperators,
       int expectedEndOffset,
-      bool parseSetLiterals = false,
-      bool parseSpreadCollections = false,
-      bool parseControlFlowCollections = false,
+      FeatureSet featureSet,
       bool inAsync = false}) {
-    createParser(source, expectedEndOffset: expectedEndOffset);
-    _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
-    _parserProxy.astBuilder.enableControlFlowCollections =
-        parseControlFlowCollections;
+    createParser(source,
+        expectedEndOffset: expectedEndOffset, featureSet: featureSet);
     if (inAsync) {
       _parserProxy.fastaParser.asyncState = AsyncModifier.Async;
     }
@@ -1795,8 +1803,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     } else {
       fail('$kind');
     }
-    createParser(parametersCode);
-    _parserProxy.enableNonNullable = true;
+    createParser(parametersCode, featureSet: nonNullable);
     FormalParameterList list =
         _parserProxy.parseFormalParameterList(inFunctionType: false);
     assertErrors(errors: errors);
@@ -1954,8 +1961,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 class NNBDParserTest_Fasta extends FastaParserTestCase {
   CompilationUnit parseNNBDCompilationUnit(String code,
       {List<ExpectedError> errors}) {
-    createParser(code);
-    _parserProxy.astBuilder.enableNonNullable = true;
+    createParser(code, featureSet: nonNullable);
     CompilationUnit unit = _parserProxy.parseCompilationUnit2();
     assertErrors(errors: errors);
     return unit;
@@ -2269,20 +2275,25 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Fasta token.
    */
   factory ParserProxy(analyzer.Token firstToken,
-      {bool allowNativeClause: false, int expectedEndOffset}) {
+      {bool allowNativeClause: false,
+      int expectedEndOffset,
+      FeatureSet featureSet}) {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
     return new ParserProxy._(firstToken, errorReporter, null, errorListener,
         allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset);
+        expectedEndOffset: expectedEndOffset,
+        featureSet: featureSet);
   }
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
       Uri fileUri, this._errorListener,
-      {bool allowNativeClause: false, this.expectedEndOffset})
+      {bool allowNativeClause: false,
+      this.expectedEndOffset,
+      FeatureSet featureSet})
       : super(firstToken, errorReporter, fileUri,
-            allowNativeClause: allowNativeClause) {
+            allowNativeClause: allowNativeClause, featureSet: featureSet) {
     _eventListener = new ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }
@@ -2462,8 +2473,8 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_incompleteForEach2() {
-    ForStatement statement = parseStatement('for (String item i) {}',
-        parseControlFlowCollections: true);
+    ForStatement statement =
+        parseStatement('for (String item i) {}', featureSet: controlFlow);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)
@@ -2583,7 +2594,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     ForStatement forStatement = parseStatement(
       'await for (element in list) {}',
       inAsync: true,
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNotNull);
@@ -2600,7 +2611,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_genericFunctionType2() {
     ForStatement forStatement = parseStatement(
       'for (void Function<T>(T) element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2617,7 +2628,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_identifier2() {
     ForStatement forStatement = parseStatement(
       'for (element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2634,7 +2645,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_noType_metadata2() {
     ForStatement forStatement = parseStatement(
       'for (@A var element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2652,7 +2663,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_finalRequired() {
     ForStatement forStatement = parseStatement(
       'for (final required in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2669,7 +2680,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_finalExternal() {
     ForStatement forStatement = parseStatement(
       'for (final external in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2686,7 +2697,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_type2() {
     ForStatement forStatement = parseStatement(
       'for (A element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2703,7 +2714,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_var2() {
     ForStatement forStatement = parseStatement(
       'for (var element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2720,7 +2731,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_c2() {
     ForStatement forStatement = parseStatement(
       'for (; i < count;) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2738,7 +2749,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_cu2() {
     ForStatement forStatement = parseStatement(
       'for (; i < count; i++) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2756,7 +2767,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_ecu2() {
     ForStatement forStatement = parseStatement(
       'for (i--; i < count; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2774,7 +2785,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_i2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0;;) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2795,7 +2806,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_i_withMetadata2() {
     ForStatement forStatement = parseStatement(
       'for (@A var i = 0;;) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2816,7 +2827,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_ic2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0; i < count;) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2836,7 +2847,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_icu2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0; i < count; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2856,7 +2867,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_iicuu2() {
     ForStatement forStatement = parseStatement(
       'for (int i = 0, j = count; i < j; i++, j--) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2876,7 +2887,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_iu2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0;; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2896,7 +2907,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_u2() {
     ForStatement forStatement = parseStatement(
       'for (;; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);

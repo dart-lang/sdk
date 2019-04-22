@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
@@ -275,6 +276,20 @@ class AstBuilder extends StackListener {
         }
       });
     }
+  }
+
+  /// Configures the parser appropriately for the given [featureSet].
+  ///
+  /// TODO(paulberry): stop exposing `enableNonNullable`,
+  /// `enableSpreadCollections`, `enableControlFlowCollections`, and
+  /// `enableTripleShift` so that callers are forced to use this API.  Note that
+  /// this would be a breaking change.
+  void configureFeatures(FeatureSet featureSet) {
+    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
+    enableSpreadCollections = featureSet.isEnabled(Feature.spread_collections);
+    enableControlFlowCollections =
+        featureSet.isEnabled(Feature.control_flow_collections);
+    enableTripleShift = featureSet.isEnabled(Feature.triple_shift);
   }
 
   @override

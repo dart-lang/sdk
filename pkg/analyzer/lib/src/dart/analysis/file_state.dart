@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -12,7 +13,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
@@ -701,23 +701,22 @@ class FileState {
     }
 
     AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    ExperimentStatus experimentStatus = analysisOptions.experimentStatus;
+    FeatureSet fileFeatures = analysisOptions.contextFeatures;
+    // TODO(paulberry): adjust fileFeatures as appropriate if there is a "@dart"
+    // comment and/or an SDK constraint that restricts what features should be
+    // available.
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.enableGtGtGt = experimentStatus.triple_shift;
+    scanner.enableGtGtGt = fileFeatures.isEnabled(Feature.triple_shift);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;
-    Parser parser = new Parser(source, errorListener, useFasta: useFasta);
+    Parser parser = new Parser(source, errorListener, useFasta: useFasta)
+      ..configureFeatures(fileFeatures);
     parser.enableOptionalNewAndConst = true;
-    parser.enableNonNullable = experimentStatus.non_nullable;
-    parser.enableSpreadCollections = experimentStatus.spread_collections;
-    parser.enableControlFlowCollections =
-        experimentStatus.control_flow_collections;
-    parser.enableTripleShift = experimentStatus.triple_shift;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 

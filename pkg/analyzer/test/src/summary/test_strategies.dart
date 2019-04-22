@@ -44,12 +44,9 @@ CompilationUnit parseText(
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
         ..enableGtGtGt = experimentStatus.constant_update_2018;
   Token token = scanner.tokenize();
-  Parser parser = new Parser(
-      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
-    ..enableNonNullable = experimentStatus.non_nullable
-    ..enableSpreadCollections = experimentStatus.spread_collections
-    ..enableControlFlowCollections = experimentStatus.control_flow_collections
-    ..enableTripleShift = experimentStatus.triple_shift;
+  Parser parser =
+      new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
+        ..configureFeatures(experimentStatus);
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;

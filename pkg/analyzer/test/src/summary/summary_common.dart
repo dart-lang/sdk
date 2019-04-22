@@ -11869,7 +11869,7 @@ final v = $expr;
       ..enableGtGtGt = true;
     var startToken = scanner.tokenize();
     var parser = new Parser(stringSource, errorListener)
-      ..enableNonNullable = experimentStatus.non_nullable;
+      ..configureFeatures(experimentStatus);
     var compilationUnit = parser.parseCompilationUnit(startToken);
     var f = compilationUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;

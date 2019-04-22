@@ -43,7 +43,7 @@ f() => [a, b, c];
 f() => [a, if (x) b c];
 ''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
 f() => [a, if (x) b, c];
-''', enableControlFlowCollections: true);
+''', featureSet: controlFlow);
   }
 
   void test_missingComma_afterIfElse() {
@@ -51,7 +51,7 @@ f() => [a, if (x) b, c];
 f() => [a, if (x) b else y c];
 ''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() => [a, if (x) b else y, c];
-''', enableControlFlowCollections: true);
+''', featureSet: controlFlow);
   }
 }
 
@@ -93,7 +93,7 @@ f() => {a: b, c: d, e: f};
 f() => {a: b, if (x) c: d e: f};
 ''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
 f() => {a: b, if (x) c: d, e: f};
-''', enableControlFlowCollections: true);
+''', featureSet: controlFlow);
   }
 
   void test_missingComma_afterIfElse() {
@@ -101,7 +101,7 @@ f() => {a: b, if (x) c: d, e: f};
 f() => {a: b, if (x) c: d else y: z e: f};
 ''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() => {a: b, if (x) c: d else y: z, e: f};
-''', enableControlFlowCollections: true);
+''', featureSet: controlFlow);
   }
 
   void test_missingKey() {
