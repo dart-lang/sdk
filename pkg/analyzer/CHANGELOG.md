@@ -1,5 +1,9 @@
 ## 0.36.1
 * Deprecated `DartType.isUndefined`, and now it always returns `false`.
+* The "UI as code" features (control_flow_collections and spread_collections)
+  are now enabled.
+* Bug fixes: #32918, #36262, #36380, #36439, #36492, #36529, #36576, #36667,
+  #36678, #36691.
 
 ## 0.36.0
 * Changed the return type of `Expression.precendence` to `Precedence`.  Clients
