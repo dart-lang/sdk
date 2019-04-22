@@ -107,7 +107,10 @@ class AstBuilder extends StackListener {
 
   bool parseFunctionBodies = true;
 
-  /// `true` if non-nullable behavior is enabled
+  /// `true` if non-nullable behavior is enabled.
+  ///
+  /// When setting this field, be sure to set `scanner.enableNonNullable`
+  /// to the same value.
   bool enableNonNullable = false;
 
   /// `true` if spread-collections behavior is enabled

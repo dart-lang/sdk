@@ -53,6 +53,10 @@ abstract class AbstractScanner implements Scanner {
   /// and https://github.com/dart-lang/language/issues/60
   bool enableGtGtGtEq = false;
 
+  /// Experimental flag for enabling scanning of NNBD tokens
+  /// such as 'required' and 'late'
+  bool enableNonNullable = false;
+
   /**
    * The string offset for the next token that will be created.
    *
@@ -981,6 +985,10 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (state == null || state.keyword == null) {
+      return tokenizeIdentifier(next, start, allowDollar);
+    }
+    if (!enableNonNullable &&
+        (state.keyword == Keyword.LATE || state.keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     if (($A <= next && next <= $Z) ||

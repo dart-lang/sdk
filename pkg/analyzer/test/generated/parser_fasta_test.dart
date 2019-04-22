@@ -1327,6 +1327,9 @@ class FastaParserTestCase
   void createParser(String content,
       {int expectedEndOffset, FeatureSet featureSet}) {
     var scanner = new StringScanner(content, includeComments: true);
+    if (featureSet != null) {
+      scanner.enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
+    }
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens,
         allowNativeClause: allowNativeClause,
@@ -2069,6 +2072,23 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_late_as_identifier() {
+    // TODO(danrubel): remove this once NNBD is enabled by default
+    parseCompilationUnit('''
+class C {
+  int late;
+}
+
+void f(C c) {
+  print(c.late);
+}
+
+main() {
+  f(new C());
+}
+''');
   }
 
   void test_is_nullable_parenthesis() {

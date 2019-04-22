@@ -125,7 +125,8 @@ class Foo {
     ]);
     for (Keyword keyword in Keyword.values) {
       var isModifier = modifierKeywords.contains(keyword);
-      var scanner = new StringScanner(keyword.lexeme, includeComments: true);
+      var scanner = new StringScanner(keyword.lexeme, includeComments: true)
+        ..enableNonNullable = true;
       Token token = scanner.tokenize();
       expect(token.isModifier, isModifier, reason: keyword.name);
       if (isModifier) {
