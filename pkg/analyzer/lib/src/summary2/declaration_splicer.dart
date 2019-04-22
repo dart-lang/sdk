@@ -96,9 +96,22 @@ class DeclarationSplicer {
   }
 
   void _directives(CompilationUnit full, CompilationUnit partial) {
+    var libraryElement = _unitElement.library;
+    var exportIndex = 0;
+    var importIndex = 0;
+    var partIndex = 0;
     for (var directive in full.directives) {
-      if (directive is LibraryDirective) {
-        var element = _unitElement.library;
+      if (directive is ExportDirective) {
+        var element = libraryElement.exports[exportIndex++];
+        _metadata(directive.metadata, element);
+      } else if (directive is ImportDirective) {
+        var element = libraryElement.imports[importIndex++];
+        _metadata(directive.metadata, element);
+      } else if (directive is LibraryDirective) {
+        var element = libraryElement;
+        _metadata(directive.metadata, element);
+      } else if (directive is PartDirective) {
+        var element = libraryElement.parts[partIndex++];
         _metadata(directive.metadata, element);
       }
     }
@@ -175,6 +188,7 @@ class DeclarationSplicer {
     FunctionExpression full,
     FunctionExpression partial,
   ) {
+    _node(full.typeParameters, partial.typeParameters);
     _node(full.parameters, partial.parameters);
     partial.body = _body(full.body);
   }
