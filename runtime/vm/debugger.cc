@@ -1372,6 +1372,7 @@ RawTypeArguments* ActivationFrame::BuildParameters(
                   current = current.parent_function()) {
       type_params = current.type_parameters();
       intptr_t size = current.NumTypeParameters();
+      ASSERT(mapping_offset >= size);
       mapping_offset -= size;
       for (intptr_t j = 0; j < size; ++j) {
         type_param = TypeParameter::RawCast(type_params.TypeAt(j));

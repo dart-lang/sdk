@@ -4017,12 +4017,14 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement() {
       target_index, &outer_finally, &target_context_depth);
 
   Fragment instructions;
+  // Break statement should pause before manipulation of context, which
+  // will possibly cause debugger having incorrect context object.
+  if (NeedsDebugStepCheck(parsed_function()->function(), position)) {
+    instructions += DebugStepCheck(position);
+  }
   instructions +=
       TranslateFinallyFinalizers(outer_finally, target_context_depth);
   if (instructions.is_open()) {
-    if (NeedsDebugStepCheck(parsed_function()->function(), position)) {
-      instructions += DebugStepCheck(position);
-    }
     instructions += Goto(destination);
   }
   return instructions;
