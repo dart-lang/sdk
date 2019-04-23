@@ -4324,6 +4324,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
 
   @override
+  get linkedNode => null;
+
+  @override
   String get name => unlinkedParam.name;
 
   @override

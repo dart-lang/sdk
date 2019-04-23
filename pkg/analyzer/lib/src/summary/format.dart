@@ -10039,12 +10039,14 @@ class LinkedNodeBuilder extends Object
 
   @override
   TopLevelInferenceErrorBuilder get topLevelTypeInferenceError {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
+    assert(kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
     return _variantField_35;
   }
 
   set topLevelTypeInferenceError(TopLevelInferenceErrorBuilder value) {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
+    assert(kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_35 = value;
   }
 
@@ -10260,6 +10262,7 @@ class LinkedNodeBuilder extends Object
     int codeOffset,
     idl.LinkedNodeFormalParameterKind formalParameter_kind,
     LinkedNodeBuilder normalFormalParameter_comment,
+    TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
   })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
         _variantField_24 = actualType,
         _variantField_4 = normalFormalParameter_metadata,
@@ -10271,7 +10274,8 @@ class LinkedNodeBuilder extends Object
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
         _variantField_26 = formalParameter_kind,
-        _variantField_14 = normalFormalParameter_comment;
+        _variantField_14 = normalFormalParameter_comment,
+        _variantField_35 = topLevelTypeInferenceError;
 
   LinkedNodeBuilder.variableDeclaration({
     LinkedNodeTypeBuilder actualType,
@@ -15675,7 +15679,8 @@ class _LinkedNodeImpl extends Object
 
   @override
   idl.TopLevelInferenceError get topLevelTypeInferenceError {
-    assert(kind == idl.LinkedNodeKind.variableDeclaration);
+    assert(kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_35 ??= const _TopLevelInferenceErrorReader()
         .vTableGet(_bc, _bcOffset, 35, null);
     return _variantField_35;
@@ -15944,6 +15949,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_comment != null)
         _result["normalFormalParameter_comment"] =
             normalFormalParameter_comment.toJson();
+      if (topLevelTypeInferenceError != null)
+        _result["topLevelTypeInferenceError"] =
+            topLevelTypeInferenceError.toJson();
     }
     if (kind == idl.LinkedNodeKind.variableDeclaration) {
       if (actualType != null) _result["actualType"] = actualType.toJson();
@@ -17609,6 +17617,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "topLevelTypeInferenceError": topLevelTypeInferenceError,
       };
     }
     if (kind == idl.LinkedNodeKind.variableDeclaration) {

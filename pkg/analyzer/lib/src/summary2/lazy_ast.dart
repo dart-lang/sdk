@@ -574,6 +574,7 @@ class LazyFormalParameter {
   bool _hasFormalParameters = false;
   bool _hasMetadata = false;
   bool _hasType = false;
+  bool _hasTypeInferenceError = false;
   bool _hasTypeNode = false;
 
   LazyFormalParameter(this.data);
@@ -595,6 +596,16 @@ class LazyFormalParameter {
       }
     }
     return LazyAst.getType(node);
+  }
+
+  static TopLevelInferenceError getTypeInferenceError(FormalParameter node) {
+    var lazy = get(node);
+    if (!lazy._hasTypeInferenceError) {
+      var error = lazy.data.topLevelTypeInferenceError;
+      LazyAst.setTypeInferenceError(node, error);
+      lazy._hasTypeInferenceError = true;
+    }
+    return LazyAst.getTypeInferenceError(node);
   }
 
   static void readDefaultValue(

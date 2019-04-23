@@ -1066,6 +1066,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       simpleFormalParameter_keyword: _getToken(node.keyword),
       simpleFormalParameter_type: node.type?.accept(this),
     );
+    builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
     _storeNormalFormalParameter(builder, node);
     return builder;
   }

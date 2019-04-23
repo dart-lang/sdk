@@ -614,7 +614,11 @@ class LinkedUnitContext {
   }
 
   TopLevelInferenceError getTypeInferenceError(AstNode node) {
-    if (node is VariableDeclaration) {
+    if (node is DefaultFormalParameter) {
+      return getTypeInferenceError(node.parameter);
+    } else if (node is SimpleFormalParameter) {
+      return LazyFormalParameter.getTypeInferenceError(node);
+    } else if (node is VariableDeclaration) {
       return LazyVariableDeclaration.getTypeInferenceError(node);
     } else {
       return null;

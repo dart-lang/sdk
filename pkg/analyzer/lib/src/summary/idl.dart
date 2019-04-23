@@ -2220,6 +2220,7 @@ abstract class LinkedNode extends base.SummaryClass {
   int get throwExpression_throwKeyword;
 
   @VariantId(35, variantList: [
+    LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.variableDeclaration,
   ])
   TopLevelInferenceError get topLevelTypeInferenceError;

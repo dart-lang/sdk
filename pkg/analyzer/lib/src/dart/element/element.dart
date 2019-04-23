@@ -8372,6 +8372,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   TopLevelInferenceError get typeInferenceError {
+    if (linkedNode != null) {
+      return linkedContext.getTypeInferenceError(linkedNode);
+    }
+
     if (unlinkedParam != null) {
       return enclosingUnit.resynthesizerContext
           .getTypeInferenceError(unlinkedParam.inferredTypeSlot);
