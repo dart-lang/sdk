@@ -120,8 +120,8 @@ final summaryArgsParser = new ArgParser()
       negatable: true,
       help: 'Whether to only build summary files.')
   ..addOption('target',
-      allowed: const ['vm', 'dart2js', 'devcompiler'],
-      help: 'Build kernel for the vm, dart2js, or devcompiler')
+      allowed: const ['vm', 'dart2js', 'ddc'],
+      help: 'Build kernel for the vm, dart2js, or ddc')
   ..addOption('dart-sdk-summary')
   ..addMultiOption('input-summary')
   ..addMultiOption('input-linked')
@@ -179,7 +179,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
-      (parsedArgs['target'] as String) ?? (summaryOnly ? 'devcompiler' : 'vm');
+      (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
   var targetFlags = new TargetFlags();
   Target target;
   switch (targetName) {
@@ -196,13 +196,13 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             'error: --summary-only not supported for the dart2js target');
       }
       break;
-    case 'devcompiler':
+    case 'ddc':
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
       target = new DevCompilerSummaryTarget(sources, excludeNonSources);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
-            'devcompiler target');
+            'ddc target');
       }
       break;
     default:
