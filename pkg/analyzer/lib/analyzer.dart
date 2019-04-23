@@ -102,7 +102,8 @@ CompilationUnit parseDirectives(String contents,
   var scanner = new Scanner(source, reader, errorCollector)
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = new Parser(source, errorCollector);
+  var parser = new Parser(source, errorCollector)
+    ..configureFeatures(featureSet);
   var unit = parser.parseDirectives(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
 
@@ -125,7 +126,8 @@ CompilationUnit _parseSource(
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector)
-    ..parseFunctionBodies = parseFunctionBodies;
+    ..parseFunctionBodies = parseFunctionBodies
+    ..configureFeatures(featureSet);
   var unit = parser.parseCompilationUnit(token)
     ..lineInfo = new LineInfo(scanner.lineStarts);
 
