@@ -2806,7 +2806,7 @@ class CheckStackOverflowSlowPath
     if (using_shared_stub) {
       auto object_store = compiler->isolate()->object_store();
       const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
-      const auto& stub = Code::Handle(
+      const auto& stub = Code::ZoneHandle(
           compiler->zone(),
           live_fpu_regs
               ? object_store->stack_overflow_stub_with_fpu_regs_stub()
@@ -5099,7 +5099,7 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 
   const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
   auto object_store = compiler->isolate()->object_store();
-  const auto& stub = Code::Handle(
+  const auto& stub = Code::ZoneHandle(
       compiler->zone(),
       live_fpu_regs ? object_store->null_error_stub_with_fpu_regs_stub()
                     : object_store->null_error_stub_without_fpu_regs_stub());

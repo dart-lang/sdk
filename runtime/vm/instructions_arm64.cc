@@ -390,8 +390,8 @@ void SwitchableCallPatternBase::SetData(const Object& data) const {
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: blr ip0.
-  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
+  // Last instruction: blr lr.
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
 
   Register ic_data_reg, code_reg;
   intptr_t pool_index;
@@ -416,15 +416,15 @@ void SwitchableCallPattern::SetTarget(const Code& target) const {
 BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
     : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: blr ip0.
-  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
+  // Last instruction: blr lr.
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
 
   Register ic_data_reg, code_reg;
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
       pc - Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
   ASSERT(ic_data_reg == R5);
-  ASSERT(code_reg == TMP);
+  ASSERT(code_reg == LR);
 
   data_pool_index_ = pool_index;
   target_pool_index_ = pool_index + 1;
