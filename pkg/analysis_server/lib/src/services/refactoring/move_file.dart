@@ -25,7 +25,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     implements MoveFileRefactoring {
   final ResourceProvider resourceProvider;
   final pathos.Context pathContext;
-  final RefactoringWorkspace workspace;
+  final RefactoringWorkspace refactoringWorkspace;
   final Source source;
   AnalysisDriver driver;
 
@@ -34,8 +34,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   final packagePrefixedStringPattern = new RegExp(r'''^r?['"]+package:''');
 
-  MoveFileRefactoringImpl(ResourceProvider resourceProvider, this.workspace,
-      this.source, this.oldFile)
+  MoveFileRefactoringImpl(ResourceProvider resourceProvider,
+      this.refactoringWorkspace, this.source, this.oldFile)
       : resourceProvider = resourceProvider,
         pathContext = resourceProvider.pathContext {
     if (source != null) {
@@ -48,9 +48,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    final drivers = workspace.driversContaining(oldFile);
+    final drivers = refactoringWorkspace.driversContaining(oldFile);
     if (drivers.length != 1) {
-      if (workspace.drivers
+      if (refactoringWorkspace.drivers
           .any((d) => pathContext.equals(d.contextRoot.root, oldFile))) {
         return new RefactoringStatus.fatal(
             'Renaming an analysis root is not supported ($oldFile)');
@@ -113,7 +113,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
     // Update incoming references to this file
     List<SearchMatch> matches =
-        await workspace.searchEngine.searchReferences(element);
+        await refactoringWorkspace.searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {
       await changeBuilder.addFileEdit(reference.file, (builder) {
