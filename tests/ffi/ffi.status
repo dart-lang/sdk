@@ -36,3 +36,6 @@ enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit sys
 
 [ $system != android && $arch == arm ]
 *: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309
+
+[ $mode == debug && ($hot_reload || $hot_reload_rollback) ]
+function_stress_test/1: Pass, Slow
