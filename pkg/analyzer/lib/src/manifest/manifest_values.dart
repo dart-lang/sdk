@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*
-*  The arritbute values to check for compatibiltiy with Chrome OS.
+*  The attribute values to check for compatibility with Chrome OS.
 *
 */
 
@@ -30,6 +30,8 @@ const String ATTRIBUTE_SCREEN_ORIENTATION = 'android:screenorientation';
 
 const String HARDWARE_FEATURE_CAMERA = 'android.hardware.camera';
 
+const String HARDWARE_FEATURE_TOUCHSCREEN = 'android.hardware.touchscreen';
+
 const String HARDWARE_FEATURE_CAMERA_AUTOFOCUS =
     'android.hardware.camera.autofocus';
 
@@ -53,7 +55,6 @@ const UNSUPPORTED_HARDWARE_FEATURES = <String>[
   HARDWARE_FEATURE_TELEPHONY,
   'android.hardware.telephony.cdma',
   'android.hardware.telephony.gsm',
-  'android.hardware.touchscreen',
   'android.hardware.type.automotive',
   'android.hardware.type.television',
   'android.hardware.usb.accessory',

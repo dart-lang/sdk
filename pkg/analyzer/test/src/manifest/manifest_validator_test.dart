@@ -51,7 +51,34 @@ class ManifestValidatorTest with ResourceProviderMixin {
     assertErrors('''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
+</manifest>
+''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
+  }
+
+  test_noTouchScreen_error() {
+    assertErrors('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+</manifest>
+''', [ManifestWarningCode.NO_TOUCHSCREEN_FEATURE]);
+  }
+
+  test_touchScreenNotSupported_error() {
+    assertErrors('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
+</manifest>
+''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE]);
+  }
+
+  test_featureNotSupported_error() {
+    assertErrors('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" />
 </manifest>
 ''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
   }
@@ -60,6 +87,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     assertErrors('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
 </manifest>
 ''', [ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE]);
@@ -69,6 +97,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     assertErrors('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
   <application android:label="@string/app_name">
     <activity android:name="testActivity"
       android:screenOrientation="landscape"
@@ -83,11 +112,12 @@ class ManifestValidatorTest with ResourceProviderMixin {
     assertErrors('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
-   <application android:label="@string/app_name">
-  <activity android:name="testActivity"
-    android:resizeableActivity="false"
-    android:exported="false">
-  </activity>
+  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+  <application android:label="@string/app_name">
+    <activity android:name="testActivity"
+      android:resizeableActivity="false"
+      android:exported="false">
+    </activity>
   </application>
 </manifest>
 ''', [ManifestWarningCode.NON_RESIZABLE_ACTIVITY]);
@@ -97,6 +127,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     assertErrors('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
   <activity android:name="testActivity"
     android:resizeableActivity="true"
     android:exported="false">
