@@ -84,8 +84,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     _subscription = _events.onDebugEvent
         .where((e) => e is M.BreakpointEvent)
         .map((e) => (e as M.BreakpointEvent).breakpoint)
-        .listen((M.Breakpoint b) {
-      final loc = b.location;
+        .listen((M.Breakpoint b) async {
+      final M.Location loc = b.location;
       int line;
       if (loc.script.id == script.id) {
         if (loc.tokenPos != null) {
@@ -94,7 +94,14 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
           line = (loc as dynamic).line;
         }
       } else {
-        line = (loc as dynamic).line;
+        try {
+          line = (loc as dynamic).line;
+        } on NoSuchMethodError {
+          if (loc.tokenPos != null) {
+            M.Script scriptUsed = await _scripts.get(_isolate, loc.script.id);
+            line = scriptUsed.tokenToLine(loc.tokenPos);
+          }
+        }
       }
       if ((line == null) || ((line >= _startLine) && (line <= _endLine))) {
         _r.dirty();
@@ -832,7 +839,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
   Element lineNumberElement(S.ScriptLine line, int lineNumPad) {
     var lineNumber = line == null ? "..." : line.line;
-    var e = span("$nbsp${lineNumber.toString().padLeft(lineNumPad,nbsp)}$nbsp");
+    var e =
+        span("$nbsp${lineNumber.toString().padLeft(lineNumPad, nbsp)}$nbsp");
     e.classes.add('noCopy');
     if (lineNumber == _currentLine) {
       hitsCurrent(e);
