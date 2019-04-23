@@ -250,7 +250,7 @@ class ModifierRecoveryContext {
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateDuplicatedModifier);
     } else if (covariantToken != null) {
-      parser.reportRecoverableError(next, fasta.messageConstAndCovariant);
+      reportConflictingModifiers(next, covariantToken);
     } else if (finalToken != null) {
       parser.reportRecoverableError(next, fasta.messageConstAndFinal);
     } else if (varToken != null) {
@@ -273,7 +273,7 @@ class ModifierRecoveryContext {
       if (varToken != null) {
         parser.reportRecoverableError(next, fasta.messageCovariantAfterVar);
       } else if (finalToken != null) {
-        parser.reportRecoverableError(next, fasta.messageCovariantAfterFinal);
+        reportModifierOutOfOrder(next, finalToken.lexeme);
       } else if (lateToken != null) {
         reportModifierOutOfOrder(next, lateToken.lexeme);
       }
@@ -287,7 +287,7 @@ class ModifierRecoveryContext {
     } else if (afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
-      parser.reportRecoverableError(next, fasta.messageConstAndCovariant);
+      reportConflictingModifiers(next, constToken);
     } else if (staticToken != null) {
       parser.reportRecoverableError(next, fasta.messageCovariantAndStatic);
     } else {

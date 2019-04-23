@@ -51,7 +51,6 @@ ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
-ConstAndCovariant/script2: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
@@ -102,7 +101,6 @@ ContinueOutsideOfLoop/script1: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
 CouldNotParseUri/example: Fail
-CovariantAfterFinal/script1: Fail
 CovariantAfterVar/script1: Fail
 CovariantAndStatic/script1: Fail
 CovariantAndStatic/script2: Fail

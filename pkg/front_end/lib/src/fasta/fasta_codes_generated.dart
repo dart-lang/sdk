@@ -950,17 +950,6 @@ const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstAndCovariant = messageConstAndCovariant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstAndCovariant = const MessageCode(
-    "ConstAndCovariant",
-    index: 57,
-    message:
-        r"""Members can't be declared to be both 'const' and 'covariant'.""",
-    tip: r"""Try removing either the 'const' or 'covariant' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstAndFinal = messageConstAndFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1964,17 +1953,6 @@ Message _withArgumentsCouldNotParseUri(String string, String string2) {
       message: """Couldn't parse URI '${string}':
   ${string2}.""", arguments: {'string': string, 'string2': string2});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCovariantAfterFinal = messageCovariantAfterFinal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCovariantAfterFinal = const MessageCode(
-    "CovariantAfterFinal",
-    index: 65,
-    message:
-        r"""The modifier 'covariant' should be before the modifier 'final'.""",
-    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCovariantAfterVar = messageCovariantAfterVar;
@@ -6387,7 +6365,7 @@ const Code<Null> codeInvalidThisInInitializer = messageInvalidThisInInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidThisInInitializer = const MessageCode(
     "InvalidThisInInitializer",
-    index: 96,
+    index: 65,
     message:
         r"""Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""");
 
@@ -9381,7 +9359,7 @@ const Code<Null> codeTypeBeforeFactory = messageTypeBeforeFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeBeforeFactory = const MessageCode(
     "TypeBeforeFactory",
-    index: 97,
+    index: 57,
     message: r"""Factory constructors cannot have a return type.""",
     tip: r"""Try removing the type appearing before 'factory'.""");
 
