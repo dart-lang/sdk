@@ -822,6 +822,9 @@ class Assembler : public AssemblerBase {
   // We consider 16-bit integers, powers of two and corresponding masks
   // as safe values that can be emdedded into the code object.
   static bool IsSafeSmi(const Object& object) {
+    if (!target::IsSmi(object)) {
+      return false;
+    }
     int64_t value;
     if (HasIntegerValue(object, &value)) {
       return Utils::IsInt(16, value) || Utils::IsPowerOfTwo(value) ||
