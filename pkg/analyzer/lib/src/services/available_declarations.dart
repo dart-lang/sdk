@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -1592,10 +1593,14 @@ class _File {
     var source = StringSource(content, '');
 
     var reader = new CharSequenceReader(content);
-    var scanner = new Scanner(null, reader, errorListener);
+    // TODO(paulberry): figure out the appropriate FeatureSet to use here
+    var featureSet = FeatureSet.fromEnableFlags([]);
+    var scanner = new Scanner(null, reader, errorListener)
+      ..configureFeatures(featureSet);
     var token = scanner.tokenize();
 
-    var parser = new Parser(source, errorListener, useFasta: true);
+    var parser = new Parser(source, errorListener, useFasta: true)
+      ..configureFeatures(featureSet);
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);
 

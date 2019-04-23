@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -88,6 +89,16 @@ class Scanner {
 
   set preserveComments(bool preserveComments) {
     this._preserveComments = preserveComments;
+  }
+
+  /// Configures the scanner appropriately for the given [featureSet].
+  ///
+  /// TODO(paulberry): stop exposing `enableGtGtGt` and `enableNonNullable` so
+  /// that callers are forced to use this API.  Note that this would be a
+  /// breaking change.
+  void configureFeatures(FeatureSet featureSet) {
+    enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
+    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
   }
 
   void reportError(

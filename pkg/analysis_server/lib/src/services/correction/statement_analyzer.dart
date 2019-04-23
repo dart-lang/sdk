@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -18,10 +19,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  * Returns [Token]s of the given Dart source, not `null`, may be empty if no
  * tokens or some exception happens.
  */
-List<Token> _getTokens(String text) {
+List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     List<Token> tokens = <Token>[];
-    Scanner scanner = new Scanner(null, new CharSequenceReader(text), null);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(text), null)
+      ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     while (token.type != TokenType.EOF) {
       tokens.add(token);
@@ -224,7 +226,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   bool _hasTokens(SourceRange range) {
     String fullText = resolveResult.content;
     String rangeText = fullText.substring(range.offset, range.end);
-    return _getTokens(rangeText).isNotEmpty;
+    return _getTokens(rangeText, resolveResult.unit.featureSet).isNotEmpty;
   }
 
   /**

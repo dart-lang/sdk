@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -98,12 +99,16 @@ class Spelunker {
 
     var reader = new CharSequenceReader(contents);
     var stringSource = new StringSource(contents, path);
-    var scanner = new Scanner(stringSource, reader, errorListener);
+    // TODO(paulberry): figure out the appropriate featureSet to use here
+    var featureSet = FeatureSet.fromEnableFlags([]);
+    var scanner = new Scanner(stringSource, reader, errorListener)
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
 
     errorListener.throwIfErrors();
 
-    var parser = new Parser(stringSource, errorListener);
+    var parser = new Parser(stringSource, errorListener)
+      ..configureFeatures(featureSet);
     var node = parser.parseCompilationUnit(startToken);
 
     errorListener.throwIfErrors();

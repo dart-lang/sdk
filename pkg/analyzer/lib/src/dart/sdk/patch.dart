@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -58,7 +59,8 @@ class SdkPatcher {
             'The patch file ${patchFile.path} for $source does not exist.');
       }
       Source patchSource = patchFile.createSource();
-      CompilationUnit patchUnit = parse(patchSource, errorListener);
+      CompilationUnit patchUnit =
+          parse(patchSource, errorListener, unit.featureSet);
 
       // Prepare for reporting errors.
       _baseDesc = source.toString();
@@ -405,16 +407,18 @@ class SdkPatcher {
    * Parse the given [source] into AST.
    */
   @visibleForTesting
-  static CompilationUnit parse(
-      Source source, AnalysisErrorListener errorListener) {
+  static CompilationUnit parse(Source source,
+      AnalysisErrorListener errorListener, FeatureSet featureSet) {
     String code = source.contents.data;
 
     CharSequenceReader reader = new CharSequenceReader(code);
-    Scanner scanner = new Scanner(source, reader, errorListener);
+    Scanner scanner = new Scanner(source, reader, errorListener)
+      ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
-    Parser parser = new Parser(source, errorListener);
+    Parser parser = new Parser(source, errorListener)
+      ..configureFeatures(featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

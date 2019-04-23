@@ -27,7 +27,8 @@ class ParseBase with ResourceProviderMixin {
     var errorListener = RecordingErrorListener();
 
     var reader = CharSequenceReader(content);
-    var scanner = Scanner(source, reader, errorListener);
+    var scanner = Scanner(source, reader, errorListener)
+      ..configureFeatures(analysisOptions.contextFeatures);
 
     scanner.enableGtGtGt = experimentStatus.constant_update_2018;
     var token = scanner.tokenize();

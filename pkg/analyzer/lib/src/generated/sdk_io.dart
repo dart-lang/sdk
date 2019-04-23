@@ -7,6 +7,7 @@ library analyzer.src.generated.sdk_io;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -277,9 +278,14 @@ class SdkLibrariesReader {
    */
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
+    // TODO(paulberry): initialize the feature set appropriately based on the
+    // version of the SDK we are reading, and enable flags.
+    var featureSet = FeatureSet.fromEnableFlags([]);
     Scanner scanner = new Scanner(
-        source, new CharSequenceReader(libraryFileContents), errorListener);
-    Parser parser = new Parser(source, errorListener);
+        source, new CharSequenceReader(libraryFileContents), errorListener)
+      ..configureFeatures(featureSet);
+    Parser parser = new Parser(source, errorListener)
+      ..configureFeatures(featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =
         new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);

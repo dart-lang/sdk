@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -23,11 +24,13 @@ main() {
 class LocalDeclarationVisitorTest {
   CompilationUnit parseCompilationUnit(String content) {
     AnalysisErrorListener listener = AnalysisErrorListener.NULL_LISTENER;
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     Scanner scanner =
-        new Scanner(null, new CharSequenceReader(content), listener);
+        new Scanner(null, new CharSequenceReader(content), listener)
+          ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     var source = new StringSource(content, '/test.dart');
-    Parser parser = new Parser(source, listener);
+    Parser parser = new Parser(source, listener)..configureFeatures(featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     return unit;

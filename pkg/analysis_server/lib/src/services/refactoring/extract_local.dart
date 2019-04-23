@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -502,7 +503,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     String selectionSource;
     {
       String rawSelectionSource = utils.getRangeText(selectionRange);
-      List<Token> selectionTokens = TokenUtils.getTokens(rawSelectionSource);
+      List<Token> selectionTokens =
+          TokenUtils.getTokens(rawSelectionSource, unit.featureSet);
       selectionSource =
           _encodeExpressionTokens(rootExpression, selectionTokens);
     }
@@ -514,8 +516,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       enclosingFunction = getEnclosingExecutableNode(selectionNode);
     }
     // visit function
-    enclosingFunction
-        .accept(new _OccurrencesVisitor(this, occurrences, selectionSource));
+    enclosingFunction.accept(new _OccurrencesVisitor(
+        this, occurrences, selectionSource, unit.featureSet));
   }
 
   void _prepareOffsetsLengths() {
@@ -605,8 +607,10 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractLocalRefactoringImpl ref;
   final List<SourceRange> occurrences;
   final String selectionSource;
+  final FeatureSet featureSet;
 
-  _OccurrencesVisitor(this.ref, this.occurrences, this.selectionSource);
+  _OccurrencesVisitor(
+      this.ref, this.occurrences, this.selectionSource, this.featureSet);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -662,7 +666,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
 
   void _tryToFindOccurrence(Expression node) {
     String nodeSource = ref.utils.getNodeText(node);
-    List<Token> nodeTokens = TokenUtils.getTokens(nodeSource);
+    List<Token> nodeTokens = TokenUtils.getTokens(nodeSource, featureSet);
     nodeSource = ref._encodeExpressionTokens(node, nodeTokens);
     if (nodeSource == selectionSource) {
       _addOccurrence(range.node(node));
@@ -672,7 +676,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   void _tryToFindOccurrenceFragments(Expression node) {
     int nodeOffset = node.offset;
     String nodeSource = ref.utils.getNodeText(node);
-    List<Token> nodeTokens = TokenUtils.getTokens(nodeSource);
+    List<Token> nodeTokens = TokenUtils.getTokens(nodeSource, featureSet);
     nodeSource = ref._encodeExpressionTokens(node, nodeTokens);
     // find "selection" in "node" tokens
     int lastIndex = 0;

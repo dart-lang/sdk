@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -77,6 +78,8 @@ class CharacterRangeReaderTest extends EngineTestCase {
 
 @reflectiveTest
 class LineInfoTest extends EngineTestCase {
+  final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   void test_lineInfo_multilineComment() {
     String source = "/*\r\n *\r\n */";
     _assertLineInfo(source, [
@@ -126,7 +129,8 @@ class LineInfoTest extends EngineTestCase {
     String source = "var\r\ni\n=\n1;\n";
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
+        new Scanner(null, new CharSequenceReader(source), listener)
+          ..configureFeatures(featureSet);
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -167,7 +171,8 @@ class LineInfoTest extends EngineTestCase {
   Token _scanWithListener(String source, GatheringErrorListener listener,
       {bool lazyAssignmentOperators: false}) {
     Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
+        new Scanner(null, new CharSequenceReader(source), listener)
+          ..configureFeatures(featureSet);
     scanner.scanLazyAssignmentOperators = lazyAssignmentOperators;
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);

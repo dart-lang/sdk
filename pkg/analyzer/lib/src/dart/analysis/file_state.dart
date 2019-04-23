@@ -709,9 +709,8 @@ class FileState {
     // least in the case of "@dart") because it's the component that recognizes
     // "@dart" comments.
     CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
-    scanner.enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
+    Scanner scanner = new Scanner(source, reader, errorListener)
+      ..configureFeatures(featureSet);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });

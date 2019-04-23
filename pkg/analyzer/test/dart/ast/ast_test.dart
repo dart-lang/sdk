@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -615,6 +616,8 @@ class A {
 E f() => g;
 ''';
 
+  final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   CompilationUnit _unit;
 
   CompilationUnit get unit {
@@ -623,7 +626,9 @@ E f() => g;
           new GatheringErrorListener(checkRanges: true);
       var source =
           new StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
-      Token tokens = new Scanner.fasta(source, listener).tokenize();
+      var scanner = new Scanner.fasta(source, listener)
+        ..configureFeatures(featureSet);
+      Token tokens = scanner.tokenize();
       _unit = new Parser(source, listener, useFasta: true)
           .parseCompilationUnit(tokens);
     }
@@ -670,7 +675,9 @@ E f() => g;
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
     var source = new StringSource('missing', 'PreviousTokenTest_missing.dart');
-    Token missing = new Scanner.fasta(source, listener).tokenize();
+    var scanner = new Scanner.fasta(source, listener)
+      ..configureFeatures(featureSet);
+    Token missing = scanner.tokenize();
 
     expect(statement.findPrevious(missing), null);
     expect(statement.findPrevious(null), null);

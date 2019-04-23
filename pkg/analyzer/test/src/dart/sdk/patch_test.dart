@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -21,6 +22,8 @@ main() {
 
 @reflectiveTest
 class SdkPatcherTest with ResourceProviderMixin {
+  final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   Folder sdkFolder;
   FolderBasedDartSdk sdk;
 
@@ -720,7 +723,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
       };
       File file = newFile('/sdk/lib/test/test.dart');
       Source source = file.createSource(Uri.parse('dart:test'));
-      CompilationUnit unit = SdkPatcher.parse(source, listener);
+      CompilationUnit unit = SdkPatcher.parse(source, listener, featureSet);
       patcher.patch(resourceProvider, patchPaths, listener, source, unit);
     }, throwsArgumentError);
   }
@@ -755,7 +758,7 @@ int newFunction() => 2;
     _createSdk();
 
     Source source = file.createSource(Uri.parse('dart:_internal'));
-    CompilationUnit unit = SdkPatcher.parse(source, listener);
+    CompilationUnit unit = SdkPatcher.parse(source, listener, featureSet);
     patcher.patch(resourceProvider, patchPaths, listener, source, unit);
     _assertUnitCode(
         unit,
@@ -807,7 +810,7 @@ class _C {}
     {
       Uri uri = Uri.parse('dart:test');
       Source source = fileLib.createSource(uri);
-      CompilationUnit unit = SdkPatcher.parse(source, listener);
+      CompilationUnit unit = SdkPatcher.parse(source, listener, featureSet);
       patcher.patch(resourceProvider, patchPaths, listener, source, unit);
       _assertUnitCode(
           unit,
@@ -818,7 +821,7 @@ class _C {}
     {
       Uri uri = Uri.parse('dart:test/test_part.dart');
       Source source = filePart.createSource(uri);
-      CompilationUnit unit = SdkPatcher.parse(source, listener);
+      CompilationUnit unit = SdkPatcher.parse(source, listener, featureSet);
       patcher.patch(resourceProvider, patchPaths, listener, source, unit);
       _assertUnitCode(unit, "part of test; class B {int _b() => 1;}");
     }
@@ -1071,7 +1074,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     _createSdk();
 
     Source source = file.createSource(Uri.parse('dart:test'));
-    CompilationUnit unit = SdkPatcher.parse(source, listener);
+    CompilationUnit unit = SdkPatcher.parse(source, listener, featureSet);
     patcher.patch(resourceProvider, patchPaths, listener, source, unit);
     return unit;
   }

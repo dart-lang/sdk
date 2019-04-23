@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -60,11 +61,13 @@ Object canonicalize(Object obj, {bool orderByName: false}) {
 }
 
 UnlinkedPublicNamespace computePublicNamespaceFromText(
-    String text, Source source) {
+    String text, Source source, FeatureSet featureSet) {
   CharacterReader reader = new CharSequenceReader(text);
   Scanner scanner =
-      new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
-  Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+      new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER)
+        ..configureFeatures(featureSet);
+  Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER)
+    ..configureFeatures(featureSet);
   CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
   UnlinkedPublicNamespace namespace = new UnlinkedPublicNamespace.fromBuffer(
       public_namespace.computePublicNamespace(unit).toBuffer());
@@ -1750,7 +1753,12 @@ var v = (() {
   }
 
   test_constExpr_binary_bitShiftRightLogical() {
-    experimentStatus = ExperimentStatus(constant_update_2018: true);
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2',
+        additionalFeatures: [
+          Feature.constant_update_2018,
+          Feature.triple_shift
+        ]);
     UnlinkedVariable variable = serializeVariableText('const v = 1 >>> 2;');
     assertUnlinkedConst(variable.initializer.bodyExpr, '1 >>> 2', operators: [
       UnlinkedExprOperation.pushInt,
@@ -11866,7 +11874,7 @@ final v = $expr;
     var reader = new CharSequenceReader(sourceText);
     var stringSource = new StringSource(sourceText, null);
     var scanner = new Scanner(stringSource, reader, errorListener)
-      ..enableGtGtGt = true;
+      ..configureFeatures(experimentStatus);
     var startToken = scanner.tokenize();
     var parser = new Parser(stringSource, errorListener)
       ..configureFeatures(experimentStatus);

@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:io' show exit;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -192,10 +193,13 @@ Token tokenize(Source source) {
   scanTimer.start();
   var contents = source.contents.data;
   scanTotalChars += contents.length;
+  // TODO(paulberry): figure out the appropriate featureSet to use here
+  var featureSet = FeatureSet.fromEnableFlags([]);
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
   var scanner = new Scanner(source, new CharSequenceReader(contents),
       AnalysisErrorListener.NULL_LISTENER)
+    ..configureFeatures(featureSet)
     ..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();

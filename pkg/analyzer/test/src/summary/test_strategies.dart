@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -42,7 +43,7 @@ CompilationUnit parseText(
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
-        ..enableGtGtGt = experimentStatus.constant_update_2018;
+        ..configureFeatures(experimentStatus);
   Token token = scanner.tokenize();
   Parser parser =
       new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -29,11 +30,14 @@ class CompletionTargetTest {
   /// instance, does this.
   Expression parseDanglingDart(String code) {
     final reader = new CharSequenceReader(code);
-    final scanner = new Scanner(null, reader, null);
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+    final scanner = new Scanner(null, reader, null)
+      ..configureFeatures(featureSet);
     final source = new StringSource(code, 'test.dart');
     final listener = new _ErrorCollector();
+    final parser = new Parser(source, listener)..configureFeatures(featureSet);
 
-    return new Parser(source, listener).parseExpression(scanner.tokenize());
+    return parser.parseExpression(scanner.tokenize());
   }
 
   test_danglingExpressionCompletionIsValid() {
