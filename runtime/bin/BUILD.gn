@@ -334,6 +334,10 @@ template("dart_io") {
   if (defined(invoker.extra_sources)) {
     extra_sources += invoker.extra_sources
   }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
   source_set(target_name) {
     configs += [
                  "..:dart_arch_config",
@@ -359,9 +363,7 @@ template("dart_io") {
     set_sources_assignment_filter(custom_sources_filter)
 
     defines = []
-    deps = [
-      "//third_party/zlib",
-    ]
+    deps = [ "//third_party/zlib" ] + extra_deps
     if (is_mac || is_ios) {
       libs = [
         "CoreFoundation.framework",
@@ -411,6 +413,7 @@ dart_io("dart_io_api") {
     "dart_io_api_impl.cc",
     "../include/bin/dart_io_api.h",
   ]
+  extra_deps = [ ":libdart_builtin" ]
 }
 
 dart_io("dart_io_api_product") {
@@ -420,11 +423,13 @@ dart_io("dart_io_api_product") {
     "dart_io_api_impl.cc",
     "../include/bin/dart_io_api.h",
   ]
+  extra_deps = [ ":libdart_builtin_product" ]
 }
 
 dart_io("standalone_dart_io") {
   extra_configs = [ "..:dart_maybe_product_config" ]
   extra_sources = []
+  extra_deps = [ ":libdart_builtin" ]
 }
 
 gen_snapshot_action("generate_snapshot_bin") {
@@ -709,7 +714,6 @@ template("dart_executable") {
 
     deps = [
              ":standalone_dart_io",
-             ":libdart_builtin",
              "//third_party/boringssl",
              "//third_party/zlib",
              ":crashpad",
@@ -912,7 +916,6 @@ executable("run_vm_tests") {
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",
     ":generate_abi_version_cc_file",
-    ":libdart_builtin",
     ":standalone_dart_io",
     "..:libdart_nosnapshot_with_precompiler",
     "//third_party/zlib",
