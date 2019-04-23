@@ -42,7 +42,7 @@ CupertinoPageScaffold(
 ```
 
 If you know the expression might evaluate to null and you want to treat that as
-equivalent to zero elements, you can use the null-aware spread `?...`.
+equivalent to zero elements, you can use the null-aware spread `...?`.
 
 #### Collection if
 
