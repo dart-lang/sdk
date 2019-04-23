@@ -20,6 +20,8 @@ import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
+import 'package:vm/target/flutter.dart';
+import 'package:vm/target/flutter_runner.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 
 main(List<String> args) async {
@@ -120,8 +122,14 @@ final summaryArgsParser = new ArgParser()
       negatable: true,
       help: 'Whether to only build summary files.')
   ..addOption('target',
-      allowed: const ['vm', 'dart2js', 'ddc'],
-      help: 'Build kernel for the vm, dart2js, or ddc')
+      allowed: const [
+        'vm',
+        'flutter',
+        'flutter_runner',
+        'dart2js',
+        'ddc',
+      ],
+      help: 'Build kernel for the vm, flutter, flutter_runner, dart2js or ddc')
   ..addOption('dart-sdk-summary')
   ..addMultiOption('input-summary')
   ..addMultiOption('input-linked')
@@ -187,6 +195,20 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       target = new VmTarget(targetFlags);
       if (summaryOnly) {
         out.writeln('error: --summary-only not supported for the vm target');
+      }
+      break;
+    case 'flutter':
+      target = new FlutterTarget(targetFlags);
+      if (summaryOnly) {
+        throw new ArgumentError(
+            'error: --summary-only not supported for the flutter target');
+      }
+      break;
+    case 'flutter_runner':
+      target = new FlutterRunnerTarget(targetFlags);
+      if (summaryOnly) {
+        throw new ArgumentError('error: --summary-only not supported for the '
+            'flutter_runner target');
       }
       break;
     case 'dart2js':
