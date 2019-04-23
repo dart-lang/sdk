@@ -682,11 +682,13 @@ class LinkedUnitContext {
   }
 
   bool hasImplicitType(AstNode node) {
-    if (node is VariableDeclaration) {
-      VariableDeclarationList parent = node.parent;
-      return parent.type == null;
+    if (node is DefaultFormalParameter) {
+      return hasImplicitType(node.parameter);
     } else if (node is SimpleFormalParameter) {
       return node.type == null;
+    } else if (node is VariableDeclaration) {
+      VariableDeclarationList parent = node.parent;
+      return parent.type == null;
     }
     return false;
   }
@@ -948,7 +950,11 @@ class LinkedUnitContext {
   }
 
   void setVariableType(AstNode node, DartType type) {
-    LazyAst.setType(node, type);
+    if (node is DefaultFormalParameter) {
+      setVariableType(node.parameter, type);
+    } else {
+      LazyAst.setType(node, type);
+    }
   }
 
   bool shouldBeConstFieldElement(AstNode node) {
