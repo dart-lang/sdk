@@ -56,6 +56,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
+  ..addFlag('protobuf-tree-shaker',
+      help: 'Enable protobuf tree shaker transformation in AOT mode.',
+      defaultsTo: false)
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -351,7 +354,8 @@ class FrontendCompiler implements CompilerInterface {
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
-          environmentDefines: environmentDefines));
+          environmentDefines: environmentDefines,
+          useProtobufTreeShaker: options['protobuf-tree-shaker']));
     }
     if (component != null) {
       if (transformer != null) {
