@@ -808,6 +808,15 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the default value.");
 
   /**
+   * It is an error if a required named parameter has a default value.
+   */
+  static const CompileTimeErrorCode DEFAULT_VALUE_ON_REQUIRED_PARAMETER =
+      const CompileTimeErrorCode('DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
+          "Required named parameters cannot have a default value.",
+          correction: "Try removing either the default value or the 'required' "
+              "modifier.");
+
+  /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity
    * with the same name declared in the same scope.
    */
@@ -1493,6 +1502,20 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try using a generic function type (returnType 'Function(' parameters ')').");
 
   /**
+   * It is an error if an optional parameter (named or otherwise) with no
+   * default value has a potentially non-nullable type. This is produced in
+   * cases where there is no valid default value.
+   */
+  static const CompileTimeErrorCode INVALID_OPTIONAL_PARAMETER_TYPE =
+      const CompileTimeErrorCode(
+          'INVALID_OPTIONAL_PARAMETER_TYPE',
+          "The parameter '{0}' cannot have a value of 'null' because of its "
+              "type, but no default value it valid, so it must be a required "
+              "parameter.",
+          correction: "Try making this nullable (by adding a '?') or "
+              "making this a required parameter.");
+
+  /**
    * If a class declaration has a member declaration, the signature of that
    * member declaration becomes the signature in the interface. It's a
    * compile-time error if that signature is not a valid override of all
@@ -1670,6 +1693,19 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MISSING_DART_LIBRARY', "Required library '{0}' is missing.",
           correction: "Check your Dart SDK installation for completeness.");
+
+  /**
+   * It is an error if an optional parameter (named or otherwise) with no
+   * default value has a potentially non-nullable type.
+   */
+  static const CompileTimeErrorCode MISSING_DEFAULT_VALUE_FOR_PARAMETER =
+      const CompileTimeErrorCode(
+          'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+          "The parameter '{0}' cannot have a value of 'null' because of its "
+              "type, so it must either be a required parameter or have a "
+              "default value.",
+          correction:
+              "Try adding either a default value or the 'required' modifier.");
 
   /**
    * It's a compile-time error to apply a mixin containing super-invocations to

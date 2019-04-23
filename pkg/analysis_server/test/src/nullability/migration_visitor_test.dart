@@ -11,7 +11,6 @@ import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -784,7 +783,10 @@ class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
       _variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
 
+  @failingTest
   test_interfaceType_nullable() async {
+    // The tests are now being run without enabling nnbd, which causes the '?'
+    // to be reported as an error.
     await analyze('''
 void f(int? x) {}
 ''');
@@ -922,12 +924,6 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   NullabilityNode possiblyOptionalParameter(String text) {
     return _variables
         .possiblyOptionalParameter(findNode.defaultParameter(text));
-  }
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    super.setUp();
   }
 
   /// Gets the [ConditionalDiscard] information associated with the statement

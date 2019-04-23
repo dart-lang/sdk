@@ -7061,6 +7061,9 @@ class ToSourceVisitor
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (node.isRequiredNamed) {
+      _writer.print('required ');
+    }
     _visitNode(node.parameter);
     if (node.separator != null) {
       if (node.separator.lexeme != ":") {
@@ -8322,6 +8325,9 @@ class ToSourceVisitor2
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (node.isRequiredNamed) {
+      sink.write('required ');
+    }
     safelyVisitNode(node.parameter);
     if (node.separator != null) {
       if (node.separator.lexeme != ":") {

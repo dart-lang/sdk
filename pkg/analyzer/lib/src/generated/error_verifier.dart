@@ -745,6 +745,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList node) {
     _checkDuplicateDefinitionInParameterList(node);
     _checkUseOfCovariantInParameters(node);
+    _checkUseOfDefaultValuesInParameters(node);
     super.visitFormalParameterList(node);
   }
 
@@ -5856,6 +5857,59 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
+    AstNode parent = node.parent;
+    if (parent is FieldFormalParameter ||
+        parent is FunctionTypeAlias ||
+        parent is FunctionTypedFormalParameter ||
+        parent is GenericFunctionType) {
+      // These locations are not allowed to have default values.
+      return;
+    }
+    NodeList<FormalParameter> parameters = node.parameters;
+    int length = parameters.length;
+    for (int i = 0; i < length; i++) {
+      FormalParameter parameter = parameters[i];
+      if (parameter.isOptional) {
+        DartType type = parameter.declaredElement.type;
+        if (type.isDartAsyncFutureOr) {
+          type = (type as ParameterizedType).typeArguments[0];
+        }
+        if ((parameter as DefaultFormalParameter).defaultValue == null) {
+          if (_typeSystem.isPotentiallyNonNullable(type)) {
+            SimpleIdentifier parameterName = _parameterName(parameter);
+            if (type is TypeParameterType) {
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
+                  parameterName ?? parameter,
+                  [parameterName?.name ?? '?']);
+            } else {
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+                  parameterName ?? parameter,
+                  [parameterName?.name ?? '?']);
+            }
+          }
+        } else if (!_typeSystem.isNonNullable(type) &&
+            _typeSystem.isPotentiallyNonNullable(type)) {
+          // If the type is both potentially non-nullable and not
+          // non-nullable, then it cannot be used for an optional parameter.
+          SimpleIdentifier parameterName = _parameterName(parameter);
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
+              parameterName ?? parameter,
+              [parameterName?.name ?? '?']);
+        }
+      } else if (parameter.isRequiredNamed) {
+        if ((parameter as DefaultFormalParameter).defaultValue != null) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
+              _parameterName(parameter) ?? parameter);
+        }
+      }
+    }
+  }
+
   InterfaceType _findInterfaceTypeForMixin(TypeName mixin,
       InterfaceType supertypeConstraint, List<InterfaceType> interfaceTypes) {
     var element = supertypeConstraint.element;
@@ -6218,6 +6272,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return identical(parent.constructorName, identifier);
     }
     return false;
+  }
+
+  /// Return the name of the [parameter], or `null` if the parameter does not
+  /// have a name.
+  SimpleIdentifier _parameterName(FormalParameter parameter) {
+    if (parameter is NormalFormalParameter) {
+      return parameter.identifier;
+    } else if (parameter is DefaultFormalParameter) {
+      return parameter.parameter.identifier;
+    }
+    return null;
   }
 
   /// Determines if the given [typeName] occurs in a context where super-bounded
