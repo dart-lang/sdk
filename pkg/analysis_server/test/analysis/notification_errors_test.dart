@@ -71,6 +71,7 @@ linter:
     String manifestFile = newFile(filePath, content: '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''').path;

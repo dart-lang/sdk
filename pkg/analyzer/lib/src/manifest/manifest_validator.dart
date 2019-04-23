@@ -42,11 +42,35 @@ class ManifestValidator {
           manifest?.getElementsByTagName(USES_PERMISSION_TAG) ?? [];
       var activities = _findActivityElements(manifest);
 
+      _validateTouchScreenFeature(features, manifest, reporter);
       _validateFeatures(features, reporter);
       _validatePermissions(permissions, features, reporter);
       _validateActivities(activities, reporter);
     }
     return recorder.errors;
+  }
+
+  /*
+   * Validate the presence/absence of the touchscreen feature tag.
+   */
+  _validateTouchScreenFeature(
+      List<Element> features, Element manifest, ErrorReporter reporter) {
+    var feature = features.firstWhere(
+        (element) =>
+            element.attributes[ANDROID_NAME] == HARDWARE_FEATURE_TOUCHSCREEN,
+        orElse: () => null);
+    if (feature != null) {
+      if (!feature.attributes.containsKey(ANDROID_REQUIRED)) {
+        _reportErrorForNode(reporter, feature, ANDROID_NAME,
+            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE);
+      } else if (feature.attributes[ANDROID_REQUIRED] == 'true') {
+        _reportErrorForNode(reporter, feature, ANDROID_NAME,
+            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE);
+      }
+    } else {
+      _reportErrorForNode(
+          reporter, manifest, null, ManifestWarningCode.NO_TOUCHSCREEN_FEATURE);
+    }
   }
 
   /*
@@ -61,9 +85,9 @@ class ManifestValidator {
       if (!element.attributes.containsKey(ANDROID_REQUIRED)) {
         _reportErrorForNode(reporter, element, ANDROID_NAME,
             ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE);
-      } else if (element.attributes[ANDROID_REQUIRED] == true) {
+      } else if (element.attributes[ANDROID_REQUIRED] == 'true') {
         _reportErrorForNode(reporter, element, ANDROID_NAME,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE);
+            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE);
       }
     });
   }
@@ -140,7 +164,8 @@ class ManifestValidator {
   void _reportErrorForNode(
       ErrorReporter reporter, Node node, dynamic key, ErrorCode errorCode,
       [List<Object> arguments]) {
-    FileSpan span = node.attributeValueSpans[key];
+    FileSpan span =
+        key == null ? node.sourceSpan : node.attributeValueSpans[key];
     reporter.reportErrorForOffset(
         errorCode, span.start.offset, span.length, arguments);
   }

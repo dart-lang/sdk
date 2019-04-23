@@ -825,10 +825,8 @@ analyzer:
 </manifest>
 ''');
       await drive(manifestPath, options: filePath);
-      expect(
-          bulletToDash(outSink),
-          contains(
-              "warning - This hardware feature is not supported on Chrome OS"));
+      expect(bulletToDash(outSink),
+          contains("warning - This feature is not supported on Chrome OS"));
       expect(exitCode, 0);
     });
   }

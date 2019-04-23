@@ -15,11 +15,37 @@ class ManifestWarningCode extends ErrorCode {
    * A code indicating that a specified hardware feature is not supported on Chrome OS.
    */
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
-      const ManifestWarningCode('UNSUPPORTED_CHROME_OS_HARDWARE',
-          "This hardware feature is not supported on Chrome OS.",
+      const ManifestWarningCode(
+          'UNSUPPORTED_CHROME_OS_HARDWARE',
+          "This feature is not supported on Chrome OS. Try adding " +
+              "`android:required=\"false\"` for this feature.",
           correction:
-              "Try adding `android:required=\"false\"` for this hardware " +
-                  "feature.");
+              "Try adding `android:required=\"false\"` for this " + "feature.");
+
+  /**
+   * A code indicating that a specified feature is not supported on Chrome OS.
+   */
+  static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
+      const ManifestWarningCode(
+          'UNSUPPORTED_CHROME_OS_FEATURE',
+          "This feature is not supported on Chrome OS. Try changing " +
+              "`android:required to \"false\"` for this feature.",
+          correction: "Try changing to `android:required=\"false\"` for this " +
+              "feature.");
+
+  /**
+   * A code indicating that the touchscreen feature is not specified in the
+   * manifest.
+   */
+  static const ManifestWarningCode NO_TOUCHSCREEN_FEATURE = const ManifestWarningCode(
+      'NO_TOUCHSCREEN_FEATURE',
+      "Explicitly set \"android.hardware.touchscreen\" to not required for Chrome OS. " +
+          "Consider adding " +
+          "<uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" />" +
+          " to the manifest.",
+      correction: "Consider adding " +
+          "<uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" />" +
+          " to the manifest.");
 
   /**
    * A code indicating that a specified permission is not supported on Chrome OS.
