@@ -37,7 +37,7 @@ def RunAndroidGn(options):
   ]
   if options.verbose:
     gn_command.append('-v')
-    print ' '.join(gn_command)
+    print (' '.join(gn_command))
   return Execute(gn_command)
 
 
@@ -52,7 +52,7 @@ def RunCrossGn(options):
   ]
   if options.verbose:
     gn_command.append('-v')
-    print ' '.join(gn_command)
+    print (' '.join(gn_command))
   return Execute(gn_command)
 
 
@@ -65,7 +65,7 @@ def RunHostGn(options):
   ]
   if options.verbose:
     gn_command.append('-v')
-    print ' '.join(gn_command)
+    print (' '.join(gn_command))
   return Execute(gn_command)
 
 

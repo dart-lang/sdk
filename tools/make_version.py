@@ -126,7 +126,7 @@ def main(args):
       if options.output:
         open(options.output, 'w').write(version_string)
       else:
-        print version_string
+        print (version_string)
       return 0
 
     if not options.output:
@@ -145,7 +145,7 @@ def main(args):
       return -1
 
     return 0
-  except Exception, inst:
+  except Exception as inst:
     sys.stderr.write('make_version.py exception\n')
     sys.stderr.write(str(inst))
     sys.stderr.write('\n')
