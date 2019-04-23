@@ -235,12 +235,7 @@ class TypeBuilder {
         }
 
         if (typeArguments == null) {
-          if (element.isSimplyBounded) {
-            node.type = typeSystem.instantiateToBounds(rawType);
-          } else {
-            typeArguments = _listOfDynamic(typeParametersLength);
-            node.type = InterfaceTypeImpl.explicit(element, typeArguments);
-          }
+          node.type = typeSystem.instantiateToBounds(rawType);
           return;
         }
 
@@ -264,13 +259,9 @@ class TypeBuilder {
       }
 
       if (typeArguments == null) {
-        if (element.isSimplyBounded) {
-          typeArguments = typeSystem.instantiateTypeFormalsToBounds(
-            typeParameters,
-          );
-        } else {
-          typeArguments = _listOfDynamic(typeParametersLength);
-        }
+        typeArguments = typeSystem.instantiateTypeFormalsToBounds(
+          typeParameters,
+        );
       } else if (typeArguments.length != typeParametersLength) {
         typeArguments = _listOfDynamic(typeParametersLength);
       }

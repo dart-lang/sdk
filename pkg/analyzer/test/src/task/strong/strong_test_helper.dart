@@ -246,8 +246,6 @@ class AbstractStrongTest with ResourceProviderMixin {
 
   List<String> get enabledExperiments => [];
 
-  bool get useSummary2 => AnalysisDriver.useSummary2;
-
   /// Adds a file to check. The file should contain:
   ///
   ///   * all expected failures are listed in the source code using comments
