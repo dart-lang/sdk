@@ -668,7 +668,7 @@ class FieldElementHandle extends PropertyInducingElementHandle
   bool get isEnumConstant => actualElement.isEnumConstant;
 
   @override
-  bool get isLazy => actualElement.isLazy;
+  bool get isLate => actualElement.isLate;
 
   @deprecated
   @override
@@ -990,7 +990,7 @@ class LocalVariableElementHandle extends VariableElementHandle
       super.actualElement as LocalVariableElement;
 
   @override
-  bool get isLazy => actualElement.isLazy;
+  bool get isLate => actualElement.isLate;
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;

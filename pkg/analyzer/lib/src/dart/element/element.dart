@@ -4946,14 +4946,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
       enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
 
   @override
-  bool get isLazy {
+  bool get isLate {
 //    if (linkedNode != null) {
-//      return enclosingUnit.linkedContext.isLazy(linkedNode);
+//      return enclosingUnit.linkedContext.isLate(linkedNode);
 //    }
 //    if (_unlinkedVariable != null) {
-//      return _unlinkedVariable.isLazy;
+//      return _unlinkedVariable.isLate;
 //    }
-    return hasModifier(Modifier.LAZY);
+    return hasModifier(Modifier.LATE);
   }
 
   @override
@@ -7066,14 +7066,14 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   }
 
   @override
-  bool get isLazy {
+  bool get isLate {
 //    if (linkedNode != null) {
-//      return enclosingUnit.linkedContext.isLazy(linkedNode);
+//      return enclosingUnit.linkedContext.isLate(linkedNode);
 //    }
 //    if (_unlinkedVariable != null) {
-//      return _unlinkedVariable.isLazy;
+//      return _unlinkedVariable.isLate;
 //    }
-    return hasModifier(Modifier.LAZY);
+    return hasModifier(Modifier.LATE);
   }
 
   @override
@@ -7442,7 +7442,7 @@ class Modifier implements Comparable<Modifier> {
   static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 12);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LAZY = const Modifier('LAZY', 13);
+  static const Modifier LATE = const Modifier('LATE', 13);
 
   /// Indicates that a class is a mixin application.
   static const Modifier MIXIN_APPLICATION =
@@ -7478,7 +7478,7 @@ class Modifier implements Comparable<Modifier> {
     GETTER,
     HAS_EXT_URI,
     IMPLICIT_TYPE,
-    LAZY,
+    LATE,
     MIXIN_APPLICATION,
     REFERENCES_SUPER,
     SETTER,

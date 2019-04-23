@@ -1054,12 +1054,12 @@ abstract class FieldElement
   /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
 
-  /// Return `true` if this field uses lazy evaluation semantics.
+  /// Return `true` if this field uses late evaluation semantics.
   ///
   /// This will always return `false` unless the experiment 'non-nullable' is
   /// enabled.
   @experimental
-  bool get isLazy;
+  bool get isLate;
 
   /// Returns `true` if this field can be overridden in strong mode.
   @deprecated
@@ -1336,12 +1336,12 @@ abstract class LocalElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /// Return `true` if this local variable uses lazy evaluation semantics.
+  /// Return `true` if this local variable uses late evaluation semantics.
   ///
   /// This will always return `false` unless the experiment 'non-nullable' is
   /// enabled.
   @experimental
-  bool get isLazy;
+  bool get isLate;
 }
 
 /// An element that represents a method defined within a type.
