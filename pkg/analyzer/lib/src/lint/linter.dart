@@ -43,6 +43,7 @@ class CamelCaseString {
   static final _camelCaseTester = new RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
 
   final String value;
+
   CamelCaseString(this.value) {
     if (!isCamelCase(value)) {
       throw new ArgumentError('$value is not CamelCase');
@@ -189,8 +190,11 @@ class Hyperlink {
   final String label;
   final String href;
   final bool bold;
+
   const Hyperlink(this.label, this.href, {this.bold: false});
+
   String get html => '<a href="$href">${_emph(label)}</a>';
+
   String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
@@ -264,7 +268,8 @@ class LinterContextImpl implements LinterContext {
       LibraryElement library = element.library;
       ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
       expression.accept(new ConstantVerifier(
-          errorReporter, library, typeProvider, declaredVariables));
+          errorReporter, library, typeProvider, declaredVariables,
+          featureSet: currentUnit.unit.featureSet));
     } finally {
       expression.keyword = oldKeyword;
     }
@@ -299,10 +304,12 @@ class LinterOptions extends DriverOptions {
   String analysisOptions;
   LintFilter filter;
   file_system.ResourceProvider resourceProvider;
+
   // todo (pq): consider migrating to named params (but note Linter dep).
   LinterOptions([this.enabledLints, this.analysisOptions]) {
     enabledLints ??= Registry.ruleRegistry;
   }
+
   void configure(LintConfig config) {
     enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
@@ -478,6 +485,7 @@ class PrintingReporter implements Reporter, Logger {
 
 abstract class Reporter {
   void exception(LinterException exception);
+
   void warn(String message);
 }
 

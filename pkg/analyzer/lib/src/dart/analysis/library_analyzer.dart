@@ -212,7 +212,7 @@ class LibraryAnalyzer {
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
         errorReporter, _libraryElement, _typeProvider, _declaredVariables,
-        forAnalysisDriver: true);
+        featureSet: unit.featureSet, forAnalysisDriver: true);
     unit.accept(constantVerifier);
   }
 

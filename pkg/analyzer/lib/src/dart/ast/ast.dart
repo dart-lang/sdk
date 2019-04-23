@@ -6071,7 +6071,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
       AnalysisContext context = library.context;
       ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
       accept(new ConstantVerifier(errorReporter, library, context.typeProvider,
-          context.declaredVariables));
+          context.declaredVariables,
+          featureSet: FeatureSet.fromEnableFlags([])));
     } finally {
       keyword = oldKeyword;
     }
