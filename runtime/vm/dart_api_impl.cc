@@ -33,6 +33,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
+#include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -1278,6 +1279,12 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
     return;
   }
   os_thread->EnableThreadInterrupts();
+}
+
+DART_EXPORT void Dart_AddSymbols(const char* dso_name,
+                                 void* buffer,
+                                 intptr_t buffer_size) {
+  NativeSymbolResolver::AddSymbols(dso_name, buffer, buffer_size);
 }
 
 DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
