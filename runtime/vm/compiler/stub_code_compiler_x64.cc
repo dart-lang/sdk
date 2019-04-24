@@ -847,7 +847,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   // R10: Smi-tagged arguments array length.
   PushArrayOfArguments(assembler);
   const intptr_t kNumArgs = 4;
-  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ CallRuntime(kNoSuchMethodFromCallStubRuntimeEntry, kNumArgs);
   __ Drop(4);
   __ popq(RAX);  // Return value.
   __ LeaveStubFrame();
@@ -1804,8 +1804,12 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
           Address(RBP, R13, TIMES_4,
                   target::frame_layout.param_end_from_fp * target::kWordSize));
 
+  // Load the function.
+  __ movq(RBX, FieldAddress(RAX, target::Closure::function_offset()));
+
   __ pushq(Immediate(0));  // Result slot.
   __ pushq(RAX);           // Receiver.
+  __ pushq(RBX);           // Function.
   __ pushq(R10);           // Arguments descriptor array.
 
   // Adjust arguments count.
@@ -1821,8 +1825,8 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   // R10: Smi-tagged arguments array length.
   PushArrayOfArguments(assembler);
 
-  const intptr_t kNumArgs = 3;
-  __ CallRuntime(kInvokeClosureNoSuchMethodRuntimeEntry, kNumArgs);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kNoSuchMethodFromPrologueRuntimeEntry, kNumArgs);
   // noSuchMethod on closures always throws an error, so it will never return.
   __ int3();
 }

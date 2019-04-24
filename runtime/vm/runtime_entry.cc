@@ -1067,7 +1067,7 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
     result = target_function.raw();
   }
   // May be null if --no-lazy-dispatchers, in which case dispatch will be
-  // handled by InvokeNoSuchMethodDispatcher.
+  // handled by NoSuchMethodFromCallStub.
   ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
   return result.raw();
 }
@@ -1670,7 +1670,7 @@ DEFINE_RUNTIME_ENTRY(InterpretedInterfaceCallMissHandler, 3) {
 // Arg1: ICData or MegamorphicCache
 // Arg2: arguments descriptor array
 // Arg3: arguments array
-DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
+DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
   ASSERT(!FLAG_lazy_dispatchers);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
@@ -1778,24 +1778,31 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 }
 
 // Invoke appropriate noSuchMethod function.
-// Arg0: receiver (closure object)
+// Arg0: receiver
+// Arg1: function
 // Arg1: arguments descriptor array.
-// Arg2: arguments array.
-DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
-  const Closure& receiver = Closure::CheckedHandle(zone, arguments.ArgAt(0));
+// Arg3: arguments array.
+DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(1));
   const Array& orig_arguments_desc =
-      Array::CheckedHandle(zone, arguments.ArgAt(1));
-  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(2));
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
 
-  // For closure the function name is always 'call'. Replace it with the
-  // name of the closurized function so that exception contains more
-  // relevant information.
-  const Function& function = Function::Handle(receiver.function());
-  ASSERT(!function.IsNull());
-  const String& original_function_name =
-      String::Handle(function.QualifiedUserVisibleName());
-  const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
-      receiver, original_function_name, orig_arguments, orig_arguments_desc));
+  String& orig_function_name = String::Handle(zone);
+  if ((function.kind() == RawFunction::kClosureFunction) ||
+      (function.kind() == RawFunction::kImplicitClosureFunction)) {
+    // For closure the function name is always 'call'. Replace it with the
+    // name of the closurized function so that exception contains more
+    // relevant information.
+    orig_function_name = function.QualifiedUserVisibleName();
+  } else {
+    orig_function_name = function.name();
+  }
+
+  const Object& result = Object::Handle(
+      zone, DartEntry::InvokeNoSuchMethod(receiver, orig_function_name,
+                                          orig_arguments, orig_arguments_desc));
   ThrowIfError(result);
   arguments.SetReturn(result);
 }

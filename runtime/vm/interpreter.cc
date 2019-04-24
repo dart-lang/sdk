@@ -1425,10 +1425,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   RawBool* false_value = Bool::False().raw();
   RawObject* null_value = Object::null();
 
-#if defined(DEBUG)
-  Function& function_h = Function::Handle();
-#endif
-
 #ifdef DART_HAS_COMPUTED_GOTO
   static const void* dispatch[] = {
 #define TARGET(name, fmt, fmta, fmtb, fmtc) &&bc##name,
@@ -1472,7 +1468,7 @@ SwitchDispatch:
     const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
     const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
     if ((arg_count != num_fixed_params) || (pos_count != num_fixed_params)) {
-      goto ClosureNoSuchMethod;
+      goto NoSuchMethodFromPrologue;
     }
 
     // Initialize locals with null & set SP.
@@ -1499,7 +1495,7 @@ SwitchDispatch:
 
     // Check that got the right number of positional parameters.
     if ((min_num_pos_args > pos_count) || (pos_count > max_num_pos_args)) {
-      goto ClosureNoSuchMethod;
+      goto NoSuchMethodFromPrologue;
     }
 
     // Copy all passed position arguments.
@@ -1562,7 +1558,7 @@ SwitchDispatch:
       // between formal parameters and concrete arguments. This can only
       // occur if the current function is a closure.
       if (i != -1) {
-        goto ClosureNoSuchMethod;
+        goto NoSuchMethodFromPrologue;
       }
 
       // Skip LoadConstant-s encoding information about named parameters.
@@ -1576,7 +1572,7 @@ SwitchDispatch:
         // Function can't have both named and optional positional parameters.
         // This kind of mismatch can only occur if the current function
         // is a closure.
-        goto ClosureNoSuchMethod;
+        goto NoSuchMethodFromPrologue;
       }
 
       // Process the list of default values encoded as a sequence of
@@ -1659,7 +1655,7 @@ SwitchDispatch:
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     if ((type_args_len != declared_type_args_len) && (type_args_len != 0)) {
-      goto ClosureNoSuchMethod;
+      goto NoSuchMethodFromPrologue;
     }
     if (type_args_len > 0) {
       // Decode arguments descriptor's argument count (excluding type args).
@@ -3362,11 +3358,10 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_DispatchNoSuchMethod, 0);
+    BYTECODE(VMInternal_NoSuchMethodDispatcher, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kNoSuchMethodDispatcher);
-    UNIMPLEMENTED();
-    DISPATCH();
+    goto NoSuchMethodFromPrologue;
   }
 
   {
@@ -3444,62 +3439,47 @@ SwitchDispatch:
 
   // Helper used to handle noSuchMethod on closures.
   {
-  ClosureNoSuchMethod:
-#if defined(DEBUG)
-    function_h ^= FrameFunction(FP);
-    ASSERT(function_h.IsNull() || function_h.IsClosureFunction());
-#endif
+  NoSuchMethodFromPrologue:
+    RawFunction* function = FrameFunction(FP);
 
-    // Restore caller context as we are going to throw NoSuchMethod.
-    pc = SavedCallerPC(FP);
-
-    const bool has_dart_caller = !IsEntryFrameMarker(pc);
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+    RawObject** args = FrameArguments(FP, argc);
 
-    SP = FrameArguments(FP, 0);
-    RawObject** args = SP - argc;
-    FP = SavedCallerFP(FP);
-    NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
-    if (has_dart_caller) {
-      pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
-    }
-
-    *++SP = null_value;
-    *++SP = args[receiver_idx];  // Closure object.
-    *++SP = argdesc_;
-    *++SP = null_value;  // Array of arguments (will be filled).
+    SP[1] = null_value;
+    SP[2] = args[receiver_idx];
+    SP[3] = function;
+    SP[4] = argdesc_;
+    SP[5] = null_value;  // Array of arguments (will be filled).
 
     // Allocate array of arguments.
     {
-      SP[1] = Smi::New(argc);  // length
-      SP[2] = null_value;      // type
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 2, SP + 1, SP);
+      SP[6] = Smi::New(argc);  // length
+      SP[7] = null_value;      // type
+      Exit(thread, FP, SP + 8, pc);
+      NativeArguments native_args(thread, 2, SP + 6, SP + 5);
       if (!InvokeRuntime(thread, this, DRT_AllocateArray, native_args)) {
         HANDLE_EXCEPTION;
-      } else if (has_dart_caller) {
-        HANDLE_RETURN;
       }
 
       // Copy arguments into the newly allocated array.
-      RawArray* array = static_cast<RawArray*>(SP[0]);
+      RawArray* array = static_cast<RawArray*>(SP[5]);
       ASSERT(array->GetClassId() == kArrayCid);
       for (intptr_t i = 0; i < argc; i++) {
         array->ptr()->data()[i] = args[i];
       }
     }
 
-    // Invoke noSuchMethod passing down closure, argument descriptor and
-    // array of arguments.
+    // Invoke noSuchMethod passing down receiver, function, argument descriptor
+    // and array of arguments.
     {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments native_args(thread, 3, SP - 2, SP - 3);
-      INVOKE_RUNTIME(DRT_InvokeClosureNoSuchMethod, native_args);
-      UNREACHABLE();
+      Exit(thread, FP, SP + 6, pc);
+      NativeArguments native_args(thread, 4, SP + 2, SP + 1);
+      INVOKE_RUNTIME(DRT_NoSuchMethodFromPrologue, native_args);
+      ++SP;  // Result at SP[0]
     }
 
     DISPATCH();

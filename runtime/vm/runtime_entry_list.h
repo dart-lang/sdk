@@ -31,9 +31,9 @@ namespace dart {
   V(NonBoolTypeError)                                                          \
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
-  V(InvokeClosureNoSuchMethod)                                                 \
+  V(NoSuchMethodFromCallStub)                                                  \
+  V(NoSuchMethodFromPrologue)                                                  \
   V(InvokeNoSuchMethod)                                                        \
-  V(InvokeNoSuchMethodDispatcher)                                              \
   V(MegamorphicCacheMissHandler)                                               \
   V(OptimizeInvokedFunction)                                                   \
   V(TraceICCall)                                                               \

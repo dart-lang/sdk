@@ -538,7 +538,7 @@ namespace dart {
   V(VMInternal_InvokeClosure,              0, ___, ___, ___)                   \
   V(VMInternal_InvokeField,                0, ___, ___, ___)                   \
   V(VMInternal_ForwardDynamicInvocation,   0, ___, ___, ___)                   \
-  V(VMInternal_DispatchNoSuchMethod,       0, ___, ___, ___)                   \
+  V(VMInternal_NoSuchMethodDispatcher,     0, ___, ___, ___)                   \
   V(VMInternal_ImplicitStaticClosure,      0, ___, ___, ___)                   \
   V(VMInternal_ImplicitInstanceClosure,    0, ___, ___, ___)                   \
 

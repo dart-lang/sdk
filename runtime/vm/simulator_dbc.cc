@@ -4095,8 +4095,11 @@ SwitchDispatch:
       pp_ = SimulatorHelpers::FrameCode(FP)->ptr()->object_pool_;
     }
 
+    RawClosure* closure =
+        Closure::RawCast(args[has_function_type_args ? 1 : 0]);
     *++SP = null_value;
-    *++SP = args[has_function_type_args ? 1 : 0];  // Closure object.
+    *++SP = closure;
+    *++SP = closure->ptr()->function_;
     *++SP = argdesc_;
     *++SP = null_value;  // Array of arguments (will be filled).
 
@@ -4124,8 +4127,8 @@ SwitchDispatch:
     // array of arguments.
     {
       Exit(thread, FP, SP + 1, pc);
-      NativeArguments native_args(thread, 3, SP - 2, SP - 3);
-      INVOKE_RUNTIME(DRT_InvokeClosureNoSuchMethod, native_args);
+      NativeArguments native_args(thread, 4, SP - 3, SP - 4);
+      INVOKE_RUNTIME(DRT_NoSuchMethodFromPrologue, native_args);
       UNREACHABLE();
     }
 

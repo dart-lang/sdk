@@ -74,8 +74,11 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
         function.AttachBytecode(Object::invoke_field_bytecode());
       }
       return;
-    default: {
-    }
+    case RawFunction::kNoSuchMethodDispatcher:
+      function.AttachBytecode(Object::nsm_dispatcher_bytecode());
+      return;
+    default:
+      break;
   }
 
   intptr_t code_offset = 0;
@@ -118,7 +121,8 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
       (function.kind() != RawFunction::kImplicitSetter) &&
       (function.kind() != RawFunction::kImplicitStaticGetter) &&
       (function.kind() != RawFunction::kMethodExtractor) &&
-      (function.kind() != RawFunction::kInvokeFieldDispatcher)) {
+      (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
+      (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
     return;
   }
 

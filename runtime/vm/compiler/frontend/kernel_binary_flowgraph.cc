@@ -946,6 +946,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
         return B->BuildGraphOfDynamicInvocationForwarder(function);
       case RawFunction::kMethodExtractor:
         return B->BuildGraphOfMethodExtractor(function);
+      case RawFunction::kNoSuchMethodDispatcher:
+        return B->BuildGraphOfNoSuchMethodDispatcher(function);
       default:
         break;
     }
@@ -970,7 +972,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
         (function.kind() != RawFunction::kImplicitSetter) &&
         (function.kind() != RawFunction::kImplicitStaticGetter) &&
         (function.kind() != RawFunction::kMethodExtractor) &&
-        (function.kind() != RawFunction::kInvokeFieldDispatcher)) {
+        (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
+        (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
       BytecodeFlowGraphBuilder bytecode_compiler(
           flow_graph_builder_, parsed_function(),
           &(flow_graph_builder_->ic_data_array_));

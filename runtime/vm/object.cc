@@ -947,6 +947,18 @@ void Object::Init(Isolate* isolate) {
   invoke_field_bytecode_->set_exception_handlers(
       Object::empty_exception_handlers());
 
+  static const KBCInstr nsm_dispatcher_instr[2] = {
+      KernelBytecode::Encode(
+          KernelBytecode::kVMInternal_NoSuchMethodDispatcher),
+      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
+  };
+  *nsm_dispatcher_bytecode_ = Bytecode::New(
+      reinterpret_cast<uword>(nsm_dispatcher_instr),
+      sizeof(nsm_dispatcher_instr), -1, Object::empty_object_pool());
+  nsm_dispatcher_bytecode_->set_pc_descriptors(Object::empty_descriptors());
+  nsm_dispatcher_bytecode_->set_exception_handlers(
+      Object::empty_exception_handlers());
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -1016,6 +1028,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(invoke_closure_bytecode_->IsBytecode());
   ASSERT(!invoke_field_bytecode_->IsSmi());
   ASSERT(invoke_field_bytecode_->IsBytecode());
+  ASSERT(!nsm_dispatcher_bytecode_->IsSmi());
+  ASSERT(nsm_dispatcher_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(Isolate* isolate) {
@@ -5732,7 +5746,6 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
     }
   }
   switch (kind()) {
-    case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kDynamicInvocationForwarder:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kIrregexpFunction:

@@ -4699,6 +4699,8 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<invoke closure>");
   AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
                 "<invoke field>");
+  AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
+                "<nsm dispatcher>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -5160,6 +5162,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::method_extractor_bytecode().raw());
   AddBaseObject(Object::invoke_closure_bytecode().raw());
   AddBaseObject(Object::invoke_field_bytecode().raw());
+  AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);

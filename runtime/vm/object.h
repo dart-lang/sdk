@@ -402,6 +402,7 @@ class Object {
   V(Bytecode, method_extractor_bytecode)                                       \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
+  V(Bytecode, nsm_dispatcher_bytecode)                                         \
   V(Instance, sentinel)                                                        \
   V(Instance, transition_sentinel)                                             \
   V(Instance, unknown_constant)                                                \
