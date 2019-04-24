@@ -1346,6 +1346,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   _ElementComponents _componentsOfElement(Element element) {
+    while (element is ParameterMember) {
+      element = (element as ParameterMember).baseElement;
+    }
+
     if (element is Member) {
       var elementIndex = _indexOfElement(element.baseElement);
       var definingTypeNode = _writeType(element.definingType);
