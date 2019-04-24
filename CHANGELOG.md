@@ -1,5 +1,6 @@
 # 0.1.87
 
+* change: `prefer_const_constructors_in_immutables` is currently overly permissive, pending analyzer changes (#1537)
 * fixed `unnecessary_await_in_return` false positive
 * fixed `unrelated_type_equality_checks` false negative with functions
 * fixed `prefer_spread_collections` to not lint in const contexts
