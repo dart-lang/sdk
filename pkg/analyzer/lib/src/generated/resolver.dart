@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -3331,9 +3332,10 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
+      FeatureSet featureSet,
       {Scope nameScope})
       : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+            featureSet: featureSet, nameScope: nameScope);
 
   /// Resolve the instance fields in the given compilation unit [node].
   void resolveCompilationUnit(CompilationUnit node) {
@@ -3509,9 +3511,10 @@ class PartialResolverVisitor extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
+      FeatureSet featureSet,
       {Scope nameScope})
       : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+            featureSet: featureSet, nameScope: nameScope);
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
@@ -3661,6 +3664,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   final AnalysisOptionsImpl _analysisOptions;
 
+  final bool _uiAsCodeEnabled;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -3718,16 +3723,45 @@ class ResolverVisitor extends ScopedVisitor {
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on [definingLibrary] and
   /// [typeProvider].
+  ///
+  /// TODO(paulberry): make [featureSet] a required parameter (this will be a
+  /// breaking change).
   ResolverVisitor(
+      InheritanceManager2 inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
+      {FeatureSet featureSet,
+      Scope nameScope,
+      bool propagateTypes: true,
+      reportConstEvaluationErrors: true})
+      : this._(
+            inheritance,
+            definingLibrary,
+            source,
+            typeProvider,
+            errorListener,
+            featureSet ??
+                definingLibrary.context.analysisOptions.contextFeatures,
+            nameScope,
+            propagateTypes,
+            reportConstEvaluationErrors);
+
+  ResolverVisitor._(
       this.inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      bool propagateTypes: true,
-      reportConstEvaluationErrors: true})
+      FeatureSet featureSet,
+      Scope nameScope,
+      bool propagateTypes,
+      reportConstEvaluationErrors)
       : _analysisOptions = definingLibrary.context.analysisOptions,
+        _uiAsCodeEnabled =
+            featureSet.isEnabled(Feature.control_flow_collections) ||
+                featureSet.isEnabled(Feature.spread_collections),
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     this.elementResolver = new ElementResolver(this,
@@ -4806,8 +4840,7 @@ class ResolverVisitor extends ScopedVisitor {
             typeProvider.iterableType.instantiate([elementType]);
         _pushCollectionTypesDownToAll(node.elements,
             elementType: elementType, iterableType: iterableType);
-        if (!_analysisOptions.experimentStatus.spread_collections &&
-            !_analysisOptions.experimentStatus.control_flow_collections &&
+        if (!_uiAsCodeEnabled &&
             node.elements.isEmpty &&
             node.typeArguments == null &&
             node.isMap) {

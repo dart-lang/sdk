@@ -56,6 +56,7 @@
 /// - Where possible, we favor method dispatch instead of "is" and "as"
 ///   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -2457,8 +2458,14 @@ class ExprTypeComputer {
           new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
     }
     var inheritance = new InheritanceManager2(linker.typeSystem);
+    // Note: this is a bit of a hack; we ought to use the feature set for the
+    // compilation unit being analyzed, but that's not feasible because sumaries
+    // don't record the feature set.  This should be resolved when we switch to
+    // the "summary2" mechanism.
+    var featureSet = FeatureSet.fromEnableFlags([]);
     var resolverVisitor = new ResolverVisitor(
         inheritance, library, source, typeProvider, errorListener,
+        featureSet: featureSet,
         nameScope: nameScope,
         propagateTypes: false,
         reportConstEvaluationErrors: false);
@@ -2469,7 +2476,7 @@ class ExprTypeComputer {
         library, source, typeProvider, errorListener,
         nameScope: nameScope, localVariableInfo: LocalVariableInfo());
     var partialResolverVisitor = new PartialResolverVisitor(
-        inheritance, library, source, typeProvider, errorListener,
+        inheritance, library, source, typeProvider, errorListener, featureSet,
         nameScope: nameScope);
     return new ExprTypeComputer._(
         unit._unitResynthesizer,

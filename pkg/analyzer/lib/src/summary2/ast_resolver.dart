@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
@@ -21,6 +22,7 @@ class AstResolver {
     AstNode node, {
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
+    FeatureSet featureSet,
     bool doAstRewrite = false,
   }) {
     var source = _FakeSource();
@@ -45,6 +47,7 @@ class AstResolver {
 
     var resolverVisitor = new ResolverVisitor(_linker.inheritance, _library,
         source, _linker.typeProvider, errorListener,
+        featureSet: featureSet,
         nameScope: _nameScope,
         propagateTypes: false,
         reportConstEvaluationErrors: false);
