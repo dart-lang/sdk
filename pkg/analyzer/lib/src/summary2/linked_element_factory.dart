@@ -164,6 +164,11 @@ class _ElementRequest {
       return _parameter(enclosing, reference);
     }
 
+    if (parentName == '@prefix') {
+      LibraryElementImpl enclosing = elementOfReference(parent2);
+      return _prefix(enclosing, reference);
+    }
+
     if (parentName == '@typeAlias') {
       var unit = elementOfReference(parent2);
       return _typeAlias(unit, reference);
@@ -314,6 +319,14 @@ class _ElementRequest {
 
   Element _parameter(ExecutableElementImpl enclosing, Reference reference) {
     enclosing.parameters;
+    assert(reference.element != null);
+    return reference.element;
+  }
+
+  PrefixElementImpl _prefix(LibraryElementImpl library, Reference reference) {
+    for (var import in library.imports) {
+      import.prefix;
+    }
     assert(reference.element != null);
     return reference.element;
   }
