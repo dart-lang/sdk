@@ -12,94 +12,12 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListElementTypeNotAssignableTest);
-    defineReflectiveTests(
-        ListElementTypeNotAssignableWithUIAsCodeAndConstantsTest);
-    defineReflectiveTests(ListElementTypeNotAssignableWithUIAsCodeTest);
+    defineReflectiveTests(ListElementTypeNotAssignableWithConstantsTest);
   });
 }
 
 @reflectiveTest
 class ListElementTypeNotAssignableTest extends DriverResolutionTest {
-  test_const_stringInt() async {
-    await assertErrorsInCode('''
-var v = const <String>[42];
-''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
-    ]);
-  }
-
-  test_const_stringInt_dynamic() async {
-    await assertErrorsInCode('''
-const dynamic x = 42;
-var v = const <String>[x];
-''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
-    ]);
-  }
-
-  test_const_stringNull() async {
-    await assertNoErrorsInCode('''
-var v = const <String>[null];
-''');
-  }
-
-  test_const_stringNull_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic x = null;
-var v = const <String>[x];
-''');
-  }
-
-  test_const_voidInt() async {
-    await assertNoErrorsInCode('''
-var v = const <void>[42];
-''');
-  }
-
-  test_nonConst_stringInt() async {
-    await assertErrorsInCode('''
-var v = <String>[42];
-''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
-    ]);
-  }
-
-  test_nonConst_stringInt_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic x = 42;
-var v = <String>[x];
-''');
-  }
-
-  test_nonConst_voidInt() async {
-    await assertNoErrorsInCode('''
-var v = <void>[42];
-''');
-  }
-}
-
-@reflectiveTest
-class ListElementTypeNotAssignableWithUIAsCodeAndConstantsTest
-    extends ListElementTypeNotAssignableWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class ListElementTypeNotAssignableWithUIAsCodeTest
-    extends ListElementTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_const_ifElement_thenElseFalse_intInt() async {
     await assertErrorsInCode(
         '''
@@ -202,6 +120,42 @@ var v = const <int>[...[0, 1]];
               ]);
   }
 
+  test_const_stringInt() async {
+    await assertErrorsInCode('''
+var v = const <String>[42];
+''', [
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+    ]);
+  }
+
+  test_const_stringInt_dynamic() async {
+    await assertErrorsInCode('''
+const dynamic x = 42;
+var v = const <String>[x];
+''', [
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
+    ]);
+  }
+
+  test_const_stringNull() async {
+    await assertNoErrorsInCode('''
+var v = const <String>[null];
+''');
+  }
+
+  test_const_stringNull_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic x = null;
+var v = const <String>[x];
+''');
+  }
+
+  test_const_voidInt() async {
+    await assertNoErrorsInCode('''
+var v = const <void>[42];
+''');
+  }
+
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 'a';
@@ -245,4 +199,33 @@ var v = <int>[if (true) a];
 var v = <int>[...[0, 1]];
 ''');
   }
+
+  test_nonConst_stringInt() async {
+    await assertErrorsInCode('''
+var v = <String>[42];
+''', [
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
+    ]);
+  }
+
+  test_nonConst_stringInt_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic x = 42;
+var v = <String>[x];
+''');
+  }
+
+  test_nonConst_voidInt() async {
+    await assertNoErrorsInCode('''
+var v = <void>[42];
+''');
+  }
+}
+
+@reflectiveTest
+class ListElementTypeNotAssignableWithConstantsTest
+    extends ListElementTypeNotAssignableTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

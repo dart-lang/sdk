@@ -11,36 +11,13 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(NonBoolConditionTest);
-    defineReflectiveTests(NonBoolConditionWithUIAsCodeAndConstantsTest);
-    defineReflectiveTests(NonBoolConditionWithUIAsCodeTest);
+    defineReflectiveTests(NonBoolConditionTest);
+    defineReflectiveTests(NonBoolConditionWithConstantsTest);
   });
 }
 
-//@reflectiveTest
-class NonBoolConditionTest extends DriverResolutionTest {}
-
 @reflectiveTest
-class NonBoolConditionWithUIAsCodeAndConstantsTest
-    extends NonBoolConditionWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class NonBoolConditionWithUIAsCodeTest extends NonBoolConditionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-    ];
-
+class NonBoolConditionTest extends DriverResolutionTest {
   test_ifElement() async {
     assertErrorCodesInCode(
         '''
@@ -53,4 +30,11 @@ const c = [if (3) 1];
                 CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT
               ]);
   }
+}
+
+@reflectiveTest
+class NonBoolConditionWithConstantsTest extends NonBoolConditionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

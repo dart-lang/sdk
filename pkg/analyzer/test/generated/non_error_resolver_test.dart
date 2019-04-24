@@ -22,7 +22,6 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonErrorResolverTest);
-    defineReflectiveTests(NonErrorResolverWithUiAsCodeTest);
     defineReflectiveTests(NonConstantValueInInitializer);
   });
 }
@@ -6075,11 +6074,4 @@ class A {
   Future<void> _check_wrongNumberOfParametersForOperator1(String name) async {
     await _check_wrongNumberOfParametersForOperator(name, "a");
   }
-}
-
-@reflectiveTest
-class NonErrorResolverWithUiAsCodeTest extends NonErrorResolverTest {
-  @override
-  List<String> get enabledExperiments =>
-      [EnableString.spread_collections, EnableString.control_flow_collections];
 }

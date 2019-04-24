@@ -13,56 +13,13 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantSetElementFromDeferredLibraryTest);
     defineReflectiveTests(
-        NonConstantSetElementFromDeferredLibraryWithUiAsCodeAndConstantsTest);
-    defineReflectiveTests(
-        NonConstantSetElementFromDeferredLibraryWithUiAsCodeTest);
+        NonConstantSetElementFromDeferredLibraryWithConstantsTest);
   });
 }
 
 @reflectiveTest
 class NonConstantSetElementFromDeferredLibraryTest
     extends DriverResolutionTest {
-  test_const_topLevel_deferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
-const int c = 1;''');
-    await assertErrorCodesInCode(r'''
-import 'lib1.dart' deferred as a;
-var v = const {a.c};
-''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY]);
-  }
-
-  test_const_topLevel_deferred_nested() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
-const int c = 1;''');
-    await assertErrorCodesInCode(r'''
-import 'lib1.dart' deferred as a;
-var v = const {a.c + 1};
-''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY]);
-  }
-}
-
-@reflectiveTest
-class NonConstantSetElementFromDeferredLibraryWithUiAsCodeAndConstantsTest
-    extends NonConstantSetElementFromDeferredLibraryWithUiAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class NonConstantSetElementFromDeferredLibraryWithUiAsCodeTest
-    extends NonConstantSetElementFromDeferredLibraryTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   @failingTest
   test_const_ifElement_thenTrue_elseDeferred() async {
     // reports wrong error code
@@ -91,4 +48,30 @@ var v = const {if (cond) a.c};
               ]
             : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
+
+  test_const_topLevel_deferred() async {
+    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+const int c = 1;''');
+    await assertErrorCodesInCode(r'''
+import 'lib1.dart' deferred as a;
+var v = const {a.c};
+''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY]);
+  }
+
+  test_const_topLevel_deferred_nested() async {
+    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+const int c = 1;''');
+    await assertErrorCodesInCode(r'''
+import 'lib1.dart' deferred as a;
+var v = const {a.c + 1};
+''', [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY]);
+  }
+}
+
+@reflectiveTest
+class NonConstantSetElementFromDeferredLibraryWithConstantsTest
+    extends NonConstantSetElementFromDeferredLibraryTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

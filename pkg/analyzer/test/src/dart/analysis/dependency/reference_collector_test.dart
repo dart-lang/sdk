@@ -5,8 +5,6 @@
 import 'package:analyzer/src/dart/analysis/dependency/library_builder.dart'
     hide buildLibrary;
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,7 +18,6 @@ main() {
     defineReflectiveTests(ImplReferenceCollectorTest);
     defineReflectiveTests(ShadowReferenceCollectorTest);
     defineReflectiveTests(StatementReferenceCollectorTest);
-    defineReflectiveTests(StatementReferenceCollectorTest_SpreadCollections);
     defineReflectiveTests(TypeReferenceCollectorTest);
   });
 }
@@ -2155,14 +2152,6 @@ test() sync* {
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
   }
-}
-
-@reflectiveTest
-class StatementReferenceCollectorTest_SpreadCollections
-    extends StatementReferenceCollectorTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.spread_collections];
 }
 
 @reflectiveTest

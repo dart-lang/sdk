@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -24,19 +23,15 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(StrongModeCastsTest);
     defineReflectiveTests(StrongModeLocalInferenceTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
-    defineReflectiveTests(StrongModeCastsWithUiAsCodeTest);
   });
 }
 
 @reflectiveTest
-class StrongModeCastsWithUiAsCodeTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments =>
-      [EnableString.spread_collections, EnableString.control_flow_collections];
-
+class StrongModeCastsTest extends ResolverTestCase {
   test_implicitCastMetadata_ifElement_condition() async {
     var source = addSource(r'''
 class C {

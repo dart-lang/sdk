@@ -14,8 +14,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
     defineReflectiveTests(ConstEvalThrowsExceptionWithConstantUpdateTest);
-    defineReflectiveTests(ConstEvalThrowsExceptionWithUiAsCodeAndConstantsTest);
-    defineReflectiveTests(ConstEvalThrowsExceptionWithUIAsCodeTest);
   });
 }
 
@@ -122,49 +120,6 @@ main() {
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
-}
-
-@reflectiveTest
-class ConstEvalThrowsExceptionWithConstantUpdateTest
-    extends ConstEvalThrowsExceptionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.constant_update_2018,
-    ];
-
-  test_eqEq_nonPrimitiveRightOperand() async {
-    await assertNoErrorsInCode('''
-const c = const T.eq(1, const Object());
-class T {
-  final Object value;
-  const T.eq(Object o1, Object o2) : value = o1 == o2;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class ConstEvalThrowsExceptionWithUiAsCodeAndConstantsTest
-    extends ConstEvalThrowsExceptionWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class ConstEvalThrowsExceptionWithUIAsCodeTest
-    extends ConstEvalThrowsExceptionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-    ];
 
   test_ifElement_false_thenNotEvaluated() async {
     await assertErrorsInCode(
@@ -238,5 +193,25 @@ const c = [if (0 < 1) 3 else nil + 1];
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 37, 25),
               ]);
+  }
+}
+
+@reflectiveTest
+class ConstEvalThrowsExceptionWithConstantUpdateTest
+    extends ConstEvalThrowsExceptionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [
+      EnableString.constant_update_2018,
+    ];
+
+  test_eqEq_nonPrimitiveRightOperand() async {
+    await assertNoErrorsInCode('''
+const c = const T.eq(1, const Object());
+class T {
+  final Object value;
+  const T.eq(Object o1, Object o2) : value = o1 == o2;
+}
+''');
   }
 }

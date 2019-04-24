@@ -19,7 +19,6 @@ main() {
     defineReflectiveTests(TopLevelInferenceTest);
     defineReflectiveTests(TopLevelInferenceErrorsTest);
     defineReflectiveTests(TopLevelInferenceTestWithSpread);
-    defineReflectiveTests(TopLevelInferenceErrorsTestWithUiAsCode);
 //    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
@@ -363,14 +362,6 @@ class C implements A, B {
     }
     await checkFile(code);
   }
-}
-
-@reflectiveTest
-class TopLevelInferenceErrorsTestWithUiAsCode
-    extends TopLevelInferenceErrorsTest {
-  @override
-  List<String> get enabledExperiments =>
-      [EnableString.spread_collections, EnableString.control_flow_collections];
 }
 
 @reflectiveTest

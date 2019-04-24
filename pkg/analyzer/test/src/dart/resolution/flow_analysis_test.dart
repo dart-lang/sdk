@@ -9,9 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +20,6 @@ main() {
     defineReflectiveTests(NullableFlowTest);
     defineReflectiveTests(DefiniteAssignmentFlowTest);
     defineReflectiveTests(ReachableFlowTest);
-    defineReflectiveTests(ReachableFlowTest_SpreadCollections);
     defineReflectiveTests(TypePromotionFlowTest);
   });
 }
@@ -2115,13 +2112,6 @@ void f() { // f
       ),
     );
   }
-}
-
-@reflectiveTest
-class ReachableFlowTest_SpreadCollections extends ReachableFlowTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => new AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.spread_collections];
 }
 
 @reflectiveTest

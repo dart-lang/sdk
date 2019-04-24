@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'sdk_constraint_verifier_support.dart';
@@ -17,13 +15,6 @@ main() {
 
 @reflectiveTest
 class SdkVersionUiAsCodeTest extends SdkConstraintVerifierTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_equals() async {
     await verifyVersion('2.2.2', '''
 List<int> zero() => [for (var e in [0]) e];

@@ -12,19 +12,14 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantIfElementConditionFromDeferredLibraryTest);
+    defineReflectiveTests(
+        NonConstantIfElementConditionFromDeferredLibraryWithConstantsTest);
   });
 }
 
 @reflectiveTest
 class NonConstantIfElementConditionFromDeferredLibraryTest
     extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_inList_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const bool c = true;''');
@@ -154,9 +149,5 @@ class NonConstantIfElementConditionFromDeferredLibraryWithConstantsTest
     extends NonConstantIfElementConditionFromDeferredLibraryTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

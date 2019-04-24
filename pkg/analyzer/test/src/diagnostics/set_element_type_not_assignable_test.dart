@@ -12,63 +12,12 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementTypeNotAssignableTest);
-    defineReflectiveTests(
-        SetElementTypeNotAssignableWithUiAsCodeAndConstantTest);
-    defineReflectiveTests(SetElementTypeNotAssignableWithUIAsCodeTest);
+    defineReflectiveTests(SetElementTypeNotAssignableWithConstantTest);
   });
 }
 
 @reflectiveTest
 class SetElementTypeNotAssignableTest extends DriverResolutionTest {
-  test_explicitTypeArgs_const() async {
-    await assertErrorCodesInCode('''
-var v = const <String>{42};
-''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-  }
-
-  test_explicitTypeArgs_const_actualTypeMatch() async {
-    await assertNoErrorsInCode('''
-const dynamic x = null;
-var v = const <String>{x};
-''');
-  }
-
-  test_explicitTypeArgs_const_actualTypeMismatch() async {
-    await assertErrorCodesInCode('''
-const dynamic x = 42;
-var v = const <String>{x};
-''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-  }
-
-  test_explicitTypeArgs_notConst() async {
-    await assertErrorCodesInCode('''
-var v = <String>{42};
-''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-  }
-}
-
-@reflectiveTest
-class SetElementTypeNotAssignableWithUiAsCodeAndConstantTest
-    extends SetElementTypeNotAssignableWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class SetElementTypeNotAssignableWithUIAsCodeTest
-    extends SetElementTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_const_ifElement_thenElseFalse_intInt() async {
     await assertErrorCodesInCode(
         '''
@@ -149,6 +98,32 @@ var v = const <int>{...[0, 1]};
             : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
   }
 
+  test_explicitTypeArgs_const() async {
+    await assertErrorCodesInCode('''
+var v = const <String>{42};
+''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_explicitTypeArgs_const_actualTypeMatch() async {
+    await assertNoErrorsInCode('''
+const dynamic x = null;
+var v = const <String>{x};
+''');
+  }
+
+  test_explicitTypeArgs_const_actualTypeMismatch() async {
+    await assertErrorCodesInCode('''
+const dynamic x = 42;
+var v = const <String>{x};
+''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_explicitTypeArgs_notConst() async {
+    await assertErrorCodesInCode('''
+var v = <String>{42};
+''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+  }
+
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 'a';
@@ -190,4 +165,12 @@ var v = <int>{if (true) a};
 var v = <int>{...[0, 1]};
 ''');
   }
+}
+
+@reflectiveTest
+class SetElementTypeNotAssignableWithConstantTest
+    extends SetElementTypeNotAssignableTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

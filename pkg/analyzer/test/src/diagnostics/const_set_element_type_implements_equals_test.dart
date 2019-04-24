@@ -14,9 +14,6 @@ main() {
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
     defineReflectiveTests(
         ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest);
-    defineReflectiveTests(
-      ConstSetElementTypeImplementsEqualsWithUIAsCodeTest,
-    );
   });
 }
 
@@ -94,47 +91,6 @@ main() {
     ]);
   }
 
-  test_super() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A();
-  operator ==(other) => false;
-}
-class B extends A {
-  const B();
-}
-main() {
-  const {const B()};
-}
-''', [
-      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 109,
-          9),
-    ]);
-  }
-}
-
-@reflectiveTest
-class ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest
-    extends ConstSetElementTypeImplementsEqualsWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class ConstSetElementTypeImplementsEqualsWithUIAsCodeTest
-    extends ConstSetElementTypeImplementsEqualsTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_spread_list() async {
     await assertErrorsInCode(
         r'''
@@ -189,4 +145,30 @@ main() {
                     3),
               ]);
   }
+
+  test_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+class B extends A {
+  const B();
+}
+main() {
+  const {const B()};
+}
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 109,
+          9),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest
+    extends ConstSetElementTypeImplementsEqualsTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

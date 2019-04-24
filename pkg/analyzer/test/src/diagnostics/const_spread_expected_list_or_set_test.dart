@@ -18,13 +18,6 @@ main() {
 
 @reflectiveTest
 class ConstSpreadExpectedListOrSetTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_const_listInt() async {
     await assertErrorsInCode(
         '''
@@ -219,9 +212,5 @@ class ConstSpreadExpectedListOrSetWithConstantsTest
     extends ConstSpreadExpectedListOrSetTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

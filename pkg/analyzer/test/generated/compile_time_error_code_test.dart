@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
@@ -79,13 +77,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 
 @reflectiveTest
 class CompileTimeErrorCodeTest_WithUIAsCode extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_defaultValueInFunctionTypeAlias_new_named() async {
     // This test used to fail with UI as code enabled. Test the fix here.
     await assertErrorCodesInCode('''
@@ -109,10 +100,6 @@ typedef F = int Function({Object m: const {1, 2: 3}});
 
 @reflectiveTest
 class ControlFlowCollectionsTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.control_flow_collections];
-
   test_awaitForIn_declaredVariableWrongType() async {
     await assertErrorCodesInCode('''
 import 'dart:async';

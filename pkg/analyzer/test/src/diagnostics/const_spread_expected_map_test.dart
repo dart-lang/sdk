@@ -18,13 +18,6 @@ main() {
 
 @reflectiveTest
 class ConstSpreadExpectedMapTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_const_mapInt() async {
     await assertErrorsInCode(
         '''
@@ -119,9 +112,5 @@ class ConstSpreadExpectedMapWithConstantsTest
     extends ConstSpreadExpectedMapTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

@@ -12,8 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualElementsInConstSetTest);
-    defineReflectiveTests(EqualElementsInConstSetWithUIAsCodeAndConstantsTest);
-    defineReflectiveTests(EqualElementsInConstSetWithUIAsCodeTest);
+    defineReflectiveTests(EqualElementsInConstSetWithConstantsTest);
   });
 }
 
@@ -26,58 +25,6 @@ var c = const {1, 2, 1};
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1),
     ]);
   }
-
-  test_const_instanceCreation_equalTypeArgs() async {
-    await assertErrorsInCode(r'''
-class A<T> {
-  const A();
-}
-
-var c = const {const A<int>(), const A<int>()};
-''', [
-      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14),
-    ]);
-  }
-
-  test_const_instanceCreation_notEqualTypeArgs() async {
-    // No error because A<int> and A<num> are different types.
-    await assertNoErrorsInCode(r'''
-class A<T> {
-  const A();
-}
-
-var c = const {const A<int>(), const A<num>()};
-''');
-  }
-
-  test_nonConst_entry() async {
-    await assertNoErrorsInCode('''
-var c = {1, 2, 1};
-''');
-  }
-}
-
-@reflectiveTest
-class EqualElementsInConstSetWithUIAsCodeAndConstantsTest
-    extends EqualElementsInConstSetWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class EqualElementsInConstSetWithUIAsCodeTest
-    extends EqualElementsInConstSetTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-    ];
 
   test_const_ifElement_thenElseFalse() async {
     await assertErrorsInCode(
@@ -155,6 +102,29 @@ var c = const {1, if (0 < 1) 1};
               ]);
   }
 
+  test_const_instanceCreation_equalTypeArgs() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  const A();
+}
+
+var c = const {const A<int>(), const A<int>()};
+''', [
+      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14),
+    ]);
+  }
+
+  test_const_instanceCreation_notEqualTypeArgs() async {
+    // No error because A<int> and A<num> are different types.
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A();
+}
+
+var c = const {const A<int>(), const A<num>()};
+''');
+  }
+
   test_const_spread__noDuplicate() async {
     await assertErrorsInCode(
         '''
@@ -180,4 +150,18 @@ var c = const {1, ...{1}};
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),
               ]);
   }
+
+  test_nonConst_entry() async {
+    await assertNoErrorsInCode('''
+var c = {1, 2, 1};
+''');
+  }
+}
+
+@reflectiveTest
+class EqualElementsInConstSetWithConstantsTest
+    extends EqualElementsInConstSetTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

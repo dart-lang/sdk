@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -12,76 +10,11 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapValueTypeNotAssignableTest);
-    defineReflectiveTests(
-        MapValueTypeNotAssignableWithUIAsCodeAndConstantsTest);
-    defineReflectiveTests(MapValueTypeNotAssignableWithUIAsCodeTest);
   });
 }
 
 @reflectiveTest
 class MapValueTypeNotAssignableTest extends DriverResolutionTest {
-  test_const_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic a = 0;
-var v = const <bool, int>{true: a};
-''');
-  }
-
-  test_const_intString_dynamic() async {
-    await assertErrorCodesInCode('''
-const dynamic a = 'a';
-var v = const <bool, int>{true: a};
-''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
-  }
-
-  test_const_intString_value() async {
-    await assertErrorCodesInCode('''
-var v = const <bool, int>{true: 'a'};
-''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
-  }
-
-  test_nonConst_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic a = 0;
-var v = <bool, int>{true: a};
-''');
-  }
-
-  test_nonConst_intString_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic a = 'a';
-var v = <bool, int>{true: a};
-''');
-  }
-
-  test_nonConst_intString_value() async {
-    await assertErrorCodesInCode('''
-var v = <bool, int>{true: 'a'};
-''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
-  }
-}
-
-@reflectiveTest
-class MapValueTypeNotAssignableWithUIAsCodeAndConstantsTest
-    extends MapValueTypeNotAssignableWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-}
-
-@reflectiveTest
-class MapValueTypeNotAssignableWithUIAsCodeTest
-    extends MapValueTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_const_ifElement_thenElseFalse_intInt_dynamic() async {
     await assertErrorCodesInCode(
         '''
@@ -163,6 +96,26 @@ var v = const <bool, int>{if (1 < 2) true: a};
             : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
   }
 
+  test_const_intInt_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = const <bool, int>{true: a};
+''');
+  }
+
+  test_const_intString_dynamic() async {
+    await assertErrorCodesInCode('''
+const dynamic a = 'a';
+var v = const <bool, int>{true: a};
+''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+  }
+
+  test_const_intString_value() async {
+    await assertErrorCodesInCode('''
+var v = const <bool, int>{true: 'a'};
+''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+  }
+
   test_const_spread_intInt() async {
     await assertErrorCodesInCode(
         '''
@@ -221,6 +174,26 @@ var v = <bool, int>{if (true) true: a};
 const dynamic a = 'a';
 var v = <bool, int>{if (true) true: a};
 ''');
+  }
+
+  test_nonConst_intInt_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = <bool, int>{true: a};
+''');
+  }
+
+  test_nonConst_intString_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 'a';
+var v = <bool, int>{true: a};
+''');
+  }
+
+  test_nonConst_intString_value() async {
+    await assertErrorCodesInCode('''
+var v = <bool, int>{true: 'a'};
+''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
   }
 
   test_nonConst_spread_intInt() async {

@@ -30,9 +30,7 @@ class AstBinaryWriterTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [
-      EnableString.control_flow_collections,
       EnableString.non_nullable,
-      EnableString.spread_collections,
     ];
 
   test_classTypeAlias() async {

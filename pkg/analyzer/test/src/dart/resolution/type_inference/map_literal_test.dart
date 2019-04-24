@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
@@ -12,7 +10,6 @@ import '../driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapLiteralTest);
-    defineReflectiveTests(MapLiteralWithFlowControlAndSpreadCollectionsTest);
   });
 }
 
@@ -154,76 +151,6 @@ var a = {1 : '1', '2' : 2, 3 : '3'};
     assertType(setOrMapLiteral('{'), 'Map<Object, Object>');
   }
 
-  test_noContext_noTypeArgs_noEntries() async {
-    addTestFile('''
-var a = {};
-''');
-    await resolveTestFile();
-    assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
-  }
-
-  test_noContext_typeArgs_entry_conflictingKey() async {
-    addTestFile('''
-var a = <String, int>{1 : 2};
-''');
-    await resolveTestFile();
-    assertType(setOrMapLiteral('{'), 'Map<String, int>');
-  }
-
-  test_noContext_typeArgs_entry_conflictingValue() async {
-    addTestFile('''
-var a = <String, int>{'a' : 'b'};
-''');
-    await resolveTestFile();
-    assertType(setOrMapLiteral('{'), 'Map<String, int>');
-  }
-
-  test_noContext_typeArgs_entry_noConflict() async {
-    addTestFile('''
-var a = <int, int>{1 : 2};
-''');
-    await resolveTestFile();
-    assertType(setOrMapLiteral('{'), 'Map<int, int>');
-  }
-
-  test_noContext_typeArgs_expression_conflictingElement() async {
-    addTestFile('''
-var a = <int, String>{1};
-''');
-    await resolveTestFile();
-    assertType(setOrMapLiteral('{'), 'Map<int, String>');
-  }
-
-  @failingTest
-  test_noContext_typeArgs_expressions_conflictingTypeArgs() async {
-    addTestFile('''
-var a = <int>{1 : 2, 3 : 4};
-''');
-    await resolveTestFile();
-    assertType(setOrMapLiteral('{'), 'Map<int, int>');
-  }
-
-  test_noContext_typeArgs_noEntries() async {
-    addTestFile('''
-var a = <num, String>{};
-''');
-    await resolveTestFile();
-    assertType(setOrMapLiteral('{'), 'Map<num, String>');
-  }
-}
-
-@reflectiveTest
-class MapLiteralWithFlowControlAndSpreadCollectionsTest extends MapLiteralTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
-  @override
-  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
-
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     addTestFile('''
 List<int> c;
@@ -294,6 +221,14 @@ var a = {if (c) 1 : '1' else '2': 2 };
 ''');
     await resolveTestFile();
     assertType(setOrMapLiteral('{'), 'Map<Object, Object>');
+  }
+
+  test_noContext_noTypeArgs_noEntries() async {
+    addTestFile('''
+var a = {};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
   }
 
   test_noContext_noTypeArgs_spread() async {
@@ -375,5 +310,54 @@ f() {
 ''');
     await resolveTestFile();
     assertType(setOrMapLiteral('{...'), 'dynamic');
+  }
+
+  test_noContext_typeArgs_entry_conflictingKey() async {
+    addTestFile('''
+var a = <String, int>{1 : 2};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<String, int>');
+  }
+
+  test_noContext_typeArgs_entry_conflictingValue() async {
+    addTestFile('''
+var a = <String, int>{'a' : 'b'};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<String, int>');
+  }
+
+  test_noContext_typeArgs_entry_noConflict() async {
+    addTestFile('''
+var a = <int, int>{1 : 2};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
+  }
+
+  test_noContext_typeArgs_expression_conflictingElement() async {
+    addTestFile('''
+var a = <int, String>{1};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<int, String>');
+  }
+
+  @failingTest
+  test_noContext_typeArgs_expressions_conflictingTypeArgs() async {
+    addTestFile('''
+var a = <int>{1 : 2, 3 : 4};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<int, int>');
+  }
+
+  test_noContext_typeArgs_noEntries() async {
+    addTestFile('''
+var a = <num, String>{};
+''');
+    await resolveTestFile();
+    assertType(setOrMapLiteral('{'), 'Map<num, String>');
   }
 }

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,7 +13,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
-    defineReflectiveTests(PotentiallyConstantWithUIAsCodeTest);
   });
 }
 
@@ -193,6 +191,32 @@ var x = a ? b : c;
               findNode.simple('b :'),
               findNode.simple('c;')
             ]);
+  }
+
+  test_ifElement_then() async {
+    await _assertConst(r'''
+const a = 0;
+const b = 0;
+var x = const [if (a) b];
+''', () => _xInitializer());
+  }
+
+  test_ifElement_then_final() async {
+    await _assertNotConst(r'''
+final a = 0;
+final b = 0;
+var x = const [if (a) b];
+''', () => _xInitializer(),
+        () => [findNode.simple('a)'), findNode.simple('b]')]);
+  }
+
+  test_ifElement_thenElse() async {
+    await _assertConst(r'''
+const a = 0;
+const b = 0;
+const c = 0;
+var x = const [if (a) b else c];
+''', () => _xInitializer());
   }
 
   test_instanceCreation() async {
@@ -771,6 +795,20 @@ var x = int;
 ''', () => _xInitializer());
   }
 
+  test_spreadElement() async {
+    await _assertConst(r'''
+const a = [0, 1, 2];
+var x = const [...a];
+''', () => _xInitializer());
+  }
+
+  test_spreadElement_final() async {
+    await _assertNotConst(r'''
+final a = [0, 1, 2];
+var x = const [...a];
+''', () => _xInitializer(), () => [findNode.simple('a];')]);
+  }
+
   test_stringInterpolation_topVar_const() async {
     await _assertConst(r'''
 const a = 0;
@@ -818,52 +856,5 @@ var x = 'a';
 
   Expression _xInitializer() {
     return findNode.variableDeclaration('x = ').initializer;
-  }
-}
-
-@reflectiveTest
-class PotentiallyConstantWithUIAsCodeTest extends PotentiallyConstantTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
-
-  test_ifElement_then() async {
-    await _assertConst(r'''
-const a = 0;
-const b = 0;
-var x = const [if (a) b];
-''', () => _xInitializer());
-  }
-
-  test_ifElement_then_final() async {
-    await _assertNotConst(r'''
-final a = 0;
-final b = 0;
-var x = const [if (a) b];
-''', () => _xInitializer(),
-        () => [findNode.simple('a)'), findNode.simple('b]')]);
-  }
-
-  test_ifElement_thenElse() async {
-    await _assertConst(r'''
-const a = 0;
-const b = 0;
-const c = 0;
-var x = const [if (a) b else c];
-''', () => _xInitializer());
-  }
-
-  test_spreadElement() async {
-    await _assertConst(r'''
-const a = [0, 1, 2];
-var x = const [...a];
-''', () => _xInitializer());
-  }
-
-  test_spreadElement_final() async {
-    await _assertNotConst(r'''
-final a = [0, 1, 2];
-var x = const [...a];
-''', () => _xInitializer(), () => [findNode.simple('a];')]);
   }
 }
