@@ -85,7 +85,7 @@ DART_EXPORT intptr_t TakeMinInt16(int16_t x) {
 }
 
 DART_EXPORT intptr_t TakeMinInt32(int32_t x) {
-  const int64_t expected = -(int32_t)0x80000000;
+  const int64_t expected = kMinInt32;
   const int64_t received = x;
   return expected == received ? 1 : 0;
 }
@@ -467,7 +467,7 @@ DART_EXPORT double SmallDouble() {
 // truncated.
 DART_EXPORT void* LargePointer() {
   uint64_t origin = 0x8100000082000000;
-  return *reinterpret_cast<void**>(&origin);
+  return reinterpret_cast<void*>(origin);
 }
 
 // Allocates 'count'-many Mint boxes, to stress-test GC during an FFI call.
@@ -504,7 +504,8 @@ DART_EXPORT void AllocateThroughDart(uint64_t count) {
 DART_EXPORT int RedirectStderr() {
   char filename[256];
   snprintf(filename, sizeof(filename), "/tmp/captured_stderr_%d", getpid());
-  freopen(filename, "w", stderr);
+  FILE* f = freopen(filename, "w", stderr);
+  ASSERT(f);
   printf("Got file %s\n", filename);
   return getpid();
 }

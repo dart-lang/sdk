@@ -7,6 +7,14 @@
 
 namespace arch_x64 {
 
+const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+    "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
+
+const char* fpu_reg_names[kNumberOfXmmRegisters] = {
+    "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
+    "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
+
 #if defined(_WIN64)
 const Register CallingConventions::ArgumentRegisters[] = {
     CallingConventions::kArg1Reg, CallingConventions::kArg2Reg,

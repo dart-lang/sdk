@@ -34,7 +34,9 @@ class UnresolvedCall : public IntrusiveDListEntry<UnresolvedCall>,
         offset_into_target(offset_into_target) {}
 
   UnresolvedCall(const UnresolvedCall& other)
-      : caller(other.caller),
+      : IntrusiveDListEntry<UnresolvedCall>(),
+        IntrusiveDListEntry<UnresolvedCall, 2>(),
+        caller(other.caller),
         call_offset(other.call_offset),
         text_offset(other.text_offset),
         callee(other.callee),

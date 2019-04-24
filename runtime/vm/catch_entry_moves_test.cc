@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <functional>
+#include <memory>
 #include <utility>
 
 #include "platform/assert.h"

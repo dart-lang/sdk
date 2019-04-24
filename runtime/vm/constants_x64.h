@@ -94,13 +94,8 @@ const FpuRegister FpuTMP = XMM15;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-    "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
-
-static const char* fpu_reg_names[kNumberOfXmmRegisters] = {
-    "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
-    "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfXmmRegisters];
 
 enum RexBits {
   REX_NONE = 0,

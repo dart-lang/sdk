@@ -512,10 +512,9 @@ bool PcRelativeTrampolineJumpPattern::IsValid() const {
   const uint32_t adr_mask = (3 << 29) | (((1 << 19) - 1) << 5);
   const uint32_t movz_mask = 0xffff << 5;
   uint32_t* pattern = reinterpret_cast<uint32_t*>(pattern_start_);
-  return (pattern[0] & ~adr_mask) == kAdrEncoding &
-             (pattern[1] & ~movz_mask) == kMovzEncoding &
-             pattern[2] == kAddTmpTmp2 &&
-         pattern[3] == kJumpEncoding;
+  return ((pattern[0] & ~adr_mask) == kAdrEncoding) &&
+         ((pattern[1] & ~movz_mask) == kMovzEncoding) &&
+         (pattern[2] == kAddTmpTmp2) && (pattern[3] == kJumpEncoding);
 #else
   UNREACHABLE();
   return false;

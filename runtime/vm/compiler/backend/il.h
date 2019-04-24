@@ -7665,10 +7665,10 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
         from_representation_(from),
         to_representation_(to) {
     ASSERT(from != to);
-    ASSERT(to == kUnboxedInt32 && from == kUnboxedFloat ||
-           to == kUnboxedFloat && from == kUnboxedInt32 ||
-           to == kUnboxedInt64 && from == kUnboxedDouble ||
-           to == kUnboxedDouble && from == kUnboxedInt64);
+    ASSERT((to == kUnboxedInt32 && from == kUnboxedFloat) ||
+           (to == kUnboxedFloat && from == kUnboxedInt32) ||
+           (to == kUnboxedInt64 && from == kUnboxedDouble) ||
+           (to == kUnboxedDouble && from == kUnboxedInt64));
     SetInputAt(0, value);
   }
 

@@ -1469,7 +1469,7 @@ Message* MessageWriter::WriteMessage(const Object& obj,
 
   // Setup for long jump in case there is an exception while writing
   // the message.
-  bool has_exception = false;
+  volatile bool has_exception = false;
   {
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {

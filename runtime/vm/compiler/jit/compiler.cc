@@ -785,7 +785,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
 static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         const Function& function,
-                                        bool optimized,
+                                        volatile bool optimized,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
