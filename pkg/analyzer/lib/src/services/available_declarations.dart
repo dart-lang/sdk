@@ -627,19 +627,35 @@ class DeclarationsTracker {
     var file = _getFileByPath(containingContext, path);
     if (file == null) return;
 
-    var isLibrary = file.isLibrary;
-    var library = isLibrary ? file : file.library;
-    if (library == null) return;
+    var wasLibrary = file.isLibrary;
+    var oldLibrary = wasLibrary ? file : file.library;
 
-    if (isLibrary) {
-      file.refresh(containingContext);
-    } else {
-      file.refresh(containingContext);
-      library.refresh(containingContext);
-    }
+    file.refresh(containingContext);
+    var isLibrary = file.isLibrary;
+    var newLibrary = isLibrary ? file : file.library;
 
     var invalidatedLibraries = Set<_File>();
-    _invalidateExportedDeclarations(invalidatedLibraries, library);
+    var notLibraries = <_File>[];
+    if (wasLibrary) {
+      if (isLibrary) {
+        _invalidateExportedDeclarations(invalidatedLibraries, file);
+      } else {
+        notLibraries.add(file);
+        if (newLibrary != null) {
+          newLibrary.refresh(containingContext);
+          _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
+        }
+      }
+    } else {
+      if (oldLibrary != null) {
+        oldLibrary.refresh(containingContext);
+        _invalidateExportedDeclarations(invalidatedLibraries, oldLibrary);
+      }
+      if (newLibrary != null && newLibrary != oldLibrary) {
+        newLibrary.refresh(containingContext);
+        _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
+      }
+    }
     _computeExportedDeclarations(invalidatedLibraries);
 
     var changedLibraries = <Library>[];
@@ -659,6 +675,10 @@ class DeclarationsTracker {
         _idToLibrary.remove(libraryFile.id);
         removedLibraries.add(libraryFile.id);
       }
+    }
+    for (var file in notLibraries) {
+      _idToLibrary.remove(file.id);
+      removedLibraries.add(file.id);
     }
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
@@ -1066,7 +1086,10 @@ class _File {
 
     // Set back pointers.
     for (var export in exports) {
-      export.file.directExporters.add(this);
+      var directExporters = export.file.directExporters;
+      if (!directExporters.contains(this)) {
+        directExporters.add(this);
+      }
     }
     for (var part in parts) {
       part.file.library = this;
@@ -1638,7 +1661,11 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    return file.exports.map((e) => e.file).map(walker.getNode).toList();
+    return file.exports
+        .map((export) => export.file)
+        .where((file) => file.isLibrary)
+        .map(walker.getNode)
+        .toList();
   }
 }
 
@@ -1652,8 +1679,11 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     resultSet.addAll(file.libraryDeclarations);
 
     for (var export in file.exports) {
-      var exportedDeclarations = export.file.exportedDeclarations;
-      resultSet.addAll(export.filter(exportedDeclarations));
+      var file = export.file;
+      if (file.isLibrary) {
+        var exportedDeclarations = file.exportedDeclarations;
+        resultSet.addAll(export.filter(exportedDeclarations));
+      }
     }
 
     file.exportedDeclarations = resultSet.toList();
