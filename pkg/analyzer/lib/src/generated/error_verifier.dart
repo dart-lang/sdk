@@ -2532,8 +2532,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           _enclosingClass.displayName,
-          inherited.enclosingElement.displayName,
-          name
+          name,
+          inherited.enclosingElement.displayName
         ]);
       }
     }
