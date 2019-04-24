@@ -130,6 +130,16 @@ abstract class AbstractDartSdk implements DartSdk {
     });
   }
 
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  Map<String, Object> debugInfo() {
+    return <String, Object>{
+      'runtimeType': '$runtimeType',
+      'libraryMap': libraryMap.debugInfo(),
+    };
+  }
+
   @override
   Source fromFileUri(Uri uri) {
     File file =
@@ -218,16 +228,6 @@ abstract class AbstractDartSdk implements DartSdk {
       _uriToSourceMap[dartUri] = source;
     }
     return source;
-  }
-
-  /**
-   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
-   */
-  Map<String, Object> debugInfo() {
-    return <String, Object>{
-      'runtimeType': '$runtimeType',
-      'libraryMap': libraryMap.debugInfo(),
-    };
   }
 
   String _getPath(File file) {
@@ -552,16 +552,6 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   }
 
   /**
-   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
-   */
-  @override
-  Map<String, Object> debugInfo() {
-    var result = super.debugInfo();
-    result['directory'] = _sdkDirectory.path;
-    return result;
-  }
-
-  /**
    * Determine the search order for trying to locate the [_LIBRARIES_FILE].
    */
   Iterable<File> get _libraryMapLocations sync* {
@@ -573,6 +563,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     yield libraryDirectory
         .getChildAssumingFolder(_INTERNAL_DIR)
         .getChildAssumingFile(_LIBRARIES_FILE);
+  }
+
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  @override
+  Map<String, Object> debugInfo() {
+    var result = super.debugInfo();
+    result['directory'] = _sdkDirectory.path;
+    return result;
   }
 
   @override
