@@ -9384,10 +9384,11 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  bool get normalFormalParameter_isCovariant {
+  bool get inheritsCovariant {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
-        kind == idl.LinkedNodeKind.simpleFormalParameter);
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
     return _variantField_27 ??= false;
   }
 
@@ -9418,10 +9419,11 @@ class LinkedNodeBuilder extends Object
     _variantField_27 = value;
   }
 
-  set normalFormalParameter_isCovariant(bool value) {
+  set inheritsCovariant(bool value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
-        kind == idl.LinkedNodeKind.simpleFormalParameter);
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_27 = value;
   }
 
@@ -10200,7 +10202,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder fieldFormalParameter_formalParameters,
     int fieldFormalParameter_period,
     int normalFormalParameter_covariantKeyword,
-    bool normalFormalParameter_isCovariant,
+    bool inheritsCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
     int codeLength,
     int codeOffset,
@@ -10216,7 +10218,7 @@ class LinkedNodeBuilder extends Object
         _variantField_8 = fieldFormalParameter_formalParameters,
         _variantField_16 = fieldFormalParameter_period,
         _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_27 = inheritsCovariant,
         _variantField_12 = normalFormalParameter_identifier,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
@@ -10230,7 +10232,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionTypedFormalParameter_returnType,
     LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
     int normalFormalParameter_covariantKeyword,
-    bool normalFormalParameter_isCovariant,
+    bool inheritsCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
     int codeLength,
     int codeOffset,
@@ -10243,7 +10245,7 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = functionTypedFormalParameter_returnType,
         _variantField_8 = functionTypedFormalParameter_typeParameters,
         _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_27 = inheritsCovariant,
         _variantField_12 = normalFormalParameter_identifier,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
@@ -10256,7 +10258,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder simpleFormalParameter_type,
     int simpleFormalParameter_keyword,
     int normalFormalParameter_covariantKeyword,
-    bool normalFormalParameter_isCovariant,
+    bool inheritsCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
     int codeLength,
     int codeOffset,
@@ -10269,7 +10271,7 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = simpleFormalParameter_type,
         _variantField_15 = simpleFormalParameter_keyword,
         _variantField_19 = normalFormalParameter_covariantKeyword,
-        _variantField_27 = normalFormalParameter_isCovariant,
+        _variantField_27 = inheritsCovariant,
         _variantField_12 = normalFormalParameter_identifier,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
@@ -10284,6 +10286,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder variableDeclaration_initializer,
     int variableDeclaration_equals,
     LinkedNodeBuilder variableDeclaration_name,
+    bool inheritsCovariant,
     int codeLength,
     int codeOffset,
     TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
@@ -10295,6 +10298,7 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = variableDeclaration_initializer,
         _variantField_15 = variableDeclaration_equals,
         _variantField_7 = variableDeclaration_name,
+        _variantField_27 = inheritsCovariant,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
         _variantField_35 = topLevelTypeInferenceError,
@@ -15250,10 +15254,11 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  bool get normalFormalParameter_isCovariant {
+  bool get inheritsCovariant {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
-        kind == idl.LinkedNodeKind.simpleFormalParameter);
+        kind == idl.LinkedNodeKind.simpleFormalParameter ||
+        kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_27 ??=
         const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
     return _variantField_27;
@@ -15867,9 +15872,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
       if (normalFormalParameter_identifier != null)
         _result["normalFormalParameter_identifier"] =
             normalFormalParameter_identifier.toJson();
@@ -15902,9 +15906,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
       if (normalFormalParameter_identifier != null)
         _result["normalFormalParameter_identifier"] =
             normalFormalParameter_identifier.toJson();
@@ -15934,9 +15937,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
-      if (normalFormalParameter_isCovariant != false)
-        _result["normalFormalParameter_isCovariant"] =
-            normalFormalParameter_isCovariant;
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
       if (normalFormalParameter_identifier != null)
         _result["normalFormalParameter_identifier"] =
             normalFormalParameter_identifier.toJson();
@@ -15967,6 +15969,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["variableDeclaration_equals"] = variableDeclaration_equals;
       if (variableDeclaration_name != null)
         _result["variableDeclaration_name"] = variableDeclaration_name.toJson();
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (topLevelTypeInferenceError != null)
@@ -17569,7 +17573,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "fieldFormalParameter_period": fieldFormalParameter_period,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "inheritsCovariant": inheritsCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
@@ -17591,7 +17595,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             functionTypedFormalParameter_typeParameters,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "inheritsCovariant": inheritsCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
@@ -17609,7 +17613,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "simpleFormalParameter_keyword": simpleFormalParameter_keyword,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
-        "normalFormalParameter_isCovariant": normalFormalParameter_isCovariant,
+        "inheritsCovariant": inheritsCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
@@ -17628,6 +17632,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "variableDeclaration_initializer": variableDeclaration_initializer,
         "variableDeclaration_equals": variableDeclaration_equals,
         "variableDeclaration_name": variableDeclaration_name,
+        "inheritsCovariant": inheritsCovariant,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
         "isSynthetic": isSynthetic,

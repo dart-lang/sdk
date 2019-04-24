@@ -1059,6 +1059,7 @@ class AstBinaryReader {
       keyword: _getToken(data.simpleFormalParameter_keyword),
     );
     LazyFormalParameter.setData(node, data);
+    LazyAst.setInheritsCovariant(node, data.inheritsCovariant);
     return node;
   }
 
@@ -1229,6 +1230,7 @@ class AstBinaryReader {
       _readNodeLazy(data.variableDeclaration_initializer),
     );
     LazyVariableDeclaration.setData(node, data);
+    LazyAst.setInheritsCovariant(node, data.inheritsCovariant);
     return node;
   }
 

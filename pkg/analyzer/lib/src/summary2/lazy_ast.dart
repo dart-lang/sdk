@@ -12,6 +12,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
+  static const _inheritsCovariantKey = 'lazyAst_isCovariant';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeInferenceErrorKey = 'lazyAst_typeInferenceError';
@@ -20,6 +21,10 @@ class LazyAst {
   final LinkedNode data;
 
   LazyAst(this.data);
+
+  static bool getInheritsCovariant(AstNode node) {
+    return node.getProperty(_inheritsCovariantKey) ?? false;
+  }
 
   static DartType getReturnType(AstNode node) {
     return node.getProperty(_returnTypeKey);
@@ -39,6 +44,10 @@ class LazyAst {
 
   static bool isSimplyBounded(AstNode node) {
     return node.getProperty(_isSimplyBoundedKey);
+  }
+
+  static void setInheritsCovariant(AstNode node, bool value) {
+    node.setProperty(_inheritsCovariantKey, value);
   }
 
   static void setOverrideInferenceDone(AstNode node) {

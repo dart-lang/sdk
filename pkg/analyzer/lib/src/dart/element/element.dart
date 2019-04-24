@@ -4925,7 +4925,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   bool get isCovariant {
     if (linkedNode != null) {
-      return linkedContext.isCovariant(linkedNode);
+      return linkedContext.isExplicitlyCovariant(linkedNode);
     }
 
     if (_unlinkedVariable != null) {
@@ -8136,6 +8136,9 @@ class ParameterElementImpl extends VariableElementImpl
   /// when it overrides a method in a supertype that has a corresponding
   /// covariant parameter.
   bool get inheritsCovariant {
+    if (linkedNode != null) {
+      return linkedContext.getInheritsCovariant(linkedNode);
+    }
     if (unlinkedParam != null) {
       return enclosingUnit.resynthesizerContext
           .inheritsCovariant(unlinkedParam.inheritsCovariantSlot);
@@ -8146,6 +8149,11 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Record whether or not this parameter inherits from a covariant parameter.
   void set inheritsCovariant(bool value) {
+    if (linkedNode != null) {
+      linkedContext.setInheritsCovariant(linkedNode, value);
+      return;
+    }
+
     _assertNotResynthesized(unlinkedParam);
     _inheritsCovariant = value;
   }
@@ -8195,9 +8203,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isCovariant {
-    if (linkedNode != null) {
-      return linkedContext.isCovariant(linkedNode);
-    }
     if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
@@ -8206,6 +8211,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Return true if this parameter is explicitly marked as being covariant.
   bool get isExplicitlyCovariant {
+    if (linkedNode != null) {
+      return linkedContext.isExplicitlyCovariant(linkedNode);
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.isExplicitlyCovariant;
     }
@@ -8574,11 +8582,28 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   @override
   bool get inheritsCovariant {
     PropertyInducingElement variable = setter.variable;
-    if (variable is FieldElementImpl && variable._unlinkedVariable != null) {
-      return enclosingUnit.resynthesizerContext
-          .inheritsCovariant(variable._unlinkedVariable.inheritsCovariantSlot);
+    if (variable is FieldElementImpl) {
+      if (variable.linkedNode != null) {
+        var context = variable.linkedContext;
+        return context.getInheritsCovariant(variable.linkedNode);
+      }
+      if (variable._unlinkedVariable != null) {
+        return enclosingUnit.resynthesizerContext.inheritsCovariant(
+            variable._unlinkedVariable.inheritsCovariantSlot);
+      }
     }
-    return super.inheritsCovariant;
+    return false;
+  }
+
+  @override
+  void set inheritsCovariant(bool value) {
+    PropertyInducingElement variable = setter.variable;
+    if (variable is FieldElementImpl) {
+      if (variable.linkedNode != null) {
+        var context = variable.linkedContext;
+        return context.setInheritsCovariant(variable.linkedNode, value);
+      }
+    }
   }
 
   @override

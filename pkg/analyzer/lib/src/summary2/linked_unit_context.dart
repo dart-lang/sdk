@@ -378,6 +378,18 @@ class LinkedUnitContext {
     }
   }
 
+  bool getInheritsCovariant(AstNode node) {
+    if (node is DefaultFormalParameter) {
+      return getInheritsCovariant(node.parameter);
+    } else if (node is FormalParameter) {
+      return LazyAst.getInheritsCovariant(node);
+    } else if (node is VariableDeclaration) {
+      return LazyAst.getInheritsCovariant(node);
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
   InterfaceType getInterfaceType(LinkedNodeType linkedType) {
     var type = readType(linkedType);
     if (type is InterfaceType && !type.element.isEnum) {
@@ -759,14 +771,17 @@ class LinkedUnitContext {
     return isConstKeyword(node.variableDeclarationList_keyword);
   }
 
-  bool isCovariant(AstNode node) {
-    if (node is FormalParameter) {
+  bool isExplicitlyCovariant(AstNode node) {
+    if (node is EnumConstantDeclaration) {
+      return false;
+    } else if (node is FormalParameter) {
       return node.covariantKeyword != null;
     } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
       return parent2 is FieldDeclaration && parent2.covariantKeyword != null;
+    } else {
+      throw StateError('${node.runtimeType}');
     }
-    return false;
   }
 
   bool isExternal(AstNode node) {
@@ -958,6 +973,16 @@ class LinkedUnitContext {
     context._typeParameters.addAll(_typeParameters);
     var astReader = AstBinaryReader(context);
     return astReader.readNode(data.node);
+  }
+
+  void setInheritsCovariant(AstNode node, bool value) {
+    if (node is FormalParameter) {
+      LazyAst.setInheritsCovariant(node, value);
+    } else if (node is VariableDeclaration) {
+      LazyAst.setInheritsCovariant(node, value);
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
   }
 
   void setOverrideInferenceDone(AstNode node) {

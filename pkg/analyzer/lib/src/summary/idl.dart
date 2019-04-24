@@ -1738,6 +1738,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_target;
 
+  @VariantId(27, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  bool get inheritsCovariant;
+
   @VariantId(6, variant: LinkedNodeKind.instanceCreationExpression)
   LinkedNode get instanceCreationExpression_arguments;
 
@@ -1958,13 +1966,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.simpleFormalParameter,
   ])
   LinkedNode get normalFormalParameter_identifier;
-
-  @VariantId(27, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  bool get normalFormalParameter_isCovariant;
 
   @VariantId(4, variantList: [
     LinkedNodeKind.fieldFormalParameter,

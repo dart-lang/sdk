@@ -1068,6 +1068,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
     _storeNormalFormalParameter(builder, node);
+    _storeInheritsCovariant(builder, node);
     return builder;
   }
 
@@ -1281,6 +1282,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
     _writeActualType(builder, node);
+    _storeInheritsCovariant(builder, node);
     return builder;
   }
 
@@ -1498,6 +1500,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..ifMixin_ifKeyword = _getToken(node.ifKeyword)
       ..ifMixin_leftParenthesis = _getToken(node.leftParenthesis)
       ..ifMixin_rightParenthesis = _getToken(node.rightParenthesis);
+  }
+
+  void _storeInheritsCovariant(LinkedNodeBuilder builder, AstNode node) {
+    var value = LazyAst.getInheritsCovariant(node);
+    builder.inheritsCovariant = value;
   }
 
   void _storeInvocationExpression(
