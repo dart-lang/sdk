@@ -159,7 +159,8 @@ class JsKernelToElementMap
       IndexedLibrary oldLibrary = _elementMap.libraries.getEntity(libraryIndex);
       KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
       KLibraryData data = _elementMap.libraries.getData(oldLibrary);
-      IndexedLibrary newLibrary = convertLibrary(oldLibrary);
+      IndexedLibrary newLibrary =
+          new JLibrary(oldLibrary.name, oldLibrary.canonicalUri);
       JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMemberUsage);
       libraryMap[oldEnv.library] =
           libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
@@ -176,7 +177,8 @@ class JsKernelToElementMap
       KClassData data = _elementMap.classes.getData(oldClass);
       IndexedLibrary oldLibrary = oldClass.library;
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      IndexedClass newClass = convertClass(newLibrary, oldClass);
+      IndexedClass newClass = new JClass(newLibrary, oldClass.name,
+          isAbstract: oldClass.isAbstract);
       JClassEnv newEnv = env.convert(_elementMap, liveMemberUsage);
       classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
       assert(newClass.classIndex == oldClass.classIndex);
@@ -189,7 +191,7 @@ class JsKernelToElementMap
       KTypedefData data = _elementMap.typedefs.getData(oldTypedef);
       IndexedLibrary oldLibrary = oldTypedef.library;
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      IndexedTypedef newTypedef = convertTypedef(newLibrary, oldTypedef);
+      IndexedTypedef newTypedef = new JTypedef(newLibrary, oldTypedef.name);
       typedefMap[data.node] = typedefs.register(
           newTypedef,
           new JTypedefData(
@@ -201,6 +203,7 @@ class JsKernelToElementMap
                   getDartType(data.node.type))));
       assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
     }
+
     for (int memberIndex = 0;
         memberIndex < _elementMap.members.length;
         memberIndex++) {
@@ -216,8 +219,59 @@ class JsKernelToElementMap
       LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
       ClassEntity newClass =
           oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
-      IndexedMember newMember = convertMember(
-          newLibrary, newClass, oldMember, memberUsage, annotations);
+      IndexedMember newMember;
+      Name memberName = new Name(oldMember.memberName.text, newLibrary,
+          isSetter: oldMember.memberName.isSetter);
+      if (oldMember.isField) {
+        IndexedField field = oldMember;
+        newMember = new JField(newLibrary, newClass, memberName,
+            isStatic: field.isStatic,
+            isAssignable: field.isAssignable,
+            isConst: field.isConst);
+      } else if (oldMember.isConstructor) {
+        IndexedConstructor constructor = oldMember;
+        ParameterStructure parameterStructure =
+            annotations.hasNoElision(constructor)
+                ? constructor.parameterStructure
+                : memberUsage.invokedParameters;
+        if (constructor.isFactoryConstructor) {
+          // TODO(redemption): This should be a JFunction.
+          newMember = new JFactoryConstructor(
+              newClass, memberName, parameterStructure,
+              isExternal: constructor.isExternal,
+              isConst: constructor.isConst,
+              isFromEnvironmentConstructor:
+                  constructor.isFromEnvironmentConstructor);
+        } else {
+          newMember = new JGenerativeConstructor(
+              newClass, memberName, parameterStructure,
+              isExternal: constructor.isExternal, isConst: constructor.isConst);
+        }
+      } else if (oldMember.isGetter) {
+        IndexedFunction getter = oldMember;
+        newMember = new JGetter(
+            newLibrary, newClass, memberName, getter.asyncMarker,
+            isStatic: getter.isStatic,
+            isExternal: getter.isExternal,
+            isAbstract: getter.isAbstract);
+      } else if (oldMember.isSetter) {
+        IndexedFunction setter = oldMember;
+        newMember = new JSetter(newLibrary, newClass, memberName,
+            isStatic: setter.isStatic,
+            isExternal: setter.isExternal,
+            isAbstract: setter.isAbstract);
+      } else {
+        IndexedFunction function = oldMember;
+        ParameterStructure parameterStructure =
+            annotations.hasNoElision(function)
+                ? function.parameterStructure
+                : memberUsage.invokedParameters;
+        newMember = new JMethod(newLibrary, newClass, memberName,
+            parameterStructure, function.asyncMarker,
+            isStatic: function.isStatic,
+            isExternal: function.isExternal,
+            isAbstract: function.isAbstract);
+      }
       members.register(newMember, data.convert());
       assert(
           newMember.memberIndex == oldMember.memberIndex,
@@ -1464,38 +1518,9 @@ class JsKernelToElementMap
     return function;
   }
 
-  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
-    return new JLibrary(name, canonicalUri);
-  }
-
-  IndexedClass createClass(LibraryEntity library, String name,
-      {bool isAbstract}) {
-    return new JClass(library, name, isAbstract: isAbstract);
-  }
-
-  IndexedTypedef createTypedef(LibraryEntity library, String name) {
-    return new JTypedef(library, name);
-  }
-
   TypeVariableEntity createTypeVariable(
       Entity typeDeclaration, String name, int index) {
     return new JTypeVariable(typeDeclaration, name, index);
-  }
-
-  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst}) {
-    return new JGenerativeConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal, isConst: isConst);
-  }
-
-  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, bool isFromEnvironmentConstructor}) {
-    return new JFactoryConstructor(enclosingClass, name, parameterStructure,
-        isExternal: isExternal,
-        isConst: isConst,
-        isFromEnvironmentConstructor: isFromEnvironmentConstructor);
   }
 
   JConstructorBody createConstructorBody(
@@ -1506,109 +1531,6 @@ class JsKernelToElementMap
   JGeneratorBody createGeneratorBody(
       FunctionEntity function, DartType elementType) {
     return new JGeneratorBody(function, elementType);
-  }
-
-  IndexedFunction createGetter(LibraryEntity library,
-      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JGetter(library, enclosingClass, name, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createMethod(
-      LibraryEntity library,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      AsyncMarker asyncMarker,
-      {bool isStatic,
-      bool isExternal,
-      bool isAbstract}) {
-    return new JMethod(
-        library, enclosingClass, name, parameterStructure, asyncMarker,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedFunction createSetter(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isExternal, bool isAbstract}) {
-    return new JSetter(library, enclosingClass, name,
-        isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
-  }
-
-  IndexedField createField(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {bool isStatic, bool isAssignable, bool isConst}) {
-    return new JField(library, enclosingClass, name,
-        isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
-  }
-
-  LibraryEntity convertLibrary(IndexedLibrary library) {
-    return createLibrary(library.name, library.canonicalUri);
-  }
-
-  ClassEntity convertClass(LibraryEntity library, IndexedClass cls) {
-    return createClass(library, cls.name, isAbstract: cls.isAbstract);
-  }
-
-  TypedefEntity convertTypedef(LibraryEntity library, IndexedTypedef typedef) {
-    return createTypedef(library, typedef.name);
-  }
-
-  MemberEntity convertMember(
-      LibraryEntity library,
-      ClassEntity cls,
-      IndexedMember member,
-      MemberUsage memberUsage,
-      AnnotationsData annotations) {
-    Name memberName = new Name(member.memberName.text, library,
-        isSetter: member.memberName.isSetter);
-    if (member.isField) {
-      IndexedField field = member;
-      return createField(library, cls, memberName,
-          isStatic: field.isStatic,
-          isAssignable: field.isAssignable,
-          isConst: field.isConst);
-    } else if (member.isConstructor) {
-      IndexedConstructor constructor = member;
-      ParameterStructure parameterStructure =
-          annotations.hasNoElision(constructor)
-              ? constructor.parameterStructure
-              : memberUsage.invokedParameters;
-      if (constructor.isFactoryConstructor) {
-        // TODO(redemption): This should be a JFunction.
-        return createFactoryConstructor(cls, memberName, parameterStructure,
-            isExternal: constructor.isExternal,
-            isConst: constructor.isConst,
-            isFromEnvironmentConstructor:
-                constructor.isFromEnvironmentConstructor);
-      } else {
-        return createGenerativeConstructor(cls, memberName, parameterStructure,
-            isExternal: constructor.isExternal, isConst: constructor.isConst);
-      }
-    } else if (member.isGetter) {
-      IndexedFunction getter = member;
-      return createGetter(library, cls, memberName, getter.asyncMarker,
-          isStatic: getter.isStatic,
-          isExternal: getter.isExternal,
-          isAbstract: getter.isAbstract);
-    } else if (member.isSetter) {
-      IndexedFunction setter = member;
-      return createSetter(library, cls, memberName,
-          isStatic: setter.isStatic,
-          isExternal: setter.isExternal,
-          isAbstract: setter.isAbstract);
-    } else {
-      IndexedFunction function = member;
-      ParameterStructure parameterStructure = annotations.hasNoElision(function)
-          ? function.parameterStructure
-          : memberUsage.invokedParameters;
-      return createMethod(
-          library, cls, memberName, parameterStructure, function.asyncMarker,
-          isStatic: function.isStatic,
-          isExternal: function.isExternal,
-          isAbstract: function.isAbstract);
-    }
   }
 
   void forEachNestedClosure(
