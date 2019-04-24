@@ -217,14 +217,14 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     if (addr == 0) {
       __ pushl(EAX);
       __ LoadObject(EAX, value_);
-      __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+      __ movsd(FpuTMP, FieldAddress(EAX, Double::value_offset()));
       __ popl(EAX);
     } else if (Utils::DoublesBitEqual(value_as_double, 0.0)) {
-      __ xorps(XMM0, XMM0);
+      __ xorps(FpuTMP, FpuTMP);
     } else {
-      __ movsd(XMM0, Address::Absolute(addr));
+      __ movsd(FpuTMP, Address::Absolute(addr));
     }
-    __ movsd(LocationToStackSlotAddress(destination), XMM0);
+    __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
     if (value_.IsSmi() && representation() == kUnboxedInt32) {
@@ -4704,7 +4704,7 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   Register value_obj = locs()->in(0).reg();
-  XmmRegister value_double = XMM0;
+  XmmRegister value_double = FpuTMP;
   ASSERT(result == EAX);
   ASSERT(result != value_obj);
   __ movsd(value_double, FieldAddress(value_obj, Double::value_offset()));
@@ -4817,7 +4817,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
                                                                bool opt) const {
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps =
-      (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 3 : 1;
+      (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 4 : 1;
   LocationSummary* result = new (zone)
       LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
   // EDI is chosen because it is callee saved so we do not need to back it
@@ -4832,6 +4832,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
     result->set_temp(1, Location::RegisterLocation(EAX));
     // Temp index 2.
     result->set_temp(2, Location::FpuRegisterLocation(XMM4));
+    // We need to block XMM0 for the floating-point calling convention.
+    result->set_temp(3, Location::FpuRegisterLocation(XMM0));
   }
   result->set_out(0, Location::FpuRegisterLocation(XMM3));
   return result;

@@ -90,7 +90,7 @@ enum XmmRegister {
 
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
-const FpuRegister FpuTMP = XMM0;
+const FpuRegister FpuTMP = XMM15;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 

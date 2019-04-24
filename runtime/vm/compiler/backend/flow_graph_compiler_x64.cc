@@ -1342,16 +1342,16 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movsd(destination.fpu_reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(XMM0, LocationToStackSlotAddress(source));
-      __ movsd(LocationToStackSlotAddress(destination), XMM0);
+      __ movsd(FpuTMP, LocationToStackSlotAddress(source));
+      __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
     }
   } else if (source.IsQuadStackSlot()) {
     if (destination.IsFpuRegister()) {
       __ movups(destination.fpu_reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsQuadStackSlot());
-      __ movups(XMM0, LocationToStackSlotAddress(source));
-      __ movups(LocationToStackSlotAddress(destination), XMM0);
+      __ movups(FpuTMP, LocationToStackSlotAddress(source));
+      __ movups(LocationToStackSlotAddress(destination), FpuTMP);
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1382,9 +1382,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     Exchange(LocationToStackSlotAddress(destination),
              LocationToStackSlotAddress(source));
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
-    __ movaps(XMM0, source.fpu_reg());
+    __ movaps(FpuTMP, source.fpu_reg());
     __ movaps(source.fpu_reg(), destination.fpu_reg());
-    __ movaps(destination.fpu_reg(), XMM0);
+    __ movaps(destination.fpu_reg(), FpuTMP);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() || destination.IsQuadStackSlot() ||
            source.IsDoubleStackSlot() || source.IsQuadStackSlot());
@@ -1397,32 +1397,32 @@ void ParallelMoveResolver::EmitSwap(int index) {
                                : LocationToStackSlotAddress(source);
 
     if (double_width) {
-      __ movsd(XMM0, slot_address);
+      __ movsd(FpuTMP, slot_address);
       __ movsd(slot_address, reg);
     } else {
-      __ movups(XMM0, slot_address);
+      __ movups(FpuTMP, slot_address);
       __ movups(slot_address, reg);
     }
-    __ movaps(reg, XMM0);
+    __ movaps(reg, FpuTMP);
   } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
     const Address& source_slot_address = LocationToStackSlotAddress(source);
     const Address& destination_slot_address =
         LocationToStackSlotAddress(destination);
 
-    ScratchFpuRegisterScope ensure_scratch(this, XMM0);
-    __ movsd(XMM0, source_slot_address);
+    ScratchFpuRegisterScope ensure_scratch(this, FpuTMP);
+    __ movsd(FpuTMP, source_slot_address);
     __ movsd(ensure_scratch.reg(), destination_slot_address);
-    __ movsd(destination_slot_address, XMM0);
+    __ movsd(destination_slot_address, FpuTMP);
     __ movsd(source_slot_address, ensure_scratch.reg());
   } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
     const Address& source_slot_address = LocationToStackSlotAddress(source);
     const Address& destination_slot_address =
         LocationToStackSlotAddress(destination);
 
-    ScratchFpuRegisterScope ensure_scratch(this, XMM0);
-    __ movups(XMM0, source_slot_address);
+    ScratchFpuRegisterScope ensure_scratch(this, FpuTMP);
+    __ movups(FpuTMP, source_slot_address);
     __ movups(ensure_scratch.reg(), destination_slot_address);
-    __ movups(destination_slot_address, XMM0);
+    __ movups(destination_slot_address, FpuTMP);
     __ movups(source_slot_address, ensure_scratch.reg());
   } else {
     UNREACHABLE();

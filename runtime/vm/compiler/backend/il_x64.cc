@@ -315,13 +315,13 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsDoubleStackSlot()) {
     if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
-      __ xorps(XMM0, XMM0);
+      __ xorps(FpuTMP, FpuTMP);
     } else {
       ASSERT(tmp != kNoRegister);
       __ LoadObject(tmp, value_);
-      __ movsd(XMM0, FieldAddress(tmp, Double::value_offset()));
+      __ movsd(FpuTMP, FieldAddress(tmp, Double::value_offset()));
     }
-    __ movsd(LocationToStackSlotAddress(destination), XMM0);
+    __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
     if (representation() == kUnboxedInt32 ||
@@ -4725,7 +4725,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   Register value_obj = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  XmmRegister value_double = XMM0;
+  XmmRegister value_double = FpuTMP;
   ASSERT(result == RAX);
   ASSERT(result != value_obj);
   ASSERT(result != temp);
@@ -4845,13 +4845,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
                                                                bool opt) const {
   // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
-  // double arguments and XMM0 to return the result. Unfortunately
-  // currently we can't specify these registers because ParallelMoveResolver
-  // assumes that XMM0 is free at all times.
-  // TODO(vegorov): allow XMM0 to be used.
+  // double arguments and XMM0 to return the result.
+  //
+  // TODO(sjindel): allow XMM0 to be used. Requires refactoring InvokeDoublePow
+  // to allow input 1/output register to be equal.
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps =
-      (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 3 : 1;
+      (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 4 : 1;
   LocationSummary* result = new (zone)
       LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
   ASSERT(R13 != CALLEE_SAVED_TEMP);
@@ -4866,6 +4866,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
     result->set_temp(1, Location::RegisterLocation(RAX));
     // Temp index 2.
     result->set_temp(2, Location::FpuRegisterLocation(XMM4));
+    // Block XMM0 for the calling convention.
+    result->set_temp(3, Location::FpuRegisterLocation(XMM0));
   }
   result->set_out(0, Location::FpuRegisterLocation(XMM3));
   return result;
