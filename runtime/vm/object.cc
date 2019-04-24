@@ -21738,23 +21738,45 @@ RawRegExp* RegExp::New(Heap::Space space) {
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_type(kUninitialized);
-    result.set_flags(0);
-    result.set_num_registers(-1);
+    result.set_flags(RegExpFlags());
+    result.set_num_registers(/*is_one_byte=*/false, -1);
+    result.set_num_registers(/*is_one_byte=*/true, -1);
   }
   return result.raw();
 }
 
-const char* RegExp::Flags() const {
-  switch (flags()) {
-    case kGlobal | kIgnoreCase | kMultiLine:
+const char* RegExpFlags::ToCString() const {
+  switch (value_ & ~kGlobal) {
+    case kIgnoreCase | kMultiLine | kDotAll | kUnicode:
+      return "imsu";
+    case kIgnoreCase | kMultiLine | kDotAll:
+      return "ims";
+    case kIgnoreCase | kMultiLine | kUnicode:
+      return "imu";
+    case kIgnoreCase | kUnicode | kDotAll:
+      return "ius";
+    case kMultiLine | kDotAll | kUnicode:
+      return "msu";
     case kIgnoreCase | kMultiLine:
       return "im";
-    case kGlobal | kIgnoreCase:
+    case kIgnoreCase | kDotAll:
+      return "is";
+    case kIgnoreCase | kUnicode:
+      return "iu";
+    case kMultiLine | kDotAll:
+      return "ms";
+    case kMultiLine | kUnicode:
+      return "mu";
+    case kDotAll | kUnicode:
+      return "su";
     case kIgnoreCase:
       return "i";
-    case kGlobal | kMultiLine:
     case kMultiLine:
       return "m";
+    case kDotAll:
+      return "s";
+    case kUnicode:
+      return "u";
     default:
       break;
   }
@@ -21776,9 +21798,7 @@ bool RegExp::CanonicalizeEquals(const Instance& other) const {
     return false;
   }
   // Match the flags.
-  if ((is_global() != other_js.is_global()) ||
-      (is_ignore_case() != other_js.is_ignore_case()) ||
-      (is_multi_line() != other_js.is_multi_line())) {
+  if (flags() != other_js.flags()) {
     return false;
   }
   return true;
@@ -21787,7 +21807,7 @@ bool RegExp::CanonicalizeEquals(const Instance& other) const {
 const char* RegExp::ToCString() const {
   const String& str = String::Handle(pattern());
   return OS::SCreate(Thread::Current()->zone(), "RegExp: pattern=%s flags=%s",
-                     str.ToCString(), Flags());
+                     str.ToCString(), flags().ToCString());
 }
 
 RawWeakProperty* WeakProperty::New(Heap::Space space) {

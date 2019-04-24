@@ -433,8 +433,6 @@ void main() {
   assertThrows(() => new RegExp(r"(?<=.)?")); //# 01: ok
   assertThrows(() => new RegExp(r"(?<=.)+")); //# 01: ok
 
-  // No unicode flag (yet), so can't test these.
-  // See https://github.com/dart-lang/sdk/issues/36170.
-  // assertThrows("/(?<=.)*/u", SyntaxError);
-  // assertThrows("/(?<=.){1,2}/u", SyntaxError);
+  assertThrows(() => new RegExp(r"(?<=.)*", unicode: true)); //# 01: ok
+  assertThrows(() => new RegExp(r"(?<=.){1,2}", unicode: true)); //# 01: ok
 }

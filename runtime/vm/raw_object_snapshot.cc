@@ -2172,7 +2172,9 @@ RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
   *reader->StringHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   regex.set_pattern(*reader->StringHandle());
 
-  regex.StoreNonPointer(&regex.raw_ptr()->num_registers_,
+  regex.StoreNonPointer(&regex.raw_ptr()->num_one_byte_registers_,
+                        reader->Read<int32_t>());
+  regex.StoreNonPointer(&regex.raw_ptr()->num_two_byte_registers_,
                         reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.raw_ptr()->type_flags_, reader->Read<int8_t>());
 
@@ -2202,7 +2204,8 @@ void RawRegExp::WriteTo(SnapshotWriter* writer,
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->num_bracket_expressions_);
   writer->WriteObjectImpl(ptr()->pattern_, kAsInlinedObject);
-  writer->Write<int32_t>(ptr()->num_registers_);
+  writer->Write<int32_t>(ptr()->num_one_byte_registers_);
+  writer->Write<int32_t>(ptr()->num_two_byte_registers_);
   writer->Write<int8_t>(ptr()->type_flags_);
 }
 

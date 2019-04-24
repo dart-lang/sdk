@@ -8,8 +8,12 @@
 class RegExp {
   @patch
   factory RegExp(String source,
-      {bool multiLine: false, bool caseSensitive: true}) {
-    _RegExpHashKey key = new _RegExpHashKey(source, multiLine, caseSensitive);
+      {bool multiLine: false,
+      bool caseSensitive: true,
+      bool unicode: false,
+      bool dotAll: false}) {
+    _RegExpHashKey key =
+        new _RegExpHashKey(source, multiLine, caseSensitive, unicode, dotAll);
     _RegExpHashValue value = _cache[key];
 
     if (value == null) {
@@ -21,7 +25,10 @@ class RegExp {
 
       value = new _RegExpHashValue(
           new _RegExp(source,
-              multiLine: multiLine, caseSensitive: caseSensitive),
+              multiLine: multiLine,
+              caseSensitive: caseSensitive,
+              unicode: unicode,
+              dotAll: dotAll),
           key);
       _cache[key] = value;
     } else {
@@ -114,15 +121,20 @@ class _RegExpHashKey extends LinkedListEntry<_RegExpHashKey> {
   final String pattern;
   final bool multiLine;
   final bool caseSensitive;
+  final bool unicode;
+  final bool dotAll;
 
-  _RegExpHashKey(this.pattern, this.multiLine, this.caseSensitive);
+  _RegExpHashKey(this.pattern, this.multiLine, this.caseSensitive, this.unicode,
+      this.dotAll);
 
   int get hashCode => pattern.hashCode;
   bool operator ==(that) {
     return (that is _RegExpHashKey) &&
         (this.pattern == that.pattern) &&
         (this.multiLine == that.multiLine) &&
-        (this.caseSensitive == that.caseSensitive);
+        (this.caseSensitive == that.caseSensitive) &&
+        (this.unicode == that.unicode) &&
+        (this.dotAll == that.dotAll);
   }
 }
 
@@ -200,9 +212,11 @@ class _RegExpMatch implements RegExpMatch {
 class _RegExp implements RegExp {
   factory _RegExp(String pattern,
       {bool multiLine: false,
-      bool caseSensitive: true}) native "RegExp_factory";
+      bool caseSensitive: true,
+      bool unicode: false,
+      bool dotAll: false}) native "RegExp_factory";
 
-  Match firstMatch(String str) {
+  RegExpMatch firstMatch(String str) {
     if (str is! String) throw new ArgumentError(str);
     List match = _ExecuteMatch(str, 0);
     if (match == null) {
@@ -211,7 +225,7 @@ class _RegExp implements RegExp {
     return new _RegExpMatch(this, str, match);
   }
 
-  Iterable<Match> allMatches(String string, [int start = 0]) {
+  Iterable<RegExpMatch> allMatches(String string, [int start = 0]) {
     if (string is! String) throw new ArgumentError(string);
     if (start is! int) throw new ArgumentError(start);
     if (0 > start || start > string.length) {
@@ -220,7 +234,7 @@ class _RegExp implements RegExp {
     return new _AllMatchesIterable(this, string, start);
   }
 
-  Match matchAsPrefix(String string, [int start = 0]) {
+  RegExpMatch matchAsPrefix(String string, [int start = 0]) {
     if (string is! String) throw new ArgumentError(string);
     if (start is! int) throw new ArgumentError(start);
     if (start < 0 || start > string.length) {
@@ -251,6 +265,10 @@ class _RegExp implements RegExp {
   bool get isMultiLine native "RegExp_getIsMultiLine";
 
   bool get isCaseSensitive native "RegExp_getIsCaseSensitive";
+
+  bool get isUnicode native "RegExp_getIsUnicode";
+
+  bool get isDotAll native "RegExp_getIsDotAll";
 
   int get _groupCount native "RegExp_getGroupCount";
 
@@ -327,25 +345,34 @@ class _RegExp implements RegExp {
       native "RegExp_ExecuteMatchSticky";
 }
 
-class _AllMatchesIterable extends IterableBase<Match> {
+class _AllMatchesIterable extends IterableBase<RegExpMatch> {
   final _RegExp _re;
   final String _str;
   final int _start;
 
   _AllMatchesIterable(this._re, this._str, this._start);
 
-  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _str, _start);
+  Iterator<RegExpMatch> get iterator =>
+      new _AllMatchesIterator(_re, _str, _start);
 }
 
-class _AllMatchesIterator implements Iterator<Match> {
+class _AllMatchesIterator implements Iterator<RegExpMatch> {
   final String _str;
   int _nextIndex;
   _RegExp _re;
-  Match _current;
+  RegExpMatch _current;
 
   _AllMatchesIterator(this._re, this._str, this._nextIndex);
 
-  Match get current => _current;
+  RegExpMatch get current => _current;
+
+  static bool _isLeadSurrogate(int c) {
+    return c >= 0xd800 && c <= 0xdbff;
+  }
+
+  static bool _isTrailSurrogate(int c) {
+    return c >= 0xdc00 && c <= 0xdfff;
+  }
 
   bool moveNext() {
     if (_re == null) return false; // Cleared after a failed match.
@@ -355,7 +382,15 @@ class _AllMatchesIterator implements Iterator<Match> {
         _current = new _RegExpMatch(_re, _str, match);
         _nextIndex = _current.end;
         if (_nextIndex == _current.start) {
-          // Zero-width match. Advance by one more.
+          // Zero-width match. Advance by one more, unless the regexp
+          // is in unicode mode and it would put us within a surrogate
+          // pair. In that case, advance past the code point as a whole.
+          if (_re.isUnicode &&
+              _nextIndex + 1 < _str.length &&
+              _isLeadSurrogate(_str.codeUnitAt(_nextIndex)) &&
+              _isTrailSurrogate(_str.codeUnitAt(_nextIndex + 1))) {
+            _nextIndex++;
+          }
           _nextIndex++;
         }
         return true;

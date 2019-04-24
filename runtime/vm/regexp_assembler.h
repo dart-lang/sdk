@@ -13,6 +13,19 @@ namespace dart {
 
 // Utility function for the DotPrinter
 void PrintUtf16(uint16_t c);
+// Compares two-byte strings case insensitively as UCS2.
+// Called from generated RegExp code.
+RawBool* CaseInsensitiveCompareUCS2(RawString* str_raw,
+                                    RawSmi* lhs_index_raw,
+                                    RawSmi* rhs_index_raw,
+                                    RawSmi* length_raw);
+
+// Compares two-byte strings case insensitively as UTF16.
+// Called from generated RegExp code.
+RawBool* CaseInsensitiveCompareUTF16(RawString* str_raw,
+                                     RawSmi* lhs_index_raw,
+                                     RawSmi* rhs_index_raw,
+                                     RawSmi* length_raw);
 
 /// Convenience wrapper around a BlockEntryInstr pointer.
 class BlockLabel : public ValueObject {
@@ -127,6 +140,7 @@ class RegExpMacroAssembler : public ZoneAllocated {
                                      BlockLabel* on_no_match) = 0;
   virtual void CheckNotBackReferenceIgnoreCase(intptr_t start_reg,
                                                bool read_backward,
+                                               bool unicode,
                                                BlockLabel* on_no_match) = 0;
   // Check the current character for a match with a literal character.  If we
   // fail to match then goto the on_failure label.  End of input always
@@ -215,22 +229,33 @@ class RegExpMacroAssembler : public ZoneAllocated {
   virtual void ClearRegisters(intptr_t reg_from, intptr_t reg_to) = 0;
   virtual void WriteStackPointerToRegister(intptr_t reg) = 0;
 
+  // Check that we are not in the middle of a surrogate pair.
+  void CheckNotInSurrogatePair(intptr_t cp_offset, BlockLabel* on_failure);
+
   // Controls the generation of large inlined constants in the code.
   void set_slow_safe(bool ssc) { slow_safe_compiler_ = ssc; }
   bool slow_safe() { return slow_safe_compiler_; }
 
-  enum GlobalMode { NOT_GLOBAL, GLOBAL, GLOBAL_NO_ZERO_LENGTH_CHECK };
+  enum GlobalMode {
+    NOT_GLOBAL,
+    GLOBAL,
+    GLOBAL_NO_ZERO_LENGTH_CHECK,
+    GLOBAL_UNICODE
+  };
   // Set whether the regular expression has the global flag.  Exiting due to
   // a failure in a global regexp may still mean success overall.
   inline void set_global_mode(GlobalMode mode) { global_mode_ = mode; }
   inline bool global() { return global_mode_ != NOT_GLOBAL; }
-  inline bool global_with_zero_length_check() { return global_mode_ == GLOBAL; }
+  inline bool global_with_zero_length_check() {
+    return global_mode_ == GLOBAL || global_mode_ == GLOBAL_UNICODE;
+  }
+  inline bool global_unicode() { return global_mode_ == GLOBAL_UNICODE; }
 
   Zone* zone() const { return zone_; }
 
  private:
   bool slow_safe_compiler_;
-  bool global_mode_;
+  GlobalMode global_mode_;
   Zone* zone_;
 };
 

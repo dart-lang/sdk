@@ -18,6 +18,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/runtime_entry.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/token_position.h"
 
@@ -422,7 +423,7 @@ struct InstrAttrs {
   M(Unbox, kNoGC)                                                              \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
-  M(CaseInsensitiveCompareUC16, _)                                             \
+  M(CaseInsensitiveCompare, _)                                                 \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(ShiftInt64Op, kNoGC)                                                       \
   M(SpeculativeShiftInt64Op, kNoGC)                                            \
@@ -5954,18 +5955,18 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
 // Calls into the runtime and performs a case-insensitive comparison of the
 // UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
 // str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
-//
-// TODO(zerny): Remove this once (if) functions inherited from unibrow
-// are moved to dart code.
-class CaseInsensitiveCompareUC16Instr
+// Depending on the runtime entry passed, we will treat the strings as either
+// UCS2 (no surrogate handling) or UTF16 (surrogates handled appropriately).
+class CaseInsensitiveCompareInstr
     : public TemplateDefinition<4, NoThrow, Pure> {
  public:
-  CaseInsensitiveCompareUC16Instr(Value* str,
-                                  Value* lhs_index,
-                                  Value* rhs_index,
-                                  Value* length,
-                                  intptr_t cid)
-      : cid_(cid) {
+  CaseInsensitiveCompareInstr(Value* str,
+                              Value* lhs_index,
+                              Value* rhs_index,
+                              Value* length,
+                              const RuntimeEntry& entry,
+                              intptr_t cid)
+      : entry_(entry), cid_(cid) {
     ASSERT(cid == kTwoByteStringCid || cid == kExternalTwoByteStringCid);
     ASSERT(index_scale() == 2);
     SetInputAt(0, str);
@@ -5979,7 +5980,7 @@ class CaseInsensitiveCompareUC16Instr
   Value* rhs_index() const { return inputs_[2]; }
   Value* length() const { return inputs_[3]; }
 
-  const RuntimeEntry& TargetFunction() const;
+  const RuntimeEntry& TargetFunction() const { return entry_; }
   bool IsExternal() const { return cid_ == kExternalTwoByteStringCid; }
   intptr_t class_id() const { return cid_; }
   intptr_t index_scale() const { return Instance::ElementSizeFor(cid_); }
@@ -5988,17 +5989,18 @@ class CaseInsensitiveCompareUC16Instr
 
   virtual Representation representation() const { return kTagged; }
 
-  DECLARE_INSTRUCTION(CaseInsensitiveCompareUC16)
+  DECLARE_INSTRUCTION(CaseInsensitiveCompare)
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsCaseInsensitiveCompareUC16()->cid_ == cid_;
+    return other->AsCaseInsensitiveCompare()->cid_ == cid_;
   }
 
  private:
+  const RuntimeEntry& entry_;
   const intptr_t cid_;
 
-  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareUC16Instr);
+  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareInstr);
 };
 
 // Represents Math's static min and max functions.
