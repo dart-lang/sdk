@@ -16478,16 +16478,6 @@ mixin TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(unit.declarations, hasLength(1));
   }
 
-  void test_parseCompilationUnit_pseudo_prefixed() {
-    for (Keyword keyword in Keyword.values) {
-      if (keyword.isPseudo) {
-        String lexeme = keyword.lexeme;
-        parseCompilationUnit('M.$lexeme f;');
-        parseCompilationUnit('class C {M.$lexeme f;}');
-      }
-    }
-  }
-
   void test_parseCompilationUnit_pseudo_asTypeName() {
     for (Keyword keyword in Keyword.values) {
       if (keyword.isPseudo) {
@@ -16496,6 +16486,16 @@ mixin TopLevelParserTestMixin implements AbstractParserTestCase {
         parseCompilationUnit('class C {$lexeme f;}');
         parseCompilationUnit('f($lexeme g) {}');
         parseCompilationUnit('f() {$lexeme g;}');
+      }
+    }
+  }
+
+  void test_parseCompilationUnit_pseudo_prefixed() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isPseudo) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('M.$lexeme f;');
+        parseCompilationUnit('class C {M.$lexeme f;}');
       }
     }
   }
