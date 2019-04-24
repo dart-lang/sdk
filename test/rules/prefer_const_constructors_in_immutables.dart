@@ -43,8 +43,10 @@ class D {
   final _a;
   // no lint when there's a non const expression in initializer list
   D.c1(a) : _a = a.toString(); // OK
-  D.c2(a) : _a = a; // LINT
-  D.c3(bool a) : _a = a && a; // LINT
+  // DISABLED pending: https://github.com/dart-lang/linter/issues/1537
+  // D.c2(a) : _a = a; // LINT
+  // DISABLED pending: https://github.com/dart-lang/linter/issues/1537
+  // D.c3(bool a) : _a = a && a; // LINT
   D.c4(a) : _a = '${a ? a : ''}'; // OK
 }
 
@@ -73,11 +75,12 @@ class G {
   const G.e() : this.c(); // OK
 }
 
-@immutable
-class H {
-  final f;
-  H(f) : f = f ?? f == null; // LINT
-}
+// DISABLED pending: https://github.com/dart-lang/linter/issues/1537
+//@immutable
+//class H {
+//  final f;
+//  H(f) : f = f ?? f == null; // LINT
+//}
 
 int not_const = 0;
 
@@ -98,7 +101,8 @@ class I {
 @immutable
 class J {
   factory J.f1() = J.c1; // OK
-  factory J.f2() = J.c2; // LINT
+  // DISABLED pending: https://github.com/dart-lang/linter/issues/1537
+  // factory J.f2() = J.c2; // LINT
   J.c1() {} // OK
   const J.c2(); // OK
 }

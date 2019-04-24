@@ -337,7 +337,6 @@ class HasConstErrorListener extends AnalysisErrorListener {
     CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
     CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
     CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
-    CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
   ];
 
   bool hasConstError = false;
