@@ -766,6 +766,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.typeParameters?.accept(this);
     node.functionType.accept(this);
+    nodesToBuildType.add(node);
 
     scope = outerScope;
     reference = outerReference;

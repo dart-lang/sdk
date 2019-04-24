@@ -85,6 +85,7 @@ class SourceLibraryBuilder {
       var classRef = unitRef.getChild('@class');
       var enumRef = unitRef.getChild('@enum');
       var functionRef = unitRef.getChild('@function');
+      var mixinRef = unitRef.getChild('@mixin');
       var typeAliasRef = unitRef.getChild('@typeAlias');
       var getterRef = unitRef.getChild('@getter');
       var setterRef = unitRef.getChild('@setter');
@@ -134,7 +135,7 @@ class SourceLibraryBuilder {
           localScope.declare(name, reference);
         } else if (node is ast.MixinDeclaration) {
           var name = node.name.name;
-          var reference = classRef.getChild(name);
+          var reference = mixinRef.getChild(name);
           reference.node2 = node;
           localScope.declare(name, reference);
         } else if (node is ast.TopLevelVariableDeclaration) {

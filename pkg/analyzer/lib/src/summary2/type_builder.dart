@@ -114,6 +114,8 @@ class TypeBuilder {
       _functionTypedFormalParameter(node);
     } else if (node is GenericFunctionType) {
       _genericFunctionType(node);
+    } else if (node is GenericTypeAlias) {
+      _genericTypeAlias(node);
     } else if (node is MethodDeclaration) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
@@ -194,6 +196,11 @@ class TypeBuilder {
       node.returnType,
       node.parameters,
     );
+  }
+
+  void _genericTypeAlias(GenericTypeAlias node) {
+    _typeParameterList(node.typeParameters);
+    _build(node.functionType);
   }
 
   List<DartType> _listOfDynamic(int typeParametersLength) {

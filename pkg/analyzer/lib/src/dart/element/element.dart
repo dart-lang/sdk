@@ -1864,7 +1864,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       CompilationUnit linkedNode = this.linkedNode;
-      var containerRef = reference.getChild('@class');
+      var containerRef = reference.getChild('@mixin');
       var declarations = linkedNode.declarations;
       return _mixins = declarations.whereType<MixinDeclaration>().map((node) {
         var name = node.name.name;

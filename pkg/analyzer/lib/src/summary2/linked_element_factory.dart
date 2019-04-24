@@ -154,6 +154,11 @@ class _ElementRequest {
       return _method(enclosing, reference);
     }
 
+    if (parentName == '@mixin') {
+      var unit = elementOfReference(parent2);
+      return _mixin(unit, reference);
+    }
+
     if (parentName == '@parameter') {
       ExecutableElementImpl enclosing = elementOfReference(parent2);
       return _parameter(enclosing, reference);
@@ -297,6 +302,16 @@ class _ElementRequest {
     return reference.element;
   }
 
+  MixinElementImpl _mixin(
+      CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node2 == null) {
+      _indexUnitElementDeclarations(unit);
+      assert(reference.node2 != null, '$reference');
+    }
+    MixinElementImpl.forLinkedNode(unit, reference, reference.node2);
+    return reference.element;
+  }
+
   Element _parameter(ExecutableElementImpl enclosing, Reference reference) {
     enclosing.parameters;
     assert(reference.element != null);
@@ -324,6 +339,7 @@ class _ElementRequest {
     var classRef = unitRef.getChild('@class');
     var enumRef = unitRef.getChild('@enum');
     var functionRef = unitRef.getChild('@function');
+    var mixinRef = unitRef.getChild('@mixin');
     var typeAliasRef = unitRef.getChild('@typeAlias');
     var variableRef = unitRef.getChild('@variable');
     for (var declaration in unitNode.declarations) {
@@ -345,6 +361,9 @@ class _ElementRequest {
       } else if (declaration is GenericTypeAlias) {
         var name = declaration.name.name;
         typeAliasRef.getChild(name).node2 = declaration;
+      } else if (declaration is MixinDeclaration) {
+        var name = declaration.name.name;
+        mixinRef.getChild(name).node2 = declaration;
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
           var name = variable.name.name;
