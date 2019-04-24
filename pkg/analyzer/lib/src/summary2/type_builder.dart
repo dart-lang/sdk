@@ -86,9 +86,16 @@ class TypeBuilder {
     );
   }
 
+  void _classDeclaration(ClassDeclaration node) {
+    _typeParameterList(node.typeParameters);
+
+    _build(node.extendsClause?.superclass);
+    _MixinInference(this).perform(node);
+  }
+
   void _declaration(AstNode node) {
     if (node is ClassDeclaration) {
-      _typeParameterList(node.typeParameters);
+      _classDeclaration(node);
     } else if (node is FieldFormalParameter) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
@@ -294,5 +301,136 @@ class TypeBuilder {
       return _getType(node.parameter);
     }
     return LazyAst.getType(node);
+  }
+}
+
+/// Performs mixins inference in a [ClassDeclaration].
+class _MixinInference {
+  final TypeBuilder builder;
+
+  InterfaceType classType;
+  List<InterfaceType> mixinTypes = [];
+  List<InterfaceType> supertypesForMixinInference;
+
+  _MixinInference(this.builder);
+
+  void perform(ClassDeclaration node) {
+    var withClause = node.withClause;
+    if (withClause == null) return;
+
+    classType = node.declaredElement.type;
+
+    for (var mixinNode in withClause.mixinTypes) {
+      var mixinType = _inferSingle(mixinNode);
+      mixinTypes.add(mixinType);
+
+      _addSupertypes(mixinType);
+    }
+  }
+
+  void _addSupertypes(InterfaceType type) {
+    if (supertypesForMixinInference != null) {
+      ClassElementImpl.collectAllSupertypes(
+        supertypesForMixinInference,
+        type,
+        classType,
+      );
+    }
+  }
+
+  InterfaceType _findInterfaceTypeForElement(
+    ClassElement element,
+    List<InterfaceType> interfaceTypes,
+  ) {
+    for (var interfaceType in interfaceTypes) {
+      if (interfaceType.element == element) return interfaceType;
+    }
+    return null;
+  }
+
+  List<InterfaceType> _findInterfaceTypesForConstraints(
+    List<InterfaceType> constraints,
+    List<InterfaceType> interfaceTypes,
+  ) {
+    var result = <InterfaceType>[];
+    for (var constraint in constraints) {
+      var interfaceType = _findInterfaceTypeForElement(
+        constraint.element,
+        interfaceTypes,
+      );
+
+      // No matching interface type found, so inference fails.
+      if (interfaceType == null) {
+        return null;
+      }
+
+      result.add(interfaceType);
+    }
+    return result;
+  }
+
+  InterfaceType _inferSingle(TypeName mixinNode) {
+    builder._build(mixinNode);
+    var mixinType = _interfaceType(mixinNode.type);
+
+    if (mixinNode.typeArguments != null) {
+      return mixinType;
+    }
+
+    var mixinElement = mixinType.element;
+    if (mixinElement.typeParameters.isEmpty) {
+      return mixinType;
+    }
+
+    var mixinSupertypeConstraints = builder.typeSystem
+        .gatherMixinSupertypeConstraintsForInference(mixinElement);
+    if (mixinSupertypeConstraints.isEmpty) {
+      return mixinType;
+    }
+
+    if (supertypesForMixinInference == null) {
+      supertypesForMixinInference = <InterfaceType>[];
+      _addSupertypes(classType.superclass);
+      for (var previousMixinType in mixinTypes) {
+        _addSupertypes(previousMixinType);
+      }
+    }
+
+    var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
+      mixinSupertypeConstraints,
+      supertypesForMixinInference,
+    );
+
+    // Note: if matchingInterfaceType is null, that's an error.  Also,
+    // if there are multiple matching interface types that use
+    // different type parameters, that's also an error.  But we can't
+    // report errors from the linker, so we just use the
+    // first matching interface type (if there is one).  The error
+    // detection logic is implemented in the ErrorVerifier.
+    if (matchingInterfaceTypes == null) {
+      return mixinType;
+    }
+
+    // Try to pattern match matchingInterfaceTypes against
+    // mixinSupertypeConstraints to find the correct set of type
+    // parameters to apply to the mixin.
+    var inferredMixin = builder.typeSystem.matchSupertypeConstraints(
+      mixinElement,
+      mixinSupertypeConstraints,
+      matchingInterfaceTypes,
+    );
+    if (inferredMixin != null) {
+      mixinType = inferredMixin;
+      mixinNode.type = inferredMixin;
+    }
+
+    return mixinType;
+  }
+
+  InterfaceType _interfaceType(DartType type) {
+    if (type is InterfaceType && !type.element.isEnum) {
+      return type;
+    }
+    return builder.typeSystem.typeProvider.objectType;
   }
 }
