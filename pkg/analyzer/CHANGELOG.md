@@ -1,3 +1,6 @@
+## 0.36.2
+* Bug fixes: #36724.
+
 ## 0.36.1
 * Deprecated `DartType.isUndefined`, and now it always returns `false`.
 * The "UI as code" features (control_flow_collections and spread_collections)
