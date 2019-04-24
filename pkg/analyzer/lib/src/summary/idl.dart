@@ -4875,6 +4875,10 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   @Id(7)
   bool get isFinal;
 
+  /// Indicates whether the variable is declared using the `late` keyword.
+  @Id(16)
+  bool get isLate;
+
   /// Indicates whether the variable is declared using the `static` keyword.
   ///
   /// Note that for top level variables, this flag is false, since they are not

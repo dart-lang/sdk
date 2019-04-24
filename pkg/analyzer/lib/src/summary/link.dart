@@ -2577,6 +2577,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
             initializerForInference);
 
   @override
+  bool get isLate => unlinkedVariable.isLate;
+
+  @override
   bool get isStatic => unlinkedVariable.isStatic;
 
   @override

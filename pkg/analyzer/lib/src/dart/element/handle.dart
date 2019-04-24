@@ -667,9 +667,6 @@ class FieldElementHandle extends PropertyInducingElementHandle
   @override
   bool get isEnumConstant => actualElement.isEnumConstant;
 
-  @override
-  bool get isLate => actualElement.isLate;
-
   @deprecated
   @override
   bool get isVirtual => actualElement.isVirtual;
@@ -1182,6 +1179,9 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
 
   @override
   bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+
+  @override
+  bool get isLate => actualElement.isLate;
 
   @deprecated
   @override

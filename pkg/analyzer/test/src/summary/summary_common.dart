@@ -8597,6 +8597,7 @@ final v = 42 is num;
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);
     expect(variable, isNotNull);
     expect(variable.isConst, isFalse);
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
     expect(variable.isFinal, isFalse);
     expect(variable.initializer, isNull);
@@ -8869,6 +8870,7 @@ class C {
   test_field_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isTrue);
     expect(variable.initializer, isNull);
     expect(variable.inheritsCovariantSlot, 0);
@@ -8888,6 +8890,7 @@ class C {
   test_field_static_final() {
     UnlinkedVariable variable =
         serializeClassText('class C { static final int i = 0; }').fields[0];
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isTrue);
     expect(variable.isFinal, isTrue);
     expect(variable.initializer.bodyExpr, isNull);
@@ -11737,6 +11740,7 @@ var v;''';
   test_variable_no_flags() {
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
     expect(variable.isConst, isFalse);
     expect(variable.isFinal, isFalse);
@@ -11757,6 +11761,7 @@ var v;''';
   test_variable_non_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { int i; }').fields[0];
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
   }
 
@@ -11764,6 +11769,7 @@ var v;''';
     // Top level variables are considered non-static.
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
   }
 
@@ -11775,6 +11781,7 @@ var v;''';
   test_variable_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isTrue);
   }
 
@@ -11883,6 +11890,71 @@ final v = $expr;
     var body = f.functionExpression.body as ExpressionFunctionBody;
     var expression = body.expression;
     return tokensToString(expression.beginToken, expression.endToken);
+  }
+
+  test_field_late() {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    UnlinkedClass cls = serializeClassText('class C { late int i; }');
+    UnlinkedVariable variable = findVariable('i', variables: cls.fields);
+    expect(variable, isNotNull);
+    expect(variable.isConst, isFalse);
+    expect(variable.isLate, isTrue);
+    expect(variable.isStatic, isFalse);
+    expect(variable.isFinal, isFalse);
+    expect(variable.initializer, isNull);
+    expect(variable.inheritsCovariantSlot, isNot(0));
+    expect(findExecutable('i', executables: cls.executables), isNull);
+    expect(findExecutable('i=', executables: cls.executables), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, isEmpty);
+  }
+
+  test_field_static_final_late() {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    UnlinkedVariable variable =
+        serializeClassText('class C { static late final int i = 0; }')
+            .fields[0];
+    expect(variable.isLate, isTrue);
+    expect(variable.isStatic, isTrue);
+    expect(variable.isFinal, isTrue);
+    expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_static_late() {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    UnlinkedVariable variable =
+        serializeClassText('class C { late static int i; }').fields[0];
+    expect(variable.isLate, isTrue);
+    expect(variable.isStatic, isTrue);
+    expect(variable.initializer, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'i');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].kind,
+        ReferenceKind.propertyAccessor);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].numTypeParameters,
+        0);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].members, isEmpty);
+  }
+
+  test_variable_late() {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    UnlinkedVariable variable =
+        serializeVariableText('late int i;', variableName: 'i');
+    expect(variable.isLate, isTrue);
+    expect(variable.isStatic, isFalse);
+    expect(variable.isConst, isFalse);
+    expect(variable.isFinal, isFalse);
   }
 }
 

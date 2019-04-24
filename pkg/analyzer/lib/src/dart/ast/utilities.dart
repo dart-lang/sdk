@@ -7785,6 +7785,7 @@ class ToSourceVisitor
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _visitTokenWithSuffix(node.lateKeyword, " ");
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _visitNodeListWithSeparator(node.variables, ", ");
@@ -9046,6 +9047,7 @@ class ToSourceVisitor2
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.lateKeyword, " ");
     safelyVisitTokenWithSuffix(node.keyword, " ");
     safelyVisitNodeWithSuffix(node.type, " ");
     safelyVisitNodeListWithSeparator(node.variables, ", ");

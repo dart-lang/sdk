@@ -29209,6 +29209,7 @@ class UnlinkedVariableBuilder extends Object
   bool _isConst;
   bool _isCovariant;
   bool _isFinal;
+  bool _isLate;
   bool _isStatic;
   String _name;
   int _nameOffset;
@@ -29303,6 +29304,14 @@ class UnlinkedVariableBuilder extends Object
   }
 
   @override
+  bool get isLate => _isLate ??= false;
+
+  /// Indicates whether the variable is declared using the `late` keyword.
+  set isLate(bool value) {
+    this._isLate = value;
+  }
+
+  @override
   bool get isStatic => _isStatic ??= false;
 
   /// Indicates whether the variable is declared using the `static` keyword.
@@ -29371,6 +29380,7 @@ class UnlinkedVariableBuilder extends Object
       bool isConst,
       bool isCovariant,
       bool isFinal,
+      bool isLate,
       bool isStatic,
       String name,
       int nameOffset,
@@ -29385,6 +29395,7 @@ class UnlinkedVariableBuilder extends Object
         _isConst = isConst,
         _isCovariant = isCovariant,
         _isFinal = isFinal,
+        _isLate = isLate,
         _isStatic = isStatic,
         _name = name,
         _nameOffset = nameOffset,
@@ -29423,6 +29434,7 @@ class UnlinkedVariableBuilder extends Object
     this._initializer?.collectApiSignature(signature);
     signature.addBool(this._isCovariant == true);
     signature.addInt(this._inheritsCovariantSlot ?? 0);
+    signature.addBool(this._isLate == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -29479,6 +29491,9 @@ class UnlinkedVariableBuilder extends Object
     if (_isFinal == true) {
       fbBuilder.addBool(7, true);
     }
+    if (_isLate == true) {
+      fbBuilder.addBool(16, true);
+    }
     if (_isStatic == true) {
       fbBuilder.addBool(4, true);
     }
@@ -29523,6 +29538,7 @@ class _UnlinkedVariableImpl extends Object
   bool _isConst;
   bool _isCovariant;
   bool _isFinal;
+  bool _isLate;
   bool _isStatic;
   String _name;
   int _nameOffset;
@@ -29590,6 +29606,12 @@ class _UnlinkedVariableImpl extends Object
   }
 
   @override
+  bool get isLate {
+    _isLate ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 16, false);
+    return _isLate;
+  }
+
+  @override
   bool get isStatic {
     _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
     return _isStatic;
@@ -29646,6 +29668,7 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
     if (isConst != false) _result["isConst"] = isConst;
     if (isCovariant != false) _result["isCovariant"] = isCovariant;
     if (isFinal != false) _result["isFinal"] = isFinal;
+    if (isLate != false) _result["isLate"] = isLate;
     if (isStatic != false) _result["isStatic"] = isStatic;
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
@@ -29666,6 +29689,7 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
         "isConst": isConst,
         "isCovariant": isCovariant,
         "isFinal": isFinal,
+        "isLate": isLate,
         "isStatic": isStatic,
         "name": name,
         "nameOffset": nameOffset,

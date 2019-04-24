@@ -3122,6 +3122,9 @@ table UnlinkedVariable {
   /// Indicates whether the variable is declared using the `final` keyword.
   isFinal:bool (id: 7);
 
+  /// Indicates whether the variable is declared using the `late` keyword.
+  isLate:bool (id: 16);
+
   /// Indicates whether the variable is declared using the `static` keyword.
   ///
   /// Note that for top level variables, this flag is false, since they are not

@@ -1054,13 +1054,6 @@ abstract class FieldElement
   /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
 
-  /// Return `true` if this field uses late evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  @experimental
-  bool get isLate;
-
   /// Returns `true` if this field can be overridden in strong mode.
   @deprecated
   bool get isVirtual;
@@ -1541,6 +1534,13 @@ abstract class PropertyInducingElement implements VariableElement {
   /// explicitly defined (is not synthetic) then the getter associated with it
   /// will be synthetic.
   PropertyAccessorElement get getter;
+
+  /// Return `true` if this variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  @experimental
+  bool get isLate;
 
   /// Return the propagated type of this variable, or `null` if type propagation
   /// has not been performed, for example because the variable is not final.

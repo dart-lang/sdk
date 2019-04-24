@@ -110,6 +110,26 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     return elementFactory.libraryOfUri('${source.uri}');
   }
 
+  @failingTest
+  test_class_field_const_late() async {
+    await super.test_class_field_const_late();
+  }
+
+  @failingTest
+  test_class_field_implicit_type_late() async {
+    await super.test_class_field_implicit_type_late();
+  }
+
+  @failingTest
+  test_class_field_static_late() async {
+    await super.test_class_field_static_late();
+  }
+
+  @failingTest
+  test_class_fields_late() async {
+    await super.test_class_fields_late();
+  }
+
   @override
   @failingTest
   test_const_constructor_inferred_args() async {
@@ -128,6 +148,21 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
     // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
     await super.test_syntheticFunctionType_genericClosure();
+  }
+
+  @failingTest
+  test_variable_const_late() async {
+    await super.test_variable_const_late();
+  }
+
+  @failingTest
+  test_variable_final_late() async {
+    await super.test_variable_final_late();
+  }
+
+  @failingTest
+  test_variable_late() async {
+    await super.test_variable_late();
   }
 
   void _addLibraryUnits(

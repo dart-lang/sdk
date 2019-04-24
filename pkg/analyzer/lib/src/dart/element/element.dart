@@ -4946,17 +4946,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
       enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
 
   @override
-  bool get isLate {
-//    if (linkedNode != null) {
-//      return enclosingUnit.linkedContext.isLate(linkedNode);
-//    }
-//    if (_unlinkedVariable != null) {
-//      return _unlinkedVariable.isLate;
-//    }
-    return hasModifier(Modifier.LATE);
-  }
-
-  @override
   bool get isStatic {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isStatic(linkedNode);
@@ -7080,12 +7069,12 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   bool get isLate {
-//    if (linkedNode != null) {
-//      return enclosingUnit.linkedContext.isLate(linkedNode);
-//    }
-//    if (_unlinkedVariable != null) {
-//      return _unlinkedVariable.isLate;
-//    }
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isLate(linkedNode);
+    }
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.isLate;
+    }
     return hasModifier(Modifier.LATE);
   }
 
@@ -9038,6 +9027,17 @@ abstract class PropertyInducingElementImpl
 
   @override
   bool get isConstantEvaluated => true;
+
+  @override
+  bool get isLate {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isLate(linkedNode);
+    }
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.isLate;
+    }
+    return hasModifier(Modifier.LATE);
+  }
 
   @deprecated
   @override

@@ -1004,6 +1004,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.isConst = variables.isConst;
       b.isCovariant = isCovariant;
       b.isFinal = variables.isFinal;
+      b.isLate = variable.isLate;
       b.isStatic = isDeclaredStatic;
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;

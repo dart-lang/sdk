@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -1000,11 +1001,34 @@ class C {
 ''');
   }
 
+  test_class_field_const_late() async {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    var library =
+        await checkLibrary('class C { late static const int i = 0; }');
+    checkElementText(library, r'''
+class C {
+  static late const int i = 0;
+}
+''');
+  }
+
   test_class_field_implicit_type() async {
     var library = await checkLibrary('class C { var x; }');
     checkElementText(library, r'''
 class C {
   dynamic x;
+}
+''');
+  }
+
+  test_class_field_implicit_type_late() async {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    var library = await checkLibrary('class C { late var x; }');
+    checkElementText(library, r'''
+class C {
+  late dynamic x;
 }
 ''');
   }
@@ -1018,12 +1042,35 @@ class C {
 ''');
   }
 
+  test_class_field_static_late() async {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    var library = await checkLibrary('class C { late static int i; }');
+    checkElementText(library, r'''
+class C {
+  static late int i;
+}
+''');
+  }
+
   test_class_fields() async {
     var library = await checkLibrary('class C { int i; int j; }');
     checkElementText(library, r'''
 class C {
   int i;
   int j;
+}
+''');
+  }
+
+  test_class_fields_late() async {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    var library = await checkLibrary('class C { int i; late int j; }');
+    checkElementText(library, r'''
+class C {
+  int i;
+  late int j;
 }
 ''');
   }
@@ -9850,6 +9897,15 @@ const int i = 0;
 ''');
   }
 
+  test_variable_const_late() async {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    var library = await checkLibrary('late const int i = 0;');
+    checkElementText(library, r'''
+late const int i = 0;
+''');
+  }
+
   test_variable_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -9869,6 +9925,15 @@ dynamic x;
     var library = await checkLibrary('final int x = 0;');
     checkElementText(library, r'''
 final int x;
+''');
+  }
+
+  test_variable_final_late() async {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    var library = await checkLibrary('late final int x = 0;');
+    checkElementText(library, r'''
+late final int x;
 ''');
   }
 
@@ -9972,6 +10037,15 @@ final int v;
     var library = await checkLibrary('var v = 0;');
     checkElementText(library, r'''
 int v;
+''');
+  }
+
+  test_variable_late() async {
+    experimentStatus = FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    var library = await checkLibrary('late int x = 0;');
+    checkElementText(library, r'''
+late int x;
 ''');
   }
 

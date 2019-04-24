@@ -886,6 +886,7 @@ class _ElementWriter {
       writeMetadata(e, '', '\n');
     }
 
+    writeIf(e.isLate, 'late ');
     writeIf(e.isFinal, 'final ');
     writeIf(e.isConst, 'const ');
     writeType2(type);

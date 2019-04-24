@@ -819,6 +819,19 @@ class LinkedUnitContext {
     }
   }
 
+  bool isLate(AstNode node) {
+    if (node is VariableDeclaration) {
+      return node.isLate;
+    }
+    if (node is VariableDeclarationList) {
+      return node.isLate;
+    }
+    if (node is EnumConstantDeclaration) {
+      return false;
+    }
+    throw UnimplementedError('${node.runtimeType}');
+  }
+
   bool isLibraryKeyword(int token) {
     return tokensContext.type(token) == UnlinkedTokenType.LIBRARY;
   }
