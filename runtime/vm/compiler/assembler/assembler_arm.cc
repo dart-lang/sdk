@@ -3165,6 +3165,9 @@ void Assembler::IntegerDivide(Register result,
     sdiv(result, left, right);
   } else {
     ASSERT(TargetCPUFeatures::vfp_supported());
+    // Only D0 to D15 overlap S0 to S31.
+    ASSERT(tmpl <= D15);
+    ASSERT(tmpr <= D15);
     SRegister stmpl = static_cast<SRegister>(2 * tmpl);
     SRegister stmpr = static_cast<SRegister>(2 * tmpr);
     vmovsr(stmpl, left);

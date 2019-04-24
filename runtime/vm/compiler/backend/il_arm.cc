@@ -3586,7 +3586,8 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     } else {
       summary->set_in(1, Location::RequiresRegister());
       summary->set_temp(0, Location::RequiresRegister());
-      summary->set_temp(1, Location::RequiresFpuRegister());
+      // Request register that overlaps with S0..S31.
+      summary->set_temp(1, Location::FpuRegisterLocation(Q0));
     }
     summary->set_out(0, Location::RequiresRegister());
     return summary;
@@ -3595,7 +3596,8 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     summary->set_temp(0, Location::RequiresRegister());
-    summary->set_temp(1, Location::RequiresFpuRegister());
+    // Request register that overlaps with S0..S31.
+    summary->set_temp(1, Location::FpuRegisterLocation(Q0));
     summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
@@ -5709,7 +5711,8 @@ LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  summary->set_temp(1, Location::RequiresFpuRegister());
+  // Request register that overlaps with S0..S31.
+  summary->set_temp(1, Location::FpuRegisterLocation(Q0));
   // Output is a pair of registers.
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
