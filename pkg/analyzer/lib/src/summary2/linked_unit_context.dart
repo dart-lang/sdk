@@ -564,6 +564,10 @@ class LinkedUnitContext {
     }
   }
 
+  String getSelectedUri(UriBasedDirective node) {
+    return LazyDirective.getSelectedUri(node);
+  }
+
   String getSimpleName(LinkedNode node) {
     return getTokenLexeme(node.simpleIdentifier_token);
   }

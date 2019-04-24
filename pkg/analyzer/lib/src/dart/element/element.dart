@@ -6482,6 +6482,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   bool get hasExtUri {
+    if (linkedNode != null) {
+      var unit = linkedContext.unit_withDirectives;
+      for (var import in unit.directives) {
+        if (import is ImportDirective) {
+          var uriStr = linkedContext.getSelectedUri(import);
+          if (DartUriResolver.isDartExtUri(uriStr)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
     if (unlinkedDefiningUnit != null) {
       List<UnlinkedImport> unlinkedImports = unlinkedDefiningUnit.imports;
       for (UnlinkedImport import in unlinkedImports) {
