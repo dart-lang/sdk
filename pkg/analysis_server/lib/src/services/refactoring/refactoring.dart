@@ -341,10 +341,13 @@ abstract class MoveFileRefactoring implements Refactoring {
   /**
    * Returns a new [MoveFileRefactoring] instance.
    */
-  factory MoveFileRefactoring(ResourceProvider resourceProvider,
-      RefactoringWorkspace workspace, Source source, String oldFile) {
+  factory MoveFileRefactoring(
+      ResourceProvider resourceProvider,
+      RefactoringWorkspace workspace,
+      ResolvedUnitResult resolveResult,
+      String oldFilePath) {
     return new MoveFileRefactoringImpl(
-        resourceProvider, workspace, source, oldFile);
+        resourceProvider, workspace, resolveResult, oldFilePath);
   }
 
   /**

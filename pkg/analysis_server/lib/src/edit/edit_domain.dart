@@ -1148,13 +1148,13 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
-      // TODO(brianwilkerson) Re-implement this refactoring under the new analysis driver
-//      _resetOnAnalysisStarted();
-//      ContextSourcePair contextSource = server.getContextSourcePair(file);
-//      engine.AnalysisContext context = contextSource.context;
-//      Source source = contextSource.source;
-//      refactoring = new MoveFileRefactoring(
-//          server.resourceProvider, searchEngine, context, source, file);
+      // TODO(jwren) Comment in this functionality after it is working end to
+      //  end for IJ or VS Code
+//      var resolvedUnit = await server.getResolvedUnit(file);
+//      if (resolvedUnit != null) {
+//        refactoring = new MoveFileRefactoring(
+//            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
+//      }
     }
     if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
