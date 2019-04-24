@@ -697,15 +697,15 @@ E f() => g;
     expect(statement.findPrevious(findToken('return')).lexeme, '{');
   }
 
+  void test_findPrevious_sibling_class() {
+    CompilationUnitMember declaration = unit.declarations[1];
+    expect(declaration.findPrevious(findToken('E')).lexeme, '}');
+  }
+
   void test_findPrevious_sibling_method() {
     ClassDeclaration clazz = unit.declarations[0];
     MethodDeclaration method = clazz.members[1];
     expect(method.findPrevious(findToken('D')).lexeme, '}');
-  }
-
-  void test_findPrevious_sibling_class() {
-    CompilationUnitMember declaration = unit.declarations[1];
-    expect(declaration.findPrevious(findToken('E')).lexeme, '}');
   }
 }
 
