@@ -1,3 +1,12 @@
+# 0.1.87
+
+* change: `prefer_const_constructors_in_immutables` is currently overly permissive, pending analyzer changes (#1537)
+* fixed `unnecessary_await_in_return` false positive
+* fixed `unrelated_type_equality_checks` false negative with functions
+* fixed `prefer_spread_collections` to not lint in const contexts
+* fixed false positive in `prefer_iterable_whereType` for `is!`
+* fixed false positive in `prefer_collection_literals` for constructors with params
+
 # 0.1.86
 
 * updated `prefer_spread_collections` to ignore calls to `addAll` that could be inlined
