@@ -1046,6 +1046,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   // reoptimized and which counter needs to be incremented.
   // Pass the function explicitly, it is used in IC stub.
   __ LoadObject(RDI, parsed_function().function());
+  // Load receiver into RDX.
+  __ movq(RDX, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadUniqueObject(RBX, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
                    entry_kind);
@@ -1058,6 +1060,8 @@ void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
+  // Load receiver into RDX.
+  __ movq(RDX, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadUniqueObject(RBX, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs(), RCX);
@@ -1077,8 +1081,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
   __ Comment("MegamorphicCall");
-  // Load receiver into RDI.
-  __ movq(RDI, Address(RSP, (args_desc.Count() - 1) * kWordSize));
+  // Load receiver into RDX.
+  __ movq(RDX, Address(RSP, (args_desc.Count() - 1) * kWordSize));
   __ LoadObject(RBX, cache);
   __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
 
@@ -1116,7 +1120,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   const Code& initial_stub = StubCode::ICCallThroughFunction();
 
   __ Comment("SwitchableCall");
-  __ movq(RDI, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
+  __ movq(RDX, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see clustered_snapshot.cc.

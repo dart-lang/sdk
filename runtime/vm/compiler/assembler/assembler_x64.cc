@@ -1732,7 +1732,7 @@ void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
 
-// RDI receiver, RBX guarded cid as Smi.
+// RDX receiver, RBX guarded cid as Smi.
 // Preserve R10 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
   has_single_entry_point_ = false;
@@ -1754,11 +1754,10 @@ void Assembler::MonomorphicCheckedEntry() {
   ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
 
   SmiUntag(RBX);
-  testq(RDI, Immediate(kSmiTagMask));
+  testq(RDX, Immediate(kSmiTagMask));
   j(ZERO, &immediate, kNearJump);
-  nop(1);
 
-  LoadClassId(TMP, RDI);
+  LoadClassId(TMP, RDX);
 
   Bind(&have_cid);
   cmpq(TMP, RBX);

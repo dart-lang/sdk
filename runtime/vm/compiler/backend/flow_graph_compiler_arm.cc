@@ -1054,6 +1054,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   // Pass the function explicitly, it is used in IC stub.
 
   __ LoadObject(R8, parsed_function().function());
+  __ LoadFromOffset(kWord, R0, SP,
+                    (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
                    entry_kind);
@@ -1066,6 +1068,8 @@ void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
+  __ LoadFromOffset(kWord, R0, SP,
+                    (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());

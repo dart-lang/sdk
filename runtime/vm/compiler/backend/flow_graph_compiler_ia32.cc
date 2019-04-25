@@ -911,7 +911,9 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   // top-level function (parsed_function().function()) which could be
   // reoptimized and which counter needs to be incremented.
   // Pass the function explicitly, it is used in IC stub.
-  __ LoadObject(EBX, parsed_function().function());
+  __ LoadObject(EAX, parsed_function().function());
+  // Load receiver into EBX.
+  __ movl(EBX, Address(ESP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());
@@ -923,6 +925,8 @@ void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  // Load receiver into EBX.
+  __ movl(EBX, Address(ESP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());
