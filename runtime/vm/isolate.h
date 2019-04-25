@@ -734,6 +734,18 @@ class Isolate : public BaseIsolate {
     reverse_pc_lookup_cache_ = table;
   }
 
+  // This doesn't belong here, but to avoid triggering bugs in jemalloc we
+  // allocate the irregexpinterpreter's stack once per isolate instead of once
+  // per regexp execution.
+  // See https://github.com/flutter/flutter/issues/29007
+  static constexpr intptr_t kIrregexpBacktrackStackSize = 1 << 16;
+  intptr_t* irregexp_backtrack_stack() {
+    if (irregexp_backtrack_stack_ == nullptr) {
+      irregexp_backtrack_stack_ = new intptr_t[kIrregexpBacktrackStackSize];
+    }
+    return irregexp_backtrack_stack_;
+  }
+
   // Isolate-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
   void FlagsCopyTo(Dart_IsolateFlags* api_flags) const;
@@ -1045,6 +1057,8 @@ class Isolate : public BaseIsolate {
   const char** obfuscation_map_;
 
   ReversePcLookupCache* reverse_pc_lookup_cache_;
+
+  intptr_t* irregexp_backtrack_stack_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;

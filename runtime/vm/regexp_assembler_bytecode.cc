@@ -492,7 +492,7 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
       TypedData::Handle(zone, regexp.bytecode(is_one_byte, sticky));
   ASSERT(!bytecode.IsNull());
   IrregexpInterpreter::IrregexpResult result =
-      IrregexpInterpreter::Match(bytecode, subject, raw_output, index, zone);
+      IrregexpInterpreter::Match(bytecode, subject, raw_output, index);
 
   if (result == IrregexpInterpreter::RE_SUCCESS) {
     // Copy capture results to the start of the registers array.
