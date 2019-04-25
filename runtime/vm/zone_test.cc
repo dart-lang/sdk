@@ -92,7 +92,7 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 }
 
 // This test is expected to crash.
-VM_UNIT_TEST_CASE(AllocGeneric_Overflow) {
+VM_UNIT_TEST_CASE_WITH_EXPECTATION(AllocGeneric_Overflow, "Crash") {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif

@@ -69,7 +69,7 @@ void TestCaseBase::RunTest() {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {
-    Syslog::Print("%s\n", this->name());
+    Syslog::Print("%s %s\n", this->name(), this->expectation());
     run_matches++;
   }
 }
@@ -82,7 +82,7 @@ void Benchmark::RunBenchmark() {
                   this->score());
     run_matches++;
   } else if (run_filter == kList) {
-    Syslog::Print("%s\n", this->name());
+    Syslog::Print("%s Pass\n", this->name());
     run_matches++;
   }
 }
