@@ -91,7 +91,6 @@ vars = {
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.12.0+2",
   "http_throttle_tag" : "1.0.2",
-  "icu_rev" : "c56c671998902fcc4fc9ace88c83daa99f980793",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -210,10 +209,6 @@ deps = {
   Var("dart_root") + "/third_party/ply":
       Var("chromium_git") + "/chromium/src/third_party/ply.git" +
       "@" + Var("ply_rev"),
-
-  Var("dart_root") + "/third_party/icu":
-      Var("chromium_git") + "/chromium/deps/icu.git" +
-      "@" + Var("icu_rev"),
 
   Var("dart_root") + "/tools/idl_parser":
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +

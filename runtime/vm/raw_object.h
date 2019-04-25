@@ -2428,17 +2428,11 @@ class RawRegExp : public RawInstance {
   VISIT_TO(RawObject*, external_two_byte_sticky_function_)
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  // The same pattern may use different amount of registers if compiled
-  // for a one-byte target than a two-byte target. For example, we do not
-  // need to allocate registers to check whether the current position is within
-  // a surrogate pair when matching a Unicode pattern against a one-byte string.
-  intptr_t num_one_byte_registers_;
-  intptr_t num_two_byte_registers_;
+  intptr_t num_registers_;
 
   // A bitfield with two fields:
   // type: Uninitialized, simple or complex.
-  // flags: Represents global/local, case insensitive, multiline, unicode,
-  //        dotAll.
+  // flags: Represents global/local, case insensitive, multiline.
   int8_t type_flags_;
 };
 

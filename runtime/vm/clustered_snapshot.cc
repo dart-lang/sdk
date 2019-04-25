@@ -3630,8 +3630,7 @@ class RegExpSerializationCluster : public SerializationCluster {
       RawRegExp* regexp = objects_[i];
       AutoTraceObject(regexp);
       WriteFromTo(regexp);
-      s->Write<int32_t>(regexp->ptr()->num_one_byte_registers_);
-      s->Write<int32_t>(regexp->ptr()->num_two_byte_registers_);
+      s->Write<int32_t>(regexp->ptr()->num_registers_);
       s->Write<int8_t>(regexp->ptr()->type_flags_);
     }
   }
@@ -3662,8 +3661,7 @@ class RegExpDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(regexp, kRegExpCid,
                                      RegExp::InstanceSize());
       ReadFromTo(regexp);
-      regexp->ptr()->num_one_byte_registers_ = d->Read<int32_t>();
-      regexp->ptr()->num_two_byte_registers_ = d->Read<int32_t>();
+      regexp->ptr()->num_registers_ = d->Read<int32_t>();
       regexp->ptr()->type_flags_ = d->Read<int8_t>();
     }
   }

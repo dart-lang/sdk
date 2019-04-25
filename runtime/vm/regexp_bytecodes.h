@@ -55,19 +55,17 @@ V(CHECK_LT,          35, 8)   /* bc8 pad8 uc16 addr32                       */ \
 V(CHECK_GT,          36, 8)   /* bc8 pad8 uc16 addr32                       */ \
 V(CHECK_NOT_BACK_REF, 37, 8)  /* bc8 reg_idx24 addr32                       */ \
 V(CHECK_NOT_BACK_REF_NO_CASE, 38, 8) /* bc8 reg_idx24 addr32                */ \
-V(CHECK_NOT_BACK_REF_NO_CASE_UNICODE, 39, 8) /* bc8 reg_idx24 addr32        */ \
-V(CHECK_NOT_BACK_REF_BACKWARD, 40, 8) /* bc8 reg_idx24 addr32               */ \
-V(CHECK_NOT_BACK_REF_NO_CASE_BACKWARD, 41, 8) /* bc8 reg_idx24 addr32       */ \
-V(CHECK_NOT_BACK_REF_NO_CASE_UNICODE_BACKWARD, 42, 8) /*bc8 reg_idx24 addr32*/ \
-V(CHECK_NOT_REGS_EQUAL, 43, 12) /* bc8 regidx24 reg_idx32 addr32            */ \
-V(CHECK_REGISTER_LT, 44, 12)  /* bc8 reg_idx24 value32 addr32               */ \
-V(CHECK_REGISTER_GE, 45, 12)  /* bc8 reg_idx24 value32 addr32               */ \
-V(CHECK_REGISTER_EQ_POS, 46, 8) /* bc8 reg_idx24 addr32                     */ \
-V(CHECK_AT_START,    47, 8)   /* bc8 pad24 addr32                           */ \
-V(CHECK_NOT_AT_START, 48, 8)  /* bc8 offset24 addr32                        */ \
-V(CHECK_GREEDY,      49, 8)   /* bc8 pad24 addr32                           */ \
-V(ADVANCE_CP_AND_GOTO, 50, 8) /* bc8 offset24 addr32                        */ \
-V(SET_CURRENT_POSITION_FROM_END, 51, 4) /* bc8 idx24                        */
+V(CHECK_NOT_BACK_REF_BACKWARD, 39, 8) /* bc8 reg_idx24 addr32               */ \
+V(CHECK_NOT_BACK_REF_NO_CASE_BACKWARD, 40, 8) /* bc8 reg_idx24 addr32       */ \
+V(CHECK_NOT_REGS_EQUAL, 41, 12) /* bc8 regidx24 reg_idx32 addr32            */ \
+V(CHECK_REGISTER_LT, 42, 12)  /* bc8 reg_idx24 value32 addr32               */ \
+V(CHECK_REGISTER_GE, 43, 12)  /* bc8 reg_idx24 value32 addr32               */ \
+V(CHECK_REGISTER_EQ_POS, 44, 8) /* bc8 reg_idx24 addr32                     */ \
+V(CHECK_AT_START,    45, 8)   /* bc8 pad24 addr32                           */ \
+V(CHECK_NOT_AT_START, 46, 8)  /* bc8 offset24 addr32                        */ \
+V(CHECK_GREEDY,      47, 8)   /* bc8 pad24 addr32                           */ \
+V(ADVANCE_CP_AND_GOTO, 48, 8) /* bc8 offset24 addr32                        */ \
+V(SET_CURRENT_POSITION_FROM_END, 49, 4) /* bc8 idx24                        */
 
 // clang-format on
 

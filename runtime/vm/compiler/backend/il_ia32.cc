@@ -4459,7 +4459,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
+LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   const intptr_t kNumTemps = 0;
@@ -4473,7 +4473,8 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
   return summary;
 }
 
-void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
   // Save ESP. EDI is chosen because it is callee saved so we do not need to
   // back it up before calling into the runtime.
   static const Register kSavedSPReg = EDI;
@@ -4488,7 +4489,7 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Call the function.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
 
-  // Restore ESP and pop the old value off the stack.
+  // Restore ESP.
   __ movl(ESP, kSavedSPReg);
 }
 

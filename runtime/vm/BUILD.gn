@@ -60,9 +60,8 @@ config("libdart_vm_config") {
 
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
-  extra_deps = [ "//third_party/icu" ]
   if (is_fuchsia) {
-    extra_deps += [
+    extra_deps = [
       # TODO(US-399): Remove time_service specific code when it is no longer
       # necessary.
       "//sdk/lib/sys/cpp",

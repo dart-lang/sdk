@@ -166,10 +166,11 @@ void IrregexpCompilationPipeline::ParseFunction(
   RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
 
   const String& pattern = String::Handle(regexp.pattern());
+  const bool multiline = regexp.is_multi_line();
 
   RegExpCompileData* compile_data = new (zone) RegExpCompileData();
   // Parsing failures are handled in the RegExp factory constructor.
-  RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
+  RegExpParser::ParseRegExp(pattern, multiline, compile_data);
 
   regexp.set_num_bracket_expressions(compile_data->capture_count);
   regexp.set_capture_name_map(compile_data->capture_name_map);

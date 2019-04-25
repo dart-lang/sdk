@@ -1515,7 +1515,7 @@ CompileType MathMinMaxInstr::ComputeType() const {
   return CompileType::FromCid(result_cid_);
 }
 
-CompileType CaseInsensitiveCompareInstr::ComputeType() const {
+CompileType CaseInsensitiveCompareUC16Instr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
 }
 

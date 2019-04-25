@@ -1272,8 +1272,8 @@ void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
   }
 }
 
-void ConstantPropagator::VisitCaseInsensitiveCompare(
-    CaseInsensitiveCompareInstr* instr) {
+void ConstantPropagator::VisitCaseInsensitiveCompareUC16(
+    CaseInsensitiveCompareUC16Instr* instr) {
   SetValue(instr, non_constant_);
 }
 

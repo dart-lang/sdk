@@ -86,7 +86,7 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ movl(Address(ESP, 2 * kWordSize), EAX);  // Push argument 3.
   __ LoadObject(EAX, length);
   __ movl(Address(ESP, 3 * kWordSize), EAX);  // Push argument 4.
-  __ CallRuntime(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  __ CallRuntime(kCaseInsensitiveCompareUC16RuntimeEntry, 4);
   __ leave();
   __ ret();  // Return value is in EAX.
 }

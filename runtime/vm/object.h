@@ -9105,55 +9105,6 @@ class StackTrace : public Instance {
   friend class Debugger;
 };
 
-class RegExpFlags {
- public:
-  // Flags are passed to a regex object as follows:
-  // 'i': ignore case, 'g': do global matches, 'm': pattern is multi line,
-  // 'u': pattern is full Unicode, not just BMP, 's': '.' in pattern matches
-  // all characters including line terminators.
-  enum Flags {
-    kNone = 0,
-    kGlobal = 1,
-    kIgnoreCase = 2,
-    kMultiLine = 4,
-    kUnicode = 8,
-    kDotAll = 16,
-  };
-
-  static const int kDefaultFlags = 0;
-
-  RegExpFlags() : value_(kDefaultFlags) {}
-  explicit RegExpFlags(int value) : value_(value) {}
-
-  inline bool IsGlobal() const { return (value_ & kGlobal) != 0; }
-  inline bool IgnoreCase() const { return (value_ & kIgnoreCase) != 0; }
-  inline bool IsMultiLine() const { return (value_ & kMultiLine) != 0; }
-  inline bool IsUnicode() const { return (value_ & kUnicode) != 0; }
-  inline bool IsDotAll() const { return (value_ & kDotAll) != 0; }
-
-  inline bool NeedsUnicodeCaseEquivalents() {
-    // Both unicode and ignore_case flags are set. We need to use ICU to find
-    // the closure over case equivalents.
-    return IsUnicode() && IgnoreCase();
-  }
-
-  void SetGlobal() { value_ |= kGlobal; }
-  void SetIgnoreCase() { value_ |= kIgnoreCase; }
-  void SetMultiLine() { value_ |= kMultiLine; }
-  void SetUnicode() { value_ |= kUnicode; }
-  void SetDotAll() { value_ |= kDotAll; }
-
-  const char* ToCString() const;
-
-  int value() const { return value_; }
-
-  bool operator==(const RegExpFlags& other) { return value_ == other.value_; }
-  bool operator!=(const RegExpFlags& other) { return value_ != other.value_; }
-
- private:
-  int value_;
-};
-
 // Internal JavaScript regular expression object.
 class RegExp : public Instance {
  public:
@@ -9167,11 +9118,20 @@ class RegExp : public Instance {
     kComplex = 2,
   };
 
+  // Flags are passed to a regex object as follows:
+  // 'i': ignore case, 'g': do global matches, 'm': pattern is multi line.
+  enum Flags {
+    kNone = 0,
+    kGlobal = 1,
+    kIgnoreCase = 2,
+    kMultiLine = 4,
+  };
+
   enum {
     kTypePos = 0,
     kTypeSize = 2,
     kFlagsPos = 2,
-    kFlagsSize = 5,
+    kFlagsSize = 4,
   };
 
   class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
@@ -9181,10 +9141,11 @@ class RegExp : public Instance {
   bool is_simple() const { return (type() == kSimple); }
   bool is_complex() const { return (type() == kComplex); }
 
-  intptr_t num_registers(bool is_one_byte) const {
-    return is_one_byte ? raw_ptr()->num_one_byte_registers_
-                       : raw_ptr()->num_two_byte_registers_;
-  }
+  bool is_global() const { return (flags() & kGlobal); }
+  bool is_ignore_case() const { return (flags() & kIgnoreCase); }
+  bool is_multi_line() const { return (flags() & kMultiLine); }
+
+  intptr_t num_registers() const { return raw_ptr()->num_registers_; }
 
   RawString* pattern() const { return raw_ptr()->pattern_; }
   RawSmi* num_bracket_expressions() const {
@@ -9248,48 +9209,15 @@ class RegExp : public Instance {
 
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
-  void set_is_global() const {
-    RegExpFlags f = flags();
-    f.SetGlobal();
-    set_flags(f);
-  }
-  void set_is_ignore_case() const {
-    RegExpFlags f = flags();
-    f.SetIgnoreCase();
-    set_flags(f);
-  }
-  void set_is_multi_line() const {
-    RegExpFlags f = flags();
-    f.SetMultiLine();
-    set_flags(f);
-  }
-  void set_is_unicode() const {
-    RegExpFlags f = flags();
-    f.SetUnicode();
-    set_flags(f);
-  }
-  void set_is_dot_all() const {
-    RegExpFlags f = flags();
-    f.SetDotAll();
-    set_flags(f);
-  }
+  void set_is_global() const { set_flags(flags() | kGlobal); }
+  void set_is_ignore_case() const { set_flags(flags() | kIgnoreCase); }
+  void set_is_multi_line() const { set_flags(flags() | kMultiLine); }
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
-  void set_num_registers(bool is_one_byte, intptr_t value) const {
-    if (is_one_byte) {
-      StoreNonPointer(&raw_ptr()->num_one_byte_registers_, value);
-    } else {
-      StoreNonPointer(&raw_ptr()->num_two_byte_registers_, value);
-    }
+  void set_num_registers(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->num_registers_, value);
   }
 
-  RegExpFlags flags() const {
-    return RegExpFlags(FlagsBits::decode(raw_ptr()->type_flags_));
-  }
-  void set_flags(RegExpFlags flags) const {
-    StoreNonPointer(&raw_ptr()->type_flags_,
-                    FlagsBits::update(flags.value(), raw_ptr()->type_flags_));
-  }
   const char* Flags() const;
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
@@ -9305,8 +9233,13 @@ class RegExp : public Instance {
     StoreNonPointer(&raw_ptr()->type_flags_,
                     TypeBits::update(type, raw_ptr()->type_flags_));
   }
+  void set_flags(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->type_flags_,
+                    FlagsBits::update(value, raw_ptr()->type_flags_));
+  }
 
   RegExType type() const { return TypeBits::decode(raw_ptr()->type_flags_); }
+  intptr_t flags() const { return FlagsBits::decode(raw_ptr()->type_flags_); }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RegExp, Instance);
   friend class Class;

@@ -349,14 +349,11 @@ void BytecodeRegExpMacroAssembler::CheckNotBackReference(
 void BytecodeRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     intptr_t start_reg,
     bool read_backward,
-    bool unicode,
     BlockLabel* on_not_equal) {
   ASSERT(start_reg >= 0);
   ASSERT(start_reg <= kMaxRegister);
-  Emit(read_backward ? (unicode ? BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE_BACKWARD
-                                : BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD)
-                     : (unicode ? BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE
-                                : BC_CHECK_NOT_BACK_REF_NO_CASE),
+  Emit(read_backward ? BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD
+                     : BC_CHECK_NOT_BACK_REF_NO_CASE,
        start_reg);
   EmitOrLink(on_not_equal);
 }
@@ -437,10 +434,11 @@ static intptr_t Prepare(const RegExp& regexp,
     }
 #endif  // !defined(PRODUCT)
 
+    const bool multiline = regexp.is_multi_line();
     RegExpCompileData* compile_data = new (zone) RegExpCompileData();
 
     // Parsing failures are handled in the RegExp factory constructor.
-    RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
+    RegExpParser::ParseRegExp(pattern, multiline, compile_data);
 
     regexp.set_num_bracket_expressions(compile_data->capture_count);
     regexp.set_capture_name_map(compile_data->capture_name_map);
@@ -453,15 +451,15 @@ static intptr_t Prepare(const RegExp& regexp,
     RegExpEngine::CompilationResult result = RegExpEngine::CompileBytecode(
         compile_data, regexp, is_one_byte, sticky, zone);
     ASSERT(result.bytecode != NULL);
-    ASSERT(regexp.num_registers(is_one_byte) == -1 ||
-           regexp.num_registers(is_one_byte) == result.num_registers);
-    regexp.set_num_registers(is_one_byte, result.num_registers);
+    ASSERT((regexp.num_registers() == -1) ||
+           (regexp.num_registers() == result.num_registers));
+    regexp.set_num_registers(result.num_registers);
     regexp.set_bytecode(is_one_byte, sticky, *(result.bytecode));
   }
 
-  ASSERT(regexp.num_registers(is_one_byte) != -1);
+  ASSERT(regexp.num_registers() != -1);
 
-  return regexp.num_registers(is_one_byte) +
+  return regexp.num_registers() +
          (Smi::Value(regexp.num_bracket_expressions()) + 1) * 2;
 }
 

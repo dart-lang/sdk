@@ -47,22 +47,18 @@ class JSSyntaxRegExp implements RegExp {
   var _nativeGlobalRegExp;
   var _nativeAnchoredRegExp;
 
-  String toString() =>
-      'RegExp/$pattern/' + JS('String', '#.flags', _nativeRegExp);
+  String toString() => "RegExp/$pattern/";
 
   JSSyntaxRegExp(String source,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      bool unicode = false,
-      bool dotAll = false})
+      {bool multiLine = false, bool caseSensitive = true})
       : this.pattern = source,
-        this._nativeRegExp = makeNative(
-            source, multiLine, caseSensitive, unicode, dotAll, false);
+        this._nativeRegExp =
+            makeNative(source, multiLine, caseSensitive, false);
 
   get _nativeGlobalVersion {
     if (_nativeGlobalRegExp != null) return _nativeGlobalRegExp;
-    return _nativeGlobalRegExp = makeNative(
-        pattern, _isMultiLine, _isCaseSensitive, _isUnicode, _isDotAll, true);
+    return _nativeGlobalRegExp =
+        makeNative(pattern, _isMultiLine, _isCaseSensitive, true);
   }
 
   get _nativeAnchoredVersion {
@@ -72,21 +68,17 @@ class JSSyntaxRegExp implements RegExp {
     // that it tries, and you can see if the original regexp matched, or it
     // was the added zero-width match that matched, by looking at the last
     // capture. If it is a String, the match participated, otherwise it didn't.
-    return _nativeAnchoredRegExp = makeNative("$pattern|()", _isMultiLine,
-        _isCaseSensitive, _isUnicode, _isDotAll, true);
+    return _nativeAnchoredRegExp =
+        makeNative("$pattern|()", _isMultiLine, _isCaseSensitive, true);
   }
 
   bool get _isMultiLine => JS("bool", "#.multiline", _nativeRegExp);
   bool get _isCaseSensitive => JS("bool", "!#.ignoreCase", _nativeRegExp);
-  bool get _isUnicode => JS("bool", "#.unicode", _nativeRegExp);
-  bool get _isDotAll => JS("bool", "#.dotAll", _nativeRegExp);
 
   static makeNative(@nullCheck String source, bool multiLine,
-      bool caseSensitive, bool unicode, bool dotAll, bool global) {
+      bool caseSensitive, bool global) {
     String m = multiLine ? 'm' : '';
     String i = caseSensitive ? '' : 'i';
-    String u = unicode ? 'u' : '';
-    String s = dotAll ? 's' : '';
     String g = global ? 'g' : '';
     // We're using the JavaScript's try catch instead of the Dart one
     // to avoid dragging in Dart runtime support just because of using
@@ -95,7 +87,7 @@ class JSSyntaxRegExp implements RegExp {
         '',
         '(function() {'
         'try {'
-        'return new RegExp(#, # + # + # + # + #);'
+        'return new RegExp(#, # + # + #);'
         '} catch (e) {'
         'return e;'
         '}'
@@ -103,8 +95,6 @@ class JSSyntaxRegExp implements RegExp {
         source,
         m,
         i,
-        u,
-        s,
         g);
     if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
@@ -113,7 +103,7 @@ class JSSyntaxRegExp implements RegExp {
     throw FormatException("Illegal RegExp pattern: $source, $errorMessage");
   }
 
-  RegExpMatch firstMatch(@nullCheck String string) {
+  Match firstMatch(@nullCheck String string) {
     List m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp, string);
     if (m == null) return null;
     return _MatchImplementation(this, JSArray<String>.of(m));
@@ -130,7 +120,7 @@ class JSSyntaxRegExp implements RegExp {
     return null;
   }
 
-  Iterable<RegExpMatch> allMatches(@nullCheck String string,
+  Iterable<Match> allMatches(@nullCheck String string,
       [@nullCheck int start = 0]) {
     if (start < 0 || start > string.length) {
       throw RangeError.range(start, 0, string.length);
@@ -138,7 +128,7 @@ class JSSyntaxRegExp implements RegExp {
     return _AllMatchesIterable(this, string, start);
   }
 
-  RegExpMatch _execGlobal(String string, int start) {
+  Match _execGlobal(String string, int start) {
     Object regexp = _nativeGlobalVersion;
     JS("void", "#.lastIndex = #", regexp, start);
     List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
@@ -146,7 +136,7 @@ class JSSyntaxRegExp implements RegExp {
     return _MatchImplementation(this, JSArray<String>.of(match));
   }
 
-  RegExpMatch _execAnchored(String string, int start) {
+  Match _execAnchored(String string, int start) {
     Object regexp = _nativeAnchoredVersion;
     JS("void", "#.lastIndex = #", regexp, start);
     List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
@@ -158,7 +148,7 @@ class JSSyntaxRegExp implements RegExp {
     return _MatchImplementation(this, JSArray<String>.of(match));
   }
 
-  RegExpMatch matchAsPrefix(String string, [int start = 0]) {
+  Match matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
       throw RangeError.range(start, 0, string.length);
     }
@@ -167,8 +157,6 @@ class JSSyntaxRegExp implements RegExp {
 
   bool get isMultiLine => _isMultiLine;
   bool get isCaseSensitive => _isCaseSensitive;
-  bool get isUnicode => _isUnicode;
-  bool get isDotAll => _isDotAll;
 }
 
 class _MatchImplementation implements RegExpMatch {
@@ -219,34 +207,25 @@ class _MatchImplementation implements RegExpMatch {
   }
 }
 
-class _AllMatchesIterable extends IterableBase<RegExpMatch> {
+class _AllMatchesIterable extends IterableBase<Match> {
   final JSSyntaxRegExp _re;
   final String _string;
   final int _start;
 
   _AllMatchesIterable(this._re, this._string, this._start);
 
-  Iterator<RegExpMatch> get iterator =>
-      _AllMatchesIterator(_re, _string, _start);
+  Iterator<Match> get iterator => _AllMatchesIterator(_re, _string, _start);
 }
 
-class _AllMatchesIterator implements Iterator<RegExpMatch> {
+class _AllMatchesIterator implements Iterator<Match> {
   final JSSyntaxRegExp _regExp;
   String _string;
   int _nextIndex;
-  RegExpMatch _current;
+  Match _current;
 
   _AllMatchesIterator(this._regExp, this._string, this._nextIndex);
 
-  RegExpMatch get current => _current;
-
-  static bool _isLeadSurrogate(int c) {
-    return c >= 0xd800 && c <= 0xdbff;
-  }
-
-  static bool _isTrailSurrogate(int c) {
-    return c >= 0xdc00 && c <= 0xdfff;
-  }
+  Match get current => _current;
 
   bool moveNext() {
     if (_string == null) return false;
@@ -256,15 +235,6 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
         _current = match;
         int nextIndex = match.end;
         if (match.start == nextIndex) {
-          // Zero-width match. Advance by one more, unless the regexp
-          // is in unicode mode and it would put us within a surrogate
-          // pair. In that case, advance past the code point as a whole.
-          if (_regExp.isUnicode &&
-              _nextIndex + 1 < _string.length &&
-              _isLeadSurrogate(_string.codeUnitAt(_nextIndex)) &&
-              _isTrailSurrogate(_string.codeUnitAt(_nextIndex + 1))) {
-            nextIndex++;
-          }
           nextIndex++;
         }
         _nextIndex = nextIndex;
@@ -278,6 +248,6 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
 }
 
 /** Find the first match of [regExp] in [string] at or after [start]. */
-RegExpMatch firstMatchAfter(JSSyntaxRegExp regExp, String string, int start) {
+Match firstMatchAfter(JSSyntaxRegExp regExp, String string, int start) {
   return regExp._execGlobal(string, start);
 }

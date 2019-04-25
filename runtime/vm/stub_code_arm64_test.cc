@@ -83,7 +83,7 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ LoadObject(R1, lhs_index);
   __ LoadObject(R2, rhs_index);
   __ LoadObject(R3, length);
-  __ CallRuntime(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
+  __ CallRuntime(kCaseInsensitiveCompareUC16RuntimeEntry, 4);
   __ LeaveDartFrame();
   __ ret();  // Return value is in R0.
 }

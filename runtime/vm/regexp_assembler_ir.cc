@@ -821,7 +821,6 @@ void IRRegExpMacroAssembler::CheckGreedyLoop(BlockLabel* on_equal) {
 void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     intptr_t start_reg,
     bool read_backward,
-    bool unicode,
     BlockLabel* on_no_match) {
   TAG();
   ASSERT(start_reg + 1 <= registers_count_);
@@ -968,17 +967,9 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     Value* rhs_index_value = Bind(LoadLocal(capture_start_index_));
     Value* length_value = Bind(LoadLocal(capture_length_));
 
-    Definition* is_match_def;
-
-    if (unicode) {
-      is_match_def = new (Z) CaseInsensitiveCompareInstr(
-          string_value, lhs_index_value, rhs_index_value, length_value,
-          kCaseInsensitiveCompareUTF16RuntimeEntry, specialization_cid_);
-    } else {
-      is_match_def = new (Z) CaseInsensitiveCompareInstr(
-          string_value, lhs_index_value, rhs_index_value, length_value,
-          kCaseInsensitiveCompareUCS2RuntimeEntry, specialization_cid_);
-    }
+    Definition* is_match_def = new (Z) CaseInsensitiveCompareUC16Instr(
+        string_value, lhs_index_value, rhs_index_value, length_value,
+        specialization_cid_);
 
     BranchOrBacktrack(Comparison(kNE, is_match_def, BoolConstant(true)),
                       on_no_match);

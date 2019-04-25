@@ -1487,8 +1487,8 @@ void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  jsobj.AddProperty("isCaseSensitive", !flags().IgnoreCase());
-  jsobj.AddProperty("isMultiLine", flags().IsMultiLine());
+  jsobj.AddProperty("isCaseSensitive", !is_ignore_case());
+  jsobj.AddProperty("isMultiLine", is_multi_line());
 
   if (!FLAG_interpret_irregexp) {
     Function& func = Function::Handle();

@@ -108,8 +108,7 @@ class RegExpAssertion : public RegExpTree {
     BOUNDARY,
     NON_BOUNDARY
   };
-  RegExpAssertion(AssertionType type, RegExpFlags flags)
-      : assertion_type_(type), flags_(flags) {}
+  explicit RegExpAssertion(AssertionType type) : assertion_type_(type) {}
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
   virtual RegExpAssertion* AsAssertion();
@@ -122,7 +121,6 @@ class RegExpAssertion : public RegExpTree {
 
  private:
   AssertionType assertion_type_;
-  RegExpFlags flags_;
 };
 
 class CharacterSet : public ValueObject {
@@ -152,40 +150,18 @@ class CharacterSet : public ValueObject {
 
 class RegExpCharacterClass : public RegExpTree {
  public:
-  enum Flag {
-    // The character class is negated and should match everything but the
-    // specified ranges.
-    NEGATED = 1 << 0,
-    // The character class contains part of a split surrogate and should not
-    // be unicode-desugared.
-    CONTAINS_SPLIT_SURROGATE = 1 << 1,
-  };
-  using CharacterClassFlags = intptr_t;
-  static inline CharacterClassFlags DefaultFlags() { return 0; }
-
-  RegExpCharacterClass(
-      ZoneGrowableArray<CharacterRange>* ranges,
-      RegExpFlags flags,
-      CharacterClassFlags character_class_flags = DefaultFlags())
-      : set_(ranges),
-        flags_(flags),
-        character_class_flags_(character_class_flags) {
-    // Convert the empty set of ranges to the negated Everything() range.
-    if (ranges->is_empty()) {
-      ranges->Add(CharacterRange::Everything());
-      character_class_flags_ ^= NEGATED;
-    }
-  }
-  RegExpCharacterClass(uint16_t type, RegExpFlags flags)
-      : set_(type), flags_(flags), character_class_flags_(0) {}
+  RegExpCharacterClass(ZoneGrowableArray<CharacterRange>* ranges,
+                       bool is_negated)
+      : set_(ranges), is_negated_(is_negated) {}
+  explicit RegExpCharacterClass(uint16_t type)
+      : set_(type), is_negated_(false) {}
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
   virtual RegExpCharacterClass* AsCharacterClass();
   virtual bool IsCharacterClass() const;
   virtual bool IsTextElement() const { return true; }
   virtual intptr_t min_match() const { return 1; }
-  // The character class may match two code units for unicode regexps.
-  virtual intptr_t max_match() const { return 2; }
+  virtual intptr_t max_match() const { return 1; }
   virtual void AppendToText(RegExpText* text);
   CharacterSet character_set() const { return set_; }
   // TODO(lrn): Remove need for complex version if is_standard that
@@ -204,22 +180,16 @@ class RegExpCharacterClass : public RegExpTree {
   // * : All characters
   uint16_t standard_type() const { return set_.standard_set_type(); }
   ZoneGrowableArray<CharacterRange>* ranges() { return set_.ranges(); }
-  bool is_negated() const { return character_class_flags_ & NEGATED; }
-  RegExpFlags flags() const { return flags_; }
-  bool contains_split_surrogate() const {
-    return character_class_flags_ & CONTAINS_SPLIT_SURROGATE;
-  }
+  bool is_negated() const { return is_negated_; }
 
  private:
   CharacterSet set_;
-  RegExpFlags flags_;
-  CharacterClassFlags character_class_flags_;
+  bool is_negated_;
 };
 
 class RegExpAtom : public RegExpTree {
  public:
-  RegExpAtom(ZoneGrowableArray<uint16_t>* data, RegExpFlags flags)
-      : data_(data), flags_(flags) {}
+  explicit RegExpAtom(ZoneGrowableArray<uint16_t>* data) : data_(data) {}
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
   virtual RegExpAtom* AsAtom();
@@ -230,12 +200,9 @@ class RegExpAtom : public RegExpTree {
   virtual void AppendToText(RegExpText* text);
   ZoneGrowableArray<uint16_t>* data() const { return data_; }
   intptr_t length() const { return data_->length(); }
-  RegExpFlags flags() const { return flags_; }
-  bool ignore_case() const { return flags_.IgnoreCase(); }
 
  private:
   ZoneGrowableArray<uint16_t>* data_;
-  const RegExpFlags flags_;
 };
 
 class RegExpText : public RegExpTree {
@@ -403,10 +370,9 @@ class RegExpLookaround : public RegExpTree {
 
 class RegExpBackReference : public RegExpTree {
  public:
-  explicit RegExpBackReference(RegExpFlags flags)
-      : capture_(nullptr), name_(nullptr), flags_(flags) {}
-  RegExpBackReference(RegExpCapture* capture, RegExpFlags flags)
-      : capture_(capture), name_(nullptr), flags_(flags) {}
+  RegExpBackReference() : capture_(nullptr), name_(nullptr) {}
+  explicit RegExpBackReference(RegExpCapture* capture)
+      : capture_(capture), name_(nullptr) {}
   virtual void* Accept(RegExpVisitor* visitor, void* data);
   virtual RegExpNode* ToNode(RegExpCompiler* compiler, RegExpNode* on_success);
   virtual RegExpBackReference* AsBackReference();
@@ -425,7 +391,6 @@ class RegExpBackReference : public RegExpTree {
  private:
   RegExpCapture* capture_;
   const ZoneGrowableArray<uint16_t>* name_;
-  RegExpFlags flags_;
 };
 
 class RegExpEmpty : public RegExpTree {

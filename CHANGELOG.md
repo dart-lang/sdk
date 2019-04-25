@@ -1,32 +1,3 @@
-## 2.3.0-dev.XX.0
-(Add new changes here, and they will be copied to the change section for the
- next dev version)
-
-### Core library changes
-
-#### `dart:core`
-
-* **Breaking change**: The `RegExp` interface has been extended with two new
-  constructor named parameters:
-
-  * `unicode:` (`bool`, default: `false`), for Unicode patterns , and
-  * `dotAll:` (`bool`, default: `false`), to change the matching behavior of
-    '.' to also match line terminating characters.
-
-  Appropriate properties for these named parameters have also been added so
-  their use can be detected after construction.
-
-  In addition, `RegExp` methods that originally returned `Match` objects
-  now return a more specific subtype, `RegExpMatch`, which adds two features:
-
-  * `Iterable<String> groupNames`, a property that contains the names of all
-    named capture groups, and
-  * `String namedGroup(String name)`: a method that retrieves the match for
-    the given named capture group
-
-  This change only affects implementers of the `RegExp` interface; current
-  code using Dart regular expressions will not be affected.
-
 ## 2.3.0
 
 The focus in this release is on the new "UI-as-code" language features which

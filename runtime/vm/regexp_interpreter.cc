@@ -24,25 +24,27 @@ static bool BackRefMatchesNoCase(Canonicalize* interp_canonicalize,
                                  intptr_t from,
                                  intptr_t current,
                                  intptr_t len,
-                                 const String& subject,
-                                 bool unicode);
+                                 const String& subject);
 
 template <>
 bool BackRefMatchesNoCase<uint16_t>(Canonicalize* interp_canonicalize,
                                     intptr_t from,
                                     intptr_t current,
                                     intptr_t len,
-                                    const String& subject,
-                                    bool unicode) {
-  Bool& ret = Bool::Handle();
-  if (unicode) {
-    ret = CaseInsensitiveCompareUTF16(subject.raw(), Smi::New(from),
-                                      Smi::New(current), Smi::New(len));
-  } else {
-    ret = CaseInsensitiveCompareUCS2(subject.raw(), Smi::New(from),
-                                     Smi::New(current), Smi::New(len));
+                                    const String& subject) {
+  for (int i = 0; i < len; i++) {
+    int32_t old_char = subject.CharAt(from++);
+    int32_t new_char = subject.CharAt(current++);
+    if (old_char == new_char) continue;
+    int32_t old_string[1] = {old_char};
+    int32_t new_string[1] = {new_char};
+    interp_canonicalize->get(old_char, '\0', old_string);
+    interp_canonicalize->get(new_char, '\0', new_string);
+    if (old_string[0] != new_string[0]) {
+      return false;
+    }
   }
-  return ret.value();
+  return true;
 }
 
 template <>
@@ -50,9 +52,7 @@ bool BackRefMatchesNoCase<uint8_t>(Canonicalize* interp_canonicalize,
                                    intptr_t from,
                                    intptr_t current,
                                    intptr_t len,
-                                   const String& subject,
-                                   bool unicode) {
-  // For Latin1 characters the unicode flag makes no difference.
+                                   const String& subject) {
   for (int i = 0; i < len; i++) {
     unsigned int old_char = subject.CharAt(from++);
     unsigned int new_char = subject.CharAt(current++);
@@ -513,11 +513,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
         pc += BC_CHECK_NOT_BACK_REF_LENGTH;
         break;
       }
-      BYTECODE(CHECK_NOT_BACK_REF_NO_CASE_UNICODE)
-      FALL_THROUGH;
       BYTECODE(CHECK_NOT_BACK_REF_NO_CASE) {
-        const bool unicode =
-            (insn & BYTECODE_MASK) == BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE;
         int from = registers[insn >> BYTECODE_SHIFT];
         int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
         if (from < 0 || len <= 0) {
@@ -529,7 +525,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
           break;
         } else {
           if (BackRefMatchesNoCase<Char>(&canonicalize, from, current, len,
-                                         subject, unicode)) {
+                                         subject)) {
             current += len;
             pc += BC_CHECK_NOT_BACK_REF_NO_CASE_LENGTH;
           } else {
@@ -566,11 +562,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
         pc += BC_CHECK_NOT_BACK_REF_BACKWARD_LENGTH;
         break;
       }
-      BYTECODE(CHECK_NOT_BACK_REF_NO_CASE_UNICODE_BACKWARD)
-      FALL_THROUGH;
       BYTECODE(CHECK_NOT_BACK_REF_NO_CASE_BACKWARD) {
-        bool unicode = (insn & BYTECODE_MASK) ==
-                       BC_CHECK_NOT_BACK_REF_NO_CASE_UNICODE_BACKWARD;
         int from = registers[insn >> BYTECODE_SHIFT];
         int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
         if (from < 0 || len <= 0) {
@@ -582,7 +574,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
           break;
         } else {
           if (BackRefMatchesNoCase<Char>(&canonicalize, from, current - len,
-                                         len, subject, unicode)) {
+                                         len, subject)) {
             current -= len;
             pc += BC_CHECK_NOT_BACK_REF_NO_CASE_BACKWARD_LENGTH;
           } else {

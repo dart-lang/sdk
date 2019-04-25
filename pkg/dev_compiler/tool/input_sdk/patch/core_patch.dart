@@ -547,15 +547,9 @@ class bool {
 class RegExp {
   @patch
   factory RegExp(String source,
-          {bool multiLine = false,
-          bool caseSensitive = true,
-          bool unicode = false,
-          bool dotAll = false}) =>
+          {bool multiLine = false, bool caseSensitive = true}) =>
       JSSyntaxRegExp(source,
-          multiLine: multiLine,
-          caseSensitive: caseSensitive,
-          unicode: unicode,
-          dotAll: dotAll);
+          multiLine: multiLine, caseSensitive: caseSensitive);
 
   @patch
   static String escape(String text) => quoteStringForRegExp(text);
