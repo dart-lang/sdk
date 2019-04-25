@@ -76,5 +76,8 @@ linter:
 
 class _TestSource implements Source {
   @override
+  String get fullName => '/package/lib/test.dart';
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

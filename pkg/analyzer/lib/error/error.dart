@@ -4,8 +4,10 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -747,7 +749,7 @@ ErrorCode errorCodeByUniqueName(String uniqueName) {
  *
  * See [AnalysisErrorListener].
  */
-class AnalysisError {
+class AnalysisError implements Diagnostic {
   /**
    * An empty array of errors used when no errors are expected.
    */
@@ -785,10 +787,9 @@ class AnalysisError {
    */
   final ErrorCode errorCode;
 
-  /**
-   * The localized error message.
-   */
-  String _message;
+  DiagnosticMessage _problemMessage;
+
+  List<DiagnosticMessage> _contextMessages;
 
   /**
    * The correction to be displayed for this error, or `null` if there is no
@@ -802,43 +803,40 @@ class AnalysisError {
   final Source source;
 
   /**
-   * The character offset from the beginning of the source (zero based) where
-   * the error occurred.
-   */
-  int offset = 0;
-
-  /**
-   * The number of characters from the offset to the end of the source which
-   * encompasses the compilation error.
-   */
-  int length = 0;
-
-  /**
-   * A flag indicating whether this error can be shown to be a non-issue because
-   * of the result of type propagation.
-   */
-  bool isStaticOnly = false;
-
-  /**
    * Initialize a newly created analysis error. The error is associated with the
    * given [source] and is located at the given [offset] with the given
    * [length]. The error will have the given [errorCode] and the list of
-   * [arguments] will be used to complete the message.
+   * [arguments] will be used to complete the message and correction. If any
+   * [contextMessages] are provided, they will be recorded with the error.
    */
-  AnalysisError(this.source, this.offset, this.length, this.errorCode,
-      [List<Object> arguments]) {
-    this._message = formatList(errorCode.message, arguments);
+  AnalysisError(this.source, int offset, int length, this.errorCode,
+      [List<Object> arguments, List<DiagnosticMessage> contextMessages]) {
+    String message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
       this._correction = formatList(correctionTemplate, arguments);
     }
+    _problemMessage = new DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: message,
+        offset: offset);
+    _contextMessages = contextMessages;
   }
 
   /**
    * Initialize a newly created analysis error with given values.
    */
-  AnalysisError.forValues(this.source, this.offset, this.length, this.errorCode,
-      this._message, this._correction);
+  AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
+      String message, this._correction) {
+    _problemMessage = new DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: message,
+        offset: offset);
+  }
+
+  List<DiagnosticMessage> get contextMessages => _contextMessages ?? const [];
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -848,18 +846,70 @@ class AnalysisError {
   String get correction => _correction;
 
   @override
+  String get correctionMessage => _correction;
+
+  @override
   int get hashCode {
     int hashCode = offset;
-    hashCode ^= (_message != null) ? _message.hashCode : 0;
+    hashCode ^= (message != null) ? message.hashCode : 0;
     hashCode ^= (source != null) ? source.hashCode : 0;
     return hashCode;
   }
 
   /**
+   * Return `true` if this error can be shown to be a non-issue because of the
+   * result of type propagation.
+   */
+  @Deprecated(
+      'Type propagation is no longer performed, so this will never be true')
+  bool get isStaticOnly => false;
+
+  @Deprecated(
+      'Type propagation is no longer performed, so this can never be true')
+  void set isStaticOnly(bool value) {}
+
+  /**
+   * The number of characters from the offset to the end of the source which
+   * encompasses the compilation error.
+   */
+  int get length => _problemMessage.length;
+
+  /**
    * Return the message to be displayed for this error. The message should
    * indicate what is wrong and why it is wrong.
    */
-  String get message => _message;
+  String get message => _problemMessage.message;
+
+  /**
+   * The character offset from the beginning of the source (zero based) where
+   * the error occurred.
+   */
+  int get offset => _problemMessage.offset;
+
+  /**
+   * The character offset from the beginning of the source (zero based) where
+   * the error occurred.
+   */
+  @Deprecated('Set the offset when the error is created')
+  set offset(int offset) {}
+
+  @override
+  DiagnosticMessage get problemMessage => _problemMessage;
+
+  @override
+  Severity get severity {
+    switch (errorCode.errorSeverity) {
+      case ErrorSeverity.ERROR:
+        return Severity.error;
+      case ErrorSeverity.WARNING:
+        return Severity.warning;
+      case ErrorSeverity.INFO:
+        return Severity.info;
+      default:
+        throw new StateError(
+            'Invalid error severity: ${errorCode.errorSeverity}');
+    }
+  }
 
   @override
   bool operator ==(Object other) {
@@ -875,11 +925,8 @@ class AnalysisError {
       if (offset != other.offset || length != other.length) {
         return false;
       }
-      if (isStaticOnly != other.isStaticOnly) {
-        return false;
-      }
       // Deep checks.
-      if (_message != other._message) {
+      if (message != other.message) {
         return false;
       }
       if (source != other.source) {
@@ -901,7 +948,7 @@ class AnalysisError {
     buffer.write(offset + length - 1);
     buffer.write("): ");
     //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
-    buffer.write(_message);
+    buffer.write(message);
     return buffer.toString();
   }
 
