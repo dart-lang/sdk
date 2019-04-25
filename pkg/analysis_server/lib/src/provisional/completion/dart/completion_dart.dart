@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -47,6 +48,12 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * enabled.
    */
   List<String> get enabledExperiments;
+
+  /**
+   * Return the feature set that was used to analyze the compilation unit in
+   * which suggestions are being made.
+   */
+  FeatureSet get featureSet;
 
   /**
    * Return `true` if free standing identifiers should be suggested

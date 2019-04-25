@@ -6,10 +6,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -295,6 +295,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (node.covariantKeyword == null) {
       _addSuggestion(Keyword.COVARIANT);
     }
+    if (node.fields.lateKeyword == null &&
+        request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE);
+    }
     if (!node.isStatic) {
       _addSuggestion(Keyword.STATIC);
     }
@@ -343,10 +347,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (entity is Token && (entity as Token).type == TokenType.CLOSE_PAREN) {
       _addSuggestion(Keyword.COVARIANT);
+      if (request.featureSet.isEnabled(Feature.non_nullable)) {
+        _addSuggestion(Keyword.REQUIRED);
+      }
     } else if (entity is FormalParameter) {
       Token beginToken = (entity as FormalParameter).beginToken;
       if (beginToken != null && request.target.offset == beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
+        if (request.featureSet.isEnabled(Feature.non_nullable)) {
+          _addSuggestion(Keyword.REQUIRED);
+        }
       }
     }
   }
@@ -645,6 +655,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VAR,
       Keyword.VOID
     ]);
+    if (request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE);
+    }
   }
 
   void _addClassDeclarationKeywords(ClassDeclaration node) {
@@ -661,9 +674,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   void _addCollectionElementKeywords() {
-    List<String> enabledExperiments = request.enabledExperiments;
-    if (enabledExperiments.contains(EnableString.control_flow_collections) ||
-        enabledExperiments.contains(EnableString.spread_collections)) {
+    if (request.featureSet.isEnabled(Feature.control_flow_collections)) {
       _addSuggestions([
         Keyword.FOR,
         Keyword.IF,
@@ -683,6 +694,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VAR,
       Keyword.VOID
     ], DART_RELEVANCE_HIGH);
+    if (request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE, DART_RELEVANCE_HIGH);
+    }
   }
 
   void _addExpressionKeywords(AstNode node) {
@@ -769,6 +783,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VOID,
       Keyword.WHILE
     ]);
+    if (request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE);
+    }
   }
 
   void _addSuggestion(Keyword keyword,
