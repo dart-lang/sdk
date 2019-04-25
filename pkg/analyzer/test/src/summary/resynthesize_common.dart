@@ -1005,7 +1005,7 @@ class C {
     experimentStatus = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library =
-        await checkLibrary('class C { late static const int i = 0; }');
+        await checkLibrary('class C { static late const int i = 0; }');
     checkElementText(library, r'''
 class C {
   static late const int i = 0;
@@ -1045,7 +1045,7 @@ class C {
   test_class_field_static_late() async {
     experimentStatus = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
-    var library = await checkLibrary('class C { late static int i; }');
+    var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''
 class C {
   static late int i;
