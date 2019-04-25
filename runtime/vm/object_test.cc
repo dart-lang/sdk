@@ -2488,7 +2488,7 @@ ISOLATE_UNIT_TEST_CASE(Code) {
 
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
-ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
+ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
   bool stack_trace_collection_enabled =
       MallocHooks::stack_trace_collection_enabled();
   MallocHooks::set_stack_trace_collection_enabled(false);
@@ -2525,7 +2525,7 @@ class CodeTestHelper {
 
 // Test for executability of generated instructions. The test crashes with a
 // segmentation fault when executing the writeable view.
-ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
+ISOLATE_UNIT_TEST_CASE(CodeExecutability) {
   bool stack_trace_collection_enabled =
       MallocHooks::stack_trace_collection_enabled();
   MallocHooks::set_stack_trace_collection_enabled(false);
@@ -3113,7 +3113,7 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
       !String::EqualsIgnoringPrivateKey(ext_mangled_name, ext_bad_bare_name));
 }
 
-ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(ArrayNew_Overflow_Crash, "Crash") {
+ISOLATE_UNIT_TEST_CASE(ArrayNew_Overflow_Crash) {
   Array::Handle(Array::New(Array::kMaxElements + 1));
 }
 

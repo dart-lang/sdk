@@ -451,45 +451,21 @@ class VMTestSuite extends TestSuite {
     var expectations = new ExpectationSet.read(statusFiles, configuration);
 
     try {
-      for (VmUnitTest test in await _listTests(hostRunnerPath)) {
-        _addTest(expectations, test);
+      for (var name in await _listTests(hostRunnerPath)) {
+        _addTest(expectations, name);
       }
 
       doTest = null;
       if (onDone != null) onDone();
-    } catch (error, s) {
+    } catch (error) {
       print("Fatal error occured: $error");
-      print(s);
       exit(1);
     }
   }
 
-  void _addTest(ExpectationSet testExpectations, VmUnitTest test) {
-    final fullName = 'cc/${test.name}';
+  void _addTest(ExpectationSet testExpectations, String testName) {
+    var fullName = 'cc/$testName';
     var expectations = testExpectations.expectations(fullName);
-
-    // Get the expectation from the cc/ test itself.
-    final Expectation testExpectation = Expectation.find(test.expectation);
-
-    // Update the legacy status-file based expectations to include
-    // [testExpectation].
-    if (testExpectation != Expectation.pass) {
-      expectations = Set<Expectation>.from(expectations)..add(testExpectation);
-      expectations.removeWhere((e) => e == Expectation.pass);
-    }
-
-    // Update the new workflow based expectations to include [testExpectation].
-    final Path filePath = null;
-    final Path originTestPath = null;
-    final hasSyntaxError = false;
-    final hasStaticWarning = false;
-    final hasCompileTimeError = testExpectation == Expectation.compileTimeError;
-    final hasRuntimeError = testExpectation == Expectation.runtimeError;
-    final hasCrash = testExpectation == Expectation.crash;
-    final optionsFromFile = const <String, dynamic>{};
-    final testInfo = TestInformation(filePath, originTestPath, optionsFromFile,
-        hasSyntaxError, hasCompileTimeError, hasRuntimeError, hasStaticWarning,
-        hasCrash: hasCrash);
 
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
@@ -504,14 +480,14 @@ class VMTestSuite extends TestSuite {
       args.insert(0, '--suppress-core-dump');
     }
 
-    args.add(test.name);
+    args.add(testName);
 
-    final command = Command.process(
+    var command = Command.process(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
-    enqueueNewTestCase(fullName, [command], expectations, testInfo);
+    enqueueNewTestCase(fullName, [command], expectations);
   }
 
-  Future<Iterable<VmUnitTest>> _listTests(String runnerPath) async {
+  Future<Iterable<String>> _listTests(String runnerPath) async {
     var result = await Process.run(runnerPath, ["--list"]);
     if (result.exitCode != 0) {
       throw "Failed to list tests: '$runnerPath --list'. "
@@ -521,19 +497,8 @@ class VMTestSuite extends TestSuite {
     return (result.stdout as String)
         .split('\n')
         .map((line) => line.trim())
-        .where((name) => name.isNotEmpty)
-        .map((String line) {
-      final parts = line.split(' ');
-      return VmUnitTest(parts[0].trim(), parts.skip(1).single);
-    });
+        .where((name) => name.isNotEmpty);
   }
-}
-
-class VmUnitTest {
-  final String name;
-  final String expectation;
-
-  VmUnitTest(this.name, this.expectation);
 }
 
 class TestInformation {
@@ -544,7 +509,6 @@ class TestInformation {
   bool hasCompileError;
   bool hasRuntimeError;
   bool hasStaticWarning;
-  bool hasCrash;
   String multitestKey;
 
   TestInformation(
@@ -555,8 +519,7 @@ class TestInformation {
       this.hasCompileError,
       this.hasRuntimeError,
       this.hasStaticWarning,
-      {this.multitestKey: '',
-      this.hasCrash: false}) {
+      {this.multitestKey: ''}) {
     assert(filePath.isAbsolute);
   }
 }

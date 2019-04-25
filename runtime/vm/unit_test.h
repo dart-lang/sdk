@@ -23,33 +23,27 @@
 
 // The VM_UNIT_TEST_CASE macro is used for tests that do not need any
 // default isolate or zone functionality.
-#define VM_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation)                  \
+#define VM_UNIT_TEST_CASE(name)                                                \
   void Dart_Test##name();                                                      \
-  static const dart::TestCase kRegister##name(Dart_Test##name, #name,          \
-                                              expectation);                    \
+  static const dart::TestCase kRegister##name(Dart_Test##name, #name);         \
   void Dart_Test##name()
-
-#define VM_UNIT_TEST_CASE(name) VM_UNIT_TEST_CASE_WITH_EXPECTATION(name, "Pass")
 
 // The UNIT_TEST_CASE macro is used for tests that do not require any
 // functionality provided by the VM. Tests declared using this macro will be run
 // after the VM is cleaned up.
-#define UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation)                     \
+#define UNIT_TEST_CASE(name)                                                   \
   void Dart_Test##name();                                                      \
-  static const dart::RawTestCase kRegister##name(Dart_Test##name, #name,       \
-                                                 expectation);                 \
+  static const dart::RawTestCase kRegister##name(Dart_Test##name, #name);      \
   void Dart_Test##name()
-
-#define UNIT_TEST_CASE(name) UNIT_TEST_CASE_WITH_EXPECTATION(name, "Pass")
 
 // The ISOLATE_UNIT_TEST_CASE macro is used for tests that need an isolate and
 // zone in order to test its functionality. This macro is used for tests that
 // are implemented using the VM code directly and do not use the Dart API
 // for calling into the VM. The safepoint execution state of threads using
 // this macro is transitioned from kThreadInNative to kThreadInVM.
-#define ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation)             \
+#define ISOLATE_UNIT_TEST_CASE(name)                                           \
   static void Dart_TestHelper##name(Thread* thread);                           \
-  VM_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                      \
+  VM_UNIT_TEST_CASE(name) {                                                    \
     TestIsolateScope __test_isolate__;                                         \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
@@ -60,16 +54,13 @@
   }                                                                            \
   static void Dart_TestHelper##name(Thread* thread)
 
-#define ISOLATE_UNIT_TEST_CASE(name)                                           \
-  ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, "Pass")
-
 // The TEST_CASE macro is used for tests that need an isolate and zone
 // in order to test its functionality. This macro is used for tests that
 // are implemented using the Dart API for calling into the VM. The safepoint
 // execution state of threads using this macro remains kThreadNative.
-#define TEST_CASE_WITH_EXPECTATION(name, expectation)                          \
+#define TEST_CASE(name)                                                        \
   static void Dart_TestHelper##name(Thread* thread);                           \
-  VM_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                      \
+  VM_UNIT_TEST_CASE(name) {                                                    \
     TestIsolateScope __test_isolate__;                                         \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
@@ -80,8 +71,6 @@
     Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
   static void Dart_TestHelper##name(Thread* thread)
-
-#define TEST_CASE(name) TEST_CASE_WITH_EXPECTATION(name, "Pass")
 
 // The ASSEMBLER_TEST_GENERATE macro is used to generate a unit test
 // for the assembler.
@@ -96,9 +85,9 @@
 // The ASSEMBLER_TEST_RUN macro is used to execute the assembler unit
 // test generated using the ASSEMBLER_TEST_GENERATE macro.
 // C++ callee-saved registers are not preserved. Arguments may be passed in.
-#define ASSEMBLER_TEST_RUN_WITH_EXPECTATION(name, test, expectation)           \
+#define ASSEMBLER_TEST_RUN(name, test)                                         \
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
-  ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(name, expectation) {                 \
+  ISOLATE_UNIT_TEST_CASE(name) {                                               \
     {                                                                          \
       bool use_far_branches = false;                                           \
       LongJumpScope jump;                                                      \
@@ -127,9 +116,6 @@
     }                                                                          \
   }                                                                            \
   static void AssemblerTestRun##name(AssemblerTest* test)
-
-#define ASSEMBLER_TEST_RUN(name, test)                                         \
-  ASSEMBLER_TEST_RUN_WITH_EXPECTATION(name, test, "Pass")
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
 #if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
@@ -263,11 +249,10 @@ class KernelBufferList {
 
 class TestCaseBase {
  public:
-  explicit TestCaseBase(const char* name, const char* expectation);
+  explicit TestCaseBase(const char* name);
   virtual ~TestCaseBase() {}
 
   const char* name() const { return name_; }
-  const char* expectation() const { return expectation_; }
 
   virtual void Run() = 0;
   void RunTest();
@@ -287,7 +272,6 @@ class TestCaseBase {
 
   TestCaseBase* next_;
   const char* name_;
-  const char* expectation_;
 
   DISALLOW_COPY_AND_ASSIGN(TestCaseBase);
 };
@@ -300,8 +284,7 @@ class TestCase : TestCaseBase {
  public:
   typedef void(RunEntry)();
 
-  TestCase(RunEntry* run, const char* name, const char* expectation)
-      : TestCaseBase(name, expectation), run_(run) {}
+  TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
@@ -408,8 +391,7 @@ class RawTestCase : TestCaseBase {
  public:
   typedef void(RunEntry)();
 
-  RawTestCase(RunEntry* run, const char* name, const char* expectation)
-      : TestCaseBase(name, expectation), run_(run) {
+  RawTestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {
     raw_test_ = true;
   }
   virtual void Run();
