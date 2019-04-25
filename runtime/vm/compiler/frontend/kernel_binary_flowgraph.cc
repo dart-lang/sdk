@@ -165,7 +165,11 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
       Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
-    field.RecordStore(Object::null_object());
+    if (H.thread()->IsMutatorThread()) {
+      field.RecordStore(Object::null_object());
+    } else {
+      ASSERT(field.is_nullable());
+    }
     return Fragment();
   }
 

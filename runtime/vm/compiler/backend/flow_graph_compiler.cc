@@ -1191,8 +1191,16 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
     // them even in checked mode and strong mode.
     switch (parsed_function().function().kind()) {
       case RawFunction::kImplicitGetter: {
-        const Field& field = Field::Handle(function().accessor_field());
+        Field& field = Field::Handle(function().accessor_field());
         ASSERT(!field.IsNull());
+#if defined(DEBUG)
+        // HACK: Clone the field to ignore assertion in Field::guarded_cid().
+        // The assertion is intended to ensure that the background compiler sees
+        // consistent cids, but that's not important in this case because
+        // IsPotentialUnboxedField can go from true to false, but not false to
+        // true, and we only do this optimisation if it is false.
+        field = field.CloneFromOriginal();
+#endif
 
         // Only intrinsify getter if the field cannot contain a mutable double.
         // Reading from a mutable double box requires allocating a fresh double.
@@ -1207,8 +1215,13 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
       }
       case RawFunction::kImplicitSetter: {
         if (!isolate()->argument_type_checks()) {
-          const Field& field = Field::Handle(function().accessor_field());
+          Field& field = Field::Handle(function().accessor_field());
           ASSERT(!field.IsNull());
+#if defined(DEBUG)
+          // HACK: Clone the field to ignore assertion in Field::guarded_cid().
+          // The same reasons as above apply, but we only check if it's dynamic.
+          field = field.CloneFromOriginal();
+#endif
 
           if (field.is_instance() &&
               (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {

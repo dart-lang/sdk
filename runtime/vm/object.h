@@ -2531,13 +2531,17 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const {
-    return IsFfiTrampoline()
+    if (IsFfiTrampoline()) {
+      return true;
+    }
     // On DBC we use native calls instead of IR for the view factories (see
     // kernel_to_il.cc)
 #if !defined(TARGET_ARCH_DBC)
-           || IsTypedDataViewFactory()
+    if (IsTypedDataViewFactory()) {
+      return true;
+    }
 #endif
-        ;
+    return false;
   }
 
   bool CanBeInlined() const;
@@ -3141,8 +3145,15 @@ class FfiTrampolineData : public Object {
 
 class Field : public Object {
  public:
+  // The field that this field was cloned from, or this field itself if it isn't
+  // a clone. The purpose of cloning is that the fields the background compiler
+  // sees are consistent.
   RawField* Original() const;
+
+  // Set the original field that this field was cloned from.
   void SetOriginal(const Field& value) const;
+
+  // Returns whether this field is an original or a clone.
   bool IsOriginal() const {
     if (IsNull()) {
       return true;
@@ -3373,17 +3384,23 @@ class Field : public Object {
   // to have or kDynamicCid if such class id is not known.
   // Stores to this field must update this information hence the name.
   intptr_t guarded_cid() const {
-#if defined(DEGUG)
+#if defined(DEBUG)
+    // This assertion ensures that the cid seen by the background compiler is
+    // consistent. So the assertion passes if the field is a clone. It also
+    // passes if the field is static, because we don't use field guards on
+    // static fields.
     Thread* thread = Thread::Current();
-    ASSERT(!IsOriginal() || thread->IsMutator() || thread->IsAtSafepoint());
+    ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
+           thread->IsAtSafepoint());
 #endif
     return raw_ptr()->guarded_cid_;
   }
 
   void set_guarded_cid(intptr_t cid) const {
-#if defined(DEGUG)
+#if defined(DEBUG)
     Thread* thread = Thread::Current();
-    ASSERT(!IsOriginal() || thread->IsMutator() || thread->IsAtSafepoint());
+    ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
+           thread->IsAtSafepoint());
 #endif
     StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
