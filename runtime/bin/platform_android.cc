@@ -11,6 +11,7 @@
 #include <signal.h>       // NOLINT
 #include <string.h>       // NOLINT
 #include <sys/resource.h>
+#include <sys/system_properties.h>
 #include <sys/utsname.h>  // NOLINT
 #include <unistd.h>       // NOLINT
 
@@ -96,24 +97,16 @@ const char* Platform::OperatingSystem() {
 }
 
 const char* Platform::OperatingSystemVersion() {
-  struct utsname info;
-  int ret = uname(&info);
-  if (ret != 0) {
+  char os_version[PROP_VALUE_MAX + 1];
+  int os_version_length =
+      __system_property_get("ro.build.display.id", os_version);
+  if (os_version_length == 0) {
     return NULL;
   }
-  const char* kFormat = "%s %s %s";
-  int len =
-      snprintf(NULL, 0, kFormat, info.sysname, info.release, info.version);
-  if (len <= 0) {
-    return NULL;
-  }
-  char* result = DartUtils::ScopedCString(len + 1);
-  ASSERT(result != NULL);
-  len = snprintf(result, len + 1, kFormat, info.sysname, info.release,
-                 info.version);
-  if (len <= 0) {
-    return NULL;
-  }
+  ASSERT(os_version_length <= PROP_VALUE_MAX);
+  char* result = reinterpret_cast<char*>(
+      Dart_ScopeAllocate((os_version_length + 1) * sizeof(result)));
+  strncpy(result, os_version, (os_version_length + 1));
   return result;
 }
 
