@@ -4,7 +4,7 @@
 
 // test w/ `pub run test -N type_annotate_public_apis`
 
-const X = ''; //LINT
+const X = ''; //OK
 
 f() {} //LINT
 
@@ -33,7 +33,7 @@ const _X = '';
 class A {
   var x; // LINT
   final xx = 1; //LINT
-  static const y = ''; //LINT
+  static const y = ''; //OK
   static final z = 3; //LINT
 
   int get xxx => 42; //OK: #151
