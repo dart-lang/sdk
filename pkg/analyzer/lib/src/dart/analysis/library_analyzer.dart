@@ -248,7 +248,7 @@ class LibraryAnalyzer {
     }
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement,
+        errorReporter, _typeProvider, _libraryElement, unit, file.content,
         typeSystem: _context.typeSystem,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));

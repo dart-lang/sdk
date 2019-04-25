@@ -299,7 +299,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   BestPracticesVerifier(
     this._errorReporter,
     TypeProvider typeProvider,
-    this._currentLibrary, {
+    this._currentLibrary,
+    CompilationUnit unit,
+    String content, {
     TypeSystem typeSystem,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
@@ -318,7 +320,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _workspacePackage = workspace.findPackageFor(libraryPath);
     _linterContext = LinterContextImpl(
         null /* allUnits */,
-        null /* currentUnit */,
+        new LinterContextUnit(content, unit),
         declaredVariables,
         typeProvider,
         _typeSystem,
