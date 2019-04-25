@@ -139,6 +139,11 @@ class _ElementRequest {
       return _enum(unit, reference);
     }
 
+    if (parentName == '@field') {
+      var enclosing = elementOfReference(parent2);
+      return _field(enclosing, reference);
+    }
+
     if (parentName == '@function') {
       CompilationUnitElementImpl enclosing = elementOfReference(parent2);
       return _function(enclosing, reference);
@@ -284,6 +289,13 @@ class _ElementRequest {
       assert(reference.node2 != null, '$reference');
     }
     EnumElementImpl.forLinkedNode(unit, reference, reference.node2);
+    return reference.element;
+  }
+
+  FieldElementImpl _field(ClassElementImpl enclosing, Reference reference) {
+    enclosing.fields;
+    // Requesting fields sets elements for all fields.
+    assert(reference.element != null);
     return reference.element;
   }
 
