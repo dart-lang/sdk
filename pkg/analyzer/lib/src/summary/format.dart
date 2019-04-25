@@ -8642,12 +8642,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get typeParameter_id {
-    assert(kind == idl.LinkedNodeKind.typeParameter);
-    return _variantField_16 ??= 0;
-  }
-
-  @override
   int get typeParameterList_rightBracket {
     assert(kind == idl.LinkedNodeKind.typeParameterList);
     return _variantField_16 ??= 0;
@@ -8977,12 +8971,6 @@ class LinkedNodeBuilder extends Object
 
   set typeArgumentList_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.typeArgumentList);
-    assert(value == null || value >= 0);
-    _variantField_16 = value;
-  }
-
-  set typeParameter_id(int value) {
-    assert(kind == idl.LinkedNodeKind.typeParameter);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
@@ -10898,7 +10886,6 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder typeParameter_bound,
     int typeParameter_extendsKeyword,
     LinkedNodeBuilder typeParameter_name,
-    int typeParameter_id,
     int codeLength,
     int codeOffset,
   })  : _kind = idl.LinkedNodeKind.typeParameter,
@@ -10907,7 +10894,6 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = typeParameter_bound,
         _variantField_15 = typeParameter_extendsKeyword,
         _variantField_7 = typeParameter_name,
-        _variantField_16 = typeParameter_id,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset;
 
@@ -14964,14 +14950,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get typeParameter_id {
-    assert(kind == idl.LinkedNodeKind.typeParameter);
-    _variantField_16 ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
-    return _variantField_16;
-  }
-
-  @override
   int get typeParameterList_rightBracket {
     assert(kind == idl.LinkedNodeKind.typeParameterList);
     _variantField_16 ??=
@@ -16687,7 +16665,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeParameter_extendsKeyword"] = typeParameter_extendsKeyword;
       if (typeParameter_name != null)
         _result["typeParameter_name"] = typeParameter_name.toJson();
-      if (typeParameter_id != 0) _result["typeParameter_id"] = typeParameter_id;
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
     }
@@ -18144,7 +18121,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "typeParameter_bound": typeParameter_bound,
         "typeParameter_extendsKeyword": typeParameter_extendsKeyword,
         "typeParameter_name": typeParameter_name,
-        "typeParameter_id": typeParameter_id,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
         "isSynthetic": isSynthetic,
@@ -19376,6 +19352,7 @@ class LinkedNodeTypeBuilder extends Object
   int _interfaceClass;
   List<LinkedNodeTypeBuilder> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
+  int _typeParameterElement;
   int _typeParameterId;
 
   @override
@@ -19443,6 +19420,14 @@ class LinkedNodeTypeBuilder extends Object
   }
 
   @override
+  int get typeParameterElement => _typeParameterElement ??= 0;
+
+  set typeParameterElement(int value) {
+    assert(value == null || value >= 0);
+    this._typeParameterElement = value;
+  }
+
+  @override
   int get typeParameterId => _typeParameterId ??= 0;
 
   set typeParameterId(int value) {
@@ -19459,6 +19444,7 @@ class LinkedNodeTypeBuilder extends Object
       int interfaceClass,
       List<LinkedNodeTypeBuilder> interfaceTypeArguments,
       idl.LinkedNodeTypeKind kind,
+      int typeParameterElement,
       int typeParameterId})
       : _functionFormalParameters = functionFormalParameters,
         _functionReturnType = functionReturnType,
@@ -19468,6 +19454,7 @@ class LinkedNodeTypeBuilder extends Object
         _interfaceClass = interfaceClass,
         _interfaceTypeArguments = interfaceTypeArguments,
         _kind = kind,
+        _typeParameterElement = typeParameterElement,
         _typeParameterId = typeParameterId;
 
   /// Flush [informative] data recursively.
@@ -19509,6 +19496,7 @@ class LinkedNodeTypeBuilder extends Object
       }
     }
     signature.addInt(this._kind == null ? 0 : this._kind.index);
+    signature.addInt(this._typeParameterElement ?? 0);
     signature.addInt(this._typeParameterId ?? 0);
     signature.addInt(this._genericTypeAliasReference ?? 0);
     if (this._genericTypeAliasTypeArguments == null) {
@@ -19561,10 +19549,10 @@ class LinkedNodeTypeBuilder extends Object
       fbBuilder.addOffset(2, offset_functionTypeParameters);
     }
     if (_genericTypeAliasReference != null && _genericTypeAliasReference != 0) {
-      fbBuilder.addUint32(7, _genericTypeAliasReference);
+      fbBuilder.addUint32(8, _genericTypeAliasReference);
     }
     if (offset_genericTypeAliasTypeArguments != null) {
-      fbBuilder.addOffset(8, offset_genericTypeAliasTypeArguments);
+      fbBuilder.addOffset(9, offset_genericTypeAliasTypeArguments);
     }
     if (_interfaceClass != null && _interfaceClass != 0) {
       fbBuilder.addUint32(3, _interfaceClass);
@@ -19575,8 +19563,11 @@ class LinkedNodeTypeBuilder extends Object
     if (_kind != null && _kind != idl.LinkedNodeTypeKind.bottom) {
       fbBuilder.addUint8(5, _kind.index);
     }
+    if (_typeParameterElement != null && _typeParameterElement != 0) {
+      fbBuilder.addUint32(6, _typeParameterElement);
+    }
     if (_typeParameterId != null && _typeParameterId != 0) {
-      fbBuilder.addUint32(6, _typeParameterId);
+      fbBuilder.addUint32(7, _typeParameterId);
     }
     return fbBuilder.endTable();
   }
@@ -19606,6 +19597,7 @@ class _LinkedNodeTypeImpl extends Object
   int _interfaceClass;
   List<idl.LinkedNodeType> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
+  int _typeParameterElement;
   int _typeParameterId;
 
   @override
@@ -19638,7 +19630,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   int get genericTypeAliasReference {
     _genericTypeAliasReference ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
     return _genericTypeAliasReference;
   }
 
@@ -19646,7 +19638,7 @@ class _LinkedNodeTypeImpl extends Object
   List<idl.LinkedNodeType> get genericTypeAliasTypeArguments {
     _genericTypeAliasTypeArguments ??=
         const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
-            .vTableGet(_bc, _bcOffset, 8, const <idl.LinkedNodeType>[]);
+            .vTableGet(_bc, _bcOffset, 9, const <idl.LinkedNodeType>[]);
     return _genericTypeAliasTypeArguments;
   }
 
@@ -19672,9 +19664,16 @@ class _LinkedNodeTypeImpl extends Object
   }
 
   @override
+  int get typeParameterElement {
+    _typeParameterElement ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
+    return _typeParameterElement;
+  }
+
+  @override
   int get typeParameterId {
     _typeParameterId ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
     return _typeParameterId;
   }
 }
@@ -19703,6 +19702,8 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
           interfaceTypeArguments.map((_value) => _value.toJson()).toList();
     if (kind != idl.LinkedNodeTypeKind.bottom)
       _result["kind"] = kind.toString().split('.')[1];
+    if (typeParameterElement != 0)
+      _result["typeParameterElement"] = typeParameterElement;
     if (typeParameterId != 0) _result["typeParameterId"] = typeParameterId;
     return _result;
   }
@@ -19717,6 +19718,7 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
         "interfaceClass": interfaceClass,
         "interfaceTypeArguments": interfaceTypeArguments,
         "kind": kind,
+        "typeParameterElement": typeParameterElement,
         "typeParameterId": typeParameterId,
       };
 

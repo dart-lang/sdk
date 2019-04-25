@@ -179,6 +179,13 @@ class _ElementRequest {
       return _typeAlias(unit, reference);
     }
 
+    if (parentName == '@typeParameter') {
+      var enclosing = elementOfReference(parent2);
+      (enclosing as TypeParameterizedElement).typeParameters;
+      assert(reference.element != null);
+      return reference.element;
+    }
+
     if (parentName == '@unit') {
       elementOfReference(parent2);
       // Creating a library fills all its units.
@@ -199,6 +206,12 @@ class _ElementRequest {
       return reference.element;
     }
     if (enclosing is CompilationUnitElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and variables.
+      assert(reference.element != null);
+      return reference.element;
+    }
+    if (enclosing is EnumElementImpl) {
       enclosing.accessors;
       // Requesting accessors sets elements for accessors and variables.
       assert(reference.element != null);

@@ -640,8 +640,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _writeActualReturnType(builder, node);
 
-    var element = (node as GenericFunctionTypeImpl).declaredElement;
-    var id = _linkingContext.idOfGenericFunctionType(element);
+    var id = LazyAst.getGenericFunctionTypeId(node);
     builder.genericFunctionType_id = id;
 
     return builder;
@@ -1256,10 +1255,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
         typeParameter_name: node.name.accept(this));
     _storeDeclaration(builder, node);
     _storeCodeOffsetLength(builder, node);
-
-    var id = _linkingContext.idOfTypeParameter(node.declaredElement);
-    builder.typeParameter_id = id;
-
     return builder;
   }
 

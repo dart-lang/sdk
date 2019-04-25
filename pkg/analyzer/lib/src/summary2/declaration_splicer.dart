@@ -182,6 +182,7 @@ class DeclarationSplicer {
     (partial.functionExpression as FunctionExpressionImpl).declaredElement =
         element;
     _metadata(partial.metadata, element);
+    _node(full.returnType, partial.returnType);
   }
 
   void _functionExpression(
@@ -264,6 +265,7 @@ class DeclarationSplicer {
       partial.body = _body(full.body);
     });
     _metadata(partial.metadata, element);
+    _node(full.returnType, partial.returnType);
   }
 
   void _mixinDeclaration(MixinDeclaration full, MixinDeclaration partial) {
@@ -378,6 +380,7 @@ class DeclarationSplicer {
     _match(partial.identifier, element);
     (partial as SimpleFormalParameterImpl).declaredElement = element;
     _metadata(partial.metadata, element);
+    _node(full.type, partial.type);
   }
 
   void _topLevelVariableDeclaration(
@@ -432,6 +435,8 @@ class DeclarationSplicer {
     VariableDeclarationList full,
     VariableDeclarationList partial,
   ) {
+    _node(full.type, partial.type);
+
     var fullList = full.variables;
     var partialList = partial.variables;
     for (var i = 0; i < fullList.length; ++i) {

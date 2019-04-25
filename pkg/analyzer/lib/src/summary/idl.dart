@@ -2300,9 +2300,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.typeParameter)
   int get typeParameter_extendsKeyword;
 
-  @VariantId(16, variant: LinkedNodeKind.typeParameter)
-  int get typeParameter_id;
-
   @VariantId(7, variant: LinkedNodeKind.typeParameter)
   LinkedNode get typeParameter_name;
 
@@ -2586,10 +2583,10 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(2)
   List<LinkedNodeTypeTypeParameter> get functionTypeParameters;
 
-  @Id(7)
+  @Id(8)
   int get genericTypeAliasReference;
 
-  @Id(8)
+  @Id(9)
   List<LinkedNodeType> get genericTypeAliasTypeArguments;
 
   /// Reference to a [LinkedNodeReferences].
@@ -2603,6 +2600,9 @@ abstract class LinkedNodeType extends base.SummaryClass {
   LinkedNodeTypeKind get kind;
 
   @Id(6)
+  int get typeParameterElement;
+
+  @Id(7)
   int get typeParameterId;
 }
 

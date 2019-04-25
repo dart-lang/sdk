@@ -5570,10 +5570,12 @@ class GenericTypeAliasElementImpl extends ElementImpl
     if (linkedNode != null) {
       if (linkedNode is GenericTypeAlias) {
         var context = enclosingUnit.linkedContext;
+        var function = context.getGeneticTypeAliasFunction(linkedNode);
+        var reference = context.getGenericFunctionTypeReference(function);
         return _function = GenericFunctionTypeElementImpl.forLinkedNode(
           this,
-          reference.getChild('@function'),
-          context.getGeneticTypeAliasFunction(linkedNode),
+          reference,
+          function,
         );
       } else {
         return _function = GenericFunctionTypeElementImpl.forLinkedNode(
@@ -9519,11 +9521,14 @@ mixin TypeParameterizedElementMixin
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }
+      var containerRef = reference.getChild('@typeParameter');
       return _typeParameterElements =
           typeParameters.typeParameters.map<TypeParameterElement>((node) {
-        TypeParameterElementImpl element = node.declaredElement;
-        element.enclosingElement = this;
-        return element;
+        var reference = containerRef.getChild(node.name.name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as TypeParameterElement;
+        }
+        return TypeParameterElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     }
 

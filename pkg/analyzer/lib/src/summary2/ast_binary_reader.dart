@@ -1211,7 +1211,6 @@ class AstBinaryReader {
       _readNodeLazy(data.typeParameter_bound),
     );
     LazyTypeParameter.setData(node, data);
-    _unitContext.addTypeParameter(data.typeParameter_id, node);
     return node;
   }
 

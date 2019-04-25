@@ -71,8 +71,6 @@ class Reference {
 
   bool get isTypeAlias => parent != null && parent.name == '@typeAlias';
 
-  int get numOfChildren => _children != null ? _children.length : 0;
-
   /// Return the child with the given name, or `null` if does not exist.
   Reference operator [](String name) {
     return _children != null ? _children[name] : null;
@@ -92,7 +90,7 @@ class Reference {
     if (element != null && node2 == node) {
       return true;
     } else {
-      if (node == null) {
+      if (node2 == null) {
         node2 = node;
       }
       return false;

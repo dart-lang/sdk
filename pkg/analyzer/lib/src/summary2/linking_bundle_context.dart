@@ -31,7 +31,6 @@ class LinkingBundleContext {
   );
 
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
-  int _nextTypeParameterId = 1;
   int _nextSyntheticTypeParameterId = 0x10000;
 
   final Map<GenericFunctionTypeElement, int> _genericFunctionTypes =
@@ -39,18 +38,6 @@ class LinkingBundleContext {
   int _nextGenericFunctionTypeId = 1;
 
   LinkingBundleContext(this.dynamicReference);
-
-  int addGenericFunctionType(GenericFunctionTypeElement element) {
-    var id = _nextGenericFunctionTypeId++;
-    _genericFunctionTypes[element] = id;
-    return id;
-  }
-
-  int addTypeParameter(TypeParameterElement element) {
-    var id = _nextTypeParameterId++;
-    _typeParameters[element] = id;
-    return id;
-  }
 
   int idOfGenericFunctionType(GenericFunctionTypeElement element) {
     return _genericFunctionTypes[element];
@@ -86,6 +73,10 @@ class LinkingBundleContext {
     return reference.index;
   }
 
+  int nextGenericFunctionTypeId() {
+    return _nextGenericFunctionTypeId++;
+  }
+
   LinkedNodeTypeBuilder writeType(DartType type) {
     if (type == null) return null;
 
@@ -107,10 +98,19 @@ class LinkingBundleContext {
       );
     } else if (type is TypeParameterType) {
       TypeParameterElementImpl element = type.element;
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.typeParameter,
-        typeParameterId: _typeParameters[element],
-      );
+      var id = _typeParameters[element];
+      if (id != null) {
+        return LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.typeParameter,
+          typeParameterId: id,
+        );
+      } else {
+        var index = indexOfElement(element);
+        return LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.typeParameter,
+          typeParameterElement: index,
+        );
+      }
     } else if (type is VoidType) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.void_,

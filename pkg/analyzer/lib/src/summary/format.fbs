@@ -1990,9 +1990,9 @@ table LinkedNodeType {
 
   functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
 
-  genericTypeAliasReference:uint (id: 7);
+  genericTypeAliasReference:uint (id: 8);
 
-  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 8);
+  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 9);
 
   /// Reference to a [LinkedNodeReferences].
   interfaceClass:uint (id: 3);
@@ -2001,7 +2001,9 @@ table LinkedNodeType {
 
   kind:LinkedNodeTypeKind (id: 5);
 
-  typeParameterId:uint (id: 6);
+  typeParameterElement:uint (id: 6);
+
+  typeParameterId:uint (id: 7);
 }
 
 /// Information about a formal parameter in a function type.

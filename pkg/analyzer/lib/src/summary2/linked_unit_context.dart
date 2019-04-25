@@ -35,10 +35,7 @@ class LinkedUnitContext {
   /// Mapping from identifiers to elements for generic function types.
   final Map<int, GenericFunctionTypeElementImpl> _genericFunctionTypes = {};
 
-  /// Mapping from identifiers to real or synthetic type parameters.
-  ///
-  /// Real type parameters have corresponding [TypeParameter] nodes, and are
-  /// referenced from other AST nodes.
+  /// Mapping from identifiers to synthetic type parameters.
   ///
   /// Synthetic type parameters are added when [readType] begins reading a
   /// [FunctionType], and removed when reading is done.
@@ -92,6 +89,8 @@ class LinkedUnitContext {
   void addGenericFunctionType(int id, GenericFunctionTypeImpl node) {
     if (this.reference == null) return;
 
+    LazyAst.setGenericFunctionTypeId(node, id);
+
     var element = _genericFunctionTypes[id];
     if (element == null) {
       element = GenericFunctionTypeElementImpl.forLinkedNode(
@@ -105,26 +104,6 @@ class LinkedUnitContext {
     node.declaredElement = element;
 
     var containerRef = this.reference.getChild('@genericFunctionType');
-    var reference = containerRef.getChild('$id');
-    reference.element = element;
-    element.reference = reference;
-  }
-
-  /// Every [TypeParameter] node has [TypeParameterElement], which is created
-  /// during reading of this node. All type parameter nodes are read before
-  /// any nodes that reference them (bounds are read lazily later).
-  void addTypeParameter(int id, TypeParameter node) {
-    if (this.reference == null) return;
-
-    var element = _typeParameters[id];
-    if (element == null) {
-      element = TypeParameterElementImpl.forLinkedNode(null, null, node);
-      _typeParameters[id] = element;
-    }
-
-    node.name.staticElement = element;
-
-    var containerRef = this.reference.getChild('@typeParameter');
     var reference = containerRef.getChild('$id');
     reference.element = element;
     element.reference = reference;
@@ -356,6 +335,11 @@ class LinkedUnitContext {
 //    } else {
 //      throw UnimplementedError('$kind');
 //    }
+  }
+
+  Reference getGenericFunctionTypeReference(GenericFunctionType node) {
+    var id = LazyAst.getGenericFunctionTypeId(node);
+    return reference.getChild('@genericFunctionType').getChild('$id');
   }
 
   GenericFunctionType getGeneticTypeAliasFunction(GenericTypeAlias node) {
@@ -943,9 +927,15 @@ class LinkedUnitContext {
       );
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
       var id = linkedType.typeParameterId;
-      var element = _typeParameters[id];
-      assert(element != null);
-      return TypeParameterTypeImpl(element);
+      if (id != 0) {
+        var element = _typeParameters[id];
+        assert(element != null);
+        return TypeParameterTypeImpl(element);
+      } else {
+        var index = linkedType.typeParameterElement;
+        var element = bundleContext.elementOfIndex(index);
+        return TypeParameterTypeImpl(element);
+      }
     } else if (kind == LinkedNodeTypeKind.void_) {
       return VoidTypeImpl.instance;
     } else {
@@ -970,7 +960,6 @@ class LinkedUnitContext {
     var context = LinkedUnitContext._(bundleContext, libraryContext,
         indexInLibrary, uriStr, reference, data, TokensContext(data.tokens));
     context._genericFunctionTypes.addAll(_genericFunctionTypes);
-    context._typeParameters.addAll(_typeParameters);
     var astReader = AstBinaryReader(context);
     return astReader.readNode(data.node);
   }
@@ -1198,9 +1187,6 @@ class _RecursiveTypeReader {
     for (var typeParameter in typeParameters.typeParameters) {
       var bound = context.getTypeParameterBound(typeParameter);
       read(bound);
-
-      TypeParameterElementImpl element = typeParameter.declaredElement;
-      element.enclosingElement = context.reference.element;
     }
   }
 }

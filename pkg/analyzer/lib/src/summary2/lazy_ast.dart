@@ -11,6 +11,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
+  static const _genericFunctionTypeIdKey = 'lazyAst_genericFunctionTypeId';
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _inheritsCovariantKey = 'lazyAst_isCovariant';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
@@ -21,6 +22,10 @@ class LazyAst {
   final LinkedNode data;
 
   LazyAst(this.data);
+
+  static int getGenericFunctionTypeId(GenericFunctionType node) {
+    return node.getProperty(_genericFunctionTypeIdKey);
+  }
 
   static bool getInheritsCovariant(AstNode node) {
     return node.getProperty(_inheritsCovariantKey) ?? false;
@@ -44,6 +49,10 @@ class LazyAst {
 
   static bool isSimplyBounded(AstNode node) {
     return node.getProperty(_isSimplyBoundedKey);
+  }
+
+  static void setGenericFunctionTypeId(GenericFunctionType node, int id) {
+    node.setProperty(_genericFunctionTypeIdKey, id);
   }
 
   static void setInheritsCovariant(AstNode node, bool value) {
