@@ -674,6 +674,10 @@ template("dart_executable") {
   if (defined(invoker.extra_sources)) {
     extra_sources += invoker.extra_sources
   }
+  extra_ldflags = []
+  if (defined(invoker.extra_ldflags)) {
+    extra_ldflags = invoker.extra_ldflags
+  }
   target_type = "executable"
   if (defined(invoker.target_type)) {
     target_type = invoker.target_type
@@ -722,7 +726,6 @@ template("dart_executable") {
                 "dart_embedder_api_impl.cc",
                 "error_exit.cc",
                 "error_exit.h",
-                "main.cc",
                 "main_options.cc",
                 "main_options.h",
                 "options.cc",
@@ -742,6 +745,8 @@ template("dart_executable") {
       # symbols in VM-generated backtraces and profiles.
       ldflags = [ "-rdynamic" ]
     }
+
+    ldflags += extra_ldflags
 
     if (is_win) {
       libs = [
@@ -768,10 +773,11 @@ dart_executable("dart") {
     "builtin.cc",
     "dfe.cc",
     "dfe.h",
-    "loader.cc",
-    "loader.h",
     "gzip.cc",
     "gzip.h",
+    "loader.cc",
+    "loader.h",
+    "main.cc",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -789,11 +795,12 @@ dart_executable("dart_precompiled_runtime") {
   }
   extra_sources = [
     "builtin.cc",
-    "snapshot_empty.cc",
-    "loader.cc",
-    "loader.h",
     "gzip.cc",
     "gzip.h",
+    "loader.cc",
+    "loader.h",
+    "main.cc",
+    "snapshot_empty.cc",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -808,11 +815,12 @@ dart_executable("dart_precompiled_runtime_for_linking") {
   }
   extra_sources = [
     "builtin.cc",
-    "snapshot_empty.cc",
-    "loader.cc",
-    "loader.h",
     "gzip.cc",
     "gzip.h",
+    "loader.cc",
+    "loader.h",
+    "main.cc",
+    "snapshot_empty.cc",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -826,12 +834,13 @@ dart_executable("dartaotruntime") {
   extra_deps = [ "..:libdart_precompiled_runtime" ]
   extra_sources = [
     "builtin.cc",
-    "snapshot_empty.cc",
-    "loader.cc",
-    "loader.h",
     "gzip.cc",
     "gzip.h",
+    "loader.cc",
+    "loader.h",
+    "main.cc",
     "observatory_assets_empty.cc",
+    "snapshot_empty.cc",
   ]
 }
 
@@ -1063,5 +1072,19 @@ shared_library("sample_extension") {
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
+  }
+}
+
+dart_executable("dart_libfuzzer") {
+  extra_ldflags = [ "-fsanitize=address,fuzzer" ]
+  extra_deps = [ "..:libdart_libfuzzer" ]
+  extra_sources = [
+    "../vm/libfuzzer/dart_libfuzzer.cc",
+    "builtin.cc",
+    "dfe.cc",
+    "dfe.h",
+  ]
+  if (!exclude_kernel_service) {
+    extra_deps += [ ":dart_kernel_platform_cc" ]
   }
 }

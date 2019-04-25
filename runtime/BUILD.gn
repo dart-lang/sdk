@@ -202,6 +202,12 @@ config("dart_shared_lib") {
   }
 }
 
+config("dart_libfuzzer_config") {
+  defines = [ "FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" ]
+  cflags = [ "-fsanitize=address,fuzzer-no-link" ]
+  ldflags = [ "-fsanitize=address,fuzzer" ]
+}
+
 source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [

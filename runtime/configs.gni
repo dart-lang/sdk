@@ -24,6 +24,10 @@ _jit_config = _base_config + _maybe_product
 
 _jit_product_config = _base_config + _product
 
+_base_libfuzzer_config = [ "$_dart_runtime:dart_libfuzzer_config" ]
+
+_libfuzzer_config = _base_config + _base_libfuzzer_config
+
 _precompiled_runtime_config =
     _base_config + [
       "$_dart_runtime:dart_maybe_product_config",
@@ -93,6 +97,11 @@ _all_configs = [
     suffix = "_nosnapshot_with_precompiler_product_fuchsia"
     configs = _nosnapshot_with_precompiler_product_fuchsia_config
     snapshot = false
+  },
+  {
+    suffix = "_libfuzzer"
+    configs = _libfuzzer_config
+    snapshot = true
   },
 ]
 
