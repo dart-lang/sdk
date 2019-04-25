@@ -106,18 +106,26 @@ class PackageBuildPackageUriResolver extends UriResolver {
     String filePath = source.fullName;
 
     if (_context.isWithin(_workspace.root, filePath)) {
-      String relative = _context.relative(filePath, from: _workspace.root);
-      List<String> components = _context.split(relative);
-      if (components.length > 4 &&
-          components[0] == 'build' &&
-          components[1] == 'generated' &&
-          components[3] == 'lib') {
-        String packageName = components[2];
-        String pathInLib = components.skip(4).join('/');
-        return Uri.parse('package:$packageName/$pathInLib');
+      List<String> uriParts = _restoreUriParts(filePath);
+      if (uriParts != null) {
+        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
     }
     return source.uri;
+  }
+
+  List<String> _restoreUriParts(String filePath) {
+    String relative = _context.relative(filePath, from: _workspace.root);
+    List<String> components = _context.split(relative);
+    if (components.length > 4 &&
+        components[0] == 'build' &&
+        components[1] == 'generated' &&
+        components[3] == 'lib') {
+      String packageName = components[2];
+      String pathInLib = components.skip(4).join('/');
+      return [packageName, pathInLib];
+    }
+    return null;
   }
 }
 
@@ -279,7 +287,15 @@ class PackageBuildWorkspace extends Workspace {
   WorkspacePackage findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= new PackageBuildWorkspacePackage(root, this);
+      List<String> uriParts =
+          (packageUriResolver as PackageBuildPackageUriResolver)
+              ._restoreUriParts('${folder.path}/lib/__fake__.dart');
+      if (uriParts == null || uriParts.isEmpty) {
+        _theOnlyPackage ??= new PackageBuildWorkspacePackage(null, root, this);
+      } else {
+        _theOnlyPackage ??=
+            new PackageBuildWorkspacePackage(uriParts[0], root, this);
+      }
       return _theOnlyPackage;
     } else {
       return null;
@@ -330,14 +346,23 @@ class PackageBuildWorkspace extends Workspace {
  * a given package in a PackageBuildWorkspace.
  */
 class PackageBuildWorkspacePackage extends WorkspacePackage {
+  /// A prefix for any URI of a path in this package.
+  final String _uriPrefix;
+
   final String root;
 
   final PackageBuildWorkspace workspace;
 
-  PackageBuildWorkspacePackage(this.root, this.workspace);
+  PackageBuildWorkspacePackage(String packageName, this.root, this.workspace)
+      : this._uriPrefix = 'package:$packageName/';
 
   @override
-  bool contains(String filePath) {
+  bool contains(Source source) {
+    if (source.uri.isScheme('package')) {
+      return source.uri.toString().startsWith(_uriPrefix);
+    }
+    String filePath = source.fullName;
+    if (filePath == null) return false;
     // There is a 1-1 relationship between PackageBuildWorkspaces and
     // PackageBuildWorkspacePackages. If a file is in a package's workspace,
     // then it is in the package as well.

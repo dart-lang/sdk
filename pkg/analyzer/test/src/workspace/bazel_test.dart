@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -704,7 +707,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     final targetFile = newFile('/ws/some/code/lib/code.dart');
 
     var package = workspace.findPackageFor(targetFile.path);
-    expect(package.contains('/ws2/some/file.dart'), isFalse);
+    expect(package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
+        isFalse);
   }
 
   void test_contains_differentPackageInWorkspace() {
@@ -712,9 +716,12 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     final targetFile = newFile('/ws/some/code/lib/code.dart');
 
     var package = workspace.findPackageFor(targetFile.path);
-    // A file that is _not_ in this package is not required to have a BUILD.gn
+    // A file that is _not_ in this package is not required to have a BUILD
     // file above it, for simplicity and reduced I/O.
-    expect(package.contains('/ws/some/other/code/file.dart'), isFalse);
+    expect(
+        package
+            .contains(TestSource(convertPath('/ws/some/other/code/file.dart'))),
+        isFalse);
   }
 
   void test_contains_samePackage() {
@@ -726,10 +733,10 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     final targetTestFile = newFile('/ws/some/code/test/code_test.dart');
 
     var package = workspace.findPackageFor(targetFile.path);
-    expect(package.contains(targetFile2.path), isTrue);
-    expect(package.contains(targetFile3.path), isTrue);
-    expect(package.contains(targetBinFile.path), isTrue);
-    expect(package.contains(targetTestFile.path), isTrue);
+    expect(package.contains(TestSource(targetFile2.path)), isTrue);
+    expect(package.contains(TestSource(targetFile3.path)), isTrue);
+    expect(package.contains(TestSource(targetBinFile.path)), isTrue);
+    expect(package.contains(TestSource(targetTestFile.path)), isTrue);
   }
 
   void test_contains_subPackage() {
@@ -741,8 +748,35 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     var package =
         workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
     expect(
-        package.contains(convertPath('/ws/some/code/testing/lib/testing.dart')),
+        package.contains(
+            TestSource(convertPath('/ws/some/code/testing/lib/testing.dart'))),
         isFalse);
+  }
+
+  void test_contains_differentPackage_summarySource() {
+    newFile('/ws/some/code/BUILD');
+    final targetFile = newFile('/ws/some/code/lib/code.dart');
+
+    var package = workspace.findPackageFor(targetFile.path);
+    var source = InSummarySource(
+        Uri.parse('package:some.other.code/file.dart'), '' /* summaryPath */);
+    expect(package.contains(source), isFalse);
+  }
+
+  void test_contains_samePackage_summarySource() {
+    newFile('/ws/some/code/BUILD');
+    final targetFile = newFile('/ws/some/code/lib/code.dart');
+    final targetFile2 = newFile('/ws/some/code/lib/code2.dart');
+    final targetFile3 = newFile('/ws/some/code/lib/src/code3.dart');
+
+    final file2Source = InSummarySource(
+        Uri.parse('package:some.code/code2.dart'), '' /* summaryPath */);
+    final file3Source = InSummarySource(
+        Uri.parse('package:some.code/src/code2.dart'), '' /* summaryPath */);
+
+    var package = workspace.findPackageFor(targetFile.path);
+    expect(package.contains(file2Source), isTrue);
+    expect(package.contains(file3Source), isTrue);
   }
 }
 

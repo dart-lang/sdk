@@ -62,5 +62,18 @@ abstract class WorkspacePackage {
 
   Workspace get workspace;
 
-  bool contains(String path);
+  bool contains(Source source);
+
+  /// Return a file path for the location of [source].
+  ///
+  /// If [source]'s URI scheme is package, it's fullName might be unusable (for
+  /// example, the case of a [InSummarySource]). In this case, use
+  /// [workspace]'s package URI resolver to fetch the file path.
+  String filePathFromSource(Source source) {
+    if (source.uri.scheme == 'package') {
+      return workspace.packageUriResolver.resolveAbsolute(source.uri)?.fullName;
+    } else {
+      return source.fullName;
+    }
+  }
 }

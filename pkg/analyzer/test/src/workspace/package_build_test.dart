@@ -12,6 +12,8 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PackageBuildFileUriResolverTest);
@@ -486,13 +488,15 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
 
 @reflectiveTest
 class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
+  MockUriResolver packageUriResolver;
+
   PackageBuildWorkspace _createPackageBuildWorkspace() {
     final contextBuilder = new MockContextBuilder();
     final packagesForWorkspace = new MockPackages();
     contextBuilder.packagesMapMap[convertPath('/workspace')] =
         packagesForWorkspace;
     contextBuilder.packagesToMapMap[packagesForWorkspace] = {
-      'project': <Folder>[]
+      'project': <Folder>[resourceProvider.getFolder('/workspace')]
     };
 
     final packagesForWorkspace2 = new MockPackages();
@@ -504,8 +508,12 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
 
     newFolder('/workspace/.dart_tool/build');
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    return PackageBuildWorkspace.find(
+    PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
         resourceProvider, convertPath('/workspace'), contextBuilder);
+    packageUriResolver = new MockUriResolver();
+    PackageBuildPackageUriResolver resolver =
+        new PackageBuildPackageUriResolver(workspace, packageUriResolver);
+    return workspace;
   }
 
   void test_findPackageFor_unrelatedFile() {
@@ -534,7 +542,10 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
 
     var package = workspace
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    expect(package.contains('/workspace2/project2/lib/file.dart'), isFalse);
+    expect(
+        package.contains(
+            TestSource(convertPath('/workspace2/project2/lib/file.dart'))),
+        isFalse);
   }
 
   void test_contains_sameWorkspace() {
@@ -545,12 +556,12 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
     var file2Path =
         path.separator + path.join('workspace', 'project', 'lib', 'file2.dart');
-    expect(package.contains(file2Path), isTrue);
+    expect(package.contains(TestSource(file2Path)), isTrue);
     var binPath =
         path.separator + path.join('workspace', 'project', 'bin', 'bin.dart');
-    expect(package.contains(binPath), isTrue);
+    expect(package.contains(TestSource(binPath)), isTrue);
     var testPath =
         path.separator + path.join('workspace', 'project', 'test', 'test.dart');
-    expect(package.contains(testPath), isTrue);
+    expect(package.contains(TestSource(testPath)), isTrue);
   }
 }

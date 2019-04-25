@@ -10,6 +10,8 @@ import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
+
 class MockContextBuilder implements ContextBuilder {
   Map<String, Packages> packagesMapMap = <String, Packages>{};
   Map<Packages, Map<String, List<Folder>>> packagesToMapMap =
@@ -102,7 +104,10 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
 
     var package = workspace
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    expect(package.contains('/workspace2/project/lib/file.dart'), isFalse);
+    expect(
+        package.contains(
+            TestSource(convertPath('/workspace2/project/lib/file.dart'))),
+        isFalse);
   }
 
   void test_contains_sameWorkspace() {
@@ -110,8 +115,17 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
 
     var package = workspace
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    expect(package.contains('/workspace/project/lib/file2.dart'), isTrue);
-    expect(package.contains('/workspace/project/bin/bin.dart'), isTrue);
-    expect(package.contains('/workspace/project/test/test.dart'), isTrue);
+    expect(
+        package.contains(
+            TestSource(convertPath('/workspace/project/lib/file2.dart'))),
+        isTrue);
+    expect(
+        package.contains(
+            TestSource(convertPath('/workspace/project/bin/bin.dart'))),
+        isTrue);
+    expect(
+        package.contains(
+            TestSource(convertPath('/workspace/project/test/test.dart'))),
+        isTrue);
   }
 }

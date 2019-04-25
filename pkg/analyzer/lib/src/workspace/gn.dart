@@ -313,17 +313,19 @@ class GnWorkspacePackage extends WorkspacePackage {
   GnWorkspacePackage(this.root, this.workspace);
 
   @override
-  bool contains(String path) {
-    if (workspace.findFile(path) == null) {
+  bool contains(Source source) {
+    String filePath = filePathFromSource(source);
+    if (filePath == null) return false;
+    if (workspace.findFile(filePath) == null) {
       return false;
     }
-    if (!workspace.provider.pathContext.isWithin(root, path)) {
+    if (!workspace.provider.pathContext.isWithin(root, filePath)) {
       return false;
     }
 
-    // Just because [path] is within [root] does not mean it is in this
+    // Just because [filePath] is within [root] does not mean it is in this
     // package; it could be in a "subpackage." Must go through the work of
-    // learning exactly which package [path] is contained in.
-    return workspace.findPackageFor(path).root == root;
+    // learning exactly which package [filePath] is contained in.
+    return workspace.findPackageFor(filePath).root == root;
   }
 }
