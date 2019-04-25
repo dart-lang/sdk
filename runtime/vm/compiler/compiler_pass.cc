@@ -207,6 +207,21 @@ void CompilerPass::PrintGraph(CompilerPassState* state,
 #define INVOKE_PASS(Name)                                                      \
   CompilerPass::Get(CompilerPass::k##Name)->Run(pass_state);
 
+void CompilerPass::RunGraphIntrinsicPipeline(CompilerPassState* pass_state) {
+  INVOKE_PASS(AllocateRegistersForGraphIntrinsic);
+}
+
+void CompilerPass::RunInliningPipeline(PipelineMode mode,
+                                       CompilerPassState* pass_state) {
+  INVOKE_PASS(ApplyClassIds);
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(ApplyICData);
+  INVOKE_PASS(Canonicalize);
+  // Optimize (a << b) & c patterns, merge instructions. Must occur
+  // before 'SelectRepresentations' which inserts conversion nodes.
+  INVOKE_PASS(TryOptimizePatterns);
+}
+
 void CompilerPass::RunPipeline(PipelineMode mode,
                                CompilerPassState* pass_state) {
   INVOKE_PASS(ComputeSSA);
@@ -409,6 +424,14 @@ COMPILER_PASS(AllocateRegisters, {
   flow_graph->GetLoopHierarchy();
   // Perform register allocation on the SSA graph.
   FlowGraphAllocator allocator(*flow_graph);
+  allocator.AllocateRegisters();
+});
+
+COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
+  // Ensure loop hierarchy has been computed.
+  flow_graph->GetLoopHierarchy();
+  // Perform register allocation on the SSA graph.
+  FlowGraphAllocator allocator(*flow_graph, /*intrinsic_mode=*/true);
   allocator.AllocateRegisters();
 });
 

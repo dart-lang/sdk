@@ -12,7 +12,9 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
+#include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 
@@ -97,14 +99,14 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   // Prepare for register allocation (cf. FinalizeGraph).
   graph->RemoveRedefinitions();
 
-  // Ensure loop hierarchy has been computed.
+  // Ensure dominators are re-computed. Normally this is done during SSA
+  // construction (which we don't do for graph intrinsics).
   GrowableArray<BitVector*> dominance_frontier;
   graph->ComputeDominators(&dominance_frontier);
-  graph->GetLoopHierarchy();
 
-  // Perform register allocation on the SSA graph.
-  FlowGraphAllocator allocator(*graph, true);  // Intrinsic mode.
-  allocator.AllocateRegisters();
+  CompilerPassState state(parsed_function.thread(), graph,
+                          /*speculative_inlining_policy*/ nullptr);
+  CompilerPass::RunGraphIntrinsicPipeline(&state);
 
   if (FLAG_support_il_printer && FLAG_print_flow_graph &&
       FlowGraphPrinter::ShouldPrint(function)) {

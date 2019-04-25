@@ -1170,21 +1170,10 @@ class CallSiteInliner : public ValueObject {
                                                 callee_graph,
                                                 inliner_->speculative_policy_);
 
-            call_specializer.ApplyClassIds();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            FlowGraphTypePropagator::Propagate(callee_graph);
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            call_specializer.ApplyICData();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            // Optimize (a << b) & c patterns, merge instructions. Must occur
-            // before 'SelectRepresentations' which inserts conversion nodes.
-            callee_graph->TryOptimizePatterns();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            callee_graph->Canonicalize();
+            CompilerPassState state(Thread::Current(), callee_graph,
+                                    inliner_->speculative_policy_);
+            state.call_specializer = &call_specializer;
+            CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
 #else
             UNREACHABLE();
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
@@ -1193,21 +1182,10 @@ class CallSiteInliner : public ValueObject {
             JitCallSpecializer call_specializer(callee_graph,
                                                 inliner_->speculative_policy_);
 
-            call_specializer.ApplyClassIds();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            FlowGraphTypePropagator::Propagate(callee_graph);
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            call_specializer.ApplyICData();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            // Optimize (a << b) & c patterns, merge instructions. Must occur
-            // before 'SelectRepresentations' which inserts conversion nodes.
-            callee_graph->TryOptimizePatterns();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            callee_graph->Canonicalize();
+            CompilerPassState state(Thread::Current(), callee_graph,
+                                    inliner_->speculative_policy_);
+            state.call_specializer = &call_specializer;
+            CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
           }
         }
 
