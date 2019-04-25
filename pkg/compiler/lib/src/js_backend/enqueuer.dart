@@ -171,7 +171,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
     switch (staticUse.kind) {
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-      case StaticUseKind.REDIRECTION:
         processTypeUse(new TypeUse.instantiation(staticUse.type));
         break;
       case StaticUseKind.INLINING:

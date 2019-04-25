@@ -154,7 +154,6 @@ enum StaticUseKind {
   CALL_METHOD,
   CONSTRUCTOR_INVOKE,
   CONST_CONSTRUCTOR_INVOKE,
-  REDIRECTION,
   DIRECT_INVOKE,
   INLINING,
   INVOKE,
@@ -262,6 +261,8 @@ class StaticUse {
             element,
             "Static invoke element $element must be a top-level "
             "or static method."));
+    assert(element.isFunction,
+        failedAt(element, "Static get element $element must be a function."));
     assert(
         callStructure != null,
         failedAt(element,
@@ -280,6 +281,8 @@ class StaticUse {
             element,
             "Static tear-off element $element must be a top-level "
             "or static method."));
+    assert(element.isFunction,
+        failedAt(element, "Static get element $element must be a function."));
     return new StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF,
         deferredImport: deferredImport);
   }
@@ -292,7 +295,7 @@ class StaticUse {
         failedAt(
             element,
             "Static get element $element must be a top-level "
-            "or static method."));
+            "or static field or getter."));
     assert(
         element.isField || element.isGetter,
         failedAt(element,
@@ -311,7 +314,7 @@ class StaticUse {
             "Static set element $element "
             "must be a top-level or static method."));
     assert(
-        element.isField || element.isSetter,
+        (element.isField && element.isAssignable) || element.isSetter,
         failedAt(element,
             "Static set element $element must be a field or a setter."));
     return new StaticUse.internal(element, StaticUseKind.SET,
@@ -530,19 +533,6 @@ class StaticUse {
         deferredImport: deferredImport);
   }
 
-  /// Constructor redirection to [element] on [type].
-  factory StaticUse.constructorRedirect(
-      ConstructorEntity element, InterfaceType type) {
-    assert(type != null,
-        failedAt(element, "No type provided for constructor redirection."));
-    assert(
-        element.isConstructor,
-        failedAt(element,
-            "Constructor redirection element $element must be a constructor."));
-    return new StaticUse.internal(element, StaticUseKind.REDIRECTION,
-        type: type);
-  }
-
   /// Initialization of an instance field [element].
   factory StaticUse.fieldInit(FieldEntity element) {
     assert(
@@ -654,7 +644,7 @@ class GenericStaticUse extends StaticUse {
             element,
             "Type argument count mismatch. Call structure has "
             "${callStructure?.typeArgumentCount ?? 0} but "
-            "${typeArguments?.length ?? 0} were passed."));
+            "${typeArguments?.length ?? 0} were passed in $this."));
   }
 
   GenericStaticUse.methodInlining(FunctionEntity entity, this.typeArguments)

@@ -141,7 +141,7 @@ class FieldVisitor {
   bool fieldNeedsGetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    return field.enclosingClass != null &&
+    return field.isInstanceMember &&
         _codegenWorldBuilder.hasInvokedGetter(field);
   }
 
@@ -149,7 +149,7 @@ class FieldVisitor {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
-    return field.enclosingClass != null &&
+    return field.isInstanceMember &&
         _codegenWorldBuilder.hasInvokedSetter(field);
   }
 

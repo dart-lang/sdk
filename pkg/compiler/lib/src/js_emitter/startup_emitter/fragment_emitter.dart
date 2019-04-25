@@ -1623,6 +1623,7 @@ class FragmentEmitter {
         // avoid redundant declaration of local variable, for instance for
         // type arguments.
         js.Fun code = field.code;
+        assert(code != null, "No code for $field");
         if (code.params.isEmpty &&
             code.body.statements.length == 1 &&
             code.body.statements.last is js.Return) {

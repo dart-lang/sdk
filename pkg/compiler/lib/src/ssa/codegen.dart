@@ -2092,12 +2092,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       push(js.js('# || #', [arguments[0], right]).withSourceInformation(
           node.sourceInformation));
     } else {
-      CallStructure callStructure = new CallStructure.unnamed(
-          arguments.length, node.typeArguments.length);
-      _registry.registerStaticUse(element.isConstructor
-          ? new StaticUse.constructorInvoke(element, callStructure)
-          : new StaticUse.staticInvoke(
-              element, callStructure, node.typeArguments));
+      StaticUse staticUse;
+      if (element.isConstructor) {
+        CallStructure callStructure = new CallStructure.unnamed(
+            arguments.length, node.typeArguments.length);
+        staticUse = new StaticUse.constructorInvoke(element, callStructure);
+      } else if (element.isGetter) {
+        staticUse = new StaticUse.staticGet(element);
+      } else if (element.isSetter) {
+        staticUse = new StaticUse.staticSet(element);
+      } else {
+        assert(element.isFunction);
+        CallStructure callStructure = new CallStructure.unnamed(
+            arguments.length, node.typeArguments.length);
+        staticUse = new StaticUse.staticInvoke(
+            element, callStructure, node.typeArguments);
+      }
+      _registry.registerStaticUse(staticUse);
       push(_emitter.staticFunctionAccess(element));
       push(new js.Call(pop(), arguments,
           sourceInformation: node.sourceInformation));
@@ -2108,26 +2119,47 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeSuper(HInvokeSuper node) {
     MemberEntity superElement = node.element;
     ClassEntity superClass = superElement.enclosingClass;
+    Selector selector = node.selector;
+    bool useAliasedSuper = _superMemberData.maybeRegisterAliasedSuperMember(
+        superElement, selector);
+    if (selector.isGetter) {
+      if (superElement.isField || superElement.isGetter) {
+        _registry.registerStaticUse(new StaticUse.superGet(superElement));
+      } else {
+        _registry.registerStaticUse(new StaticUse.superTearOff(node.element));
+      }
+    } else if (selector.isSetter) {
+      if (superElement.isField) {
+        _registry.registerStaticUse(new StaticUse.superFieldSet(superElement));
+      } else {
+        assert(superElement.isSetter);
+        _registry.registerStaticUse(new StaticUse.superSetterSet(superElement));
+      }
+    } else {
+      if (_superMemberData.maybeRegisterAliasedSuperMember(
+          superElement, selector)) {
+        _registry.registerStaticUse(new StaticUse.superInvoke(
+            superElement, new CallStructure.unnamed(node.inputs.length)));
+      } else {
+        _registry.registerStaticUse(new StaticUse.superInvoke(
+            superElement, new CallStructure.unnamed(node.inputs.length - 1)));
+      }
+    }
+
     if (superElement.isField) {
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
       use(node.inputs[0]);
       js.PropertyAccess access = new js.PropertyAccess(pop(), fieldName)
           .withSourceInformation(node.sourceInformation);
       if (node.isSetter) {
-        _registry.registerStaticUse(superElement.isSetter
-            ? new StaticUse.superSetterSet(superElement)
-            : new StaticUse.superFieldSet(superElement));
         use(node.value);
         push(new js.Assignment(access, pop())
             .withSourceInformation(node.sourceInformation));
       } else {
-        _registry.registerStaticUse(new StaticUse.superGet(superElement));
         push(access);
       }
     } else {
-      Selector selector = node.selector;
-      if (!_superMemberData.maybeRegisterAliasedSuperMember(
-          superElement, selector)) {
+      if (!useAliasedSuper) {
         js.Name methodName;
         if (selector.isGetter && !superElement.isGetter) {
           // If this is a tear-off, register the fact that a tear-off closure
@@ -2139,13 +2171,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               new CallStructure.unnamed(
                   node.inputs.length, node.typeArguments.length),
               node.typeArguments));
-          _registry.registerStaticUse(new StaticUse.superTearOff(node.element));
           methodName = _namer.invocationName(selector);
         } else {
           methodName = _namer.instanceMethodName(superElement);
         }
-        _registry.registerStaticUse(new StaticUse.superInvoke(
-            superElement, new CallStructure.unnamed(node.inputs.length)));
+
         push(js.js('#.#.call(#)', [
           _emitter.prototypeAccess(superClass, hasBeenInstantiated: true),
           methodName,
@@ -2153,8 +2183,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         ]).withSourceInformation(node.sourceInformation));
       } else {
         use(node.receiver);
-        _registry.registerStaticUse(new StaticUse.superInvoke(
-            superElement, new CallStructure.unnamed(node.inputs.length - 1)));
         push(js.js('#.#(#)', [
           pop(),
           _namer.aliasedSuperMemberPropertyName(superElement),

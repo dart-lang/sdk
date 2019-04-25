@@ -1148,8 +1148,8 @@ class ProgramBuilder {
         !element.isConstructor && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
 
-    bool needsTearOff = isApplyTarget &&
-        _worldBuilder.staticFunctionsNeedingGetter.contains(element);
+    bool needsTearOff =
+        isApplyTarget && _worldBuilder.closurizedStatics.contains(element);
 
     js.Name tearOffName =
         needsTearOff ? _namer.staticClosureName(element) : null;

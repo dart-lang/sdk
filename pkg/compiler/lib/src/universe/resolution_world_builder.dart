@@ -104,7 +104,7 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity constructor, bool isRedirection: false});
+      {ConstructorEntity constructor});
 
   /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
   /// the usage changes for each member.
@@ -139,23 +139,19 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
 class Instance {
   final InterfaceType type;
   final Instantiation kind;
-  final bool isRedirection;
 
-  Instance(this.type, this.kind, {this.isRedirection: false});
+  Instance(this.type, this.kind);
 
   @override
   int get hashCode {
-    return Hashing.objectHash(
-        type, Hashing.objectHash(kind, Hashing.objectHash(isRedirection)));
+    return Hashing.objectHash(type, Hashing.objectHash(kind));
   }
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! Instance) return false;
-    return type == other.type &&
-        kind == other.kind &&
-        isRedirection == other.isRedirection;
+    return type == other.type && kind == other.kind;
   }
 
   @override
@@ -168,9 +164,6 @@ class Instance {
       sb.write(' abstractly');
     } else if (kind == Instantiation.UNINSTANTIATED) {
       sb.write(' none');
-    }
-    if (isRedirection) {
-      sb.write(' redirect');
     }
     return sb.toString();
   }
@@ -242,12 +235,11 @@ class InstantiationInfo {
 
   /// Register [type] as the instantiation [kind] using [constructor].
   void addInstantiation(
-      ConstructorEntity constructor, InterfaceType type, Instantiation kind,
-      {bool isRedirection: false}) {
+      ConstructorEntity constructor, InterfaceType type, Instantiation kind) {
     instantiationMap ??= <ConstructorEntity, Set<Instance>>{};
     instantiationMap
         .putIfAbsent(constructor, () => new Set<Instance>())
-        .add(new Instance(type, kind, isRedirection: isRedirection));
+        .add(new Instance(type, kind));
     switch (kind) {
       case Instantiation.DIRECTLY_INSTANTIATED:
         isDirectlyInstantiated = true;
@@ -337,26 +329,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       <MemberEntity, MemberUsage>{};
 
   Map<MemberEntity, MemberUsage> get memberUsageForTesting => _memberUsage;
-
-  Map<MemberEntity, MemberUsage> get staticMemberUsageForTesting {
-    Map<MemberEntity, MemberUsage> map = <MemberEntity, MemberUsage>{};
-    _memberUsage.forEach((MemberEntity member, MemberUsage usage) {
-      if (!member.isInstanceMember) {
-        map[member] = usage;
-      }
-    });
-    return map;
-  }
-
-  Map<MemberEntity, MemberUsage> get instanceMemberUsageForTesting {
-    Map<MemberEntity, MemberUsage> map = <MemberEntity, MemberUsage>{};
-    _memberUsage.forEach((MemberEntity member, MemberUsage usage) {
-      if (member.isInstanceMember) {
-        map[member] = usage;
-      }
-    });
-    return map;
-  }
 
   /// Map containing instance members of live classes that are not yet fully
   /// live themselves.
@@ -546,7 +518,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   @override
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity constructor, bool isRedirection: false}) {
+      {ConstructorEntity constructor}) {
     ClassEntity cls = type.element;
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
@@ -563,8 +535,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         kind = Instantiation.DIRECTLY_INSTANTIATED;
       }
     }
-    info.addInstantiation(constructor, type, kind,
-        isRedirection: isRedirection);
+    info.addInstantiation(constructor, type, kind);
     if (kind != Instantiation.UNINSTANTIATED) {
       _classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
           directlyInstantiated: info.isDirectlyInstantiated,
@@ -788,7 +759,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-      case StaticUseKind.REDIRECTION:
         useSet.addAll(usage.invoke(staticUse.callStructure));
         break;
       case StaticUseKind.DIRECT_INVOKE:
@@ -882,9 +852,10 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         // Note: this assumes that there are no non-native fields on native
         // classes, which may not be the case when a native class is subclassed.
         bool isNative = _nativeBasicData.isNativeClass(cls);
-        usage =
-            new MemberUsage(member, isNative: isNative, trackParameters: true);
-        useSet.addAll(usage.appliedUse);
+        usage = new MemberUsage(member, trackParameters: true);
+        if (member.isField && !isNative) {
+          useSet.addAll(usage.init());
+        }
         if (!dryRun) {
           if (member.isField && isNative) {
             registerUsedElement(member);
@@ -931,11 +902,13 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         }
       } else {
         usage = new MemberUsage(member, trackParameters: true);
-        useSet.addAll(usage.appliedUse);
+        if (member.isField) {
+          useSet.addAll(usage.init());
+        }
       }
-    }
-    if (!dryRun) {
-      _memberUsage[member] = usage;
+      if (!dryRun) {
+        _memberUsage[member] = usage;
+      }
     }
     return usage;
   }

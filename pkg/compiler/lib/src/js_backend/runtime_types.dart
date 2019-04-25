@@ -2107,8 +2107,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
-    for (FunctionEntity element
-        in codegenWorldBuilder.staticFunctionsNeedingGetter) {
+    for (FunctionEntity element in codegenWorldBuilder.closurizedStatics) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
       liveTypeVisitor.visitType(functionType, TypeVisitorState.direct);
     }

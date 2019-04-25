@@ -283,11 +283,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void _registerInstantiatedType(InterfaceType type,
       {ConstructorEntity constructor,
       bool nativeUsage: false,
-      bool globalDependency: false,
-      bool isRedirection: false}) {
+      bool globalDependency: false}) {
     task.measure(() {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
-          constructor: constructor, isRedirection: isRedirection);
+          constructor: constructor);
       listener.registerInstantiatedType(type,
           isGlobal: globalDependency, nativeUsage: nativeUsage);
     });
@@ -370,12 +369,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         _registerInstantiatedType(staticUse.type,
             constructor: staticUse.element, globalDependency: false);
-        break;
-      case StaticUseKind.REDIRECTION:
-        _registerInstantiatedType(staticUse.type,
-            constructor: staticUse.element,
-            globalDependency: false,
-            isRedirection: true);
         break;
       default:
         break;
