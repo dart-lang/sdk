@@ -12,9 +12,9 @@ const _desc = r'Type annotate public APIs.';
 
 const _details = r'''
 
-From [effective dart](https://www.dartlang.org/effective-dart/design/#do-type-annotate-public-apis):
+From [effective dart](https://www.dartlang.org/guides/language/effective-dart/design#prefer-type-annotating-public-fields-and-top-level-variables-if-the-type-isnt-obvious):
 
-**DO** type annotate public APIs.
+**PREFER** type annotating public APIs.
 
 Type annotations are important documentation for how a library should be used.
 Annotating the parameter and return types of public methods and functions helps
@@ -138,7 +138,7 @@ class _VisitorHelper extends RecursiveAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name) && !node.isConst) {
       rule.reportLint(node.name);
     }
   }
