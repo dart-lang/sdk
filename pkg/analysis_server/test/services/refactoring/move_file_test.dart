@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -95,7 +96,7 @@ import '22/new_name.dart';
 
   test_file_importedLibrary_sideways() async {
     String pathA = '/home/test/000/1111/a.dart';
-    testFile = '/home/test/000/1111/sub/folder/test.dart';
+    testFile = context.normalize('/home/test/000/1111/sub/folder/test.dart');
     addSource(pathA, '''
 import 'sub/folder/test.dart';
 ''');
@@ -111,7 +112,7 @@ import '../new/folder/name/new_name.dart';
 
   test_file_importedLibrary_up() async {
     String pathA = '/home/test/000/1111/a.dart';
-    testFile = '/home/test/000/1111/22/test.dart';
+    testFile = context.normalize('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 import '22/test.dart';
 ''');
@@ -131,7 +132,7 @@ import 'new_name.dart';
     // a library, so only one of them is updated.
     String pathA = '/home/test/000/1111/a.dart';
     String pathB = '/home/test/000/b.dart';
-    testFile = '/home/test/000/1111/22/test.dart';
+    testFile = context.normalize('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
 part '22/test.dart';
@@ -159,7 +160,7 @@ part '1111/22/new_name.dart';
 
   test_file_referenced_by_part() async {
     String pathA = '/home/test/000/1111/a.dart';
-    testFile = '/home/test/000/1111/22/test.dart';
+    testFile = context.normalize('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
 part '22/test.dart';
@@ -218,7 +219,7 @@ part '22/new_name.dart';
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
     String pathA = '/home/test/000/1111/a.dart';
-    testFile = '/home/test/000/1111/22/test.dart';
+    testFile = context.normalize('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
 part '22/test.dart';
