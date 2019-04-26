@@ -27,7 +27,7 @@ class MoveFileTest extends RefactoringTest {
     String pathA = '/home/test/000/1111/a.dart';
     String pathB = '/home/test/000/1111/b.dart';
     String pathC = '/home/test/000/1111/22/c.dart';
-    testFile = '/home/test/000/1111/test.dart';
+    testFile = context.normalize('/home/test/000/1111/test.dart');
     addSource('/absolute/uri.dart', '');
     addSource(pathA, 'part of lib;');
     addSource(pathB, "import 'test.dart';");
@@ -78,7 +78,7 @@ import 'package:test/222/new_name.dart';
 
   test_file_importedLibrary_down() async {
     String pathA = '/home/test/000/1111/a.dart';
-    testFile = '/home/test/000/1111/test.dart';
+    testFile = context.normalize('/home/test/000/1111/test.dart');
     addSource(pathA, '''
 import 'test.dart';
 ''');
