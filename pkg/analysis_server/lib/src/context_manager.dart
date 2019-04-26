@@ -1141,6 +1141,11 @@ class ContextManagerImpl implements ContextManager {
     }
 
     void checkManifestFilesIn(Folder folder) {
+      // Don't traverse into dot directories.
+      if (folder.shortName.startsWith('.')) {
+        return;
+      }
+
       for (var child in folder.getChildren()) {
         if (child is File) {
           if (child.shortName == MANIFEST_NAME &&
