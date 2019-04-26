@@ -11,7 +11,6 @@ import 'extract_method_test.dart' as extract_method_test;
 import 'extract_widget_test.dart' as extract_widget_test;
 import 'inline_local_test.dart' as inline_local_test;
 import 'inline_method_test.dart' as inline_method_test;
-import 'move_file_test.dart' as move_file_test;
 import 'naming_conventions_test.dart' as naming_conventions_test;
 import 'rename_class_member_test.dart' as rename_class_member_test;
 import 'rename_constructor_test.dart' as rename_constructor_test;

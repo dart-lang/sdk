@@ -13,6 +13,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
+// TODO(jwren) These tests are currently disabled due to issues on Windows, next
+//  week we will look at getting them enabled. Disabled by having the file
+//  renamed and a change to ./test_all.dart.
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MoveFileTest);
