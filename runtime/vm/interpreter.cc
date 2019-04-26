@@ -1016,6 +1016,21 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   }                                                                            \
   ASSERT(Utils::DoublesBitEqual(Double::RawCast(SP[0])->ptr()->value_, result));
 
+#define BUMP_USAGE_COUNTER_ON_ENTRY(function)                                  \
+  {                                                                            \
+    int32_t counter = ++(function->ptr()->usage_counter_);                     \
+    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&                    \
+                 counter >= FLAG_compilation_counter_threshold &&              \
+                 !Function::HasCode(function))) {                              \
+      SP[1] = 0; /* Unused code result. */                                     \
+      SP[2] = function;                                                        \
+      Exit(thread, FP, SP + 3, pc);                                            \
+      NativeArguments native_args(thread, 1, SP + 2, SP + 1);                  \
+      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);                \
+      function = FrameFunction(FP);                                            \
+    }                                                                          \
+  }
+
 bool Interpreter::AssertAssignable(Thread* thread,
                                    uint32_t* pc,
                                    RawObject** FP,
@@ -2951,17 +2966,7 @@ SwitchDispatch:
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitGetter);
 
-    int32_t counter = ++(function->ptr()->usage_counter_);
-    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
-                 counter >= FLAG_compilation_counter_threshold &&
-                 !Function::HasCode(function))) {
-      SP[1] = 0;  // Unused code result.
-      SP[2] = function;
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
-      function = FrameFunction(FP);
-    }
+    BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
@@ -3010,17 +3015,7 @@ SwitchDispatch:
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitSetter);
 
-    int32_t counter = ++(function->ptr()->usage_counter_);
-    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
-                 counter >= FLAG_compilation_counter_threshold &&
-                 !Function::HasCode(function))) {
-      SP[1] = 0;  // Unused code result.
-      SP[2] = function;
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
-      function = FrameFunction(FP);
-    }
+    BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
@@ -3140,17 +3135,7 @@ SwitchDispatch:
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitStaticGetter);
 
-    int32_t counter = ++(function->ptr()->usage_counter_);
-    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
-                 counter >= FLAG_compilation_counter_threshold &&
-                 !Function::HasCode(function))) {
-      SP[1] = 0;  // Unused code result.
-      SP[2] = function;
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
-      function = FrameFunction(FP);
-    }
+    BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
@@ -3182,17 +3167,7 @@ SwitchDispatch:
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kMethodExtractor);
 
-    int32_t counter = ++(function->ptr()->usage_counter_);
-    if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
-                 counter >= FLAG_compilation_counter_threshold &&
-                 !Function::HasCode(function))) {
-      SP[1] = 0;  // Unused code result.
-      SP[2] = function;
-      Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
-      function = FrameFunction(FP);
-    }
+    BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
 
@@ -3229,8 +3204,10 @@ SwitchDispatch:
   {
     BYTECODE(VMInternal_InvokeClosure, 0);
 
-    ASSERT(Function::kind(FrameFunction(FP)) ==
-           RawFunction::kInvokeFieldDispatcher);
+    RawFunction* function = FrameFunction(FP);
+    ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
+
+    BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
@@ -3240,7 +3217,7 @@ SwitchDispatch:
 
     RawClosure* receiver =
         Closure::RawCast(FrameArguments(FP, argc)[receiver_idx]);
-    RawFunction* function = receiver->ptr()->function_;
+    function = receiver->ptr()->function_;
 
     SP[1] = function;
     goto TailCallSP1;
@@ -3251,6 +3228,8 @@ SwitchDispatch:
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
+
+    BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
