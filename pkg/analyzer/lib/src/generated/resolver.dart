@@ -27,7 +27,6 @@ import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -6592,8 +6591,8 @@ class TypeNameResolver {
         } else if (element is LocalVariableElement ||
             (element is FunctionElement &&
                 element.enclosingElement is ExecutableElement)) {
-          errorListener.onError(new DiagnosticFactory()
-              .referencedBeforeDeclaration(source, typeName, element: element));
+          reportErrorForNode(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+              typeName, [typeName.name]);
         } else {
           reportErrorForNode(
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);

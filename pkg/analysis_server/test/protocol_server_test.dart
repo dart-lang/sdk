@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/error/codes.dart' as engine;
@@ -264,18 +263,6 @@ class MockAnalysisError implements engine.AnalysisError {
 
   MockAnalysisError(
       this.source, this.errorCode, this.offset, this.length, this.message);
-
-  @override
-  List<DiagnosticMessage> get contextMessages => null;
-
-  @override
-  String get correctionMessage => null;
-
-  @override
-  DiagnosticMessage get problemMessage => null;
-
-  @override
-  Severity get severity => null;
 }
 
 class MockErrorCode implements engine.ErrorCode {
