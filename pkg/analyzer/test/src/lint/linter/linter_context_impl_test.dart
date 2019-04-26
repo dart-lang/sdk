@@ -4,55 +4,142 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/resolver_test_case.dart';
+import '../../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LinterContextImplTest);
+    defineReflectiveTests(CanBeConstConstructorTest);
+    defineReflectiveTests(CanBeConstTest);
   });
 }
 
 @reflectiveTest
-class LinterContextImplTest extends ResolverTestCase {
-  String testSource;
-  CompilationUnitImpl testUnit;
+abstract class AbstractLinterContextTest extends DriverResolutionTest {
   LinterContextImpl context;
 
-  void assertCanBeConst(String snippet, bool expectedResult) {
-    int index = testSource.indexOf(snippet);
-    expect(index >= 0, isTrue);
-    NodeLocator visitor = new NodeLocator(index);
-    AstNodeImpl node = visitor.searchWithin(testUnit);
-    node = node.thisOrAncestorOfType<InstanceCreationExpressionImpl>();
-    expect(node, isNotNull);
-    expect(context.canBeConst(node as InstanceCreationExpressionImpl),
-        expectedResult ? isTrue : isFalse);
-  }
+  Future<void> resolve(String content) async {
+    addTestFile(content);
+    await resolveTestFile();
 
-  Future<void> resolve(String sourceText) async {
-    testSource = sourceText;
-    Source source = addNamedSource('/test.dart', sourceText);
-    ResolvedUnitResult analysisResult = await driver.getResult(source.fullName);
-    testUnit = analysisResult.unit;
-    LinterContextUnit contextUnit = new LinterContextUnit(sourceText, testUnit);
+    var contextUnit = LinterContextUnit(result.content, result.unit);
     context = new LinterContextImpl(
-        [contextUnit],
-        contextUnit,
-        analysisResult.session.declaredVariables,
-        analysisResult.typeProvider,
-        analysisResult.typeSystem,
-        analysisOptions);
+      [contextUnit],
+      contextUnit,
+      result.session.declaredVariables,
+      result.typeProvider,
+      result.typeSystem,
+      analysisOptions,
+    );
+  }
+}
+
+@reflectiveTest
+class CanBeConstConstructorTest extends AbstractLinterContextTest {
+  LinterContextImpl context;
+
+  void assertCanBeConstConstructor(String search, bool expectedResult) {
+    var constructor = findNode.constructor(search);
+    expect(context.canBeConstConstructor(constructor), expectedResult);
   }
 
-  void test_canBeConst_false_argument_invocation() async {
+  test_assertInitializer_parameter() async {
+    await resolve(r'''
+class C {
+  C(int a) : assert(a >= 0, 'error');
+}
+''');
+    assertCanBeConstConstructor('C(int a)', true);
+  }
+
+  test_empty() async {
+    await resolve(r'''
+class C {
+  C();
+}
+''');
+    assertCanBeConstConstructor('C()', true);
+  }
+
+  test_field_notConstInitializer() async {
+    await resolve(r'''
+class C {
+  final int f = a;
+  C();
+}
+
+var a = 0;
+''');
+    assertCanBeConstConstructor('C()', false);
+  }
+
+  test_field_notFinal() async {
+    await resolve(r'''
+class C {
+  int f = 0;
+  C();
+}
+''');
+    assertCanBeConstConstructor('C()', false);
+  }
+
+  test_field_notFinal_inherited() async {
+    await resolve(r'''
+class A {
+  int f = 0;
+}
+
+class B extends A {
+  B();
+}
+''');
+    assertCanBeConstConstructor('B()', false);
+  }
+
+  test_fieldInitializer_literal() async {
+    await resolve(r'''
+class C {
+  final int f;
+  C() : f = 0;
+}
+''');
+    assertCanBeConstConstructor('C()', true);
+  }
+
+  test_fieldInitializer_notConst() async {
+    await resolve(r'''
+class C {
+  final int f;
+  C() : f = a;
+}
+
+var a = 0;
+''');
+    assertCanBeConstConstructor('C()', false);
+  }
+
+  test_fieldInitializer_parameter() async {
+    await resolve(r'''
+class C {
+  final int f;
+  C(int a) : f = a;
+}
+''');
+    assertCanBeConstConstructor('C(int a)', true);
+  }
+}
+
+@reflectiveTest
+class CanBeConstTest extends AbstractLinterContextTest {
+  void assertCanBeConst(String snippet, bool expectedResult) {
+    var node = findNode.instanceCreation(snippet);
+    expect(context.canBeConst(node), expectedResult);
+  }
+
+  void test_false_argument_invocation() async {
     await resolve('''
 class A {}
 class B {
@@ -64,7 +151,7 @@ B g() => B(f());
     assertCanBeConst("B(f", false);
   }
 
-  void test_canBeConst_false_argument_invocationInList() async {
+  void test_false_argument_invocationInList() async {
     await resolve('''
 class A {}
 class B {
@@ -76,7 +163,7 @@ B g() => B([f()]);
     assertCanBeConst("B([", false);
   }
 
-  void test_canBeConst_false_argument_nonConstConstructor() async {
+  void test_false_argument_nonConstConstructor() async {
     await resolve('''
 class A {}
 class B {
@@ -87,7 +174,7 @@ B f() => B(A());
     assertCanBeConst("B(A(", false);
   }
 
-  void test_canBeConst_false_nonConstConstructor() async {
+  void test_false_nonConstConstructor() async {
     await resolve('''
 class A {}
 A f() => A();
@@ -95,7 +182,7 @@ A f() => A();
     assertCanBeConst("A(", false);
   }
 
-  void test_canBeConst_true_constConstructorArg() async {
+  void test_true_constConstructorArg() async {
     await resolve('''
 class A {
   const A();
@@ -108,7 +195,7 @@ B f() => B(A());
     assertCanBeConst("B(A(", true);
   }
 
-  void test_canBeConst_true_constListArg() async {
+  void test_true_constListArg() async {
     await resolve('''
 class A {
   const A(List<int> l);

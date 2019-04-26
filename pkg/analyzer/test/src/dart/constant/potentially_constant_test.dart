@@ -771,6 +771,19 @@ class C {
 ''', () => findNode.constructorFieldInitializer('f =').expression);
   }
 
+  test_simpleIdentifier_parameterOfConstConstructor_notConst() async {
+    await _assertNotConst(
+      r'''
+class C {
+  final int f;
+  C(int a) : f = a + 1;
+}
+''',
+      () => findNode.constructorFieldInitializer('f =').expression,
+      () => [findNode.simple('a +')],
+    );
+  }
+
   test_simpleIdentifier_topVar_const() async {
     await _assertConst(r'''
 const a = 0;

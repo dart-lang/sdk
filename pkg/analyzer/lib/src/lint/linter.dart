@@ -14,6 +14,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions, Logger;
@@ -222,6 +223,16 @@ abstract class LinterContext {
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
   bool canBeConst(InstanceCreationExpression expression);
+
+  /// Return `true` if it would be valid for the given constructor declaration
+  /// [node] to have a keyword of `const`.
+  ///
+  /// The [node] is expected to be a node within one of the compilation
+  /// units in [allUnits].
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool canBeConstConstructor(ConstructorDeclaration node);
 }
 
 /// Implementation of [LinterContext]
@@ -261,19 +272,50 @@ class LinterContextImpl implements LinterContext {
     // exception.
     //
     Token oldKeyword = expression.keyword;
-    ConstantAnalysisErrorListener listener =
-        new ConstantAnalysisErrorListener();
     try {
       expression.keyword = new KeywordToken(Keyword.CONST, expression.offset);
-      LibraryElement library = element.library;
-      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
-      expression.accept(new ConstantVerifier(
-          errorReporter, library, typeProvider, declaredVariables,
-          featureSet: currentUnit.unit.featureSet));
+      return !_hasConstantVerifierError(expression);
     } finally {
       expression.keyword = oldKeyword;
     }
-    return !listener.hasConstError;
+  }
+
+  @override
+  bool canBeConstConstructor(ConstructorDeclaration node) {
+    ConstructorElement element = node.declaredElement;
+
+    ClassElement classElement = element.enclosingElement;
+    if (classElement.hasNonFinalField) return false;
+
+    var oldKeyword = node.constKeyword;
+    try {
+      temporaryConstConstructorElements[element] = true;
+      node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      temporaryConstConstructorElements[element] = null;
+      node.constKeyword = oldKeyword;
+    }
+  }
+
+  /// Return `true` if [ConstantVerifier] reports an error for the [node].
+  bool _hasConstantVerifierError(AstNode node) {
+    var unitElement = currentUnit.unit.declaredElement;
+    var libraryElement = unitElement.library;
+
+    var listener = ConstantAnalysisErrorListener();
+    var errorReporter = ErrorReporter(listener, unitElement.source);
+
+    node.accept(
+      ConstantVerifier(
+        errorReporter,
+        libraryElement,
+        typeProvider,
+        declaredVariables,
+        featureSet: currentUnit.unit.featureSet,
+      ),
+    );
+    return listener.hasConstError;
   }
 }
 
