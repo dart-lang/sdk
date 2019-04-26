@@ -205,6 +205,33 @@ class MyWidget extends StatelessWidget {
     }
   }
 
+  test_children_withCollectionElements() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    bool includeB = true;
+    return new Column(children: [
+      const Text('aaa'),
+      if (includeB) const Text('bbb'),
+      for (int s in ['ccc', 'ddd'] const Text(s),
+    ]);
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    Column
+      Text
+      Text
+      Text
+''');
+  }
+
   test_codeOffsetLength() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
