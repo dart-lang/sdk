@@ -45,8 +45,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(SpeculativeShiftUint32Op)                                                  \
   M(TruncDivMod)                                                               \
   M(UnaryUint32Op)                                                             \
-  M(IntConverter)                                                              \
-  M(UnboxedWidthExtender)
+  M(IntConverter)
 
 // List of instructions that are not used by DBC.
 // Things we aren't planning to implement for DBC:
@@ -1795,6 +1794,12 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   Unsupported(compiler);
   UNREACHABLE();
 #endif  // defined(ARCH_IS_64_BIT)
+}
+
+EMIT_NATIVE_CODE(UnboxedWidthExtender, 1, Location::RequiresRegister()) {
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  __ UnboxedWidthExtender(out, value, from_representation());
 }
 
 EMIT_NATIVE_CODE(DoubleToSmi, 1, Location::RequiresRegister()) {

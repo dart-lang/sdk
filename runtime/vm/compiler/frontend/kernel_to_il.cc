@@ -2433,12 +2433,12 @@ Fragment FlowGraphBuilder::Box(Representation from) {
 
 Fragment FlowGraphBuilder::FfiUnboxedExtend(Representation representation,
                                             const AbstractType& ffi_type) {
-  const intptr_t width =
-      compiler::ffi::ElementSizeInBytes(ffi_type.type_class_id());
-  if (width >= compiler::ffi::kMinimumArgumentWidth) return {};
+  const SmallRepresentation from_representation =
+      compiler::ffi::TypeSmallRepresentation(ffi_type);
+  if (from_representation == kNoSmallRepresentation) return {};
 
-  auto* extend =
-      new (Z) UnboxedWidthExtenderInstr(Pop(), representation, width);
+  auto* extend = new (Z)
+      UnboxedWidthExtenderInstr(Pop(), representation, from_representation);
   Push(extend);
   return Fragment(extend);
 }

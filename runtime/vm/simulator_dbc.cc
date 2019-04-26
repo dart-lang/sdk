@@ -16,6 +16,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/constants_dbc.h"
 #include "vm/cpu.h"
@@ -2107,6 +2108,35 @@ SwitchDispatch:
     DISPATCH();
   }
 
+  {
+    BYTECODE(UnboxedWidthExtender, A_B_C);
+    auto rep = static_cast<SmallRepresentation>(rC);
+    const intptr_t value_32_or_64_bit = reinterpret_cast<intptr_t>(FP[rB]);
+    int32_t value = value_32_or_64_bit & kMaxUint32;  // Prevent overflow.
+    switch (rep) {
+      case kSmallUnboxedInt8:
+        // Sign extend the top 24 bits from the sign bit.
+        value <<= 24;
+        value >>= 24;
+        break;
+      case kSmallUnboxedUint8:
+        value &= 0x000000FF;  // Throw away upper bits.
+        break;
+      case kSmallUnboxedInt16:
+        // Sign extend the top 16 bits from the sign bit.
+        value <<= 16;
+        value >>= 16;
+        break;
+      case kSmallUnboxedUint16:
+        value &= 0x0000FFFF;  // Throw away upper bits.
+        break;
+      default:
+        UNREACHABLE();
+    }
+    FP[rA] = reinterpret_cast<RawObject*>(value);
+    DISPATCH();
+  }
+
 #if defined(ARCH_IS_64_BIT)
   {
     BYTECODE(WriteIntoDouble, A_D);
@@ -2685,7 +2715,7 @@ SwitchDispatch:
 
     BYTECODE(ReturnTOS, 0);
     result = *SP;
-  // Fall through to the ReturnImpl.
+    // Fall through to the ReturnImpl.
 
   ReturnImpl:
     // Restore caller PC.
@@ -3073,7 +3103,7 @@ SwitchDispatch:
       NativeArguments native_args(thread, 5, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_Instanceof, native_args);
     }
-  // clang-format on
+      // clang-format on
 
   InstanceOfOk:
     SP -= 4;

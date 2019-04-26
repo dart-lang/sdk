@@ -5928,30 +5928,18 @@ LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
 
 void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register reg = locs()->in(0).reg();
-  switch (representation_) {
-    case kUnboxedInt32:  // Sign extend operand.
-      switch (from_width_bytes_) {
-        case 1:
-          __ sxtb(reg, reg);
-          break;
-        case 2:
-          __ sxth(reg, reg);
-          break;
-        default:
-          UNREACHABLE();
-      }
+  switch (from_representation()) {
+    case kSmallUnboxedInt8:  // Sign extend operand.
+      __ sxtb(reg, reg);
       break;
-    case kUnboxedUint32:  // Zero extend operand.
-      switch (from_width_bytes_) {
-        case 1:
-          __ uxtb(reg, reg);
-          break;
-        case 2:
-          __ uxth(reg, reg);
-          break;
-        default:
-          UNREACHABLE();
-      }
+    case kSmallUnboxedInt16:
+      __ sxth(reg, reg);
+      break;
+    case kSmallUnboxedUint8:  // Zero extend operand.
+      __ uxtb(reg, reg);
+      break;
+    case kSmallUnboxedUint16:
+      __ uxth(reg, reg);
       break;
     default:
       UNREACHABLE();

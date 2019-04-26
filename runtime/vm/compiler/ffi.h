@@ -28,6 +28,10 @@ size_t ElementSizeInBytes(intptr_t class_id);
 // Unboxed representation of an FFI type (extends 'ffi.NativeType').
 Representation TypeRepresentation(const AbstractType& result_type);
 
+// Unboxed representation of an FFI type (extends 'ffi.NativeType') for 8 and 16
+// bit integers.
+SmallRepresentation TypeSmallRepresentation(const AbstractType& result_type);
+
 // Whether a type which extends 'ffi.NativeType' also extends 'ffi.Pointer'.
 bool NativeTypeIsPointer(const AbstractType& result_type);
 

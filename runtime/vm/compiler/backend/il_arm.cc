@@ -6712,7 +6712,7 @@ void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register reg = locs()->in(0).reg();
   // There are no builtin sign- or zero-extension instructions, so we'll have to
   // use shifts instead.
-  const intptr_t shift_length = (kWordSize - from_width_bytes_) * kBitsPerByte;
+  const intptr_t shift_length = (kWordSize - from_width_bytes()) * kBitsPerByte;
   __ Lsl(reg, reg, Operand(shift_length));
   switch (representation_) {
     case kUnboxedInt32:  // Sign extend operand.

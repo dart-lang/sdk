@@ -6211,30 +6211,18 @@ LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
 }
 
 void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  switch (representation_) {
-    case kUnboxedInt32:  // Sign extend operand.
-      switch (from_width_bytes_) {
-        case 1:
-          __ movsxb(RAX, RAX);
-          break;
-        case 2:
-          __ movsxw(RAX, RAX);
-          break;
-        default:
-          UNREACHABLE();
-      }
+  switch (from_representation()) {
+    case kSmallUnboxedInt8:  // Sign extend operand.
+      __ movsxb(RAX, RAX);
       break;
-    case kUnboxedUint32:  // Zero extend operand.
-      switch (from_width_bytes_) {
-        case 1:
-          __ movzxb(RAX, RAX);
-          break;
-        case 2:
-          __ movzxw(RAX, RAX);
-          break;
-        default:
-          UNREACHABLE();
-      }
+    case kSmallUnboxedInt16:
+      __ movsxw(RAX, RAX);
+      break;
+    case kSmallUnboxedUint8:  // Zero extend operand.
+      __ movzxb(RAX, RAX);
+      break;
+    case kSmallUnboxedUint16:
+      __ movzxw(RAX, RAX);
       break;
     default:
       UNREACHABLE();

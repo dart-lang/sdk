@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/ffi.h"
+
 #include <algorithm>
+
 #include "platform/globals.h"
 #include "vm/compiler/runtime_api.h"
 
@@ -12,8 +14,6 @@ namespace dart {
 namespace compiler {
 
 namespace ffi {
-
-#if !defined(TARGET_ARCH_DBC)
 
 static const size_t kSizeUnknown = 0;
 
@@ -72,6 +72,23 @@ Representation TypeRepresentation(const AbstractType& result_type) {
       return kUnboxedFfiIntPtr;
   }
 }
+
+SmallRepresentation TypeSmallRepresentation(const AbstractType& ffi_type) {
+  switch (ffi_type.type_class_id()) {
+    case kFfiInt8Cid:
+      return kSmallUnboxedInt8;
+    case kFfiInt16Cid:
+      return kSmallUnboxedInt16;
+    case kFfiUint8Cid:
+      return kSmallUnboxedUint8;
+    case kFfiUint16Cid:
+      return kSmallUnboxedUint16;
+    default:
+      return kNoSmallRepresentation;
+  }
+}
+
+#if !defined(TARGET_ARCH_DBC)
 
 bool NativeTypeIsVoid(const AbstractType& result_type) {
   return result_type.type_class_id() == kFfiVoidCid;
@@ -299,15 +316,9 @@ intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
   return max_height_in_slots;
 }
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-#else
-
-size_t ElementSizeInBytes(intptr_t class_id) {
-  UNREACHABLE();
-}
-
 #endif  // !defined(TARGET_ARCH_DBC)
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

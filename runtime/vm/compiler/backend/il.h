@@ -7715,18 +7715,24 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxedWidthExtenderInstr(Value* value,
                             Representation rep,
-                            intptr_t from_width_bytes)
+                            SmallRepresentation from_rep)
       : TemplateDefinition(DeoptId::kNone),
         representation_(rep),
-        from_width_bytes_(from_width_bytes) {
-    ASSERT(from_width_bytes == 1 || from_width_bytes == 2);
-    ASSERT(rep == kUnboxedInt32 || rep == kUnboxedUint32);
+        from_representation_(from_rep) {
+    ASSERT(rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
+                                    from_rep == kSmallUnboxedInt16) ||
+           rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
+                                     from_rep == kSmallUnboxedUint16));
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
 
   Representation representation() const { return representation_; }
+
+  SmallRepresentation from_representation() const {
+    return from_representation_;
+  }
 
   bool ComputeCanDeoptimize() const { return false; }
 
@@ -7739,7 +7745,7 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
     ASSERT(other->IsUnboxedWidthExtender());
     const UnboxedWidthExtenderInstr* ext = other->AsUnboxedWidthExtender();
     return ext->representation() == representation() &&
-           ext->from_width_bytes_ == from_width_bytes_;
+           ext->from_representation_ == from_representation_;
   }
 
   virtual CompileType ComputeType() const { return CompileType::Int(); }
@@ -7749,8 +7755,18 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  intptr_t from_width_bytes() const {
+    if (from_representation_ == kSmallUnboxedInt8 ||
+        from_representation_ == kSmallUnboxedUint8) {
+      return 1;
+    }
+    ASSERT(from_representation_ == kSmallUnboxedInt16 ||
+           from_representation_ == kSmallUnboxedUint16);
+    return 2;
+  }
+
   const Representation representation_;
-  const intptr_t from_width_bytes_;
+  const SmallRepresentation from_representation_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedWidthExtenderInstr);
 };

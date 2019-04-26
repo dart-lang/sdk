@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_DBC)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -2477,6 +2478,97 @@ ASSEMBLER_TEST_RUN(WriteIntoMint, test) {
   const Object& obj = EXECUTE_TEST_CODE_OBJECT(test->code());
   EXPECT(obj.IsMint());
   EXPECT_EQ(kMaxInt64, Mint::Cast(obj).value());
+}
+
+//  - UnboxedWidthExtender rA rB C
+//
+//    Sign- or zero-extends an unboxed integer in FP[rB] into an unboxed
+//    integer in FP[rA]. C contains SmallRepresentation which determines how
+//    the integer is extended.
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt8Positive, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt8 + 0xFFFFFF00)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0x7F, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt8);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt8Positive, test) {
+  EXPECT_EQ(kMaxInt8,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt8Negative, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFF, overwrite the upper bits with 1.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt8);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt8Negative, test) {
+  // least significant 32 bits set to 1.
+  EXPECT_EQ(kMaxUint32,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderUint8, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxUint32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFF, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedUint8);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderUint8, test) {
+  EXPECT_EQ(kMaxUint8,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt16Positive, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt16 + 0xFFFF0000)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0x7FFF, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt16);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt16Positive, test) {
+  EXPECT_EQ(kMaxInt16,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt16Negative, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFFFF, overwrite the upper bits with 1.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt16);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt16Negative, test) {
+  // least significant 32 bits set to 1.
+  EXPECT_EQ(kMaxUint32,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderUint16, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxUint32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFFFF, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedUint16);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderUint16, test) {
+  EXPECT_EQ(kMaxUint16,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
 }
 
 #if defined(ARCH_IS_64_BIT)

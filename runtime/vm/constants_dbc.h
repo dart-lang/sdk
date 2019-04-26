@@ -311,6 +311,12 @@ namespace dart {
 //    following instruction should be a jump to a label after the slow path
 //    allocating a Mint box and writing into the Mint box.)
 //
+//  - UnboxedWidthExtender rA rB C
+//
+//    Sign- or zero-extends an unboxed integer in FP[rB] into an unboxed
+//    integer in FP[rA]. C contains SmallRepresentation which determines how
+//    the integer is extended.
+//
 //  - WriteIntoMint rA, rD
 //
 //    Box the integer in FP[rD] using the Mint box in FP[rA].
@@ -833,6 +839,7 @@ namespace dart {
   V(BoxUint32,                           A_D, reg, reg, ___) \
   V(UnboxInt64,                          A_D, reg, reg, ___) \
   V(BoxInt64,                            A_D, reg, reg, ___) \
+  V(UnboxedWidthExtender,              A_B_C, reg, reg, num) \
   V(SmiToDouble,                         A_D, reg, reg, ___) \
   V(DoubleToSmi,                         A_D, reg, reg, ___) \
   V(DAdd,                              A_B_C, reg, reg, reg) \
