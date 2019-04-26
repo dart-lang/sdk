@@ -55,24 +55,11 @@ class KernelWorker extends AsyncWorkerLoop {
       } else {
         previousState = null;
       }
-      ComputeKernelResult result;
-      // TODO(vsm): See https://github.com/dart-lang/sdk/issues/36644.
-      // If the CFE is crashing with previous state, then clear compilation
-      // state and try again.
-      try {
-        result = await computeKernel(request.arguments,
-            isWorker: true,
-            outputBuffer: outputBuffer,
-            inputs: request.inputs,
-            previousState: previousStateToPass);
-      } catch (_) {
-        outputBuffer.clear();
-        result = await computeKernel(request.arguments,
-            isWorker: true,
-            outputBuffer: outputBuffer,
-            inputs: request.inputs,
-            previousState: null);
-      }
+      var result = await computeKernel(request.arguments,
+          isWorker: true,
+          outputBuffer: outputBuffer,
+          inputs: request.inputs,
+          previousState: previousStateToPass);
       previousState = result.previousState;
       if (!result.succeeded) {
         response.exitCode = 15;

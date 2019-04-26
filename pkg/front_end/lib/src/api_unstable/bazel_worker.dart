@@ -114,8 +114,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     for (WorkerInputComponent cachedInput in workerInputCache.values) {
       cachedInput.component.adoptChildren();
     }
-    sdkComponent.unbindCanonicalNames();
-    sdkComponent.computeCanonicalNames();
 
     // Reuse the incremental compiler, but reset as needed.
     incrementalCompiler = oldState.incrementalCompiler;
@@ -125,9 +123,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   }
 
   // Then read all the input summary components.
-  // The nameRoot from the sdk was either just created or just unbound.
-  // If just unbound, only the sdk stuff is bound. Either way, don't clear it
-  // again and bind as much as possible before loading new stuff!
   CanonicalName nameRoot = cachedSdkInput.component.root;
   final inputSummaries = <Component>[];
   List<Uri> loadFromDill = new List<Uri>();
@@ -144,8 +139,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
       }
-      // We don't unbind as the root was unbound already. We do have to compute
-      // the canonical names though, to rebind everything in the component.
       component.adoptChildren();
       component.computeCanonicalNames();
       inputSummaries.add(component);
@@ -158,7 +151,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     WorkerInputComponent cachedInput = WorkerInputComponent(
         summaryDigest,
         await processedOpts.loadComponent(
-            await fileSystem.entityForUri(summary).readAsBytes(), nameRoot));
+            await fileSystem.entityForUri(summary).readAsBytes(), nameRoot,
+            alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     inputSummaries.add(cachedInput.component);
   }

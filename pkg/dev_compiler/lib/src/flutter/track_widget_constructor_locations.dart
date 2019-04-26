@@ -364,13 +364,15 @@ class WidgetCreatorTracker {
     // We intentionally use the library context of the _HasCreationLocation
     // class for the private field even if [clazz] is in a different library
     // so that all classes implementing Widget behave consistently.
-    final Field locationField = new Field(
-      new Name(
-        _locationFieldName,
-        _hasCreationLocationClass.enclosingLibrary,
-      ),
-      isFinal: true,
+    final Name fieldName = new Name(
+      _locationFieldName,
+      _hasCreationLocationClass.enclosingLibrary,
     );
+    final Field locationField = new Field(fieldName,
+        isFinal: true,
+        reference: clazz.reference.canonicalName
+            ?.getChildFromFieldWithName(fieldName)
+            ?.reference);
     clazz.addMember(locationField);
 
     final Set<Constructor> _handledConstructors =
