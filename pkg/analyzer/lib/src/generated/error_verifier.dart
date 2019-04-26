@@ -840,6 +840,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     _checkForImplicitDynamicInvoke(node);
     _checkForNullableDereference(node.function);
+    _checkForMissingRequiredParam(
+        node.staticInvokeType, node.argumentList, node);
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -947,6 +949,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkForConstOrNewWithAbstractClass(node, typeName, type);
         _checkForConstOrNewWithEnum(node, typeName, type);
         _checkForConstOrNewWithMixin(node, typeName, type);
+        _checkForMissingRequiredParam(
+            node.staticElement?.type, node.argumentList, node.constructorName);
         if (_isInConstInstanceCreation) {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(
@@ -1046,6 +1050,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     _checkTypeArguments(node);
     _checkForImplicitDynamicInvoke(node);
+    _checkForMissingRequiredParam(
+        node.staticInvokeType, node.argumentList, node.methodName);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
         methodName.name != 'toString' &&
         methodName.name != 'noSuchMethod') {
@@ -1165,6 +1171,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
+    DartType type =
+        resolutionMap.staticElementForConstructorReference(node)?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
     _isInConstructorInitializer = true;
     try {
       super.visitRedirectingConstructorInvocation(node);
@@ -1259,6 +1270,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    DartType type =
+        resolutionMap.staticElementForConstructorReference(node)?.type;
+    if (type != null) {
+      _checkForMissingRequiredParam(type, node.argumentList, node);
+    }
     _isInConstructorInitializer = true;
     try {
       super.visitSuperConstructorInvocation(node);
@@ -4101,6 +4117,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForMissingRequiredParam(
+      DartType type, ArgumentList argumentList, AstNode node) {
+    if (type is FunctionType) {
+      for (ParameterElement parameter in type.parameters) {
+        if (parameter.isRequiredNamed) {
+          String parameterName = parameter.name;
+          if (!RequiredConstantsComputer._containsNamedExpression(
+              argumentList, parameterName)) {
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.MISSING_REQUIRED_PARAM,
+                node,
+                [parameterName]);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Verify that the given function [body] does not contain return statements
    * that both have and do not have return values.
@@ -5955,14 +5989,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return result;
   }
 
-  // Find a method which is overridden by [node] and which is annotated with
-  // `@mustCallSuper`.
-  //
-  // As per the definition of `mustCallSuper` [1], every method which overrides
-  // a method annotated with `@mustCallSuper` is implicitly annotated with
-  // `@mustCallSuper`.
-  //
-  // [1] https://pub.dartlang.org/documentation/meta/latest/meta/mustCallSuper-constant.html
+  /// Find a method which is overridden by [node] and which is annotated with
+  /// `@mustCallSuper`.
+  ///
+  /// As per the definition of `mustCallSuper` [1], every method which overrides
+  /// a method annotated with `@mustCallSuper` is implicitly annotated with
+  /// `@mustCallSuper`.
+  ///
+  /// [1] https://pub.dartlang.org/documentation/meta/latest/meta/mustCallSuper-constant.html
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
     Element member = node.declaredElement;
     ClassElement classElement = member.enclosingElement;
@@ -6108,7 +6142,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return setterParameters[0].type;
   }
 
-  // Returns whether [node] overrides a concrete method.
+  /// Returns whether [node] overrides a concrete method.
   bool _hasConcreteSuperMethod(MethodDeclaration node) {
     ClassElement classElement = node.declaredElement.enclosingElement;
     String name = node.declaredElement.name;
@@ -6499,7 +6533,7 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
       DartType type, ArgumentList argumentList, AstNode node) {
     if (type is FunctionType) {
       for (ParameterElement parameter in type.parameters) {
-        if (parameter.isNamed) {
+        if (parameter.isOptionalNamed) {
           ElementAnnotationImpl annotation = _getRequiredAnnotation(parameter);
           if (annotation != null) {
             String parameterName = parameter.name;
@@ -6514,7 +6548,11 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
     }
   }
 
-  bool _containsNamedExpression(ArgumentList args, String name) {
+  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
+      .metadata
+      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
+
+  static bool _containsNamedExpression(ArgumentList args, String name) {
     NodeList<Expression> arguments = args.arguments;
     for (int i = arguments.length - 1; i >= 0; i--) {
       Expression expression = arguments[i];
@@ -6526,10 +6564,6 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
     }
     return false;
   }
-
-  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
-      .metadata
-      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
 }
 
 class _HasTypedefSelfReferenceVisitor extends GeneralizingElementVisitor<void> {

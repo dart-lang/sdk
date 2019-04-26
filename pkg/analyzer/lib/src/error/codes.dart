@@ -1708,6 +1708,18 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try adding either a default value or the 'required' modifier.");
 
   /**
+   * It is an error if a named parameter that is marked as being required is
+   * not bound to an argument at a call site.
+   *
+   * Parameters:
+   * 0: the name of the parameter
+   */
+  static const CompileTimeErrorCode MISSING_REQUIRED_PARAM =
+      const CompileTimeErrorCode(
+          'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.",
+          correction: "Try adding the required argument.");
+
+  /**
    * It's a compile-time error to apply a mixin containing super-invocations to
    * a class that doesn't have a concrete implementation of the super-invoked
    * members compatible with the super-constraint interface.
