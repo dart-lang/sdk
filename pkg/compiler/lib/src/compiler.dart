@@ -210,6 +210,8 @@ abstract class Compiler {
     return _codegenWorldBuilder;
   }
 
+  CodegenWorld codegenWorldForTesting;
+
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
@@ -384,9 +386,12 @@ abstract class Compiler {
     processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
         onProgress: showCodegenProgress);
     codegenEnqueuer.logSummary(reporter.log);
-
+    CodegenWorld codegenWorld = codegenWorldBuilder.close();
+    if (retainDataForTesting) {
+      codegenWorldForTesting = codegenWorld;
+    }
     int programSize = backend.assembleProgram(
-        closedWorld, globalInferenceResults.inferredData);
+        closedWorld, globalInferenceResults.inferredData, codegenWorld);
 
     if (options.dumpInfo) {
       dumpInfoTask.reportSize(programSize);

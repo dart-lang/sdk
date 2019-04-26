@@ -5,7 +5,7 @@
 library dart2js.js_emitter.native_emitter;
 
 import '../common.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/types.dart' show DartType, FunctionType;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
@@ -13,7 +13,6 @@ import '../js/js.dart' show js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
-import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
@@ -22,7 +21,6 @@ import 'model.dart';
 class NativeEmitter {
   final CodeEmitterTask _emitterTask;
   final JClosedWorld _closedWorld;
-  final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
   // Whether the application contains native classes.
@@ -39,10 +37,12 @@ class NativeEmitter {
   // Caches the methods that have a native body.
   Set<FunctionEntity> nativeMethods = new Set<FunctionEntity>();
 
-  NativeEmitter(this._emitterTask, this._closedWorld, this._worldBuilder,
-      this._nativeCodegenEnqueuer);
+  NativeEmitter(
+      this._emitterTask, this._closedWorld, this._nativeCodegenEnqueuer);
 
-  CommonElements get _commonElements => _closedWorld.commonElements;
+  JCommonElements get _commonElements => _closedWorld.commonElements;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
   NativeData get _nativeData => _closedWorld.nativeData;
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
@@ -261,7 +261,8 @@ class NativeEmitter {
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
       FunctionEntity member, List<jsAst.Parameter> stubParameters) {
     jsAst.Expression closureConverter;
-    _worldBuilder.forEachParameter(member, (DartType type, String name, _) {
+    _elementEnvironment.forEachParameter(member,
+        (DartType type, String name, _) {
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {

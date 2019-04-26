@@ -140,10 +140,11 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.templateForBuiltin(builtin);
   }
 
-  void _finalizeRti() {
+  void _finalizeRti(CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    typeTestRegistry.computeRequiredTypeChecks(backend.rtiChecksBuilder);
+    typeTestRegistry.computeRequiredTypeChecks(
+        backend.rtiChecksBuilder, codegenWorld);
     // Compute the classes needed by RTI.
     typeTestRegistry.computeRtiNeededClasses(
         backend.rtiSubstitutions, backend.generatedCode.keys);
@@ -153,28 +154,32 @@ class CodeEmitterTask extends CompilerTask {
   void createEmitter(Namer namer, JClosedWorld closedWorld,
       CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
     measure(() {
-      _nativeEmitter = new NativeEmitter(this, closedWorld, codegenWorldBuilder,
-          backend.nativeCodegenEnqueuer);
+      _nativeEmitter =
+          new NativeEmitter(this, closedWorld, backend.nativeCodegenEnqueuer);
       _emitter =
           _emitterFactory.createEmitter(this, namer, closedWorld, sorter);
-      metadataCollector = new MetadataCollector(compiler.options,
-          compiler.reporter, _emitter, backend.rtiEncoder, codegenWorldBuilder);
-      typeTestRegistry = new TypeTestRegistry(compiler.options,
-          codegenWorldBuilder, closedWorld.elementEnvironment);
+      metadataCollector = new MetadataCollector(
+          compiler.options,
+          compiler.reporter,
+          _emitter,
+          backend.rtiEncoder,
+          closedWorld.elementEnvironment);
+      typeTestRegistry = new TypeTestRegistry(
+          compiler.options, closedWorld.elementEnvironment);
     });
   }
 
-  int assembleProgram(
-      Namer namer, JClosedWorld closedWorld, InferredData inferredData) {
+  int assembleProgram(Namer namer, JClosedWorld closedWorld,
+      InferredData inferredData, CodegenWorld codegenWorld) {
     return measure(() {
-      _finalizeRti();
+      _finalizeRti(codegenWorld);
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
           compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
           closedWorld.outputUnitData,
-          compiler.codegenWorldBuilder,
+          codegenWorld,
           backend.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
           backend.constants,
@@ -196,7 +201,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction);
-      int size = emitter.emitProgram(programBuilder);
+      int size = emitter.emitProgram(programBuilder, codegenWorld);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
       return size;
@@ -218,7 +223,7 @@ abstract class Emitter {
 
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
-  int emitProgram(ProgramBuilder programBuilder);
+  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.

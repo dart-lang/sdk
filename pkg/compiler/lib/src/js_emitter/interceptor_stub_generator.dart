@@ -33,7 +33,7 @@ class InterceptorStubGenerator {
   final Namer _namer;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
-  final CodegenWorldBuilder _codegenWorldBuilder;
+  final CodegenWorld _codegenWorld;
   final JClosedWorld _closedWorld;
 
   InterceptorStubGenerator(
@@ -44,7 +44,7 @@ class InterceptorStubGenerator {
       this._namer,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
-      this._codegenWorldBuilder,
+      this._codegenWorld,
       this._closedWorld);
 
   NativeData get _nativeData => _closedWorld.nativeData;
@@ -199,8 +199,7 @@ class InterceptorStubGenerator {
       ]));
     } else {
       ClassEntity jsUnknown = _commonElements.jsUnknownJavaScriptObjectClass;
-      if (_codegenWorldBuilder.directlyInstantiatedClasses
-          .contains(jsUnknown)) {
+      if (_codegenWorld.directlyInstantiatedClasses.contains(jsUnknown)) {
         statements.add(js.statement('if (!(receiver instanceof #)) return #;', [
           _emitter.constructorAccess(_commonElements.objectClass),
           interceptorFor(jsUnknown)
@@ -423,7 +422,7 @@ class InterceptorStubGenerator {
 
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     List<ConstantValue> constants =
-        _codegenWorldBuilder.getConstantsForEmission(_emitter.compareConstants);
+        _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (constant is TypeConstantValue &&
           constant.representedType is InterfaceType) {

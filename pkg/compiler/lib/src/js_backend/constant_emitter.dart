@@ -11,9 +11,9 @@ import '../elements/types.dart';
 import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js_backend/field_analysis.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../universe/codegen_world_builder.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
 import 'js_backend.dart';
 import 'runtime_types.dart';
@@ -35,7 +35,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   final CompilerOptions _options;
   final JCommonElements _commonElements;
-  final CodegenWorldBuilder _worldBuilder;
+  final JElementEnvironment _elementEnvironment;
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;
   final JFieldAnalysis _fieldAnalysis;
@@ -49,7 +49,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   ConstantEmitter(
       this._options,
       this._commonElements,
-      this._worldBuilder,
+      this._elementEnvironment,
       this._rtiNeed,
       this._rtiEncoder,
       this._fieldAnalysis,
@@ -248,9 +248,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     // The arguments of the JavaScript constructor for any given Dart class
     // are in the same order as the members of the class element.
     int emittedArgumentCount = 0;
-    _worldBuilder.forEachInstanceField(classElement,
-        (ClassEntity enclosing, FieldEntity field, {bool isElided}) {
-      if (isElided) return;
+    _elementEnvironment.forEachInstanceField(classElement,
+        (ClassEntity enclosing, FieldEntity field) {
+      if (_fieldAnalysis.getFieldData(field).isElided) return;
       if (field.name == constant_system.JavaScriptMapConstant.LENGTH_NAME) {
         arguments
             .add(new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
@@ -349,10 +349,10 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     jsAst.Expression constructor =
         _emitter.constructorAccess(constant.type.element);
     List<jsAst.Expression> fields = <jsAst.Expression>[];
-    _worldBuilder.forEachInstanceField(element, (_, FieldEntity field,
-        {bool isElided}) {
-      if (isElided) return;
-      if (!_fieldAnalysis.getFieldData(field).isInitializedInAllocator) {
+    _elementEnvironment.forEachInstanceField(element, (_, FieldEntity field) {
+      FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(field);
+      if (fieldData.isElided) return;
+      if (!fieldData.isInitializedInAllocator) {
         fields.add(constantReferenceGenerator(constant.fields[field]));
       }
     });

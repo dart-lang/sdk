@@ -225,7 +225,52 @@ abstract class OpenWorld implements World {
       MemberEntity member, ClassEntity type, ClassRelation relation);
 }
 
-abstract class KClosedWorld {
+/// A [BuiltWorld] is an immutable result of a [WorldBuilder].
+abstract class BuiltWorld {
+  /// Live generic methods.
+  Iterable<FunctionEntity> get genericMethods;
+
+  /// All types that are checked either through is, as or checked mode checks.
+  Iterable<DartType> get isChecks;
+
+  /// All directly instantiated types, that is, the types of
+  /// [directlyInstantiatedClasses].
+  // TODO(johnniwinther): Improve semantic precision.
+  Iterable<InterfaceType> get instantiatedTypes;
+
+  // TODO(johnniwinther): Clean up these getters.
+  /// Methods in instantiated classes that are potentially closurized.
+  Iterable<FunctionEntity> get closurizedMembers;
+
+  /// Static or top level methods that are closurized.
+  Iterable<FunctionEntity> get closurizedStatics;
+
+  /// Type variables used as type literals.
+  Iterable<TypeVariableType> get typeVariableTypeLiterals;
+
+  /// Live user-defined 'noSuchMethod' implementations.
+  Iterable<FunctionEntity> get userNoSuchMethods;
+
+  /// Live generic instance methods.
+  Iterable<FunctionEntity> get genericInstanceMethods;
+
+  /// Live generic local functions.
+  Iterable<Local> get genericLocalFunctions;
+
+  /// Call [f] for each generic [function] with the type arguments passed
+  /// through static calls to [function].
+  void forEachStaticTypeArgument(
+      void f(Entity function, Set<DartType> typeArguments));
+
+  /// Call [f] for each generic [selector] with the type arguments passed
+  /// through dynamic calls to [selector].
+  void forEachDynamicTypeArgument(
+      void f(Selector selector, Set<DartType> typeArguments));
+}
+
+// TODO(johnniwinther): Rename this to `ResolutionWorld` or `KWorld`?
+// The immutable result of the [ResolutionWorldBuilder].
+abstract class KClosedWorld implements BuiltWorld {
   DartTypes get dartTypes;
   KFieldAnalysis get fieldAnalysis;
   BackendUsage get backendUsage;
@@ -251,4 +296,20 @@ abstract class KClosedWorld {
   NoSuchMethodData get noSuchMethodData;
 
   AnnotationsData get annotationsData;
+
+  /// Set of live closurized members whose signatures reference type variables.
+  ///
+  /// A closurized method is considered live if the enclosing class has been
+  /// instantiated.
+  Iterable<FunctionEntity> get closurizedMembersWithFreeTypeVariables;
+
+  /// Set of (live) local functions (closures).
+  ///
+  /// A live function is one whose enclosing member function has been enqueued.
+  Iterable<Local> get localFunctions;
+
+  /// Returns `true` if [member] has been marked as used (called, read, etc.) in
+  /// this world builder.
+  // TODO(johnniwinther): Maybe this should be part of [ClosedWorld] (instead).
+  bool isMemberUsed(MemberEntity member);
 }

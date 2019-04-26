@@ -63,7 +63,7 @@ class JsClosedWorldBuilder {
     BackendUsage backendUsage =
         _convertBackendUsage(map, closedWorld.backendUsage);
     NativeData nativeData = _convertNativeData(map, closedWorld.nativeData);
-    _elementMap.nativeBasicData = nativeData;
+    _elementMap.nativeData = nativeData;
     InterceptorData interceptorData =
         _convertInterceptorData(map, nativeData, closedWorld.interceptorData);
 

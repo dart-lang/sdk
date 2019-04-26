@@ -111,10 +111,10 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
-      covariant JsClosedWorld closedWorld,
+      JClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new CodegenWorldBuilderImpl(
-        closedWorld.elementMap, closedWorld, selectorConstraintsStrategy);
+        closedWorld, selectorConstraintsStrategy);
   }
 
   @override
@@ -186,7 +186,6 @@ class KernelSsaBuilder implements SsaBuilder {
           _elementMap,
           results,
           closedWorld,
-          _compiler.codegenWorldBuilder,
           work.registry,
           _compiler.backend.emitter.nativeEmitter,
           _compiler.backend.sourceInformationStrategy,

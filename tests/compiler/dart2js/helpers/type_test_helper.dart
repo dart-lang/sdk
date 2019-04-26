@@ -12,6 +12,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/kernel/kelements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
 import 'memory_compiler.dart' as memory;
@@ -145,12 +146,13 @@ class TypeEnvironment {
     }
     MemberEntity member = _getMember(name, cls);
     DartType type;
-    compiler.resolutionWorldBuilder
-        .forEachLocalFunction((MemberEntity m, Local local) {
-      if (member == m) {
+
+    for (KLocalFunction local in compiler
+        .resolutionWorldBuilder.closedWorldForTesting.localFunctions) {
+      if (local.memberContext == member) {
         type ??= elementEnvironment.getLocalFunctionType(local);
       }
-    });
+    }
     return type;
   }
 

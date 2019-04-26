@@ -137,7 +137,7 @@ class JsClosedWorld implements JClosedWorld {
         source, elementMap.commonElements);
     NativeData nativeData = new NativeData.readFromDataSource(
         source, elementMap.elementEnvironment);
-    elementMap.nativeBasicData = nativeData;
+    elementMap.nativeData = nativeData;
     InterceptorData interceptorData = new InterceptorData.readFromDataSource(
         source, nativeData, elementMap.commonElements);
     BackendUsage backendUsage = new BackendUsage.readFromDataSource(source);

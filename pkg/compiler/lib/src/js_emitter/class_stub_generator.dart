@@ -23,14 +23,14 @@ import 'model.dart';
 
 class ClassStubGenerator {
   final Namer _namer;
-  final CodegenWorldBuilder _worldBuilder;
+  final CodegenWorld _codegenWorld;
   final JClosedWorld _closedWorld;
   final bool enableMinification;
   final Emitter _emitter;
   final CommonElements _commonElements;
 
   ClassStubGenerator(this._emitter, this._commonElements, this._namer,
-      this._worldBuilder, this._closedWorld,
+      this._codegenWorld, this._closedWorld,
       {this.enableMinification});
 
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
@@ -164,7 +164,7 @@ class ClassStubGenerator {
     Map<jsAst.Name, Selector> jsNames = <jsAst.Name, Selector>{};
 
     // Do not generate no such method handlers if there is no class.
-    if (_worldBuilder.directlyInstantiatedClasses.isEmpty) {
+    if (_codegenWorld.directlyInstantiatedClasses.isEmpty) {
       return jsNames;
     }
 
@@ -189,9 +189,9 @@ class ClassStubGenerator {
       }
     }
 
-    _worldBuilder.forEachInvokedName(addNoSuchMethodHandlers);
-    _worldBuilder.forEachInvokedGetter(addNoSuchMethodHandlers);
-    _worldBuilder.forEachInvokedSetter(addNoSuchMethodHandlers);
+    _codegenWorld.forEachInvokedName(addNoSuchMethodHandlers);
+    _codegenWorld.forEachInvokedGetter(addNoSuchMethodHandlers);
+    _codegenWorld.forEachInvokedSetter(addNoSuchMethodHandlers);
     return jsNames;
   }
 

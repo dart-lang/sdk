@@ -14,6 +14,7 @@ import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
@@ -61,12 +62,12 @@ class Emitter extends emitterTask.EmitterBase {
   DiagnosticReporter get reporter => _compiler.reporter;
 
   @override
-  int emitProgram(ProgramBuilder programBuilder) {
+  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld) {
     Program program = programBuilder.buildProgram();
     if (retainDataForTesting) {
       programForTesting = program;
     }
-    return _emitter.emitProgram(program);
+    return _emitter.emitProgram(program, codegenWorld);
   }
 
   @override

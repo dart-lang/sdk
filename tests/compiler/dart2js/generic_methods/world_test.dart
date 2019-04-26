@@ -86,13 +86,13 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': code});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    CodegenWorldBuilder worldBuilder = compiler.codegenWorldBuilder;
+    CodegenWorld codegenWorld = compiler.codegenWorldForTesting;
 
     CallStructure noTypeArguments = new CallStructure(0, [], 0);
     CallStructure oneTypeArgument = new CallStructure(0, [], 1);
 
     Iterable<CallStructure> getCallStructures(String name) {
-      return worldBuilder
+      return codegenWorld
               .invocationsByName(name)
               ?.keys
               ?.map((s) => s.callStructure) ??

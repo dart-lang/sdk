@@ -269,11 +269,13 @@ class ElementInfoCollector {
 
     List<ParameterInfo> parameters = <ParameterInfo>[];
     List<String> inferredParameterTypes = <String>[];
-    codegenWorldBuilder.forEachParameterAsLocal(function, (parameter) {
+
+    closedWorld.elementEnvironment.forEachParameterAsLocal(
+        closedWorld.globalLocalsMap, function, (parameter) {
       inferredParameterTypes.add('${_resultOfParameter(parameter)}');
     });
     int parameterIndex = 0;
-    codegenWorldBuilder.forEachParameter(function, (type, name, _) {
+    closedWorld.elementEnvironment.forEachParameter(function, (type, name, _) {
       parameters.add(new ParameterInfo(
           name, inferredParameterTypes[parameterIndex++], '$type'));
     });

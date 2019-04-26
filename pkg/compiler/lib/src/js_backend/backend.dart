@@ -471,13 +471,12 @@ class JavaScriptBackend {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  Namer determineNamer(
-      JClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
+  Namer determineNamer(JClosedWorld closedWorld) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(closedWorld, codegenWorldBuilder)
-        : new Namer(closedWorld, codegenWorldBuilder);
+            ? new FrequencyBasedNamer(closedWorld)
+            : new MinifyNamer(closedWorld)
+        : new Namer(closedWorld);
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -698,8 +697,10 @@ class JavaScriptBackend {
   }
 
   /// Generates the output and returns the total size of the generated code.
-  int assembleProgram(JClosedWorld closedWorld, InferredData inferredData) {
-    int programSize = emitter.assembleProgram(namer, closedWorld, inferredData);
+  int assembleProgram(JClosedWorld closedWorld, InferredData inferredData,
+      CodegenWorld codegenWorld) {
+    int programSize =
+        emitter.assembleProgram(namer, closedWorld, inferredData, codegenWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
   }
@@ -744,7 +745,7 @@ class JavaScriptBackend {
     functionCompiler.onCodegenStart();
     _oneShotInterceptorData = new OneShotInterceptorData(
         closedWorld.interceptorData, closedWorld.commonElements);
-    _namer = determineNamer(closedWorld, codegenWorldBuilder);
+    _namer = determineNamer(closedWorld);
     tracer = new Tracer(closedWorld, namer, compiler.outputProvider);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
         namer,

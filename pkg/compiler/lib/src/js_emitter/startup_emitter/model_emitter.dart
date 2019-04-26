@@ -44,6 +44,7 @@ import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
+import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
@@ -87,7 +88,7 @@ class ModelEmitter {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
-        compiler.codegenWorldBuilder,
+        _closedWorld.elementEnvironment,
         _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
         _closedWorld.fieldAnalysis,
@@ -164,13 +165,13 @@ class ModelEmitter {
         [namer.globalObjectForConstant(value), namer.constantName(value)]);
   }
 
-  int emitProgram(Program program) {
+  int emitProgram(Program program, CodegenWorld codegenWorld) {
     MainFragment mainFragment = program.fragments.first;
     List<DeferredFragment> deferredFragments =
         new List<DeferredFragment>.from(program.deferredFragments);
 
-    FragmentEmitter fragmentEmitter = new FragmentEmitter(
-        compiler, namer, backend, constantEmitter, this, _closedWorld);
+    FragmentEmitter fragmentEmitter = new FragmentEmitter(compiler, namer,
+        backend, constantEmitter, this, _closedWorld, codegenWorld);
 
     var deferredLoadingState = new DeferredLoadingState();
     js.Statement mainCode =

@@ -13,7 +13,7 @@ class Collector {
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
   final OutputUnitData _outputUnitData;
-  final CodegenWorldBuilder _worldBuilder;
+  final CodegenWorld _codegenWorld;
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer _namer;
   final Emitter _emitter;
@@ -52,7 +52,7 @@ class Collector {
       this._commonElements,
       this._elementEnvironment,
       this._outputUnitData,
-      this._worldBuilder,
+      this._codegenWorld,
       this._namer,
       this._emitter,
       this._constantHandler,
@@ -66,7 +66,7 @@ class Collector {
 
   Set<ClassEntity> computeInterceptorsReferencedFromConstants() {
     Set<ClassEntity> classes = new Set<ClassEntity>();
-    List<ConstantValue> constants = _worldBuilder.getConstantsForEmission();
+    List<ConstantValue> constants = _codegenWorld.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
         InterceptorConstantValue interceptorConstant = constant;
@@ -128,7 +128,7 @@ class Collector {
   /// Compute all the constants that must be emitted.
   void computeNeededConstants() {
     List<ConstantValue> constants =
-        _worldBuilder.getConstantsForEmission(_emitter.compareConstants);
+        _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
@@ -156,7 +156,7 @@ class Collector {
     Set<ClassEntity> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
-        _worldBuilder.directlyInstantiatedClasses
+        _codegenWorld.directlyInstantiatedClasses
             .where(computeClassFilter(backendTypeHelpers))
             .toSet();
 
@@ -271,7 +271,7 @@ class Collector {
     List<FieldEntity> fields =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
-        _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
+        _codegenWorld.allReferencedStaticFields.where((FieldEntity field) {
       return _closedWorld.fieldAnalysis.getFieldData(field).isEager;
     }).toList();
 

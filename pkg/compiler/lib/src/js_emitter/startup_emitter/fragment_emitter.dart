@@ -575,6 +575,7 @@ class FragmentEmitter {
   final ConstantEmitter constantEmitter;
   final ModelEmitter modelEmitter;
   final JClosedWorld _closedWorld;
+  final CodegenWorld _codegenWorld;
 
   js.Name _call0Name, _call1Name, _call2Name;
   js.Name get call0Name =>
@@ -585,7 +586,7 @@ class FragmentEmitter {
       _call2Name ??= namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX2);
 
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
-      this.modelEmitter, this._closedWorld);
+      this.modelEmitter, this._closedWorld, this._codegenWorld);
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       modelEmitter.generateEmbeddedGlobalAccess(global);
@@ -656,7 +657,7 @@ class FragmentEmitter {
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
       'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
-              compiler.codegenWorldBuilder, _closedWorld.nativeData, namer) ??
+              _codegenWorld, _closedWorld.nativeData, namer) ??
           new js.EmptyStatement(),
       'invokeMain': fragment.invokeMain,
 

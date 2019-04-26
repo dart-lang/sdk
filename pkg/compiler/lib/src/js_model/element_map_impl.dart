@@ -132,8 +132,9 @@ class JsKernelToElementMap
   /// Map from members to the call methods created for their nested closures.
   Map<IndexedMember, List<IndexedFunction>> _nestedClosureMap = {};
 
-  /// NativeBasicData is need for computation of the default super class.
-  NativeBasicData nativeBasicData;
+  /// NativeData is need for computation of the default super class and
+  /// parameter ordering.
+  NativeData nativeData;
 
   Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
 
@@ -744,7 +745,7 @@ class JsKernelToElementMap
         }
         if (supertype == _commonElements.objectType) {
           ClassEntity defaultSuperclass =
-              _commonElements.getDefaultSuperclass(cls, nativeBasicData);
+              _commonElements.getDefaultSuperclass(cls, nativeData);
           data.supertype = _elementEnvironment.getRawType(defaultSuperclass);
         } else {
           data.supertype = supertype;
@@ -2395,6 +2396,47 @@ class JsElementEnvironment extends ElementEnvironment
     assert(elementMap.checkFamily(cls));
     JClassData classData = elementMap.classes.getData(cls);
     return classData.isEnumClass;
+  }
+
+  @override
+  void forEachParameter(FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    elementMap.forEachParameter(function, f,
+        isNative: elementMap.nativeData.isNativeMember(function));
+  }
+
+  @override
+  void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,
+      FunctionEntity function, void f(Local parameter)) {
+    forEachOrderedParameterAsLocal(globalLocalsMap, elementMap, function,
+        (Local parameter, {bool isElided}) {
+      if (!isElided) {
+        f(parameter);
+      }
+    });
+  }
+
+  @override
+  void forEachInstanceField(
+      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
+    forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
+      if (member.isField && member.isInstanceMember) {
+        f(declarer, member);
+      }
+    });
+  }
+
+  @override
+  void forEachDirectInstanceField(ClassEntity cls, void f(FieldEntity field)) {
+    // TODO(sra): Add ElementEnvironment.forEachDirectInstanceField or
+    // parameterize [forEachInstanceField] to filter members to avoid a
+    // potentially O(n^2) scan of the superclasses.
+    forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
+      if (declarer != cls) return;
+      if (!member.isField) return;
+      if (!member.isInstanceMember) return;
+      f(member);
+    });
   }
 }
 

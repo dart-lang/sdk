@@ -7,6 +7,7 @@ library dart2js.js_emitter.metadata_collector;
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common.dart';
+import '../common_elements.dart' show JElementEnvironment;
 import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart' show FunctionEntity;
@@ -17,7 +18,6 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
 import '../options.dart';
-import '../universe/codegen_world_builder.dart';
 
 import 'code_emitter_task.dart' show Emitter;
 
@@ -101,7 +101,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final DiagnosticReporter reporter;
   final Emitter _emitter;
   final RuntimeTypesEncoder _rtiEncoder;
-  final CodegenWorldBuilder _codegenWorldBuilder;
+  final JElementEnvironment _elementEnvironment;
 
   /// A map with a token per output unit for a list of expressions that
   /// represent metadata, parameter names and type variable types.
@@ -131,13 +131,13 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
 
   MetadataCollector(this._options, this.reporter, this._emitter,
-      this._rtiEncoder, this._codegenWorldBuilder);
+      this._rtiEncoder, this._elementEnvironment);
 
   List<jsAst.DeferredNumber> reifyDefaultArguments(
       FunctionEntity function, OutputUnit outputUnit) {
     // TODO(sra): These are stored on the InstanceMethod or StaticDartMethod.
     List<jsAst.DeferredNumber> defaultValues = <jsAst.DeferredNumber>[];
-    _codegenWorldBuilder.forEachParameter(function,
+    _elementEnvironment.forEachParameter(function,
         (_, String name, ConstantValue constant) {
       if (constant == null) return;
       jsAst.Expression expression = _emitter.constantReference(constant);

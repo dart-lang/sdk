@@ -217,53 +217,13 @@ abstract class WorldBuilder {
   /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<ClassEntity> get directlyInstantiatedClasses;
-
-  /// All types that are checked either through is, as or checked mode checks.
-  Iterable<DartType> get isChecks;
-
-  /// All directly instantiated types, that is, the types of
-  /// [directlyInstantiatedClasses].
-  // TODO(johnniwinther): Improve semantic precision.
-  Iterable<InterfaceType> get instantiatedTypes;
-
-  // TODO(johnniwinther): Clean up these getters.
-  /// Methods in instantiated classes that are potentially closurized.
-  Iterable<FunctionEntity> get closurizedMembers;
-
-  /// Static or top level methods that are closurized.
-  Iterable<FunctionEntity> get closurizedStatics;
-
-  /// Live generic instance methods.
-  Iterable<FunctionEntity> get genericInstanceMethods;
-
-  /// Live generic local functions.
-  Iterable<Local> get genericLocalFunctions;
-
-  /// Live generic methods.
-  Iterable<FunctionEntity> get genericMethods;
-
-  /// Live user-defined 'noSuchMethod' implementations.
-  Iterable<FunctionEntity> get userNoSuchMethods;
-
-  /// Type variables used as type literals.
-  Iterable<TypeVariableType> get typeVariableTypeLiterals;
-
-  /// Call [f] for each generic [function] with the type arguments passed
-  /// through static calls to [function].
-  void forEachStaticTypeArgument(
-      void f(Entity function, Set<DartType> typeArguments));
-
-  /// Call [f] for each generic [selector] with the type arguments passed
-  /// through dynamic calls to [selector].
-  void forEachDynamicTypeArgument(
-      void f(Selector selector, Set<DartType> typeArguments));
 }
 
 abstract class WorldBuilderBase {
-  final Map<Entity, Set<DartType>> _staticTypeArgumentDependencies =
+  final Map<Entity, Set<DartType>> staticTypeArgumentDependencies =
       <Entity, Set<DartType>>{};
 
-  final Map<Selector, Set<DartType>> _dynamicTypeArgumentDependencies =
+  final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies =
       <Selector, Set<DartType>>{};
 
   /// Set of methods in instantiated classes that are potentially closurized.
@@ -277,14 +237,14 @@ abstract class WorldBuilderBase {
 
   void _registerStaticTypeArgumentDependency(
       Entity element, List<DartType> typeArguments) {
-    _staticTypeArgumentDependencies.putIfAbsent(
+    staticTypeArgumentDependencies.putIfAbsent(
         element, () => new Set<DartType>())
       ..addAll(typeArguments);
   }
 
   void _registerDynamicTypeArgumentDependency(
       Selector selector, List<DartType> typeArguments) {
-    _dynamicTypeArgumentDependencies.putIfAbsent(
+    dynamicTypeArgumentDependencies.putIfAbsent(
         selector, () => new Set<DartType>())
       ..addAll(typeArguments);
   }
@@ -301,16 +261,6 @@ abstract class WorldBuilderBase {
       Selector selector, List<DartType> typeArguments) {
     if (typeArguments.isEmpty) return;
     _registerDynamicTypeArgumentDependency(selector, typeArguments);
-  }
-
-  void forEachStaticTypeArgument(
-      void f(Entity function, Set<DartType> typeArguments)) {
-    _staticTypeArgumentDependencies.forEach(f);
-  }
-
-  void forEachDynamicTypeArgument(
-      void f(Selector selector, Set<DartType> typeArguments)) {
-    _dynamicTypeArgumentDependencies.forEach(f);
   }
 
   void registerTypeVariableTypeLiteral(TypeVariableType typeVariable) {

@@ -17,25 +17,32 @@ import '../js_backend/runtime_types.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/member_usage.dart';
-import '../universe/resolution_world_builder.dart';
+import '../universe/selector.dart';
 import '../world.dart';
 
 import 'element_map_impl.dart';
 
 class KClosedWorldImpl implements KClosedWorld {
   final KernelToElementMapImpl elementMap;
+
   @override
   final KElementEnvironment elementEnvironment;
+
   @override
   final DartTypes dartTypes;
+
   @override
   final KCommonElements commonElements;
+
   @override
   final NativeData nativeData;
+
   @override
   final InterceptorData interceptorData;
+
   @override
   final BackendUsage backendUsage;
+
   @override
   final NoSuchMethodData noSuchMethodData;
 
@@ -70,6 +77,48 @@ class KClosedWorldImpl implements KClosedWorld {
 
   RuntimeTypesNeed _rtiNeed;
 
+  @override
+  final Set<DartType> isChecks;
+
+  final Map<Entity, Set<DartType>> staticTypeArgumentDependencies;
+
+  final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies;
+
+  /// Set of methods in instantiated classes that are potentially closurized.
+  @override
+  final Set<FunctionEntity> closurizedMembers;
+
+  /// Set of static or top level methods that are closurized.
+  @override
+  final Set<FunctionEntity> closurizedStatics;
+
+  @override
+  final Set<TypeVariableType> typeVariableTypeLiterals;
+
+  @override
+  final Set<Local> genericLocalFunctions;
+
+  @override
+  final Iterable<FunctionEntity> genericInstanceMethods;
+
+  @override
+  final Iterable<FunctionEntity> genericMethods;
+
+  @override
+  final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables;
+
+  @override
+  final Iterable<Local> localFunctions;
+
+  @override
+  final Iterable<InterfaceType> instantiatedTypes;
+
+  @override
+  final Iterable<FunctionEntity> userNoSuchMethods;
+
+  @override
+  RuntimeTypesNeed get rtiNeed => _rtiNeed;
+
   KClosedWorldImpl(this.elementMap,
       {CompilerOptions options,
       this.elementEnvironment,
@@ -79,7 +128,6 @@ class KClosedWorldImpl implements KClosedWorld {
       this.interceptorData,
       this.backendUsage,
       this.noSuchMethodData,
-      ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       this.fieldAnalysis,
       Set<ClassEntity> implementedClasses,
@@ -90,14 +138,23 @@ class KClosedWorldImpl implements KClosedWorld {
       this.mixinUses,
       this.typesImplementedBySubclasses,
       this.classHierarchy,
-      this.annotationsData})
+      this.annotationsData,
+      this.isChecks,
+      this.staticTypeArgumentDependencies,
+      this.dynamicTypeArgumentDependencies,
+      this.closurizedMembers,
+      this.closurizedStatics,
+      this.typeVariableTypeLiterals,
+      this.genericLocalFunctions,
+      this.genericInstanceMethods,
+      this.genericMethods,
+      this.closurizedMembersWithFreeTypeVariables,
+      this.localFunctions,
+      this.instantiatedTypes,
+      this.userNoSuchMethods})
       : _implementedClasses = implementedClasses {
-    _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(
-        resolutionWorldBuilder, this, options);
+    _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
   }
-
-  @override
-  RuntimeTypesNeed get rtiNeed => _rtiNeed;
 
   @override
   bool isImplemented(ClassEntity cls) {
@@ -106,4 +163,19 @@ class KClosedWorldImpl implements KClosedWorld {
 
   /// Needed for testing.
   Iterable<MemberEntity> get processedMembers => liveMemberUsage.keys;
+
+  @override
+  void forEachStaticTypeArgument(
+      void f(Entity function, Set<DartType> typeArguments)) {
+    staticTypeArgumentDependencies.forEach(f);
+  }
+
+  @override
+  void forEachDynamicTypeArgument(
+      void f(Selector selector, Set<DartType> typeArguments)) {
+    dynamicTypeArgumentDependencies.forEach(f);
+  }
+
+  @override
+  bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
 }

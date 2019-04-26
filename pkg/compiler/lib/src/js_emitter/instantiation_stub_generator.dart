@@ -5,7 +5,7 @@
 library dart2js.js_emitter.instantiation_stub_generator;
 
 import '../common/names.dart';
-import '../common_elements.dart' show CommonElements;
+import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
@@ -24,22 +24,20 @@ import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 // Generator of stubs required for Instantiation classes.
 class InstantiationStubGenerator {
   final CodeEmitterTask _emitterTask;
-  final CommonElements _commonElements;
   final Namer _namer;
-  final CodegenWorldBuilder _codegenWorldBuilder;
+  final CodegenWorld _codegenWorld;
   final JClosedWorld _closedWorld;
   // ignore: UNUSED_FIELD
   final SourceInformationStrategy _sourceInformationStrategy;
 
-  InstantiationStubGenerator(
-      this._emitterTask,
-      this._commonElements,
-      this._namer,
-      this._codegenWorldBuilder,
-      this._closedWorld,
-      this._sourceInformationStrategy);
+  InstantiationStubGenerator(this._emitterTask, this._namer, this._closedWorld,
+      this._codegenWorld, this._sourceInformationStrategy);
 
   Emitter get _emitter => _emitterTask.emitter;
+
+  JCommonElements get _commonElements => _closedWorld.commonElements;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
 
   /// Generates a stub to forward a call selector with no type arguments to a
   /// call selector with stored types.
@@ -138,9 +136,9 @@ class InstantiationStubGenerator {
 
     // 2. Find the function field access path.
     FieldEntity functionField;
-    _codegenWorldBuilder.forEachInstanceField(instantiationClass,
-        (ClassEntity enclosing, FieldEntity field, {bool isElided}) {
-      if (isElided) return;
+    _elementEnvironment.forEachInstanceField(instantiationClass,
+        (ClassEntity enclosing, FieldEntity field) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) return;
       if (field.name == '_genericClosure') functionField = field;
     });
     assert(functionField != null,
@@ -148,7 +146,7 @@ class InstantiationStubGenerator {
 
     String call = _namer.closureInvocationSelectorName;
     Map<Selector, SelectorConstraints> callSelectors =
-        _codegenWorldBuilder.invocationsByName(call);
+        _codegenWorld.invocationsByName(call);
 
     Set<ParameterStructure> computeLiveParameterStructures() {
       Set<ParameterStructure> parameterStructures =
@@ -162,9 +160,9 @@ class InstantiationStubGenerator {
         }
       }
 
-      process(_codegenWorldBuilder.closurizedStatics);
-      process(_codegenWorldBuilder.closurizedMembers);
-      process(_codegenWorldBuilder.genericInstanceMethods.where(
+      process(_codegenWorld.closurizedStatics);
+      process(_codegenWorld.closurizedMembers);
+      process(_codegenWorld.genericInstanceMethods.where(
           (FunctionEntity function) =>
               function.name == Identifiers.call &&
               function.enclosingClass.isClosure));

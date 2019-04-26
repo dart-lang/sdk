@@ -40,7 +40,6 @@ import '../kernel/invocation_mirror_constants.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
 import '../universe/call_structure.dart';
-import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
@@ -89,7 +88,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   final JClosedWorld closedWorld;
-  final CodegenWorldBuilder _worldBuilder;
   @override
   final CodegenRegistry registry;
   final ClosureData closureDataLookup;
@@ -144,7 +142,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this._elementMap,
       this.globalInferenceResults,
       this.closedWorld,
-      this._worldBuilder,
       this.registry,
       this.nativeEmitter,
       this._sourceInformationStrategy,
@@ -168,6 +165,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _currentFrame.letBindings;
 
   JCommonElements get _commonElements => _elementMap.commonElements;
+
+  JElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
 
   JFieldAnalysis get _fieldAnalysis => closedWorld.fieldAnalysis;
 
@@ -426,7 +425,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
     ClassEntity cls = member.enclosingClass;
-    InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
+    InterfaceType thisType = _elementEnvironment.getThisType(cls);
     if (thisType.typeArguments.isEmpty) {
       return;
     }
@@ -457,14 +456,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     FunctionEntity function = member;
     List<TypeVariableType> typeVariables =
-        _elementMap.elementEnvironment.getFunctionTypeVariables(function);
+        _elementEnvironment.getFunctionTypeVariables(function);
     if (typeVariables.isEmpty) {
       return;
     }
     bool needsTypeArguments = rtiNeed.methodNeedsTypeArguments(function);
     bool elideTypeParameters = function.parameterStructure.typeParameters == 0;
     for (TypeVariableType typeVariable
-        in _elementMap.elementEnvironment.getFunctionTypeVariables(function)) {
+        in _elementEnvironment.getFunctionTypeVariables(function)) {
       HInstruction param;
       if (elideTypeParameters) {
         // Add elided type parameters.
@@ -533,21 +532,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // order of the arguments here. We can define that with JElements.
     bool isCustomElement = nativeData.isNativeOrExtendsNative(cls) &&
         !nativeData.isJsInteropClass(cls);
-    InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
+    InterfaceType thisType = _elementEnvironment.getThisType(cls);
     List<FieldEntity> fields = <FieldEntity>[];
-    _worldBuilder.forEachInstanceField(cls,
-        (ClassEntity enclosingClass, FieldEntity member, {bool isElided}) {
+    _elementEnvironment.forEachInstanceField(cls,
+        (ClassEntity enclosingClass, FieldEntity member) {
       HInstruction value = constructorData.fieldValues[member];
+      FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
       if (value == null) {
         assert(
-            _fieldAnalysis.getFieldData(member).isInitializedInAllocator ||
+            fieldData.isInitializedInAllocator ||
                 isCustomElement ||
                 reporter.hasReportedError,
             'No initializer value for field ${member}');
       } else {
-        if (!isElided) {
+        if (!fieldData.isElided) {
           fields.add(member);
-          DartType type = _elementMap.elementEnvironment.getFieldType(member);
+          DartType type = _elementEnvironment.getFieldType(member);
           type = localsHandler.substInContext(type);
           constructorArguments.add(
               typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type));
@@ -581,8 +581,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Read the values of the type arguments and create a
         // HTypeInfoExpression to set on the newly created object.
         List<HInstruction> typeArguments = <HInstruction>[];
-        InterfaceType thisType =
-            _elementMap.elementEnvironment.getThisType(cls);
+        InterfaceType thisType = _elementEnvironment.getThisType(cls);
         for (DartType typeVariable in thisType.typeArguments) {
           HInstruction argument = localsHandler
               .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
@@ -659,8 +658,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         ClassEntity inlinedConstructorClass = constructorBody.enclosingClass;
         if (closedWorld.rtiNeed
             .classNeedsTypeArguments(inlinedConstructorClass)) {
-          InterfaceType thisType = _elementMap.elementEnvironment
-              .getThisType(inlinedConstructorClass);
+          InterfaceType thisType =
+              _elementEnvironment.getThisType(inlinedConstructorClass);
           for (DartType typeVariable in thisType.typeArguments) {
             DartType result = localsHandler.substInContext(typeVariable);
             HInstruction argument =
@@ -724,8 +723,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // parameters. For a super constructor call, the type is the supertype
       // of current class. For a redirecting constructor, the type is the
       // current type. [LocalsHandler.substInContext] takes care of both.
-      InterfaceType thisType =
-          _elementMap.elementEnvironment.getThisType(enclosingClass);
+      InterfaceType thisType = _elementEnvironment.getThisType(enclosingClass);
       InterfaceType type = localsHandler.substInContext(thisType);
       List<DartType> arguments = type.typeArguments;
       List<DartType> typeVariables = thisType.typeArguments;
@@ -745,8 +743,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// [clazz].
   void _collectFieldValues(ir.Class clazz, ConstructorData constructorData) {
     ClassEntity cls = _elementMap.getClass(clazz);
-    _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field,
-        {bool isElided}) {
+    _elementEnvironment.forEachDirectInstanceField(cls, (FieldEntity field) {
       _ensureTypeVariablesForInitializers(
           constructorData, field.enclosingClass);
 
@@ -1126,8 +1123,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     // Add the type parameter for the generator's element type.
-    DartType elementType = _elementMap.elementEnvironment
-        .getAsyncOrSyncStarElementType(function.asyncMarker, _returnType);
+    DartType elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
+        function.asyncMarker, _returnType);
 
     if (elementType.containsFreeTypeVariables) {
       // Type must be computed in the entry function, where the type variables
@@ -3747,7 +3744,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (!interfaceType.treatAsRaw) return false;
 
     ClassEntity cls = interfaceType.element;
-    InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
+    InterfaceType thisType = _elementEnvironment.getThisType(cls);
 
     List<HInstruction> arguments =
         _visitPositionalArguments(invocation.arguments);
@@ -4526,8 +4523,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       var nativeBehavior = new NativeBehavior()..codeTemplate = codeTemplate;
       if (options.trustJSInteropTypeAnnotations) {
-        InterfaceType thisType = _elementMap.elementEnvironment
-            .getThisType(constructor.enclosingClass);
+        InterfaceType thisType =
+            _elementEnvironment.getThisType(constructor.enclosingClass);
         nativeBehavior.typesReturned.add(thisType);
       }
       // TODO(efortuna): Source information.
@@ -4552,8 +4549,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     var nativeBehavior = new NativeBehavior()..sideEffects.setAllSideEffects();
 
     DartType type = element is ConstructorEntity
-        ? _elementMap.elementEnvironment.getThisType(element.enclosingClass)
-        : _elementMap.elementEnvironment.getFunctionType(element).returnType;
+        ? _elementEnvironment.getThisType(element.enclosingClass)
+        : _elementEnvironment.getFunctionType(element).returnType;
     // Native behavior effects here are similar to native/behavior.dart.
     // The return type is dynamic if we don't trust js-interop type
     // declarations.
@@ -4571,7 +4568,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (!options.trustJSInteropTypeAnnotations ||
         type == commonElements.objectType ||
         type is DynamicType) {
-      nativeBehavior.typesInstantiated.add(_elementMap.elementEnvironment
+      nativeBehavior.typesInstantiated.add(_elementEnvironment
           .getThisType(commonElements.jsJavaScriptObjectClass));
     }
 
@@ -4602,9 +4599,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    _worldBuilder.forEachInstanceField(closureClassEntity,
-        (_, FieldEntity field, {bool isElided}) {
-      if (isElided) return;
+    _elementEnvironment.forEachInstanceField(closureClassEntity,
+        (_, FieldEntity field) {
+      if (_fieldAnalysis.getFieldData(field).isElided) return;
       capturedVariables
           .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });
@@ -5060,15 +5057,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// This will be true if [type] is raw, or all its type-arguments match the
   /// type-parameter bounds.
   bool _canIgnoreTypeArguments(InterfaceType type) {
-    InterfaceType thisType =
-        _elementMap.elementEnvironment.getThisType(type.element);
+    InterfaceType thisType = _elementEnvironment.getThisType(type.element);
     List<DartType> bounds = thisType.typeArguments;
     for (int i = 0; i < bounds.length; i++) {
       DartType arg = type.typeArguments[i];
       if (arg.treatAsDynamic) continue;
       TypeVariableType typeVariable = bounds[i];
-      DartType bound = _elementMap.elementEnvironment
-          .getTypeVariableBound(typeVariable.element);
+      DartType bound =
+          _elementEnvironment.getTypeVariableBound(typeVariable.element);
       if (bound != arg) return false;
     }
     return true;
@@ -5497,7 +5493,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     int positionalArgumentIndex = 0;
     int namedArgumentIndex = 0;
 
-    _worldBuilder.forEachParameter(function,
+    _elementEnvironment.forEachParameter(function,
         (DartType type, String name, ConstantValue defaultValue) {
       if (positionalArgumentIndex < parameterStructure.positionalParameters) {
         if (positionalArgumentIndex < callStructure.positionalArgumentCount) {
@@ -5549,8 +5545,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       } else {
         assert(callStructure.typeArgumentCount == 0);
         // Pass type variable bounds as type arguments.
-        for (TypeVariableType typeVariable in _elementMap.elementEnvironment
-            .getFunctionTypeVariables(function)) {
+        for (TypeVariableType typeVariable
+            in _elementEnvironment.getFunctionTypeVariables(function)) {
           compiledArguments[compiledArgumentIndex++] =
               _computeTypeArgumentDefaultValue(function, typeVariable);
         }
@@ -5561,8 +5557,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   HInstruction _computeTypeArgumentDefaultValue(
       FunctionEntity function, TypeVariableType typeVariable) {
-    DartType bound = _elementMap.elementEnvironment
-        .getTypeVariableDefaultType(typeVariable.element);
+    DartType bound =
+        _elementEnvironment.getTypeVariableDefaultType(typeVariable.element);
     if (bound.containsTypeVariables) {
       // TODO(33422): Support type variables in default
       // types. Temporarily using the "any" type (encoded as -2) to
@@ -5659,8 +5655,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ClassEntity enclosing = function.enclosingClass;
     if ((function.isConstructor || function is ConstructorBodyEntity) &&
         rtiNeed.classNeedsTypeArguments(enclosing)) {
-      InterfaceType thisType =
-          _elementMap.elementEnvironment.getThisType(enclosing);
+      InterfaceType thisType = _elementEnvironment.getThisType(enclosing);
       thisType.typeArguments.forEach((_typeVariable) {
         TypeVariableType typeVariable = _typeVariable;
         HInstruction argument = compiledArguments[argumentIndex++];
@@ -5671,8 +5666,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (rtiNeed.methodNeedsTypeArguments(function)) {
       bool inlineTypeParameters =
           function.parameterStructure.typeParameters == 0;
-      for (TypeVariableType typeVariable in _elementMap.elementEnvironment
-          .getFunctionTypeVariables(function)) {
+      for (TypeVariableType typeVariable
+          in _elementEnvironment.getFunctionTypeVariables(function)) {
         HInstruction argument;
         if (inlineTypeParameters) {
           // Add inlined type parameters.
@@ -5695,8 +5690,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
             "arguments have been read from: ${compiledArguments} passed to "
             "$function."));
 
-    _returnType =
-        _elementMap.elementEnvironment.getFunctionType(function).returnType;
+    _returnType = _elementEnvironment.getFunctionType(function).returnType;
     stack = <HInstruction>[];
 
     _insertCoverageCall(function);

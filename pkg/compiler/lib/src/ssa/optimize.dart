@@ -2940,7 +2940,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 /// stores that overwrite with the same value.
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
-  final JClosedWorld closedWorld;
+  final JClosedWorld _closedWorld;
   final JFieldAnalysis _fieldAnalysis;
   @override
   final String name = "SsaLoadElimination";
@@ -2949,11 +2949,11 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   bool newGvnCandidates = false;
   HGraph _graph;
 
-  SsaLoadElimination(this.compiler, this.closedWorld)
-      : _fieldAnalysis = closedWorld.fieldAnalysis;
+  SsaLoadElimination(this.compiler, this._closedWorld)
+      : _fieldAnalysis = _closedWorld.fieldAnalysis;
 
   AbstractValueDomain get _abstractValueDomain =>
-      closedWorld.abstractValueDomain;
+      _closedWorld.abstractValueDomain;
 
   @override
   void visitGraph(HGraph graph) {
@@ -2978,7 +2978,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitBasicBlock(HBasicBlock block) {
     if (block.predecessors.length == 0) {
       // Entry block.
-      memorySet = new MemorySet(closedWorld);
+      memorySet = new MemorySet(_closedWorld);
     } else if (block.predecessors.length == 1 &&
         block.predecessors[0].successors.length == 1) {
       // No need to clone, there is no other successor for
@@ -3021,7 +3021,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitFieldGet(HFieldGet instruction) {
     if (instruction.isNullCheck) return;
     FieldEntity element = instruction.element;
-    HInstruction receiver = instruction.getDartReceiver(closedWorld).nonCheck();
+    HInstruction receiver =
+        instruction.getDartReceiver(_closedWorld).nonCheck();
     _visitFieldGet(element, receiver, instruction);
   }
 
@@ -3054,7 +3055,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   @override
   void visitFieldSet(HFieldSet instruction) {
     FieldEntity element = instruction.element;
-    HInstruction receiver = instruction.getDartReceiver(closedWorld).nonCheck();
+    HInstruction receiver =
+        instruction.getDartReceiver(_closedWorld).nonCheck();
     if (memorySet.registerFieldValueUpdate(
         element, receiver, instruction.value)) {
       instruction.block.remove(instruction);
@@ -3066,17 +3068,17 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerAllocation(instruction);
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
-      compiler.codegenWorldBuilder.forEachInstanceField(instruction.element,
-          (_, FieldEntity member, {bool isElided}) {
-        if (isElided) return;
+      _closedWorld.elementEnvironment.forEachInstanceField(instruction.element,
+          (_, FieldEntity member) {
+        FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
+        if (fieldData.isElided) return;
         if (compiler.elementHasCompileTimeError(
             // ignore: UNNECESSARY_CAST
             member as Entity)) return;
-        FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
         if (fieldData.isInitializedInAllocator) {
           // TODO(sra): Can we avoid calling HGraph.addConstant?
           ConstantValue value = fieldData.initialValue;
-          HConstant constant = _graph.addConstant(value, closedWorld);
+          HConstant constant = _graph.addConstant(value, _closedWorld);
           memorySet.registerFieldValue(member, instruction, constant);
         } else {
           memorySet.registerFieldValue(

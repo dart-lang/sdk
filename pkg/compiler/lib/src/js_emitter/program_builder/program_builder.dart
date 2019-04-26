@@ -64,7 +64,7 @@ class ProgramBuilder {
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
   final OutputUnitData _outputUnitData;
-  final CodegenWorldBuilder _worldBuilder;
+  final CodegenWorld _codegenWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
   final JavaScriptConstantCompiler _constantHandler;
@@ -108,7 +108,7 @@ class ProgramBuilder {
       this._elementEnvironment,
       this._commonElements,
       this._outputUnitData,
-      this._worldBuilder,
+      this._codegenWorld,
       this._nativeCodegenEnqueuer,
       this._backendUsage,
       this._constantHandler,
@@ -135,7 +135,7 @@ class ProgramBuilder {
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
-            _worldBuilder,
+            _codegenWorld,
             _namer,
             _task.emitter,
             _constantHandler,
@@ -352,7 +352,7 @@ class ProgramBuilder {
         _namer,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld);
     return stubGenerator.generateTypeToInterceptorMap();
   }
@@ -504,7 +504,7 @@ class ProgramBuilder {
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
               var selectors =
-                  _worldBuilder.getterInvocationsByName(member.name);
+                  _codegenWorld.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 for (var selector in selectors.keys) {
                   var stubName = _namer.invocationName(selector);
@@ -519,7 +519,7 @@ class ProgramBuilder {
 
             if (member.isSetter || (member.isField && !member.isConst)) {
               var selectors =
-                  _worldBuilder.setterInvocationsByName(member.name);
+                  _codegenWorld.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 var stubName = _namer.setterForMember(member);
                 if (stubNames.add(stubName.key)) {
@@ -552,7 +552,7 @@ class ProgramBuilder {
                 minArgs = 0;
                 maxArgs = 32767;
               }
-              var selectors = _worldBuilder.invocationsByName(member.name);
+              var selectors = _codegenWorld.invocationsByName(member.name);
               // Named arguments are not yet supported. In the future we
               // may want to map named arguments to an object literal containing
               // all named arguments.
@@ -640,7 +640,7 @@ class ProgramBuilder {
     List<StubMethod> callStubs = <StubMethod>[];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
-        _task.emitter, _commonElements, _namer, _worldBuilder, _closedWorld,
+        _task.emitter, _commonElements, _namer, _codegenWorld, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
@@ -659,7 +659,7 @@ class ProgramBuilder {
       }
       if (member.isGetter || member.isField) {
         Map<Selector, SelectorConstraints> selectors =
-            _worldBuilder.invocationsByName(member.name);
+            _codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
           Map<js.Name, js.Expression> callStubsForMember =
               classStubGenerator.generateCallStubsForGetter(member, selectors);
@@ -788,7 +788,7 @@ class ProgramBuilder {
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
     bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
-        _worldBuilder.directlyInstantiatedClasses.contains(cls);
+        _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
@@ -853,7 +853,7 @@ class ProgramBuilder {
     ParameterStructure parameterStructure = method.parameterStructure;
     if (parameterStructure.namedParameters.isNotEmpty) {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
-      _worldBuilder.forEachParameter(method,
+      _elementEnvironment.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
         if (parameterStructure.namedParameters.contains(name)) {
           assert(defaultValue != null);
@@ -863,7 +863,7 @@ class ProgramBuilder {
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
       int index = 0;
-      _worldBuilder.forEachParameter(method,
+      _elementEnvironment.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
         if (index >= parameterStructure.requiredParameters) {
           optionalParameterDefaultValues.add(defaultValue);
@@ -901,9 +901,9 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _worldBuilder.hasInvokedGetter(element);
+        canTearOff = _codegenWorld.hasInvokedGetter(element);
         assert(canTearOff ||
-            !_worldBuilder.methodsNeedingSuperGetter.contains(element));
+            !_codegenWorld.methodsNeedingSuperGetter.contains(element));
         tearOffName = _namer.getterForElement(element);
       }
     }
@@ -976,7 +976,7 @@ class ProgramBuilder {
         _rtiEncoder,
         _nativeData,
         _interceptorData,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld,
         _sourceInformationStrategy);
     return generator.generateParameterStubs(element,
@@ -985,12 +985,7 @@ class ProgramBuilder {
 
   List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
     InstantiationStubGenerator generator = new InstantiationStubGenerator(
-        _task,
-        _commonElements,
-        _namer,
-        _worldBuilder,
-        _closedWorld,
-        _sourceInformationStrategy);
+        _task, _namer, _closedWorld, _codegenWorld, _sourceInformationStrategy);
     return generator.generateStubs(instantiationClass, null);
   }
 
@@ -1027,7 +1022,7 @@ class ProgramBuilder {
         _namer,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld);
 
     String holderName =
@@ -1107,7 +1102,7 @@ class ProgramBuilder {
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
-        _commonElements, _worldBuilder, _nativeData, _namer, _closedWorld);
+        _commonElements, _codegenWorld, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 
@@ -1123,7 +1118,7 @@ class ProgramBuilder {
         _namer,
         _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld);
 
     String holderName =
@@ -1149,7 +1144,7 @@ class ProgramBuilder {
     bool canBeApplied = _methodCanBeApplied(element);
 
     bool needsTearOff =
-        isApplyTarget && _worldBuilder.closurizedStatics.contains(element);
+        isApplyTarget && _codegenWorld.closurizedStatics.contains(element);
 
     js.Name tearOffName =
         needsTearOff ? _namer.staticClosureName(element) : null;

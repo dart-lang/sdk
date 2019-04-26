@@ -14,6 +14,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
+import '../common_elements.dart' show JElementEnvironment;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
@@ -24,10 +25,10 @@ import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
+import '../js_backend/field_analysis.dart';
 import '../js_model/closure.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
@@ -490,7 +491,6 @@ class Namer {
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
   final JClosedWorld _closedWorld;
-  final CodegenWorldBuilder _codegenWorldBuilder;
 
   RuntimeTypesEncoder _rtiEncoder;
   RuntimeTypesEncoder get rtiEncoder {
@@ -596,13 +596,14 @@ class Namer {
   /// key into maps.
   final Map<LibraryEntity, String> _libraryKeys = HashMap();
 
-  Namer(this._closedWorld, this._codegenWorldBuilder) {
+  Namer(this._closedWorld) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
   }
 
-  ElementEnvironment get elementEnvironment => _closedWorld.elementEnvironment;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
 
   CommonElements get _commonElements => _closedWorld.commonElements;
 
@@ -731,11 +732,10 @@ class Namer {
   String constantLongName(ConstantValue constant) {
     String longName = _constantLongNames[constant];
     if (longName == null) {
-      _constantHasher ??=
-          new ConstantCanonicalHasher(rtiEncoder, _codegenWorldBuilder);
-      longName = new ConstantNamingVisitor(
-              rtiEncoder, _codegenWorldBuilder, _constantHasher)
-          .getName(constant);
+      _constantHasher ??= new ConstantCanonicalHasher(rtiEncoder, _closedWorld);
+      longName =
+          new ConstantNamingVisitor(rtiEncoder, _closedWorld, _constantHasher)
+              .getName(constant);
       _constantLongNames[constant] = longName;
     }
     return longName;
@@ -1020,10 +1020,10 @@ class Namer {
     bool isPrivate = Name.isPrivateName(fieldName);
     LibraryEntity memberLibrary = element.library;
     ClassEntity lookupClass =
-        elementEnvironment.getSuperClass(element.enclosingClass);
+        _elementEnvironment.getSuperClass(element.enclosingClass);
     while (lookupClass != null) {
       MemberEntity foundMember =
-          elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
+          _elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
       if (foundMember != null) {
         if (foundMember.isField) {
           if (!isPrivate || memberLibrary == foundMember.library) {
@@ -1033,7 +1033,7 @@ class Namer {
           }
         }
       }
-      lookupClass = elementEnvironment.getSuperClass(lookupClass);
+      lookupClass = _elementEnvironment.getSuperClass(lookupClass);
     }
     return false;
   }
@@ -1843,16 +1843,20 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   static const MAX_EXTRA_LENGTH = 30;
   static const DEFAULT_TAG_LENGTH = 3;
 
-  final RuntimeTypesEncoder rtiEncoder;
-  final CodegenWorldBuilder codegenWorldBuilder;
-  final ConstantCanonicalHasher hasher;
+  final RuntimeTypesEncoder _rtiEncoder;
+  final JClosedWorld _closedWorld;
+  final ConstantCanonicalHasher _hasher;
 
   String root = null; // First word, usually a type name.
   bool failed = false; // Failed to generate something pretty.
   List<String> fragments = <String>[];
   int length = 0;
 
-  ConstantNamingVisitor(this.rtiEncoder, this.codegenWorldBuilder, this.hasher);
+  ConstantNamingVisitor(this._rtiEncoder, this._closedWorld, this._hasher);
+
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
+  JFieldAnalysis get _fieldAnalysis => _closedWorld.fieldAnalysis;
 
   String getName(ConstantValue constant) {
     _visit(constant);
@@ -1863,7 +1867,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   String getHashTag(ConstantValue constant, int width) =>
-      hashWord(hasher.getHash(constant), width);
+      hashWord(_hasher.getHash(constant), width);
 
   String hashWord(int hash, int length) {
     hash &= 0x1fffffff;
@@ -2021,10 +2025,10 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
 
     // TODO(johnniwinther): This should be accessed from a codegen closed world.
-    codegenWorldBuilder.forEachInstanceField(constant.type.element,
-        (_, FieldEntity field, {bool isElided}) {
+    _elementEnvironment.forEachInstanceField(constant.type.element,
+        (_, FieldEntity field) {
       if (failed) return;
-      if (isElided) return;
+      if (_fieldAnalysis.getFieldData(field).isElided) return;
       _visit(constant.fields[field]);
     });
   }
@@ -2043,7 +2047,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
-      name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
+      name = _rtiEncoder.getTypeRepresentationForTypeConstant(type);
     }
     addIdentifier(name);
     add(getHashTag(constant, 3));
@@ -2090,19 +2094,23 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
 
-  final RuntimeTypesEncoder rtiEncoder;
-  final CodegenWorldBuilder codegenWorldBuilder;
-  final Map<ConstantValue, int> hashes = {};
+  final RuntimeTypesEncoder _rtiEncoder;
+  final JClosedWorld _closedWorld;
+  final Map<ConstantValue, int> _hashes = {};
 
-  ConstantCanonicalHasher(this.rtiEncoder, this.codegenWorldBuilder);
+  ConstantCanonicalHasher(this._rtiEncoder, this._closedWorld);
+
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
+  JFieldAnalysis get _fieldAnalysis => _closedWorld.fieldAnalysis;
 
   int getHash(ConstantValue constant) => _visit(constant);
 
   int _visit(ConstantValue constant) {
-    int hash = hashes[constant];
+    int hash = _hashes[constant];
     if (hash == null) {
       hash = _finish(constant.accept(this, null));
-      hashes[constant] = hash;
+      _hashes[constant] = hash;
     }
     return hash;
   }
@@ -2166,9 +2174,9 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
-    codegenWorldBuilder.forEachInstanceField(constant.type.element,
-        (_, FieldEntity field, {bool isElided}) {
-      if (isElided) return;
+    _elementEnvironment.forEachInstanceField(constant.type.element,
+        (_, FieldEntity field) {
+      if (_fieldAnalysis.getFieldData(field).isElided) return;
       hash = _combine(hash, _visit(constant.fields[field]));
     });
     return hash;
@@ -2178,7 +2186,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
     // This name includes the library name and type parameters.
-    String name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
+    String name = _rtiEncoder.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
