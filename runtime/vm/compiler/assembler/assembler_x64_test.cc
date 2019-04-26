@@ -1085,7 +1085,7 @@ ASSEMBLER_TEST_RUN(Negate, test) {
       "ret\n");
 }
 
-ASSEMBLER_TEST_GENERATE(BitScanReverse, assembler) {
+ASSEMBLER_TEST_GENERATE(BitScanReverseTest, assembler) {
   __ pushq(CallingConventions::kArg1Reg);
   __ movq(RCX, Address(RSP, 0));
   __ movq(RAX, Immediate(666));  // Marker for conditional write.
@@ -1094,7 +1094,7 @@ ASSEMBLER_TEST_GENERATE(BitScanReverse, assembler) {
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(BitScanReverse, test) {
+ASSEMBLER_TEST_RUN(BitScanReverseTest, test) {
   typedef int (*Bsr)(int input);
   Bsr call = reinterpret_cast<Bsr>(test->entry());
   EXPECT_EQ(666, call(0));
@@ -5484,7 +5484,7 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
       "ret\n");
 }
 
-ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
+ASSEMBLER_TEST_GENERATE(BitTestTest, assembler) {
   __ movq(RAX, Immediate(4));
   __ movq(R11, Immediate(2));
   __ btq(RAX, R11);
@@ -5496,7 +5496,7 @@ ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(BitTest, test) {
+ASSEMBLER_TEST_RUN(BitTestTest, test) {
   typedef int (*BitTest)();
   EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
   EXPECT_DISASSEMBLY(
