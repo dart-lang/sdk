@@ -13,16 +13,19 @@ How to build and run DartLibFuzzer
 Build the dart_libfuzzer binary as follows (first either export
 DART_USE_ASAN=1 or run ./tools/gn.py --mode=debug --asan):
 
-  ./tools/build.py --mode debug dart_libfuzzer
+    ./tools/build.py \
+    -m [all|debug|release|product]
+    -a [x64|arm64|simarm64] \
+    dart_libfuzzer
 
 Then, to start a blank fuzzing session, run:
 
-  dart_libfuzzer
+    dart_libfuzzer
 
 To start a fuzzing session with an initial corpus inside
 the directory CORPUS, run:
 
-  dart_libfuzzer CORPUS
+    dart_libfuzzer CORPUS
 
 Background
 ==========

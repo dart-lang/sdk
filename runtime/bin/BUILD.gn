@@ -1075,16 +1075,20 @@ shared_library("sample_extension") {
   }
 }
 
-dart_executable("dart_libfuzzer") {
-  extra_ldflags = [ "-fsanitize=address,fuzzer" ]
-  extra_deps = [ "..:libdart_libfuzzer" ]
-  extra_sources = [
-    "../vm/libfuzzer/dart_libfuzzer.cc",
-    "builtin.cc",
-    "dfe.cc",
-    "dfe.h",
-  ]
-  if (!exclude_kernel_service) {
-    extra_deps += [ ":dart_kernel_platform_cc" ]
+# DartLibFuzzer only "exists" for restricted configurations.
+if (defined(is_asan) && is_asan &&
+    (dart_target_arch == "x64" || dart_target_arch == "arm64")) {
+  dart_executable("dart_libfuzzer") {
+    extra_ldflags = [ "-fsanitize=address,fuzzer" ]
+    extra_deps = [ "..:libdart_libfuzzer" ]
+    extra_sources = [
+      "../vm/libfuzzer/dart_libfuzzer.cc",
+      "builtin.cc",
+      "dfe.cc",
+      "dfe.h",
+    ]
+    if (!exclude_kernel_service) {
+      extra_deps += [ ":dart_kernel_platform_cc" ]
+    }
   }
 }
