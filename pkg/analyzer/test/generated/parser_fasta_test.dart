@@ -1119,6 +1119,8 @@ main() { // missing async
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
+  final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
+
   void test_binaryExpression_allOperators() {
     // https://github.com/dart-lang/sdk/issues/36255
     for (TokenType type in TokenType.all) {
@@ -1134,9 +1136,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     }
   }
 
-  void test_listLiteral_spread() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    ListLiteral list = parseExpression('[1, ...[2]]', errors: [
+  void test_listLiteral_spread_disabled() {
+    ListLiteral list =
+        parseExpression('[1, ...[2]]', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 3),
     ]);
     expect(list.elements, hasLength(1));
@@ -1144,9 +1146,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(first.value, 1);
   }
 
-  void test_listLiteral_spreadQ() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    ListLiteral list = parseExpression('[1, ...?[2]]', errors: [
+  void test_listLiteral_spreadQ_disabled() {
+    ListLiteral list =
+        parseExpression('[1, ...?[2]]', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 4),
     ]);
     expect(list.elements, hasLength(1));
@@ -1178,8 +1180,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 6);
   }
 
-  void test_mapLiteral_invalid_set_entry() {
-    SetOrMapLiteral map = parseExpression('<int, int>{1}', errors: [
+  void test_mapLiteral_invalid_set_entry_uiAsCodeDisabled() {
+    SetOrMapLiteral map =
+        parseExpression('<int, int>{1}', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
     ]);
@@ -1218,63 +1221,67 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(map.elements, hasLength(0));
   }
 
-  void test_mapLiteral_spread() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('{1: 2, ...{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 3),
-    ]);
-    expect(map.constKeyword, isNull);
-    expect(map.typeArguments, isNull);
-    expect(map.elements, hasLength(1));
-  }
-
-  void test_mapLiteral_spread2_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map =
-        parseExpression('<int, int>{1: 2, ...{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
-    ]);
+  void test_mapLiteral_spread2_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{1: 2, ...{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
   }
 
-  void test_mapLiteral_spread_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('<int, int>{...{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 3),
-    ]);
+  void test_mapLiteral_spread_disabled() {
+    SetOrMapLiteral map = parseExpression('{1: 2, ...{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 3),
+        ]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.elements, hasLength(1));
+  }
+
+  void test_mapLiteral_spread_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{...{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 3),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(0));
   }
 
-  void test_mapLiteral_spreadQ() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('{1: 2, ...?{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 4),
-    ]);
-    expect(map.constKeyword, isNull);
-    expect(map.typeArguments, isNull);
-    expect(map.elements, hasLength(1));
-  }
-
-  void test_mapLiteral_spreadQ2_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map =
-        parseExpression('<int, int>{1: 2, ...?{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 4),
-    ]);
+  void test_mapLiteral_spreadQ2_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{1: 2, ...?{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 4),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
   }
 
-  void test_mapLiteral_spreadQ_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('<int, int>{...?{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 4),
-    ]);
+  void test_mapLiteral_spreadQ_disabled() {
+    SetOrMapLiteral map = parseExpression('{1: 2, ...?{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 4),
+        ]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.elements, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{...?{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 4),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(0));
@@ -1329,8 +1336,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_invalid_map_entry() {
-    SetOrMapLiteral set = parseExpression('<int>{1: 1}', errors: [
+  void test_setLiteral_invalid_map_entry_beforeUiAsCode() {
+    SetOrMapLiteral set =
+        parseExpression('<int>{1: 1}', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1),
     ]);
     expect(set.constKeyword, isNull);
@@ -1356,9 +1364,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_spread2() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spread2_disabled() {
     SetOrMapLiteral set = parseExpression('{3, ...[4]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
@@ -1367,9 +1375,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_spread2Q() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spread2Q_disabled() {
     SetOrMapLiteral set = parseExpression('{3, ...?[4]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
@@ -1378,18 +1386,18 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_spread_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spread_typed_disabled() {
     SetOrMapLiteral set = parseExpression('<int>{...[3]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
     expect(set.elements, hasLength(0));
   }
 
-  void test_setLiteral_spreadQ_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spreadQ_typed_disabled() {
     SetOrMapLiteral set = parseExpression('<int>{...?[3]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
@@ -1407,18 +1415,18 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setOrMapLiteral_spread() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setOrMapLiteral_spread_disabled() {
     SetOrMapLiteral map = parseExpression('{...{3: 4}}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 3)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(0));
   }
 
-  void test_setOrMapLiteral_spreadQ() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setOrMapLiteral_spreadQ_disabled() {
     SetOrMapLiteral map = parseExpression('{...?{3: 4}}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 4)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
@@ -1506,6 +1514,7 @@ class FastaParserTestCase
   @override
   void createParser(String content,
       {int expectedEndOffset, FeatureSet featureSet}) {
+    featureSet ??= FeatureSet.forTesting();
     var scanner = new StringScanner(content, includeComments: true);
     if (featureSet != null) {
       scanner.enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
@@ -1625,6 +1634,7 @@ class FastaParserTestCase
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener,
       {FeatureSet featureSet}) {
+    featureSet ??= FeatureSet.forTesting();
     var source = new StringSource(content, 'parser_test_StringSource.dart');
 
     void reportError(

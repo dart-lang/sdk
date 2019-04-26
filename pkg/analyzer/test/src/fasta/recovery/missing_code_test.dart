@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,6 +61,8 @@ f() => [a, if (x) b else y, c];
  */
 @reflectiveTest
 class MapLiteralTest extends AbstractRecoveryTest {
+  final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
+
   void test_extraComma() {
     testRecovery('''
 f() => {a: b, , c: d};
@@ -69,7 +72,7 @@ f() => {a: b, , c: d};
       ParserErrorCode.MISSING_IDENTIFIER
     ], '''
 f() => {a: b, _s_: _s_, c: d};
-''');
+''', featureSet: beforeUiAsCode);
   }
 
   void test_missingColonAndValue_last() {
@@ -77,7 +80,7 @@ f() => {a: b, _s_: _s_, c: d};
 f() => {a: b, c };
 ''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
 f() => {a: b, c: _s_};
-''');
+''', featureSet: beforeUiAsCode);
   }
 
   void test_missingComma() {
