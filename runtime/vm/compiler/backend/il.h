@@ -1834,12 +1834,12 @@ class Definition : public Instruction {
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-    return representation() == kPairOfTagged;
-#else
-    return (representation() == kPairOfTagged) ||
-           (representation() == kUnboxedInt64);
-#endif
+    if (compiler::target::kWordSize == 8) {
+      return representation() == kPairOfTagged;
+    } else {
+      return (representation() == kPairOfTagged) ||
+             (representation() == kUnboxedInt64);
+    }
   }
 
   // Compile time type of the definition, which may be requested before type
@@ -5789,6 +5789,8 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   bool is_truncating() const { return is_truncating_; }
 
+  void mark_truncating() { is_truncating_ = true; }
+
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(Instruction* other) const {
@@ -7633,6 +7635,8 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return (converter->from() == from()) && (converter->to() == to()) &&
            (converter->is_truncating() == is_truncating());
   }
+
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 

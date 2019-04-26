@@ -1105,18 +1105,19 @@ Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
+      return kTagged;
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint16ArrayCid:
     case kExternalOneByteStringCid:
     case kExternalTwoByteStringCid:
-      return kTagged;
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1248,51 +1249,37 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if ((representation() == kUnboxedInt32) ||
-      (representation() == kUnboxedUint32)) {
-    const Register result = locs()->out(0).reg();
-    switch (class_id()) {
-      case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedInt32);
-        if (aligned()) {
-          __ ldr(result, element_address, kWord);
-        } else {
-          __ LoadUnaligned(result, address, TMP, kWord);
-        }
-        break;
-      case kTypedDataUint32ArrayCid:
-        ASSERT(representation() == kUnboxedUint32);
-        if (aligned()) {
-          __ ldr(result, element_address, kUnsignedWord);
-        } else {
-          __ LoadUnaligned(result, address, TMP, kUnsignedWord);
-        }
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return;
-  }
-
-  if (representation() == kUnboxedInt64) {
-    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
-           class_id() == kTypedDataUint64ArrayCid);
-    Register result = locs()->out(0).reg();
-    if (aligned()) {
-      __ ldr(result, element_address, kDoubleWord);
-    } else {
-      __ LoadUnaligned(result, address, TMP, kDoubleWord);
-    }
-    return;
-  }
-
-  ASSERT(representation() == kTagged);
   const Register result = locs()->out(0).reg();
   switch (class_id()) {
+    case kTypedDataInt32ArrayCid:
+      ASSERT(representation() == kUnboxedInt32);
+      if (aligned()) {
+        __ ldr(result, element_address, kWord);
+      } else {
+        __ LoadUnaligned(result, address, TMP, kWord);
+      }
+      break;
+    case kTypedDataUint32ArrayCid:
+      ASSERT(representation() == kUnboxedUint32);
+      if (aligned()) {
+        __ ldr(result, element_address, kUnsignedWord);
+      } else {
+        __ LoadUnaligned(result, address, TMP, kUnsignedWord);
+      }
+      break;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      ASSERT(representation() == kUnboxedInt64);
+      if (aligned()) {
+        __ ldr(result, element_address, kDoubleWord);
+      } else {
+        __ LoadUnaligned(result, address, TMP, kDoubleWord);
+      }
+      break;
     case kTypedDataInt8ArrayCid:
+      ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       __ ldr(result, element_address, kByte);
-      __ SmiTag(result);
       break;
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
@@ -1300,29 +1287,30 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
     case kExternalOneByteStringCid:
+      ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       __ ldr(result, element_address, kUnsignedByte);
-      __ SmiTag(result);
       break;
     case kTypedDataInt16ArrayCid:
+      ASSERT(representation() == kUnboxedIntPtr);
       if (aligned()) {
         __ ldr(result, element_address, kHalfword);
       } else {
         __ LoadUnaligned(result, address, TMP, kHalfword);
       }
-      __ SmiTag(result);
       break;
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
+      ASSERT(representation() == kUnboxedIntPtr);
       if (aligned()) {
         __ ldr(result, element_address, kUnsignedHalfword);
       } else {
         __ LoadUnaligned(result, address, TMP, kUnsignedHalfword);
       }
-      __ SmiTag(result);
       break;
     default:
+      ASSERT(representation() == kTagged);
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
       ASSERT(aligned());
       __ ldr(result, element_address);
@@ -1398,15 +1386,16 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+      return kTagged;
     case kOneByteStringCid:
     case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
     case kTypedDataUint16ArrayCid:
-      return kTagged;
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1522,6 +1511,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kOneByteStringCid: {
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       ASSERT(aligned());
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
@@ -1529,13 +1519,13 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ str(TMP, Address(address), kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
-        __ SmiUntag(TMP, value);
-        __ str(TMP, Address(address), kUnsignedByte);
+        __ str(value, Address(address), kUnsignedByte);
       }
       break;
     }
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid: {
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       ASSERT(aligned());
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
@@ -1550,23 +1540,22 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ str(TMP, Address(address), kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
-        __ CompareImmediate(value, 0x1FE);  // Smi value and smi 0xFF.
         // Clamp to 0x00 or 0xFF respectively.
-        __ csetm(TMP, GT);             // TMP = value > 0x1FE ? -1 : 0.
+        __ CompareImmediate(value, 0xFF);
+        __ csetm(TMP, GT);             // TMP = value > 0xFF ? -1 : 0.
         __ csel(TMP, value, TMP, LS);  // TMP = value in range ? value : TMP.
-        __ SmiUntag(TMP);
         __ str(TMP, Address(address), kUnsignedByte);
       }
       break;
     }
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       const Register value = locs()->in(2).reg();
-      __ SmiUntag(TMP, value);
       if (aligned()) {
-        __ str(TMP, Address(address), kUnsignedHalfword);
+        __ str(value, Address(address), kUnsignedHalfword);
       } else {
-        __ StoreUnaligned(TMP, address, scratch, kUnsignedHalfword);
+        __ StoreUnaligned(value, address, scratch, kUnsignedHalfword);
       }
       break;
     }

@@ -1862,20 +1862,54 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
 
   const auto deopt_id = call->deopt_id();
 
-  if (cid == kTypedDataFloat32ArrayCid) {
-    value = new (Z) DoubleToFloatInstr(new (Z) Value(value), deopt_id,
-                                       Instruction::kNotSpeculative);
-    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
-  } else if (cid == kTypedDataInt32ArrayCid) {
-    value = new (Z)
-        UnboxInt32Instr(UnboxInt32Instr::kTruncate, new (Z) Value(value),
-                        deopt_id, Instruction::kNotSpeculative);
-    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
-  } else if (cid == kTypedDataUint32ArrayCid) {
-    value = new (Z) UnboxUint32Instr(new (Z) Value(value), deopt_id,
-                                     Instruction::kNotSpeculative);
-    ASSERT(value->AsUnboxInteger()->is_truncating());
-    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(value), deopt_id,
+                                 Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataInt32ArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedInt32, new (Z) Value(value), deopt_id,
+                                 Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataUint32ArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedUint32, new (Z) Value(value), deopt_id,
+                                 Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedInt64, new (Z) Value(value),
+                                 DeoptId::kNone, Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataFloat32ArrayCid: {
+      value = new (Z) DoubleToFloatInstr(new (Z) Value(value), deopt_id,
+                                         Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    default:
+      break;
   }
 
   auto data = new (Z) LoadUntaggedInstr(new (Z) Value(array),

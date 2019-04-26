@@ -2463,16 +2463,29 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   LoadIndexedInstr* load = new (Z)
       LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), index_scale,
                        array_cid, kAlignedAccess, deopt_id, call->token_pos());
+
   *last = load;
   cursor = flow_graph->AppendTo(cursor, load,
                                 deopt_id != DeoptId::kNone ? call->env() : NULL,
                                 FlowGraph::kValue);
+
+  const bool value_needs_boxing =
+      array_cid == kTypedDataInt8ArrayCid ||
+      array_cid == kTypedDataInt16ArrayCid ||
+      array_cid == kTypedDataUint8ArrayCid ||
+      array_cid == kTypedDataUint8ClampedArrayCid ||
+      array_cid == kTypedDataUint16ArrayCid ||
+      array_cid == kExternalTypedDataUint8ArrayCid ||
+      array_cid == kExternalTypedDataUint8ClampedArrayCid;
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     *last = new (Z) FloatToDoubleInstr(new (Z) Value(load), deopt_id);
     flow_graph->AppendTo(cursor, *last,
                          deopt_id != DeoptId::kNone ? call->env() : NULL,
                          FlowGraph::kValue);
+  } else if (value_needs_boxing) {
+    *last = BoxInstr::Create(kUnboxedIntPtr, new Value(load));
+    flow_graph->AppendTo(cursor, *last, nullptr, FlowGraph::kValue);
   }
   *result = (*last)->AsDefinition();
   return true;
@@ -2612,10 +2625,17 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
           ? kNoStoreBarrier
           : kEmitStoreBarrier;
 
-  // No need to class check stores to Int32 and Uint32 arrays because
-  // we insert unboxing instructions below which include a class check.
-  if ((array_cid != kTypedDataUint32ArrayCid) &&
-      (array_cid != kTypedDataInt32ArrayCid) && value_check != NULL) {
+  const bool value_needs_unboxing =
+      array_cid == kTypedDataInt8ArrayCid ||
+      array_cid == kTypedDataInt16ArrayCid ||
+      array_cid == kTypedDataUint8ArrayCid ||
+      array_cid == kTypedDataUint8ClampedArrayCid ||
+      array_cid == kTypedDataUint16ArrayCid ||
+      array_cid == kExternalTypedDataUint8ArrayCid ||
+      array_cid == kExternalTypedDataUint8ClampedArrayCid ||
+      array_cid == kTypedDataUint32ArrayCid;
+
+  if (value_check != NULL) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
     // an unboxed double, an unboxed Float32x4, or unboxed Int32x4.
     needs_store_barrier = kNoStoreBarrier;
@@ -2630,16 +2650,30 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
         DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
     cursor =
         flow_graph->AppendTo(cursor, stored_value, NULL, FlowGraph::kValue);
-  } else if (array_cid == kTypedDataInt32ArrayCid) {
-    stored_value =
-        new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
-                                new (Z) Value(stored_value), call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                  FlowGraph::kValue);
-  } else if (array_cid == kTypedDataUint32ArrayCid) {
-    stored_value =
-        new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
-    ASSERT(stored_value->AsUnboxInteger()->is_truncating());
+  } else if (value_needs_unboxing) {
+    Representation representation = kNoRepresentation;
+    switch (array_cid) {
+      case kUnboxedInt32:
+        representation = kUnboxedInt32;
+        break;
+      case kTypedDataUint32ArrayCid:
+        representation = kUnboxedUint32;
+        break;
+      case kTypedDataInt8ArrayCid:
+      case kTypedDataInt16ArrayCid:
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kTypedDataUint16ArrayCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+        representation = kUnboxedIntPtr;
+        break;
+      default:
+        UNREACHABLE();
+    }
+    stored_value = UnboxInstr::Create(
+        representation, new (Z) Value(stored_value), call->deopt_id());
+    stored_value->AsUnboxInteger()->mark_truncating();
     cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
   }
@@ -3087,24 +3121,50 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     }
   }
 
-  // Handle conversions and special unboxing.
-  if (view_cid == kTypedDataFloat32ArrayCid) {
-    stored_value = new (Z)
-        DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
-    cursor =
-        flow_graph->AppendTo(cursor, stored_value, nullptr, FlowGraph::kValue);
-  } else if (view_cid == kTypedDataInt32ArrayCid) {
-    stored_value =
-        new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
-                                new (Z) Value(stored_value), call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                  FlowGraph::kValue);
-  } else if (view_cid == kTypedDataUint32ArrayCid) {
-    stored_value =
-        new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
-    ASSERT(stored_value->AsUnboxInteger()->is_truncating());
-    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                  FlowGraph::kValue);
+  // Handle conversions and special unboxing (to ensure unboxing instructions
+  // are marked as truncating, since [SelectRepresentations] does not take care
+  // of that).
+  switch (view_cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid: {
+      stored_value =
+          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(stored_value),
+                             call->deopt_id(), Instruction::kNotSpeculative);
+      stored_value->AsUnboxInteger()->mark_truncating();
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                    FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataFloat32ArrayCid: {
+      stored_value = new (Z)
+          DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
+      cursor = flow_graph->AppendTo(cursor, stored_value, nullptr,
+                                    FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataInt32ArrayCid: {
+      stored_value = new (Z)
+          UnboxInt32Instr(UnboxInt32Instr::kTruncate,
+                          new (Z) Value(stored_value), call->deopt_id());
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                    FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataUint32ArrayCid: {
+      stored_value = new (Z)
+          UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
+      ASSERT(stored_value->AsUnboxInteger()->is_truncating());
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                    FlowGraph::kValue);
+      break;
+    }
+    default:
+      break;
   }
 
   // Generates a template for the store, either a dynamic conditional
@@ -3160,10 +3220,13 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
   LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
       new (Z) Value(str), new (Z) Value(index), Instance::ElementSizeFor(cid),
       cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
-
   cursor = flow_graph->AppendTo(cursor, load_indexed, NULL, FlowGraph::kValue);
-  ASSERT(cursor == load_indexed);
-  return load_indexed;
+
+  auto box = BoxInstr::Create(kUnboxedIntPtr, new Value(load_indexed));
+  cursor = flow_graph->AppendTo(cursor, box, nullptr, FlowGraph::kValue);
+
+  ASSERT(box == cursor);
+  return box;
 }
 
 static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
@@ -4106,16 +4169,25 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       Definition* str = call->ArgumentAt(0);
       Definition* index = call->ArgumentAt(1);
       Definition* value = call->ArgumentAt(2);
+
+      auto env = call->deopt_id() != DeoptId::kNone ? call->env() : nullptr;
+
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value =
+          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(value),
+                             call->deopt_id(), Instruction::kNotSpeculative);
+      value->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(*entry, value, env, FlowGraph::kValue);
+
       *last =
           new (Z) StoreIndexedInstr(new (Z) Value(str), new (Z) Value(index),
                                     new (Z) Value(value), kNoStoreBarrier,
                                     1,  // Index scale
                                     kOneByteStringCid, kAlignedAccess,
                                     call->deopt_id(), call->token_pos());
-      flow_graph->AppendTo(
-          *entry, *last,
-          call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
-          FlowGraph::kEffect);
+      flow_graph->AppendTo(value, *last, env, FlowGraph::kEffect);
+
       // We need a return value to replace uses of the original definition.
       // The final instruction is a use of 'void operator[]=()', so we use null.
       *result = flow_graph->constant_null();

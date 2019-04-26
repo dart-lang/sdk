@@ -1129,18 +1129,19 @@ Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
+      return kTagged;
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint16ArrayCid:
     case kExternalOneByteStringCid:
     case kExternalTwoByteStringCid:
-      return kTagged;
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1184,19 +1185,12 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {
     locs->set_out(0, Location::RequiresFpuRegister());
-  } else if (representation() == kUnboxedUint32) {
-    ASSERT(class_id() == kTypedDataUint32ArrayCid);
-    locs->set_out(0, Location::RequiresRegister());
-  } else if (representation() == kUnboxedInt32) {
-    ASSERT(class_id() == kTypedDataInt32ArrayCid);
-    locs->set_out(0, Location::RequiresRegister());
   } else if (representation() == kUnboxedInt64) {
     ASSERT(class_id() == kTypedDataInt64ArrayCid ||
            class_id() == kTypedDataUint64ArrayCid);
     locs->set_out(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
   } else {
-    ASSERT(representation() == kTagged);
     locs->set_out(0, Location::RequiresRegister());
   }
   return locs;
@@ -1215,14 +1209,19 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                 IsExternal(), class_id(), index_scale(), array,
                 Smi::Cast(index.constant()).Value());
 
+  if (index_scale() == 1) {
+    if (index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    } else {
+      ASSERT(index.IsConstant());
+    }
+  }
+
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {
     XmmRegister result = locs()->out(0).fpu_reg();
-    if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
     switch (class_id()) {
       case kTypedDataFloat32ArrayCid:
         __ movss(result, element_address);
@@ -1241,85 +1240,80 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if ((representation() == kUnboxedUint32) ||
-      (representation() == kUnboxedInt32)) {
-    Register result = locs()->out(0).reg();
-    if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
-    switch (class_id()) {
-      case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedInt32);
-        __ movl(result, element_address);
-        break;
-      case kTypedDataUint32ArrayCid:
-        ASSERT(representation() == kUnboxedUint32);
-        __ movl(result, element_address);
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return;
-  }
-
-  if (representation() == kUnboxedInt64) {
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* result_pair = locs()->out(0).AsPairLocation();
-    Register result_lo = result_pair->At(0).reg();
-    Register result_hi = result_pair->At(1).reg();
-    if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
-    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
-           class_id() == kTypedDataUint64ArrayCid);
-    __ movl(result_lo, element_address);
-    element_address = index.IsRegister()
-                          ? Assembler::ElementAddressForRegIndex(
-                                IsExternal(), class_id(), index_scale(), array,
-                                index.reg(), kWordSize)
-                          : Assembler::ElementAddressForIntIndex(
-                                IsExternal(), class_id(), index_scale(), array,
-                                Smi::Cast(index.constant()).Value(), kWordSize);
-    __ movl(result_hi, element_address);
-    return;
-  }
-
-  ASSERT(representation() == kTagged);
-
-  Register result = locs()->out(0).reg();
-  if ((index_scale() == 1) && index.IsRegister()) {
-    __ SmiUntag(index.reg());
-  }
   switch (class_id()) {
-    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt32ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedInt32);
+      __ movl(result, element_address);
+      break;
+    }
+    case kTypedDataUint32ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedUint32);
+      __ movl(result, element_address);
+      break;
+    }
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      ASSERT(representation() == kUnboxedInt64);
+      ASSERT(locs()->out(0).IsPairLocation());
+      PairLocation* result_pair = locs()->out(0).AsPairLocation();
+      const Register result_lo = result_pair->At(0).reg();
+      const Register result_hi = result_pair->At(1).reg();
+      ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+             class_id() == kTypedDataUint64ArrayCid);
+      __ movl(result_lo, element_address);
+      element_address =
+          index.IsRegister()
+              ? Assembler::ElementAddressForRegIndex(IsExternal(), class_id(),
+                                                     index_scale(), array,
+                                                     index.reg(), kWordSize)
+              : Assembler::ElementAddressForIntIndex(
+                    IsExternal(), class_id(), index_scale(), array,
+                    Smi::Cast(index.constant()).Value(), kWordSize);
+      __ movl(result_hi, element_address);
+      break;
+    }
+    case kTypedDataInt8ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       __ movsxb(result, element_address);
-      __ SmiTag(result);
       break;
+    }
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
+    case kExternalOneByteStringCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       __ movzxb(result, element_address);
-      __ SmiTag(result);
       break;
-    case kTypedDataInt16ArrayCid:
+    }
+    case kTypedDataInt16ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       __ movsxw(result, element_address);
-      __ SmiTag(result);
       break;
+    }
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
+    case kExternalTwoByteStringCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       __ movzxw(result, element_address);
-      __ SmiTag(result);
       break;
-    default:
+    }
+    default: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kTagged);
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
       __ movl(result, element_address);
       break;
+    }
   }
 }
 
@@ -1331,15 +1325,16 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+      return kTagged;
     case kOneByteStringCid:
     case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
     case kTypedDataUint16ArrayCid:
-      return kTagged;
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1465,18 +1460,19 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kOneByteStringCid:
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ movb(element_address,
                 Immediate(static_cast<int8_t>(constant.Value())));
       } else {
         ASSERT(locs()->in(2).reg() == EAX);
-        __ SmiUntag(EAX);
         __ movb(element_address, AL);
       }
       break;
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid: {
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         intptr_t value = constant.Value();
@@ -1490,7 +1486,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       } else {
         ASSERT(locs()->in(2).reg() == EAX);
         Label store_value, store_0xff;
-        __ SmiUntag(EAX);
         __ cmpl(EAX, Immediate(0xFF));
         __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
         // Clamp to 0x0 or 0xFF respectively.
@@ -1506,8 +1501,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
-      Register value = locs()->in(2).reg();
-      __ SmiUntag(value);
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
+      const Register value = locs()->in(2).reg();
       __ movw(element_address, value);
       break;
     }
@@ -1519,8 +1514,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint64ArrayCid: {
       ASSERT(locs()->in(2).IsPairLocation());
       PairLocation* value_pair = locs()->in(2).AsPairLocation();
-      Register value_lo = value_pair->At(0).reg();
-      Register value_hi = value_pair->At(1).reg();
+      const Register value_lo = value_pair->At(0).reg();
+      const Register value_hi = value_pair->At(1).reg();
       __ movl(element_address, value_lo);
       element_address =
           index.IsRegister()
