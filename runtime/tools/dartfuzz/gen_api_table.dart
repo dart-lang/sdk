@@ -264,6 +264,8 @@ void addToTable(String ret, String name, String proto) {
   // allocation in the generated fuzzing program.
   if (name == 'padLeft' || name == 'padRight') {
     proto = proto.replaceAll('I', 'i');
+  } else if (name == 'List.filled') {
+    proto = proto.replaceFirst('I', 'i');
   }
   // Add to table.
   getTable(ret).add(DartLib(name, proto));

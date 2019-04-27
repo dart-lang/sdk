@@ -787,7 +787,7 @@ class DartLib {
     DartLib('FileSystemEntity.parentOf', 'VS'),
   ];
   static const listLibs = [
-    DartLib('List.filled', 'VII'),
+    DartLib('List.filled', 'ViI'),
     DartLib('sublist', 'LII'),
     DartLib('codeUnits', 'Sv'),
     DartLib('Uri.parseIPv4Address', 'VS'),
