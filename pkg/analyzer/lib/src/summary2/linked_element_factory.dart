@@ -59,6 +59,8 @@ class LinkedElementFactory {
 
   List<Reference> exportsOfLibrary(String uriStr) {
     var library = libraryMap[uriStr];
+    if (library == null) return const [];
+
     var exportIndexList = library.node.exports;
     var exportReferences = List<Reference>(exportIndexList.length);
     for (var i = 0; i < exportIndexList.length; ++i) {
