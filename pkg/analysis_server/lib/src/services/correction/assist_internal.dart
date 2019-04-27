@@ -69,7 +69,7 @@ class AssistProcessor {
         typeProvider = context.resolveResult.typeProvider,
         file = context.resolveResult.path,
         utils = new CorrectionUtils(context.resolveResult),
-        flutter = Flutter.of(context.resolveResult.session);
+        flutter = Flutter.of(context.resolveResult);
 
   /**
    * Returns the EOL to use for this [CompilationUnit].

@@ -134,8 +134,7 @@ class InheritedReferenceContributor extends DartCompletionContributor
     }
     if (element is MethodElement &&
         element.name == 'setState' &&
-        Flutter.of(request.result.session)
-            .isExactState(element.enclosingElement)) {
+        Flutter.of(request.result).isExactState(element.enclosingElement)) {
       // Find the line indentation.
       String content = request.result.content;
       int lineStartOffset = request.offset;

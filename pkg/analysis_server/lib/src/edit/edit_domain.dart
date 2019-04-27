@@ -810,7 +810,7 @@ class EditDomainHandler extends AbstractRequestHandler {
           // try RENAME
           {
             RenameRefactoring renameRefactoring = new RenameRefactoring(
-                refactoringWorkspace, resolvedUnit.session, element);
+                refactoringWorkspace, resolvedUnit, element);
             if (renameRefactoring != null) {
               kinds.add(RefactoringKind.RENAME);
             }
@@ -1166,8 +1166,8 @@ class _RefactoringManager {
               RenameRefactoring.getElementToRename(node, element);
 
           // do create the refactoring
-          refactoring = new RenameRefactoring(refactoringWorkspace,
-              resolvedUnit.session, renameElement.element);
+          refactoring = new RenameRefactoring(
+              refactoringWorkspace, resolvedUnit, renameElement.element);
           feedback = new RenameFeedback(
               renameElement.offset, renameElement.length, 'kind', 'oldName');
         }

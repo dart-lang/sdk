@@ -50,7 +50,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       withBasicFlutter: false,
     ).compute();
 
-    flutter = Flutter.of(resolvedUnit.session);
+    flutter = Flutter.of(resolvedUnit);
 
     // Find widget classes.
     // IDEA plugin only supports rendering widgets in libraries.

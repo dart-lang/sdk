@@ -455,7 +455,8 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(RefactoringWorkspace workspace,
-      AnalysisSession session, Element element) {
+      ResolvedUnitResult resolvedUnit, Element element) {
+    var session = resolvedUnit.session;
     if (element == null) {
       return null;
     }
@@ -463,7 +464,8 @@ abstract class RenameRefactoring implements Refactoring {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element.enclosingElement is CompilationUnitElement) {
-      return new RenameUnitMemberRefactoringImpl(workspace, element);
+      return new RenameUnitMemberRefactoringImpl(
+          workspace, resolvedUnit, element);
     }
     if (element is ConstructorElement) {
       return new RenameConstructorRefactoringImpl(workspace, session, element);

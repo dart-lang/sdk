@@ -196,7 +196,7 @@ class FixProcessor {
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,
         utils = CorrectionUtils(context.resolveResult),
-        flutter = Flutter.of(context.resolveResult.session),
+        flutter = Flutter.of(context.resolveResult),
         error = context.error,
         errorOffset = context.error.offset,
         errorLength = context.error.length;
