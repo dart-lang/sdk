@@ -9,7 +9,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,18 +17,13 @@ main() {
 }
 
 @reflectiveTest
-class MixinDriverResolutionTest extends DriverResolutionTest
-    with MixinResolutionMixin {}
-
-mixin MixinResolutionMixin implements ResolutionTest {
+class MixinDriverResolutionTest extends DriverResolutionTest {
   test_accessor_getter() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {
   int get g => 0;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var element = findElement.mixin('M');
 
@@ -48,13 +42,11 @@ mixin M {
   }
 
   test_accessor_method() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {
   void foo() {}
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var element = findElement.mixin('M');
 
@@ -69,13 +61,11 @@ mixin M {
   }
 
   test_accessor_setter() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {
   void set s(int _) {}
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var element = findElement.mixin('M');
 
@@ -94,12 +84,10 @@ mixin M {
   }
 
   test_classDeclaration_with() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {}
 class A extends Object with M {} // A
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var mElement = findElement.mixin('M');
 
@@ -111,12 +99,10 @@ class A extends Object with M {} // A
   }
 
   test_classTypeAlias_with() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {}
 class A = Object with M;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var mElement = findElement.mixin('M');
 
@@ -128,14 +114,12 @@ class A = Object with M;
   }
 
   test_commentReference() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 const a = 0;
 
 /// Reference [a] in documentation.
 mixin M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var aRef = findNode.commentReference('a]').identifier;
     assertElement(aRef, findElement.topGet('a'));
@@ -143,23 +127,20 @@ mixin M {}
   }
 
   test_conflictingGenericInterfaces() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 class I<T> {}
 class A implements I<int> {}
 class B implements I<String> {}
 mixin M on A implements B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
+    ]);
   }
 
   test_element() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var mixin = findNode.mixin('mixin M');
     var element = findElement.mixin('M');
@@ -179,7 +160,7 @@ mixin M {}
   }
 
   test_element_allSupertypes() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 class B {}
 class C {}
@@ -187,8 +168,6 @@ class C {}
 mixin M1 on A, B {}
 mixin M2 on A implements B, C {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var a = findElement.class_('A');
     var b = findElement.class_('B');
@@ -204,15 +183,13 @@ mixin M2 on A implements B, C {}
   }
 
   test_element_allSupertypes_generic() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A<T, U> {}
 class B<T> extends A<int, T> {}
 
 mixin M1 on A<int, double> {}
 mixin M2 on B<String> {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var a = findElement.class_('A');
     var b = findElement.class_('B');
@@ -234,16 +211,15 @@ mixin M2 on B<String> {}
   }
 
   test_error_builtInIdentifierAsTypeName() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin as {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 2),
+    ]);
   }
 
   test_error_builtInIdentifierAsTypeName_OK_on() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 
 mixin on on A {}
@@ -256,533 +232,489 @@ class B = A with on;
 class C = B with M;
 class D = Object with M2;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_conflictingStaticAndInstance_inClass_getter_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static int get foo => 0;
   int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 27, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_getter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static int get foo => 0;
   void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 27, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_getter_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static int get foo => 0;
   set foo(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 27, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_method_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static void foo() {}
   int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 24, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_method_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static void foo() {}
   void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 24, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_method_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static void foo() {}
   set foo(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 24, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_setter_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static set foo(_) {}
   int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 23, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_setter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static set foo(_) {}
   void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 23, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inClass_setter_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static set foo(_) {}
   set foo(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 23, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_getter_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
 mixin M on A {
   static int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 64, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_getter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
 mixin M on A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 61, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_getter_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
 }
 mixin M on A {
   static int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 60, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_method_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
 mixin M on A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 61, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_method_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   void foo() {}
 }
 mixin M on A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 57, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_method_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
 }
 mixin M on A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 57, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_setter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   void foo() {}
 }
 mixin M on A {
   static set foo(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 56, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inConstraint_setter_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
 }
 mixin M on A {
   static set foo(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 56, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_getter_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
 mixin M implements A {
   static int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 72, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_getter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
 mixin M implements A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 69, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_getter_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
 }
 mixin M implements A {
   static int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_method_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
 mixin M implements A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 69, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_method_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   void foo() {}
 }
 mixin M implements A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_method_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
 }
 mixin M implements A {
   static void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_setter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   void foo() {}
 }
 mixin M implements A {
   static set foo(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 64, 3),
+    ]);
   }
 
   test_error_conflictingStaticAndInstance_inInterface_setter_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   set foo(_) {}
 }
 mixin M implements A {
   static set foo(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 64, 3),
+    ]);
   }
 
   test_error_conflictingTypeVariableAndClass() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M<M> {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS, 8, 1),
     ]);
   }
 
   test_error_conflictingTypeVariableAndMember_field() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M<T> {
   var T;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
     ]);
   }
 
   test_error_conflictingTypeVariableAndMember_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M<T> {
   get T => null;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
     ]);
   }
 
   test_error_conflictingTypeVariableAndMember_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M<T> {
   T() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
     ]);
   }
 
   test_error_conflictingTypeVariableAndMember_method_static() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M<T> {
   static T() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
     ]);
   }
 
   test_error_conflictingTypeVariableAndMember_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M<T> {
   void set T(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, 8, 1),
     ]);
   }
 
   test_error_duplicateDefinition_field() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   int t;
   int t;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 25, 1),
+    ]);
   }
 
   test_error_duplicateDefinition_field_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   int t;
   void t() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 26, 1),
+    ]);
   }
 
   test_error_duplicateDefinition_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   int get t => 0;
   int get t => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 38, 1),
+    ]);
   }
 
   test_error_duplicateDefinition_getter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   int get foo => 0;
   void foo() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 37, 3),
+    ]);
   }
 
   test_error_duplicateDefinition_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   void t() {}
   void t() {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 1),
+    ]);
   }
 
   test_error_duplicateDefinition_method_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   void foo() {}
   int get foo => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 36, 3),
+    ]);
   }
 
   test_error_duplicateDefinition_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   void set t(_) {}
   void set t(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 40, 1),
+    ]);
   }
 
   test_error_finalNotInitialized() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   final int f;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 22, 1),
+    ]);
   }
 
   test_error_finalNotInitialized_OK() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {
   final int f = 0;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_finalNotInitializedConstructor() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   final int f;
   M();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
-      StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+''', [
+      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
     ]);
   }
 
   test_error_finalNotInitializedConstructor_OK() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   final int f;
   M(this.f);
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+''', [
+      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+    ]);
 
     var element = findElement.mixin('M');
     var constructorElement = element.constructors.single;
@@ -795,17 +727,14 @@ mixin M {
   }
 
   test_error_implementsClause_deferredClass() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 mixin M implements math.Random {}
-''');
-    await resolveTestFile();
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11),
+    ]);
     var mathImport = findElement.import('dart:math');
     var randomElement = mathImport.importedLibrary.getType('Random');
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
-    ]);
 
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, [randomElement.type]);
@@ -816,13 +745,10 @@ mixin M implements math.Random {}
   }
 
   test_error_implementsClause_disallowedClass_int() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M implements int {}
-''');
-    await resolveTestFile();
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
     ]);
 
     var element = findElement.mixin('M');
@@ -833,14 +759,11 @@ mixin M implements int {}
   }
 
   test_error_implementsClause_nonClass_void() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M implements void {}
-''');
-    await resolveTestFile();
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
-      ParserErrorCode.EXPECTED_TYPE_NAME,
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 4),
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 19, 4),
     ]);
 
     var element = findElement.mixin('M');
@@ -851,57 +774,56 @@ mixin M implements void {}
   }
 
   test_error_implementsRepeated() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {}
 mixin M implements A, A {}
-''');
-    await resolveTestFile();
-    CompileTimeErrorCode.IMPLEMENTS_REPEATED;
-    assertTestErrorsWithCodes([CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1),
+    ]);
   }
 
   test_error_memberWithClassName_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   int get M => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+''', [
+      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+    ]);
   }
 
   test_error_memberWithClassName_getter_static() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static int get M => 0;
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+''', [
+      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+    ]);
   }
 
   test_error_memberWithClassName_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   void set M(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+''', [
+      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
+    ]);
   }
 
   test_error_memberWithClassName_setter_static() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   static void set M(_) {}
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+''', [
+      error(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
+    ]);
   }
 
   test_error_mixinApplicationConcreteSuperInvokedMemberType_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class I {
   void foo([int p]) {}
 }
@@ -921,15 +843,17 @@ mixin M on I {
 }
 
 abstract class X extends B with M {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+''', [
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+          224,
+          1),
     ]);
   }
 
   test_error_mixinApplicationConcreteSuperInvokedMemberType_OK_method_overriddenInMixin() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A<T> {
   void remove(T x) {}
 }
@@ -942,12 +866,10 @@ mixin M<U> on A<U> {
 
 class X<T> = A<T> with M<T>;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int get foo;
 }
@@ -959,15 +881,17 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+''', [
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          121,
+          1),
     ]);
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_inNextMixin() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 abstract class A {
   void foo();
 }
@@ -983,15 +907,17 @@ mixin M2 on A {
 }
 
 class X extends A with M1, M2 {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+''', [
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          149,
+          2),
     ]);
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_inSameMixin() async {
-    addTestFile('''
+    await assertErrorsInCode('''
 abstract class A {
   void foo();
 }
@@ -1003,15 +929,17 @@ mixin M on A {
 }
 
 class X extends A with M {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+''', [
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          113,
+          1),
     ]);
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   void foo();
 }
@@ -1023,15 +951,17 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+''', [
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          122,
+          1),
     ]);
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_hasNSM() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 abstract class A {
   void foo();
 }
@@ -1048,12 +978,10 @@ class C implements A {
 
 class X extends C with M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_hasNSM2() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 abstract class A {
   void foo();
 }
@@ -1074,12 +1002,10 @@ abstract class C extends B {}
 
 class X extends C with M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inPreviousMixin() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 abstract class A {
   void foo();
 }
@@ -1096,12 +1022,10 @@ mixin M2 on A {
 
 class X extends A with M1, M2 {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_inSuper_fromMixin() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 abstract class A {
   void foo();
 }
@@ -1120,12 +1044,10 @@ mixin M2 on A {
 
 class X extends B with M2 {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_notInvoked() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 abstract class A {
   void foo();
 }
@@ -1134,12 +1056,10 @@ mixin M on A {}
 
 abstract class X extends A with M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_OK_super_covariant() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   bar(num n) {}
 }
@@ -1156,12 +1076,10 @@ class B implements A {
 
 class C extends B with M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNoConcreteSuperInvokedMember_setter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   void set foo(_);
 }
@@ -1173,43 +1091,43 @@ mixin M on A {
 }
 
 abstract class X extends A with M {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+''', [
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          129,
+          1),
     ]);
   }
 
   test_error_mixinApplicationNotImplementedInterface() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {}
 
 mixin M on A {}
 
 class X = Object with M;
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          51, 1),
     ]);
   }
 
   test_error_mixinApplicationNotImplementedInterface_generic() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A<T> {}
 
 mixin M on A<int> {}
 
 class X = A<double> with M;
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          62, 1),
     ]);
   }
 
   test_error_mixinApplicationNotImplementedInterface_noMemberErrors() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {
   void foo() {}
 }
@@ -1225,37 +1143,32 @@ class C {
 }
 
 class X = C with M;
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          134, 1),
     ]);
   }
 
   test_error_mixinApplicationNotImplementedInterface_OK_0() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {}
 
 class X = Object with M;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNotImplementedInterface_OK_1() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 
 mixin M on A {}
 
 class X = A with M;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNotImplementedInterface_OK_generic() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A<T> {}
 
 mixin M<T> on A<T> {}
@@ -1264,12 +1177,10 @@ class B<T> implements A<T> {}
 
 class C<T> = B<T> with M<T>;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNotImplementedInterface_OK_previousMixin() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 
 mixin M1 implements A {}
@@ -1278,12 +1189,10 @@ mixin M2 on A {}
 
 class X = Object with M1, M2;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_error_mixinApplicationNotImplementedInterface_oneOfTwo() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B {}
 class C {}
@@ -1291,24 +1200,22 @@ class C {}
 mixin M on A, B {}
 
 class X = C with M;
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          71, 1),
     ]);
   }
 
   test_error_mixinDeclaresConstructor() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   M(int a) {
     a; // read
   }
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+''', [
+      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+    ]);
 
     // Even though it is an error for a mixin to declare a constructor,
     // we still build elements for constructors, and resolve them.
@@ -1347,7 +1254,7 @@ main() {
   }
 
   test_error_mixinInstantiate_named() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {
   M.named() {}
 }
@@ -1355,11 +1262,9 @@ mixin M {
 main() {
   new M.named();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
-      CompileTimeErrorCode.MIXIN_INSTANTIATE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
     ]);
 
     var creation = findNode.instanceCreation('M.named();');
@@ -1368,16 +1273,14 @@ main() {
   }
 
   test_error_mixinInstantiate_undefined() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M {}
 
 main() {
   new M.named();
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_INSTANTIATE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
     ]);
 
     var creation = findNode.instanceCreation('M.named();');
@@ -1386,17 +1289,15 @@ main() {
   }
 
   test_error_onClause_deferredClass() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 mixin M on math.Random {}
-''');
-    await resolveTestFile();
+''', [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
+          48, 11),
+    ]);
     var mathImport = findElement.import('dart:math');
     var randomElement = mathImport.importedLibrary.getType('Random');
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
-    ]);
 
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, [randomElement.type]);
@@ -1407,13 +1308,11 @@ mixin M on math.Random {}
   }
 
   test_error_onClause_disallowedClass_int() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M on int {}
-''');
-    await resolveTestFile();
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+''', [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          11, 3),
     ]);
 
     var element = findElement.mixin('M');
@@ -1424,13 +1323,11 @@ mixin M on int {}
   }
 
   test_error_onClause_nonInterface_dynamic() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M on dynamic {}
-''');
-    await resolveTestFile();
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 11,
+          7),
     ]);
 
     var element = findElement.mixin('M');
@@ -1441,14 +1338,12 @@ mixin M on dynamic {}
   }
 
   test_error_onClause_nonInterface_enum() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 enum E {E1, E2, E3}
 mixin M on E {}
-''');
-    await resolveTestFile();
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+''', [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 31,
+          1),
     ]);
 
     var element = findElement.mixin('M');
@@ -1459,14 +1354,12 @@ mixin M on E {}
   }
 
   test_error_onClause_nonInterface_void() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin M on void {}
-''');
-    await resolveTestFile();
-
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
-      ParserErrorCode.EXPECTED_TYPE_NAME,
+''', [
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 4),
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 11,
+          4),
     ]);
 
     var element = findElement.mixin('M');
@@ -1477,12 +1370,10 @@ mixin M on void {}
   }
 
   test_error_onClause_OK_mixin() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin A {}
 mixin B on A {} // ref
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
@@ -1490,17 +1381,16 @@ mixin B on A {} // ref
   }
 
   test_error_onRepeated() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {}
 mixin M on A, A {}
-''');
-    await resolveTestFile();
-    CompileTimeErrorCode.IMPLEMENTS_REPEATED;
-    assertTestErrorsWithCodes([CompileTimeErrorCode.ON_REPEATED]);
+''', [
+      error(CompileTimeErrorCode.ON_REPEATED, 25, 1),
+    ]);
   }
 
   test_error_undefinedSuperMethod() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 class A {}
 
 mixin M on A {
@@ -1508,9 +1398,9 @@ mixin M on A {
     super.foo(42);
   }
 }
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, 52, 3),
+    ]);
 
     var invocation = findNode.methodInvocation('foo(42)');
     assertElementNull(invocation.methodName);
@@ -1519,13 +1409,11 @@ mixin M on A {
   }
 
   test_field() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M<T> {
   T f;
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var element = findElement.mixin('M');
 
@@ -1558,14 +1446,12 @@ mixin M<T> {
   }
 
   test_implementsClause() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 class B {}
 
 mixin M implements A, B {} // M
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, [
@@ -1581,7 +1467,7 @@ mixin M implements A, B {} // M
   }
 
   test_inconsistentInheritance_implements_parameterType() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   x(int i);
 }
@@ -1589,15 +1475,13 @@ abstract class B {
   x(String s);
 }
 mixin M implements A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 75, 1),
     ]);
   }
 
   test_inconsistentInheritance_implements_requiredParameters() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   x();
 }
@@ -1605,15 +1489,13 @@ abstract class B {
   x(int y);
 }
 mixin M implements A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 67, 1),
     ]);
   }
 
   test_inconsistentInheritance_implements_returnType() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int x();
 }
@@ -1621,15 +1503,13 @@ abstract class B {
   String x();
 }
 mixin M implements A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1),
     ]);
   }
 
   test_inconsistentInheritance_on_parameterType() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   x(int i);
 }
@@ -1637,15 +1517,13 @@ abstract class B {
   x(String s);
 }
 mixin M on A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 75, 1),
     ]);
   }
 
   test_inconsistentInheritance_on_requiredParameters() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   x();
 }
@@ -1653,15 +1531,13 @@ abstract class B {
   x(int y);
 }
 mixin M on A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 67, 1),
     ]);
   }
 
   test_inconsistentInheritance_on_returnType() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int x();
 }
@@ -1669,15 +1545,13 @@ abstract class B {
   String x();
 }
 mixin M on A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 73, 1),
     ]);
   }
 
   test_inconsistentInheritanceGetterAndMethod_implements_getter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int get x;
 }
@@ -1685,15 +1559,14 @@ abstract class B {
   int x();
 }
 mixin M implements A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
+          1),
     ]);
   }
 
   test_inconsistentInheritanceGetterAndMethod_implements_method_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int x();
 }
@@ -1701,15 +1574,14 @@ abstract class B {
   int get x;
 }
 mixin M implements A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
+          1),
     ]);
   }
 
   test_inconsistentInheritanceGetterAndMethod_on_getter_method() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int get x;
 }
@@ -1717,15 +1589,14 @@ abstract class B {
   int x();
 }
 mixin M implements A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
+          1),
     ]);
   }
 
   test_inconsistentInheritanceGetterAndMethod_on_method_getter() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int x();
 }
@@ -1733,15 +1604,14 @@ abstract class B {
   int get x;
 }
 mixin M implements A, B {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+''', [
+      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 72,
+          1),
     ]);
   }
 
   test_invalid_unresolved_before_mixin() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int foo();
 }
@@ -1753,23 +1623,23 @@ mixin M on A {
 }
 
 abstract class X extends A with U1, U2, M {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
-      CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-      CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
+''', [
+      error(StaticWarningCode.UNDEFINED_CLASS, 121, 2),
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
+      error(StaticWarningCode.UNDEFINED_CLASS, 125, 2),
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          129,
+          1),
     ]);
   }
 
   test_isMoreSpecificThan() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 mixin M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var element = findElement.mixin('M');
     var type = element.type;
@@ -1777,26 +1647,22 @@ mixin M {}
   }
 
   test_lookUpMemberInInterfaces_Object() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class Foo {}
 
 mixin UnhappyMixin on Foo {
   String toString() => '$runtimeType';
 }
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
   }
 
   test_metadata() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 const a = 0;
 
 @a
 mixin M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var a = findElement.topGet('a');
     var element = findElement.mixin('M');
@@ -1811,7 +1677,7 @@ mixin M {}
   }
 
   test_methodCallTypeInference_mixinType() async {
-    addTestFile('''
+    await assertNoErrorsInCode('''
 main() {
   C<int> c = f();
 }
@@ -1822,21 +1688,17 @@ mixin M<T> on C<T> {}
 
 M<T> f<T>() => null;
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
     var fInvocation = findNode.methodInvocation('f()');
     expect(fInvocation.staticInvokeType.toString(), '() → M<int>');
   }
 
   test_onClause() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 class B {}
 
 mixin M on A, B {} // M
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, [
@@ -1852,39 +1714,33 @@ mixin M on A, B {} // M
   }
 
   test_recursiveInterfaceInheritance_implements() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin A implements B {}
-mixin B implements A {}''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+mixin B implements A {}''', [
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
     ]);
   }
 
   test_recursiveInterfaceInheritance_on() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin A on B {}
-mixin B on A {}''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+mixin B on A {}''', [
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 22, 1),
     ]);
   }
 
   test_recursiveInterfaceInheritanceOn() async {
-    addTestFile(r'''
+    await assertErrorsInCode(r'''
 mixin A on A {}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON,
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON, 6, 1),
     ]);
   }
 
   test_superInvocation_getter() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int get foo => 0;
 }
@@ -1897,8 +1753,6 @@ mixin M on A {
 
 class X extends A with M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var access = findNode.propertyAccess('super.foo;');
     assertElement(access, findElement.getter('foo'));
@@ -1906,7 +1760,7 @@ class X extends A with M {}
   }
 
   test_superInvocation_method() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void foo(int x) {}
 }
@@ -1919,8 +1773,6 @@ mixin M on A {
 
 class X extends A with M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(42)');
     assertElement(invocation, findElement.method('foo'));
@@ -1929,7 +1781,7 @@ class X extends A with M {}
   }
 
   test_superInvocation_setter() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void set foo(_) {}
 }
@@ -1942,8 +1794,6 @@ mixin M on A {
 
 class X extends A with M {}
 ''');
-    await resolveTestFile();
-    assertNoTestErrors();
 
     var access = findNode.propertyAccess('super.foo = 0');
     assertElement(access, findElement.setter('foo'));
