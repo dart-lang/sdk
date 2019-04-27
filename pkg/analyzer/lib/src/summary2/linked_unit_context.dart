@@ -637,10 +637,16 @@ class LinkedUnitContext {
       return node.typeParameters;
     } else if (node is ConstructorDeclaration) {
       return null;
+    } else if (node is DefaultFormalParameter) {
+      return getTypeParameters2(node.parameter);
+    } else if (node is FieldFormalParameter) {
+      return null;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return getTypeParameters2(node.functionExpression);
     } else if (node is FunctionExpression) {
+      return node.typeParameters;
+    } else if (node is FunctionTypedFormalParameter) {
       return node.typeParameters;
     } else if (node is FunctionTypeAlias) {
       return node.typeParameters;
@@ -652,6 +658,8 @@ class LinkedUnitContext {
       return node.typeParameters;
     } else if (node is MixinDeclaration) {
       return node.typeParameters;
+    } else if (node is SimpleFormalParameter) {
+      return null;
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }

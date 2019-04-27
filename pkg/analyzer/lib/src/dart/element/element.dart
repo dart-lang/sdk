@@ -8400,6 +8400,22 @@ class ParameterElementImpl extends VariableElementImpl
   List<TypeParameterElement> get typeParameters {
     if (_typeParameters != null) return _typeParameters;
 
+    if (linkedNode != null) {
+      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
+      if (typeParameters == null) {
+        return _typeParameters = const [];
+      }
+      var containerRef = reference.getChild('@typeParameter');
+      return _typeParameters =
+          typeParameters.typeParameters.map<TypeParameterElement>((node) {
+        var reference = containerRef.getChild(node.name.name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as TypeParameterElement;
+        }
+        return TypeParameterElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
+    }
+
     return _typeParameters ??= const <TypeParameterElement>[];
   }
 
@@ -9354,9 +9370,7 @@ class TypeParameterElementImpl extends ElementImpl
         super(name, offset);
 
   TypeParameterElementImpl.forLinkedNode(
-      TypeParameterizedElementMixin enclosing,
-      Reference reference,
-      TypeParameter linkedNode)
+      ElementImpl enclosing, Reference reference, TypeParameter linkedNode)
       : _unlinkedTypeParam = null,
         super.forLinkedNode(enclosing, reference, linkedNode);
 

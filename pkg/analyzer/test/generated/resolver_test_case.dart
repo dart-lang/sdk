@@ -795,6 +795,18 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   }
 
   /**
+   * Looks up the identifier with [name] and validates that its type type
+   * stringifies to [type] and that its generics match the given stringified
+   * output.
+   */
+  FunctionTypeImpl expectFunctionType2(String name, String type) {
+    SimpleIdentifier identifier = findIdentifier(name);
+    FunctionTypeImpl functionType = identifier.staticType;
+    expect('$functionType', type);
+    return functionType;
+  }
+
+  /**
    * Looks up the identifier with [name] and validates its static [type].
    *
    * If [type] is a string, validates that the identifier's static type

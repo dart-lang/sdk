@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -877,7 +878,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
 
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
-      if (node.typeParameters != null) {
+      if (node.typeParameters != null && !AnalysisDriver.useSummary2) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED,
             node);

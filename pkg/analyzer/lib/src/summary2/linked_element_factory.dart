@@ -181,7 +181,11 @@ class _ElementRequest {
 
     if (parentName == '@typeParameter') {
       var enclosing = elementOfReference(parent2);
-      (enclosing as TypeParameterizedElement).typeParameters;
+      if (enclosing is ParameterElement) {
+        (enclosing as ParameterElement).typeParameters;
+      } else {
+        (enclosing as TypeParameterizedElement).typeParameters;
+      }
       assert(reference.element != null);
       return reference.element;
     }

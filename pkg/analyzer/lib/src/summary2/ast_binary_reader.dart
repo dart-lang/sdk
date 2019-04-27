@@ -637,14 +637,17 @@ class AstBinaryReader {
   FunctionTypedFormalParameter _read_functionTypedFormalParameter(
       LinkedNode data) {
     var node = astFactory.functionTypedFormalParameter2(
-      identifier: _readNode(data.normalFormalParameter_identifier),
-      parameters: _readNode(data.functionTypedFormalParameter_formalParameters),
-      returnType: _readNode(data.functionTypedFormalParameter_returnType),
+      comment: _readNodeLazy(data.normalFormalParameter_comment),
       covariantKeyword: _getToken(data.normalFormalParameter_covariantKeyword),
-      comment: _readNode(data.normalFormalParameter_comment),
-      metadata: _readNodeList(data.normalFormalParameter_metadata),
-      typeParameters:
-          _readNode(data.functionTypedFormalParameter_typeParameters),
+      identifier: _readNode(data.normalFormalParameter_identifier),
+      metadata: _readNodeListLazy(data.normalFormalParameter_metadata),
+      parameters: _readNodeLazy(
+        data.functionTypedFormalParameter_formalParameters,
+      ),
+      returnType: _readNodeLazy(data.functionTypedFormalParameter_returnType),
+      typeParameters: _readNode(
+        data.functionTypedFormalParameter_typeParameters,
+      ),
     );
     LazyFormalParameter.setData(node, data);
     return node;
