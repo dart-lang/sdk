@@ -11,7 +11,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
-import '../js_model/elements.dart' show JSignatureMethod;
+import '../js_model/elements.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
@@ -36,6 +36,20 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
 // The immutable result of the [CodegenWorldBuilder].
 abstract class CodegenWorld extends BuiltWorld {
+  /// Calls [f] for each
+  void forEachGenericClosureCallMethod(void Function(FunctionEntity) f);
+
+  bool hasInvokedGetter(MemberEntity member);
+
+  /// Returns `true` if [member] is invoked as a setter.
+  bool hasInvokedSetter(MemberEntity member);
+
+  Map<Selector, SelectorConstraints> invocationsByName(String name);
+
+  Map<Selector, SelectorConstraints> getterInvocationsByName(String name);
+
+  Map<Selector, SelectorConstraints> setterInvocationsByName(String name);
+
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
@@ -56,10 +70,8 @@ abstract class CodegenWorld extends BuiltWorld {
 
   Iterable<FunctionEntity> get methodsNeedingSuperGetter;
 
-  /// The set of all referenced static fields.
-  ///
-  /// Invariant: Elements are declaration elements.
-  Iterable<FieldEntity> get allReferencedStaticFields;
+  /// The calls [f] for all static fields.
+  void forEachStaticField(void Function(FieldEntity) f);
 
   /// Returns the types that are live as constant type literals.
   Iterable<DartType> get constTypeLiterals;
@@ -67,25 +79,14 @@ abstract class CodegenWorld extends BuiltWorld {
   /// Returns the types that are live as constant type arguments.
   Iterable<DartType> get liveTypeArguments;
 
-  Map<Selector, SelectorConstraints> invocationsByName(String name);
-
   /// Returns a list of constants topologically sorted so that dependencies
   /// appear before the dependent constant.
   ///
   /// [preSortCompare] is a comparator function that gives the constants a
   /// consistent order prior to the topological sort which gives the constants
   /// an ordering that is less sensitive to perturbations in the source code.
-  List<ConstantValue> getConstantsForEmission(
+  Iterable<ConstantValue> getConstantsForEmission(
       [Comparator<ConstantValue> preSortCompare]);
-
-  Map<Selector, SelectorConstraints> getterInvocationsByName(String name);
-
-  Map<Selector, SelectorConstraints> setterInvocationsByName(String name);
-
-  bool hasInvokedGetter(MemberEntity member);
-
-  /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(MemberEntity member);
 }
 
 class CodegenWorldBuilderImpl extends WorldBuilderBase
@@ -109,8 +110,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   /// Classes implemented by directly instantiated classes.
   final Set<ClassEntity> _implementedClasses = new Set<ClassEntity>();
-
-  final Set<FieldEntity> _allReferencedStaticFields = new Set<FieldEntity>();
 
   final Set<FunctionEntity> _methodsNeedingSuperGetter =
       new Set<FunctionEntity>();
@@ -293,17 +292,10 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     MemberEntity element = staticUse.element;
-    if (element is FieldEntity) {
-      if (element.isTopLevel || element.isStatic) {
-        _allReferencedStaticFields.add(element);
-      }
-    }
-
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
     MemberUsage usage = _getMemberUsage(element, useSet);
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
-        closurizedStatics.add(element);
         useSet.addAll(usage.read());
         break;
       case StaticUseKind.FIELD_GET:
@@ -366,11 +358,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     if (useSet.isNotEmpty) {
       memberUsed(usage.entity, useSet);
     }
-  }
-
-  /// Registers that [element] has been closurized.
-  void registerClosurizedMember(MemberEntity element) {
-    closurizedMembers.add(element);
   }
 
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
@@ -524,42 +511,19 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   @override
   CodegenWorld close() {
-    List<FunctionEntity> genericMethods = <FunctionEntity>[];
-    List<FunctionEntity> userNoSuchMethods = <FunctionEntity>[];
-    List<FunctionEntity> genericInstanceMethods = <FunctionEntity>[];
-
-    void processMemberUse(MemberEntity member, MemberUsage memberUsage) {
-      if (member is FunctionEntity && memberUsage.hasUse) {
-        if (_elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
-          genericMethods.add(member);
-          if (member.isInstanceMember) {
-            genericInstanceMethods.add(member);
-          }
-        }
-        if (member.isInstanceMember &&
-            member.name == Identifiers.noSuchMethod_ &&
-            !_closedWorld.commonElements
-                .isDefaultNoSuchMethodImplementation(member)) {
-          userNoSuchMethods.add(member);
-        }
+    Map<MemberEntity, MemberUsage> liveMemberUsage = {};
+    _memberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (usage.hasUse) {
+        liveMemberUsage[member] = usage;
       }
-    }
-
-    _memberUsage.forEach(processMemberUse);
-
-    return new CodegenWorldImpl(_closedWorld,
-        genericInstanceMethods: genericInstanceMethods,
+    });
+    return new CodegenWorldImpl(_closedWorld, liveMemberUsage,
         constTypeLiterals: _constTypeLiterals,
-        genericMethods: genericMethods,
         directlyInstantiatedClasses: directlyInstantiatedClasses,
-        allReferencedStaticFields: _allReferencedStaticFields,
         typeVariableTypeLiterals: typeVariableTypeLiterals,
         methodsNeedingSuperGetter: _methodsNeedingSuperGetter,
         instantiatedClasses: instantiatedClasses,
-        closurizedStatics: closurizedStatics,
-        closurizedMembers: closurizedMembers,
         isChecks: _isChecks,
-        userNoSuchMethods: userNoSuchMethods,
         instantiatedTypes: _instantiatedTypes,
         liveTypeArguments: _liveTypeArguments,
         compiledConstants: _compiledConstants,
@@ -574,20 +538,13 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 class CodegenWorldImpl implements CodegenWorld {
   JClosedWorld _closedWorld;
 
-  @override
-  final Iterable<FunctionEntity> genericInstanceMethods;
+  final Map<MemberEntity, MemberUsage> _liveMemberUsage;
 
   @override
   final Iterable<DartType> constTypeLiterals;
 
   @override
-  final Iterable<FunctionEntity> genericMethods;
-
-  @override
   final Iterable<ClassEntity> directlyInstantiatedClasses;
-
-  @override
-  final Iterable<FieldEntity> allReferencedStaticFields;
 
   @override
   final Iterable<TypeVariableType> typeVariableTypeLiterals;
@@ -599,16 +556,7 @@ class CodegenWorldImpl implements CodegenWorld {
   final Iterable<ClassEntity> instantiatedClasses;
 
   @override
-  final Iterable<FunctionEntity> closurizedStatics;
-
-  @override
-  final Iterable<FunctionEntity> closurizedMembers;
-
-  @override
   final Iterable<DartType> isChecks;
-
-  @override
-  final Iterable<FunctionEntity> userNoSuchMethods;
 
   @override
   final Iterable<InterfaceType> instantiatedTypes;
@@ -616,71 +564,178 @@ class CodegenWorldImpl implements CodegenWorld {
   @override
   final Iterable<DartType> liveTypeArguments;
 
-  final Iterable<ConstantValue> compiledConstants;
+  final Iterable<ConstantValue> _compiledConstants;
 
-  final Map<String, Map<Selector, SelectorConstraints>> invokedNames;
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedNames;
 
-  final Map<String, Map<Selector, SelectorConstraints>> invokedGetters;
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedGetters;
 
-  final Map<String, Map<Selector, SelectorConstraints>> invokedSetters;
+  final Map<String, Map<Selector, SelectorConstraints>> _invokedSetters;
 
-  final Map<Entity, Set<DartType>> staticTypeArgumentDependencies;
+  final Map<Entity, Set<DartType>> _staticTypeArgumentDependencies;
 
-  final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies;
+  final Map<Selector, Set<DartType>> _dynamicTypeArgumentDependencies;
 
-  CodegenWorldImpl(this._closedWorld,
-      {this.genericInstanceMethods,
-      this.constTypeLiterals,
-      this.genericMethods,
+  CodegenWorldImpl(this._closedWorld, this._liveMemberUsage,
+      {this.constTypeLiterals,
       this.directlyInstantiatedClasses,
-      this.allReferencedStaticFields,
       this.typeVariableTypeLiterals,
       this.methodsNeedingSuperGetter,
       this.instantiatedClasses,
-      this.closurizedStatics,
-      this.closurizedMembers,
       this.isChecks,
-      this.userNoSuchMethods,
       this.instantiatedTypes,
       this.liveTypeArguments,
-      this.compiledConstants,
-      this.invokedNames,
-      this.invokedGetters,
-      this.invokedSetters,
-      this.staticTypeArgumentDependencies,
-      this.dynamicTypeArgumentDependencies});
+      Iterable<ConstantValue> compiledConstants,
+      Map<String, Map<Selector, SelectorConstraints>> invokedNames,
+      Map<String, Map<Selector, SelectorConstraints>> invokedGetters,
+      Map<String, Map<Selector, SelectorConstraints>> invokedSetters,
+      Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
+      Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies})
+      : _compiledConstants = compiledConstants,
+        _invokedNames = invokedNames,
+        _invokedGetters = invokedGetters,
+        _invokedSetters = invokedSetters,
+        _staticTypeArgumentDependencies = staticTypeArgumentDependencies,
+        _dynamicTypeArgumentDependencies = dynamicTypeArgumentDependencies;
+
+  @override
+  void forEachStaticField(void Function(FieldEntity) f) {
+    bool failure = false;
+    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member is FieldEntity && (member.isStatic || member.isTopLevel)) {
+        f(member);
+      }
+    });
+    if (failure) throw 'failure';
+  }
+
+  @override
+  void forEachGenericMethod(Function f) {
+    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member is FunctionEntity &&
+          _closedWorld.elementEnvironment
+              .getFunctionTypeVariables(member)
+              .isNotEmpty) {
+        f(member);
+      }
+    });
+  }
+
+  @override
+  void forEachGenericInstanceMethod(Function f) {
+    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member is FunctionEntity &&
+          member.isInstanceMember &&
+          _closedWorld.elementEnvironment
+              .getFunctionTypeVariables(member)
+              .isNotEmpty) {
+        f(member);
+      }
+    });
+  }
+
+  @override
+  void forEachGenericClosureCallMethod(Function f) {
+    _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member.name == Identifiers.call &&
+          member.isInstanceMember &&
+          member.enclosingClass.isClosure &&
+          member is FunctionEntity &&
+          _closedWorld.elementEnvironment
+              .getFunctionTypeVariables(member)
+              .isNotEmpty) {
+        f(member);
+      }
+    });
+  }
+
+  List<FunctionEntity> _userNoSuchMethodsCache;
+
+  @override
+  Iterable<FunctionEntity> get userNoSuchMethods {
+    if (_userNoSuchMethodsCache == null) {
+      _userNoSuchMethodsCache = <FunctionEntity>[];
+
+      _liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
+        if (member is FunctionEntity) {
+          if (member.isInstanceMember &&
+              member.name == Identifiers.noSuchMethod_ &&
+              !_closedWorld.commonElements
+                  .isDefaultNoSuchMethodImplementation(member)) {
+            _userNoSuchMethodsCache.add(member);
+          }
+        }
+      });
+    }
+
+    return _userNoSuchMethodsCache;
+  }
 
   @override
   Iterable<Local> get genericLocalFunctions => const [];
 
+  Set<FunctionEntity> _closurizedMembersCache;
+
+  @override
+  Iterable<FunctionEntity> get closurizedMembers {
+    if (_closurizedMembersCache == null) {
+      _closurizedMembersCache = {};
+      _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+        if ((member.isFunction || member is JGeneratorBody) &&
+            member.isInstanceMember &&
+            usage.hasRead) {
+          _closurizedMembersCache.add(member);
+        }
+      });
+    }
+    return _closurizedMembersCache;
+  }
+
+  Set<FunctionEntity> _closurizedStaticsCache;
+
+  @override
+  Iterable<FunctionEntity> get closurizedStatics {
+    if (_closurizedStaticsCache == null) {
+      _closurizedStaticsCache = {};
+      _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+        if (member.isFunction &&
+            (member.isStatic || member.isTopLevel) &&
+            usage.hasRead) {
+          _closurizedStaticsCache.add(member);
+        }
+      });
+    }
+    return _closurizedStaticsCache;
+  }
+
   @override
   void forEachStaticTypeArgument(
       void f(Entity function, Set<DartType> typeArguments)) {
-    staticTypeArgumentDependencies.forEach(f);
+    _staticTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachDynamicTypeArgument(
       void f(Selector selector, Set<DartType> typeArguments)) {
-    dynamicTypeArgumentDependencies.forEach(f);
+    _dynamicTypeArgumentDependencies.forEach(f);
   }
 
   @override
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors)) {
-    invokedNames.forEach(f);
+    _invokedNames.forEach(f);
   }
 
   @override
   void forEachInvokedGetter(
       f(String name, Map<Selector, SelectorConstraints> selectors)) {
-    invokedGetters.forEach(f);
+    _invokedGetters.forEach(f);
   }
 
   @override
   void forEachInvokedSetter(
       f(String name, Map<Selector, SelectorConstraints> selectors)) {
-    invokedSetters.forEach(f);
+    _invokedSetters.forEach(f);
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
@@ -700,14 +755,14 @@ class CodegenWorldImpl implements CodegenWorld {
   @override
   bool hasInvokedGetter(MemberEntity member) {
     return _hasMatchingSelector(
-            invokedGetters[member.name], member, _closedWorld) ||
+            _invokedGetters[member.name], member, _closedWorld) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
   @override
   bool hasInvokedSetter(MemberEntity member) {
     return _hasMatchingSelector(
-        invokedSetters[member.name], member, _closedWorld);
+        _invokedSetters[member.name], member, _closedWorld);
   }
 
   Map<Selector, SelectorConstraints> _asUnmodifiable(
@@ -718,21 +773,21 @@ class CodegenWorldImpl implements CodegenWorld {
 
   @override
   Map<Selector, SelectorConstraints> invocationsByName(String name) {
-    return _asUnmodifiable(invokedNames[name]);
+    return _asUnmodifiable(_invokedNames[name]);
   }
 
   @override
   Map<Selector, SelectorConstraints> getterInvocationsByName(String name) {
-    return _asUnmodifiable(invokedGetters[name]);
+    return _asUnmodifiable(_invokedGetters[name]);
   }
 
   @override
   Map<Selector, SelectorConstraints> setterInvocationsByName(String name) {
-    return _asUnmodifiable(invokedSetters[name]);
+    return _asUnmodifiable(_invokedSetters[name]);
   }
 
   @override
-  List<ConstantValue> getConstantsForEmission(
+  Iterable<ConstantValue> getConstantsForEmission(
       [Comparator<ConstantValue> preSortCompare]) {
     // We must emit dependencies before their uses.
     Set<ConstantValue> seenConstants = new Set<ConstantValue>();
@@ -747,11 +802,13 @@ class CodegenWorldImpl implements CodegenWorld {
       }
     }
 
-    List<ConstantValue> sorted = compiledConstants.toList();
     if (preSortCompare != null) {
+      List<ConstantValue> sorted = _compiledConstants.toList();
       sorted.sort(preSortCompare);
+      sorted.forEach(addConstant);
+    } else {
+      _compiledConstants.forEach(addConstant);
     }
-    sorted.forEach(addConstant);
     return result;
   }
 }

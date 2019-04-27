@@ -66,7 +66,7 @@ class Collector {
 
   Set<ClassEntity> computeInterceptorsReferencedFromConstants() {
     Set<ClassEntity> classes = new Set<ClassEntity>();
-    List<ConstantValue> constants = _codegenWorld.getConstantsForEmission();
+    Iterable<ConstantValue> constants = _codegenWorld.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
         InterceptorConstantValue interceptorConstant = constant;
@@ -127,7 +127,7 @@ class Collector {
 
   /// Compute all the constants that must be emitted.
   void computeNeededConstants() {
-    List<ConstantValue> constants =
+    Iterable<ConstantValue> constants =
         _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
@@ -268,12 +268,12 @@ class Collector {
       list.add(element);
     }
 
-    List<FieldEntity> fields =
-        // TODO(johnniwinther): This should be accessed from a codegen closed
-        // world.
-        _codegenWorld.allReferencedStaticFields.where((FieldEntity field) {
-      return _closedWorld.fieldAnalysis.getFieldData(field).isEager;
-    }).toList();
+    List<FieldEntity> fields = [];
+    _codegenWorld.forEachStaticField((FieldEntity field) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field).isEager) {
+        fields.add(field);
+      }
+    });
 
     fields.sort((FieldEntity a, FieldEntity b) {
       FieldAnalysisData aFieldData = _closedWorld.fieldAnalysis.getFieldData(a);

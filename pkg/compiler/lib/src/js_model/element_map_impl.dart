@@ -58,17 +58,7 @@ import 'element_map.dart';
 import 'env.dart';
 import 'locals.dart';
 
-/// Interface for kernel queries needed to implement the [CodegenWorldBuilder].
-abstract class JsToWorldBuilder implements JsToElementMap {
-  /// Calls [f] for each parameter of [function] providing the type and name of
-  /// the parameter and the [defaultValue] if the parameter is optional.
-  void forEachParameter(FunctionEntity function,
-      void f(DartType type, String name, ConstantValue defaultValue),
-      {bool isNative: false});
-}
-
-class JsKernelToElementMap
-    implements JsToWorldBuilder, JsToElementMap, IrToElementMap {
+class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
   /// debugging data stream.
   static const String tag = 'js-kernel-to-element-map';
@@ -1682,7 +1672,8 @@ class JsKernelToElementMap
     return getClassDefinitionInternal(cls);
   }
 
-  @override
+  /// Calls [f] for each parameter of [function] providing the type and name of
+  /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(covariant IndexedFunction function,
       void f(DartType type, String name, ConstantValue defaultValue),
       {bool isNative: false}) {

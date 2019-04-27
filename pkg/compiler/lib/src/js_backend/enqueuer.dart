@@ -244,7 +244,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void _registerClosurizedMember(FunctionEntity element) {
     assert(element.isInstanceMember);
     applyImpact(listener.registerClosurizedMember(element));
-    _worldBuilder.registerClosurizedMember(element);
   }
 
   void _forEach(void f(WorkItem work)) {

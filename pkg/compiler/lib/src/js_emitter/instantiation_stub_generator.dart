@@ -4,7 +4,6 @@
 
 library dart2js.js_emitter.instantiation_stub_generator;
 
-import '../common/names.dart';
 import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/entities.dart';
 import '../io/source_information.dart';
@@ -152,20 +151,15 @@ class InstantiationStubGenerator {
       Set<ParameterStructure> parameterStructures =
           new Set<ParameterStructure>();
 
-      void process(Iterable<FunctionEntity> functions) {
-        for (FunctionEntity function in functions) {
-          if (function.parameterStructure.typeParameters == typeArgumentCount) {
-            parameterStructures.add(function.parameterStructure);
-          }
+      void process(FunctionEntity function) {
+        if (function.parameterStructure.typeParameters == typeArgumentCount) {
+          parameterStructures.add(function.parameterStructure);
         }
       }
 
-      process(_codegenWorld.closurizedStatics);
-      process(_codegenWorld.closurizedMembers);
-      process(_codegenWorld.genericInstanceMethods.where(
-          (FunctionEntity function) =>
-              function.name == Identifiers.call &&
-              function.enclosingClass.isClosure));
+      _codegenWorld.closurizedStatics.forEach(process);
+      _codegenWorld.closurizedMembers.forEach(process);
+      _codegenWorld.forEachGenericClosureCallMethod(process);
 
       return parameterStructures;
     }

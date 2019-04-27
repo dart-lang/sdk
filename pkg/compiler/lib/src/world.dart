@@ -227,8 +227,8 @@ abstract class OpenWorld implements World {
 
 /// A [BuiltWorld] is an immutable result of a [WorldBuilder].
 abstract class BuiltWorld {
-  /// Live generic methods.
-  Iterable<FunctionEntity> get genericMethods;
+  /// Calls [f] for each live generic method.
+  void forEachGenericMethod(void Function(FunctionEntity) f);
 
   /// All types that are checked either through is, as or checked mode checks.
   Iterable<DartType> get isChecks;
@@ -251,8 +251,8 @@ abstract class BuiltWorld {
   /// Live user-defined 'noSuchMethod' implementations.
   Iterable<FunctionEntity> get userNoSuchMethods;
 
-  /// Live generic instance methods.
-  Iterable<FunctionEntity> get genericInstanceMethods;
+  /// Calls [f] for each live generic instance methods.
+  void forEachGenericInstanceMethod(void Function(FunctionEntity) f);
 
   /// Live generic local functions.
   Iterable<Local> get genericLocalFunctions;

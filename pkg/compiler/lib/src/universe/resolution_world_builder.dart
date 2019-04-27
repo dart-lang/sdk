@@ -400,7 +400,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   @override
   void registerClosurizedMember(MemberEntity element) {
-    closurizedMembers.add(element);
     FunctionType type = _elementEnvironment.getFunctionType(element);
     if (type.containsTypeVariables) {
       _closurizedMembersWithFreeTypeVariables.add(element);
@@ -627,7 +626,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(usage.read());
         break;
       case StaticUseKind.STATIC_TEAR_OFF:
-        closurizedStatics.add(element);
         useSet.addAll(usage.read());
         break;
       case StaticUseKind.SET:
@@ -960,29 +958,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     _closed = true;
 
     Map<MemberEntity, MemberUsage> liveMemberUsage = {};
-    List<FunctionEntity> genericInstanceMethods = <FunctionEntity>[];
-    List<FunctionEntity> genericMethods = <FunctionEntity>[];
-    List<FunctionEntity> userNoSuchMethods = <FunctionEntity>[];
     _memberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
       if (memberUsage.hasUse) {
         liveMemberUsage[member] = memberUsage;
         assert(_processedMembers.contains(member),
             "Member $member is used but not processed: $memberUsage.");
-
-        if (member is FunctionEntity) {
-          if (_elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
-            genericMethods.add(member);
-            if (member.isInstanceMember) {
-              genericInstanceMethods.add(member);
-            }
-            genericMethods.add(member);
-          }
-          if (member.isInstanceMember &&
-              member.name == Identifiers.noSuchMethod_ &&
-              !_commonElements.isDefaultNoSuchMethodImplementation(member)) {
-            userNoSuchMethods.add(member);
-          }
-        }
       } else {
         assert(!_processedMembers.contains(member),
             "Member $member is processed but not used: $memberUsage.");
@@ -1027,17 +1007,12 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         isChecks: _isChecks,
         staticTypeArgumentDependencies: staticTypeArgumentDependencies,
         dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,
-        closurizedMembers: closurizedMembers,
-        closurizedStatics: closurizedStatics,
         typeVariableTypeLiterals: typeVariableTypeLiterals,
-        genericInstanceMethods: genericInstanceMethods,
-        genericMethods: genericMethods,
         genericLocalFunctions: _genericLocalFunctions,
         closurizedMembersWithFreeTypeVariables:
             _closurizedMembersWithFreeTypeVariables,
         localFunctions: _localFunctions,
-        instantiatedTypes: instantiatedTypes,
-        userNoSuchMethods: userNoSuchMethods);
+        instantiatedTypes: instantiatedTypes);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;
     }

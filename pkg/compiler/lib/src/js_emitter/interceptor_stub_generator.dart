@@ -421,7 +421,7 @@ class InterceptorStubGenerator {
     if (!analysis.needsTable) return null;
 
     List<jsAst.Expression> elements = <jsAst.Expression>[];
-    List<ConstantValue> constants =
+    Iterable<ConstantValue> constants =
         _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (constant is TypeConstantValue &&

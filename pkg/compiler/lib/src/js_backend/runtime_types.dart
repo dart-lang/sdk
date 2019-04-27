@@ -1098,10 +1098,6 @@ class TypeVariableTests {
       }
     });
 
-    // TODO(johnniwinther): Cached here because the world builders computes
-    // this lazily. Track this set directly in the world builders .
-    Iterable<FunctionEntity> genericInstanceMethods =
-        world.genericInstanceMethods;
     world.forEachDynamicTypeArgument(
         (Selector selector, Iterable<DartType> typeArguments) {
       void processEntity(Entity entity) {
@@ -1115,7 +1111,7 @@ class TypeVariableTests {
         }
       }
 
-      genericInstanceMethods.forEach(processEntity);
+      world.forEachGenericInstanceMethod(processEntity);
       world.genericLocalFunctions.forEach(processEntity);
       world.closurizedStatics.forEach(processEntity);
       world.userNoSuchMethods.forEach(processEntity);
@@ -1664,9 +1660,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         }
       }
 
-      for (FunctionEntity method in closedWorld.genericMethods) {
+      closedWorld.forEachGenericMethod((FunctionEntity method) {
         checkFunction(method, _elementEnvironment.getFunctionType(method));
-      }
+      });
 
       for (Local function in closedWorld.genericLocalFunctions) {
         checkFunction(
@@ -1965,12 +1961,12 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   @override
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorld codegenWorldBuilder, CompilerOptions options) {
+      CodegenWorld codegenWorld, CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         _elementEnvironment,
         _commonElements,
         _types,
-        codegenWorldBuilder,
+        codegenWorld,
         _genericInstantiations,
         forRtiNeeds: false);
     Set<DartType> explicitIsChecks = typeVariableTests.explicitIsChecks;
@@ -2053,13 +2049,13 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
-    codegenWorldBuilder.instantiatedClasses.forEach((ClassEntity cls) {
+    codegenWorld.instantiatedClasses.forEach((ClassEntity cls) {
       ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
       classUse.instance = true;
     });
 
     Set<ClassEntity> visitedSuperClasses = {};
-    codegenWorldBuilder.instantiatedTypes.forEach((InterfaceType type) {
+    codegenWorld.instantiatedTypes.forEach((InterfaceType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.direct);
       ClassUse classUse =
           classUseMap.putIfAbsent(type.element, () => new ClassUse());
@@ -2092,12 +2088,12 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
-    for (FunctionEntity element in codegenWorldBuilder.closurizedStatics) {
+    for (FunctionEntity element in codegenWorld.closurizedStatics) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
       liveTypeVisitor.visitType(functionType, TypeVisitorState.direct);
     }
 
-    for (FunctionEntity element in codegenWorldBuilder.closurizedMembers) {
+    for (FunctionEntity element in codegenWorld.closurizedMembers) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
       liveTypeVisitor.visitType(functionType, TypeVisitorState.direct);
     }
@@ -2109,12 +2105,12 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     }
 
-    codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
-    codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
-    codegenWorldBuilder.liveTypeArguments.forEach((DartType type) {
+    codegenWorld.forEachStaticTypeArgument(processMethodTypeArguments);
+    codegenWorld.forEachDynamicTypeArgument(processMethodTypeArguments);
+    codegenWorld.liveTypeArguments.forEach((DartType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.covariantTypeArgument);
     });
-    codegenWorldBuilder.constTypeLiterals.forEach((DartType type) {
+    codegenWorld.constTypeLiterals.forEach((DartType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.typeLiteral);
     });
 
@@ -2158,7 +2154,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     liveClasses.forEach(processClass);
 
     if (options.parameterCheckPolicy.isEmitted) {
-      for (FunctionEntity method in codegenWorldBuilder.genericMethods) {
+      codegenWorld.forEachGenericMethod((FunctionEntity method) {
         if (_rtiNeed.methodNeedsTypeArguments(method)) {
           for (TypeVariableType typeVariable
               in _elementEnvironment.getFunctionTypeVariables(method)) {
@@ -2169,7 +2165,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
                 bound, TypeVisitorState.covariantTypeArgument);
           }
         }
-      }
+      });
     }
 
     cachedRequiredChecks = _computeChecks(classUseMap);

@@ -939,8 +939,6 @@ class JRecord extends JClass {
 /// A variable that has been "boxed" to prevent name shadowing with the
 /// original variable and ensure that this variable is updated/read with the
 /// most recent value.
-/// This corresponds to BoxFieldElement; we reuse BoxLocal from the original
-/// algorithm to correspond to the actual name of the variable.
 class JRecordField extends JField {
   /// Tag used for identifying serialized [JRecordField] objects in a
   /// debugging data stream.
@@ -973,8 +971,16 @@ class JRecordField extends JField {
     sink.end(tag);
   }
 
+  // TODO(johnniwinther): Remove these anomalies. Maybe by separating the
+  // J-entities from the K-entities.
   @override
   bool get isInstanceMember => false;
+
+  @override
+  bool get isTopLevel => false;
+
+  @override
+  bool get isStatic => false;
 }
 
 class ClosureClassData extends RecordClassData {

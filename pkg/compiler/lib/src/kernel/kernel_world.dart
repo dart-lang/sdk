@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common/names.dart';
 import '../common_elements.dart';
-
 import '../elements/entities.dart';
-
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
@@ -84,25 +83,11 @@ class KClosedWorldImpl implements KClosedWorld {
 
   final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies;
 
-  /// Set of methods in instantiated classes that are potentially closurized.
-  @override
-  final Set<FunctionEntity> closurizedMembers;
-
-  /// Set of static or top level methods that are closurized.
-  @override
-  final Set<FunctionEntity> closurizedStatics;
-
   @override
   final Set<TypeVariableType> typeVariableTypeLiterals;
 
   @override
   final Set<Local> genericLocalFunctions;
-
-  @override
-  final Iterable<FunctionEntity> genericInstanceMethods;
-
-  @override
-  final Iterable<FunctionEntity> genericMethods;
 
   @override
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables;
@@ -112,9 +97,6 @@ class KClosedWorldImpl implements KClosedWorld {
 
   @override
   final Iterable<InterfaceType> instantiatedTypes;
-
-  @override
-  final Iterable<FunctionEntity> userNoSuchMethods;
 
   @override
   RuntimeTypesNeed get rtiNeed => _rtiNeed;
@@ -142,16 +124,11 @@ class KClosedWorldImpl implements KClosedWorld {
       this.isChecks,
       this.staticTypeArgumentDependencies,
       this.dynamicTypeArgumentDependencies,
-      this.closurizedMembers,
-      this.closurizedStatics,
       this.typeVariableTypeLiterals,
       this.genericLocalFunctions,
-      this.genericInstanceMethods,
-      this.genericMethods,
       this.closurizedMembersWithFreeTypeVariables,
       this.localFunctions,
-      this.instantiatedTypes,
-      this.userNoSuchMethods})
+      this.instantiatedTypes})
       : _implementedClasses = implementedClasses {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
   }
@@ -178,4 +155,78 @@ class KClosedWorldImpl implements KClosedWorld {
 
   @override
   bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
+
+  @override
+  void forEachGenericMethod(Function f) {
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member is FunctionEntity &&
+          elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        f(member);
+      }
+    });
+  }
+
+  @override
+  void forEachGenericInstanceMethod(Function f) {
+    liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+      if (member is FunctionEntity &&
+          member.isInstanceMember &&
+          elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        f(member);
+      }
+    });
+  }
+
+  List<FunctionEntity> _userNoSuchMethodsCache;
+
+  @override
+  Iterable<FunctionEntity> get userNoSuchMethods {
+    if (_userNoSuchMethodsCache == null) {
+      _userNoSuchMethodsCache = <FunctionEntity>[];
+
+      liveMemberUsage.forEach((MemberEntity member, MemberUsage memberUsage) {
+        if (member is FunctionEntity && memberUsage.hasUse) {
+          if (member.isInstanceMember &&
+              member.name == Identifiers.noSuchMethod_ &&
+              !commonElements.isDefaultNoSuchMethodImplementation(member)) {
+            _userNoSuchMethodsCache.add(member);
+          }
+        }
+      });
+    }
+
+    return _userNoSuchMethodsCache;
+  }
+
+  Set<FunctionEntity> _closurizedMembersCache;
+
+  @override
+  Iterable<FunctionEntity> get closurizedMembers {
+    if (_closurizedMembersCache == null) {
+      _closurizedMembersCache = {};
+      liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+        if (member.isFunction && member.isInstanceMember && usage.hasRead) {
+          _closurizedMembersCache.add(member);
+        }
+      });
+    }
+    return _closurizedMembersCache;
+  }
+
+  Set<FunctionEntity> _closurizedStaticsCache;
+
+  @override
+  Iterable<FunctionEntity> get closurizedStatics {
+    if (_closurizedStaticsCache == null) {
+      _closurizedStaticsCache = {};
+      liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+        if (member.isFunction &&
+            (member.isStatic || member.isTopLevel) &&
+            usage.hasRead) {
+          _closurizedStaticsCache.add(member);
+        }
+      });
+    }
+    return _closurizedStaticsCache;
+  }
 }

@@ -226,12 +226,6 @@ abstract class WorldBuilderBase {
   final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies =
       <Selector, Set<DartType>>{};
 
-  /// Set of methods in instantiated classes that are potentially closurized.
-  final Set<FunctionEntity> closurizedMembers = new Set<FunctionEntity>();
-
-  /// Set of static or top level methods that are closurized.
-  final Set<FunctionEntity> closurizedStatics = new Set<FunctionEntity>();
-
   final Set<TypeVariableType> typeVariableTypeLiterals =
       new Set<TypeVariableType>();
 
