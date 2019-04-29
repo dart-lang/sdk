@@ -3090,6 +3090,7 @@ SwitchDispatch:
       }
 
       // Reload objects after the call which may trigger GC.
+      field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
       instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
       value = FrameArguments(FP, kArgc)[1];
     }
