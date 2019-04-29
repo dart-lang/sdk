@@ -100,9 +100,7 @@ void collectSources(Source start, Set<Source> files) {
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
-  // TODO(jcollins-g): Make parser work with Fasta
-  var parser =
-      new Parser(source, AnalysisErrorListener.NULL_LISTENER, useFasta: false);
+  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
   return parser.parseDirectives(token);
 }
 
