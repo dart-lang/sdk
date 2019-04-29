@@ -217,7 +217,7 @@ main() {
   new C();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 52, 1),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1),
     ]);
   }
 
@@ -228,7 +228,7 @@ class C {
   C.named() : this();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 47, 6),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 47, 6),
     ]);
   }
 
@@ -242,7 +242,7 @@ class D extends C {
   D() : super();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 66, 7),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 66, 7),
     ]);
   }
 
@@ -253,7 +253,7 @@ g() {
   f()();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 53, 5),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 53, 5),
     ]);
   }
 
@@ -265,7 +265,7 @@ main() {
   f();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 40, 1),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 40, 1),
     ]);
   }
 
@@ -278,7 +278,7 @@ f() {
   new A().m();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 58, 1),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 58, 1),
     ]);
   }
 
@@ -294,7 +294,7 @@ f() {
   new A().m();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 37, 1),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 37, 1),
     ]);
   }
 
@@ -308,7 +308,7 @@ class C {
   F m() => ({required String x}) => null;
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_PARAM, 20, 7),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 20, 7),
     ]);
   }
 }

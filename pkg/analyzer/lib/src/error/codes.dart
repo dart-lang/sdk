@@ -1714,9 +1714,11 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the parameter
    */
-  static const CompileTimeErrorCode MISSING_REQUIRED_PARAM =
+  static const CompileTimeErrorCode MISSING_REQUIRED_ARGUMENT =
       const CompileTimeErrorCode(
-          'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.",
+          'MISSING_REQUIRED_ARGUMENT',
+          "The named parameter '{0}' is required so "
+              "there needs to be a corresponding argument.",
           correction: "Try adding the required argument.");
 
   /**

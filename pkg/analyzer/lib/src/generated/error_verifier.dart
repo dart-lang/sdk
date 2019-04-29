@@ -4127,7 +4127,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           if (!RequiredConstantsComputer._containsNamedExpression(
               argumentList, parameterName)) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.MISSING_REQUIRED_PARAM,
+                CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
                 node,
                 [parameterName]);
           }
