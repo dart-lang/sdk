@@ -172,7 +172,6 @@ mirrors/method_mirror_source_test: RuntimeError # Issue 33041
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533
-mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_test: RuntimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/mirrors_used_inheritance_test: RuntimeError

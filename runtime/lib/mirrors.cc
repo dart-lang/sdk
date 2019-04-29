@@ -1580,7 +1580,9 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
   }
 
   ASSERT(!script.IsNull());
-  ASSERT(token_pos != TokenPosition::kNoSource);
+  if (token_pos == TokenPosition::kNoSource) {
+    return Instance::null();
+  }
 
   const String& uri = String::Handle(zone, script.url());
   intptr_t from_line = 0;

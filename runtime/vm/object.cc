@@ -7908,6 +7908,9 @@ RawString* Function::GetSource() const {
       // (3) "var foo = () => null;": End token is `;', but in this case the
       // token semicolon belongs to the assignment so we skip it.
       const String& src = String::Handle(func_script.Source());
+      if (src.IsNull()) {
+        return Symbols::OptimizedOut().raw();
+      }
       uint16_t end_char = src.CharAt(end_token_pos().value());
       if ((end_char == ',') ||  // Case 1.
           (end_char == ')') ||  // Case 2.
@@ -9491,15 +9494,18 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
     line_starts_reader.LocationForPosition(token_pos.value(), line, column);
     if (token_len != NULL) {
+      *token_len = 1;
       // We don't explicitly save this data: Load the source
       // and find it from there.
       const String& source = String::Handle(zone, Source());
-      intptr_t offset = token_pos.value();
-      *token_len = 1;
-      if (offset < source.Length() && IsIdentStartChar(source.CharAt(offset))) {
-        for (intptr_t i = offset + 1;
-             i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
-          ++*token_len;
+      if (!source.IsNull()) {
+        intptr_t offset = token_pos.value();
+        if (offset < source.Length() &&
+            IsIdentStartChar(source.CharAt(offset))) {
+          for (intptr_t i = offset + 1;
+               i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
+            ++*token_len;
+          }
         }
       }
     }
