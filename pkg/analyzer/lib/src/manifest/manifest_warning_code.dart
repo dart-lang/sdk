@@ -39,7 +39,7 @@ class ManifestWarningCode extends ErrorCode {
    */
   static const ManifestWarningCode NO_TOUCHSCREEN_FEATURE = const ManifestWarningCode(
       'NO_TOUCHSCREEN_FEATURE',
-      "Explicitly set \"android.hardware.touchscreen\" to not required for Chrome OS. " +
+      "The default \"android.hardware.touchscreen\" needs to be optional for Chrome OS. " +
           "Consider adding " +
           "<uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" />" +
           " to the manifest.",
