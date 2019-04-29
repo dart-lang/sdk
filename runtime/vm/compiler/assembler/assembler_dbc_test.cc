@@ -2495,7 +2495,7 @@ ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt8Positive, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt8Positive, test) {
-  EXPECT_EQ(kMaxInt8,
+  EXPECT_EQ(static_cast<uint32_t>(kMaxInt8),
             kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
 }
 
@@ -2538,7 +2538,7 @@ ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt16Positive, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt16Positive, test) {
-  EXPECT_EQ(kMaxInt16,
+  EXPECT_EQ(static_cast<uint32_t>(kMaxInt16),
             kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
 }
 
