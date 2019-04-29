@@ -36,6 +36,9 @@ template("build_libdart_builtin") {
                  "..:dart_arch_config",
                  "..:dart_config",
                ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
@@ -87,6 +90,9 @@ static_library("crashpad") {
     "..:dart_product_config",
     "..:dart_os_fuchsia_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   include_dirs = [ ".." ]
   sources = [
     "crashpad.cc",
@@ -121,6 +127,9 @@ template("build_gen_snapshot") {
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     deps = [ ":generate_abi_version_cc_file" ] + extra_deps
 
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
@@ -254,6 +263,7 @@ template("build_gen_snapshot_dart_io") {
       public_deps = [
         "//zircon/public/lib/fdio",
       ]
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
     deps += [ "//third_party/zlib" ]
@@ -335,6 +345,9 @@ template("dart_io") {
                  "..:dart_os_config",
                ] + extra_configs
     public_configs = [ "..:dart_public_config" ]
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     custom_sources_filter = [
       "*_test.cc",
       "*_test.h",
@@ -689,6 +702,9 @@ template("dart_executable") {
                  "..:dart_os_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
+    if (is_fuchsia) {
+      configs -= [ "//build/config:symbol_visibility_hidden" ]
+    }
     if (target_os != current_os && target_os == "fuchsia") {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
@@ -898,6 +914,9 @@ executable("run_vm_tests") {
 
   if (dart_target_arch != "ia32") {
     configs += [ "..:dart_precompiler_config" ]
+  }
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
   }
 
   deps = [

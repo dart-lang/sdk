@@ -165,6 +165,9 @@ template("library_for_all_configs") {
                                "extra_deps",
                                "configurable_deps",
                              ])
+      if (is_fuchsia) {
+        configs -= [ "//build/config:symbol_visibility_hidden" ]
+      }
       configs += conf.configs + extra_configs
       configured_deps = []
       foreach(dep, configurable_deps) {

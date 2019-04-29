@@ -8,6 +8,9 @@ source_set("libdouble_conversion") {
     "../../..:dart_config",
     "../../..:dart_os_config",
   ]
+  if (is_fuchsia) {
+    configs -= [ "//build/config:symbol_visibility_hidden" ]
+  }
   sources = [
     "bignum-dtoa.cc",
     "bignum-dtoa.h",
