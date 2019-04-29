@@ -506,8 +506,13 @@ class AstBuilder extends StackListener {
     Token beginToken = pop();
     checkEmpty(endToken.charOffset);
 
-    CompilationUnitImpl unit = ast.compilationUnit(beginToken, scriptTag,
-        directives, declarations, endToken, _featureSet) as CompilationUnitImpl;
+    CompilationUnitImpl unit = ast.compilationUnit2(
+        beginToken: beginToken,
+        scriptTag: scriptTag,
+        directives: directives,
+        declarations: declarations,
+        endToken: endToken,
+        featureSet: _featureSet) as CompilationUnitImpl;
     unit.languageVersion = languageVersion;
     unit.isNonNullable = enableNonNullable;
     push(unit);

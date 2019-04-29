@@ -654,7 +654,8 @@ class FileState {
 
   CompilationUnit _createEmptyCompilationUnit(FeatureSet featureSet) {
     var token = new Token.eof(0);
-    return astFactory.compilationUnit(token, null, [], [], token, featureSet)
+    return astFactory.compilationUnit2(
+        beginToken: token, endToken: token, featureSet: featureSet)
       ..lineInfo = new LineInfo(const <int>[0]);
   }
 

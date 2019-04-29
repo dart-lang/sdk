@@ -285,13 +285,13 @@ class AstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = astFactory.compilationUnit(
-        cloneToken(node.beginToken),
-        cloneNode(node.scriptTag),
-        cloneNodeList(node.directives),
-        cloneNodeList(node.declarations),
-        cloneToken(node.endToken),
-        node.featureSet);
+    CompilationUnit clone = astFactory.compilationUnit2(
+        beginToken: cloneToken(node.beginToken),
+        scriptTag: cloneNode(node.scriptTag),
+        directives: cloneNodeList(node.directives),
+        declarations: cloneNodeList(node.declarations),
+        endToken: cloneToken(node.endToken),
+        featureSet: node.featureSet);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
@@ -2643,13 +2643,13 @@ class IncrementalAstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnitImpl copy = astFactory.compilationUnit(
-        _mapToken(node.beginToken),
-        _cloneNode(node.scriptTag),
-        _cloneNodeList(node.directives),
-        _cloneNodeList(node.declarations),
-        _mapToken(node.endToken),
-        node.featureSet);
+    CompilationUnitImpl copy = astFactory.compilationUnit2(
+        beginToken: _mapToken(node.beginToken),
+        scriptTag: _cloneNode(node.scriptTag),
+        directives: _cloneNodeList(node.directives),
+        declarations: _cloneNodeList(node.declarations),
+        endToken: _mapToken(node.endToken),
+        featureSet: node.featureSet);
     copy.lineInfo = node.lineInfo;
     copy.declaredElement = node.declaredElement;
     return copy;

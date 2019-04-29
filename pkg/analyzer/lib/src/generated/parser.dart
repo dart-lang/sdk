@@ -1936,8 +1936,8 @@ class Parser {
         } on _TooDeepTreeError {
           _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
           Token eof = new Token.eof(0);
-          return astFactory.compilationUnit(
-              eof, null, null, null, eof, _featureSet);
+          return astFactory.compilationUnit2(
+              beginToken: eof, endToken: eof, featureSet: _featureSet);
         }
         if (member != null) {
           declarations.add(member);
@@ -1986,8 +1986,13 @@ class Parser {
 //        }
       }
     }
-    return astFactory.compilationUnit(firstToken, scriptTag, directives,
-        declarations, _currentToken, _featureSet);
+    return astFactory.compilationUnit2(
+        beginToken: firstToken,
+        scriptTag: scriptTag,
+        directives: directives,
+        declarations: declarations,
+        endToken: _currentToken,
+        featureSet: _featureSet);
   }
 
   /// Parse a compilation unit member. The [commentAndMetadata] is the metadata
@@ -2437,12 +2442,20 @@ class Parser {
         while (!_matches(TokenType.EOF)) {
           _advance();
         }
-        return astFactory.compilationUnit(firstToken, scriptTag, directives,
-            null, _currentToken, _featureSet);
+        return astFactory.compilationUnit2(
+            beginToken: firstToken,
+            scriptTag: scriptTag,
+            directives: directives,
+            endToken: _currentToken,
+            featureSet: _featureSet);
       }
     }
-    return astFactory.compilationUnit(
-        firstToken, scriptTag, directives, null, _currentToken, _featureSet);
+    return astFactory.compilationUnit2(
+        beginToken: firstToken,
+        scriptTag: scriptTag,
+        directives: directives,
+        endToken: _currentToken,
+        featureSet: _featureSet);
   }
 
   /// Parse a documentation comment based on the given list of documentation

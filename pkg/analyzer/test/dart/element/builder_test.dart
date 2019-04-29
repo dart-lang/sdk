@@ -274,13 +274,11 @@ class C {
             null,
             AstTestFactory.typeName4('int'),
             [AstTestFactory.variableDeclaration('V')]);
-    CompilationUnit unit = astFactory.compilationUnit(
-        topLevelVariableDeclaration.beginToken,
-        null,
-        [],
-        [topLevelVariableDeclaration],
-        topLevelVariableDeclaration.endToken,
-        null);
+    CompilationUnit unit = astFactory.compilationUnit2(
+        beginToken: topLevelVariableDeclaration.beginToken,
+        declarations: [topLevelVariableDeclaration],
+        endToken: topLevelVariableDeclaration.endToken,
+        featureSet: null);
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     unit.beginToken.offset = 10;

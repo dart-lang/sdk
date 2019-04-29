@@ -275,15 +275,16 @@ class AstTestFactory {
           String scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations) =>
-      astFactory.compilationUnit(
-          TokenFactory.tokenFromType(TokenType.EOF),
-          scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives == null ? new List<Directive>() : directives,
-          declarations == null
+      astFactory.compilationUnit2(
+          beginToken: TokenFactory.tokenFromType(TokenType.EOF),
+          scriptTag:
+              scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
+          directives: directives == null ? new List<Directive>() : directives,
+          declarations: declarations == null
               ? new List<CompilationUnitMember>()
               : declarations,
-          TokenFactory.tokenFromType(TokenType.EOF),
-          null);
+          endToken: TokenFactory.tokenFromType(TokenType.EOF),
+          featureSet: null);
 
   static ConditionalExpression conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>

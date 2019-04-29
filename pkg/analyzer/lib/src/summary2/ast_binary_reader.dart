@@ -278,13 +278,13 @@ class AstBinaryReader {
   }
 
   CompilationUnit _read_compilationUnit(LinkedNode data) {
-    return astFactory.compilationUnit(
-        _getToken(data.compilationUnit_beginToken),
-        _readNode(data.compilationUnit_scriptTag),
-        _readNodeList(data.compilationUnit_directives),
-        _readNodeList(data.compilationUnit_declarations),
-        _getToken(data.compilationUnit_endToken),
-        null);
+    return astFactory.compilationUnit2(
+        beginToken: _getToken(data.compilationUnit_beginToken),
+        scriptTag: _readNode(data.compilationUnit_scriptTag),
+        directives: _readNodeList(data.compilationUnit_directives),
+        declarations: _readNodeList(data.compilationUnit_declarations),
+        endToken: _getToken(data.compilationUnit_endToken),
+        featureSet: null);
   }
 
   ConditionalExpression _read_conditionalExpression(LinkedNode data) {

@@ -179,6 +179,7 @@ class AstFactoryImpl extends AstFactory {
       new CommentReferenceImpl(newKeyword, identifier);
 
   @override
+  @deprecated
   CompilationUnit compilationUnit(
           Token beginToken,
           ScriptTag scriptTag,
@@ -186,6 +187,17 @@ class AstFactoryImpl extends AstFactory {
           List<CompilationUnitMember> declarations,
           Token endToken,
           [FeatureSet featureSet]) =>
+      new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
+          endToken, featureSet);
+
+  @override
+  CompilationUnit compilationUnit2(
+          {Token beginToken,
+          ScriptTag scriptTag,
+          List<Directive> directives,
+          List<CompilationUnitMember> declarations,
+          Token endToken,
+          FeatureSet featureSet}) =>
       new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
           endToken, featureSet);
 
