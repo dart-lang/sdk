@@ -766,8 +766,8 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
   void test_contains_samePackage_summarySource() {
     newFile('/ws/some/code/BUILD');
     final targetFile = newFile('/ws/some/code/lib/code.dart');
-    final targetFile2 = newFile('/ws/some/code/lib/code2.dart');
-    final targetFile3 = newFile('/ws/some/code/lib/src/code3.dart');
+    newFile('/ws/some/code/lib/code2.dart');
+    newFile('/ws/some/code/lib/src/code3.dart');
 
     final file2Source = InSummarySource(
         Uri.parse('package:some.code/code2.dart'), '' /* summaryPath */);

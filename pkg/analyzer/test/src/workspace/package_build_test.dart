@@ -511,8 +511,7 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
     PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
         resourceProvider, convertPath('/workspace'), contextBuilder);
     packageUriResolver = new MockUriResolver();
-    PackageBuildPackageUriResolver resolver =
-        new PackageBuildPackageUriResolver(workspace, packageUriResolver);
+    new PackageBuildPackageUriResolver(workspace, packageUriResolver);
     return workspace;
   }
 
