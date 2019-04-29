@@ -718,8 +718,8 @@ class FileState {
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;
-    Parser parser = new Parser(source, errorListener, useFasta: useFasta)
-      ..configureFeatures(featureSet);
+    Parser parser = new Parser(source, errorListener,
+        featureSet: featureSet, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

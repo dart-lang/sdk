@@ -1186,10 +1186,12 @@ library l;''');
   CompilationUnit _parseUnit(String code) {
     GatheringErrorListener listener = new GatheringErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     Scanner scanner = new Scanner(null, reader, listener)
-      ..configureFeatures(FeatureSet.forTesting(sdkVersion: '2.2.2'));
+      ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(NonExistingSource.unknown, listener);
+    Parser parser =
+        new Parser(NonExistingSource.unknown, listener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     listener.assertNoErrors();

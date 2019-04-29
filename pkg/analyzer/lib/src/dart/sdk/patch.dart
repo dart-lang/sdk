@@ -417,8 +417,7 @@ class SdkPatcher {
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
-    Parser parser = new Parser(source, errorListener)
-      ..configureFeatures(featureSet);
+    Parser parser = new Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

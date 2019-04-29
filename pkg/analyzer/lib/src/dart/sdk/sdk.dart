@@ -904,8 +904,7 @@ class SdkLibrariesReader {
     Scanner scanner = new Scanner(
         source, new CharSequenceReader(libraryFileContents), errorListener)
       ..configureFeatures(featureSet);
-    Parser parser = new Parser(source, errorListener)
-      ..configureFeatures(featureSet);
+    Parser parser = new Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =
         new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);

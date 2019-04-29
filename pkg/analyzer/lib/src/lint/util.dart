@@ -90,6 +90,7 @@ bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;
 class Spelunker {
   final String path;
   final IOSink sink;
+
   Spelunker(this.path, {IOSink sink}) : this.sink = sink ?? stdout;
 
   void spelunk() {
@@ -107,8 +108,8 @@ class Spelunker {
 
     errorListener.throwIfErrors();
 
-    var parser = new Parser(stringSource, errorListener)
-      ..configureFeatures(featureSet);
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var node = parser.parseCompilationUnit(startToken);
 
     errorListener.throwIfErrors();
@@ -137,6 +138,7 @@ class _SourceVisitor extends GeneralizingAstVisitor {
   int indent = 0;
 
   final IOSink sink;
+
   _SourceVisitor(this.sink);
 
   String asString(AstNode node) =>

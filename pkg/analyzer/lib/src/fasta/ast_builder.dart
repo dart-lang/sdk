@@ -291,7 +291,7 @@ class AstBuilder extends StackListener {
   /// TODO(paulberry): stop exposing `enableNonNullable`,
   /// `enableSpreadCollections`, `enableControlFlowCollections`, and
   /// `enableTripleShift` so that callers are forced to use this API.  Note that
-  /// this would be a breaking change.
+  /// this will not be a breaking change, because this code is in `lib/src`.
   void configureFeatures(FeatureSet featureSet) {
     enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
     enableSpreadCollections = featureSet.isEnabled(Feature.spread_collections);

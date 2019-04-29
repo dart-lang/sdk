@@ -66,8 +66,8 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
   Scanner scanner =
       new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER)
         ..configureFeatures(featureSet);
-  Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER)
-    ..configureFeatures(featureSet);
+  Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
   UnlinkedPublicNamespace namespace = new UnlinkedPublicNamespace.fromBuffer(
       public_namespace.computePublicNamespace(unit).toBuffer());
@@ -11948,8 +11948,8 @@ final v = $expr;
     var scanner = new Scanner(stringSource, reader, errorListener)
       ..configureFeatures(experimentStatus);
     var startToken = scanner.tokenize();
-    var parser = new Parser(stringSource, errorListener)
-      ..configureFeatures(experimentStatus);
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: experimentStatus);
     var compilationUnit = parser.parseCompilationUnit(startToken);
     var f = compilationUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;

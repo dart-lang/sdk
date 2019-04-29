@@ -199,16 +199,33 @@ class Parser {
 
   /// Initialize a newly created parser to parse tokens in the given [_source]
   /// and to report any errors that are found to the given [_errorListener].
+  ///
+  /// In a future major version release of the analyzer, the [featureSet]
+  /// argument will be required.
   factory Parser(Source source, AnalysisErrorListener errorListener,
-      {bool useFasta}) {
+      {bool useFasta, FeatureSet featureSet}) {
     if (useFasta ?? Parser.useFasta) {
-      return new _Parser2(source, errorListener, allowNativeClause: true);
+      var parser = new _Parser2(source, errorListener, allowNativeClause: true);
+      if (featureSet != null) {
+        parser.configureFeatures(featureSet);
+      }
+      return parser;
     } else {
-      return new Parser.withoutFasta(source, errorListener);
+      return new Parser.withoutFasta(source, errorListener,
+          featureSet: featureSet);
     }
   }
 
-  Parser.withoutFasta(this._source, this._errorListener);
+  /// Creates a parser using the old (legacy) analyzer parsing logic.
+  ///
+  /// In a future major version release of the analyzer, the [featureSet]
+  /// argument will be required.
+  Parser.withoutFasta(this._source, this._errorListener,
+      {FeatureSet featureSet}) {
+    if (featureSet != null) {
+      _configureFeatures(featureSet);
+    }
+  }
 
   /// Return the current token.
   Token get currentToken => _currentToken;
@@ -229,6 +246,7 @@ class Parser {
   void set enableAssertInitializer(bool enable) {}
 
   /// Enables or disables parsing of control flow collections.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableControlFlowCollections(bool value) {
     if (value) {
       throw new UnimplementedError('control_flow_collections experiment'
@@ -237,6 +255,7 @@ class Parser {
   }
 
   /// Enables or disables non-nullable by default.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableNonNullable(bool value) {
     if (value) {
       throw new UnimplementedError(
@@ -261,6 +280,7 @@ class Parser {
   }
 
   /// Enables or disables parsing of spread collections.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableSpreadCollections(bool value) {
     if (value) {
       throw new UnimplementedError(
@@ -269,6 +289,7 @@ class Parser {
   }
 
   /// Enables or disables parsing of the triple shift operators.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableTripleShift(bool value) {
     if (value) {
       throw new UnimplementedError('triple_shift experiment'
@@ -343,29 +364,9 @@ class Parser {
   }
 
   /// Configures the parser appropriately for the given [featureSet].
-  ///
-  /// TODO(paulberry): stop exposing `enableNonNullable`,
-  /// `enableSpreadCollections`, `enableControlFlowCollections`, and
-  /// `enableTripleShift` so that callers are forced to use this API.  Note that
-  /// this would be a breaking change.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void configureFeatures(FeatureSet featureSet) {
-    if (featureSet.isEnabled(Feature.control_flow_collections)) {
-      throw new UnimplementedError('control_flow_collections experiment'
-          ' not supported by analyzer parser');
-    }
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      throw new UnimplementedError(
-          'non-nullable experiment not supported by analyzer parser');
-    }
-    if (featureSet.isEnabled(Feature.spread_collections)) {
-      throw new UnimplementedError(
-          'spread_collections experiment not supported by analyzer parser');
-    }
-    if (featureSet.isEnabled(Feature.triple_shift)) {
-      throw new UnimplementedError('triple_shift experiment'
-          ' not supported by analyzer parser');
-    }
-    _featureSet = featureSet;
+    _configureFeatures(featureSet);
   }
 
   /// Return a synthetic identifier.
@@ -5593,6 +5594,26 @@ class Parser {
       }
     }
     return false;
+  }
+
+  void _configureFeatures(FeatureSet featureSet) {
+    if (featureSet.isEnabled(Feature.control_flow_collections)) {
+      throw new UnimplementedError('control_flow_collections experiment'
+          ' not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.non_nullable)) {
+      throw new UnimplementedError(
+          'non-nullable experiment not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.spread_collections)) {
+      throw new UnimplementedError(
+          'spread_collections experiment not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.triple_shift)) {
+      throw new UnimplementedError('triple_shift experiment'
+          ' not supported by analyzer parser');
+    }
+    _featureSet = featureSet;
   }
 
   /// Convert the given [method] declaration into the nearest valid top-level

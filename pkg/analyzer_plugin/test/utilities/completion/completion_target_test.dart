@@ -35,7 +35,7 @@ class CompletionTargetTest {
       ..configureFeatures(featureSet);
     final source = new StringSource(code, 'test.dart');
     final listener = new _ErrorCollector();
-    final parser = new Parser(source, listener)..configureFeatures(featureSet);
+    final parser = new Parser(source, listener, featureSet: featureSet);
 
     return parser.parseExpression(scanner.tokenize());
   }

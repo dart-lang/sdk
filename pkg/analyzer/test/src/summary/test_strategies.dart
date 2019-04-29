@@ -44,9 +44,9 @@ CompilationUnit parseText(
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
         ..configureFeatures(experimentStatus);
   Token token = scanner.tokenize();
-  Parser parser =
-      new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
-        ..configureFeatures(experimentStatus);
+  Parser parser = new Parser(
+      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: experimentStatus);
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;

@@ -896,8 +896,8 @@ class TokensToStringTest {
     var scanner = new Scanner(stringSource, reader, errorListener)
       ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
-    var parser = new Parser(stringSource, errorListener)
-      ..configureFeatures(featureSet);
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var compilationUnit = parser.parseCompilationUnit(startToken);
     var f = compilationUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;

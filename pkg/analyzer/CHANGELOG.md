@@ -3,6 +3,10 @@
   method will be changed so that all its parameters are named parameters.
   Clients wishing to prepare for this should switch to using
   `AstFactory.compilationUnit2`.
+* Deprecated Parser setters `enableControlFlowCollections`, `enableNonNullable`,
+  `enableSpreadCollections`, and `enableTripleShift`, as well as the
+  recently-introduced method `configureFeatures`.  Parsers should now be
+  configured by passing a FeatureSet object to the Parser constructor.
 
 ## 0.36.2
 * Bug fixes: #36724.

@@ -137,9 +137,9 @@ class _Builder {
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     Parser parser = new Parser(source, errorListener,
+        featureSet: featureSet,
         useFasta: context.analysisOptions.useFastaParser);
     parser.enableOptionalNewAndConst = true;
-    parser.configureFeatures(featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

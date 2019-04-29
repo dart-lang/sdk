@@ -1622,8 +1622,8 @@ class _File {
       ..configureFeatures(featureSet);
     var token = scanner.tokenize();
 
-    var parser = new Parser(source, errorListener, useFasta: true)
-      ..configureFeatures(featureSet);
+    var parser = new Parser(source, errorListener,
+        featureSet: featureSet, useFasta: true);
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);
 

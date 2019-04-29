@@ -67,12 +67,14 @@ class CompilationUnitParser {
     var reader = new CharSequenceReader(contents);
     var stringSource = new StringSource(contents, name);
     var errorListener = new _ErrorListener();
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     var scanner = new Scanner(stringSource, reader, errorListener)
-      ..configureFeatures(FeatureSet.forTesting(sdkVersion: '2.2.2'));
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
     errorListener.throwIfErrors();
 
-    var parser = new Parser(stringSource, errorListener);
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var cu = parser.parseCompilationUnit(startToken);
     errorListener.throwIfErrors();
 

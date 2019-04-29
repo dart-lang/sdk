@@ -1520,10 +1520,9 @@ class FastaParserTestCase
       scanner.enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
     }
     _fastaTokens = scanner.tokenize();
-    _parserProxy = new ParserProxy(_fastaTokens,
+    _parserProxy = new ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset,
-        featureSet: featureSet);
+        expectedEndOffset: expectedEndOffset);
   }
 
   @override
@@ -1667,13 +1666,11 @@ class FastaParserTestCase
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(listener, source);
     fasta.Parser parser = new fasta.Parser(null);
-    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
+    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true)
+      ..configureFeatures(featureSet);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
-    if (featureSet != null) {
-      astBuilder.configureFeatures(featureSet);
-    }
     parser.parseUnit(_fastaTokens);
     CompilationUnitImpl unit = astBuilder.pop();
     unit.localDeclarations = astBuilder.localDeclarations;
@@ -2488,26 +2485,23 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(analyzer.Token firstToken,
-      {bool allowNativeClause: false,
-      int expectedEndOffset,
-      FeatureSet featureSet}) {
+  factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
+      {bool allowNativeClause: false, int expectedEndOffset}) {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
-    return new ParserProxy._(firstToken, errorReporter, null, errorListener,
+    return new ParserProxy._(
+        firstToken, errorReporter, null, errorListener, featureSet,
         allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset,
-        featureSet: featureSet);
+        expectedEndOffset: expectedEndOffset);
   }
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
-      Uri fileUri, this._errorListener,
-      {bool allowNativeClause: false,
-      this.expectedEndOffset,
-      FeatureSet featureSet})
+      Uri fileUri, this._errorListener, FeatureSet featureSet,
+      {bool allowNativeClause: false, this.expectedEndOffset})
       : super(firstToken, errorReporter, fileUri,
-            allowNativeClause: allowNativeClause, featureSet: featureSet) {
+            allowNativeClause: allowNativeClause) {
+    configureFeatures(featureSet);
     _eventListener = new ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }

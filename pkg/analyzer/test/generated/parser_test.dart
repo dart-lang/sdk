@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -9429,7 +9430,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Create and initialize the parser.
     //
-    parser = new Parser(source, listener);
+    parser = new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -9577,7 +9578,8 @@ class ParserTestCase extends EngineTestCase
     }
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
@@ -9621,7 +9623,8 @@ class ParserTestCase extends EngineTestCase
       }
     }
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(result.lineStarts);
@@ -9978,7 +9981,8 @@ class ParserTestCase extends EngineTestCase
     }
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(token);
     expect(statement, isNotNull);
@@ -10023,7 +10027,8 @@ class ParserTestCase extends EngineTestCase
     }
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     List<Statement> statements = parser.parseStatements(token);
     expect(statements, hasLength(expectedCount));
@@ -12420,7 +12425,10 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
   }
 
   void test_Parser() {
-    expect(new Parser(NonExistingSource.unknown, null), isNotNull);
+    expect(
+        new Parser(NonExistingSource.unknown, null,
+            featureSet: FeatureSet.forTesting()),
+        isNotNull);
   }
 
   void test_skipPrefixedIdentifier_invalid() {
