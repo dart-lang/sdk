@@ -15,6 +15,7 @@ class String;
 class Utf : AllStatic {
  public:
   static const int32_t kMaxCodePoint = 0x10FFFF;
+  static const int32_t kInvalidChar = 0xFFFFFFFF;
 
   static bool IsLatin1(int32_t code_point) {
     return (code_point >= 0) && (code_point <= 0xFF);
@@ -29,7 +30,7 @@ class Utf : AllStatic {
   }
 
   // Returns true if the code point value is above Plane 17.
-  static bool IsOutOfRange(intptr_t code_point) {
+  static bool IsOutOfRange(int32_t code_point) {
     return (code_point < 0) || (code_point > kMaxCodePoint);
   }
 };
@@ -56,11 +57,11 @@ class Utf8 : AllStatic {
   static intptr_t Length(const String& str);
 
   static intptr_t Encode(int32_t ch, char* dst);
+  static intptr_t Encode(const String& src, char* dst, intptr_t len);
 
   static intptr_t Decode(const uint8_t* utf8_array,
                          intptr_t array_len,
                          int32_t* ch);
-  static intptr_t Encode(const String& src, char* dst, intptr_t len);
 
   static bool DecodeToLatin1(const uint8_t* utf8_array,
                              intptr_t array_len,
@@ -152,6 +153,10 @@ class Utf16 : AllStatic {
   static void Encode(int32_t codepoint, uint16_t* dst);
 
   static const int32_t kMaxCodeUnit = 0xFFFF;
+  static const int32_t kLeadSurrogateStart = 0xD800;
+  static const int32_t kLeadSurrogateEnd = 0xDBFF;
+  static const int32_t kTrailSurrogateStart = 0xDC00;
+  static const int32_t kTrailSurrogateEnd = 0xDFFF;
 
  private:
   static const int32_t kLeadSurrogateOffset = (0xD800 - (0x10000 >> 10));
@@ -187,11 +192,11 @@ class CaseMapping : AllStatic {
 
   // The size of the stage 1 index.
   // TODO(cshapiro): improve indexing so this value is unnecessary.
-  static const int kStage1Size = 261;
+  static const intptr_t kStage1Size = 261;
 
   // The size of a stage 2 block in bytes.
-  static const int kBlockSizeLog2 = 8;
-  static const int kBlockSize = 1 << kBlockSizeLog2;
+  static const intptr_t kBlockSizeLog2 = 8;
+  static const intptr_t kBlockSize = 1 << kBlockSizeLog2;
 
   static int32_t Convert(int32_t ch, int32_t mapping) {
     if (Utf::IsLatin1(ch)) {
@@ -220,6 +225,25 @@ class CaseMapping : AllStatic {
 
   // Data for large code points or code points with both mappings.
   static const int32_t stage2_exception_[][2];
+};
+
+class Latin1 {
+ public:
+  static const int32_t kMaxChar = 0xff;
+  // Convert the character to Latin-1 case equivalent if possible.
+  static inline uint16_t TryConvertToLatin1(uint16_t c) {
+    switch (c) {
+      // This are equivalent characters in unicode.
+      case 0x39c:
+      case 0x3bc:
+        return 0xb5;
+      // This is an uppercase of a Latin-1 character
+      // outside of Latin-1.
+      case 0x178:
+        return 0xff;
+    }
+    return c;
+  }
 };
 
 }  // namespace dart

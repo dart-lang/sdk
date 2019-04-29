@@ -83,6 +83,7 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
                                      BlockLabel* on_no_match);
   virtual void CheckNotBackReferenceIgnoreCase(intptr_t start_reg,
                                                bool read_backward,
+                                               bool unicode,
                                                BlockLabel* on_no_match);
   virtual void IfRegisterLT(intptr_t register_index,
                             intptr_t comparand,

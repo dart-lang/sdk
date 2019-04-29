@@ -54,7 +54,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // - Optimized RegExps,
 // - Precompilation.
 #define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
-  M(CaseInsensitiveCompareUC16)                                                \
+  M(CaseInsensitiveCompare)                                                    \
   M(GenericCheckBound)                                                         \
   M(IndirectGoto)                                                              \
   M(Int64ToDouble)                                                             \
