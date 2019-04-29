@@ -259,7 +259,7 @@ The Linter was updated to `0.1.86`, which includes the following changes:
 *   Added support for `pub global activate`ing package from a custom pub URL.
 *   Added subcommand: `pub logout`. Logs you out of the current session.
 
-### Dart native
+#### Dart native
 
 Initial support for compiling Dart apps to native machine code has been added.
 Two new tools have been added to the `bin` folder of the Dart SDK:
@@ -267,7 +267,7 @@ Two new tools have been added to the `bin` folder of the Dart SDK:
 * `dart2aot`: AOT (ahead-of-time) compiles a Dart program to native
 machine code. The tool is supported on Windows, macOS, and Linux.
 
-* `dartaotruntime`: A small run-time used for executing an AOT compiled program.
+* `dartaotruntime`: A small runtime used for executing an AOT compiled program.
 
 ## 2.2.0 - 2019-02-26
 
