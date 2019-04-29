@@ -36,9 +36,6 @@ template("build_libdart_builtin") {
                  "..:dart_arch_config",
                  "..:dart_config",
                ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
@@ -90,9 +87,6 @@ static_library("crashpad") {
     "..:dart_product_config",
     "..:dart_os_fuchsia_config",
   ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-  }
   include_dirs = [ ".." ]
   sources = [
     "crashpad.cc",
@@ -127,9 +121,6 @@ template("build_gen_snapshot") {
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
     deps = [ ":generate_abi_version_cc_file" ] + extra_deps
 
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
@@ -203,6 +194,7 @@ build_gen_snapshot("gen_snapshot") {
   extra_deps = [
     ":gen_snapshot_dart_io",
     ":libdart_builtin",
+    "../platform:libdart_platform_nosnapshot_with_precompiler",
     "..:libdart_nosnapshot_with_precompiler",
   ]
 }
@@ -215,6 +207,7 @@ build_gen_snapshot("gen_snapshot_product") {
   extra_deps = [
     ":gen_snapshot_dart_io_product",
     ":libdart_builtin_product",
+    "../platform:libdart_platform_nosnapshot_with_precompiler_product",
     "..:libdart_nosnapshot_with_precompiler_product",
   ]
 }
@@ -227,6 +220,7 @@ build_gen_snapshot("gen_snapshot_fuchsia") {
   extra_deps = [
     ":gen_snapshot_dart_io_fuchsia",
     ":libdart_builtin_fuchsia",
+    "../platform:libdart_platform_nosnapshot_with_precompiler_fuchsia",
     "..:libdart_nosnapshot_with_precompiler_fuchsia",
   ]
 }
@@ -239,6 +233,7 @@ build_gen_snapshot("gen_snapshot_product_fuchsia") {
   extra_deps = [
     ":gen_snapshot_dart_io_product_fuchsia",
     ":libdart_builtin_product_fuchsia",
+    "../platform:libdart_platform_nosnapshot_with_precompiler_product_fuchsia",
     "..:libdart_nosnapshot_with_precompiler_product_fuchsia",
   ]
 }
@@ -263,7 +258,6 @@ template("build_gen_snapshot_dart_io") {
       public_deps = [
         "//zircon/public/lib/fdio",
       ]
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
     deps += [ "//third_party/zlib" ]
@@ -345,9 +339,6 @@ template("dart_io") {
                  "..:dart_os_config",
                ] + extra_configs
     public_configs = [ "..:dart_public_config" ]
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
     custom_sources_filter = [
       "*_test.cc",
       "*_test.h",
@@ -702,9 +693,6 @@ template("dart_executable") {
                  "..:dart_os_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
     if (target_os != current_os && target_os == "fuchsia") {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
@@ -780,6 +768,7 @@ template("dart_executable") {
 dart_executable("dart") {
   extra_deps = [
     "..:libdart_jit",
+    "../platform:libdart_platform_jit",
     ":dart_snapshot_cc",
   ]
   if (dart_runtime_mode != "release") {
@@ -805,7 +794,10 @@ dart_executable("dart") {
 
 dart_executable("dart_precompiled_runtime") {
   extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime",
+    "../platform:libdart_platform_precompiled_runtime",
+  ]
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
   }
@@ -825,7 +817,10 @@ dart_executable("dart_precompiled_runtime") {
 
 dart_executable("dart_precompiled_runtime_for_linking") {
   extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime",
+    "../platform:libdart_platform_precompiled_runtime",
+  ]
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
   }
@@ -847,7 +842,10 @@ dart_executable("dart_precompiled_runtime_for_linking") {
 
 dart_executable("dartaotruntime") {
   extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime",
+    "../platform:libdart_platform_precompiled_runtime",
+  ]
   extra_sources = [
     "builtin.cc",
     "gzip.cc",
@@ -914,9 +912,6 @@ executable("run_vm_tests") {
 
   if (dart_target_arch != "ia32") {
     configs += [ "..:dart_precompiler_config" ]
-  }
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
   }
 
   deps = [
