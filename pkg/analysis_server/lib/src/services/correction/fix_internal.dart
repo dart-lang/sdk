@@ -2343,9 +2343,11 @@ class FixProcessor {
     ClassDeclaration declaration =
         node.thisOrAncestorOfType<ClassDeclaration>();
     if (declaration != null && declaration.extendsClause == null) {
+      // TODO(brianwilkerson) Find a way to pass in the name of the class
+      //  without needing to parse the message.
       String message = error.message;
-      int startIndex = message.indexOf("'", message.indexOf("'") + 1) + 1;
-      int endIndex = message.indexOf("'", startIndex);
+      int endIndex = message.lastIndexOf("'");
+      int startIndex = message.lastIndexOf("'", endIndex - 1) + 1;
       String typeName = message.substring(startIndex, endIndex);
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {

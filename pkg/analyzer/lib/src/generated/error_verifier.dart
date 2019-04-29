@@ -4246,8 +4246,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (!isSatisfied) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-            mixinName.name,
-            [constraint.displayName]);
+            mixinName.name, [
+          mixinName.type.displayName,
+          _enclosingClass.supertype,
+          constraint.displayName
+        ]);
         return true;
       }
     }

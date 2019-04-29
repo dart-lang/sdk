@@ -1743,15 +1743,18 @@ class CompileTimeErrorCode extends ErrorCode {
 
   /**
    * It's a compile-time error to apply a mixin to a class that doesn't
-   * implement all the on type requirements of the mixin declaration.
+   * implement all the `on` type requirements of the mixin declaration.
    *
    * Parameters:
-   * 0: the display name of the not implemented type
+   * 0: the display name of the mixin
+   * 1: the display name of the superclass
+   * 2: the display name of the type that is not implemented
    */
   static const CompileTimeErrorCode
       MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE = const CompileTimeErrorCode(
           'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-          "The class doesn't implement the required class '{0}'.",
+          "'{0}' cannot be mixed onto '{1}' "
+              "because '{1}' does not implement '{2}'.",
           correction: "Try extending the class '{0}'.");
 
   /**
