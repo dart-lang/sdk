@@ -30,6 +30,7 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'expression_in_map_test.dart' as expression_in_map;
+import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'invalid_assignment_test.dart' as invalid_assignment;
@@ -175,6 +176,7 @@ main() {
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
     expression_in_map.main();
+    final_not_initialized.main();
     import_deferred_library_with_load_function.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
