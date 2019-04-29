@@ -6,7 +6,6 @@
 
 
 
-/* TODO: Uncomment this test when parser accepts generics
 Function stateList<T>(int finder) {
   return (int element) => _stateOf<T>(element, finder); // OK
 }
@@ -14,7 +13,6 @@ Function stateList<T>(int finder) {
 _stateOf<T>(int a, int b) {
 
 }
-*/
 
 class GettersTest {
   final a = 1;
