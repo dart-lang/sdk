@@ -264,7 +264,7 @@ The Linter was updated to `0.1.86`, which includes the following changes:
 Initial support for compiling Dart apps to native machine code has been added.
 Two new tools have been added to the `bin` folder of the Dart SDK:
 
-* `dart2aot`: AOT (ahead-of-time) compiles a Dart program to native x86-64
+* `dart2aot`: AOT (ahead-of-time) compiles a Dart program to native
 machine code. The tool is supported on Windows, macOS, and Linux.
 
 * `dartaotruntime`: A small run-time used for executing an AOT compiled program.
