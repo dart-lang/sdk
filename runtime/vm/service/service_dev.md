@@ -2453,6 +2453,10 @@ class Script extends Object {
   // The library which owns this script.
   @Library library;
 
+  int lineOffset [optional];
+
+  int columnOffset [optional];
+
   // The source code for this script. This can be null for certain built-in
   // scripts.
   string source [optional];
