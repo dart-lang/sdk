@@ -118,6 +118,7 @@ import 'package:linter/src/rules/pub/sort_pub_dependencies.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
 import 'package:linter/src/rules/recursive_getters.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
+import 'package:linter/src/rules/sort_child_properties_last.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
@@ -265,6 +266,7 @@ void registerLintRules() {
     ..register(new PubPackageNames())
     ..register(new RecursiveGetters())
     ..register(new SlashForDocComments())
+    ..register(new SortChildPropertiesLast())
     ..register(new SortConstructorsFirst())
     ..register(new SortPubDependencies())
     ..register(new SortUnnamedConstructorsFirst())

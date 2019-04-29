@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
+import 'package:linter/src/util/flutter_utils.dart';
 
 const _desc = r'DO reference all public properties in debug methods.';
 
@@ -216,26 +217,6 @@ class _Visitor extends SimpleAstVisitor {
       properties.removeWhere(
           (property) => property.name == debugName || property.name == name);
     });
-  }
-
-  var collectionInterfaces = <InterfaceTypeDefinition>[
-    new InterfaceTypeDefinition('List', 'dart.core'),
-    new InterfaceTypeDefinition('Map', 'dart.core'),
-    new InterfaceTypeDefinition('LinkedHashMap', 'dart.collection'),
-    new InterfaceTypeDefinition('Set', 'dart.core'),
-    new InterfaceTypeDefinition('LinkedHashSet', 'dart.collection'),
-  ];
-
-  bool isWidgetProperty(DartType type) {
-    if (DartTypeUtilities.implementsInterface(type, 'Widget', '')) {
-      return true;
-    }
-    if (type is ParameterizedType &&
-        DartTypeUtilities.implementsAnyInterface(type, collectionInterfaces)) {
-      return type.typeParameters.length == 1 &&
-          isWidgetProperty(type.typeArguments.first);
-    }
-    return false;
   }
 
   bool skipForDiagnostic(
