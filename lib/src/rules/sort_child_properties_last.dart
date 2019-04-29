@@ -101,19 +101,23 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     var arguments = node.argumentList.arguments;
-    if (arguments.length < 2) {
+    if (arguments.length < 2 || isChildArg(arguments.last)) {
       return;
     }
 
     for (int i = 0; i < arguments.length - 1; ++i) {
-      var arg = arguments[i];
-      if (arg is NamedExpression) {
-        var name = arg.name.label.name;
-        if ((name == 'child' || name == 'children') &&
-            isWidgetProperty(arg.staticType)) {
-          rule.reportLint(arg);
-        }
+      if (isChildArg(arguments[i])) {
+        rule.reportLint(arguments[i]);
       }
     }
+  }
+
+  static bool isChildArg(Expression e) {
+    if (e is NamedExpression) {
+      var name = e.name.label.name;
+      return (name == 'child' || name == 'children') &&
+          isWidgetProperty(e.staticType);
+    }
+    return false;
   }
 }
