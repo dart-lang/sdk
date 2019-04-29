@@ -5945,6 +5945,9 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
   DARTSCOPE(Thread::Current());
+  // Prevent background compiler from running while code is being cleared and
+  // adding new code.
+  BackgroundCompiler::Stop(Isolate::Current());
   // We don't have mechanisms to change class-ids that are embedded in code and
   // ICData.
   ClassFinalizer::ClearAllCode();
