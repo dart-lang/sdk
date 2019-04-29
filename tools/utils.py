@@ -386,29 +386,32 @@ def GetUserName():
   return os.environ.get(key, '')
 
 
-def GetAbiVersion():
-  version = ReadVersionFile()
+def GetAbiVersion(version_file=None):
+  version = ReadVersionFile(version_file)
   return version.abi_version
 
 
-def GetOldestSupportedAbiVersion():
-  version = ReadVersionFile()
+def GetOldestSupportedAbiVersion(version_file=None):
+  version = ReadVersionFile(version_file)
   return version.oldest_supported_abi_version
 
 
-def ReadVersionFile():
+def ReadVersionFile(version_file=None):
   def match_against(pattern, file_content):
     match = re.search(pattern, file_content, flags=re.MULTILINE)
     if match:
       return match.group(1)
     return None
 
+  if version_file == None:
+    version_file = VERSION_FILE
+
   try:
-    fd = open(VERSION_FILE)
+    fd = open(version_file)
     content = fd.read()
     fd.close()
   except:
-    print ("Warning: Couldn't read VERSION file (%s)" % VERSION_FILE)
+    print ("Warning: Couldn't read VERSION file (%s)" % version_file)
     return None
 
   channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
@@ -427,7 +430,7 @@ def ReadVersionFile():
         channel, major, minor, patch, prerelease, prerelease_patch, abi_version,
         oldest_supported_abi_version)
   else:
-    print ("Warning: VERSION file (%s) has wrong format" % VERSION_FILE)
+    print ("Warning: VERSION file (%s) has wrong format" % version_file)
     return None
 
 
