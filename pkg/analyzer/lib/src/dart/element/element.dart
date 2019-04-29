@@ -4614,19 +4614,19 @@ abstract class ExecutableElementImpl extends ElementImpl
         buffer.write('<');
         for (int i = 0; i < typeParameterCount; i++) {
           if (i > 0) {
-            buffer.write(", ");
+            buffer.write(', ');
           }
           (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
         }
         buffer.write('>');
       }
-      buffer.write("(");
+      buffer.write('(');
       String closing = null;
       ParameterKind kind = ParameterKind.REQUIRED;
       int parameterCount = parameters.length;
       for (int i = 0; i < parameterCount; i++) {
         if (i > 0) {
-          buffer.write(", ");
+          buffer.write(', ');
         }
         ParameterElement parameter = parameters[i];
         // ignore: deprecated_member_use_from_same_package
@@ -4636,11 +4636,14 @@ abstract class ExecutableElementImpl extends ElementImpl
             buffer.write(closing);
           }
           if (parameter.isOptionalPositional) {
-            buffer.write("[");
-            closing = "]";
+            buffer.write('[');
+            closing = ']';
           } else if (parameter.isNamed) {
-            buffer.write("{");
-            closing = "}";
+            buffer.write('{');
+            if (parameter.isRequiredNamed) {
+              buffer.write('required ');
+            }
+            closing = '}';
           } else {
             closing = null;
           }
@@ -4651,7 +4654,7 @@ abstract class ExecutableElementImpl extends ElementImpl
       if (closing != null) {
         buffer.write(closing);
       }
-      buffer.write(")");
+      buffer.write(')');
     }
     if (type != null) {
       buffer.write(ElementImpl.RIGHT_ARROW);
@@ -8452,13 +8455,16 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     if (isNamed) {
-      buffer.write("{");
+      buffer.write('{');
+      if (isRequiredNamed) {
+        buffer.write('required ');
+      }
       appendToWithoutDelimiters(buffer);
-      buffer.write("}");
+      buffer.write('}');
     } else if (isOptionalPositional) {
-      buffer.write("[");
+      buffer.write('[');
       appendToWithoutDelimiters(buffer);
-      buffer.write("]");
+      buffer.write(']');
     } else {
       appendToWithoutDelimiters(buffer);
     }
@@ -8692,15 +8698,10 @@ mixin ParameterElementMixin implements ParameterElement {
   @override
   void appendToWithoutDelimiters(StringBuffer buffer) {
     buffer.write(type);
-    buffer.write(" ");
+    buffer.write(' ');
     buffer.write(displayName);
     if (defaultValueCode != null) {
-      if (parameterKind == ParameterKind.NAMED) {
-        buffer.write(": ");
-      }
-      if (parameterKind == ParameterKind.POSITIONAL) {
-        buffer.write(" = ");
-      }
+      buffer.write(' = ');
       buffer.write(defaultValueCode);
     }
   }
