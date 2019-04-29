@@ -11,6 +11,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
+  static const _defaultTypedKey = 'lazyAst_defaultType';
   static const _genericFunctionTypeIdKey = 'lazyAst_genericFunctionTypeId';
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _inheritsCovariantKey = 'lazyAst_isCovariant';
@@ -22,6 +23,10 @@ class LazyAst {
   final LinkedNode data;
 
   LazyAst(this.data);
+
+  static DartType getDefaultType(TypeParameter node) {
+    return node.getProperty(_defaultTypedKey);
+  }
 
   static int getGenericFunctionTypeId(GenericFunctionType node) {
     return node.getProperty(_genericFunctionTypeIdKey);
@@ -49,6 +54,10 @@ class LazyAst {
 
   static bool isSimplyBounded(AstNode node) {
     return node.getProperty(_isSimplyBoundedKey);
+  }
+
+  static void setDefaultType(TypeParameter node, DartType type) {
+    node.setProperty(_defaultTypedKey, type);
   }
 
   static void setGenericFunctionTypeId(GenericFunctionType node, int id) {
@@ -1297,12 +1306,24 @@ class LazyTypeParameter {
   final LinkedNode data;
 
   bool _hasBound = false;
+  bool _hasDefaultType = false;
   bool _hasMetadata = false;
 
   LazyTypeParameter(this.data);
 
   static LazyTypeParameter get(TypeParameter node) {
     return node.getProperty(_key);
+  }
+
+  static DartType getDefaultType(AstBinaryReader reader, TypeParameter node) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasDefaultType) {
+      lazy._hasDefaultType = true;
+      var type = reader.readType(lazy.data.typeParameter_defaultType);
+      LazyAst.setDefaultType(node, type);
+      return type;
+    }
+    return LazyAst.getDefaultType(node);
   }
 
   static void readBound(AstBinaryReader reader, TypeParameter node) {

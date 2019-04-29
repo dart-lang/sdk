@@ -9441,6 +9441,16 @@ class TypeParameterElementImpl extends ElementImpl
     return super.codeOffset;
   }
 
+  /// The default value of the type parameter. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference.
+  DartType get defaultType {
+    if (linkedNode != null) {
+      return linkedContext.getDefaultType(linkedNode);
+    }
+    return null;
+  }
+
   @override
   String get displayName => name;
 

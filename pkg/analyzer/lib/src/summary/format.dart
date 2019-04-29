@@ -8093,6 +8093,12 @@ class LinkedNodeBuilder extends Object
     return _variantField_23;
   }
 
+  @override
+  LinkedNodeTypeBuilder get typeParameter_defaultType {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
+    return _variantField_23;
+  }
+
   set annotation_elementType(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.annotation);
     _variantField_23 = value;
@@ -8146,6 +8152,11 @@ class LinkedNodeBuilder extends Object
 
   set typeName_type(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.typeName);
+    _variantField_23 = value;
+  }
+
+  set typeParameter_defaultType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
     _variantField_23 = value;
   }
 
@@ -10886,6 +10897,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder typeParameter_bound,
     int typeParameter_extendsKeyword,
     LinkedNodeBuilder typeParameter_name,
+    LinkedNodeTypeBuilder typeParameter_defaultType,
     int codeLength,
     int codeOffset,
   })  : _kind = idl.LinkedNodeKind.typeParameter,
@@ -10894,6 +10906,7 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = typeParameter_bound,
         _variantField_15 = typeParameter_extendsKeyword,
         _variantField_7 = typeParameter_name,
+        _variantField_23 = typeParameter_defaultType,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset;
 
@@ -14402,6 +14415,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.LinkedNodeType get typeParameter_defaultType {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
+    _variantField_23 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 23, null);
+    return _variantField_23;
+  }
+
+  @override
   idl.LinkedNode get annotation_name {
     assert(kind == idl.LinkedNodeKind.annotation);
     _variantField_8 ??=
@@ -16665,6 +16686,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeParameter_extendsKeyword"] = typeParameter_extendsKeyword;
       if (typeParameter_name != null)
         _result["typeParameter_name"] = typeParameter_name.toJson();
+      if (typeParameter_defaultType != null)
+        _result["typeParameter_defaultType"] =
+            typeParameter_defaultType.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
     }
@@ -18121,6 +18145,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "typeParameter_bound": typeParameter_bound,
         "typeParameter_extendsKeyword": typeParameter_extendsKeyword,
         "typeParameter_name": typeParameter_name,
+        "typeParameter_defaultType": typeParameter_defaultType,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
         "isSynthetic": isSynthetic,

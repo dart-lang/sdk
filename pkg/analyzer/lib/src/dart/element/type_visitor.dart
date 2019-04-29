@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/summary2/function_type_builder.dart';
+import 'package:analyzer/src/summary2/named_type_builder.dart';
 
 class DartTypeVisitor<R> {
   const DartTypeVisitor();
@@ -16,7 +18,11 @@ class DartTypeVisitor<R> {
 
   R visitFunctionType(FunctionType type) => defaultDartType(type);
 
+  R visitFunctionTypeBuilder(FunctionTypeBuilder type) => defaultDartType(type);
+
   R visitInterfaceType(InterfaceType type) => defaultDartType(type);
+
+  R visitNamedType(NamedTypeBuilder type) => defaultDartType(type);
 
   R visitTypeParameterType(TypeParameterType type) => defaultDartType(type);
 
@@ -32,8 +38,14 @@ class DartTypeVisitor<R> {
     if (type is FunctionType) {
       return visitor.visitFunctionType(type);
     }
+    if (type is FunctionTypeBuilder) {
+      return visitor.visitFunctionTypeBuilder(type);
+    }
     if (type is InterfaceType) {
       return visitor.visitInterfaceType(type);
+    }
+    if (type is NamedTypeBuilder) {
+      return visitor.visitNamedType(type);
     }
     if (type is TypeParameterType) {
       return visitor.visitTypeParameterType(type);

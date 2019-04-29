@@ -201,6 +201,10 @@ class LinkedUnitContext {
     }
   }
 
+  DartType getDefaultType(TypeParameter node) {
+    return LazyTypeParameter.getDefaultType(_astReader, node);
+  }
+
   int getDirectiveOffset(AstNode node) {
     LazyDirective.readMetadata(_astReader, node);
     return node.offset;

@@ -1319,7 +1319,7 @@ class D<T extends C> {}
 ''');
     if (isAstBasedSummary) {
       checkElementText(library, r'''
-notSimplyBounded class C<T extends D<C<dynamic>>> {
+notSimplyBounded class C<T extends D<dynamic>> {
 }
 notSimplyBounded class D<T extends C<dynamic>> {
 }
@@ -1417,8 +1417,8 @@ typedef G(F value);
     if (isAstBasedSummary) {
       checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(((dynamic) → dynamic) → dynamic value);
-notSimplyBounded typedef G = dynamic Function(((dynamic) → dynamic) → dynamic value);
-notSimplyBounded class C<T extends ((dynamic) → dynamic) → dynamic> {
+notSimplyBounded typedef G = dynamic Function((dynamic) → dynamic value);
+notSimplyBounded class C<T extends (((dynamic) → dynamic) → dynamic) → dynamic> {
 }
 ''');
     } else {
@@ -1599,6 +1599,19 @@ class D<T1, T2> {}
 class C extends D<int, double> {
 }
 class D<T1, T2> {
+}
+''');
+  }
+
+  test_class_supertype_typeArguments_self() async {
+    var library = await checkLibrary('''
+class A<T> {}
+class B extends A<B> {}
+''');
+    checkElementText(library, r'''
+class A<T> {
+}
+class B extends A<B> {
 }
 ''');
   }
@@ -9610,15 +9623,9 @@ notSimplyBounded typedef F<T extends () → void> = void Function();
   test_typedef_type_parameters_bound_recursive2() async {
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
-    if (isAstBasedSummary) {
-      checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<dynamic>> = void Function();
-''');
-    } else {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 notSimplyBounded typedef F<T extends List<() → void>> = void Function();
 ''');
-    }
   }
 
   test_typedef_type_parameters_f_bound_complex() async {

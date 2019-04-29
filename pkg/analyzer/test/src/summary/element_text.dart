@@ -935,6 +935,11 @@ class _ElementWriter {
       buffer.write(' extends ');
       writeType(e.bound);
     }
+    // TODO(scheglov) print the default type
+//    if (e is TypeParameterElementImpl && e.defaultType != null) {
+//      buffer.write(' = ');
+//      writeType(e.defaultType);
+//    }
   }
 
   void writeTypeParameterElements(List<TypeParameterElement> elements) {

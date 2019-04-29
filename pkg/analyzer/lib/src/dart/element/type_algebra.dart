@@ -7,6 +7,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
+import 'package:analyzer/src/summary2/function_type_builder.dart';
+import 'package:analyzer/src/summary2/named_type_builder.dart';
 
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
@@ -323,6 +325,46 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitFunctionTypeBuilder(FunctionTypeBuilder type) {
+    // This is a bit tricky because we have to generate fresh type parameters
+    // in order to change the bounds.  At the same time, if the function type
+    // was unaltered, we have to return the [type] object (not a copy!).
+    // Substituting a type for a fresh type variable should not be confused
+    // with a "real" substitution.
+    //
+    // Create an inner environment to generate fresh type parameters.  The use
+    // counter on the inner environment tells if the fresh type parameters have
+    // any uses, but does not tell if the resulting function type is distinct.
+    // Our own use counter will get incremented if something from our
+    // environment has been used inside the function.
+    var inner = type.typeFormals.isEmpty ? this : newInnerEnvironment();
+    int before = this.useCounter;
+
+    // Invert the variance when translating parameters.
+    inner.invertVariance();
+
+    var typeFormals = inner.freshTypeParameters(type.typeFormals);
+
+    var parameters = type.parameters.map((parameter) {
+      var type = inner.visit(parameter.type);
+      return ParameterElementImpl.synthetic(
+        parameter.name,
+        type,
+        // ignore: deprecated_member_use_from_same_package
+        parameter.parameterKind,
+      );
+    }).toList();
+
+    inner.invertVariance();
+
+    var returnType = inner.visit(type.returnType);
+
+    if (this.useCounter == before) return type;
+
+    return FunctionTypeBuilder(typeFormals, parameters, returnType);
+  }
+
+  @override
   DartType visitInterfaceType(InterfaceType type) {
     if (type.typeArguments.isEmpty) {
       return type;
@@ -335,6 +377,21 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     }
 
     return new InterfaceTypeImpl.explicit(type.element, typeArguments);
+  }
+
+  @override
+  DartType visitNamedType(NamedTypeBuilder type) {
+    if (type.arguments.isEmpty) {
+      return type;
+    }
+
+    int before = useCounter;
+    var arguments = type.arguments.map(visit).toList();
+    if (useCounter == before) {
+      return type;
+    }
+
+    return new NamedTypeBuilder(type.element, arguments);
   }
 
   @override

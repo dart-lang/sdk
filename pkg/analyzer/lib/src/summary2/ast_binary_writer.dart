@@ -1250,9 +1250,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitTypeParameter(TypeParameter node) {
     var builder = LinkedNodeBuilder.typeParameter(
-        typeParameter_bound: node.bound?.accept(this),
-        typeParameter_extendsKeyword: _getToken(node.extendsKeyword),
-        typeParameter_name: node.name.accept(this));
+      typeParameter_bound: node.bound?.accept(this),
+      typeParameter_defaultType: _writeType(LazyAst.getDefaultType(node)),
+      typeParameter_extendsKeyword: _getToken(node.extendsKeyword),
+      typeParameter_name: node.name.accept(this),
+    );
     _storeDeclaration(builder, node);
     _storeCodeOffsetLength(builder, node);
     return builder;

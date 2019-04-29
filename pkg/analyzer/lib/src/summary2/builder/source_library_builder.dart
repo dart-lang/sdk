@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
+import 'package:analyzer/src/summary2/types_builder.dart';
 
 class SourceLibraryBuilder {
   final Linker linker;
@@ -300,7 +301,7 @@ class SourceLibraryBuilder {
     }
   }
 
-  void resolveTypes(List<ast.AstNode> nodesToBuildType) {
+  void resolveTypes(NodesToBuildType nodesToBuildType) {
     for (var unitContext in context.units) {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);

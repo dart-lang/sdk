@@ -24,7 +24,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
-import 'package:analyzer/src/summary2/type_builder.dart';
+import 'package:analyzer/src/summary2/types_builder.dart';
 
 LinkResult link(
   AnalysisOptions analysisOptions,
@@ -255,12 +255,12 @@ class Linker {
   }
 
   void _resolveTypes() {
-    var nodesToBuildType = <AstNode>[];
+    var nodesToBuildType = NodesToBuildType();
     for (var library in builders.values) {
       library.resolveTypes(nodesToBuildType);
     }
     computeSimplyBounded(bundleContext, builders.values);
-    TypeBuilder(typeSystem).build(nodesToBuildType);
+    TypesBuilder(typeSystem).build(nodesToBuildType);
   }
 
   void _resolveUriDirectives() {

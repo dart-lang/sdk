@@ -10,11 +10,14 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
+import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/types_builder.dart';
 
 //class ReferenceResolver {
 //  final LinkingBundleContext linkingBundleContext;
@@ -513,7 +516,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
   final LinkingBundleContext linkingContext;
-  final List<AstNode> nodesToBuildType;
+  final NodesToBuildType nodesToBuildType;
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
   final Reference unitReference;
@@ -557,7 +560,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
     node.members.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -586,6 +589,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.superclass?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -646,7 +650,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     node.type?.accept(this);
     node.parameters?.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -674,7 +678,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.functionExpression.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -706,7 +710,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -737,7 +741,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -766,7 +770,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
-    nodesToBuildType.add(node);
+
+    var builder = FunctionTypeBuilder.of(node);
+    (node as GenericFunctionTypeImpl).type = builder;
+    nodesToBuildType.addTypeBuilder(builder);
 
     scope = outerScope;
     reference = outerReference;
@@ -791,7 +798,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.typeParameters?.accept(this);
     node.functionType.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -823,7 +830,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.returnType?.accept(this);
     node.parameters?.accept(this);
     node.typeParameters?.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -852,6 +859,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
     node.members.accept(this);
+    nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
     reference = outerReference;
@@ -865,7 +873,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.type?.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -897,7 +905,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.typeArguments?.accept(this);
 
-    nodesToBuildType.add(node);
+    if (element is TypeParameterElement) {
+      node.type = TypeParameterTypeImpl(element);
+    } else {
+      var builder = NamedTypeBuilder.of(element, node);
+      node.type = builder;
+      nodesToBuildType.addTypeBuilder(builder);
+    }
   }
 
   @override
@@ -913,7 +927,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.type?.accept(this);
-    nodesToBuildType.add(node);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
