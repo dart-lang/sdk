@@ -2231,6 +2231,7 @@ class ProfileBuilder : public ValueObject {
     }
 
     ASSERT(pc >= native_start);
+    ASSERT(pc < (pc + 1));  // Should not overflow.
     profile_code = new ProfileCode(ProfileCode::kNativeCode, native_start,
                                    pc + 1, 0, null_code_);
     if (native_name != NULL) {

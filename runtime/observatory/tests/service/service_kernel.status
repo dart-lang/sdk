@@ -77,7 +77,6 @@ complex_reload_test: RuntimeError
 [ $arch == simdbc64 && $compiler == dartk ]
 eval_test: RuntimeError, Timeout # Issue #34736
 evaluate_in_frame_rpc_test: RuntimeError, Timeout # Issue #34736
-get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
