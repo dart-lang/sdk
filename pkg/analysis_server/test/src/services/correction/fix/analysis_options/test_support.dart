@@ -7,7 +7,6 @@ import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';

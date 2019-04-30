@@ -126,7 +126,6 @@ class ManifestValidator {
     activites.forEach((activity) {
       var attributes = activity.attributes;
       if (attributes.containsKey(ATTRIBUTE_SCREEN_ORIENTATION)) {
-        var value = attributes[ATTRIBUTE_SCREEN_ORIENTATION];
         if (UNSUPPORTED_ORIENTATIONS
             .contains(attributes[ATTRIBUTE_SCREEN_ORIENTATION])) {
           _reportErrorForNode(reporter, activity, ATTRIBUTE_SCREEN_ORIENTATION,
