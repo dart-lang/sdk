@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner.dart' show ScannerConfiguration;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
@@ -125,8 +126,9 @@ class Foo {
     ]);
     for (Keyword keyword in Keyword.values) {
       var isModifier = modifierKeywords.contains(keyword);
-      var scanner = new StringScanner(keyword.lexeme, includeComments: true)
-        ..enableNonNullable = true;
+      var scanner = new StringScanner(keyword.lexeme,
+          configuration: ScannerConfiguration.nonNullable,
+          includeComments: true);
       Token token = scanner.tokenize();
       expect(token.isModifier, isModifier, reason: keyword.name);
       if (isModifier) {

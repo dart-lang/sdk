@@ -837,6 +837,17 @@ main() {}
     expectComments(result.tokens, ['// @dart = 2.3'], 0);
   }
 
+  void test_languageVersion_beforeLibrary_noSpaces() {
+    var result = scanSource('''
+// @dart=2.3
+library foo;
+main() {}
+''');
+    expect(result.languageVersion.major, 2);
+    expect(result.languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart=2.3'], 0);
+  }
+
   void test_languageVersion_incomplete_version() {
     var result = scanSource('''
 // @dart = 2.

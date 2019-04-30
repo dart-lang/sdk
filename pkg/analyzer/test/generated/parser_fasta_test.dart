@@ -20,7 +20,7 @@ import 'package:front_end/src/fasta/parser/async_modifier.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
-    show ScannerResult, scanString;
+    show ScannerConfiguration, ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
@@ -1515,10 +1515,8 @@ class FastaParserTestCase
   void createParser(String content,
       {int expectedEndOffset, FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
-    var scanner = new StringScanner(content, includeComments: true);
-    if (featureSet != null) {
-      scanner.enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
-    }
+    var scanner = new StringScanner(content,
+        configuration: ScannerConfiguration.nonNullable, includeComments: true);
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
@@ -2295,6 +2293,23 @@ main() {
   f(new C());
 }
 ''', featureSet: preNonNullable);
+  }
+
+  void test_late_as_identifier_opt_out() {
+    parseCompilationUnit('''
+// @dart = 2.2
+class C {
+  int late;
+}
+
+void f(C c) {
+  print(c.late);
+}
+
+main() {
+  f(new C());
+}
+''', featureSet: nonNullable);
   }
 
   void test_nullCheck() {

@@ -976,6 +976,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     languageVersion = createLanguageVersionToken(start, major, minor);
+    configuration = ScannerConfiguration.from(languageVersion);
     if (includeComments) {
       _appendToCommentStream(languageVersion);
     }
@@ -1531,6 +1532,13 @@ class LineStarts extends Object with ListMixin<int> {
 /// the scanner produces based upon the Dart language level.
 class ScannerConfiguration {
   static const classic = ScannerConfiguration();
+  static const nonNullable = ScannerConfiguration(enableNonNullable: true);
+
+  /// Return the scanner configuration for the given language version.
+  static ScannerConfiguration from(LanguageVersionToken languageVersion) {
+    // TODO(danrubel): update this to return config for new releases
+    return classic;
+  }
 
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'
