@@ -30,11 +30,6 @@ void _buildTests() {
 
   var base = ParseBase();
   for (var file in dartFiles) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/36262
-    if (file.path.endsWith('issue_31198.dart')) {
-      continue;
-    }
-
     var relPath = pathContext.relative(file.path, from: packageRoot);
     test(relPath, () {
       var code = file.readAsStringSync();
