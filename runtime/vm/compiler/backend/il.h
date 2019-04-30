@@ -7543,6 +7543,8 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   bool IsRedundant(const RangeBoundary& length);
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
 };
