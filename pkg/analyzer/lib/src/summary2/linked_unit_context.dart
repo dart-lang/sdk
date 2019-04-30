@@ -24,6 +24,7 @@ class LinkedUnitContext {
   final int indexInLibrary;
   final String uriStr;
   final Reference reference;
+  final bool isSynthetic;
   final LinkedNodeUnit data;
   final TokensContext tokensContext;
 
@@ -43,8 +44,14 @@ class LinkedUnitContext {
 
   int _nextSyntheticTypeParameterId = 0x10000;
 
-  LinkedUnitContext(this.bundleContext, this.libraryContext,
-      this.indexInLibrary, this.uriStr, this.reference, this.data,
+  LinkedUnitContext(
+      this.bundleContext,
+      this.libraryContext,
+      this.indexInLibrary,
+      this.uriStr,
+      this.reference,
+      this.isSynthetic,
+      this.data,
       {CompilationUnit unit})
       : tokensContext = data != null ? TokensContext(data.tokens) : null {
     _astReader = AstBinaryReader(this);
@@ -60,6 +67,7 @@ class LinkedUnitContext {
       this.indexInLibrary,
       this.uriStr,
       this.reference,
+      this.isSynthetic,
       this.data,
       this.tokensContext);
 
@@ -969,8 +977,16 @@ class LinkedUnitContext {
     );
     _RecursiveTypeReader(this).read(unit);
 
-    var context = LinkedUnitContext._(bundleContext, libraryContext,
-        indexInLibrary, uriStr, reference, data, TokensContext(data.tokens));
+    var context = LinkedUnitContext._(
+      bundleContext,
+      libraryContext,
+      indexInLibrary,
+      uriStr,
+      reference,
+      isSynthetic,
+      data,
+      TokensContext(data.tokens),
+    );
     context._genericFunctionTypes.addAll(_genericFunctionTypes);
     var astReader = AstBinaryReader(context);
     return astReader.readNode(data.node);

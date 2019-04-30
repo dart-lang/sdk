@@ -6630,6 +6630,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
+  bool get isSynthetic {
+    if (linkedNode != null) {
+      return linkedContext.isSynthetic;
+    }
+    return super.isSynthetic;
+  }
+
+  @override
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override

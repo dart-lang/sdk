@@ -183,8 +183,8 @@ class Linker {
     for (var builder in builders.values) {
       linkingLibraries.add(builder.node);
 
-      for (var unit2 in builder.context.units) {
-        var unit = unit2.unit;
+      for (var unitContext in builder.context.units) {
+        var unit = unitContext.unit;
         var tokensResult = TokensWriter().writeTokens(
           unit.beginToken,
           unit.endToken,
@@ -195,7 +195,8 @@ class Linker {
         var unitLinkedNode = writer.writeNode(unit);
         builder.node.units.add(
           LinkedNodeUnitBuilder(
-            uriStr: unit2.uriStr,
+            isSynthetic: unitContext.isSynthetic,
+            uriStr: unitContext.uriStr,
             tokens: tokensResult.tokens,
             node: unitLinkedNode,
           ),
@@ -279,9 +280,10 @@ class LinkInputLibrary {
 
 class LinkInputUnit {
   final Source source;
+  final bool isSynthetic;
   final CompilationUnit unit;
 
-  LinkInputUnit(this.source, this.unit);
+  LinkInputUnit(this.source, this.isSynthetic, this.unit);
 }
 
 class LinkResult {

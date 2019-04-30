@@ -2642,6 +2642,9 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
+  @Id(3)
+  bool get isSynthetic;
+
   @Id(2)
   LinkedNode get node;
 

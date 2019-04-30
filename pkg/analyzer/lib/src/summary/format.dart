@@ -20003,9 +20003,17 @@ abstract class _LinkedNodeTypeTypeParameterMixin
 class LinkedNodeUnitBuilder extends Object
     with _LinkedNodeUnitMixin
     implements idl.LinkedNodeUnit {
+  bool _isSynthetic;
   LinkedNodeBuilder _node;
   UnlinkedTokensBuilder _tokens;
   String _uriStr;
+
+  @override
+  bool get isSynthetic => _isSynthetic ??= false;
+
+  set isSynthetic(bool value) {
+    this._isSynthetic = value;
+  }
 
   @override
   LinkedNodeBuilder get node => _node;
@@ -20029,8 +20037,12 @@ class LinkedNodeUnitBuilder extends Object
   }
 
   LinkedNodeUnitBuilder(
-      {LinkedNodeBuilder node, UnlinkedTokensBuilder tokens, String uriStr})
-      : _node = node,
+      {bool isSynthetic,
+      LinkedNodeBuilder node,
+      UnlinkedTokensBuilder tokens,
+      String uriStr})
+      : _isSynthetic = isSynthetic,
+        _node = node,
         _tokens = tokens,
         _uriStr = uriStr;
 
@@ -20047,6 +20059,7 @@ class LinkedNodeUnitBuilder extends Object
     this._tokens?.collectApiSignature(signature);
     signature.addBool(this._node != null);
     this._node?.collectApiSignature(signature);
+    signature.addBool(this._isSynthetic == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -20063,6 +20076,9 @@ class LinkedNodeUnitBuilder extends Object
       offset_uriStr = fbBuilder.writeString(_uriStr);
     }
     fbBuilder.startTable();
+    if (_isSynthetic == true) {
+      fbBuilder.addBool(3, true);
+    }
     if (offset_node != null) {
       fbBuilder.addOffset(2, offset_node);
     }
@@ -20092,9 +20108,16 @@ class _LinkedNodeUnitImpl extends Object
 
   _LinkedNodeUnitImpl(this._bc, this._bcOffset);
 
+  bool _isSynthetic;
   idl.LinkedNode _node;
   idl.UnlinkedTokens _tokens;
   String _uriStr;
+
+  @override
+  bool get isSynthetic {
+    _isSynthetic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    return _isSynthetic;
+  }
 
   @override
   idl.LinkedNode get node {
@@ -20120,6 +20143,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
     if (node != null) _result["node"] = node.toJson();
     if (tokens != null) _result["tokens"] = tokens.toJson();
     if (uriStr != '') _result["uriStr"] = uriStr;
@@ -20128,6 +20152,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
 
   @override
   Map<String, Object> toMap() => {
+        "isSynthetic": isSynthetic,
         "node": node,
         "tokens": tokens,
         "uriStr": uriStr,

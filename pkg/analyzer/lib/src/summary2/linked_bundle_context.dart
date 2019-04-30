@@ -42,6 +42,7 @@ class LinkedBundleContext {
           unitIndex,
           uriStr,
           reference,
+          unit.isSynthetic,
           unit,
         );
         libraryContext.units.add(unitContext);
@@ -75,6 +76,7 @@ class LinkedBundleContext {
           unitIndex++,
           uriStr,
           reference,
+          inputUnit.isSynthetic,
           null,
           unit: inputUnit.unit,
         ),

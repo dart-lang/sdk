@@ -2024,6 +2024,8 @@ table LinkedNodeTypeTypeParameter {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 table LinkedNodeUnit {
+  isSynthetic:bool (id: 3);
+
   node:LinkedNode (id: 2);
 
   tokens:UnlinkedTokens (id: 1);

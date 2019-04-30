@@ -255,18 +255,17 @@ class _ElementRequest {
     if (librarySource == null) return null;
 
     var libraryContext = elementFactory.libraryMap[uriStr];
-    // TODO(scheglov) don't use node
-    var node2 = libraryContext.node;
-    var hasName = node2.name.isNotEmpty;
+    var libraryNode = libraryContext.node;
+    var hasName = libraryNode.name.isNotEmpty;
 
     var definingUnitContext = libraryContext.definingUnit;
 
     var libraryElement = LibraryElementImpl.forLinkedNode(
       elementFactory.analysisContext,
       elementFactory.analysisSession,
-      node2.name,
-      hasName ? node2.nameOffset : -1,
-      node2.name.length,
+      libraryNode.name,
+      hasName ? libraryNode.nameOffset : -1,
+      libraryNode.name.length,
       definingUnitContext,
       reference,
       definingUnitContext.unit_withDeclarations,

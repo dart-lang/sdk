@@ -92,6 +92,7 @@ void _assertCode(ParseBase base, String code) {
     0,
     null,
     null,
+    false,
     linkedNodeUnit,
   );
 
