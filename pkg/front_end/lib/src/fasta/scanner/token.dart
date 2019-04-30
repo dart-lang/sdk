@@ -187,6 +187,41 @@ class CommentToken extends StringToken implements analyzer.CommentToken {
   }
 }
 
+/**
+ * A specialized comment token representing a language version
+ * (e.g. '// @dart = 2.1').
+ */
+class LanguageVersionToken extends CommentToken {
+  /**
+   * The major language version.
+   */
+  int major;
+
+  /**
+   * The minor language version.
+   */
+  int minor;
+
+  LanguageVersionToken.from(String text, int offset, this.major, this.minor)
+      : super.fromString(TokenType.SINGLE_LINE_COMMENT, text, offset);
+
+  LanguageVersionToken.fromSubstring(
+      String string, int start, int end, int tokenStart, this.major, this.minor,
+      {bool canonicalize})
+      : super.fromSubstring(
+            TokenType.SINGLE_LINE_COMMENT, string, start, end, tokenStart,
+            canonicalize: canonicalize);
+
+  LanguageVersionToken.fromUtf8Bytes(List<int> bytes, int start, int end,
+      int tokenStart, this.major, this.minor)
+      : super.fromUtf8Bytes(
+            TokenType.SINGLE_LINE_COMMENT, bytes, start, end, true, tokenStart);
+
+  @override
+  LanguageVersionToken copy() =>
+      new LanguageVersionToken.from(lexeme, offset, major, minor);
+}
+
 class DartDocToken extends CommentToken
     implements analyzer.DocumentationCommentToken {
   /**

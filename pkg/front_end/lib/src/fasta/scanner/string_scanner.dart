@@ -12,7 +12,8 @@ import 'abstract_scanner.dart' show ScannerConfiguration;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
-import 'token.dart' show CommentToken, DartDocToken, StringToken;
+import 'token.dart'
+    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
 
 import 'error_token.dart' show ErrorToken;
 
@@ -84,6 +85,14 @@ class StringScanner extends ArrayBasedScanner {
       [int extraOffset = 0]) {
     return new DartDocToken.fromSubstring(
         type, string, start, scanOffset + extraOffset, tokenStart,
+        canonicalize: true);
+  }
+
+  @override
+  LanguageVersionToken createLanguageVersionToken(
+      int start, int major, int minor) {
+    return new LanguageVersionToken.fromSubstring(
+        string, start, scanOffset, tokenStart, major, minor,
         canonicalize: true);
   }
 

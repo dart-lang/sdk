@@ -14,7 +14,8 @@ import '../scanner.dart' show unicodeReplacementCharacter;
 
 import 'abstract_scanner.dart' show ScannerConfiguration;
 
-import 'token.dart' show CommentToken, DartDocToken, StringToken;
+import 'token.dart'
+    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
@@ -233,6 +234,13 @@ class Utf8BytesScanner extends ArrayBasedScanner {
       [int extraOffset = 0]) {
     return new DartDocToken.fromUtf8Bytes(
         type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+  }
+
+  @override
+  LanguageVersionToken createLanguageVersionToken(
+      int start, int major, int minor) {
+    return new LanguageVersionToken.fromUtf8Bytes(
+        bytes, start, byteOffset, tokenStart, major, minor);
   }
 
   bool atEndOfFile() => byteOffset >= bytes.length - 1;
