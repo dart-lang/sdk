@@ -80,20 +80,26 @@ class A implements N {}''', [
   test_ambiguousImport_inPart() async {
     newFile("/test/lib/lib1.dart", content: '''
 library lib1;
-class N {}''');
+class N {}
+''');
     newFile("/test/lib/lib2.dart", content: '''
 library lib2;
-class N {}''');
+class N {}
+''');
     newFile('/test/lib/part.dart', content: '''
 part of lib;
-class A extends N {}''');
+class A extends N {}
+''');
     newFile('/test/lib/lib.dart', content: '''
 library lib;
 import 'lib1.dart';
 import 'lib2.dart';
-part 'part.dart';''');
-    ResolvedUnitResult libResult = await resolveFile('/test/lib/lib.dart');
-    ResolvedUnitResult partResult = await resolveFile('/test/lib/part.dart');
+part 'part.dart';
+''');
+    ResolvedUnitResult libResult =
+        await resolveFile(convertPath('/test/lib/lib.dart'));
+    ResolvedUnitResult partResult =
+        await resolveFile(convertPath('/test/lib/part.dart'));
     expect(libResult.errors, hasLength(0));
     new GatheringErrorListener()
       ..addAll(partResult.errors)
