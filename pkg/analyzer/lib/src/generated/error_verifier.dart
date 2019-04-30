@@ -960,6 +960,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         } else {
           _checkForNewWithUndefinedConstructor(node, constructorName, typeName);
         }
+        _checkForListConstructor(node, type);
       }
       _checkForImplicitDynamicType(typeName);
       super.visitInstanceCreationExpression(node);
@@ -3908,6 +3909,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForListConstructor(
+      InstanceCreationExpression node, InterfaceType type) {
+    if (node.argumentList.arguments.length == 1 &&
+        _isDartCoreList(type) &&
+        _typeSystem.isPotentiallyNonNullable(type.typeArguments[0])) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
+          node.constructorName);
+    }
+  }
+
   /**
    * Verify that the elements of the given list [literal] are subtypes of the
    * list's static type.
@@ -6210,6 +6222,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 : INIT_STATE.INIT_IN_DECLARATION;
       }
     }
+  }
+
+  bool _isDartCoreList(InterfaceType type) {
+    ClassElement element = type.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "List" && element.library.isDartCore;
   }
 
   bool _isFunctionType(DartType type) {

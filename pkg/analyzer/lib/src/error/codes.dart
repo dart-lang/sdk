@@ -785,6 +785,17 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the default value.");
 
   /**
+   * It is an error to call the default List constructor with a length argument
+   * and a type argument which is potentially non-nullable.
+   */
+  static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR_MISMATCH =
+      const CompileTimeErrorCode(
+          'DEFAULT_LIST_CONSTRUCTOR_MISMATCH',
+          "A list whose values cannot be 'null' cannot be given an initial length "
+              "because the initial values would all be 'null'.",
+          correction: "Try removing the argument.");
+
+  /**
    * 6.2.1 Required Formals: By means of a function signature that names the
    * parameter and describes its type as a function type. It is a compile-time
    * error if any default values are specified in the signature of such a

@@ -22,6 +22,8 @@ import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
+import 'default_list_constructor_mismatch_test.dart'
+    as default_list_constructor_mismatch;
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_paramter;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
@@ -169,6 +171,7 @@ main() {
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     dead_code.main();
+    default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
     deprecated_member_use.main();
     division_optimization.main();
