@@ -7,15 +7,11 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-// TODO(jwren) These tests are currently disabled due to issues on Windows, next
-//  week we will look at getting them enabled. Disabled by having the file
-//  renamed and a change to ./test_all.dart.
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MoveFileTest);
@@ -27,10 +23,10 @@ class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 
   test_file_containing_imports_exports_parts() async {
-    String pathA = '/home/test/000/1111/a.dart';
-    String pathB = '/home/test/000/1111/b.dart';
-    String pathC = '/home/test/000/1111/22/c.dart';
-    testFile = context.normalize('/home/test/000/1111/test.dart');
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    String pathB = convertPath('/home/test/000/1111/b.dart');
+    String pathC = convertPath('/home/test/000/1111/22/c.dart');
+    testFile = convertPath('/home/test/000/1111/test.dart');
     addSource('/absolute/uri.dart', '');
     addSource(pathA, 'part of lib;');
     addSource(pathB, "import 'test.dart';");
@@ -80,8 +76,8 @@ import 'package:test/222/new_name.dart';
   }
 
   test_file_importedLibrary_down() async {
-    String pathA = '/home/test/000/1111/a.dart';
-    testFile = context.normalize('/home/test/000/1111/test.dart');
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/test.dart');
     addSource(pathA, '''
 import 'test.dart';
 ''');
@@ -98,8 +94,8 @@ import '22/new_name.dart';
   }
 
   test_file_importedLibrary_sideways() async {
-    String pathA = '/home/test/000/1111/a.dart';
-    testFile = context.normalize('/home/test/000/1111/sub/folder/test.dart');
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/sub/folder/test.dart');
     addSource(pathA, '''
 import 'sub/folder/test.dart';
 ''');
@@ -114,8 +110,8 @@ import '../new/folder/name/new_name.dart';
   }
 
   test_file_importedLibrary_up() async {
-    String pathA = '/home/test/000/1111/a.dart';
-    testFile = context.normalize('/home/test/000/1111/22/test.dart');
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 import '22/test.dart';
 ''');
@@ -133,9 +129,9 @@ import 'new_name.dart';
   test_file_referenced_by_multiple_libraries() async {
     // This test fails because the search index doesn't support multiple uris for
     // a library, so only one of them is updated.
-    String pathA = '/home/test/000/1111/a.dart';
-    String pathB = '/home/test/000/b.dart';
-    testFile = context.normalize('/home/test/000/1111/22/test.dart');
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    String pathB = convertPath('/home/test/000/b.dart');
+    testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
 part '22/test.dart';
@@ -162,8 +158,8 @@ part '1111/22/new_name.dart';
   }
 
   test_file_referenced_by_part() async {
-    String pathA = '/home/test/000/1111/a.dart';
-    testFile = context.normalize('/home/test/000/1111/22/test.dart');
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
 part '22/test.dart';
@@ -221,8 +217,8 @@ part '22/new_name.dart';
     // If the file is a part in a library, and the part-of directive uses a URI
     // rather than a library name, that will need updating too (if the relative
     // path to the parent changes).
-    String pathA = '/home/test/000/1111/a.dart';
-    testFile = context.normalize('/home/test/000/1111/22/test.dart');
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
 library lib;
 part '22/test.dart';
