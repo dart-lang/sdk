@@ -36,6 +36,7 @@ class ClassAndSize {
   intptr_t size_;
 
   friend class ClassTable;
+  friend class IsolateReloadContext;  // For VisitObjectPointers.
 };
 
 #if defined(ARCH_IS_32_BIT)

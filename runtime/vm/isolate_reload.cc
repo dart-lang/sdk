@@ -987,25 +987,40 @@ void IsolateReloadContext::CheckpointClasses() {
   ClassAndSize* local_saved_class_table = reinterpret_cast<ClassAndSize*>(
       malloc(sizeof(ClassAndSize) * saved_num_cids_));
 
+  // Copy classes into saved_class_table_ first. Make sure there are no
+  // safepoints until saved_class_table_ is filled up and saved so class raw
+  // pointers in saved_class_table_ are properly visited by GC.
+  {
+    NoSafepointScope no_safepoint_scope(Thread::Current());
+
+    for (intptr_t i = 0; i < saved_num_cids_; i++) {
+      if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
+        // Copy the class into the saved class table.
+        local_saved_class_table[i] = class_table->PairAt(i);
+      } else {
+        // No class at this index, mark it as NULL.
+        local_saved_class_table[i] = ClassAndSize(NULL);
+      }
+    }
+
+    // Elements of saved_class_table_ are now visible to GC.
+    saved_class_table_ = local_saved_class_table;
+  }
+
+  // Add classes to the set. Set is stored in the Array, so adding an element
+  // may allocate Dart object on the heap and trigger GC.
   Class& cls = Class::Handle();
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   for (intptr_t i = 0; i < saved_num_cids_; i++) {
     if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
-      // Copy the class into the saved class table and add it to the set.
-      local_saved_class_table[i] = class_table->PairAt(i);
       if (i != kFreeListElement && i != kForwardingCorpse) {
         cls = class_table->At(i);
         bool already_present = old_classes_set.Insert(cls);
         ASSERT(!already_present);
       }
-    } else {
-      // No class at this index, mark it as NULL.
-      local_saved_class_table[i] = ClassAndSize(NULL);
     }
   }
   old_classes_set_storage_ = old_classes_set.Release().raw();
-  // Assigning the field must be done after saving the class table.
-  saved_class_table_ = local_saved_class_table;
   TIR_Print("---- System had %" Pd " classes\n", saved_num_cids_);
 }
 
@@ -1840,8 +1855,10 @@ void IsolateReloadContext::set_saved_libraries(
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
   if (saved_class_table_ != NULL) {
-    visitor->VisitPointers(
-        reinterpret_cast<RawObject**>(&saved_class_table_[0]), saved_num_cids_);
+    for (intptr_t i = 0; i < saved_num_cids_; i++) {
+      visitor->VisitPointer(
+          reinterpret_cast<RawObject**>(&(saved_class_table_[i].class_)));
+    }
   }
 }
 
