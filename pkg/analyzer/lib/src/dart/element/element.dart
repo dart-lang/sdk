@@ -6389,9 +6389,21 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   FunctionElement get entryPoint {
-    if (resynthesizerContext != null) {
-      _entryPoint ??= resynthesizerContext.findEntryPoint();
+    if (_entryPoint != null) return _entryPoint;
+
+    if (linkedContext != null) {
+      var namespace = library.exportNamespace;
+      var entryPoint = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
+      if (entryPoint is FunctionElement) {
+        return _entryPoint = entryPoint;
+      }
+      return null;
     }
+
+    if (resynthesizerContext != null) {
+      return _entryPoint = resynthesizerContext.findEntryPoint();
+    }
+
     return _entryPoint;
   }
 
