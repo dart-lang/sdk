@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -323,6 +324,9 @@ class Dart2TypeSystem extends TypeSystem {
       Set<DartType> visitedTypes = new HashSet<DartType>();
 
       void appendParameters(DartType type) {
+        if (type == null) {
+          return;
+        }
         if (visitedTypes.contains(type)) {
           return;
         }
@@ -330,6 +334,13 @@ class Dart2TypeSystem extends TypeSystem {
         if (type is TypeParameterType && all.contains(type)) {
           parameters ??= <TypeParameterType>[];
           parameters.add(type);
+        } else if (AnalysisDriver.useSummary2) {
+          if (type is FunctionType) {
+            appendParameters(type.returnType);
+            type.parameters.map((p) => p.type).forEach(appendParameters);
+          } else if (type is InterfaceType) {
+            type.typeArguments.forEach(appendParameters);
+          }
         } else if (type is ParameterizedType) {
           type.typeArguments.forEach(appendParameters);
         }
