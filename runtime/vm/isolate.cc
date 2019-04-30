@@ -949,8 +949,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       catch_entry_moves_cache_(),
       embedder_entry_points_(NULL),
       obfuscation_map_(NULL),
-      reverse_pc_lookup_cache_(nullptr),
-      irregexp_backtrack_stack_(nullptr) {
+      reverse_pc_lookup_cache_(nullptr) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
   set_compilation_allowed(true);
@@ -981,9 +980,6 @@ Isolate::~Isolate() {
   // TODO(32796): Re-enable assertion.
   // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  delete[] irregexp_backtrack_stack_;
-  irregexp_backtrack_stack_ = nullptr;
 
   delete reverse_pc_lookup_cache_;
   reverse_pc_lookup_cache_ = nullptr;

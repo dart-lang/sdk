@@ -127,8 +127,8 @@ static int32_t Load16Aligned(const uint8_t* pc) {
 // matching terminates.
 class BacktrackStack {
  public:
-  explicit BacktrackStack(Isolate* isolate) {
-    data_ = isolate->irregexp_backtrack_stack();
+  explicit BacktrackStack(Zone* zone) {
+    data_ = zone->Alloc<intptr_t>(kBacktrackStackSize);
   }
 
   intptr_t* data() const { return data_; }
@@ -136,8 +136,7 @@ class BacktrackStack {
   intptr_t max_size() const { return kBacktrackStackSize; }
 
  private:
-  static constexpr intptr_t kBacktrackStackSize =
-      Isolate::kIrregexpBacktrackStackSize;
+  static const intptr_t kBacktrackStackSize = 1 << 16;
 
   intptr_t* data_;
 
@@ -149,12 +148,13 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
                                                     const String& subject,
                                                     int32_t* registers,
                                                     intptr_t current,
-                                                    uint32_t current_char) {
+                                                    uint32_t current_char,
+                                                    Zone* zone) {
   const uint8_t* pc = code_base;
   // BacktrackStack ensures that the memory allocated for the backtracking stack
   // is returned to the system or cached if there is no stack being cached at
   // the moment.
-  BacktrackStack backtrack_stack(Isolate::Current());
+  BacktrackStack backtrack_stack(zone);
   intptr_t* backtrack_stack_base = backtrack_stack.data();
   intptr_t* backtrack_sp = backtrack_stack_base;
   intptr_t backtrack_stack_space = backtrack_stack.max_size();
@@ -627,7 +627,8 @@ IrregexpInterpreter::IrregexpResult IrregexpInterpreter::Match(
     const TypedData& bytecode,
     const String& subject,
     int32_t* registers,
-    intptr_t start_position) {
+    intptr_t start_position,
+    Zone* zone) {
   NoSafepointScope no_safepoint;
   const uint8_t* code_base = reinterpret_cast<uint8_t*>(bytecode.DataAddr(0));
 
@@ -638,10 +639,10 @@ IrregexpInterpreter::IrregexpResult IrregexpInterpreter::Match(
 
   if (subject.IsOneByteString() || subject.IsExternalOneByteString()) {
     return RawMatch<uint8_t>(code_base, subject, registers, start_position,
-                             previous_char);
+                             previous_char, zone);
   } else if (subject.IsTwoByteString() || subject.IsExternalTwoByteString()) {
     return RawMatch<uint16_t>(code_base, subject, registers, start_position,
-                              previous_char);
+                              previous_char, zone);
   } else {
     UNREACHABLE();
     return IrregexpInterpreter::RE_FAILURE;

@@ -176,4 +176,66 @@ VM_UNIT_TEST_CASE(NativeScopeZoneAllocation) {
   EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
 }
 
+#if !defined(PRODUCT)
+// Allow for pooling in the malloc implementation.
+static const int64_t kRssSlack = 20 * MB;
+#endif  // !defined(PRODUCT)
+
+// clang-format off
+static const size_t kSizes[] = {
+  64 * KB,
+  64 * KB + 2 * kWordSize,
+  64 * KB - 2 * kWordSize,
+  128 * KB,
+  128 * KB + 2 * kWordSize,
+  128 * KB - 2 * kWordSize,
+  256 * KB,
+  256 * KB + 2 * kWordSize,
+  256 * KB - 2 * kWordSize,
+  512 * KB,
+  512 * KB + 2 * kWordSize,
+  512 * KB - 2 * kWordSize,
+};
+// clang-format on
+
+TEST_CASE(StressMallocDirectly) {
+#if !defined(PRODUCT)
+  int64_t start_rss = Service::CurrentRSS();
+#endif  // !defined(PRODUCT)
+
+  void* allocations[ARRAY_SIZE(kSizes)];
+  for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
+    for (size_t j = 0; j < ARRAY_SIZE(kSizes); j++) {
+      allocations[j] = malloc(kSizes[j]);
+    }
+    for (size_t j = 0; j < ARRAY_SIZE(kSizes); j++) {
+      free(allocations[j]);
+    }
+  }
+
+#if !defined(PRODUCT)
+  int64_t stop_rss = Service::CurrentRSS();
+  EXPECT_LT(stop_rss, start_rss + kRssSlack);
+#endif  // !defined(PRODUCT)
+}
+
+TEST_CASE(StressMallocThroughZones) {
+#if !defined(PRODUCT)
+  int64_t start_rss = Service::CurrentRSS();
+#endif  // !defined(PRODUCT)
+
+  for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
+    StackZone stack_zone(Thread::Current());
+    Zone* zone = stack_zone.GetZone();
+    for (size_t j = 0; j < ARRAY_SIZE(kSizes); j++) {
+      zone->Alloc<uint8_t>(kSizes[j]);
+    }
+  }
+
+#if !defined(PRODUCT)
+  int64_t stop_rss = Service::CurrentRSS();
+  EXPECT_LT(stop_rss, start_rss + kRssSlack);
+#endif  // !defined(PRODUCT)
+}
+
 }  // namespace dart

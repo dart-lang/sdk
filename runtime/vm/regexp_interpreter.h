@@ -20,7 +20,8 @@ class IrregexpInterpreter : public AllStatic {
   static IrregexpResult Match(const TypedData& bytecode,
                               const String& subject,
                               int32_t* captures,
-                              intptr_t start_position);
+                              intptr_t start_position,
+                              Zone* zone);
 };
 
 }  // namespace dart
