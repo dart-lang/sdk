@@ -18,6 +18,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   final List<TypeParameterElement> typeFormals;
   final List<ParameterElement> parameters;
   final DartType returnType;
+  final NullabilitySuffix nullabilitySuffix;
 
   /// The node for which this builder is created, or `null` if the builder
   /// was detached from its node, e.g. during computing default types for
@@ -33,11 +34,15 @@ class FunctionTypeBuilder extends TypeBuilder {
   FunctionTypeBuilder(
     this.typeFormals,
     this.parameters,
-    this.returnType, {
+    this.returnType,
+    this.nullabilitySuffix, {
     this.node,
   });
 
-  factory FunctionTypeBuilder.of(GenericFunctionType node) {
+  factory FunctionTypeBuilder.of(
+    GenericFunctionType node,
+    NullabilitySuffix nullabilitySuffix,
+  ) {
     return FunctionTypeBuilder(
       node.typeParameters?.typeParameters
               ?.map((n) => n.declaredElement as TypeParameterElement)
@@ -52,6 +57,7 @@ class FunctionTypeBuilder extends TypeBuilder {
         );
       }).toList(),
       _getNodeType(node.returnType),
+      nullabilitySuffix,
       node: node,
     );
   }
@@ -77,6 +83,7 @@ class FunctionTypeBuilder extends TypeBuilder {
           e.parameterKind,
         );
       }).toList(),
+      nullabilitySuffix: nullabilitySuffix,
     );
 
     if (node != null) {

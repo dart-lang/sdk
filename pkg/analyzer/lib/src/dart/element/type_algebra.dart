@@ -361,7 +361,12 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     if (this.useCounter == before) return type;
 
-    return FunctionTypeBuilder(typeFormals, parameters, returnType);
+    return FunctionTypeBuilder(
+      typeFormals,
+      parameters,
+      returnType,
+      type.nullabilitySuffix,
+    );
   }
 
   @override
@@ -391,7 +396,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    return new NamedTypeBuilder(type.element, arguments);
+    return new NamedTypeBuilder(
+      type.element,
+      arguments,
+      type.nullabilitySuffix,
+    );
   }
 
   @override

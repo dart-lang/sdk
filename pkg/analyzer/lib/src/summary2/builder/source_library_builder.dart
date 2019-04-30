@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -330,6 +331,7 @@ class SourceLibraryBuilder {
         linker.elementFactory,
         element,
         unitReference,
+        linker.contextFeatures.isEnabled(Feature.non_nullable),
         libraryScope,
       );
       unitContext.unit.accept(resolver);

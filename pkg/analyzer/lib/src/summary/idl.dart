@@ -2614,6 +2614,9 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(5)
   LinkedNodeTypeKind get kind;
 
+  @Id(10)
+  EntityRefNullabilitySuffix get nullabilitySuffix;
+
   @Id(6)
   int get typeParameterElement;
 

@@ -947,28 +947,33 @@ class LinkedUnitContext {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
 
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+
       return FunctionTypeImpl.synthetic(
         returnType,
         typeParameters,
         formalParameters,
-      );
+      ).withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
       return InterfaceTypeImpl.explicit(
         element,
         linkedType.interfaceTypeArguments.map(readType).toList(),
+        nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
+      TypeParameterElement element;
       var id = linkedType.typeParameterId;
       if (id != 0) {
-        var element = _typeParameters[id];
+        element = _typeParameters[id];
         assert(element != null);
-        return TypeParameterTypeImpl(element);
       } else {
         var index = linkedType.typeParameterElement;
-        var element = bundleContext.elementOfIndex(index);
-        return TypeParameterTypeImpl(element);
+        element = bundleContext.elementOfIndex(index);
       }
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+      return TypeParameterTypeImpl(element).withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.void_) {
       return VoidTypeImpl.instance;
     } else {
@@ -1144,6 +1149,19 @@ class LinkedUnitContext {
       throw UnimplementedError('$kind');
     }
     return typeParameterList?.typeParameterList_typeParameters;
+  }
+
+  static NullabilitySuffix _nullabilitySuffix(EntityRefNullabilitySuffix data) {
+    switch (data) {
+      case EntityRefNullabilitySuffix.starOrIrrelevant:
+        return NullabilitySuffix.star;
+      case EntityRefNullabilitySuffix.question:
+        return NullabilitySuffix.question;
+      case EntityRefNullabilitySuffix.none:
+        return NullabilitySuffix.none;
+      default:
+        throw StateError('$data');
+    }
   }
 }
 

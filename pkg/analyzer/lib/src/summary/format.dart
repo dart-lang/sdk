@@ -19482,6 +19482,7 @@ class LinkedNodeTypeBuilder extends Object
   int _interfaceClass;
   List<LinkedNodeTypeBuilder> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
+  idl.EntityRefNullabilitySuffix _nullabilitySuffix;
   int _typeParameterElement;
   int _typeParameterId;
 
@@ -19550,6 +19551,14 @@ class LinkedNodeTypeBuilder extends Object
   }
 
   @override
+  idl.EntityRefNullabilitySuffix get nullabilitySuffix =>
+      _nullabilitySuffix ??= idl.EntityRefNullabilitySuffix.starOrIrrelevant;
+
+  set nullabilitySuffix(idl.EntityRefNullabilitySuffix value) {
+    this._nullabilitySuffix = value;
+  }
+
+  @override
   int get typeParameterElement => _typeParameterElement ??= 0;
 
   set typeParameterElement(int value) {
@@ -19574,6 +19583,7 @@ class LinkedNodeTypeBuilder extends Object
       int interfaceClass,
       List<LinkedNodeTypeBuilder> interfaceTypeArguments,
       idl.LinkedNodeTypeKind kind,
+      idl.EntityRefNullabilitySuffix nullabilitySuffix,
       int typeParameterElement,
       int typeParameterId})
       : _functionFormalParameters = functionFormalParameters,
@@ -19584,6 +19594,7 @@ class LinkedNodeTypeBuilder extends Object
         _interfaceClass = interfaceClass,
         _interfaceTypeArguments = interfaceTypeArguments,
         _kind = kind,
+        _nullabilitySuffix = nullabilitySuffix,
         _typeParameterElement = typeParameterElement,
         _typeParameterId = typeParameterId;
 
@@ -19637,6 +19648,8 @@ class LinkedNodeTypeBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addInt(
+        this._nullabilitySuffix == null ? 0 : this._nullabilitySuffix.index);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -19693,6 +19706,10 @@ class LinkedNodeTypeBuilder extends Object
     if (_kind != null && _kind != idl.LinkedNodeTypeKind.bottom) {
       fbBuilder.addUint8(5, _kind.index);
     }
+    if (_nullabilitySuffix != null &&
+        _nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant) {
+      fbBuilder.addUint8(10, _nullabilitySuffix.index);
+    }
     if (_typeParameterElement != null && _typeParameterElement != 0) {
       fbBuilder.addUint32(6, _typeParameterElement);
     }
@@ -19727,6 +19744,7 @@ class _LinkedNodeTypeImpl extends Object
   int _interfaceClass;
   List<idl.LinkedNodeType> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
+  idl.EntityRefNullabilitySuffix _nullabilitySuffix;
   int _typeParameterElement;
   int _typeParameterId;
 
@@ -19794,6 +19812,13 @@ class _LinkedNodeTypeImpl extends Object
   }
 
   @override
+  idl.EntityRefNullabilitySuffix get nullabilitySuffix {
+    _nullabilitySuffix ??= const _EntityRefNullabilitySuffixReader().vTableGet(
+        _bc, _bcOffset, 10, idl.EntityRefNullabilitySuffix.starOrIrrelevant);
+    return _nullabilitySuffix;
+  }
+
+  @override
   int get typeParameterElement {
     _typeParameterElement ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
@@ -19832,6 +19857,8 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
           interfaceTypeArguments.map((_value) => _value.toJson()).toList();
     if (kind != idl.LinkedNodeTypeKind.bottom)
       _result["kind"] = kind.toString().split('.')[1];
+    if (nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant)
+      _result["nullabilitySuffix"] = nullabilitySuffix.toString().split('.')[1];
     if (typeParameterElement != 0)
       _result["typeParameterElement"] = typeParameterElement;
     if (typeParameterId != 0) _result["typeParameterId"] = typeParameterId;
@@ -19848,6 +19875,7 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
         "interfaceClass": interfaceClass,
         "interfaceTypeArguments": interfaceTypeArguments,
         "kind": kind,
+        "nullabilitySuffix": nullabilitySuffix,
         "typeParameterElement": typeParameterElement,
         "typeParameterId": typeParameterId,
       };

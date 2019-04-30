@@ -520,6 +520,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
   final Reference unitReference;
+  final bool nnbd;
 
   Reference reference;
   Scope scope;
@@ -530,6 +531,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     this.elementFactory,
     this._libraryElement,
     this.unitReference,
+    this.nnbd,
     this.scope,
   ) : reference = unitReference;
 
@@ -771,7 +773,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
 
-    var builder = FunctionTypeBuilder.of(node);
+    var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
+    var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
     (node as GenericFunctionTypeImpl).type = builder;
     nodesToBuildType.addTypeBuilder(builder);
 
@@ -905,10 +908,18 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.typeArguments?.accept(this);
 
+    var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     if (element is TypeParameterElement) {
-      node.type = TypeParameterTypeImpl(element);
+      node.type = TypeParameterTypeImpl(
+        element,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else {
-      var builder = NamedTypeBuilder.of(element, node);
+      var builder = NamedTypeBuilder.of(
+        node,
+        element,
+        nullabilitySuffix,
+      );
       node.type = builder;
       nodesToBuildType.addTypeBuilder(builder);
     }
@@ -954,6 +965,18 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     for (var typeParameter in typeParameterList.typeParameters) {
       _createTypeParameterElement(typeParameter);
+    }
+  }
+
+  NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
+    if (nnbd) {
+      if (hasQuestion) {
+        return NullabilitySuffix.question;
+      } else {
+        return NullabilitySuffix.none;
+      }
+    } else {
+      return NullabilitySuffix.star;
     }
   }
 }

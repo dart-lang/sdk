@@ -2003,6 +2003,8 @@ table LinkedNodeType {
 
   kind:LinkedNodeTypeKind (id: 5);
 
+  nullabilitySuffix:EntityRefNullabilitySuffix (id: 10);
+
   typeParameterElement:uint (id: 6);
 
   typeParameterId:uint (id: 7);

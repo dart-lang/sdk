@@ -94,6 +94,7 @@ class LinkingBundleContext {
         kind: LinkedNodeTypeKind.interface,
         interfaceClass: indexOfElement(type.element),
         interfaceTypeArguments: type.typeArguments.map(writeType).toList(),
+        nullabilitySuffix: _nullabilitySuffix(type),
       );
     } else if (type is TypeParameterType) {
       TypeParameterElementImpl element = type.element;
@@ -101,12 +102,14 @@ class LinkingBundleContext {
       if (id != null) {
         return LinkedNodeTypeBuilder(
           kind: LinkedNodeTypeKind.typeParameter,
+          nullabilitySuffix: _nullabilitySuffix(type),
           typeParameterId: id,
         );
       } else {
         var index = indexOfElement(element);
         return LinkedNodeTypeBuilder(
           kind: LinkedNodeTypeKind.typeParameter,
+          nullabilitySuffix: _nullabilitySuffix(type),
           typeParameterElement: index,
         );
       }
@@ -177,6 +180,7 @@ class LinkingBundleContext {
           .toList(),
       functionReturnType: writeType(type.returnType),
       functionTypeParameters: typeParameterBuilders,
+      nullabilitySuffix: _nullabilitySuffix(type),
     );
 
     for (var typeParameter in typeParameters) {
@@ -185,5 +189,19 @@ class LinkingBundleContext {
     }
 
     return result;
+  }
+
+  static EntityRefNullabilitySuffix _nullabilitySuffix(DartType type) {
+    var nullabilitySuffix = (type as TypeImpl).nullabilitySuffix;
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return EntityRefNullabilitySuffix.question;
+      case NullabilitySuffix.star:
+        return EntityRefNullabilitySuffix.starOrIrrelevant;
+      case NullabilitySuffix.none:
+        return EntityRefNullabilitySuffix.none;
+      default:
+        throw StateError('$nullabilitySuffix');
+    }
   }
 }

@@ -16,6 +16,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
   final Element element;
   final List<DartType> arguments;
+  final NullabilitySuffix nullabilitySuffix;
 
   /// The node for which this builder is created, or `null` if the builder
   /// was detached from its node, e.g. during computing default types for
@@ -28,9 +29,14 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   DartType _type;
 
-  NamedTypeBuilder(this.element, this.arguments, {this.node});
+  NamedTypeBuilder(this.element, this.arguments, this.nullabilitySuffix,
+      {this.node});
 
-  factory NamedTypeBuilder.of(Element element, TypeName node) {
+  factory NamedTypeBuilder.of(
+    TypeName node,
+    Element element,
+    NullabilitySuffix nullabilitySuffix,
+  ) {
     List<DartType> arguments;
     var argumentList = node.typeArguments;
     if (argumentList != null) {
@@ -39,7 +45,7 @@ class NamedTypeBuilder extends TypeBuilder {
       arguments = <DartType>[];
     }
 
-    return NamedTypeBuilder(element, arguments, node: node);
+    return NamedTypeBuilder(element, arguments, nullabilitySuffix, node: node);
   }
 
   @override
@@ -52,10 +58,15 @@ class NamedTypeBuilder extends TypeBuilder {
     if (element is ClassElement) {
       var parameters = element.typeParameters;
       if (parameters.isEmpty) {
-        _type = element.type;
+        var rawType = element.type;
+        _type = (rawType as TypeImpl).withNullability(nullabilitySuffix);
       } else {
         var arguments = _buildArguments(parameters);
-        _type = InterfaceTypeImpl.explicit(element, arguments);
+        _type = InterfaceTypeImpl.explicit(
+          element,
+          arguments,
+          nullabilitySuffix: nullabilitySuffix,
+        );
       }
     } else if (element is GenericTypeAliasElement) {
       // Break a possible recursion.

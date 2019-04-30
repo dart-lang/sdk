@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
@@ -82,6 +83,10 @@ class Linker {
       elementFactory,
       linkingBundleContext.references,
     );
+  }
+
+  FeatureSet get contextFeatures {
+    return analysisContext.analysisOptions.contextFeatures;
   }
 
   void link(List<LinkedNodeBundle> inputBundles,
