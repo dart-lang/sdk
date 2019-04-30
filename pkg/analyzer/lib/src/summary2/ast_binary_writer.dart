@@ -1294,6 +1294,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
     var builder = LinkedNodeBuilder.variableDeclarationList(
       variableDeclarationList_keyword: _getToken(node.keyword),
+      variableDeclarationList_lateKeyword: _getToken(node.lateKeyword),
       variableDeclarationList_type: node.type?.accept(this),
       variableDeclarationList_variables: _writeNodeList(node.variables),
     );

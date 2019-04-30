@@ -8659,6 +8659,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  int get variableDeclarationList_lateKeyword {
+    assert(kind == idl.LinkedNodeKind.variableDeclarationList);
+    return _variantField_16 ??= 0;
+  }
+
+  @override
   int get whileStatement_rightParenthesis {
     assert(kind == idl.LinkedNodeKind.whileStatement);
     return _variantField_16 ??= 0;
@@ -8988,6 +8994,12 @@ class LinkedNodeBuilder extends Object
 
   set typeParameterList_rightBracket(int value) {
     assert(kind == idl.LinkedNodeKind.typeParameterList);
+    assert(value == null || value >= 0);
+    _variantField_16 = value;
+  }
+
+  set variableDeclarationList_lateKeyword(int value) {
+    assert(kind == idl.LinkedNodeKind.variableDeclarationList);
     assert(value == null || value >= 0);
     _variantField_16 = value;
   }
@@ -10676,12 +10688,14 @@ class LinkedNodeBuilder extends Object
     List<LinkedNodeBuilder> annotatedNode_metadata,
     LinkedNodeBuilder variableDeclarationList_type,
     int variableDeclarationList_keyword,
+    int variableDeclarationList_lateKeyword,
   })  : _kind = idl.LinkedNodeKind.variableDeclarationList,
         _variantField_2 = variableDeclarationList_variables,
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = variableDeclarationList_type,
-        _variantField_15 = variableDeclarationList_keyword;
+        _variantField_15 = variableDeclarationList_keyword,
+        _variantField_16 = variableDeclarationList_lateKeyword;
 
   LinkedNodeBuilder.withClause({
     List<LinkedNodeBuilder> withClause_mixinTypes,
@@ -14997,6 +15011,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  int get variableDeclarationList_lateKeyword {
+    assert(kind == idl.LinkedNodeKind.variableDeclarationList);
+    _variantField_16 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
+    return _variantField_16;
+  }
+
+  @override
   int get whileStatement_rightParenthesis {
     assert(kind == idl.LinkedNodeKind.whileStatement);
     _variantField_16 ??=
@@ -16439,6 +16461,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (variableDeclarationList_keyword != 0)
         _result["variableDeclarationList_keyword"] =
             variableDeclarationList_keyword;
+      if (variableDeclarationList_lateKeyword != 0)
+        _result["variableDeclarationList_lateKeyword"] =
+            variableDeclarationList_lateKeyword;
     }
     if (kind == idl.LinkedNodeKind.withClause) {
       if (withClause_mixinTypes.isNotEmpty)
@@ -17991,6 +18016,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "annotatedNode_metadata": annotatedNode_metadata,
         "variableDeclarationList_type": variableDeclarationList_type,
         "variableDeclarationList_keyword": variableDeclarationList_keyword,
+        "variableDeclarationList_lateKeyword":
+            variableDeclarationList_lateKeyword,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };

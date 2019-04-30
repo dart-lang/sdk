@@ -2357,6 +2357,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.variableDeclarationList)
   int get variableDeclarationList_keyword;
 
+  @VariantId(16, variant: LinkedNodeKind.variableDeclarationList)
+  int get variableDeclarationList_lateKeyword;
+
   @VariantId(6, variant: LinkedNodeKind.variableDeclarationList)
   LinkedNode get variableDeclarationList_type;
 
