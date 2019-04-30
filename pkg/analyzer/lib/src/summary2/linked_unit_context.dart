@@ -359,6 +359,15 @@ class LinkedUnitContext {
     return node.functionType;
   }
 
+  bool getHasTypedefSelfReference(AstNode node) {
+    if (node is FunctionTypeAlias) {
+      return LazyFunctionTypeAlias.getHasSelfReference(node);
+    } else if (node is GenericTypeAlias) {
+      return LazyGenericTypeAlias.getHasSelfReference(node);
+    }
+    return false;
+  }
+
   ImplementsClause getImplementsClause(AstNode node) {
     if (node is ClassDeclaration) {
       LazyClassDeclaration.readImplementsClause(_astReader, node);

@@ -5285,6 +5285,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         // should be unnecessary.
         FunctionTypeAliasElement typedefElement = element.enclosingElement;
         parameterElements = typedefElement.typeParameters;
+      } else if (type is FunctionType) {
+        parameterElements = type.typeFormals;
       } else {
         // There are no other kinds of parameterized types.
         throw new UnimplementedError(
@@ -6189,6 +6191,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _hasTypedefSelfReference(GenericTypeAliasElement element) {
     if (element == null) {
       return false;
+    }
+    if (element is GenericTypeAliasElementImpl && element.linkedNode != null) {
+      return element.hasSelfReference;
     }
     var visitor = new _HasTypedefSelfReferenceVisitor(element.function);
     element.accept(visitor);

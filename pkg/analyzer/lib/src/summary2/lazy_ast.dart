@@ -843,6 +843,7 @@ class LazyFunctionExpression {
 
 class LazyFunctionTypeAlias {
   static const _key = 'lazyAst';
+  static const _hasSelfReferenceKey = 'lazyAst_hasSelfReferenceKey';
 
   final LinkedNode data;
 
@@ -856,6 +857,10 @@ class LazyFunctionTypeAlias {
 
   static LazyFunctionTypeAlias get(FunctionTypeAlias node) {
     return node.getProperty(_key);
+  }
+
+  static bool getHasSelfReference(FunctionTypeAlias node) {
+    return node.getProperty(_hasSelfReferenceKey);
   }
 
   static DartType getReturnType(
@@ -931,6 +936,10 @@ class LazyFunctionTypeAlias {
     node.setProperty(_key, LazyFunctionTypeAlias(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
+
+  static void setHasSelfReference(FunctionTypeAlias node, bool value) {
+    node.setProperty(_hasSelfReferenceKey, value);
+  }
 }
 
 class LazyGenericFunctionType {
@@ -996,6 +1005,7 @@ class LazyGenericFunctionType {
 
 class LazyGenericTypeAlias {
   static const _key = 'lazyAst';
+  static const _hasSelfReferenceKey = 'lazyAst_hasSelfReferenceKey';
 
   final LinkedNode data;
 
@@ -1007,6 +1017,10 @@ class LazyGenericTypeAlias {
 
   static LazyGenericTypeAlias get(GenericTypeAlias node) {
     return node.getProperty(_key);
+  }
+
+  static bool getHasSelfReference(GenericTypeAlias node) {
+    return node.getProperty(_hasSelfReferenceKey);
   }
 
   static void readDocumentationComment(
@@ -1053,6 +1067,10 @@ class LazyGenericTypeAlias {
   static void setData(GenericTypeAlias node, LinkedNode data) {
     node.setProperty(_key, LazyGenericTypeAlias(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
+  }
+
+  static void setHasSelfReference(GenericTypeAlias node, bool value) {
+    node.setProperty(_hasSelfReferenceKey, value);
   }
 }
 

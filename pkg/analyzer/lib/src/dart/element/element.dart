@@ -5625,6 +5625,13 @@ class GenericTypeAliasElementImpl extends ElementImpl
     _function = function;
   }
 
+  bool get hasSelfReference {
+    if (linkedNode != null) {
+      return linkedContext.getHasTypedefSelfReference(linkedNode);
+    }
+    return false;
+  }
+
   @override
   bool get isSimplyBounded {
     if (linkedNode != null) {

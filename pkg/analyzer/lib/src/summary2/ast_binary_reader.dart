@@ -631,6 +631,10 @@ class AstBinaryReader {
       _getToken(data.typeAlias_semicolon),
     );
     LazyFunctionTypeAlias.setData(node, data);
+    LazyFunctionTypeAlias.setHasSelfReference(
+      node,
+      data.typeAlias_hasSelfReference,
+    );
     return node;
   }
 
@@ -679,6 +683,10 @@ class AstBinaryReader {
       _getToken(data.typeAlias_semicolon),
     );
     LazyGenericTypeAlias.setData(node, data);
+    LazyGenericTypeAlias.setHasSelfReference(
+      node,
+      data.typeAlias_hasSelfReference,
+    );
     return node;
   }
 

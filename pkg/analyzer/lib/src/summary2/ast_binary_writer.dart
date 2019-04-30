@@ -607,6 +607,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       functionTypeAlias_formalParameters: node.parameters.accept(this),
       functionTypeAlias_returnType: node.returnType?.accept(this),
       functionTypeAlias_typeParameters: node.typeParameters?.accept(this),
+      typeAlias_hasSelfReference:
+          LazyFunctionTypeAlias.getHasSelfReference(node),
     );
     _storeTypeAlias(builder, node);
     _writeActualReturnType(builder, node);
@@ -652,6 +654,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       genericTypeAlias_equals: _getToken(node.equals),
       genericTypeAlias_functionType: node.functionType.accept(this),
       genericTypeAlias_typeParameters: node.typeParameters?.accept(this),
+      typeAlias_hasSelfReference:
+          LazyGenericTypeAlias.getHasSelfReference(node),
     );
     _storeTypeAlias(builder, node);
     _storeIsSimpleBounded(builder, node);

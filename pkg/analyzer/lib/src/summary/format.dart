@@ -9403,6 +9403,13 @@ class LinkedNodeBuilder extends Object
     return _variantField_27 ??= false;
   }
 
+  @override
+  bool get typeAlias_hasSelfReference {
+    assert(kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias);
+    return _variantField_27 ??= false;
+  }
+
   set booleanLiteral_value(bool value) {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     _variantField_27 = value;
@@ -9433,6 +9440,12 @@ class LinkedNodeBuilder extends Object
 
   set simpleIdentifier_isDeclaration(bool value) {
     assert(kind == idl.LinkedNodeKind.simpleIdentifier);
+    _variantField_27 = value;
+  }
+
+  set typeAlias_hasSelfReference(bool value) {
+    assert(kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias);
     _variantField_27 = value;
   }
 
@@ -10121,6 +10134,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionTypeAlias_typeParameters,
     int typeAlias_typedefKeyword,
     int typeAlias_semicolon,
+    bool typeAlias_hasSelfReference,
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
@@ -10134,6 +10148,7 @@ class LinkedNodeBuilder extends Object
         _variantField_8 = functionTypeAlias_typeParameters,
         _variantField_18 = typeAlias_typedefKeyword,
         _variantField_19 = typeAlias_semicolon,
+        _variantField_27 = typeAlias_hasSelfReference,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name,
@@ -10787,6 +10802,7 @@ class LinkedNodeBuilder extends Object
     int genericTypeAlias_equals,
     int typeAlias_typedefKeyword,
     int typeAlias_semicolon,
+    bool typeAlias_hasSelfReference,
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
@@ -10799,6 +10815,7 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = genericTypeAlias_equals,
         _variantField_18 = typeAlias_typedefKeyword,
         _variantField_19 = typeAlias_semicolon,
+        _variantField_27 = typeAlias_hasSelfReference,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name,
@@ -15280,6 +15297,15 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  bool get typeAlias_hasSelfReference {
+    assert(kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias);
+    _variantField_27 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
+    return _variantField_27;
+  }
+
+  @override
   idl.LinkedNode get catchClause_stackTraceParameter {
     assert(kind == idl.LinkedNodeKind.catchClause);
     _variantField_9 ??=
@@ -15775,6 +15801,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
       if (typeAlias_semicolon != 0)
         _result["typeAlias_semicolon"] = typeAlias_semicolon;
+      if (typeAlias_hasSelfReference != false)
+        _result["typeAlias_hasSelfReference"] = typeAlias_hasSelfReference;
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
@@ -16566,6 +16594,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["typeAlias_typedefKeyword"] = typeAlias_typedefKeyword;
       if (typeAlias_semicolon != 0)
         _result["typeAlias_semicolon"] = typeAlias_semicolon;
+      if (typeAlias_hasSelfReference != false)
+        _result["typeAlias_hasSelfReference"] = typeAlias_hasSelfReference;
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (namedCompilationUnitMember_name != null)
@@ -17513,6 +17543,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
         "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
         "typeAlias_semicolon": typeAlias_semicolon,
+        "typeAlias_hasSelfReference": typeAlias_hasSelfReference,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
@@ -18058,6 +18089,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "genericTypeAlias_equals": genericTypeAlias_equals,
         "typeAlias_typedefKeyword": typeAlias_typedefKeyword,
         "typeAlias_semicolon": typeAlias_semicolon,
+        "typeAlias_hasSelfReference": typeAlias_hasSelfReference,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,

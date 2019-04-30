@@ -2247,6 +2247,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(16, variant: LinkedNodeKind.tryStatement)
   int get tryStatement_tryKeyword;
 
+  @VariantId(27, variantList: [
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
+  ])
+  bool get typeAlias_hasSelfReference;
+
   @VariantId(19, variantList: [
     LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.functionTypeAlias,
