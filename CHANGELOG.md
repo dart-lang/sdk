@@ -4,6 +4,11 @@
 
 ### Core library changes
 
+#### `dart:async`
+* BREAKING CHANGE: 
+  Fixes bug in `StreamIterator` which allowed constructor argument to be `null`.
+  Also allowed `await for` on a `null` stream. This is now a runtime error.
+
 #### `dart:core`
 
 * **Breaking change**: The `RegExp` interface has been extended with two new
@@ -26,6 +31,11 @@
 
   This change only affects implementers of the `RegExp` interface; current
   code using Dart regular expressions will not be affected.
+
+#### `dart:isolate`
+
+* BREAKING CHANGE: The `await for` allowed `null` as a stream due to a bug
+  in `StreamIterator` class. This bug has now been fixed.
 
 ## 2.3.0
 
