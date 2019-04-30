@@ -129,6 +129,7 @@ runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises s
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
 set_literals/disambiguation_rule: RuntimeError
 spread_collection: RuntimeError
+type_parameter_type_named_int: RuntimeError # Expected
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
 void_methods: Fail # Bad return from setters.

@@ -150,6 +150,7 @@ runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
 spread_collection: RuntimeError
 statements: Crash
+type_parameter_type_named_int: RuntimeError # Expected
 type_variable_as_super: RuntimeError
 unsound_promotion: RuntimeError
 void_methods: ExpectationFileMismatch
