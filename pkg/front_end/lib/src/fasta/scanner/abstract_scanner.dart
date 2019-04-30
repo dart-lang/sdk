@@ -94,9 +94,22 @@ abstract class AbstractScanner implements Scanner {
 
   final List<int> lineStarts;
 
-  AbstractScanner(this.includeComments, {int numberOfBytesHint})
+  AbstractScanner(ScannerConfiguration config, this.includeComments,
+      {int numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
+    this.configuration = config;
+  }
+
+  /**
+   * Configure which tokens are produced based upon the specified configuration.
+   */
+  set configuration(ScannerConfiguration config) {
+    if (config != null) {
+      enableNonNullable = config.enableNonNullable;
+      enableGtGtGt = config.enableGtGtGt;
+      enableGtGtGtEq = config.enableGtGtGtEq;
+    }
   }
 
   /**
@@ -1377,4 +1390,32 @@ class LineStarts extends Object with ListMixin<int> {
     newArray.setRange(0, arrayLength, array);
     array = newArray;
   }
+}
+
+/// [ScannerConfiguration] contains information for configuring which tokens
+/// the scanner produces based upon the Dart language level.
+class ScannerConfiguration {
+  static const classic = ScannerConfiguration();
+
+  /// Experimental flag for enabling scanning of NNBD tokens
+  /// such as 'required' and 'late'
+  final bool enableNonNullable;
+
+  /// Experimental flag for enabling scanning of `>>>`.
+  /// See https://github.com/dart-lang/language/issues/61
+  /// and https://github.com/dart-lang/language/issues/60
+  final bool enableGtGtGt;
+
+  /// Experimental flag for enabling scanning of `>>>=`.
+  /// See https://github.com/dart-lang/language/issues/61
+  /// and https://github.com/dart-lang/language/issues/60
+  final bool enableGtGtGtEq;
+
+  const ScannerConfiguration({
+    bool enableGtGtGt,
+    bool enableGtGtGtEq,
+    bool enableNonNullable,
+  })  : this.enableGtGtGt = enableGtGtGt ?? false,
+        this.enableGtGtGtEq = enableGtGtGtEq ?? false,
+        this.enableNonNullable = enableNonNullable ?? false;
 }

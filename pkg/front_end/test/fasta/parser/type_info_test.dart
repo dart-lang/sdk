@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/parser/type_info.dart';
 import 'package:front_end/src/fasta/parser/type_info_impl.dart';
 import 'package:front_end/src/fasta/scanner.dart' hide scanString;
-import 'package:front_end/src/fasta/scanner/recover.dart'
-    show defaultRecoveryStrategy;
+import 'package:front_end/src/fasta/scanner.dart' as scanner;
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -33,34 +30,13 @@ main() {
   });
 }
 
-/// TODO(danrubel): Remove this and use scanner.dart scanString
-/// once support for `>>>` is permanently enabled.
-///
-/// Scan/tokenize the given [source].
-/// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
-    {bool includeComments: false,
-    bool scanLazyAssignmentOperators: false,
-    Recover recover}) {
-  assert(source != null, 'source must not be null');
-  StringScanner scanner =
-      new StringScanner(source, includeComments: includeComments)
-        ..enableGtGtGt = true
-        ..enableGtGtGtEq = true;
-  return _tokenizeAndRecover(scanner, recover, source: source);
-}
-
-/// TODO(danrubel): Remove this once support for `>>>` is permanently enabled.
-ScannerResult _tokenizeAndRecover(Scanner scanner, Recover recover,
-    {List<int> bytes, String source}) {
-  Token tokens = scanner.tokenize();
-  if (scanner.hasErrors) {
-    if (bytes == null) bytes = utf8.encode(source);
-    recover ??= defaultRecoveryStrategy;
-    tokens = recover(bytes, tokens, scanner.lineStarts);
-  }
-  return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
-}
+        {bool includeComments: false, Recover recover}) =>
+    scanner.scanString(source,
+        configuration: const ScannerConfiguration(
+            enableGtGtGt: true, enableGtGtGtEq: true),
+        includeComments: includeComments,
+        recover: recover);
 
 @reflectiveTest
 class NoTypeInfoTest {

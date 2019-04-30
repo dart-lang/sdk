@@ -8,11 +8,15 @@ import 'dart:convert' show unicodeReplacementCharacterRune, utf8;
 
 import '../scanner/token.dart' show Token;
 
+import 'scanner/abstract_scanner.dart' show ScannerConfiguration;
+
 import 'scanner/string_scanner.dart' show StringScanner;
 
 import 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 import 'scanner/recover.dart' show defaultRecoveryStrategy;
+
+export 'scanner/abstract_scanner.dart' show ScannerConfiguration;
 
 export 'scanner/token.dart'
     show
@@ -58,32 +62,42 @@ class ScannerResult {
 /// Scan/tokenize the given UTF8 [bytes].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scan(List<int> bytes,
-    {bool includeComments: false, Recover recover}) {
+    {bool includeComments: false,
+    ScannerConfiguration configuration,
+    Recover recover}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be null.");
   }
-  Scanner scanner =
-      new Utf8BytesScanner(bytes, includeComments: includeComments);
+  Scanner scanner = new Utf8BytesScanner(bytes,
+      configuration: configuration, includeComments: includeComments);
   return _tokenizeAndRecover(scanner, recover, bytes: bytes);
 }
 
 /// Scan/tokenize the given [source].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
-    {bool enableGtGtGt: false,
-    bool enableGtGtGtEq: false,
-    bool enableNonNullable: false,
+    {bool enableGtGtGt,
+    bool enableGtGtGtEq,
+    bool enableNonNullable,
+    ScannerConfiguration configuration,
     bool includeComments: false,
     bool scanLazyAssignmentOperators: false,
     Recover recover}) {
   // TODO(brianwilkerson): Remove the parameter `enableGtGtGt` after the feature
   // has been anabled by default.
   assert(source != null, 'source must not be null');
-  StringScanner scanner =
-      new StringScanner(source, includeComments: includeComments);
-  scanner.enableGtGtGt = enableGtGtGt;
-  scanner.enableGtGtGtEq = enableGtGtGtEq;
-  scanner.enableNonNullable = enableNonNullable;
+  StringScanner scanner = new StringScanner(source,
+      configuration: configuration, includeComments: includeComments);
+  // TODO(danrubel): remove these flags and use configuration instead.
+  if (enableGtGtGt != null) {
+    scanner.enableGtGtGt = enableGtGtGt;
+  }
+  if (enableGtGtGtEq != null) {
+    scanner.enableGtGtGtEq = enableGtGtGtEq;
+  }
+  if (enableNonNullable != null) {
+    scanner.enableNonNullable = enableNonNullable;
+  }
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

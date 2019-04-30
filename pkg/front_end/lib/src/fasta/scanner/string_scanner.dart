@@ -8,6 +8,8 @@ import '../../scanner/token.dart' show Token, SyntheticStringToken, TokenType;
 
 import '../../scanner/token.dart' as analyzer show StringToken;
 
+import 'abstract_scanner.dart' show ScannerConfiguration;
+
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 import 'token.dart' show CommentToken, DartDocToken, StringToken;
@@ -25,9 +27,10 @@ class StringScanner extends ArrayBasedScanner {
   /** The current offset in [string]. */
   int scanOffset = -1;
 
-  StringScanner(String string, {bool includeComments: false})
+  StringScanner(String string,
+      {ScannerConfiguration configuration, bool includeComments: false})
       : string = ensureZeroTermination(string),
-        super(includeComments);
+        super(configuration, includeComments);
 
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)

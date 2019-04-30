@@ -12,6 +12,8 @@ import '../../scanner/token.dart' as analyzer show StringToken;
 
 import '../scanner.dart' show unicodeReplacementCharacter;
 
+import 'abstract_scanner.dart' show ScannerConfiguration;
+
 import 'token.dart' show CommentToken, DartDocToken, StringToken;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
@@ -81,8 +83,9 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * array whose last element is '0' to signal the end of the file. If this
    * is not the case, the entire array is copied before scanning.
    */
-  Utf8BytesScanner(this.bytes, {bool includeComments: false})
-      : super(includeComments, numberOfBytesHint: bytes.length) {
+  Utf8BytesScanner(this.bytes,
+      {ScannerConfiguration configuration, bool includeComments: false})
+      : super(configuration, includeComments, numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
     if (containsBomAt(0)) byteOffset += 3;
