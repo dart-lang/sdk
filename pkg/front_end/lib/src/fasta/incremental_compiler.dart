@@ -730,8 +730,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           debugExprUri,
           userCode.loader,
           null,
-          library.scope.createNestedScope("expression"),
-          library.target);
+          library.scope.createNestedScope("expression"));
 
       if (library is DillLibraryBuilder) {
         for (LibraryDependency dependency in library.target.dependencies) {
@@ -791,6 +790,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       userCode.uriToSource.remove(debugExprUri);
       userCode.loader.sourceBytes.remove(debugExprUri);
+
+      // Make sure the library has a canonical name.
+      Component c = new Component(libraries: [debugLibrary.target]);
+      c.computeCanonicalNames();
 
       userCode.runProcedureTransformations(procedure);
 

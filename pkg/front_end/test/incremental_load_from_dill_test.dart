@@ -601,6 +601,12 @@ Future<Null> newWorldTest(
             "now had ${formattedWarnings}.");
       }
     }
+
+    if (world["expressionCompilation"] != null) {
+      Uri uri = base.resolve(world["expressionCompilation"]["uri"]);
+      String expression = world["expressionCompilation"]["expression"];
+      await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
+    }
   }
 }
 
