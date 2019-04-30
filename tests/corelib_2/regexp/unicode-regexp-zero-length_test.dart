@@ -72,7 +72,7 @@ void main() {
   }
 
   // Test with a lot of copies.
-  const c = 1000;
+  const c = 100;
   ms = u.allMatches((L + T) * c);
   assertEquals(c + 1, ms.length);
   for (var i = 0; i < ms.length; i++) {
