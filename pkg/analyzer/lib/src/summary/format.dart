@@ -4745,9 +4745,9 @@ class LinkedNodeBuilder extends Object
   idl.LinkedNodeCommentType _variantField_29;
   List<LinkedNodeBuilder> _variantField_3;
   LinkedNodeBuilder _variantField_10;
+  idl.LinkedNodeFormalParameterKind _variantField_26;
   double _variantField_21;
   LinkedNodeTypeBuilder _variantField_25;
-  idl.LinkedNodeFormalParameterKind _variantField_26;
   String _variantField_30;
   LinkedNodeBuilder _variantField_14;
   bool _isSynthetic;
@@ -9083,6 +9083,14 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  int get normalFormalParameter_requiredKeyword {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter);
+    return _variantField_18 ??= 0;
+  }
+
+  @override
   int get switchStatement_leftBracket {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     return _variantField_18 ??= 0;
@@ -9170,6 +9178,14 @@ class LinkedNodeBuilder extends Object
 
   set methodDeclaration_propertyKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
+    assert(value == null || value >= 0);
+    _variantField_18 = value;
+  }
+
+  set normalFormalParameter_requiredKeyword(int value) {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter);
     assert(value == null || value >= 0);
     _variantField_18 = value;
   }
@@ -9377,12 +9393,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  bool get defaultFormalParameter_isNamed {
-    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
-    return _variantField_27 ??= false;
-  }
-
-  @override
   bool get inheritsCovariant {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
@@ -9417,11 +9427,6 @@ class LinkedNodeBuilder extends Object
 
   set classDeclaration_isDartObject(bool value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
-    _variantField_27 = value;
-  }
-
-  set defaultFormalParameter_isNamed(bool value) {
-    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
     _variantField_27 = value;
   }
 
@@ -9783,6 +9788,18 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  idl.LinkedNodeFormalParameterKind get defaultFormalParameter_kind {
+    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    return _variantField_26 ??=
+        idl.LinkedNodeFormalParameterKind.requiredPositional;
+  }
+
+  set defaultFormalParameter_kind(idl.LinkedNodeFormalParameterKind value) {
+    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    _variantField_26 = value;
+  }
+
+  @override
   double get doubleLiteral_value {
     assert(kind == idl.LinkedNodeKind.doubleLiteral);
     return _variantField_21 ??= 0.0;
@@ -9875,22 +9892,6 @@ class LinkedNodeBuilder extends Object
   set genericFunctionType_type(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.genericFunctionType);
     _variantField_25 = value;
-  }
-
-  @override
-  idl.LinkedNodeFormalParameterKind get formalParameter_kind {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
-        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
-        kind == idl.LinkedNodeKind.simpleFormalParameter);
-    return _variantField_26 ??=
-        idl.LinkedNodeFormalParameterKind.requiredPositional;
-  }
-
-  set formalParameter_kind(idl.LinkedNodeFormalParameterKind value) {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
-        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
-        kind == idl.LinkedNodeKind.simpleFormalParameter);
-    _variantField_26 = value;
   }
 
   @override
@@ -10215,12 +10216,12 @@ class LinkedNodeBuilder extends Object
     int fieldFormalParameter_thisKeyword,
     LinkedNodeBuilder fieldFormalParameter_formalParameters,
     int fieldFormalParameter_period,
+    int normalFormalParameter_requiredKeyword,
     int normalFormalParameter_covariantKeyword,
     bool inheritsCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
     int codeLength,
     int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
     LinkedNodeBuilder normalFormalParameter_comment,
   })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
         _variantField_24 = actualType,
@@ -10231,12 +10232,12 @@ class LinkedNodeBuilder extends Object
         _variantField_17 = fieldFormalParameter_thisKeyword,
         _variantField_8 = fieldFormalParameter_formalParameters,
         _variantField_16 = fieldFormalParameter_period,
+        _variantField_18 = normalFormalParameter_requiredKeyword,
         _variantField_19 = normalFormalParameter_covariantKeyword,
         _variantField_27 = inheritsCovariant,
         _variantField_12 = normalFormalParameter_identifier,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
         _variantField_14 = normalFormalParameter_comment;
 
   LinkedNodeBuilder.functionTypedFormalParameter({
@@ -10245,12 +10246,12 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionTypedFormalParameter_formalParameters,
     LinkedNodeBuilder functionTypedFormalParameter_returnType,
     LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
+    int normalFormalParameter_requiredKeyword,
     int normalFormalParameter_covariantKeyword,
     bool inheritsCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
     int codeLength,
     int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
     LinkedNodeBuilder normalFormalParameter_comment,
   })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
         _variantField_24 = actualType,
@@ -10258,12 +10259,12 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = functionTypedFormalParameter_formalParameters,
         _variantField_7 = functionTypedFormalParameter_returnType,
         _variantField_8 = functionTypedFormalParameter_typeParameters,
+        _variantField_18 = normalFormalParameter_requiredKeyword,
         _variantField_19 = normalFormalParameter_covariantKeyword,
         _variantField_27 = inheritsCovariant,
         _variantField_12 = normalFormalParameter_identifier,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
         _variantField_14 = normalFormalParameter_comment;
 
   LinkedNodeBuilder.simpleFormalParameter({
@@ -10271,12 +10272,12 @@ class LinkedNodeBuilder extends Object
     List<LinkedNodeBuilder> normalFormalParameter_metadata,
     LinkedNodeBuilder simpleFormalParameter_type,
     int simpleFormalParameter_keyword,
+    int normalFormalParameter_requiredKeyword,
     int normalFormalParameter_covariantKeyword,
     bool inheritsCovariant,
     LinkedNodeBuilder normalFormalParameter_identifier,
     int codeLength,
     int codeOffset,
-    idl.LinkedNodeFormalParameterKind formalParameter_kind,
     LinkedNodeBuilder normalFormalParameter_comment,
     TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
   })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
@@ -10284,12 +10285,12 @@ class LinkedNodeBuilder extends Object
         _variantField_4 = normalFormalParameter_metadata,
         _variantField_6 = simpleFormalParameter_type,
         _variantField_15 = simpleFormalParameter_keyword,
+        _variantField_18 = normalFormalParameter_requiredKeyword,
         _variantField_19 = normalFormalParameter_covariantKeyword,
         _variantField_27 = inheritsCovariant,
         _variantField_12 = normalFormalParameter_identifier,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_26 = formalParameter_kind,
         _variantField_14 = normalFormalParameter_comment,
         _variantField_35 = topLevelTypeInferenceError;
 
@@ -11145,16 +11146,16 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder defaultFormalParameter_defaultValue,
     int defaultFormalParameter_separator,
     LinkedNodeBuilder defaultFormalParameter_parameter,
-    bool defaultFormalParameter_isNamed,
     int codeLength,
     int codeOffset,
+    idl.LinkedNodeFormalParameterKind defaultFormalParameter_kind,
   })  : _kind = idl.LinkedNodeKind.defaultFormalParameter,
         _variantField_6 = defaultFormalParameter_defaultValue,
         _variantField_15 = defaultFormalParameter_separator,
         _variantField_7 = defaultFormalParameter_parameter,
-        _variantField_27 = defaultFormalParameter_isNamed,
         _variantField_34 = codeLength,
-        _variantField_33 = codeOffset;
+        _variantField_33 = codeOffset,
+        _variantField_26 = defaultFormalParameter_kind;
 
   LinkedNodeBuilder.doStatement({
     LinkedNodeBuilder doStatement_body,
@@ -11957,16 +11958,16 @@ class LinkedNodeBuilder extends Object
     if (offset_variantField_10 != null) {
       fbBuilder.addOffset(10, offset_variantField_10);
     }
+    if (_variantField_26 != null &&
+        _variantField_26 !=
+            idl.LinkedNodeFormalParameterKind.requiredPositional) {
+      fbBuilder.addUint8(26, _variantField_26.index);
+    }
     if (_variantField_21 != null && _variantField_21 != 0.0) {
       fbBuilder.addFloat64(21, _variantField_21);
     }
     if (offset_variantField_25 != null) {
       fbBuilder.addOffset(25, offset_variantField_25);
-    }
-    if (_variantField_26 != null &&
-        _variantField_26 !=
-            idl.LinkedNodeFormalParameterKind.requiredPositional) {
-      fbBuilder.addUint8(26, _variantField_26.index);
     }
     if (offset_variantField_30 != null) {
       fbBuilder.addOffset(30, offset_variantField_30);
@@ -12039,9 +12040,9 @@ class _LinkedNodeImpl extends Object
   idl.LinkedNodeCommentType _variantField_29;
   List<idl.LinkedNode> _variantField_3;
   idl.LinkedNode _variantField_10;
+  idl.LinkedNodeFormalParameterKind _variantField_26;
   double _variantField_21;
   idl.LinkedNodeType _variantField_25;
-  idl.LinkedNodeFormalParameterKind _variantField_26;
   String _variantField_30;
   idl.LinkedNode _variantField_14;
   bool _isSynthetic;
@@ -15114,6 +15115,16 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  int get normalFormalParameter_requiredKeyword {
+    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
+        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
+        kind == idl.LinkedNodeKind.simpleFormalParameter);
+    _variantField_18 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 18, 0);
+    return _variantField_18;
+  }
+
+  @override
   int get switchStatement_leftBracket {
     assert(kind == idl.LinkedNodeKind.switchStatement);
     _variantField_18 ??=
@@ -15256,14 +15267,6 @@ class _LinkedNodeImpl extends Object
   @override
   bool get classDeclaration_isDartObject {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
-    _variantField_27 ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
-    return _variantField_27;
-  }
-
-  @override
-  bool get defaultFormalParameter_isNamed {
-    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
     _variantField_27 ??=
         const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
     return _variantField_27;
@@ -15530,6 +15533,17 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.LinkedNodeFormalParameterKind get defaultFormalParameter_kind {
+    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    _variantField_26 ??= const _LinkedNodeFormalParameterKindReader().vTableGet(
+        _bc,
+        _bcOffset,
+        26,
+        idl.LinkedNodeFormalParameterKind.requiredPositional);
+    return _variantField_26;
+  }
+
+  @override
   double get doubleLiteral_value {
     assert(kind == idl.LinkedNodeKind.doubleLiteral);
     _variantField_21 ??=
@@ -15582,19 +15596,6 @@ class _LinkedNodeImpl extends Object
     _variantField_25 ??=
         const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 25, null);
     return _variantField_25;
-  }
-
-  @override
-  idl.LinkedNodeFormalParameterKind get formalParameter_kind {
-    assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
-        kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
-        kind == idl.LinkedNodeKind.simpleFormalParameter);
-    _variantField_26 ??= const _LinkedNodeFormalParameterKindReader().vTableGet(
-        _bc,
-        _bcOffset,
-        26,
-        idl.LinkedNodeFormalParameterKind.requiredPositional);
-    return _variantField_26;
   }
 
   @override
@@ -15896,6 +15897,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             fieldFormalParameter_formalParameters.toJson();
       if (fieldFormalParameter_period != 0)
         _result["fieldFormalParameter_period"] = fieldFormalParameter_period;
+      if (normalFormalParameter_requiredKeyword != 0)
+        _result["normalFormalParameter_requiredKeyword"] =
+            normalFormalParameter_requiredKeyword;
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
@@ -15906,10 +15910,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             normalFormalParameter_identifier.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind !=
-          idl.LinkedNodeFormalParameterKind.requiredPositional)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
       if (normalFormalParameter_comment != null)
         _result["normalFormalParameter_comment"] =
             normalFormalParameter_comment.toJson();
@@ -15930,6 +15930,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (functionTypedFormalParameter_typeParameters != null)
         _result["functionTypedFormalParameter_typeParameters"] =
             functionTypedFormalParameter_typeParameters.toJson();
+      if (normalFormalParameter_requiredKeyword != 0)
+        _result["normalFormalParameter_requiredKeyword"] =
+            normalFormalParameter_requiredKeyword;
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
@@ -15940,10 +15943,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             normalFormalParameter_identifier.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind !=
-          idl.LinkedNodeFormalParameterKind.requiredPositional)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
       if (normalFormalParameter_comment != null)
         _result["normalFormalParameter_comment"] =
             normalFormalParameter_comment.toJson();
@@ -15961,6 +15960,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (simpleFormalParameter_keyword != 0)
         _result["simpleFormalParameter_keyword"] =
             simpleFormalParameter_keyword;
+      if (normalFormalParameter_requiredKeyword != 0)
+        _result["normalFormalParameter_requiredKeyword"] =
+            normalFormalParameter_requiredKeyword;
       if (normalFormalParameter_covariantKeyword != 0)
         _result["normalFormalParameter_covariantKeyword"] =
             normalFormalParameter_covariantKeyword;
@@ -15971,10 +15973,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             normalFormalParameter_identifier.toJson();
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (formalParameter_kind !=
-          idl.LinkedNodeFormalParameterKind.requiredPositional)
-        _result["formalParameter_kind"] =
-            formalParameter_kind.toString().split('.')[1];
       if (normalFormalParameter_comment != null)
         _result["normalFormalParameter_comment"] =
             normalFormalParameter_comment.toJson();
@@ -16965,11 +16963,12 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (defaultFormalParameter_parameter != null)
         _result["defaultFormalParameter_parameter"] =
             defaultFormalParameter_parameter.toJson();
-      if (defaultFormalParameter_isNamed != false)
-        _result["defaultFormalParameter_isNamed"] =
-            defaultFormalParameter_isNamed;
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (defaultFormalParameter_kind !=
+          idl.LinkedNodeFormalParameterKind.requiredPositional)
+        _result["defaultFormalParameter_kind"] =
+            defaultFormalParameter_kind.toString().split('.')[1];
     }
     if (kind == idl.LinkedNodeKind.doStatement) {
       if (doStatement_body != null)
@@ -17603,13 +17602,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "fieldFormalParameter_formalParameters":
             fieldFormalParameter_formalParameters,
         "fieldFormalParameter_period": fieldFormalParameter_period,
+        "normalFormalParameter_requiredKeyword":
+            normalFormalParameter_requiredKeyword,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
         "inheritsCovariant": inheritsCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
         "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -17625,13 +17625,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             functionTypedFormalParameter_returnType,
         "functionTypedFormalParameter_typeParameters":
             functionTypedFormalParameter_typeParameters,
+        "normalFormalParameter_requiredKeyword":
+            normalFormalParameter_requiredKeyword,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
         "inheritsCovariant": inheritsCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
         "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -17643,13 +17644,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "normalFormalParameter_metadata": normalFormalParameter_metadata,
         "simpleFormalParameter_type": simpleFormalParameter_type,
         "simpleFormalParameter_keyword": simpleFormalParameter_keyword,
+        "normalFormalParameter_requiredKeyword":
+            normalFormalParameter_requiredKeyword,
         "normalFormalParameter_covariantKeyword":
             normalFormalParameter_covariantKeyword,
         "inheritsCovariant": inheritsCovariant,
         "normalFormalParameter_identifier": normalFormalParameter_identifier,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
-        "formalParameter_kind": formalParameter_kind,
         "normalFormalParameter_comment": normalFormalParameter_comment,
         "isSynthetic": isSynthetic,
         "kind": kind,
@@ -18378,9 +18380,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             defaultFormalParameter_defaultValue,
         "defaultFormalParameter_separator": defaultFormalParameter_separator,
         "defaultFormalParameter_parameter": defaultFormalParameter_parameter,
-        "defaultFormalParameter_isNamed": defaultFormalParameter_isNamed,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
+        "defaultFormalParameter_kind": defaultFormalParameter_kind,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };

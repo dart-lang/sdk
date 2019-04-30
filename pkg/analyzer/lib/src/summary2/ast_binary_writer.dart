@@ -345,11 +345,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitDefaultFormalParameter(DefaultFormalParameter node) {
-    // TODO(brianwilkerson) Record whether the node is required, either by
-    //  adding a new bool field or by recording a parameter kind.
     var builder = LinkedNodeBuilder.defaultFormalParameter(
       defaultFormalParameter_defaultValue: node.defaultValue?.accept(this),
-      defaultFormalParameter_isNamed: node.isNamed,
+      defaultFormalParameter_kind: _toParameterKind(node),
       defaultFormalParameter_parameter: node.parameter.accept(this),
       defaultFormalParameter_separator: _getToken(node.separator),
     );
@@ -1456,20 +1454,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   void _storeForLoopParts(LinkedNodeBuilder builder, ForLoopParts node) {}
 
   void _storeFormalParameter(LinkedNodeBuilder builder, FormalParameter node) {
-    var kind;
-    if (node.isRequiredPositional) {
-      kind = LinkedNodeFormalParameterKind.requiredPositional;
-    } else if (node.isRequiredNamed) {
-      kind = LinkedNodeFormalParameterKind.requiredNamed;
-    } else if (node.isOptionalPositional) {
-      kind = LinkedNodeFormalParameterKind.optionalPositional;
-    } else if (node.isOptionalNamed) {
-      kind = LinkedNodeFormalParameterKind.optionalNamed;
-    } else {
-      throw new StateError('Unknown kind of parameter');
-    }
-    builder.formalParameter_kind = kind;
-
     _storeCodeOffsetLength(builder, node);
     _writeActualType(builder, node);
   }
@@ -1548,7 +1532,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       ..normalFormalParameter_covariantKeyword =
           _getToken(node.covariantKeyword)
       ..normalFormalParameter_identifier = node.identifier?.accept(this)
-      ..normalFormalParameter_metadata = _writeNodeList(node.metadata);
+      ..normalFormalParameter_metadata = _writeNodeList(node.metadata)
+      ..normalFormalParameter_requiredKeyword = _getToken(node.requiredKeyword);
   }
 
   void _storeStatement(LinkedNodeBuilder builder, Statement node) {}
@@ -1609,6 +1594,20 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   LinkedNodeTypeBuilder _writeType(DartType type) {
     return _linkingContext.writeType(type);
+  }
+
+  static LinkedNodeFormalParameterKind _toParameterKind(FormalParameter node) {
+    if (node.isRequiredPositional) {
+      return LinkedNodeFormalParameterKind.requiredPositional;
+    } else if (node.isRequiredNamed) {
+      return LinkedNodeFormalParameterKind.requiredNamed;
+    } else if (node.isOptionalPositional) {
+      return LinkedNodeFormalParameterKind.optionalPositional;
+    } else if (node.isOptionalNamed) {
+      return LinkedNodeFormalParameterKind.optionalNamed;
+    } else {
+      throw new StateError('Unknown kind of parameter');
+    }
   }
 }
 

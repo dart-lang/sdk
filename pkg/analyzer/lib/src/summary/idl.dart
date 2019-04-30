@@ -1308,8 +1308,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.defaultFormalParameter)
   LinkedNode get defaultFormalParameter_defaultValue;
 
-  @VariantId(27, variant: LinkedNodeKind.defaultFormalParameter)
-  bool get defaultFormalParameter_isNamed;
+  @VariantId(26, variant: LinkedNodeKind.defaultFormalParameter)
+  LinkedNodeFormalParameterKind get defaultFormalParameter_kind;
 
   @VariantId(7, variant: LinkedNodeKind.defaultFormalParameter)
   LinkedNode get defaultFormalParameter_parameter;
@@ -1496,13 +1496,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.forElement)
   LinkedNode get forElement_body;
-
-  @VariantId(26, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  LinkedNodeFormalParameterKind get formalParameter_kind;
 
   @VariantId(15, variant: LinkedNodeKind.formalParameterList)
   int get formalParameterList_leftDelimiter;
@@ -1973,6 +1966,13 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.simpleFormalParameter,
   ])
   List<LinkedNode> get normalFormalParameter_metadata;
+
+  @VariantId(18, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  int get normalFormalParameter_requiredKeyword;
 
   @VariantId(15, variant: LinkedNodeKind.nullLiteral)
   int get nullLiteral_literal;

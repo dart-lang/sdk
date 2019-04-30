@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -121,16 +120,17 @@ class LinkingBundleContext {
   }
 
   LinkedNodeFormalParameterKind _formalParameterKind(ParameterElement p) {
-    // ignore: deprecated_member_use_from_same_package
-    var kind = p.parameterKind;
-    if (kind == ParameterKind.NAMED) {
-      return LinkedNodeFormalParameterKind.optionalNamed;
-    } else if (kind == ParameterKind.POSITIONAL) {
-      return LinkedNodeFormalParameterKind.optionalPositional;
-    } else if (kind == ParameterKind.NAMED_REQUIRED) {
+    if (p.isRequiredPositional) {
+      return LinkedNodeFormalParameterKind.requiredPositional;
+    } else if (p.isRequiredNamed) {
       return LinkedNodeFormalParameterKind.requiredNamed;
+    } else if (p.isOptionalPositional) {
+      return LinkedNodeFormalParameterKind.optionalPositional;
+    } else if (p.isOptionalNamed) {
+      return LinkedNodeFormalParameterKind.requiredNamed;
+    } else {
+      throw StateError('Unexpected parameter kind: $p');
     }
-    return LinkedNodeFormalParameterKind.requiredPositional;
   }
 
   FunctionType _toSyntheticFunctionType(FunctionType type) {

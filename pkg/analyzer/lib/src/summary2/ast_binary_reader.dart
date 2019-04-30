@@ -372,9 +372,7 @@ class AstBinaryReader {
   DefaultFormalParameter _read_defaultFormalParameter(LinkedNode data) {
     var node = astFactory.defaultFormalParameter(
       _readNode(data.defaultFormalParameter_parameter),
-      data.defaultFormalParameter_isNamed
-          ? ParameterKind.NAMED
-          : ParameterKind.POSITIONAL,
+      _toParameterKind(data.defaultFormalParameter_kind),
       _getToken(data.defaultFormalParameter_separator),
       _readNodeLazy(data.defaultFormalParameter_defaultValue),
     );
@@ -505,6 +503,7 @@ class AstBinaryReader {
       comment: _readNode(data.normalFormalParameter_comment),
       type: _readNode(data.fieldFormalParameter_type),
       parameters: _readNode(data.fieldFormalParameter_formalParameters),
+      requiredKeyword: _getToken(data.normalFormalParameter_requiredKeyword),
     );
     LazyFormalParameter.setData(node, data);
     return node;
@@ -648,6 +647,7 @@ class AstBinaryReader {
       parameters: _readNodeLazy(
         data.functionTypedFormalParameter_formalParameters,
       ),
+      requiredKeyword: _getToken(data.normalFormalParameter_requiredKeyword),
       returnType: _readNodeLazy(data.functionTypedFormalParameter_returnType),
       typeParameters: _readNode(
         data.functionTypedFormalParameter_typeParameters,
@@ -1071,6 +1071,7 @@ class AstBinaryReader {
       comment: _readNode(data.normalFormalParameter_comment),
       metadata: _readNodeList(data.normalFormalParameter_metadata),
       keyword: _getToken(data.simpleFormalParameter_keyword),
+      requiredKeyword: _getToken(data.normalFormalParameter_requiredKeyword),
     );
     LazyFormalParameter.setData(node, data);
     LazyAst.setInheritsCovariant(node, data.inheritsCovariant);
@@ -1561,5 +1562,22 @@ class AstBinaryReader {
 
   DartType _readType(LinkedNodeType data) {
     return _unitContext.readType(data);
+  }
+
+  static ParameterKind _toParameterKind(LinkedNodeFormalParameterKind kind) {
+    switch (kind) {
+      case LinkedNodeFormalParameterKind.requiredPositional:
+        return ParameterKind.REQUIRED;
+      case LinkedNodeFormalParameterKind.requiredNamed:
+        return ParameterKind.NAMED_REQUIRED;
+        break;
+      case LinkedNodeFormalParameterKind.optionalPositional:
+        return ParameterKind.POSITIONAL;
+        break;
+      case LinkedNodeFormalParameterKind.optionalNamed:
+        return ParameterKind.NAMED;
+      default:
+        throw StateError('Unexpected: $kind');
+    }
   }
 }

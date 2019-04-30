@@ -1926,11 +1926,11 @@ table LinkedNode {
 
   variantField_10:LinkedNode (id: 10);
 
+  variantField_26:LinkedNodeFormalParameterKind (id: 26);
+
   variantField_21:double (id: 21);
 
   variantField_25:LinkedNodeType (id: 25);
-
-  variantField_26:LinkedNodeFormalParameterKind (id: 26);
 
   variantField_30:string (id: 30);
 
