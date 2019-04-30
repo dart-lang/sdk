@@ -4416,8 +4416,8 @@ class Instructions : public Object {
   static const intptr_t kPolymorphicEntryOffset = 0;
   static const intptr_t kMonomorphicEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kPolymorphicEntryOffset = 16;
-  static const intptr_t kMonomorphicEntryOffset = 34;
+  static const intptr_t kPolymorphicEntryOffset = 8;
+  static const intptr_t kMonomorphicEntryOffset = 32;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kPolymorphicEntryOffset = 0;
   static const intptr_t kMonomorphicEntryOffset = 20;
