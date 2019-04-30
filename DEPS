@@ -115,7 +115,7 @@ vars = {
   "protobuf_rev": "0c77167b16d00b561a6055bfe26690af7f26ae88",
   "pub_rev": "8c363fe26f059c3063f1129adbb3c4e22a8ce954",
   "pub_semver_tag": "1.4.2",
-  "quiver_tag": "2.0.0+1",
+  "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.8",
@@ -320,7 +320,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/quiver":
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
-      + "@" + Var("quiver_tag"),
+      + "@" + Var("quiver-dart_tag"),
   Var("dart_root") + "/third_party/pkg/resource":
       Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
