@@ -344,7 +344,9 @@ class SourceLibraryBuilder {
       directive.configurations,
       directive.uri.stringValue,
     );
-    if (relativeUriStr.isEmpty) return null;
+    if (relativeUriStr == null || relativeUriStr.isEmpty) {
+      return null;
+    }
     var relativeUri = Uri.parse(relativeUriStr);
     return resolveRelativeUri(this.uri, relativeUri);
   }

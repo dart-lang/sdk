@@ -869,19 +869,13 @@ class FileState {
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var uriStr = directive.uri.stringValue;
-        if (uriStr != null) {
-          exports.add(uriStr);
-        }
+        exports.add(uriStr ?? '');
       } else if (directive is ImportDirective) {
         var uriStr = directive.uri.stringValue;
-        if (uriStr != null) {
-          imports.add(uriStr);
-        }
+        imports.add(uriStr ?? '');
       } else if (directive is PartDirective) {
         var uriStr = directive.uri.stringValue;
-        if (uriStr != null) {
-          parts.add(uriStr);
-        }
+        parts.add(uriStr ?? '');
       } else if (directive is PartOfDirective) {
         isPartOf = true;
       }
