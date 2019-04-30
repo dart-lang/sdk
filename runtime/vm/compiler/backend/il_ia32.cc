@@ -2177,7 +2177,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler->is_optimizing() && num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
-    if ((length >= 0) && (length <= Array::kMaxElements)) {
+    if (Array::IsValidLength(length)) {
       Label slow_path, done;
       InlineArrayAllocation(compiler, length, &slow_path, &done);
       __ Bind(&slow_path);

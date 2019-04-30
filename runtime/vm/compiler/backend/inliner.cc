@@ -4106,7 +4106,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       Value* num_elements = new (Z) Value(call->ArgumentAt(1));
       intptr_t length = 0;
       if (IsSmiValue(num_elements, &length)) {
-        if (length >= 0 && length <= Array::kMaxElements) {
+        if (Array::IsValidLength(length)) {
           Value* type = new (Z) Value(call->ArgumentAt(0));
           *entry = new (Z)
               FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),

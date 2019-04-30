@@ -892,7 +892,7 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
     const intptr_t array_length = object->value.as_array.length;
-    if (array_length < 0 || array_length > Array::kMaxElements) {
+    if (!Array::IsValidLength(array_length)) {
       return false;
     }
 
@@ -925,7 +925,7 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
     const intptr_t array_length = object->value.as_array.length;
-    if (array_length < 0 || array_length > Array::kMaxElements) {
+    if (!Array::IsValidLength(array_length)) {
       return false;
     }
     // Write out the serialization header value for this object.
@@ -948,7 +948,7 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
       static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
   ASSERT(type == Dart_CObject_kArray);
   const intptr_t array_length = object->value.as_array.length;
-  if (array_length < 0 || array_length > Array::kMaxElements) {
+  if (!Array::IsValidLength(array_length)) {
     return false;
   }
 

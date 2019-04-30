@@ -5546,13 +5546,17 @@ class Context : public Object {
            (kWordSize * context_index);
   }
 
+  static bool IsValidLength(intptr_t len) {
+    return 0 <= len && len <= kMaxElements;
+  }
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawContext) == OFFSET_OF_RETURNED_VALUE(RawContext, data));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
+    ASSERT(IsValidLength(len));
     return RoundedAllocationSize(sizeof(RawContext) + (len * kBytesPerElement));
   }
 
@@ -8025,6 +8029,10 @@ class Array : public Instance {
     return OFFSET_OF(RawArray, type_arguments_);
   }
 
+  static bool IsValidLength(intptr_t len) {
+    return 0 <= len && len <= kMaxElements;
+  }
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawArray) == OFFSET_OF_RETURNED_VALUE(RawArray, data));
     return 0;
@@ -8033,7 +8041,7 @@ class Array : public Instance {
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(RawArray) == (sizeof(RawInstance) + (2 * kWordSize)));
-    ASSERT(0 <= len && len <= kMaxElements);
+    ASSERT(IsValidLength(len));
     return RoundedAllocationSize(sizeof(RawArray) + (len * kBytesPerElement));
   }
 

@@ -4979,6 +4979,7 @@ class AllocateUninitializedContextInstr
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
+    if (!Context::IsValidLength(num_context_variables)) return false;
     return Heap::IsAllocatableInNewSpace(
         Context::InstanceSize(num_context_variables));
   }
@@ -5133,12 +5134,11 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!num_elements()->BindsToConstant()) return false;
     const Object& length = num_elements()->BoundConstant();
     if (!length.IsSmi()) return false;
-    const intptr_t value = Smi::Cast(length).Value();
-    if (value < 0) return false;
-    return WillAllocateNewOrRemembered(value);
+    return WillAllocateNewOrRemembered(Smi::Cast(length).Value());
   }
 
   static bool WillAllocateNewOrRemembered(const intptr_t length) {
+    if (!Array::IsValidLength(length)) return false;
     return !Array::UseCardMarkingForAllocation(length);
   }
 
@@ -5429,6 +5429,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
+    if (!Context::IsValidLength(num_context_variables)) return false;
     return Heap::IsAllocatableInNewSpace(
         Context::InstanceSize(num_context_variables));
   }

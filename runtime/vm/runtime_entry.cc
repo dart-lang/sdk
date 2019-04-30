@@ -237,7 +237,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   }
   if (length.IsSmi()) {
     const intptr_t len = Smi::Cast(length).Value();
-    if (len >= 0 && len <= Array::kMaxElements) {
+    if (Array::IsValidLength(len)) {
       const Array& array = Array::Handle(zone, Array::New(len, Heap::kNew));
       arguments.SetReturn(array);
       TypeArguments& element_type =

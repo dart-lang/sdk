@@ -1253,7 +1253,7 @@ bool Interpreter::AllocateArray(Thread* thread,
                                 RawObject** SP) {
   if (LIKELY(!length_object->IsHeapObject())) {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
-    if (LIKELY((0 <= length) && (length <= Array::kMaxElements))) {
+    if (LIKELY(Array::IsValidLength(length))) {
       const intptr_t instance_size = Array::InstanceSize(length);
       const uword start = thread->top();
       if (LIKELY((start + instance_size) < thread->end())) {

@@ -15254,7 +15254,7 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
   ASSERT(num_variables >= 0);
   ASSERT(Object::context_class() != Class::null());
 
-  if (num_variables < 0 || num_variables > kMaxElements) {
+  if (!IsValidLength(num_variables)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Context::New: invalid num_variables %" Pd "\n",
            num_variables);
@@ -20449,7 +20449,7 @@ RawArray* Array::New(intptr_t len,
 }
 
 RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
-  if ((len < 0) || (len > Array::kMaxElements)) {
+  if (!IsValidLength(len)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in Array::New: invalid len %" Pd "\n", len);
   }
