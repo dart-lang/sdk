@@ -1,8 +1,6 @@
-// Copyright (c) 2019, the Dart project authors.
-// Copyright 2010 the V8 project authors.
-// Please see the AUTHORS file for details. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright (c) 2010, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 //
 // The original file can be found at:
 // https://github.com/v8/v8/blob/master/src/splay-tree-inl.h
