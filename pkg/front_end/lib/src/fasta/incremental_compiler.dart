@@ -608,7 +608,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         c.options.fileSystem.entityForUri(initializeFromDillUri);
     if (await entity.exists()) {
       List<int> initializationBytes = await entity.readAsBytes();
-      if (initializationBytes != null) {
+      if (initializationBytes != null && initializationBytes.isNotEmpty) {
         ticker.logMs("Read $initializeFromDillUri");
         data.initializationBytes = initializationBytes;
 
