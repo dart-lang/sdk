@@ -7358,11 +7358,17 @@ class MixinElementImpl extends ClassElementImpl {
 
   @override
   List<String> get superInvokedNames {
-    if (_superInvokedNames == null) {
-      if (_unlinkedClass != null) {
-        _superInvokedNames = _unlinkedClass.superInvokedNames;
-      }
+    if (_superInvokedNames != null) return _superInvokedNames;
+
+    if (linkedNode != null) {
+      return _superInvokedNames =
+          linkedContext.getMixinSuperInvokedNames(linkedNode);
     }
+
+    if (_unlinkedClass != null) {
+      return _superInvokedNames = _unlinkedClass.superInvokedNames;
+    }
+
     return _superInvokedNames ?? const <String>[];
   }
 

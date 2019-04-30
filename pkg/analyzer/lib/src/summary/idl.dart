@@ -1889,6 +1889,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.mixinDeclaration)
   LinkedNode get mixinDeclaration_onClause;
 
+  @VariantId(36, variant: LinkedNodeKind.mixinDeclaration)
+  List<String> get mixinDeclaration_superInvokedNames;
+
   @VariantId(14, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,

@@ -4752,6 +4752,7 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder _variantField_14;
   bool _isSynthetic;
   idl.LinkedNodeKind _kind;
+  List<String> _variantField_36;
   String _variantField_20;
   bool _variantField_31;
   TopLevelInferenceErrorBuilder _variantField_35;
@@ -10011,6 +10012,17 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  List<String> get mixinDeclaration_superInvokedNames {
+    assert(kind == idl.LinkedNodeKind.mixinDeclaration);
+    return _variantField_36 ??= <String>[];
+  }
+
+  set mixinDeclaration_superInvokedNames(List<String> value) {
+    assert(kind == idl.LinkedNodeKind.mixinDeclaration);
+    _variantField_36 = value;
+  }
+
+  @override
   String get namespaceDirective_selectedUri {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
@@ -10862,6 +10874,7 @@ class LinkedNodeBuilder extends Object
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder namedCompilationUnitMember_name,
+    List<String> mixinDeclaration_superInvokedNames,
     bool simplyBoundable_isSimplyBounded,
   })  : _kind = idl.LinkedNodeKind.mixinDeclaration,
         _variantField_11 = annotatedNode_comment,
@@ -10876,6 +10889,7 @@ class LinkedNodeBuilder extends Object
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
         _variantField_14 = namedCompilationUnitMember_name,
+        _variantField_36 = mixinDeclaration_superInvokedNames,
         _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.partDirective({
@@ -11803,6 +11817,14 @@ class LinkedNodeBuilder extends Object
     signature.addInt(this._variantField_34 ?? 0);
     signature.addBool(this._variantField_35 != null);
     this._variantField_35?.collectApiSignature(signature);
+    if (this._variantField_36 == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._variantField_36.length);
+      for (var x in this._variantField_36) {
+        signature.addString(x);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -11824,6 +11846,7 @@ class LinkedNodeBuilder extends Object
     fb.Offset offset_variantField_25;
     fb.Offset offset_variantField_30;
     fb.Offset offset_variantField_14;
+    fb.Offset offset_variantField_36;
     fb.Offset offset_variantField_20;
     fb.Offset offset_variantField_35;
     fb.Offset offset_variantField_22;
@@ -11885,6 +11908,10 @@ class LinkedNodeBuilder extends Object
     }
     if (_variantField_14 != null) {
       offset_variantField_14 = _variantField_14.finish(fbBuilder);
+    }
+    if (!(_variantField_36 == null || _variantField_36.isEmpty)) {
+      offset_variantField_36 = fbBuilder.writeList(
+          _variantField_36.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (_variantField_20 != null) {
       offset_variantField_20 = fbBuilder.writeString(_variantField_20);
@@ -11995,6 +12022,9 @@ class LinkedNodeBuilder extends Object
     if (_kind != null && _kind != idl.LinkedNodeKind.adjacentStrings) {
       fbBuilder.addUint8(0, _kind.index);
     }
+    if (offset_variantField_36 != null) {
+      fbBuilder.addOffset(36, offset_variantField_36);
+    }
     if (offset_variantField_20 != null) {
       fbBuilder.addOffset(20, offset_variantField_20);
     }
@@ -12061,6 +12091,7 @@ class _LinkedNodeImpl extends Object
   idl.LinkedNode _variantField_14;
   bool _isSynthetic;
   idl.LinkedNodeKind _kind;
+  List<String> _variantField_36;
   String _variantField_20;
   bool _variantField_31;
   idl.TopLevelInferenceError _variantField_35;
@@ -15694,6 +15725,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  List<String> get mixinDeclaration_superInvokedNames {
+    assert(kind == idl.LinkedNodeKind.mixinDeclaration);
+    _variantField_36 ??= const fb.ListReader<String>(const fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 36, const <String>[]);
+    return _variantField_36;
+  }
+
+  @override
   String get namespaceDirective_selectedUri {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
@@ -16675,6 +16714,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (namedCompilationUnitMember_name != null)
         _result["namedCompilationUnitMember_name"] =
             namedCompilationUnitMember_name.toJson();
+      if (mixinDeclaration_superInvokedNames.isNotEmpty)
+        _result["mixinDeclaration_superInvokedNames"] =
+            mixinDeclaration_superInvokedNames;
       if (simplyBoundable_isSimplyBounded != false)
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
@@ -18158,6 +18200,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "namedCompilationUnitMember_name": namedCompilationUnitMember_name,
         "isSynthetic": isSynthetic,
         "kind": kind,
+        "mixinDeclaration_superInvokedNames":
+            mixinDeclaration_superInvokedNames,
         "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }

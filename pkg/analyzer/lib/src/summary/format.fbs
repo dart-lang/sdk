@@ -1940,6 +1940,8 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
+  variantField_36:[string] (id: 36);
+
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);

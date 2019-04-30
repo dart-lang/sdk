@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -284,6 +285,24 @@ class SourceLibraryBuilder {
     localScope.forEach((name, reference) {
       addToExportScope(name, reference);
     });
+  }
+
+  void collectMixinSuperInvokedNames() {
+    for (var unitContext in context.units) {
+      for (var declaration in unitContext.unit.declarations) {
+        if (declaration is ast.MixinDeclaration) {
+          var names = Set<String>();
+          var collector = MixinSuperInvokedNamesCollector(names);
+          for (var executable in declaration.members) {
+            if (executable is ast.MethodDeclaration) {
+              executable.body.accept(collector);
+            }
+          }
+          var lazy = LazyMixinDeclaration.get(declaration);
+          lazy.setSuperInvokedNames(names.toList());
+        }
+      }
+    }
   }
 
   void resolveConstructors() {

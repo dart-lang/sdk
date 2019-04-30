@@ -520,6 +520,10 @@ class LinkedUnitContext {
     }
   }
 
+  List<String> getMixinSuperInvokedNames(MixinDeclaration node) {
+    return LazyMixinDeclaration.get(node).getSuperInvokedNames();
+  }
+
   int getNameOffset(AstNode node) {
     if (node is ConstructorDeclaration) {
       if (node.name != null) {

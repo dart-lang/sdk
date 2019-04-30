@@ -871,6 +871,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       mixinDeclaration_onClause: node.onClause?.accept(this),
     );
     _storeClassOrMixinDeclaration(builder, node);
+    LazyMixinDeclaration.get(node).put(builder);
     return builder;
   }
 

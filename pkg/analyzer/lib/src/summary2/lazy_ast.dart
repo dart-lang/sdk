@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 
@@ -1190,10 +1191,33 @@ class LazyMixinDeclaration {
   bool _hasMembers = false;
   bool _hasMetadata = false;
 
-  LazyMixinDeclaration(this.data);
+  List<String> _superInvokedNames;
+
+  LazyMixinDeclaration(MixinDeclaration node, this.data) {
+    node.setProperty(_key, this);
+    if (data != null) {
+      LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
+    }
+  }
+
+  List<String> getSuperInvokedNames() {
+    return _superInvokedNames ??= data.mixinDeclaration_superInvokedNames;
+  }
+
+  void put(LinkedNodeBuilder builder) {
+    builder.mixinDeclaration_superInvokedNames = _superInvokedNames ?? [];
+  }
+
+  void setSuperInvokedNames(List<String> value) {
+    _superInvokedNames = value;
+  }
 
   static LazyMixinDeclaration get(MixinDeclaration node) {
-    return node.getProperty(_key);
+    LazyMixinDeclaration lazy = node.getProperty(_key);
+    if (lazy == null) {
+      return LazyMixinDeclaration(node, null);
+    }
+    return lazy;
   }
 
   static void readDocumentationComment(
@@ -1201,7 +1225,7 @@ class LazyMixinDeclaration {
     MixinDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasDocumentationComment) {
+    if (lazy.data != null && !lazy._hasDocumentationComment) {
       node.documentationComment = reader.readNode(
         lazy.data.annotatedNode_comment,
       );
@@ -1214,7 +1238,7 @@ class LazyMixinDeclaration {
     MixinDeclarationImpl node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasImplementsClause) {
+    if (lazy.data != null && !lazy._hasImplementsClause) {
       node.implementsClause = reader.readNode(
         lazy.data.classOrMixinDeclaration_implementsClause,
       );
@@ -1227,7 +1251,7 @@ class LazyMixinDeclaration {
     MixinDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasMembers) {
+    if (lazy.data != null && !lazy._hasMembers) {
       var dataList = lazy.data.classOrMixinDeclaration_members;
       for (var i = 0; i < dataList.length; ++i) {
         var data = dataList[i];
@@ -1242,7 +1266,7 @@ class LazyMixinDeclaration {
     MixinDeclaration node,
   ) {
     var lazy = LazyMixinDeclaration.get(node);
-    if (lazy != null && !lazy._hasMetadata) {
+    if (lazy.data != null && !lazy._hasMetadata) {
       var dataList = lazy.data.annotatedNode_metadata;
       for (var i = 0; i < dataList.length; ++i) {
         var data = dataList[i];
@@ -1257,17 +1281,12 @@ class LazyMixinDeclaration {
     MixinDeclarationImpl node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasOnClause) {
+    if (lazy.data != null && !lazy._hasOnClause) {
       node.onClause = reader.readNode(
         lazy.data.mixinDeclaration_onClause,
       );
       lazy._hasOnClause = true;
     }
-  }
-
-  static void setData(MixinDeclaration node, LinkedNode data) {
-    node.setProperty(_key, LazyMixinDeclaration(data));
-    LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
 

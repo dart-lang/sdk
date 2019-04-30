@@ -127,6 +127,13 @@ class Linker {
     _resolveConstructors();
     _resolveDefaultValues();
     _resolveMetadata();
+    _collectMixinSuperInvokedNames();
+  }
+
+  void _collectMixinSuperInvokedNames() {
+    for (var library in builders.values) {
+      library.collectMixinSuperInvokedNames();
+    }
   }
 
   void _computeLibraryScopes() {

@@ -894,7 +894,7 @@ class AstBinaryReader {
       _readNodeListLazy(data.classOrMixinDeclaration_members),
       _getToken(data.classOrMixinDeclaration_rightBracket),
     );
-    LazyMixinDeclaration.setData(node, data);
+    LazyMixinDeclaration(node, data);
     return node;
   }
 
