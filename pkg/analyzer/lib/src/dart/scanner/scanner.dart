@@ -121,8 +121,8 @@ class Scanner {
 
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(_contents,
-        enableGtGtGt: enableGtGtGt,
-        enableNonNullable: enableNonNullable,
+        configuration: fasta.ScannerConfiguration(
+            enableGtGtGt: enableGtGtGt, enableNonNullable: enableNonNullable),
         includeComments: _preserveComments,
         scanLazyAssignmentOperators: scanLazyAssignmentOperators);
 

@@ -1647,9 +1647,10 @@ class FastaParserTestCase
         featureSet != null && featureSet.isEnabled(Feature.non_nullable);
     ScannerResult result = scanString(content,
         includeComments: true,
-        enableGtGtGt: enableTripleShift,
-        enableGtGtGtEq: enableTripleShift,
-        enableNonNullable: enableNonNullable);
+        configuration: ScannerConfiguration(
+            enableGtGtGt: enableTripleShift,
+            enableGtGtGtEq: enableTripleShift,
+            enableNonNullable: enableNonNullable));
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString

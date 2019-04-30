@@ -46,22 +46,16 @@ abstract class AbstractScanner implements Scanner {
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
-  ///
-  /// Use [configuration] to set this flag rather than setting it directly.
-  bool enableGtGtGt = false;
+  bool _enableGtGtGt = false;
 
   /// Experimental flag for enabling scanning of `>>>=`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
-  ///
-  /// Use [configuration] to set this flag rather than setting it directly.
-  bool enableGtGtGtEq = false;
+  bool _enableGtGtGtEq = false;
 
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'.
-  ///
-  /// Use [configuration] to set this flag rather than setting it directly.
-  bool enableNonNullable = false;
+  bool _enableNonNullable = false;
 
   @override
   LanguageVersionToken languageVersion;
@@ -115,9 +109,9 @@ abstract class AbstractScanner implements Scanner {
    */
   set configuration(ScannerConfiguration config) {
     if (config != null) {
-      enableNonNullable = config.enableNonNullable;
-      enableGtGtGt = config.enableGtGtGt;
-      enableGtGtGtEq = config.enableGtGtGtEq;
+      _enableNonNullable = config.enableNonNullable;
+      _enableGtGtGt = config.enableGtGtGt;
+      _enableGtGtGtEq = config.enableGtGtGtEq;
     }
   }
 
@@ -716,9 +710,9 @@ abstract class AbstractScanner implements Scanner {
       if (identical($EQ, next)) {
         appendPrecedenceToken(TokenType.GT_GT_EQ);
         return advance();
-      } else if (enableGtGtGt && identical($GT, next)) {
+      } else if (_enableGtGtGt && identical($GT, next)) {
         next = advance();
-        if (enableGtGtGtEq && identical($EQ, next)) {
+        if (_enableGtGtGtEq && identical($EQ, next)) {
           appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
           return advance();
         }
@@ -1136,7 +1130,7 @@ abstract class AbstractScanner implements Scanner {
     if (state == null || state.keyword == null) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
-    if (!enableNonNullable &&
+    if (!_enableNonNullable &&
         (state.keyword == Keyword.LATE || state.keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
     }

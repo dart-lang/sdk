@@ -85,28 +85,13 @@ ScannerResult scan(List<int> bytes,
 /// Scan/tokenize the given [source].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
-    {bool enableGtGtGt,
-    bool enableGtGtGtEq,
-    bool enableNonNullable,
-    ScannerConfiguration configuration,
+    {ScannerConfiguration configuration,
     bool includeComments: false,
     bool scanLazyAssignmentOperators: false,
     Recover recover}) {
-  // TODO(brianwilkerson): Remove the parameter `enableGtGtGt` after the feature
-  // has been anabled by default.
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,
       configuration: configuration, includeComments: includeComments);
-  // TODO(danrubel): remove these flags and use configuration instead.
-  if (enableGtGtGt != null) {
-    scanner.enableGtGtGt = enableGtGtGt;
-  }
-  if (enableGtGtGtEq != null) {
-    scanner.enableGtGtGtEq = enableGtGtGtEq;
-  }
-  if (enableNonNullable != null) {
-    scanner.enableNonNullable = enableNonNullable;
-  }
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 
