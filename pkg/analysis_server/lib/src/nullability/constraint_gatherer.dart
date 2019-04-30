@@ -432,7 +432,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     if (expression != null) {
       checkNotNull = CheckExpression(expression);
       _variables.recordExpressionChecks(
-          _source, expression, ExpressionChecks(checkNotNull));
+          _source,
+          expression,
+          ExpressionChecks(
+              expression.end, sourceType.node, destinationType.node, _guards));
     }
     NullabilityNode.recordAssignment(sourceType.node, destinationType.node,
         checkNotNull, _guards, _constraints, _inConditionalControlFlow);

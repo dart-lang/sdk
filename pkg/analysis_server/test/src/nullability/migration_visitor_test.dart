@@ -65,32 +65,17 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   /// assignment (if the value is being assigned), or `null` if the value is
   /// being used in a circumstance where `null` is not permitted.  [guards] is
   /// a list of nullability nodes for which there are enclosing if statements
-  /// checking that the corresponding values are non-null.  [genericNode], if
-  /// present, is the node representing the nullability of a type variables,
-  /// where the assignment is in a context that makes contravariant use of the
-  /// type variable.
+  /// checking that the corresponding values are non-null.
   void assertNullCheck(
       ExpressionChecks expressionChecks, NullabilityNode valueNode,
-      {NullabilityNode contextNode,
-      List<NullabilityNode> guards = const [],
-      NullabilityNode genericNode}) {
-    var conditions = <ConstraintVariable>[];
-    for (var guard in guards) {
-      conditions.add(guard.nullable);
-    }
-    conditions.add(valueNode.nullable);
-    var consequences = <ConstraintVariable>[];
-    if (genericNode != null) {
-      consequences.add(genericNode.nullable);
-    }
-    if (contextNode != null) {
-      consequences.add(contextNode.nullable);
-    }
-    consequences.add(expressionChecks.nullCheck);
-    var consequence = consequences.skip(1).fold(consequences.first, _either);
+      {NullabilityNode contextNode, List<NullabilityNode> guards = const []}) {
+    expect(expressionChecks.valueNode, same(valueNode));
     if (contextNode == null) {
-      assertConstraint(conditions, consequence);
+      expect(expressionChecks.contextNode, same(NullabilityNode.never));
+    } else {
+      expect(expressionChecks.contextNode, same(contextNode));
     }
+    expect(expressionChecks.guards, guards);
   }
 
   /// Gets the [ExpressionChecks] associated with the expression whose text
@@ -636,8 +621,13 @@ void g(C<int> c, int i) {
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
-    assertNullCheck(checkExpression('i/*check*/'), nullable_i,
-        genericNode: nullable_c_t, contextNode: nullable_t);
+    var check_i = checkExpression('i/*check*/');
+    var nullable_c_t_or_nullable_t =
+        check_i.contextNode as NullabilityNodeForSubstitution;
+    expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
+    expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
+    assertNullCheck(check_i, nullable_i,
+        contextNode: nullable_c_t_or_nullable_t);
   }
 
   test_methodInvocation_parameter_generic() async {

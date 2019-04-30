@@ -69,10 +69,10 @@ class NullabilityNode {
   /// the new nullability node behave consistently with the old nodes.
   /// TODO(paulberry): this should become unnecessary once constraint solving is
   /// performed directly using [NullabilityNode] objects.
-  NullabilityNode.forSubstitution(Constraints constraints,
-      NullabilityNode innerNode, NullabilityNode outerNode)
-      : this._(ConstraintVariable.or(
-            constraints, innerNode?.nullable, outerNode.nullable));
+  factory NullabilityNode.forSubstitution(
+      Constraints constraints,
+      NullabilityNode innerNode,
+      NullabilityNode outerNode) = NullabilityNodeForSubstitution._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// annotation appearing explicitly in the user's program.
@@ -90,7 +90,7 @@ class NullabilityNode {
 
   /// After constraint solving, this getter can be used to query whether the
   /// type associated with this node should be considered nullable.
-  bool get isNullable => nullable.value;
+  bool get isNullable => nullable == null ? false : nullable.value;
 
   /// Indicates whether this node is associated with a named parameter for which
   /// nullability migration needs to decide whether it is optional or required.
@@ -198,4 +198,27 @@ class NullabilityNode {
     conditions.addAll(additionalConditions);
     constraints.record(conditions, consequence);
   }
+}
+
+/// Derived class for nullability nodes that arise from type variable
+/// substitution.
+class NullabilityNodeForSubstitution extends NullabilityNode {
+  /// Nullability node representing the inner type of the substitution.
+  ///
+  /// For example, if this NullabilityNode arose from substituting `int*` for
+  /// `T` in the type `T*`, [innerNode] is the nullability corresponding to the
+  /// `*` in `int*`.
+  final NullabilityNode innerNode;
+
+  /// Nullability node representing the outer type of the substitution.
+  ///
+  /// For example, if this NullabilityNode arose from substituting `int*` for
+  /// `T` in the type `T*`, [innerNode] is the nullability corresponding to the
+  /// `*` in `T*`.
+  final NullabilityNode outerNode;
+
+  NullabilityNodeForSubstitution._(
+      Constraints constraints, this.innerNode, this.outerNode)
+      : super._(ConstraintVariable.or(
+            constraints, innerNode?.nullable, outerNode.nullable));
 }
