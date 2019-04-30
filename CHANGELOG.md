@@ -1,3 +1,8 @@
+## 2.3.0-dev.0.4
+
+* Cherry-pick d03323783a5a5a571916457fcf084d103fce86b3 to dev
+* Cherry-pick 14d09498b7830fba62816ec8db3ed9b58601b841 to dev
+
 ## 2.3.0-dev.0.3
 
 * Cherry-pick 04e1b0d976151cc6aa5dcc80667d568c95495c80 to dev

@@ -97,6 +97,34 @@ analyzer:
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 
+  test_androidManifestFile_dotDirectoryIgnored() async {
+    String filePath =
+        join(projectPath, 'ios', '.symlinks', 'AndroidManifest.xml');
+    String manifestFile = newFile(filePath, content: '''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.software.home_screen" />
+</manifest>
+''').path;
+    newFile(join(projectPath, 'analysis_options.yaml'), content: '''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks: true
+''');
+
+    Request request =
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify that the file wasn't analyzed.
+    //
+    List<AnalysisError> errors = filesErrors[manifestFile];
+    expect(errors, isNull);
+  }
+
   test_importError() async {
     createProject();
 
