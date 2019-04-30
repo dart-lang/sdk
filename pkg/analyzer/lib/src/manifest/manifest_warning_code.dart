@@ -15,10 +15,8 @@ class ManifestWarningCode extends ErrorCode {
    * A code indicating that a specified hardware feature is not supported on Chrome OS.
    */
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
-      const ManifestWarningCode(
-          'UNSUPPORTED_CHROME_OS_HARDWARE',
-          "This feature is not supported on Chrome OS. Try adding " +
-              "`android:required=\"false\"` for this feature.",
+      const ManifestWarningCode('UNSUPPORTED_CHROME_OS_HARDWARE',
+          "This feature is not supported on Chrome OS, consider making it optional.",
           correction:
               "Try adding `android:required=\"false\"` for this " + "feature.");
 
@@ -26,10 +24,8 @@ class ManifestWarningCode extends ErrorCode {
    * A code indicating that a specified feature is not supported on Chrome OS.
    */
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
-      const ManifestWarningCode(
-          'UNSUPPORTED_CHROME_OS_FEATURE',
-          "This feature is not supported on Chrome OS. Try changing " +
-              "`android:required to \"false\"` for this feature.",
+      const ManifestWarningCode('UNSUPPORTED_CHROME_OS_FEATURE',
+          "This feature is not supported on Chrome OS, consider making it optional.",
           correction: "Try changing to `android:required=\"false\"` for this " +
               "feature.");
 
@@ -39,10 +35,7 @@ class ManifestWarningCode extends ErrorCode {
    */
   static const ManifestWarningCode NO_TOUCHSCREEN_FEATURE = const ManifestWarningCode(
       'NO_TOUCHSCREEN_FEATURE',
-      "The default \"android.hardware.touchscreen\" needs to be optional for Chrome OS. " +
-          "Consider adding " +
-          "<uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" />" +
-          " to the manifest.",
+      "The default \"android.hardware.touchscreen\" needs to be optional for Chrome OS. ",
       correction: "Consider adding " +
           "<uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" />" +
           " to the manifest.");
@@ -51,25 +44,22 @@ class ManifestWarningCode extends ErrorCode {
    * A code indicating that a specified permission is not supported on Chrome OS.
    */
   static const ManifestWarningCode PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE =
-      const ManifestWarningCode(
-          'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
-          "Permission exists without corresponding hardware tag `<uses-feature " +
-              "android:name=\"{0}\"  android:required=\"false\">`.",
-          correction:
-              "Try adding the uses-feature with required=\"false\" attribute value.");
+      const ManifestWarningCode('PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
+          "Permission makes app incompatible for Chrome OS, consider adding optional {0} feature tag, ",
+          correction: " Try adding `<uses-feature " +
+              "android:name=\"{0}\"  android:required=\"false\">`.");
 
   /**
    * A code indicating that the camera permissions is not supported on Chrome OS.
    */
-  static const ManifestWarningCode CAMERA_PERMISSIONS_INCOMPATIBLE =
-      const ManifestWarningCode(
-          'CAMERA_PERMISSIONS_INCOMPATIBLE',
-          "Permission exists without corresponding hardware `<uses-feature " +
-              "android:name=\"android.hardware.camera\"  android:required=\"false\">` " +
-              "`<uses-feature " +
-              "android:name=\"android.hardware.camera.autofocus\"  android:required=\"false\">`.",
-          correction:
-              "Try adding the uses-feature with required=\"false\" attribute value.");
+  static const ManifestWarningCode CAMERA_PERMISSIONS_INCOMPATIBLE = const ManifestWarningCode(
+      'CAMERA_PERMISSIONS_INCOMPATIBLE',
+      "Camera permissions make app incompatible for Chrome OS, consider adding " +
+          "optional features \"android.hardware.camera\" and \"android.hardware.camera.autofocus\".",
+      correction: "Try adding `<uses-feature " +
+          "android:name=\"android.hardware.camera\"  android:required=\"false\">` " +
+          "`<uses-feature " +
+          "android:name=\"android.hardware.camera.autofocus\"  android:required=\"false\">`.");
 
   /**
    * A code indicating that the activity is set to be non resizable.
