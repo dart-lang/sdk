@@ -753,12 +753,15 @@ class AstBinaryReader {
   }
 
   InstanceCreationExpression _read_instanceCreationExpression(LinkedNode data) {
-    return astFactory.instanceCreationExpression(
+    var node = astFactory.instanceCreationExpression(
       _getToken(data.instanceCreationExpression_keyword),
       _readNode(data.instanceCreationExpression_constructorName),
       _readNode(data.instanceCreationExpression_arguments),
       typeArguments: _readNode(data.instanceCreationExpression_typeArguments),
-    )..staticType = _readType(data.expression_type);
+    );
+    node.staticElement = node.constructorName.staticElement;
+    node.staticType = _readType(data.expression_type);
+    return node;
   }
 
   IntegerLiteral _read_integerLiteral(LinkedNode data) {

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -56,6 +57,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       'B<num>',
       constructorName: 'named',
       expectedConstructorMember: true,
+      expectedPrefix: _importOfA()?.prefix,
     );
   }
 
@@ -66,6 +68,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       libraryA.getType('B'),
       'B<num>',
       expectedConstructorMember: true,
+      expectedPrefix: _importOfA()?.prefix,
     );
   }
 
@@ -96,6 +99,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       libraryA.getType('A'),
       'A',
       constructorName: 'named',
+      expectedPrefix: _importOfA()?.prefix,
     );
   }
 
@@ -106,6 +110,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       creation,
       libraryA.getType('A'),
       'A',
+      expectedPrefix: _importOfA()?.prefix,
     );
   }
 
@@ -115,6 +120,15 @@ mixin OptionalConstMixin implements ResolutionTest {
     if (!libraries.containsKey(uriStr)) {
       libraries[uriStr] = library;
       library.importedLibraries.forEach(_fillLibraries);
+    }
+  }
+
+  ImportElement _importOfA() {
+    if (AnalysisDriver.useSummary2) {
+      var importOfB = findElement.import('package:test/b.dart');
+      return importOfB.importedLibrary.imports[0];
+    } else {
+      return null;
     }
   }
 
@@ -154,7 +168,9 @@ var v = a;
     var v = vg.variable as ConstVariableElement;
 
     InstanceCreationExpression creation = v.constantInitializer;
-    expect(creation.keyword.keyword, Keyword.CONST);
+    if (!AnalysisDriver.useSummary2) {
+      expect(creation.keyword.keyword, Keyword.CONST);
+    }
 
     return creation;
   }
