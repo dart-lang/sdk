@@ -846,9 +846,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_fp = locs()->temp(0).reg();  // volatile
-  Register branch = locs()->in(TargetAddressIndex()).reg();
-  Register tmp = locs()->temp(1).reg();  // callee-saved
+  const Register saved_fp = locs()->temp(0).reg();  // volatile
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
+  const Register tmp = locs()->temp(1).reg();  // callee-saved
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
@@ -866,45 +866,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ andl(SPREG, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  // Load a 32-bit argument, or a 32-bit component of a 64-bit argument.
-  auto load_single_slot = [&](Location from, Location to) {
-    ASSERT(to.IsStackSlot());
-    if (from.IsRegister()) {
-      __ movl(LocationToStackSlotAddress(to), from.reg());
-    } else if (from.IsFpuRegister()) {
-      __ movss(LocationToStackSlotAddress(to), from.fpu_reg());
-    } else if (from.IsStackSlot() || from.IsDoubleStackSlot()) {
-      ASSERT(from.base_reg() == FPREG);
-      __ movl(tmp, Address(saved_fp, from.ToStackSlotOffset()));
-      __ movl(LocationToStackSlotAddress(to), tmp);
-    } else {
-      UNREACHABLE();
-    }
-  };
-
+  FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
+                     /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    Location origin = locs()->in(i);
-    Location target = arg_locations_[i];
-
-    if (target.IsStackSlot()) {
-      load_single_slot(origin, target);
-    } else if (target.IsDoubleStackSlot()) {
-      if (origin.IsFpuRegister()) {
-        __ movsd(LocationToStackSlotAddress(target), origin.fpu_reg());
-      } else {
-        ASSERT(origin.IsDoubleStackSlot() && origin.base_reg() == FPREG);
-        __ movl(tmp, Address(saved_fp, origin.ToStackSlotOffset()));
-        __ movl(LocationToStackSlotAddress(target), tmp);
-        __ movl(tmp, Address(saved_fp, origin.ToStackSlotOffset() + 4));
-        __ movl(Address(SPREG, target.ToStackSlotOffset() + 4), tmp);
-      }
-    } else if (target.IsPairLocation()) {
-      ASSERT(origin.IsPairLocation());
-      load_single_slot(origin.AsPairLocation()->At(0),
-                       target.AsPairLocation()->At(0));
-      load_single_slot(origin.AsPairLocation()->At(1),
-                       target.AsPairLocation()->At(1));
-    }
+    const Location origin = rebase.Rebase(locs()->in(i));
+    const Location target = arg_locations_[i];
+    ConstantTemporaryAllocator tmp_alloc(tmp);
+    compiler->EmitMove(target, origin, &tmp_alloc);
   }
 
   // We need to copy a dummy return address up into the dummy stack frame so the

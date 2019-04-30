@@ -902,25 +902,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ andq(SPREG, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
+  FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
+                     /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    Location origin = locs()->in(i);
-    Location target = arg_locations_[i];
-
-    if (target.IsStackSlot()) {
-      if (origin.IsRegister()) {
-        __ movq(LocationToStackSlotAddress(target), origin.reg());
-      } else if (origin.IsFpuRegister()) {
-        __ movq(TMP, origin.fpu_reg());
-        __ movq(LocationToStackSlotAddress(target), TMP);
-      } else if (origin.IsStackSlot() || origin.IsDoubleStackSlot()) {
-        // The base register cannot be SPREG because we've moved it.
-        ASSERT(origin.base_reg() == FPREG);
-        __ movq(TMP, Address(saved_fp, origin.ToStackSlotOffset()));
-        __ movq(LocationToStackSlotAddress(target), TMP);
-      }
-    } else {
-      ASSERT(origin.Equals(target));
-    }
+    const Location origin = rebase.Rebase(locs()->in(i));
+    const Location target = arg_locations_[i];
+    NoTemporaryAllocator temp;
+    compiler->EmitMove(target, rebase.Rebase(origin), &temp);
   }
 
   // We need to copy a dummy return address up into the dummy stack frame so the

@@ -1174,13 +1174,11 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
 }
 
 #undef __
-#define __ compiler_->assembler()->
+#define __ assembler()->
 
-void ParallelMoveResolver::EmitMove(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
-
+void FlowGraphCompiler::EmitMove(Location destination,
+                                 Location source,
+                                 TemporaryRegisterAllocator* tmp) {
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
       __ movl(destination.reg(), source.reg());
@@ -1193,8 +1191,10 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movl(destination.reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsStackSlot());
-      MoveMemoryToMemory(LocationToStackSlotAddress(destination),
-                         LocationToStackSlotAddress(source));
+      Register scratch = tmp->AllocateTemporary();
+      __ MoveMemoryToMemory(LocationToStackSlotAddress(destination),
+                            LocationToStackSlotAddress(source), scratch);
+      tmp->ReleaseTemporary();
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
@@ -1204,6 +1204,9 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       if (destination.IsDoubleStackSlot()) {
         __ movsd(LocationToStackSlotAddress(destination), source.fpu_reg());
+      } else if (destination.IsStackSlot()) {
+        // 32-bit float
+        __ movss(LocationToStackSlotAddress(destination), source.fpu_reg());
       } else {
         ASSERT(destination.IsQuadStackSlot());
         __ movups(LocationToStackSlotAddress(destination), source.fpu_reg());
@@ -1212,6 +1215,10 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
       __ movsd(destination.fpu_reg(), LocationToStackSlotAddress(source));
+    } else if (destination.IsStackSlot()) {
+      // Source holds a 32-bit float, take only the lower 32-bits
+      __ movss(FpuTMP, LocationToStackSlotAddress(source));
+      __ movss(LocationToStackSlotAddress(destination), FpuTMP);
     } else {
       ASSERT(destination.IsDoubleStackSlot());
       __ movsd(FpuTMP, LocationToStackSlotAddress(source));
@@ -1225,13 +1232,19 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movups(FpuTMP, LocationToStackSlotAddress(source));
       __ movups(LocationToStackSlotAddress(destination), FpuTMP);
     }
+  } else if (source.IsPairLocation()) {
+    ASSERT(destination.IsPairLocation());
+    for (intptr_t i : {0, 1}) {
+      EmitMove(destination.Component(i), source.Component(i), tmp);
+    }
   } else {
     ASSERT(source.IsConstant());
-    source.constant_instruction()->EmitMoveToLocation(compiler_, destination);
+    source.constant_instruction()->EmitMoveToLocation(this, destination);
   }
-
-  move->Eliminate();
 }
+
+#undef __
+#define __ compiler_->assembler()->
 
 void ParallelMoveResolver::EmitSwap(int index) {
   MoveOperands* move = moves_[index];
@@ -1314,8 +1327,7 @@ void ParallelMoveResolver::EmitSwap(int index) {
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
   ScratchRegisterScope ensure_scratch(this, kNoRegister);
-  __ movl(ensure_scratch.reg(), src);
-  __ movl(dst, ensure_scratch.reg());
+  __ MoveMemoryToMemory(dst, src, ensure_scratch.reg());
 }
 
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {

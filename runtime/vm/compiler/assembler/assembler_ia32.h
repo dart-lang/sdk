@@ -723,6 +723,10 @@ class Assembler : public AssemblerBase {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
+  // Moves one word from the memory at [from] to the memory at [to].
+  // Needs a temporary register.
+  void MoveMemoryToMemory(Address to, Address from, Register tmp);
+
   bool has_single_entry_point() const { return true; }
 
   // Set up a Dart frame on entry with a frame pointer and PC information to

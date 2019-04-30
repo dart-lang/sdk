@@ -1002,45 +1002,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
                               kWordSize);
 
-  // Load a 32-bit argument, or a 32-bit component of a 64-bit argument.
-  auto load_single_slot = [&](Location from, Location to) {
-    if (!to.IsStackSlot()) return;
-    if (from.IsRegister()) {
-      __ str(from.reg(), LocationToStackSlotAddress(to));
-    } else if (from.IsFpuRegister()) {
-      __ vstrs(EvenSRegisterOf(EvenDRegisterOf(from.fpu_reg())),
-               LocationToStackSlotAddress(to));
-    } else if (from.IsStackSlot() || from.IsDoubleStackSlot()) {
-      ASSERT(from.base_reg() == FPREG);
-      __ ldr(TMP, Address(saved_fp, from.ToStackSlotOffset()));
-      __ str(TMP, LocationToStackSlotAddress(to));
-    } else {
-      UNREACHABLE();
-    }
-  };
-
+  FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
+                     /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    Location origin = locs()->in(i);
-    Location target = arg_locations_[i];
-
-    if (target.IsStackSlot()) {
-      load_single_slot(origin, target);
-    } else if (target.IsDoubleStackSlot()) {
-      if (origin.IsFpuRegister()) {
-        __ vstrd(EvenDRegisterOf(origin.fpu_reg()),
-                 LocationToStackSlotAddress(target));
-      } else {
-        ASSERT(origin.IsDoubleStackSlot() && origin.base_reg() == FPREG);
-        __ vldrd(DTMP, Address(saved_fp, origin.ToStackSlotOffset()));
-        __ vstrd(DTMP, LocationToStackSlotAddress(target));
-      }
-    } else if (target.IsPairLocation()) {
-      ASSERT(origin.IsPairLocation());
-      load_single_slot(origin.AsPairLocation()->At(0),
-                       target.AsPairLocation()->At(0));
-      load_single_slot(origin.AsPairLocation()->At(1),
-                       target.AsPairLocation()->At(1));
-    }
+    const Location origin = rebase.Rebase(locs()->in(i));
+    const Location target = arg_locations_[i];
+    NoTemporaryAllocator no_temp;
+    compiler->EmitMove(target, origin, &no_temp);
   }
 
   // We need to copy the return address up into the dummy stack frame so the

@@ -28,6 +28,32 @@ class GrowableArray;
 class ParsedFunction;
 class SpeculativeInliningPolicy;
 
+// Used in methods which need conditional access to a temporary register.
+// May only be used to allocate a single temporary register.
+class TemporaryRegisterAllocator : public ValueObject {
+ public:
+  virtual ~TemporaryRegisterAllocator() {}
+  virtual Register AllocateTemporary() = 0;
+  virtual void ReleaseTemporary() = 0;
+};
+
+class ConstantTemporaryAllocator : public TemporaryRegisterAllocator {
+ public:
+  explicit ConstantTemporaryAllocator(Register tmp) : tmp_(tmp) {}
+
+  Register AllocateTemporary() override { return tmp_; }
+  void ReleaseTemporary() override {}
+
+ private:
+  Register const tmp_;
+};
+
+class NoTemporaryAllocator : public TemporaryRegisterAllocator {
+ public:
+  Register AllocateTemporary() override { UNREACHABLE(); }
+  void ReleaseTemporary() override { UNREACHABLE(); }
+};
+
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
@@ -50,6 +76,24 @@ class ParallelMoveResolver : public ValueObject {
     bool spilled_;
   };
 
+  class TemporaryAllocator : public TemporaryRegisterAllocator {
+   public:
+    TemporaryAllocator(ParallelMoveResolver* resolver, Register blocked);
+
+    Register AllocateTemporary() override;
+    void ReleaseTemporary() override;
+    DEBUG_ONLY(bool DidAllocateTemporary() { return allocated_; })
+
+    virtual ~TemporaryAllocator() { ASSERT(reg_ == kNoRegister); }
+
+   private:
+    ParallelMoveResolver* const resolver_;
+    const Register blocked_;
+    Register reg_;
+    bool spilled_;
+    DEBUG_ONLY(bool allocated_ = false);
+  };
+
   class ScratchRegisterScope : public ValueObject {
    public:
     ScratchRegisterScope(ParallelMoveResolver* resolver, Register blocked);
@@ -58,9 +102,8 @@ class ParallelMoveResolver : public ValueObject {
     Register reg() const { return reg_; }
 
    private:
-    ParallelMoveResolver* resolver_;
+    TemporaryAllocator allocator_;
     Register reg_;
-    bool spilled_;
   };
 
   bool IsScratchLocation(Location loc);
@@ -426,6 +469,9 @@ class FlowGraphCompiler : public ValueObject {
 
   // Returns 'true' if regular code generation should be skipped.
   bool TryIntrinsify();
+
+  // Emits code for a generic move from a location 'src' to a location 'dst'.
+  void EmitMove(Location dst, Location src, TemporaryRegisterAllocator* temp);
 
   void GenerateAssertAssignable(TokenPosition token_pos,
                                 intptr_t deopt_id,
