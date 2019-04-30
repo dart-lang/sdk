@@ -8547,7 +8547,7 @@ class ParameterElementImpl extends VariableElementImpl
     return formalParameters.map((node) {
       if (node is DefaultFormalParameter) {
         NormalFormalParameter parameterNode = node.parameter;
-        var name = parameterNode.identifier.name;
+        var name = parameterNode.identifier?.name ?? '';
         var reference = containerRef.getChild(name);
         reference.node2 = node;
         if (parameterNode is FieldFormalParameter) {
