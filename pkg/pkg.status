@@ -130,6 +130,7 @@ mutation_observer: Skip # Skip tests on the VM if the package depends on dart:ht
 [ $runtime != vm ]
 dev_compiler/test/options/*: SkipByDesign
 front_end/test/hot_reload_e2e_test: Skip
+modular_test/test/io_pipeline_test: SkipByDesign
 vm/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == linux ]
