@@ -31,6 +31,27 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   @override
   final _Constraints constraints = _Constraints();
 
+  void assertConditional(
+      NullabilityNode node, NullabilityNode left, NullabilityNode right) {
+    var conditionalNode = node as NullabilityNodeForLUB;
+    expect(conditionalNode.left, same(left));
+    expect(conditionalNode.right, same(right));
+    if (left.isNeverNullable) {
+      if (right.isNeverNullable) {
+        expect(conditionalNode.isNeverNullable, true);
+      } else {
+        expect(conditionalNode.nullable, same(right.nullable));
+      }
+    } else {
+      if (right.isNeverNullable) {
+        expect(conditionalNode.nullable, same(left.nullable));
+      } else {
+        assertConstraint([left.nullable], conditionalNode.nullable);
+        assertConstraint([right.nullable], conditionalNode.nullable);
+      }
+    }
+  }
+
   /// Checks that a constraint was recorded with a left hand side of
   /// [conditions] and a right hand side of [consequence].
   void assertConstraint(
@@ -211,14 +232,11 @@ int f(bool b, int i, int j) {
 }
 ''');
 
-    var nullable_i = decoratedTypeAnnotation('int i').node.nullable;
-    var nullable_j = decoratedTypeAnnotation('int j').node.nullable;
-    var nullable_i_or_nullable_j = _either(nullable_i, nullable_j);
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_j = decoratedTypeAnnotation('int j').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
+    assertConditional(nullable_conditional, nullable_i, nullable_j);
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertConstraint([nullable_i], nullable_conditional.nullable);
-    assertConstraint([nullable_j], nullable_conditional.nullable);
-    assertConstraint([nullable_conditional.nullable], nullable_i_or_nullable_j);
     assertNullCheck(checkExpression('(b ? i : j)'), nullable_conditional,
         contextNode: nullable_return);
   }
@@ -230,9 +248,12 @@ int f(bool b, int i) {
 }
 ''');
 
-    var nullable_i = decoratedTypeAnnotation('int i').node.nullable;
-    var nullable_conditional = decoratedExpressionType('(b ?').node.nullable;
-    expect(nullable_conditional, same(nullable_i));
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_conditional =
+        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+    var nullable_throw = nullable_conditional.left;
+    expect(nullable_throw.isNeverNullable, true);
+    assertConditional(nullable_conditional, nullable_throw, nullable_i);
   }
 
   test_conditionalExpression_left_null() async {
@@ -242,8 +263,8 @@ int f(bool b, int i) {
 }
 ''');
 
-    var nullable_conditional = decoratedExpressionType('(b ?').node.nullable;
-    expect(nullable_conditional, same(ConstraintVariable.always));
+    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    expect(nullable_conditional.isAlwaysNullable, true);
   }
 
   test_conditionalExpression_right_non_null() async {
@@ -253,9 +274,12 @@ int f(bool b, int i) {
 }
 ''');
 
-    var nullable_i = decoratedTypeAnnotation('int i').node.nullable;
-    var nullable_conditional = decoratedExpressionType('(b ?').node.nullable;
-    expect(nullable_conditional, same(nullable_i));
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_conditional =
+        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+    var nullable_throw = nullable_conditional.right;
+    expect(nullable_throw.isNeverNullable, true);
+    assertConditional(nullable_conditional, nullable_i, nullable_throw);
   }
 
   test_conditionalExpression_right_null() async {
@@ -265,8 +289,8 @@ int f(bool b, int i) {
 }
 ''');
 
-    var nullable_conditional = decoratedExpressionType('(b ?').node.nullable;
-    expect(nullable_conditional, same(ConstraintVariable.always));
+    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    expect(nullable_conditional.isAlwaysNullable, true);
   }
 
   test_functionDeclaration_expression_body() async {
@@ -759,13 +783,6 @@ Type f() {
 ''');
     assertNoConstraints(decoratedTypeAnnotation('Type').node.nullable);
   }
-
-  /// Creates a variable representing the disjunction of [a] and [b] solely for
-  /// the purpose of inspecting constraint equations in unit tests.  No
-  /// additional constraints will be recorded in [_constraints] as a consequence
-  /// of creating this variable.
-  ConstraintVariable _either(ConstraintVariable a, ConstraintVariable b) =>
-      ConstraintVariable.or(_MockConstraints(), a, b);
 }
 
 abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
@@ -986,13 +1003,6 @@ class _Constraints extends Constraints {
       Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
     _clauses.add(_Clause(conditions.toSet(), consequence));
   }
-}
-
-/// Mock implementation of [Constraints] that doesn't record any constraints.
-class _MockConstraints implements Constraints {
-  @override
-  void record(Iterable<ConstraintVariable> conditions,
-      ConstraintVariable consequence) {}
 }
 
 /// Mock representation of constraint variables.

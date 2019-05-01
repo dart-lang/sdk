@@ -206,7 +206,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_isSimple(elseType)); // TODO(paulberry)
     var overallType = DecoratedType(
         node.staticType,
-        NullabilityNode.forConditionalexpression(
+        NullabilityNode.forLUB(
             node, thenType.node, elseType.node, _joinNullabilities));
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
@@ -502,7 +502,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// Creates a constraint variable (if necessary) representing the nullability
   /// of [node], which is the disjunction of the nullabilities [a] and [b].
   ConstraintVariable _joinNullabilities(
-      ConditionalExpression node, ConstraintVariable a, ConstraintVariable b) {
+      Expression node, ConstraintVariable a, ConstraintVariable b) {
     if (a == null) return b;
     if (b == null) return a;
     if (identical(a, ConstraintVariable.always) ||

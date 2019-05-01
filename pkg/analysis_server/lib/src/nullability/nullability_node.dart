@@ -30,26 +30,14 @@ class NullabilityNode {
   /// migrated) forces this type to be non-nullable.
   final ConstraintVariable nullable;
 
+  /// List of all the nodes that are "downstream" of this one (i.e. if this node
+  /// is nullable, then all the nodes in [_downstreamNodes] will either have to
+  /// be nullable, or null checks will have to be added).
+  final _downstreamNodes = <NullabilityNode>[];
+
   ConstraintVariable _nonNullIntent;
 
   bool _isPossiblyOptional = false;
-
-  /// Creates a [NullabilityNode] representing the nullability of a conditional
-  /// expression which is nullable iff both [a] and [b] are nullable.
-  ///
-  /// The constraint variable contained in the new node is created using the
-  /// [joinNullabilities] callback.  TODO(paulberry): this should become
-  /// unnecessary once constraint solving is performed directly using
-  /// [NullabilityNode] objects.
-  NullabilityNode.forConditionalexpression(
-      ConditionalExpression conditionalExpression,
-      NullabilityNode a,
-      NullabilityNode b,
-      ConstraintVariable Function(
-              ConditionalExpression, ConstraintVariable, ConstraintVariable)
-          joinNullabilities)
-      : this._(
-            joinNullabilities(conditionalExpression, a.nullable, b.nullable));
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is `dynamic` due to type inference.
@@ -57,6 +45,21 @@ class NullabilityNode {
   /// TODO(paulberry): this should go away; we should decorate the actual
   /// inferred type rather than assuming `dynamic`.
   NullabilityNode.forInferredDynamicType() : this._(ConstraintVariable.always);
+
+  /// Creates a [NullabilityNode] representing the nullability of an
+  /// expression which is nullable iff both [a] and [b] are nullable.
+  ///
+  /// The constraint variable contained in the new node is created using the
+  /// [joinNullabilities] callback.  TODO(paulberry): this should become
+  /// unnecessary once constraint solving is performed directly using
+  /// [NullabilityNode] objects.
+  factory NullabilityNode.forLUB(
+      Expression conditionalExpression,
+      NullabilityNode a,
+      NullabilityNode b,
+      ConstraintVariable Function(
+              Expression, ConstraintVariable, ConstraintVariable)
+          joinNullabilities) = NullabilityNodeForLUB._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// substitution where [outerNode] is the nullability node for the type
@@ -85,8 +88,16 @@ class NullabilityNode {
   /// annotate the nullability of that type.
   String get debugSuffix => nullable == null ? '' : '?($nullable)';
 
+  /// Iterates through all nodes that are "downstream" of this node (i.e. if
+  /// this node is nullable, then all the nodes in [downstreamNodes] will either
+  /// have to be nullable, or null checks will have to be added).
+  Iterable<NullabilityNode> get downstreamNodes => _downstreamNodes;
+
   /// Indicates whether this node is always nullable, by construction.
   bool get isAlwaysNullable => identical(nullable, ConstraintVariable.always);
+
+  /// Indicates whether this node is never nullable, by construction.
+  bool get isNeverNullable => nullable == null;
 
   /// After constraint solving, this getter can be used to query whether the
   /// type associated with this node should be considered nullable.
@@ -153,6 +164,7 @@ class NullabilityNode {
       Constraints constraints,
       bool inConditionalControlFlow) {
     var additionalConditions = <ConstraintVariable>[];
+    sourceNode._downstreamNodes.add(destinationNode);
     if (sourceNode.nullable != null) {
       additionalConditions.add(sourceNode.nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;
@@ -197,6 +209,26 @@ class NullabilityNode {
     var conditions = guards.map((node) => node.nullable).toList();
     conditions.addAll(additionalConditions);
     constraints.record(conditions, consequence);
+  }
+}
+
+/// Derived class for nullability nodes that arise from the least-upper-bound
+/// implied by a conditional expression.
+class NullabilityNodeForLUB extends NullabilityNode {
+  final NullabilityNode left;
+
+  final NullabilityNode right;
+
+  NullabilityNodeForLUB._(
+      Expression expression,
+      this.left,
+      this.right,
+      ConstraintVariable Function(
+              ConditionalExpression, ConstraintVariable, ConstraintVariable)
+          joinNullabilities)
+      : super._(joinNullabilities(expression, left.nullable, right.nullable)) {
+    left._downstreamNodes.add(this);
+    right._downstreamNodes.add(this);
   }
 }
 
