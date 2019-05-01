@@ -103,6 +103,7 @@ class AddContentOverlay implements HasToJson {
  *   "correction": optional String
  *   "code": String
  *   "url": optional String
+ *   "contextMessages": optional List<DiagnosticMessage>
  *   "hasFix": optional bool
  * }
  *
@@ -122,6 +123,8 @@ class AnalysisError implements HasToJson {
   String _code;
 
   String _url;
+
+  List<DiagnosticMessage> _contextMessages;
 
   bool _hasFix;
 
@@ -221,6 +224,20 @@ class AnalysisError implements HasToJson {
   }
 
   /**
+   * Additional messages associated with this diagnostic that provide context
+   * to help the user understand the diagnostic.
+   */
+  List<DiagnosticMessage> get contextMessages => _contextMessages;
+
+  /**
+   * Additional messages associated with this diagnostic that provide context
+   * to help the user understand the diagnostic.
+   */
+  void set contextMessages(List<DiagnosticMessage> value) {
+    this._contextMessages = value;
+  }
+
+  /**
    * A hint to indicate to interested clients that this error has an associated
    * fix (or fixes). The absence of this field implies there are not known to
    * be fixes. Note that since the operation to calculate whether fixes apply
@@ -248,7 +265,10 @@ class AnalysisError implements HasToJson {
 
   AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
       Location location, String message, String code,
-      {String correction, String url, bool hasFix}) {
+      {String correction,
+      String url,
+      List<DiagnosticMessage> contextMessages,
+      bool hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
@@ -256,6 +276,7 @@ class AnalysisError implements HasToJson {
     this.correction = correction;
     this.code = code;
     this.url = url;
+    this.contextMessages = contextMessages;
     this.hasFix = hasFix;
   }
 
@@ -308,12 +329,23 @@ class AnalysisError implements HasToJson {
       if (json.containsKey("url")) {
         url = jsonDecoder.decodeString(jsonPath + ".url", json["url"]);
       }
+      List<DiagnosticMessage> contextMessages;
+      if (json.containsKey("contextMessages")) {
+        contextMessages = jsonDecoder.decodeList(
+            jsonPath + ".contextMessages",
+            json["contextMessages"],
+            (String jsonPath, Object json) =>
+                new DiagnosticMessage.fromJson(jsonDecoder, jsonPath, json));
+      }
       bool hasFix;
       if (json.containsKey("hasFix")) {
         hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
       }
       return new AnalysisError(severity, type, location, message, code,
-          correction: correction, url: url, hasFix: hasFix);
+          correction: correction,
+          url: url,
+          contextMessages: contextMessages,
+          hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
     }
@@ -332,6 +364,11 @@ class AnalysisError implements HasToJson {
     result["code"] = code;
     if (url != null) {
       result["url"] = url;
+    }
+    if (contextMessages != null) {
+      result["contextMessages"] = contextMessages
+          .map((DiagnosticMessage value) => value.toJson())
+          .toList();
     }
     if (hasFix != null) {
       result["hasFix"] = hasFix;
@@ -352,6 +389,8 @@ class AnalysisError implements HasToJson {
           correction == other.correction &&
           code == other.code &&
           url == other.url &&
+          listEqual(contextMessages, other.contextMessages,
+              (DiagnosticMessage a, DiagnosticMessage b) => a == b) &&
           hasFix == other.hasFix;
     }
     return false;
@@ -367,6 +406,7 @@ class AnalysisError implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, correction.hashCode);
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
     hash = JenkinsSmiHash.combine(hash, url.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contextMessages.hashCode);
     hash = JenkinsSmiHash.combine(hash, hasFix.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1449,6 +1489,108 @@ class CompletionSuggestionKind implements Enum {
   String toString() => "CompletionSuggestionKind.$name";
 
   String toJson() => name;
+}
+
+/**
+ * DiagnosticMessage
+ *
+ * {
+ *   "message": String
+ *   "location": Location
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DiagnosticMessage implements HasToJson {
+  String _message;
+
+  Location _location;
+
+  /**
+   * The message to be displayed to the user.
+   */
+  String get message => _message;
+
+  /**
+   * The message to be displayed to the user.
+   */
+  void set message(String value) {
+    assert(value != null);
+    this._message = value;
+  }
+
+  /**
+   * The location associated with or referenced by the message. Clients should
+   * provide the ability to navigate to the location.
+   */
+  Location get location => _location;
+
+  /**
+   * The location associated with or referenced by the message. Clients should
+   * provide the ability to navigate to the location.
+   */
+  void set location(Location value) {
+    assert(value != null);
+    this._location = value;
+  }
+
+  DiagnosticMessage(String message, Location location) {
+    this.message = message;
+    this.location = location;
+  }
+
+  factory DiagnosticMessage.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String message;
+      if (json.containsKey("message")) {
+        message =
+            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "message");
+      }
+      Location location;
+      if (json.containsKey("location")) {
+        location = new Location.fromJson(
+            jsonDecoder, jsonPath + ".location", json["location"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "location");
+      }
+      return new DiagnosticMessage(message, location);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "DiagnosticMessage", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["message"] = message;
+    result["location"] = location.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is DiagnosticMessage) {
+      return message == other.message && location == other.location;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
 }
 
 /**

@@ -101,6 +101,15 @@
           The URL of a page containing documentation associated with this error.
         </p>
       </field>
+      <field name="contextMessages" optional="true">
+        <list>
+          <ref>DiagnosticMessage</ref>
+        </list>
+        <p>
+          Additional messages associated with this diagnostic that provide
+          context to help the user understand the diagnostic.
+        </p>
+      </field>
       <field name="hasFix" optional="true">
         <ref>bool</ref>
         <p>
@@ -406,6 +415,31 @@
       </value>
       <value><code>PARAMETER</code></value>
     </enum>
+  </type>
+  <type name="DiagnosticMessage">
+    <p>
+      A message associated with a diagnostic.
+    </p>
+    <p>
+      For example, if the diagnostic is reporting that a variable has been
+      referenced before it was declared, it might have a diagnostic message that
+      indicates where the variable is declared.
+    </p>
+    <object>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The message to be displayed to the user.
+        </p>
+      </field>
+      <field name="location">
+        <ref>Location</ref>
+        <p>
+          The location associated with or referenced by the message. Clients
+          should provide the ability to navigate to the location.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="Element">
     <p>
