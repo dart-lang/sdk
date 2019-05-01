@@ -53,7 +53,7 @@ class ParameterStubGenerator {
       _closedWorld.elementEnvironment;
 
   bool needsSuperGetter(FunctionEntity element) =>
-      _codegenWorld.methodsNeedingSuperGetter.contains(element);
+      _codegenWorld.methodsNeedsSuperGetter(element);
 
   /// Generates stubs to fill in missing optional named or positional arguments
   /// and missing type arguments.  Returns `null` if no stub is needed.

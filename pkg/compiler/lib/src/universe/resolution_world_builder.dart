@@ -66,8 +66,12 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
 
   /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
   /// the usage changes for each member.
+  ///
+  /// If [checkEnqueuerConsistency] is `true` we check that no new member
+  /// usage can be found. This check is performed without changing the already
+  /// collected member usage.
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool dryRun: false});
+      {bool checkEnqueuerConsistency: false});
 
   /// Applies the [dynamicUse] to applicable instance members. Calls
   /// [membersUsed] with the usage changes for each member.
@@ -288,14 +292,22 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   Map<MemberEntity, MemberUsage> get memberUsageForTesting => _memberUsage;
 
-  /// Map containing instance members of live classes that are not yet fully
-  /// live themselves.
-  final Map<String, Set<MemberUsage>> _instanceMembersByName =
+  /// Map containing instance members of live classes that have not yet been
+  /// fully invoked dynamically.
+  ///
+  /// A method is fully invoked if all is optional parameter have been passed
+  /// in some invocation.
+  final Map<String, Set<MemberUsage>> _invokableInstanceMembersByName =
       <String, Set<MemberUsage>>{};
 
-  /// Map containing instance methods of live classes that are not yet
-  /// closurized.
-  final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
+  /// Map containing instance members of live classes that have not yet been
+  /// read from dynamically.
+  final Map<String, Set<MemberUsage>> _readableInstanceMembersByName =
+      <String, Set<MemberUsage>>{};
+
+  /// Map containing instance members of live classes that have not yet been
+  /// written to dynamically.
+  final Map<String, Set<MemberUsage>> _writableInstanceMembersByName =
       <String, Set<MemberUsage>>{};
 
   final Set<FieldEntity> _fieldSetters = new Set<FieldEntity>();
@@ -490,8 +502,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   bool _hasInvokedGetter(MemberEntity member) {
-    return _hasMatchingSelector(_invokedGetters[member.name], member) ||
-        member.isFunction && _methodsNeedingSuperGetter.contains(member);
+    return _hasMatchingSelector(_invokedGetters[member.name], member);
   }
 
   bool _hasInvokedSetter(MemberEntity member) {
@@ -525,23 +536,36 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           _process(
-              _instanceMembersByName,
-              (m) => m.invoke(dynamicUse.selector.callStructure),
-              (u) => !u.hasPendingNormalUse);
+              _invokableInstanceMembersByName,
+              (m) => m.invoke(
+                  Accesses.dynamicAccess, dynamicUse.selector.callStructure),
+              // If not all optional parameters have been passed in invocations
+              // we must keep the member in [_invokableInstanceMembersByName].
+              // TODO(johnniwinther): Also remove from
+              // [_readableInstanceMembersByName] in case of getters/setters.
+              (u) => !u.hasPendingDynamicInvoke);
         }
         break;
       case DynamicUseKind.GET:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
-          _process(_instanceMembersByName, (m) => m.read(),
-              (u) => !u.hasPendingNormalUse);
-          _process(_instanceFunctionsByName, (m) => m.read(),
-              (u) => !u.hasPendingClosurizationUse);
+          _process(
+              _readableInstanceMembersByName,
+              (m) => m.read(Accesses.dynamicAccess),
+              // TODO(johnniwinther): Members cannot be partially read so
+              // we should always remove them.
+              // TODO(johnniwinther): Also remove from
+              // [_invokableInstanceMembersByName] in case of methods.
+              (u) => !u.hasPendingDynamicRead);
         }
         break;
       case DynamicUseKind.SET:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
-          _process(_instanceMembersByName, (m) => m.write(),
-              (u) => !u.hasPendingNormalUse);
+          _process(
+              _writableInstanceMembersByName,
+              (m) => m.write(Accesses.dynamicAccess),
+              // TODO(johnniwinther): Members cannot be partially written so
+              // we should always remove them.
+              (u) => !u.hasPendingDynamicWrite);
         }
         break;
     }
@@ -604,10 +628,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
     // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
     // enqueue.
+
     switch (staticUse.kind) {
-      case StaticUseKind.FIELD_GET:
+      case StaticUseKind.INSTANCE_FIELD_GET:
         break;
-      case StaticUseKind.FIELD_SET:
+      case StaticUseKind.INSTANCE_FIELD_SET:
         _fieldSetters.add(staticUse.element);
         break;
       case StaticUseKind.CLOSURE:
@@ -615,21 +640,27 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         // Already handled above.
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
-        useSet.addAll(usage.read());
+        useSet.addAll(usage.read(Accesses.superAccess));
         _methodsNeedingSuperGetter.add(staticUse.element);
         break;
       case StaticUseKind.SUPER_FIELD_SET:
         _fieldSetters.add(staticUse.element);
-        useSet.addAll(usage.write());
+        useSet.addAll(usage.write(Accesses.superAccess));
         break;
-      case StaticUseKind.GET:
-        useSet.addAll(usage.read());
+      case StaticUseKind.SUPER_GET:
+        useSet.addAll(usage.read(Accesses.superAccess));
+        break;
+      case StaticUseKind.STATIC_GET:
+        useSet.addAll(usage.read(Accesses.staticAccess));
         break;
       case StaticUseKind.STATIC_TEAR_OFF:
-        useSet.addAll(usage.read());
+        useSet.addAll(usage.read(Accesses.staticAccess));
         break;
-      case StaticUseKind.SET:
-        useSet.addAll(usage.write());
+      case StaticUseKind.SUPER_SETTER_SET:
+        useSet.addAll(usage.write(Accesses.superAccess));
+        break;
+      case StaticUseKind.STATIC_SET:
+        useSet.addAll(usage.write(Accesses.staticAccess));
         break;
       case StaticUseKind.FIELD_INIT:
         useSet.addAll(usage.init());
@@ -637,13 +668,20 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.FIELD_CONSTANT_INIT:
         useSet.addAll(usage.constantInit(staticUse.constant));
         break;
-      case StaticUseKind.INVOKE:
+      case StaticUseKind.SUPER_INVOKE:
         registerStaticInvocation(staticUse);
-        useSet.addAll(usage.invoke(staticUse.callStructure));
+        useSet.addAll(
+            usage.invoke(Accesses.superAccess, staticUse.callStructure));
+        break;
+      case StaticUseKind.STATIC_INVOKE:
+        registerStaticInvocation(staticUse);
+        useSet.addAll(
+            usage.invoke(Accesses.staticAccess, staticUse.callStructure));
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        useSet.addAll(usage.invoke(staticUse.callStructure));
+        useSet.addAll(
+            usage.invoke(Accesses.staticAccess, staticUse.callStructure));
         break;
       case StaticUseKind.DIRECT_INVOKE:
         failedAt(element, 'Direct static use is not supported for resolution.');
@@ -692,10 +730,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
 
   @override
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool dryRun: false}) {
+      {bool checkEnqueuerConsistency: false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
-      _processInstantiatedClassMember(cls, member, memberUsed, dryRun: dryRun);
+      _processInstantiatedClassMember(cls, member, memberUsed,
+          checkEnqueuerConsistency: checkEnqueuerConsistency);
     });
   }
 
@@ -720,7 +759,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   MemberUsage _getMemberUsage(MemberEntity member, EnumSet<MemberUse> useSet,
-      {bool dryRun: false}) {
+      {bool checkEnqueuerConsistency: false}) {
     MemberUsage usage = _memberUsage[member];
     if (usage == null) {
       if (member.isInstanceMember) {
@@ -736,11 +775,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         // Note: this assumes that there are no non-native fields on native
         // classes, which may not be the case when a native class is subclassed.
         bool isNative = _nativeBasicData.isNativeClass(cls);
-        usage = new MemberUsage(member, trackParameters: true);
+        usage = new MemberUsage(member);
         if (member.isField && !isNative) {
           useSet.addAll(usage.init());
         }
-        if (!dryRun) {
+        if (!checkEnqueuerConsistency) {
           if (member.isField && isNative) {
             registerUsedElement(member);
           }
@@ -751,99 +790,113 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
           }
         }
 
-        if (!usage.hasRead && _hasInvokedGetter(member)) {
-          useSet.addAll(usage.read());
+        if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
+          useSet.addAll(usage.read(Accesses.dynamicAccess));
         }
-        if (!usage.isFullyInvoked) {
+        if (usage.hasPendingDynamicInvoke) {
           Iterable<CallStructure> callStructures =
               _getInvocationCallStructures(member);
           for (CallStructure callStructure in callStructures) {
-            useSet.addAll(usage.invoke(callStructure));
-            if (usage.isFullyInvoked) {
+            useSet.addAll(usage.invoke(Accesses.dynamicAccess, callStructure));
+            if (!usage.hasPendingDynamicInvoke) {
               break;
             }
           }
         }
-        if (!usage.hasWrite && _hasInvokedSetter(member)) {
-          useSet.addAll(usage.write());
+        if (usage.hasPendingDynamicWrite && _hasInvokedSetter(member)) {
+          useSet.addAll(usage.write(Accesses.dynamicAccess));
         }
 
-        if (!dryRun) {
-          if (usage.hasPendingNormalUse) {
-            // The element is not yet used. Add it to the list of instance
-            // members to still be processed.
-            _instanceMembersByName
-                .putIfAbsent(memberName, () => new Set<MemberUsage>())
+        if (!checkEnqueuerConsistency) {
+          if (usage.hasPendingDynamicInvoke) {
+            _invokableInstanceMembersByName
+                .putIfAbsent(memberName, () => {})
                 .add(usage);
           }
-          if (usage.hasPendingClosurizationUse) {
-            // Store the member in [instanceFunctionsByName] to catch
-            // getters on the function.
-            _instanceFunctionsByName
-                .putIfAbsent(memberName, () => new Set<MemberUsage>())
+          if (usage.hasPendingDynamicRead) {
+            _readableInstanceMembersByName
+                .putIfAbsent(memberName, () => {})
+                .add(usage);
+          }
+          if (usage.hasPendingDynamicWrite) {
+            _writableInstanceMembersByName
+                .putIfAbsent(memberName, () => {})
                 .add(usage);
           }
         }
       } else {
-        usage = new MemberUsage(member, trackParameters: true);
+        usage = new MemberUsage(member);
         if (member.isField) {
           useSet.addAll(usage.init());
         }
       }
-      if (!dryRun) {
+      if (!checkEnqueuerConsistency) {
         _memberUsage[member] = usage;
       }
     }
     return usage;
   }
 
-  void _processInstantiatedClassMember(ClassEntity cls,
-      covariant MemberEntity member, MemberUsedCallback memberUsed,
-      {bool dryRun: false}) {
+  void _processInstantiatedClassMember(
+      ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
+      {bool checkEnqueuerConsistency: false}) {
     if (!member.isInstanceMember) return;
     String memberName = member.name;
 
     MemberUsage usage = _memberUsage[member];
     if (usage == null) {
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-      usage = _getMemberUsage(member, useSet, dryRun: dryRun);
-      memberUsed(usage.entity, useSet);
+      usage = _getMemberUsage(member, useSet,
+          checkEnqueuerConsistency: checkEnqueuerConsistency);
+      if (useSet.isNotEmpty) {
+        if (checkEnqueuerConsistency) {
+          throw new SpannableAssertionFailure(member,
+              'Unenqueued usage of $member: \nbefore: <none>\nafter : $usage');
+        } else {
+          memberUsed(usage.entity, useSet);
+        }
+      }
     } else {
       MemberUsage original = usage;
-      if (dryRun) {
+      if (checkEnqueuerConsistency) {
         usage = usage.clone();
       }
-      if (!usage.fullyUsed) {
+      if (usage.hasPendingDynamicUse) {
         EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-        if (!usage.hasRead && _hasInvokedGetter(member)) {
-          useSet.addAll(usage.read());
+        if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
+          useSet.addAll(usage.read(Accesses.dynamicAccess));
         }
-        if (!usage.isFullyInvoked) {
+        if (usage.hasPendingDynamicInvoke) {
           Iterable<CallStructure> callStructures =
               _getInvocationCallStructures(member);
           for (CallStructure callStructure in callStructures) {
-            useSet.addAll(usage.invoke(callStructure));
-            if (usage.isFullyInvoked) {
+            useSet.addAll(usage.invoke(Accesses.dynamicAccess, callStructure));
+            if (!usage.hasPendingDynamicInvoke) {
               break;
             }
           }
         }
-        if (!usage.hasWrite && _hasInvokedSetter(member)) {
-          useSet.addAll(usage.write());
+        if (usage.hasPendingDynamicWrite && _hasInvokedSetter(member)) {
+          useSet.addAll(usage.write(Accesses.dynamicAccess));
         }
-        if (!dryRun) {
-          if (!usage.hasPendingNormalUse) {
-            _instanceMembersByName[memberName]?.remove(usage);
+        if (!checkEnqueuerConsistency) {
+          if (!usage.hasPendingDynamicRead) {
+            _readableInstanceMembersByName[memberName]?.remove(usage);
           }
-          if (!usage.hasPendingClosurizationUse) {
-            _instanceFunctionsByName[memberName]?.remove(usage);
+          if (!usage.hasPendingDynamicInvoke) {
+            _invokableInstanceMembersByName[memberName]?.remove(usage);
           }
+          if (!usage.hasPendingDynamicWrite) {
+            _writableInstanceMembersByName[memberName]?.remove(usage);
+          }
+        }
+        if (checkEnqueuerConsistency && !original.dataEquals(usage)) {
+          _elementMap.reporter.internalError(
+              member,
+              'Unenqueued usage of $member: \n'
+              'before: $original\nafter : $usage');
         }
         memberUsed(usage.entity, useSet);
-      }
-      if (dryRun && !original.dataEquals(usage)) {
-        _elementMap.reporter.internalError(member,
-            'Unenqueued usage of $member: before: $original, after: $usage');
       }
     }
   }

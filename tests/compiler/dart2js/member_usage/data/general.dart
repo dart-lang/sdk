@@ -165,7 +165,7 @@ class Class1b {
 
 /*element: Class2.:invoke*/
 class Class2 {
-  /*element: Class2.c:init,read*/
+  /*element: Class2.c:init,invoke,read=static*/
   Class1a c;
 }
 

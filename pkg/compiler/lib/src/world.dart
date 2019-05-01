@@ -198,6 +198,10 @@ abstract class JClosedWorld implements World {
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
   /// [receiver]. If multiple targets exist, `null` is returned.
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver);
+
+  /// Returns the set of read, write, and invocation accesses found on [member]
+  /// during the closed world computation.
+  MemberAccess getMemberAccess(MemberEntity member);
 }
 
 abstract class OpenWorld implements World {

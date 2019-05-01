@@ -46,9 +46,9 @@ abstract class CodegenWorld extends BuiltWorld {
 
   Map<Selector, SelectorConstraints> invocationsByName(String name);
 
-  Map<Selector, SelectorConstraints> getterInvocationsByName(String name);
+  Iterable<Selector> getterInvocationsByName(String name);
 
-  Map<Selector, SelectorConstraints> setterInvocationsByName(String name);
+  Iterable<Selector> setterInvocationsByName(String name);
 
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
@@ -68,7 +68,7 @@ abstract class CodegenWorld extends BuiltWorld {
   /// All directly or indirectly instantiated classes.
   Iterable<ClassEntity> get instantiatedClasses;
 
-  Iterable<FunctionEntity> get methodsNeedingSuperGetter;
+  bool methodsNeedsSuperGetter(FunctionEntity function);
 
   /// The calls [f] for all static fields.
   void forEachStaticField(void Function(FieldEntity) f);
@@ -111,8 +111,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   /// Classes implemented by directly instantiated classes.
   final Set<ClassEntity> _implementedClasses = new Set<ClassEntity>();
 
-  final Set<FunctionEntity> _methodsNeedingSuperGetter =
-      new Set<FunctionEntity>();
   final Map<String, Map<Selector, SelectorConstraints>> _invokedNames =
       <String, Map<Selector, SelectorConstraints>>{};
   final Map<String, Map<Selector, SelectorConstraints>> _invokedGetters =
@@ -129,14 +127,22 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   final Map<MemberEntity, MemberUsage> _memberUsage =
       <MemberEntity, MemberUsage>{};
 
-  /// Map containing instance members of live classes that are not yet live
-  /// themselves.
-  final Map<String, Set<MemberUsage>> _instanceMembersByName =
+  /// Map containing instance members of live classes that have not yet been
+  /// fully invoked dynamically.
+  ///
+  /// A method is fully invoked if all is optional parameter have been passed
+  /// in some invocation.
+  final Map<String, Set<MemberUsage>> _invokableInstanceMembersByName =
       <String, Set<MemberUsage>>{};
 
-  /// Map containing instance methods of live classes that are not yet
-  /// closurized.
-  final Map<String, Set<MemberUsage>> _instanceFunctionsByName =
+  /// Map containing instance members of live classes that have not yet been
+  /// read from dynamically.
+  final Map<String, Set<MemberUsage>> _readableInstanceMembersByName =
+      <String, Set<MemberUsage>>{};
+
+  /// Map containing instance members of live classes that have not yet been
+  /// written to dynamically.
+  final Map<String, Set<MemberUsage>> _writableInstanceMembersByName =
       <String, Set<MemberUsage>>{};
 
   final Set<DartType> _isChecks = new Set<DartType>();
@@ -208,35 +214,51 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     return false;
   }
 
-  bool hasInvocation(MemberEntity member) {
-    return _hasMatchingSelector(
-        _invokedNames[member.name], member, _closedWorld);
+  Iterable<CallStructure> _getMatchingCallStructures(
+      Map<Selector, SelectorConstraints> selectors, MemberEntity member) {
+    if (selectors == null) return const <CallStructure>[];
+    Set<CallStructure> callStructures;
+    for (Selector selector in selectors.keys) {
+      if (selector.appliesUnnamed(member)) {
+        SelectorConstraints masks = selectors[selector];
+        if (masks.canHit(member, selector.memberName, _closedWorld)) {
+          callStructures ??= new Set<CallStructure>();
+          callStructures.add(selector.callStructure);
+        }
+      }
+    }
+    return callStructures ?? const <CallStructure>[];
   }
 
-  bool hasInvokedGetter(MemberEntity member) {
-    return _hasMatchingSelector(
-            _invokedGetters[member.name], member, _closedWorld) ||
-        member.isFunction && _methodsNeedingSuperGetter.contains(member);
+  Iterable<CallStructure> _getInvocationCallStructures(MemberEntity member) {
+    return _getMatchingCallStructures(_invokedNames[member.name], member);
   }
 
-  bool hasInvokedSetter(MemberEntity member) {
+  bool _hasInvokedGetter(MemberEntity member) {
+    return _hasMatchingSelector(
+        _invokedGetters[member.name], member, _closedWorld);
+  }
+
+  bool _hasInvokedSetter(MemberEntity member) {
     return _hasMatchingSelector(
         _invokedSetters[member.name], member, _closedWorld);
   }
 
-  bool registerDynamicUse(
+  void registerDynamicUse(
       DynamicUse dynamicUse, MemberUsedCallback memberUsed) {
     Selector selector = dynamicUse.selector;
     String methodName = selector.name;
 
-    void _process(Map<String, Set<MemberUsage>> memberMap,
-        EnumSet<MemberUse> action(MemberUsage usage)) {
+    void _process(
+        Map<String, Set<MemberUsage>> memberMap,
+        EnumSet<MemberUse> action(MemberUsage usage),
+        bool shouldBeRemoved(MemberUsage usage)) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
         if (selector.appliesUnnamed(usage.entity) &&
             _selectorConstraintsStrategy.appliedUnnamed(
                 dynamicUse, usage.entity, _closedWorld)) {
           memberUsed(usage.entity, action(usage));
-          return true;
+          return shouldBeRemoved(usage);
         }
         return false;
       });
@@ -247,27 +269,31 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         registerDynamicInvocation(
             dynamicUse.selector, dynamicUse.typeArguments);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
-          // We don't track parameters in the codegen world builder, so we
-          // pass `null` instead of the concrete call structure.
-          _process(_instanceMembersByName, (m) => m.invoke(null));
-          return true;
+          _process(
+              _invokableInstanceMembersByName,
+              (m) => m.invoke(Accesses.dynamicAccess, selector.callStructure),
+              // If not all optional parameters have been passed in invocations
+              // we must keep the member in [_invokableInstanceMembersByName].
+              (u) => !u.hasPendingDynamicInvoke);
         }
         break;
       case DynamicUseKind.GET:
         if (_registerNewSelector(dynamicUse, _invokedGetters)) {
-          _process(_instanceMembersByName, (m) => m.read());
-          _process(_instanceFunctionsByName, (m) => m.read());
-          return true;
+          _process(
+              _readableInstanceMembersByName,
+              (m) => m.read(Accesses.dynamicAccess),
+              (u) => !u.hasPendingDynamicRead);
         }
         break;
       case DynamicUseKind.SET:
         if (_registerNewSelector(dynamicUse, _invokedSetters)) {
-          _process(_instanceMembersByName, (m) => m.write());
-          return true;
+          _process(
+              _writableInstanceMembersByName,
+              (m) => m.write(Accesses.dynamicAccess),
+              (u) => !u.hasPendingDynamicWrite);
         }
         break;
     }
-    return false;
   }
 
   bool _registerNewSelector(DynamicUse dynamicUse,
@@ -296,32 +322,43 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     MemberUsage usage = _getMemberUsage(element, useSet);
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
-        useSet.addAll(usage.read());
+        useSet.addAll(usage.read(Accesses.staticAccess));
         break;
-      case StaticUseKind.FIELD_GET:
-      case StaticUseKind.FIELD_SET:
+      case StaticUseKind.INSTANCE_FIELD_GET:
+      case StaticUseKind.INSTANCE_FIELD_SET:
       case StaticUseKind.CALL_METHOD:
         // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
         // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
         // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
         // enqueue.
         break;
-      case StaticUseKind.INVOKE:
+      case StaticUseKind.SUPER_INVOKE:
         registerStaticInvocation(staticUse);
-        // We don't track parameters in the codegen world builder, so we
-        // pass `null` instead of the concrete call structure.
-        useSet.addAll(usage.invoke(null));
+        useSet.addAll(
+            usage.invoke(Accesses.superAccess, staticUse.callStructure));
+        break;
+      case StaticUseKind.STATIC_INVOKE:
+        registerStaticInvocation(staticUse);
+        useSet.addAll(
+            usage.invoke(Accesses.staticAccess, staticUse.callStructure));
         break;
       case StaticUseKind.SUPER_FIELD_SET:
-      case StaticUseKind.SET:
-        useSet.addAll(usage.write());
+        useSet.addAll(usage.write(Accesses.superAccess));
+        break;
+      case StaticUseKind.SUPER_SETTER_SET:
+        useSet.addAll(usage.write(Accesses.superAccess));
+        break;
+      case StaticUseKind.STATIC_SET:
+        useSet.addAll(usage.write(Accesses.staticAccess));
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
-        _methodsNeedingSuperGetter.add(element);
-        useSet.addAll(usage.read());
+        useSet.addAll(usage.read(Accesses.superAccess));
         break;
-      case StaticUseKind.GET:
-        useSet.addAll(usage.read());
+      case StaticUseKind.SUPER_GET:
+        useSet.addAll(usage.read(Accesses.superAccess));
+        break;
+      case StaticUseKind.STATIC_GET:
+        useSet.addAll(usage.read(Accesses.staticAccess));
         break;
       case StaticUseKind.FIELD_INIT:
         useSet.addAll(usage.init());
@@ -333,14 +370,15 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
-        useSet.addAll(usage.invoke(null));
+        useSet.addAll(
+            usage.invoke(Accesses.staticAccess, staticUse.callStructure));
         break;
       case StaticUseKind.DIRECT_INVOKE:
         MemberEntity member = staticUse.element;
         // We don't track parameters in the codegen world builder, so we
         // pass `null` instead of the concrete call structure.
-        useSet.addAll(usage.invoke(null));
-        _instanceMembersByName[usage.entity.name]?.remove(usage);
+        useSet.addAll(
+            usage.invoke(Accesses.staticAccess, staticUse.callStructure));
         if (staticUse.typeArguments?.isNotEmpty ?? false) {
           registerDynamicInvocation(
               new Selector.call(member.memberName, staticUse.callStructure),
@@ -361,85 +399,99 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool dryRun: false}) {
+      {bool checkEnqueuerConsistency: false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
-      _processInstantiatedClassMember(cls, member, memberUsed, dryRun: dryRun);
+      _processInstantiatedClassMember(cls, member, memberUsed,
+          checkEnqueuerConsistency: checkEnqueuerConsistency);
     });
   }
 
   void _processInstantiatedClassMember(
       ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
-      {bool dryRun: false}) {
+      {bool checkEnqueuerConsistency: false}) {
     if (!member.isInstanceMember) return;
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-    _getMemberUsage(member, useSet);
+    MemberUsage usage = _getMemberUsage(member, useSet);
     if (useSet.isNotEmpty) {
-      memberUsed(member, useSet);
+      if (checkEnqueuerConsistency) {
+        throw new SpannableAssertionFailure(member,
+            'Unenqueued usage of $member: \nbefore: <none>\nafter : $usage');
+      } else {
+        memberUsed(member, useSet);
+      }
     }
   }
 
   MemberUsage _getMemberUsage(MemberEntity member, EnumSet<MemberUse> useSet,
-      {bool dryRun: false}) {
+      {bool checkEnqueuerConsistency: false}) {
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
     // [StrongModeConstraint].
     MemberUsage usage = _memberUsage[member];
     if (usage == null) {
+      MemberAccess potentialAccess = _closedWorld.getMemberAccess(member);
       if (member.isInstanceMember) {
         String memberName = member.name;
         ClassEntity cls = member.enclosingClass;
         bool isNative = _nativeBasicData.isNativeClass(cls);
-        usage = new MemberUsage(member);
+        usage = new MemberUsage(member, potentialAccess: potentialAccess);
         if (member.isField && !isNative) {
           useSet.addAll(usage.init());
         }
         if (member is JSignatureMethod) {
-          // We mark signature methods as "always used" to prevent them from being
-          // optimized away.
+          // We mark signature methods as "always used" to prevent them from
+          // being optimized away.
           // TODO(johnniwinther): Make this a part of the regular enqueueing.
-          useSet.addAll(usage.invoke(CallStructure.NO_ARGS));
+          useSet.addAll(
+              usage.invoke(Accesses.dynamicAccess, CallStructure.NO_ARGS));
         }
 
-        if (!usage.hasRead && hasInvokedGetter(member)) {
-          useSet.addAll(usage.read());
+        if (usage.hasPendingDynamicRead && _hasInvokedGetter(member)) {
+          useSet.addAll(usage.read(Accesses.dynamicAccess));
         }
-        if (!usage.hasWrite && hasInvokedSetter(member)) {
-          useSet.addAll(usage.write());
+        if (usage.hasPendingDynamicWrite && _hasInvokedSetter(member)) {
+          useSet.addAll(usage.write(Accesses.dynamicAccess));
         }
-        if (!usage.hasInvoke && hasInvocation(member)) {
-          // We don't track parameters in the codegen world builder, so we
-          // pass `null` instead of the concrete call structures.
-          useSet.addAll(usage.invoke(null));
+        if (usage.hasPendingDynamicInvoke) {
+          Iterable<CallStructure> callStructures =
+              _getInvocationCallStructures(member);
+          for (CallStructure callStructure in callStructures) {
+            useSet.addAll(usage.invoke(Accesses.dynamicAccess, callStructure));
+            if (!usage.hasPendingDynamicInvoke) {
+              break;
+            }
+          }
         }
 
-        if (!dryRun) {
-          if (usage.hasPendingClosurizationUse) {
-            // Store the member in [instanceFunctionsByName] to catch
-            // getters on the function.
-            _instanceFunctionsByName
-                .putIfAbsent(usage.entity.name, () => new Set<MemberUsage>())
+        if (!checkEnqueuerConsistency) {
+          if (usage.hasPendingDynamicInvoke) {
+            _invokableInstanceMembersByName
+                .putIfAbsent(memberName, () => {})
                 .add(usage);
           }
-          if (usage.hasPendingNormalUse) {
-            // The element is not yet used. Add it to the list of instance
-            // members to still be processed.
-            _instanceMembersByName
-                .putIfAbsent(memberName, () => new Set<MemberUsage>())
+          if (usage.hasPendingDynamicRead) {
+            _readableInstanceMembersByName
+                .putIfAbsent(memberName, () => {})
+                .add(usage);
+          }
+          if (usage.hasPendingDynamicWrite) {
+            _writableInstanceMembersByName
+                .putIfAbsent(memberName, () => {})
                 .add(usage);
           }
         }
       } else {
-        usage = new MemberUsage(member);
+        usage = new MemberUsage(member, potentialAccess: potentialAccess);
         if (member.isField) {
           useSet.addAll(usage.init());
         }
       }
-      if (!dryRun) {
+      if (!checkEnqueuerConsistency) {
         _memberUsage[member] = usage;
       }
     } else {
-      if (dryRun) {
+      if (checkEnqueuerConsistency) {
         usage = usage.clone();
       }
     }
@@ -521,7 +573,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         constTypeLiterals: _constTypeLiterals,
         directlyInstantiatedClasses: directlyInstantiatedClasses,
         typeVariableTypeLiterals: typeVariableTypeLiterals,
-        methodsNeedingSuperGetter: _methodsNeedingSuperGetter,
         instantiatedClasses: instantiatedClasses,
         isChecks: _isChecks,
         instantiatedTypes: _instantiatedTypes,
@@ -548,9 +599,6 @@ class CodegenWorldImpl implements CodegenWorld {
 
   @override
   final Iterable<TypeVariableType> typeVariableTypeLiterals;
-
-  @override
-  final Iterable<FunctionEntity> methodsNeedingSuperGetter;
 
   @override
   final Iterable<ClassEntity> instantiatedClasses;
@@ -580,7 +628,6 @@ class CodegenWorldImpl implements CodegenWorld {
       {this.constTypeLiterals,
       this.directlyInstantiatedClasses,
       this.typeVariableTypeLiterals,
-      this.methodsNeedingSuperGetter,
       this.instantiatedClasses,
       this.isChecks,
       this.instantiatedTypes,
@@ -754,15 +801,23 @@ class CodegenWorldImpl implements CodegenWorld {
 
   @override
   bool hasInvokedGetter(MemberEntity member) {
-    return _hasMatchingSelector(
-            _invokedGetters[member.name], member, _closedWorld) ||
-        member.isFunction && methodsNeedingSuperGetter.contains(member);
+    MemberUsage memberUsage = _liveMemberUsage[member];
+    if (memberUsage == null) return false;
+    return memberUsage.reads.contains(Access.dynamicAccess);
+  }
+
+  @override
+  bool methodsNeedsSuperGetter(FunctionEntity function) {
+    MemberUsage memberUsage = _liveMemberUsage[function];
+    if (memberUsage == null) return false;
+    return memberUsage.reads.contains(Access.superAccess);
   }
 
   @override
   bool hasInvokedSetter(MemberEntity member) {
-    return _hasMatchingSelector(
-        _invokedSetters[member.name], member, _closedWorld);
+    MemberUsage memberUsage = _liveMemberUsage[member];
+    if (memberUsage == null) return false;
+    return memberUsage.writes.contains(Access.dynamicAccess);
   }
 
   Map<Selector, SelectorConstraints> _asUnmodifiable(
@@ -777,13 +832,13 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  Map<Selector, SelectorConstraints> getterInvocationsByName(String name) {
-    return _asUnmodifiable(_invokedGetters[name]);
+  Iterable<Selector> getterInvocationsByName(String name) {
+    return _invokedGetters[name]?.keys;
   }
 
   @override
-  Map<Selector, SelectorConstraints> setterInvocationsByName(String name) {
-    return _asUnmodifiable(_invokedSetters[name]);
+  Iterable<Selector> setterInvocationsByName(String name) {
+    return _invokedSetters[name]?.keys;
   }
 
   @override

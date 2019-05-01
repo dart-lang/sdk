@@ -1084,11 +1084,12 @@ class FragmentEmitter {
     js.Expression code;
     if (field.isElided) {
       ConstantValue constantValue = field.constantValue;
+      assert(
+          constantValue != null, "No constant value for elided field: $field");
       if (constantValue == null) {
-        // TODO(johnniwinther): Static types are not honoured in the dynamic
-        // uses created in codegen, leading to dead code, as known by the closed
-        // world computation, being triggered by the codegen enqueuer. We
-        // cautiously generate a null constant for this case.
+        // This should never occur because codegen member usage is now limited
+        // by closed world member usage. In the case we've missed a spot we
+        // cautiously generate a null constant.
         constantValue = new NullConstantValue();
       }
       code = js.js(

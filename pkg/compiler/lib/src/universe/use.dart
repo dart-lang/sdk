@@ -147,8 +147,11 @@ enum StaticUseKind {
   STATIC_TEAR_OFF,
   SUPER_TEAR_OFF,
   SUPER_FIELD_SET,
-  FIELD_GET,
-  FIELD_SET,
+  SUPER_GET,
+  SUPER_SETTER_SET,
+  SUPER_INVOKE,
+  INSTANCE_FIELD_GET,
+  INSTANCE_FIELD_SET,
   CLOSURE,
   CLOSURE_CALL,
   CALL_METHOD,
@@ -156,9 +159,9 @@ enum StaticUseKind {
   CONST_CONSTRUCTOR_INVOKE,
   DIRECT_INVOKE,
   INLINING,
-  INVOKE,
-  GET,
-  SET,
+  STATIC_INVOKE,
+  STATIC_GET,
+  STATIC_SET,
   FIELD_INIT,
   FIELD_CONSTANT_INIT,
 }
@@ -197,9 +200,10 @@ class StaticUse {
   String get shortText {
     StringBuffer sb = new StringBuffer();
     switch (kind) {
-      case StaticUseKind.FIELD_SET:
+      case StaticUseKind.INSTANCE_FIELD_SET:
       case StaticUseKind.SUPER_FIELD_SET:
-      case StaticUseKind.SET:
+      case StaticUseKind.SUPER_SETTER_SET:
+      case StaticUseKind.STATIC_SET:
         sb.write('set:');
         break;
       case StaticUseKind.FIELD_INIT:
@@ -268,8 +272,8 @@ class StaticUse {
         failedAt(element,
             "Not CallStructure for static invocation of element $element."));
 
-    return new GenericStaticUse(element, StaticUseKind.INVOKE, callStructure,
-        typeArguments, deferredImport);
+    return new GenericStaticUse(element, StaticUseKind.STATIC_INVOKE,
+        callStructure, typeArguments, deferredImport);
   }
 
   /// Closurization of a static or top-level function [element].
@@ -300,7 +304,7 @@ class StaticUse {
         element.isField || element.isGetter,
         failedAt(element,
             "Static get element $element must be a field or a getter."));
-    return new StaticUse.internal(element, StaticUseKind.GET,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_GET,
         deferredImport: deferredImport);
   }
 
@@ -317,7 +321,7 @@ class StaticUse {
         (element.isField && element.isAssignable) || element.isSetter,
         failedAt(element,
             "Static set element $element must be a field or a setter."));
-    return new StaticUse.internal(element, StaticUseKind.SET,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_SET,
         deferredImport: deferredImport);
   }
 
@@ -348,7 +352,7 @@ class StaticUse {
         failedAt(element,
             "Not CallStructure for super invocation of element $element."));
     return new GenericStaticUse(
-        element, StaticUseKind.INVOKE, callStructure, typeArguments);
+        element, StaticUseKind.SUPER_INVOKE, callStructure, typeArguments);
   }
 
   /// Read access of a super field or getter [element].
@@ -361,7 +365,7 @@ class StaticUse {
         element.isField || element.isGetter,
         failedAt(element,
             "Super get element $element must be a field or a getter."));
-    return new StaticUse.internal(element, StaticUseKind.GET);
+    return new StaticUse.internal(element, StaticUseKind.SUPER_GET);
   }
 
   /// Write access of a super field [element].
@@ -383,7 +387,7 @@ class StaticUse {
             element, "Super set element $element must be an instance method."));
     assert(element.isSetter,
         failedAt(element, "Super set element $element must be a setter."));
-    return new StaticUse.internal(element, StaticUseKind.SET);
+    return new StaticUse.internal(element, StaticUseKind.SUPER_SETTER_SET);
   }
 
   /// Closurization of a super method [element].
@@ -411,7 +415,7 @@ class StaticUse {
             element,
             "Not CallStructure for super constructor invocation of element "
             "$element."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
 
@@ -425,14 +429,14 @@ class StaticUse {
             element,
             "Not CallStructure for constructor body invocation of element "
             "$element."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
 
   /// Direct invocation of a generator (body) [element], as a static call or
   /// through a this or super constructor call.
   factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: CallStructure.NO_ARGS);
   }
 
@@ -459,7 +463,7 @@ class StaticUse {
         element.isField || element.isGetter,
         failedAt(element,
             "Direct get element $element must be a field or a getter."));
-    return new StaticUse.internal(element, StaticUseKind.GET);
+    return new StaticUse.internal(element, StaticUseKind.STATIC_GET);
   }
 
   /// Direct write access of a field [element].
@@ -470,7 +474,7 @@ class StaticUse {
             "Direct set element $element must be an instance member."));
     assert(element.isField,
         failedAt(element, "Direct set element $element must be a field."));
-    return new StaticUse.internal(element, StaticUseKind.SET);
+    return new StaticUse.internal(element, StaticUseKind.STATIC_SET);
   }
 
   /// Constructor invocation of [element] with the given [callStructure].
@@ -486,7 +490,7 @@ class StaticUse {
             element,
             "Not CallStructure for constructor invocation of element "
             "$element."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
 
@@ -559,7 +563,7 @@ class StaticUse {
         element.isInstanceMember || element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
-    return new StaticUse.internal(element, StaticUseKind.FIELD_GET);
+    return new StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_GET);
   }
 
   /// Write access of an instance field or boxed field [element].
@@ -568,7 +572,7 @@ class StaticUse {
         element.isInstanceMember || element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
-    return new StaticUse.internal(element, StaticUseKind.FIELD_SET);
+    return new StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_SET);
   }
 
   /// Read of a local function [element].
@@ -592,7 +596,7 @@ class StaticUse {
   /// Implicit method/constructor invocation of [element] created by the
   /// backend.
   factory StaticUse.implicitInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: element.parameterStructure.callStructure);
   }
 

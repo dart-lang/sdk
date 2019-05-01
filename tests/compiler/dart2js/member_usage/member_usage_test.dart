@@ -11,6 +11,7 @@ import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/member_usage.dart';
 import 'package:compiler/src/universe/resolution_world_builder.dart';
+import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/util/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
@@ -55,6 +56,31 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
     Enqueuer.skipEnqueuerCheckForTesting = skipEnqueuerCheck;
   }
 
+  /// Compute a short textual representation of [access] on member.
+  ///
+  /// Dynamic access on instance members and static access on non-instance
+  /// members is implicit, so we only annotate super access and static access
+  /// not implied by dynamic or super access.
+  String computeAccessText(MemberEntity member, EnumSet<Access> access,
+      [String prefix]) {
+    StringBuffer sb = new StringBuffer();
+    String delimiter = '';
+    if (prefix != null) {
+      sb.write(prefix);
+      delimiter = ':';
+    }
+    if (access.contains(Access.superAccess)) {
+      sb.write(delimiter);
+      sb.write('super');
+    } else if (member.isInstanceMember &&
+        access.contains(Access.staticAccess) &&
+        !access.contains(Access.dynamicAccess)) {
+      sb.write(delimiter);
+      sb.write('static');
+    }
+    return sb.toString();
+  }
+
   @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
@@ -71,15 +97,20 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
         features.add(Tags.init);
       }
       if (memberUsage.hasRead) {
-        features.add(Tags.read);
+        features[Tags.read] = computeAccessText(member, memberUsage.reads);
       }
       if (memberUsage.hasWrite) {
-        features.add(Tags.write);
+        features[Tags.write] = computeAccessText(member, memberUsage.writes);
       }
-      if (memberUsage.isFullyInvoked) {
-        features.add(Tags.invoke);
-      } else if (memberUsage.hasInvoke) {
-        features[Tags.invoke] = memberUsage.invokedParameters.shortText;
+      if (memberUsage.hasInvoke) {
+        if (memberUsage is MethodUsage &&
+            !memberUsage.parameterUsage.isFullyUsed) {
+          features[Tags.invoke] = computeAccessText(member, memberUsage.invokes,
+              memberUsage.invokedParameters.shortText);
+        } else {
+          features[Tags.invoke] =
+              computeAccessText(member, memberUsage.invokes);
+        }
       }
     }
     Id id = computeEntityId(node);

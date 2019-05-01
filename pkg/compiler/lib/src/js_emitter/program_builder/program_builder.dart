@@ -477,7 +477,7 @@ class ProgramBuilder {
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
     if (_classes.containsKey(_commonElements.objectClass)) {
-      var toStringInvocation = _namer.invocationName(Selectors.toString_);
+      js.Name toStringInvocation = _namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
       // from JavaScript.
       _classes[_commonElements.objectClass].callStubs.add(_buildStubMethod(
@@ -492,22 +492,23 @@ class ProgramBuilder {
     // a regular getter that returns a JavaScript function and tearing off
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
-    var interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
-    var stubNames = new Set<String>();
+    Class interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
+    Set<String> stubNames = {};
     librariesMap
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
           _elementEnvironment.forEachLocalClassMember(cls,
               (MemberEntity member) {
-            var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
+            String jsName =
+                _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
-              var selectors =
+              Iterable<Selector> selectors =
                   _codegenWorld.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
-                for (var selector in selectors.keys) {
-                  var stubName = _namer.invocationName(selector);
+                for (Selector selector in selectors) {
+                  js.Name stubName = _namer.invocationName(selector);
                   if (stubNames.add(stubName.key)) {
                     interceptorClass.callStubs.add(_buildStubMethod(stubName,
                         js.js('function(obj) { return obj.# }', [jsName]),
@@ -518,7 +519,7 @@ class ProgramBuilder {
             }
 
             if (member.isSetter || (member.isField && !member.isConst)) {
-              var selectors =
+              Iterable<Selector> selectors =
                   _codegenWorld.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 var stubName = _namer.setterForMember(member);
@@ -765,11 +766,11 @@ class ProgramBuilder {
           assert(!field.needsUncheckedSetter);
           FieldEntity element = field.element;
           js.Expression code = _generatedCode[element];
+          assert(code != null, "No setter code for field: $field");
           if (code == null) {
-            // TODO(johnniwinther): Static types are not honoured in the dynamic
-            // uses created in codegen, leading to dead code, as known by the
-            // closed world computation, being triggered by the codegen
-            // enqueuer. We cautiously generate an empty function for this case.
+            // This should never occur because codegen member usage is now
+            // limited by closed world member usage. In the case we've missed a
+            // spot we cautiously generate an empty function.
             code = js.js("function() {}");
           }
           js.Name name = _namer.deriveSetterName(field.accessorName);
@@ -901,9 +902,8 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _codegenWorld.hasInvokedGetter(element);
-        assert(canTearOff ||
-            !_codegenWorld.methodsNeedingSuperGetter.contains(element));
+        canTearOff = _codegenWorld.hasInvokedGetter(element) ||
+            _codegenWorld.methodsNeedsSuperGetter(element);
         tearOffName = _namer.getterForElement(element);
       }
     }

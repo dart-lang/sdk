@@ -1979,6 +1979,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // for this to work.
       assert(selector.applies(target),
           failedAt(node, '$selector does not apply to $target'));
+      assert(!selector.isGetter && !selector.isSetter,
+          "Unexpected direct invocation selector: $selector.");
       _registry.registerStaticUse(new StaticUse.directInvoke(
           target, selector.callStructure, node.typeArguments));
     } else {

@@ -107,7 +107,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   void _registerInstantiatedType(InterfaceType type,
       {bool nativeUsage: false}) {
-    task.measure(() {
+    task.measureSubtask('codegen.typeUse', () {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse);
       listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
     });
@@ -127,7 +127,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         failedAt(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    }, dryRun: true);
+    }, checkEnqueuerConsistency: true);
   }
 
   /// Callback for applying the use of a [cls].
@@ -160,26 +160,28 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   @override
   void processDynamicUse(DynamicUse dynamicUse) {
-    task.measure(() {
+    task.measureSubtask('codegen.dynamicUse', () {
       _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
   @override
   void processStaticUse(StaticUse staticUse) {
-    _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
-    switch (staticUse.kind) {
-      case StaticUseKind.CONSTRUCTOR_INVOKE:
-      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        processTypeUse(new TypeUse.instantiation(staticUse.type));
-        break;
-      case StaticUseKind.INLINING:
-        // TODO(johnniwinther): Should this be tracked with _MemberUsage ?
-        listener.registerUsedElement(staticUse.element);
-        break;
-      default:
-        break;
-    }
+    task.measureSubtask('codegen.staticUse', () {
+      _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
+      switch (staticUse.kind) {
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+          processTypeUse(new TypeUse.instantiation(staticUse.type));
+          break;
+        case StaticUseKind.INLINING:
+          // TODO(johnniwinther): Should this be tracked with _MemberUsage ?
+          listener.registerUsedElement(staticUse.element);
+          break;
+        default:
+          break;
+      }
+    });
   }
 
   @override
@@ -229,7 +231,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   @override
   void processConstantUse(ConstantUse constantUse) {
-    task.measure(() {
+    task.measureSubtask('codegen.constantUse', () {
       if (_worldBuilder.registerConstantUse(constantUse)) {
         applyImpact(listener.registerUsedConstant(constantUse.value));
         _recentConstants = true;

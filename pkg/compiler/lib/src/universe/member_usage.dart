@@ -7,6 +7,8 @@ import 'dart:math' as Math;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../js_model/closure.dart';
+import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'call_structure.dart';
 
@@ -37,6 +39,10 @@ abstract class AbstractUsage<T> {
 
 /// Registry for the observed use of a member [entity] in the open world.
 abstract class MemberUsage extends AbstractUsage<MemberUse> {
+  /// Constant empty access set used as the potential access set for impossible
+  /// accesses, for instance writing to a final field or invoking a setter.
+  static const EnumSet<Access> emptySet = const EnumSet.fixed(0);
+
   final MemberEntity entity;
 
   MemberUsage.internal(this.entity) : super();
@@ -44,82 +50,140 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   MemberUsage.cloned(this.entity, EnumSet<MemberUse> pendingUse)
       : super.cloned(pendingUse);
 
-  factory MemberUsage(MemberEntity member, {bool trackParameters: false}) {
+  factory MemberUsage(MemberEntity member, {MemberAccess potentialAccess}) {
+    /// Create the set of potential accesses to [member], limited to [original]
+    /// if provided.
+    EnumSet<Access> createPotentialAccessSet(EnumSet<Access> original) {
+      if (original != null) {
+        if (original.isEmpty) return emptySet;
+        return original.clone();
+      }
+      if (member.isTopLevel || member.isStatic || member.isConstructor) {
+        // TODO(johnniwinther): Track super constructor invocations?
+        return new EnumSet.fromValues([Access.staticAccess]);
+      } else if (member.isInstanceMember) {
+        return new EnumSet.fromValues(Access.values);
+      } else {
+        assert(member is JRecordField, "Unexpected member: $member");
+        return new EnumSet();
+      }
+    }
+
+    /// Create the set of potential read accesses to [member], limited to reads
+    /// in [potentialAccess] if provided.
+    EnumSet<Access> createPotentialReads() {
+      return createPotentialAccessSet(potentialAccess?.reads);
+    }
+
+    /// Create the set of potential write accesses to [member], limited to
+    /// writes in [potentialAccess] if provided.
+    EnumSet<Access> createPotentialWrites() {
+      return createPotentialAccessSet(potentialAccess?.writes);
+    }
+
+    /// Create the set of potential invocation accesses to [member], limited to
+    /// invocations in [potentialAccess] if provided.
+    EnumSet<Access> createPotentialInvokes() {
+      return createPotentialAccessSet(potentialAccess?.invokes);
+    }
+
     if (member.isField) {
       if (member.isAssignable) {
-        return new FieldUsage(member);
+        return new FieldUsage(member,
+            potentialReads: createPotentialReads(),
+            potentialWrites: createPotentialWrites(),
+            potentialInvokes: createPotentialInvokes());
       } else {
-        return new FinalFieldUsage(member);
+        return new FieldUsage(member,
+            potentialReads: createPotentialReads(),
+            potentialWrites: emptySet,
+            potentialInvokes: createPotentialInvokes());
       }
     } else if (member.isGetter) {
-      return new GetterUsage(member);
+      return new PropertyUsage(member,
+          potentialReads: createPotentialReads(),
+          potentialWrites: emptySet,
+          potentialInvokes: createPotentialInvokes());
     } else if (member.isSetter) {
-      return new SetterUsage(member);
+      return new PropertyUsage(member,
+          potentialReads: emptySet,
+          potentialWrites: createPotentialWrites(),
+          potentialInvokes: emptySet);
     } else if (member.isConstructor) {
-      if (trackParameters) {
-        return new ParameterTrackingConstructorUsage(member);
-      } else {
-        return new ConstructorUsage(member);
-      }
-    } else if (member.isConstructor) {
-      if (trackParameters) {
-        return new ParameterTrackingConstructorUsage(member);
-      } else {
-        return new ConstructorUsage(member);
-      }
+      return new MethodUsage(member,
+          potentialReads: emptySet, potentialInvokes: createPotentialInvokes());
     } else {
       assert(member is FunctionEntity,
           failedAt(member, "Unexpected member: $member"));
-      if (trackParameters) {
-        return new ParameterTrackingFunctionUsage(member);
-      } else {
-        return new FunctionUsage(member);
-      }
+      return new MethodUsage(member,
+          potentialReads: createPotentialReads(),
+          potentialInvokes: createPotentialInvokes());
     }
   }
 
   /// `true` if [entity] has been initialized.
   bool get hasInit => true;
 
+  /// The set of constant initial values for a field.
   Iterable<ConstantValue> get initialConstants => null;
 
   /// `true` if [entity] has been read as a value. For a field this is a normal
   /// read access, for a function this is a closurization.
-  bool get hasRead => false;
+  bool get hasRead => reads.isNotEmpty;
+
+  /// The set of potential read accesses to this member that have not yet
+  /// been registered.
+  EnumSet<Access> get potentialReads => const EnumSet.fixed(0);
+
+  /// The set of registered read accesses to this member.
+  EnumSet<Access> get reads => const EnumSet.fixed(0);
 
   /// `true` if a value has been written to [entity].
-  bool get hasWrite => false;
+  bool get hasWrite => writes.isNotEmpty;
+
+  /// The set of potential write accesses to this member that have not yet
+  /// been registered.
+  EnumSet<Access> get potentialWrites => const EnumSet.fixed(0);
+
+  /// The set of registered write accesses to this member.
+  EnumSet<Access> get writes => const EnumSet.fixed(0);
 
   /// `true` if an invocation has been performed on the value [entity]. For a
   /// function this is a normal invocation, for a field this is a read access
   /// followed by an invocation of the function-like value.
-  bool get hasInvoke => false;
+  bool get hasInvoke => invokes.isNotEmpty;
 
-  /// `true` if all parameters are provided in invocations of [entity].
-  ///
-  /// For method or constructors with no optional arguments this is the same
-  /// as [hasInvoke] but for method or constructors with optional arguments some
-  /// parameters may have been provided in any invocation in which case
-  /// [isFullyInvoked] is `false`.
-  bool get isFullyInvoked => hasInvoke;
+  /// The set of potential invocation accesses to this member that have not yet
+  /// been registered.
+  EnumSet<Access> get potentialInvokes => const EnumSet.fixed(0);
+
+  /// The set of registered invocation accesses to this member.
+  EnumSet<Access> get invokes => const EnumSet.fixed(0);
 
   /// Returns the [ParameterStructure] corresponding to the parameters that are
   /// used in invocations of [entity]. For a field, getter or setter this is
   /// always `null`.
   ParameterStructure get invokedParameters => null;
 
-  /// `true` if [entity] has further normal use. For a field this means that
-  /// it hasn't been read from or written to. For a function this means that it
-  /// hasn't been invoked or, when parameter usage is tracked, that some
-  /// parameters haven't been provided in any invocation.
-  bool get hasPendingNormalUse => _pendingUse.contains(MemberUse.NORMAL);
+  /// Whether this member has any potential but unregistered dynamic reads,
+  /// writes or invocations.
+  bool get hasPendingDynamicUse =>
+      hasPendingDynamicInvoke ||
+      hasPendingDynamicRead ||
+      hasPendingDynamicWrite;
 
-  /// `true` if [entity] hasn't been closurized. This is only used for
-  /// functions.
-  bool get hasPendingClosurizationUse => false;
+  /// Whether this member has any potential but unregistered dynamic
+  /// invocations.
+  bool get hasPendingDynamicInvoke =>
+      potentialInvokes.contains(Access.dynamicAccess);
 
-  /// `true` if [entity] has been used in all the ways possible.
-  bool get fullyUsed;
+  /// Whether this member has any potential but unregistered dynamic reads.
+  bool get hasPendingDynamicRead =>
+      potentialReads.contains(Access.dynamicAccess);
+
+  /// Whether this member has any potential but unregistered dynamic writes.
+  bool get hasPendingDynamicWrite =>
+      potentialWrites.contains(Access.dynamicAccess);
 
   /// Registers the [entity] has been initialized and returns the new
   /// [MemberUse]s that it caused.
@@ -140,22 +204,20 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   ///
   /// For a field this is a normal read access, for a function this is a
   /// closurization.
-  EnumSet<MemberUse> read() => MemberUses.NONE;
+  EnumSet<MemberUse> read(EnumSet<Access> accesses) => MemberUses.NONE;
 
   /// Registers a write of a value to [entity] and returns the new [MemberUse]s
   /// that it caused.
-  EnumSet<MemberUse> write() => MemberUses.NONE;
+  EnumSet<MemberUse> write(EnumSet<Access> accesses) => MemberUses.NONE;
 
   /// Registers an invocation on the value of [entity] and returns the new
   /// [MemberUse]s that it caused.
   ///
   /// For a function this is a normal invocation, for a field this is a read
   /// access followed by an invocation of the function-like value.
-  EnumSet<MemberUse> invoke(CallStructure callStructure) => MemberUses.NONE;
-
-  /// Registers all possible uses of [entity] and returns the new [MemberUse]s
-  /// that it caused.
-  EnumSet<MemberUse> fullyUse() => MemberUses.NONE;
+  EnumSet<MemberUse> invoke(
+          EnumSet<Access> accesses, CallStructure callStructure) =>
+      MemberUses.NONE;
 
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
@@ -178,46 +240,179 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
         hasRead == other.hasRead &&
         hasInvoke == other.hasInvoke &&
         hasWrite == other.hasWrite &&
-        hasPendingClosurizationUse == other.hasPendingClosurizationUse &&
-        hasPendingNormalUse == other.hasPendingNormalUse &&
-        fullyUsed == other.fullyUsed &&
-        isFullyInvoked == other.isFullyInvoked &&
+        hasPendingDynamicRead == other.hasPendingDynamicRead &&
+        hasPendingDynamicWrite == other.hasPendingDynamicWrite &&
+        hasPendingDynamicInvoke == other.hasPendingDynamicInvoke &&
+        hasPendingDynamicUse == other.hasPendingDynamicUse &&
         _pendingUse == other._pendingUse &&
-        _appliedUse == other._appliedUse;
+        _appliedUse == other._appliedUse &&
+        reads == other.reads &&
+        writes == other.writes &&
+        invokes == other.invokes &&
+        potentialReads == other.potentialReads &&
+        potentialWrites == other.potentialWrites &&
+        potentialInvokes == other.potentialInvokes &&
+        invokedParameters == other.invokedParameters;
+  }
+}
+
+/// Member usage tracking for a getter or setter.
+class PropertyUsage extends MemberUsage {
+  @override
+  final EnumSet<Access> potentialReads;
+
+  @override
+  final EnumSet<Access> potentialWrites;
+
+  @override
+  final EnumSet<Access> potentialInvokes;
+
+  @override
+  final EnumSet<Access> reads;
+
+  @override
+  final EnumSet<Access> writes;
+
+  @override
+  final EnumSet<Access> invokes;
+
+  PropertyUsage.cloned(MemberEntity member, EnumSet<MemberUse> pendingUse,
+      {this.potentialReads,
+      this.potentialWrites,
+      this.potentialInvokes,
+      this.reads,
+      this.writes,
+      this.invokes})
+      : assert(potentialReads != null),
+        assert(potentialWrites != null),
+        assert(potentialInvokes != null),
+        assert(reads != null),
+        assert(writes != null),
+        assert(invokes != null),
+        super.cloned(member, pendingUse);
+
+  PropertyUsage(MemberEntity member,
+      {this.potentialReads, this.potentialWrites, this.potentialInvokes})
+      : reads = new EnumSet(),
+        writes = new EnumSet(),
+        invokes = new EnumSet(),
+        assert(potentialReads != null),
+        assert(potentialWrites != null),
+        assert(potentialInvokes != null),
+        super.internal(member);
+
+  @override
+  EnumSet<MemberUse> read(EnumSet<Access> accesses) {
+    bool alreadyHasRead = hasRead;
+    reads.addAll(potentialReads.removeAll(accesses));
+    if (alreadyHasRead) {
+      return MemberUses.NONE;
+    }
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
   @override
-  String toString() => '$entity:${_appliedUse.iterable(MemberUse.values)}';
+  EnumSet<MemberUse> write(EnumSet<Access> accesses) {
+    bool alreadyHasWrite = hasWrite;
+    writes.addAll(potentialWrites.removeAll(accesses));
+    if (alreadyHasWrite) {
+      return MemberUses.NONE;
+    }
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  EnumSet<MemberUse> invoke(
+      EnumSet<Access> accesses, CallStructure callStructure) {
+    // We use `hasRead` here instead of `hasInvoke` because getters only have
+    // 'normal use' (they cannot be closurized). This means that invoking an
+    // already read getter does not result a new member use.
+    bool alreadyHasRead = hasRead;
+    reads.addAll(potentialReads.removeAll(Accesses.staticAccess));
+    invokes.addAll(potentialInvokes.removeAll(accesses));
+    if (alreadyHasRead) {
+      return MemberUses.NONE;
+    }
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  MemberUsage clone() {
+    return new PropertyUsage.cloned(entity, _pendingUse.clone(),
+        potentialReads: potentialReads.clone(),
+        potentialWrites: potentialWrites.clone(),
+        potentialInvokes: potentialInvokes.clone(),
+        reads: reads.clone(),
+        writes: writes.clone(),
+        invokes: invokes.clone());
+  }
+
+  @override
+  String toString() => 'PropertyUsage($entity,'
+      'reads=${reads.iterable(Access.values)},'
+      'writes=${writes.iterable(Access.values)},'
+      'invokes=${invokes.iterable(Access.values)},'
+      'potentialReads=${potentialReads.iterable(Access.values)},'
+      'potentialWrites=${potentialWrites.iterable(Access.values)},'
+      'potentialInvokes=${potentialInvokes.iterable(Access.values)},'
+      'pendingUse=${_pendingUse.iterable(MemberUse.values)},'
+      'initialConstants=${initialConstants?.map((c) => c.toStructuredText())})';
 }
 
+/// Member usage tracking for a field.
 class FieldUsage extends MemberUsage {
   @override
   bool hasInit;
+
   @override
-  bool hasRead;
+  final EnumSet<Access> potentialReads;
+
   @override
-  bool hasWrite;
+  final EnumSet<Access> potentialWrites;
+
+  @override
+  final EnumSet<Access> potentialInvokes;
+
+  @override
+  final EnumSet<Access> reads;
+
+  @override
+  final EnumSet<Access> invokes;
+
+  @override
+  final EnumSet<Access> writes;
 
   List<ConstantValue> _initialConstants;
 
   FieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
-      {this.hasInit, this.hasRead, this.hasWrite})
-      : super.cloned(field, pendingUse);
+      {this.potentialReads,
+      this.potentialWrites,
+      this.potentialInvokes,
+      this.hasInit,
+      this.reads,
+      this.writes,
+      this.invokes})
+      : assert(potentialReads != null),
+        assert(potentialWrites != null),
+        assert(potentialInvokes != null),
+        assert(reads != null),
+        assert(writes != null),
+        assert(invokes != null),
+        super.cloned(field, pendingUse);
 
-  FieldUsage(FieldEntity field)
+  FieldUsage(FieldEntity field,
+      {this.potentialReads, this.potentialWrites, this.potentialInvokes})
       : hasInit = false,
-        hasRead = false,
-        hasWrite = false,
+        reads = new EnumSet(),
+        writes = new EnumSet(),
+        invokes = new EnumSet(),
+        assert(potentialReads != null),
+        assert(potentialWrites != null),
+        assert(potentialInvokes != null),
         super.internal(field);
 
   @override
   Iterable<ConstantValue> get initialConstants => _initialConstants ?? const [];
-
-  @override
-  bool get hasPendingNormalUse => !fullyUsed;
-
-  @override
-  bool get fullyUsed => hasInit && hasRead && hasWrite;
 
   @override
   EnumSet<MemberUse> init() {
@@ -225,11 +420,7 @@ class FieldUsage extends MemberUsage {
       return MemberUses.NONE;
     }
     hasInit = true;
-    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-    if (!fullyUsed) {
-      result = result.union(MemberUses.PARTIAL_USE_ONLY);
-    }
-    return result;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
   @override
@@ -240,193 +431,128 @@ class FieldUsage extends MemberUsage {
   }
 
   @override
-  EnumSet<MemberUse> read() {
-    if (hasRead) {
+  bool get hasRead => reads.isNotEmpty;
+
+  @override
+  EnumSet<MemberUse> read(EnumSet<Access> accesses) {
+    bool alreadyHasRead = hasRead;
+    reads.addAll(potentialReads.removeAll(accesses));
+    if (alreadyHasRead) {
       return MemberUses.NONE;
     }
-    hasRead = true;
-    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-    if (!fullyUsed) {
-      result = result.union(MemberUses.PARTIAL_USE_ONLY);
-    }
-    return result;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
   @override
-  EnumSet<MemberUse> write() {
-    if (hasWrite) {
+  bool get hasWrite => writes.isNotEmpty;
+
+  @override
+  EnumSet<MemberUse> write(EnumSet<Access> accesses) {
+    bool alreadyHasWrite = hasWrite;
+    writes.addAll(potentialWrites.removeAll(accesses));
+    if (alreadyHasWrite) {
       return MemberUses.NONE;
     }
-    hasWrite = true;
-    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-    if (!fullyUsed) {
-      result = result.union(MemberUses.PARTIAL_USE_ONLY);
-    }
-    return result;
+    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
   @override
-  EnumSet<MemberUse> invoke(CallStructure callStructure) => read();
-
-  @override
-  EnumSet<MemberUse> fullyUse() {
-    if (fullyUsed) {
+  EnumSet<MemberUse> invoke(
+      EnumSet<Access> accesses, CallStructure callStructure) {
+    // We use `hasRead` here instead of `hasInvoke` because fields only have
+    // 'normal use' (they cannot be closurized). This means that invoking an
+    // already read field does not result a new member use.
+    bool alreadyHasRead = hasRead;
+    reads.addAll(potentialReads.removeAll(Accesses.staticAccess));
+    invokes.addAll(potentialInvokes.removeAll(accesses));
+    if (alreadyHasRead) {
       return MemberUses.NONE;
     }
-    hasInit = hasRead = hasWrite = true;
     return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
   @override
   MemberUsage clone() {
     return new FieldUsage.cloned(entity, _pendingUse.clone(),
-        hasInit: hasInit, hasRead: hasRead, hasWrite: hasWrite);
+        potentialReads: potentialReads.clone(),
+        potentialWrites: potentialWrites.clone(),
+        potentialInvokes: potentialInvokes.clone(),
+        hasInit: hasInit,
+        reads: reads.clone(),
+        writes: writes.clone(),
+        invokes: invokes.clone());
   }
 
   @override
-  String toString() => 'FieldUsage($entity,hasInit=$hasInit,hasRead=$hasRead,'
-      'hasWrite=$hasWrite,pendingUse=${_pendingUse.iterable(MemberUse.values)},'
+  String toString() => 'FieldUsage($entity,hasInit=$hasInit,'
+      'reads=${reads.iterable(Access.values)},'
+      'writes=${writes.iterable(Access.values)},'
+      'invokes=${invokes.iterable(Access.values)},'
+      'potentialReads=${potentialReads.iterable(Access.values)},'
+      'potentialWrites=${potentialWrites.iterable(Access.values)},'
+      'potentialInvokes=${potentialInvokes.iterable(Access.values)},'
+      'pendingUse=${_pendingUse.iterable(MemberUse.values)},'
       'initialConstants=${initialConstants.map((c) => c.toStructuredText())})';
 }
 
-class FinalFieldUsage extends MemberUsage {
+/// Member usage tracking for a constructor or method.
+class MethodUsage extends MemberUsage {
   @override
-  bool hasInit;
-  @override
-  bool hasRead;
-
-  List<ConstantValue> _initialConstants;
-
-  FinalFieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
-      {this.hasInit, this.hasRead})
-      : super.cloned(field, pendingUse);
-
-  FinalFieldUsage(FieldEntity field)
-      : this.hasInit = false,
-        this.hasRead = false,
-        super.internal(field);
+  final EnumSet<Access> potentialReads;
 
   @override
-  Iterable<ConstantValue> get initialConstants => _initialConstants ?? const [];
+  final EnumSet<Access> potentialInvokes;
 
   @override
-  bool get hasPendingNormalUse => !fullyUsed;
+  final EnumSet<Access> reads;
 
   @override
-  bool get fullyUsed => hasInit && hasRead;
+  final EnumSet<Access> invokes;
 
-  @override
-  EnumSet<MemberUse> init() {
-    if (hasInit) {
-      return MemberUses.NONE;
-    }
-    hasInit = true;
-    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-    if (!fullyUsed) {
-      result = result.union(MemberUses.PARTIAL_USE_ONLY);
-    }
-    return result;
-  }
+  final ParameterUsage parameterUsage;
 
-  @override
-  EnumSet<MemberUse> constantInit(ConstantValue constant) {
-    _initialConstants ??= [];
-    _initialConstants.add(constant);
-    return init();
-  }
+  MethodUsage.cloned(FunctionEntity function, this.parameterUsage,
+      EnumSet<MemberUse> pendingUse,
+      {this.potentialReads, this.reads, this.potentialInvokes, this.invokes})
+      : assert(potentialReads != null),
+        assert(potentialInvokes != null),
+        assert(reads != null),
+        assert(invokes != null),
+        super.cloned(function, pendingUse);
 
-  @override
-  EnumSet<MemberUse> read() {
-    if (hasRead) {
-      return MemberUses.NONE;
-    }
-    hasRead = true;
-    EnumSet<MemberUse> result = _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-    if (!fullyUsed) {
-      result = result.union(MemberUses.PARTIAL_USE_ONLY);
-    }
-    return result;
-  }
-
-  @override
-  EnumSet<MemberUse> invoke(CallStructure callStructure) => read();
-
-  @override
-  EnumSet<MemberUse> fullyUse() {
-    if (fullyUsed) {
-      return MemberUses.NONE;
-    }
-    hasInit = hasRead = true;
-    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-  }
-
-  @override
-  MemberUsage clone() {
-    return new FinalFieldUsage.cloned(entity, _pendingUse.clone(),
-        hasInit: hasInit, hasRead: hasRead);
-  }
-
-  @override
-  String toString() => 'FinalFieldUsage($entity,hasInit=$hasInit,'
-      'hasRead=$hasRead,pendingUse=${_pendingUse.iterable(MemberUse.values)},'
-      'initialConstants=${initialConstants.map((c) => c.toStructuredText())})';
-}
-
-class FunctionUsage extends MemberUsage {
-  @override
-  bool hasInvoke;
-  @override
-  bool hasRead;
-
-  FunctionUsage.cloned(FunctionEntity function, EnumSet<MemberUse> pendingUse,
-      {this.hasInvoke, this.hasRead})
-      : super.cloned(function, pendingUse);
-
-  FunctionUsage(FunctionEntity function)
-      : this.hasInvoke = false,
-        this.hasRead = false,
+  MethodUsage(FunctionEntity function,
+      {this.potentialReads, this.potentialInvokes})
+      : reads = new EnumSet(),
+        invokes = new EnumSet(),
+        parameterUsage = new ParameterUsage(function.parameterStructure),
+        assert(potentialReads != null),
+        assert(potentialInvokes != null),
         super.internal(function);
 
   @override
-  FunctionEntity get entity => super.entity;
+  bool get hasInvoke => invokes.isNotEmpty && parameterUsage.hasInvoke;
 
   @override
   EnumSet<MemberUse> get _originalUse =>
       entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;
 
   @override
-  bool get hasPendingClosurizationUse => entity.isInstanceMember
-      ? _pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)
-      : _pendingUse.contains(MemberUse.CLOSURIZE_STATIC);
-
-  @override
-  EnumSet<MemberUse> read() => fullyUse();
-
-  @override
-  EnumSet<MemberUse> invoke(CallStructure callStructure) {
-    if (hasInvoke) {
-      return MemberUses.NONE;
-    }
-    hasInvoke = true;
-    return _pendingUse
-        .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
-  }
-
-  @override
-  EnumSet<MemberUse> fullyUse() {
-    if (hasInvoke) {
-      if (hasRead) {
+  EnumSet<MemberUse> read(EnumSet<Access> accesses) {
+    bool alreadyHasInvoke = hasInvoke;
+    bool alreadyHasRead = hasRead;
+    reads.addAll(potentialReads.removeAll(accesses));
+    invokes.addAll(potentialInvokes.removeAll(Accesses.dynamicAccess));
+    parameterUsage.fullyUse();
+    if (alreadyHasInvoke) {
+      if (alreadyHasRead) {
         return MemberUses.NONE;
       }
-      hasRead = true;
       return _pendingUse.removeAll(entity.isInstanceMember
           ? MemberUses.CLOSURIZE_INSTANCE_ONLY
           : MemberUses.CLOSURIZE_STATIC_ONLY);
-    } else if (hasRead) {
-      hasInvoke = true;
+    } else if (alreadyHasRead) {
       return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
     } else {
-      hasRead = hasInvoke = true;
       return _pendingUse.removeAll(entity.isInstanceMember
           ? MemberUses.ALL_INSTANCE
           : MemberUses.ALL_STATIC);
@@ -434,289 +560,45 @@ class FunctionUsage extends MemberUsage {
   }
 
   @override
-  bool get fullyUsed => hasInvoke && hasRead;
-
-  @override
-  ParameterStructure get invokedParameters =>
-      hasInvoke ? entity.parameterStructure : null;
-
-  @override
-  MemberUsage clone() {
-    return new FunctionUsage.cloned(entity, _pendingUse.clone(),
-        hasInvoke: hasInvoke, hasRead: hasRead);
-  }
-}
-
-class ParameterTrackingFunctionUsage extends MemberUsage {
-  @override
-  bool hasRead;
-
-  final ParameterUsage _parameterUsage;
-
-  ParameterTrackingFunctionUsage.cloned(FunctionEntity function,
-      this._parameterUsage, EnumSet<MemberUse> pendingUse,
-      {this.hasRead})
-      : super.cloned(function, pendingUse);
-
-  ParameterTrackingFunctionUsage(FunctionEntity function)
-      : hasRead = false,
-        _parameterUsage = new ParameterUsage(function.parameterStructure),
-        super.internal(function);
-
-  @override
-  bool get hasInvoke => _parameterUsage.hasInvoke;
-
-  @override
-  bool get hasPendingClosurizationUse => entity.isInstanceMember
-      ? _pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)
-      : _pendingUse.contains(MemberUse.CLOSURIZE_STATIC);
-
-  @override
-  EnumSet<MemberUse> get _originalUse =>
-      entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;
-
-  @override
-  EnumSet<MemberUse> read() => fullyUse();
-
-  @override
-  EnumSet<MemberUse> invoke(CallStructure callStructure) {
-    if (_parameterUsage.isFullyUsed) {
-      return MemberUses.NONE;
-    }
+  EnumSet<MemberUse> invoke(
+      EnumSet<Access> accesses, CallStructure callStructure) {
     bool alreadyHasInvoke = hasInvoke;
-    bool hasPartialChange = _parameterUsage.invoke(callStructure);
-    EnumSet<MemberUse> result;
+    parameterUsage.invoke(callStructure);
+    invokes.addAll(potentialInvokes.removeAll(accesses));
     if (alreadyHasInvoke) {
-      result = MemberUses.NONE;
+      return MemberUses.NONE;
     } else {
-      result = _pendingUse
+      return _pendingUse
           .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
     }
-    return hasPartialChange
-        ? result.union(MemberUses.PARTIAL_USE_ONLY)
-        : result;
   }
 
   @override
-  EnumSet<MemberUse> fullyUse() {
-    bool alreadyHasInvoke = hasInvoke;
-    _parameterUsage.fullyUse();
-    if (alreadyHasInvoke) {
-      if (hasRead) {
-        return MemberUses.NONE;
-      }
-      hasRead = true;
-      return _pendingUse.removeAll(entity.isInstanceMember
-          ? MemberUses.CLOSURIZE_INSTANCE_ONLY
-          : MemberUses.CLOSURIZE_STATIC_ONLY);
-    } else if (hasRead) {
-      return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-    } else {
-      hasRead = true;
-      return _pendingUse.removeAll(entity.isInstanceMember
-          ? MemberUses.ALL_INSTANCE
-          : MemberUses.ALL_STATIC);
-    }
-  }
+  ParameterStructure get invokedParameters => parameterUsage.invokedParameters;
 
   @override
-  bool get hasPendingNormalUse => !isFullyInvoked;
-
-  @override
-  bool get isFullyInvoked => _parameterUsage.isFullyUsed;
-
-  @override
-  bool get fullyUsed => isFullyInvoked && hasRead;
-
-  @override
-  ParameterStructure get invokedParameters => _parameterUsage.invokedParameters;
+  bool get hasPendingDynamicInvoke =>
+      potentialInvokes.contains(Access.dynamicAccess) ||
+      (invokes.contains(Access.dynamicAccess) && !parameterUsage.isFullyUsed);
 
   @override
   MemberUsage clone() {
-    return new ParameterTrackingFunctionUsage.cloned(
-        entity, _parameterUsage.clone(), _pendingUse.clone(),
-        hasRead: hasRead);
-  }
-}
-
-class GetterUsage extends MemberUsage {
-  @override
-  bool hasRead;
-
-  GetterUsage.cloned(FunctionEntity getter, EnumSet<MemberUse> pendingUse,
-      {this.hasRead})
-      : super.cloned(getter, pendingUse);
-
-  GetterUsage(FunctionEntity getter)
-      : hasRead = false,
-        super.internal(getter);
-
-  @override
-  bool get fullyUsed => hasRead;
-
-  @override
-  EnumSet<MemberUse> read() {
-    if (hasRead) {
-      return MemberUses.NONE;
-    }
-    hasRead = true;
-    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
+    return new MethodUsage.cloned(
+        entity, parameterUsage.clone(), _pendingUse.clone(),
+        reads: reads.clone(),
+        potentialReads: potentialReads.clone(),
+        invokes: invokes.clone(),
+        potentialInvokes: potentialInvokes.clone());
   }
 
   @override
-  EnumSet<MemberUse> invoke(CallStructure callStructure) => read();
-
-  @override
-  EnumSet<MemberUse> fullyUse() => read();
-
-  @override
-  MemberUsage clone() {
-    return new GetterUsage.cloned(entity, _pendingUse.clone(),
-        hasRead: hasRead);
-  }
-}
-
-class SetterUsage extends MemberUsage {
-  @override
-  bool hasWrite;
-
-  SetterUsage.cloned(FunctionEntity setter, EnumSet<MemberUse> pendingUse,
-      {this.hasWrite})
-      : super.cloned(setter, pendingUse);
-
-  SetterUsage(FunctionEntity setter)
-      : hasWrite = false,
-        super.internal(setter);
-
-  @override
-  bool get fullyUsed => hasWrite;
-
-  @override
-  EnumSet<MemberUse> write() {
-    if (hasWrite) {
-      return MemberUses.NONE;
-    }
-    hasWrite = true;
-    return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
-  }
-
-  @override
-  EnumSet<MemberUse> fullyUse() => write();
-
-  @override
-  MemberUsage clone() {
-    return new SetterUsage.cloned(entity, _pendingUse.clone(),
-        hasWrite: hasWrite);
-  }
-}
-
-class ConstructorUsage extends MemberUsage {
-  @override
-  bool hasInvoke;
-
-  ConstructorUsage.cloned(
-      ConstructorEntity constructor, EnumSet<MemberUse> pendingUse,
-      {this.hasInvoke})
-      : super.cloned(constructor, pendingUse);
-
-  ConstructorUsage(ConstructorEntity constructor)
-      : hasInvoke = false,
-        super.internal(constructor);
-
-  @override
-  ConstructorEntity get entity => super.entity;
-
-  @override
-  EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
-
-  @override
-  EnumSet<MemberUse> invoke(CallStructure callStructure) {
-    if (hasInvoke) {
-      return MemberUses.NONE;
-    }
-    hasInvoke = true;
-    return _pendingUse
-        .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
-  }
-
-  @override
-  EnumSet<MemberUse> fullyUse() =>
-      invoke(entity.parameterStructure.callStructure);
-
-  @override
-  bool get fullyUsed => hasInvoke;
-
-  @override
-  ParameterStructure get invokedParameters =>
-      hasInvoke ? entity.parameterStructure : null;
-
-  @override
-  MemberUsage clone() {
-    return new ConstructorUsage.cloned(entity, _pendingUse.clone(),
-        hasInvoke: hasInvoke);
-  }
-}
-
-class ParameterTrackingConstructorUsage extends MemberUsage {
-  final ParameterUsage _parameterUsage;
-
-  ParameterTrackingConstructorUsage.cloned(ConstructorEntity constructor,
-      this._parameterUsage, EnumSet<MemberUse> pendingUse)
-      : super.cloned(constructor, pendingUse);
-
-  ParameterTrackingConstructorUsage(ConstructorEntity constructor)
-      : _parameterUsage = new ParameterUsage(constructor.parameterStructure),
-        super.internal(constructor);
-
-  @override
-  ConstructorEntity get entity => super.entity;
-
-  @override
-  EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
-
-  @override
-  EnumSet<MemberUse> invoke(CallStructure callStructure) {
-    if (isFullyInvoked) {
-      return MemberUses.NONE;
-    }
-    bool alreadyHasInvoke = hasInvoke;
-    bool hasPartialChange = _parameterUsage.invoke(callStructure);
-    EnumSet<MemberUse> result;
-    if (alreadyHasInvoke) {
-      result = MemberUses.NONE;
-    } else {
-      result = _pendingUse
-          .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
-    }
-    return hasPartialChange
-        ? result.union(MemberUses.PARTIAL_USE_ONLY)
-        : result;
-  }
-
-  @override
-  EnumSet<MemberUse> fullyUse() =>
-      invoke(entity.parameterStructure.callStructure);
-
-  @override
-  bool get hasInvoke => _parameterUsage.hasInvoke;
-
-  @override
-  bool get fullyUsed => _parameterUsage.isFullyUsed;
-
-  @override
-  bool get hasPendingNormalUse => !isFullyInvoked;
-
-  @override
-  bool get isFullyInvoked => _parameterUsage.isFullyUsed;
-
-  @override
-  ParameterStructure get invokedParameters => _parameterUsage.invokedParameters;
-
-  @override
-  MemberUsage clone() {
-    return new ParameterTrackingConstructorUsage.cloned(
-        entity, _parameterUsage.clone(), _pendingUse.clone());
-  }
+  String toString() => 'MethodUsage($entity,'
+      'reads=${reads.iterable(Access.values)},'
+      'invokes=${invokes.iterable(Access.values)},'
+      'parameterUsage=${parameterUsage},'
+      'potentialReads=${potentialReads.iterable(Access.values)},'
+      'potentialInvokes=${potentialInvokes.iterable(Access.values)},'
+      'pendingUse=${_pendingUse.iterable(MemberUse.values)})';
 }
 
 /// Enum class for the possible kind of use of [MemberEntity] objects.
@@ -729,12 +611,6 @@ enum MemberUse {
 
   /// Tear-off of a static method.
   CLOSURIZE_STATIC,
-
-  /// Invocation that provides previously unprovided optional parameters.
-  ///
-  /// This is used to check that no partial use is missed by the enqueuer, as
-  /// asserted through the `Enqueuery.checkEnqueuerConsistency` method.
-  PARTIAL_USE,
 }
 
 /// Common [EnumSet]s used for [MemberUse].
@@ -750,8 +626,6 @@ class MemberUses {
       const EnumSet<MemberUse>.fixed(3);
   static const EnumSet<MemberUse> ALL_STATIC =
       const EnumSet<MemberUse>.fixed(5);
-  static const EnumSet<MemberUse> PARTIAL_USE_ONLY =
-      const EnumSet<MemberUse>.fixed(8);
 }
 
 typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
@@ -920,5 +794,69 @@ class ParameterUsage {
         providedPositionalParameters: _providedPositionalParameters,
         areAllTypeParametersProvided: _areAllTypeParametersProvided,
         unprovidedNamedParameters: _unprovidedNamedParameters?.toSet());
+  }
+
+  @override
+  String toString() {
+    return 'ParameterUsage('
+        '_hasInvoke=$_hasInvoke,'
+        '_providedPositionalParameters=$_providedPositionalParameters,'
+        '_areAllTypeParametersProvided=$_areAllTypeParametersProvided,'
+        '_unprovidedNamedParameters=$_unprovidedNamedParameters)';
+  }
+}
+
+/// Enum for member access kinds use in [MemberUsage] computation during
+/// resolution or codegen enqueueing.
+enum Access {
+  /// Statically bound access of a member.
+  staticAccess,
+
+  /// Dynamically bound access of a member.
+  dynamicAccess,
+
+  /// Direct access of a super class member.
+  superAccess,
+}
+
+/// Access sets used for registration of member usage.
+class Accesses {
+  /// Statically bound access of a member.
+  static const EnumSet<Access> staticAccess = const EnumSet<Access>.fixed(1);
+
+  /// Dynamically bound access of a member. This implies the statically bound
+  /// access of the member.
+  static const EnumSet<Access> dynamicAccess = const EnumSet<Access>.fixed(3);
+
+  /// Direct access of a super class member. This implies the statically bound
+  /// access of the member.
+  static const EnumSet<Access> superAccess = const EnumSet<Access>.fixed(5);
+}
+
+/// The accesses of a member collected during closed world computation.
+class MemberAccess {
+  static const String tag = 'MemberAccess';
+
+  final EnumSet<Access> reads;
+  final EnumSet<Access> writes;
+  final EnumSet<Access> invokes;
+
+  MemberAccess(this.reads, this.writes, this.invokes);
+
+  factory MemberAccess.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    EnumSet<Access> reads = new EnumSet.fixed(source.readInt());
+    EnumSet<Access> writes = new EnumSet.fixed(source.readInt());
+    EnumSet<Access> invokes = new EnumSet.fixed(source.readInt());
+    source.end(tag);
+    return new MemberAccess(reads, writes, invokes);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeInt(reads.value);
+    sink.writeInt(writes.value);
+    sink.writeInt(invokes.value);
+    sink.end(tag);
   }
 }

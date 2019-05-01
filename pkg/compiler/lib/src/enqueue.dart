@@ -207,7 +207,7 @@ abstract class EnqueuerImpl extends Enqueuer {
 
   /// Check enqueuer consistency after the queue has been closed.
   bool checkEnqueuerConsistency(ElementEnvironment elementEnvironment) {
-    task.measure(() {
+    task.measureSubtask('resolution.check', () {
       // Run through the classes and see if we need to enqueue more methods.
       for (ClassEntity classElement
           in worldBuilder.directlyInstantiatedClasses) {
@@ -284,7 +284,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       {ConstructorEntity constructor,
       bool nativeUsage: false,
       bool globalDependency: false}) {
-    task.measure(() {
+    task.measureSubtask('resolution.typeUse', () {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
           constructor: constructor);
       listener.registerInstantiatedType(type,
@@ -307,7 +307,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _reporter.internalError(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    }, dryRun: true);
+    }, checkEnqueuerConsistency: true);
   }
 
   /// Callback for applying the use of a [member].
@@ -343,14 +343,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   @override
   void processDynamicUse(DynamicUse dynamicUse) {
-    task.measure(() {
+    task.measureSubtask('resolution.dynamicUse', () {
       _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
   @override
   void processConstantUse(ConstantUse constantUse) {
-    task.measure(() {
+    task.measureSubtask('resolution.constantUse', () {
       if (_worldBuilder.registerConstantUse(constantUse)) {
         applyImpact(listener.registerUsedConstant(constantUse.value),
             impactSource: 'constant use');
@@ -361,18 +361,20 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   @override
   void processStaticUse(StaticUse staticUse) {
-    _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
-    // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
-    // for these:
-    switch (staticUse.kind) {
-      case StaticUseKind.CONSTRUCTOR_INVOKE:
-      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        _registerInstantiatedType(staticUse.type,
-            constructor: staticUse.element, globalDependency: false);
-        break;
-      default:
-        break;
-    }
+    task.measureSubtask('resolution.staticUse', () {
+      _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
+      // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
+      // for these:
+      switch (staticUse.kind) {
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+          _registerInstantiatedType(staticUse.type,
+              constructor: staticUse.element, globalDependency: false);
+          break;
+        default:
+          break;
+      }
+    });
   }
 
   @override
