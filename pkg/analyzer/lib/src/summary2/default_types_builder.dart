@@ -31,6 +31,9 @@ class DefaultTypesBuilder {
       } else if (node is FunctionTypeAlias) {
         _breakRawTypeCycles(node.declaredElement, node.typeParameters);
         _computeBounds(node.typeParameters);
+      } else if (node is GenericTypeAlias) {
+        _breakRawTypeCycles(node.declaredElement, node.typeParameters);
+        _computeBounds(node.typeParameters);
       }
     }
     for (var node in nodes) {
@@ -39,6 +42,8 @@ class DefaultTypesBuilder {
       } else if (node is ClassTypeAlias) {
         _build(node.typeParameters);
       } else if (node is FunctionTypeAlias) {
+        _build(node.typeParameters);
+      } else if (node is GenericTypeAlias) {
         _build(node.typeParameters);
       }
     }

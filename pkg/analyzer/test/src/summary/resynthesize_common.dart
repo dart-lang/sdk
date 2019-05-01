@@ -7024,6 +7024,17 @@ typedef F<T extends num> = dynamic Function(T p);
 ''');
   }
 
+  test_instantiateToBounds_genericTypeAlias_simple() async {
+    var library = await checkLibrary('''
+typedef F<T extends num> = S Function<S>(T p);
+F f;
+''');
+    checkElementText(library, r'''
+typedef F<T extends num> = S Function<S>(T p);
+<S>(num) → S f;
+''');
+  }
+
   test_instantiateToBounds_simple() async {
     var library = await checkLibrary('''
 class C<T extends num> {}
