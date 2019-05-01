@@ -15,7 +15,7 @@ import 'impact_data.dart';
 import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type.dart';
-import 'static_type_base.dart';
+import 'static_type_cache.dart';
 import 'util.dart';
 
 /// Interface for collecting world impact data.
@@ -77,9 +77,11 @@ abstract class ImpactRegistry {
 
   void registerThrow();
 
-  void registerSyncForIn(ir.DartType iterableType);
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
+      ClassRelation iteratorClassRelation);
 
-  void registerAsyncForIn(ir.DartType iterableType);
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
+      ClassRelation iteratorClassRelation);
 
   void registerCatch();
 
@@ -199,16 +201,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   ImpactBuilderBase(ir.TypeEnvironment typeEnvironment,
       ir.ClassHierarchy classHierarchy, this.variableScopeModel)
       : super(typeEnvironment, classHierarchy);
-
-  ClassRelation _computeClassRelationFromType(ir.DartType type) {
-    if (type is ThisInterfaceType) {
-      return ClassRelation.thisExpression;
-    } else if (type is ExactInterfaceType) {
-      return ClassRelation.exact;
-    } else {
-      return ClassRelation.subtype;
-    }
-  }
 
   @override
   void handleIntLiteral(ir.IntLiteral node) {
@@ -378,11 +370,14 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType) {
+  void handleForInStatement(ir.ForInStatement node, ir.DartType iterableType,
+      ir.DartType iteratorType) {
     if (node.isAsync) {
-      registerAsyncForIn(iterableType);
+      registerAsyncForIn(iterableType, iteratorType,
+          computeClassRelationFromType(iteratorType));
     } else {
-      registerSyncForIn(iterableType);
+      registerSyncForIn(iterableType, iteratorType,
+          computeClassRelationFromType(iteratorType));
     }
   }
 
@@ -536,7 +531,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
       registerLocalFunctionInvocation(receiver.variable.parent,
           positionArguments, namedArguments, typeArguments);
     } else {
-      ClassRelation relation = _computeClassRelationFromType(receiverType);
+      ClassRelation relation = computeClassRelationFromType(receiverType);
 
       ir.Member interfaceTarget = node.interfaceTarget;
       if (interfaceTarget == null) {
@@ -584,7 +579,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handlePropertyGet(
       ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
-    ClassRelation relation = _computeClassRelationFromType(receiverType);
+    ClassRelation relation = computeClassRelationFromType(receiverType);
     if (node.interfaceTarget != null) {
       registerInstanceGet(receiverType, relation, node.interfaceTarget);
     } else {
@@ -601,7 +596,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handlePropertySet(
       ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
-    ClassRelation relation = _computeClassRelationFromType(receiverType);
+    ClassRelation relation = computeClassRelationFromType(receiverType);
     if (node.interfaceTarget != null) {
       registerInstanceSet(receiverType, relation, node.interfaceTarget);
     } else {
@@ -682,7 +677,7 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
     }
     node.accept(this);
     return new ImpactBuilderData(
-        impactData, typeMapsForTesting, cachedStaticTypes);
+        impactData, typeMapsForTesting, getStaticTypeCache());
   }
 }
 
@@ -693,7 +688,7 @@ List<String> _getNamedArguments(ir.Arguments arguments) =>
 class ImpactBuilderData {
   final ImpactData impactData;
   final Map<ir.Expression, TypeMap> typeMapsForTesting;
-  final Map<ir.Expression, ir.DartType> cachedStaticTypes;
+  final StaticTypeCache cachedStaticTypes;
 
   ImpactBuilderData(
       this.impactData, this.typeMapsForTesting, this.cachedStaticTypes);

@@ -14,6 +14,7 @@ import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
+import '../ir/static_type_cache.dart';
 import '../ir/visitors.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
@@ -520,7 +521,7 @@ abstract class JMemberData {
 
   ClassTypeVariableAccess get classTypeVariableAccess;
 
-  Map<ir.Expression, ir.DartType> get staticTypes;
+  StaticTypeCache get staticTypes;
 
   JMemberData();
 
@@ -559,7 +560,7 @@ abstract class JMemberDataImpl implements JMemberData {
   final MemberDefinition definition;
 
   @override
-  final Map<ir.Expression, ir.DartType> staticTypes;
+  final StaticTypeCache staticTypes;
 
   JMemberDataImpl(this.node, this.definition, this.staticTypes);
 
@@ -659,7 +660,7 @@ class FunctionDataImpl extends JMemberDataImpl
   FunctionType _type;
 
   FunctionDataImpl(ir.Member node, this.functionNode,
-      MemberDefinition definition, Map<ir.Expression, ir.DartType> staticTypes)
+      MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, definition, staticTypes);
 
   factory FunctionDataImpl.readFromDataSource(DataSource source) {
@@ -676,8 +677,8 @@ class FunctionDataImpl extends JMemberDataImpl
     }
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
-    Map<ir.Expression, ir.DartType> staticTypes =
-        source.readTreeNodeMap(() => source.readDartTypeNode());
+    StaticTypeCache staticTypes =
+        new StaticTypeCache.readFromDataSource(source);
     source.end(tag);
     return new FunctionDataImpl(node, functionNode, definition, staticTypes);
   }
@@ -688,7 +689,7 @@ class FunctionDataImpl extends JMemberDataImpl
     sink.begin(tag);
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
-    sink.writeTreeNodeMap(staticTypes, sink.writeDartTypeNode);
+    staticTypes.writeToDataSink(sink);
     sink.end(tag);
   }
 
@@ -744,7 +745,7 @@ class SignatureFunctionData implements FunctionData {
   }
 
   @override
-  Map<ir.Expression, ir.DartType> get staticTypes => const {};
+  StaticTypeCache get staticTypes => const StaticTypeCache();
 
   @override
   FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {
@@ -840,7 +841,7 @@ class GeneratorBodyFunctionData extends DelegatedFunctionData {
   }
 
   @override
-  Map<ir.Expression, ir.DartType> get staticTypes => const {};
+  StaticTypeCache get staticTypes => const StaticTypeCache();
 }
 
 abstract class JConstructorData extends FunctionData {
@@ -858,7 +859,7 @@ class JConstructorDataImpl extends FunctionDataImpl
   JConstructorBody constructorBody;
 
   JConstructorDataImpl(ir.Member node, ir.FunctionNode functionNode,
-      MemberDefinition definition, Map<ir.Expression, ir.DartType> staticTypes)
+      MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, functionNode, definition, staticTypes);
 
   factory JConstructorDataImpl.readFromDataSource(DataSource source) {
@@ -875,8 +876,8 @@ class JConstructorDataImpl extends FunctionDataImpl
     }
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
-    Map<ir.Expression, ir.DartType> staticTypes =
-        source.readTreeNodeMap(() => source.readDartTypeNode());
+    StaticTypeCache staticTypes =
+        new StaticTypeCache.readFromDataSource(source);
     source.end(tag);
     return new JConstructorDataImpl(
         node, functionNode, definition, staticTypes);
@@ -889,7 +890,7 @@ class JConstructorDataImpl extends FunctionDataImpl
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
     assert(constructorBody == null);
-    sink.writeTreeNodeMap(staticTypes, sink.writeDartTypeNode);
+    staticTypes.writeToDataSink(sink);
     sink.end(tag);
   }
 
@@ -921,7 +922,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
   static const String tag = 'constructor-body-data';
 
   ConstructorBodyDataImpl(ir.Member node, ir.FunctionNode functionNode,
-      MemberDefinition definition, Map<ir.Expression, ir.DartType> staticTypes)
+      MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, functionNode, definition, staticTypes);
 
   factory ConstructorBodyDataImpl.readFromDataSource(DataSource source) {
@@ -938,8 +939,8 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
     }
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
-    Map<ir.Expression, ir.DartType> staticTypes =
-        source.readTreeNodeMap(() => source.readDartTypeNode());
+    StaticTypeCache staticTypes =
+        new StaticTypeCache.readFromDataSource(source);
     source.end(tag);
     return new ConstructorBodyDataImpl(
         node, functionNode, definition, staticTypes);
@@ -951,7 +952,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
     sink.begin(tag);
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
-    sink.writeTreeNodeMap(staticTypes, sink.writeDartTypeNode);
+    staticTypes.writeToDataSink(sink);
     sink.end(tag);
   }
 
@@ -977,8 +978,8 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   DartType _type;
   ConstantExpression _constantExpression;
 
-  JFieldDataImpl(ir.Field node, MemberDefinition definition,
-      Map<ir.Expression, ir.DartType> staticTypes)
+  JFieldDataImpl(
+      ir.Field node, MemberDefinition definition, StaticTypeCache staticTypes)
       : super(node, definition, staticTypes);
 
   factory JFieldDataImpl.readFromDataSource(DataSource source) {
@@ -986,8 +987,8 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
     ir.Member node = source.readMemberNode();
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
-    Map<ir.Expression, ir.DartType> staticTypes =
-        source.readTreeNodeMap(() => source.readDartTypeNode());
+    StaticTypeCache staticTypes =
+        new StaticTypeCache.readFromDataSource(source);
     source.end(tag);
     return new JFieldDataImpl(node, definition, staticTypes);
   }
@@ -998,7 +999,7 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
     sink.begin(tag);
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
-    sink.writeTreeNodeMap(staticTypes, sink.writeDartTypeNode);
+    staticTypes.writeToDataSink(sink);
     sink.end(tag);
   }
 

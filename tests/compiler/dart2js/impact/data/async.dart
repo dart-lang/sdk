@@ -219,9 +219,9 @@ testAnonymousAsyncStar() {
 
 /*element: testAsyncForIn:
  dynamic=[
-  cancel(0),
-  current,
-  moveNext(0)],
+  _StreamIterator.cancel(0),
+  _StreamIterator.current,
+  _StreamIterator.moveNext(0)],
  static=[
   StreamIterator.(1),
   _asyncAwait(2),
@@ -243,9 +243,9 @@ testAsyncForIn(o) async {
 
 /*element: testAsyncForInTyped:
  dynamic=[
-  cancel(0),
-  current,
-  moveNext(0)],
+  _StreamIterator.cancel(0),
+  _StreamIterator.current,
+  _StreamIterator.moveNext(0)],
  static=[
   StreamIterator.(1),
   _asyncAwait(2),

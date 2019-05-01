@@ -259,13 +259,21 @@ abstract class ImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerAsyncForIn(ir.DartType iterableType) {
-    _registerTypeUse(iterableType, _TypeUseKind.asyncForIn);
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
+      ClassRelation iteratorClassRelation) {
+    _data._forInData ??= [];
+    _data._forInData.add(new _ForInData(
+        iterableType, iteratorType, iteratorClassRelation,
+        isAsync: true));
   }
 
   @override
-  void registerSyncForIn(ir.DartType iterableType) {
-    _registerTypeUse(iterableType, _TypeUseKind.syncForIn);
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
+      ClassRelation iteratorClassRelation) {
+    _data._forInData ??= [];
+    _data._forInData.add(new _ForInData(
+        iterableType, iteratorType, iteratorClassRelation,
+        isAsync: false));
   }
 
   @override
@@ -506,6 +514,7 @@ class ImpactDataImpl implements ImpactData {
   List<double> _doubleLiterals;
   List<int> _intLiterals;
   List<_RuntimeTypeUse> _runtimeTypeUses;
+  List<_ForInData> _forInData;
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
   List<ir.Constructor> _constructorNodes;
@@ -868,12 +877,6 @@ class ImpactDataImpl implements ImpactData {
           case _TypeUseKind.catchType:
             registry.registerCatchType(data.type);
             break;
-          case _TypeUseKind.asyncForIn:
-            registry.registerAsyncForIn(data.type);
-            break;
-          case _TypeUseKind.syncForIn:
-            registry.registerSyncForIn(data.type);
-            break;
           case _TypeUseKind.asCast:
             registry.registerAsCast(data.type);
             break;
@@ -995,6 +998,17 @@ class ImpactDataImpl implements ImpactData {
       for (_RuntimeTypeUse data in _runtimeTypeUses) {
         registry.registerRuntimeTypeUse(
             data.node, data.kind, data.receiverType, data.argumentType);
+      }
+    }
+    if (_forInData != null) {
+      for (_ForInData data in _forInData) {
+        if (data.isAsync) {
+          registry.registerAsyncForIn(
+              data.iterableType, data.iteratorType, data.iteratorClassRelation);
+        } else {
+          registry.registerSyncForIn(
+              data.iterableType, data.iteratorType, data.iteratorClassRelation);
+        }
       }
     }
 
@@ -1415,8 +1429,6 @@ class _TypeUse {
 enum _TypeUseKind {
   parameterCheck,
   catchType,
-  asyncForIn,
-  syncForIn,
   asCast,
   implicitCast,
   isCheck,
@@ -1603,6 +1615,37 @@ class _RuntimeTypeUse {
     sink.writeEnum(kind);
     sink.writeDartTypeNode(receiverType);
     sink.writeDartTypeNode(argumentType, allowNull: true);
+    sink.end(tag);
+  }
+}
+
+class _ForInData {
+  static const String tag = '_ForInData';
+
+  final ir.DartType iterableType;
+  final ir.DartType iteratorType;
+  final ClassRelation iteratorClassRelation;
+  final bool isAsync;
+
+  _ForInData(this.iterableType, this.iteratorType, this.iteratorClassRelation,
+      {this.isAsync});
+
+  factory _ForInData.fromDataSource(DataSource source) {
+    source.begin(tag);
+    ir.DartType iterableType = source.readDartTypeNode();
+    ir.DartType iteratorType = source.readDartTypeNode(allowNull: true);
+    ClassRelation iteratorClassRelation = source.readEnum(ClassRelation.values);
+    bool isAsync = source.readBool();
+    return new _ForInData(iterableType, iteratorType, iteratorClassRelation,
+        isAsync: isAsync);
+  }
+
+  void toDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeDartTypeNode(iterableType);
+    sink.writeDartTypeNode(iteratorType);
+    sink.writeEnum(iteratorClassRelation);
+    sink.writeBool(isAsync);
     sink.end(tag);
   }
 }

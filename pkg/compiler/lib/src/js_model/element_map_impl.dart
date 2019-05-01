@@ -33,6 +33,7 @@ import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
 import '../ir/static_type_base.dart';
+import '../ir/static_type_cache.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
@@ -1143,7 +1144,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
     MemberDefinition memberDefinition = members.getData(member).definition;
-    Map<ir.Expression, ir.DartType> cachedStaticTypes;
+    StaticTypeCache cachedStaticTypes;
     ir.InterfaceType thisType;
     switch (memberDefinition.kind) {
       case MemberKind.regular:
@@ -1168,7 +1169,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       case MemberKind.closureField:
       case MemberKind.signature:
       case MemberKind.generatorBody:
-        cachedStaticTypes = const {};
+        cachedStaticTypes = const StaticTypeCache();
         break;
     }
 

@@ -12,6 +12,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
+import '../ir/static_type_cache.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
@@ -1065,7 +1066,7 @@ abstract class ClosureMemberData implements JMemberData {
   ClosureMemberData(this.definition, this.memberThisType);
 
   @override
-  Map<ir.Expression, ir.DartType> get staticTypes {
+  StaticTypeCache get staticTypes {
     // The cached types are stored in the data for enclosing member.
     throw new UnsupportedError("ClosureMemberData.staticTypes");
   }

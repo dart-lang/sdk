@@ -9,6 +9,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/cached_static_type.dart';
 import 'package:compiler/src/ir/static_type_base.dart';
+import 'package:compiler/src/ir/static_type_cache.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -49,8 +50,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
-    Map<ir.TreeNode, ir.DartType> staticTypeCache =
-        elementMap.getCachedStaticTypes(member);
+    StaticTypeCache staticTypeCache = elementMap.getCachedStaticTypes(member);
     ir.Member node = elementMap.getMemberNode(member);
     new StaticTypeIrComputer(
             compiler.reporter,

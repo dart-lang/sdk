@@ -8,12 +8,14 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'static_type_base.dart';
+import 'static_type_cache.dart';
 import 'static_type_provider.dart';
 
 /// Class that provides the static type of expression using the visitor pattern
 /// and a precomputed cache for complex expression type.
 class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
-  final Map<ir.Expression, ir.DartType> _cache;
+  final StaticTypeCache _cache;
+
   @override
   final ThisInterfaceType thisType;
 
@@ -25,6 +27,13 @@ class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
   ir.DartType getStaticType(ir.Expression node) {
     ir.DartType type = node.accept(this);
     assert(type != null, "No static type found for ${node.runtimeType}.");
+    return type;
+  }
+
+  @override
+  ir.DartType getForInIteratorType(ir.ForInStatement node) {
+    ir.DartType type = _cache.getForInIteratorType(node);
+    assert(type != null, "No for-in iterator type found for ${node}.");
     return type;
   }
 

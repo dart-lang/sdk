@@ -739,23 +739,31 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerSyncForIn(ir.DartType iterableType) {
-    // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
-    // strong mode.
+  void registerSyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
+      ClassRelation iteratorClassRelation) {
+    Object receiverConstraint =
+        _computeReceiverConstraint(iteratorType, iteratorClassRelation);
     impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.iterator));
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current));
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        Selectors.iterator, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        Selectors.current, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        Selectors.moveNext, receiverConstraint, const []));
   }
 
   @override
-  void registerAsyncForIn(ir.DartType iterableType) {
-    // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
-    // strong mode.
+  void registerAsyncForIn(ir.DartType iterableType, ir.DartType iteratorType,
+      ClassRelation iteratorClassRelation) {
+    Object receiverConstraint =
+        _computeReceiverConstraint(iteratorType, iteratorClassRelation);
     impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.cancel));
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current));
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        Selectors.cancel, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        Selectors.current, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        Selectors.moveNext, receiverConstraint, const []));
   }
 
   @override

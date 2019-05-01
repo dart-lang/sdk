@@ -19,6 +19,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
+import '../ir/static_type_cache.dart';
 import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js_model/element_map.dart';
@@ -669,7 +670,7 @@ class KClassDataImpl implements KClassData {
 abstract class KMemberData {
   ir.Member get node;
 
-  Map<ir.Expression, ir.DartType> staticTypes;
+  StaticTypeCache staticTypes;
 
   Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
 
@@ -688,7 +689,7 @@ abstract class KMemberDataImpl implements KMemberData {
   Iterable<ConstantValue> _metadata;
 
   @override
-  Map<ir.Expression, ir.DartType> staticTypes;
+  StaticTypeCache staticTypes;
 
   KMemberDataImpl(this.node);
 
