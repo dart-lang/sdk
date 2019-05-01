@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:meta/meta.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -23,7 +22,6 @@ class LibraryCycle {
   final List<FileState> libraries = [];
 
   /// The library cycles that this cycle references directly.
-  @visibleForTesting
   final Set<LibraryCycle> directDependencies = new Set<LibraryCycle>();
 
   /// The cycles that use this cycle, used to [invalidate] transitively.
@@ -35,11 +33,11 @@ class LibraryCycle {
   /// transitive signatures of the cycles that the [libraries] reference
   /// directly.  So, indirectly it is based on the transitive closure of all
   /// files that [libraries] reference (but we don't compute these files).
-  String _transitiveSignature;
+  String transitiveSignature;
 
   /// The map from a library in [libraries] to its transitive signature.
   ///
-  /// It is almost the same as [_transitiveSignature], but is also based on
+  /// It is almost the same as [transitiveSignature], but is also based on
   /// the URI of this specific library.  Currently we store each linked library
   /// with its own key, so we need unique keys.  However practically we never
   /// can use just *one* library of a cycle, we always use the whole cycle.
@@ -49,7 +47,7 @@ class LibraryCycle {
 
   LibraryCycle();
 
-  LibraryCycle.external() : _transitiveSignature = '<external>';
+  LibraryCycle.external() : transitiveSignature = '<external>';
 
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
@@ -125,6 +123,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
+      signature.addString(node.file.uriStr);
+
       signature.addInt(node.file.libraryFiles.length);
       for (var file in node.file.libraryFiles) {
         signature.addBytes(file.apiSignature);
@@ -132,13 +132,13 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     }
 
     // Compute the general library cycle signature.
-    cycle._transitiveSignature = signature.toHex();
+    cycle.transitiveSignature = signature.toHex();
 
     // Compute library specific signatures.
     for (var node in scc) {
       var librarySignatureBuilder = new ApiSignature()
         ..addString(node.file.uriStr)
-        ..addString(cycle._transitiveSignature);
+        ..addString(cycle.transitiveSignature);
       var librarySignature = librarySignatureBuilder.toHex();
 
       node.file.internal_setLibraryCycle(
@@ -166,7 +166,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       if (cycle.directDependencies.add(referencedCycle)) {
         referencedCycle._directUsers.add(cycle);
-        signature.addString(referencedCycle._transitiveSignature);
+        signature.addString(referencedCycle.transitiveSignature);
       }
     }
   }

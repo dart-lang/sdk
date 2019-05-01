@@ -71,6 +71,15 @@ class LinkedUnitContext {
       this.data,
       this.tokensContext);
 
+  bool get hasPartOfDirective {
+    for (var directive in unit_withDirectives.directives) {
+      if (directive is PartOfDirective) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   CompilationUnit get unit => _unit;
 
   CompilationUnit get unit_withDeclarations {

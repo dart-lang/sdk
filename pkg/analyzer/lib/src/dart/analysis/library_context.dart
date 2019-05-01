@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -219,9 +220,72 @@ class LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  ///
-  /// TODO(scheglov) Implement loading cached linked bundles.
   void load2(FileState targetLibrary) {
+    var loadedBundles = Set<LibraryCycle>.identity();
+    var inputBundles = <LinkedNodeBundle>[];
+
+    void loadBundle(LibraryCycle cycle) {
+      if (!loadedBundles.add(cycle)) return;
+
+      logger.run('Prepare linked bundle', () {
+        logger.writeln('Libraries: ${cycle.libraries}');
+        cycle.directDependencies.forEach(loadBundle);
+
+        var key = cycle.transitiveSignature + '.linked_bundle';
+        var bytes = byteStore.get(key);
+
+        if (bytes == null) {
+          var inputLibraries = <link2.LinkInputLibrary>[];
+          logger.run('Prepare input libraries', () {
+            for (var libraryFile in cycle.libraries) {
+              var librarySource = libraryFile.source;
+              if (librarySource == null) continue;
+
+              var inputUnits = <link2.LinkInputUnit>[];
+              for (var file in libraryFile.libraryFiles) {
+                var isSynthetic = !file.exists;
+                inputUnits.add(
+                  link2.LinkInputUnit(file.source, isSynthetic, file.parse()),
+                );
+              }
+
+              inputLibraries.add(
+                link2.LinkInputLibrary(librarySource, inputUnits),
+              );
+            }
+            logger.writeln('Prepared ${inputLibraries.length} libraries.');
+          });
+
+          link2.LinkResult linkResult;
+          logger.run('Link libraries', () {
+            linkResult = link2.link(
+              analysisContext.analysisOptions,
+              analysisContext.sourceFactory,
+              analysisContext.declaredVariables,
+              inputBundles,
+              inputLibraries,
+            );
+            logger.writeln('Linked ${inputLibraries.length} libraries.');
+          });
+
+          bytes = linkResult.bundle.toBuffer();
+          byteStore.put(key, bytes);
+          logger.writeln('Stored ${bytes.length} bytes.');
+        } else {
+          logger.writeln('Loaded ${bytes.length} bytes.');
+        }
+
+        inputBundles.add(
+          LinkedNodeBundle.fromBuffer(bytes),
+        );
+      });
+    }
+
+    logger.run('Prepare linked bundles', () {
+      var libraryCycle = targetLibrary.libraryCycle;
+      loadBundle(libraryCycle);
+    });
+
     var rootReference = Reference.root();
     rootReference.getChild('dart:core').getChild('dynamic').element =
         DynamicElementImpl.instance;
@@ -232,39 +296,11 @@ class LibraryContext {
       rootReference,
     );
 
-    var inputLibraries = <link2.LinkInputLibrary>[];
-    var transitiveFiles = targetLibrary.transitiveFiles;
-    for (var libraryFile in transitiveFiles) {
-      if (libraryFile.isPart) {
-        elementFactory.partUriSet.add(libraryFile.uriStr);
-      }
-
-      // TODO(scheglov) Why do we even we such invalid files in transitive?
-      var librarySource = libraryFile.source;
-      if (librarySource == null) continue;
-
-      var inputUnits = <link2.LinkInputUnit>[];
-      for (var file in libraryFile.libraryFiles) {
-        var isSynthetic = !file.exists;
-        inputUnits.add(
-          link2.LinkInputUnit(file.source, isSynthetic, file.parse()),
-        );
-      }
-      inputLibraries.add(
-        link2.LinkInputLibrary(librarySource, inputUnits),
+    for (var bundle in inputBundles) {
+      elementFactory.addBundle(
+        LinkedBundleContext(elementFactory, bundle),
       );
     }
-    var linkResult = link2.link(
-      analysisContext.analysisOptions,
-      analysisContext.sourceFactory,
-      analysisContext.declaredVariables,
-      [],
-      inputLibraries,
-    );
-
-    elementFactory.addBundle(
-      LinkedBundleContext(elementFactory, linkResult.bundle),
-    );
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');

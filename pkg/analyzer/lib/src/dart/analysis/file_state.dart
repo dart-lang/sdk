@@ -587,7 +587,7 @@ class FileState {
   }
 
   @override
-  String toString() => path;
+  String toString() => path ?? '<unresolved>';
 
   /**
    * Compute the full or partial map of exported declarations for this library.
