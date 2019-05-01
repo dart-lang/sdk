@@ -1382,7 +1382,13 @@ class KernelLibraryBuilder
               unserializableExports ??= <String, String>{};
               unserializableExports[name] = member.message.message;
             } else {
-              library.additionalExports.add(member.target.reference);
+              // Eventually (in #buildBuilder) members aren't added to the
+              // library if the have 'next' pointers, so don't add them as
+              // additionalExports either. Add the last one only (the one that
+              // will eventually be added to the library).
+              Declaration memberLast = member;
+              while (memberLast.next != null) memberLast = memberLast.next;
+              library.additionalExports.add(memberLast.target.reference);
             }
         }
       }

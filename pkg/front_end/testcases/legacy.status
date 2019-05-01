@@ -115,6 +115,8 @@ regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
 regress/issue_36400: RuntimeError
+regress/issue_36647: RuntimeError # Expected
+regress/issue_36647_2: RuntimeError # Expected
 reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
