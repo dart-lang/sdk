@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -546,11 +547,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@class').getChild(name);
 
-    var element = ClassElementImpl.forLinkedNode(
-      outerReference.element,
-      reference,
-      node,
-    );
+    ClassElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
     scope = new TypeParameterScope(scope, element);
@@ -576,11 +573,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@class').getChild(name);
 
-    var element = ClassElementImpl.forLinkedNode(
-      outerReference.element,
-      reference,
-      node,
-    );
+    ClassElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
     scope = new TypeParameterScope(scope, element);
@@ -665,14 +658,18 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var name = node.name.name;
-    reference = reference.getChild('@function').getChild(name);
+    var container = '@function';
+    var propertyKeyword = node.propertyKeyword?.keyword;
+    if (propertyKeyword == Keyword.GET) {
+      container = '@getter';
+    } else if (propertyKeyword == Keyword.SET) {
+      container = '@setter';
+    }
 
-    var element = FunctionElementImpl.forLinkedNode(
-      outerReference.element,
-      reference,
-      node,
-    );
+    var name = node.name.name;
+    reference = reference.getChild(container).getChild(name);
+
+    ExecutableElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.functionExpression.typeParameters);
     scope = new FunctionScope(scope, element);
@@ -700,11 +697,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@typeAlias').getChild(name);
 
-    var element = GenericTypeAliasElementImpl.forLinkedNode(
-      outerReference.element,
-      reference,
-      node,
-    );
+    GenericTypeAliasElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
     scope = FunctionTypeScope(outerScope, element);
@@ -790,11 +783,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@typeAlias').getChild(name);
 
-    var element = GenericTypeAliasElementImpl.forLinkedNode(
-      outerReference.element,
-      reference,
-      node,
-    );
+    GenericTypeAliasElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
     scope = TypeParameterScope(outerScope, element);
@@ -817,8 +806,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
+    var container = '@method';
+    var propertyKeyword = node.propertyKeyword?.keyword;
+    if (propertyKeyword == Keyword.GET) {
+      container = '@getter';
+    } else if (propertyKeyword == Keyword.SET) {
+      container = '@setter';
+    }
+
     var name = node.name.name;
-    reference = reference.getChild('@method').getChild(name);
+    reference = reference.getChild(container).getChild(name);
 
     var element = MethodElementImpl.forLinkedNode(
       outerReference.element,
@@ -847,11 +844,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var name = node.name.name;
     reference = reference.getChild('@mixin').getChild(name);
 
-    var element = ClassElementImpl.forLinkedNode(
-      outerReference.element,
-      reference,
-      node,
-    );
+    MixinElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
     scope = new TypeParameterScope(scope, element);

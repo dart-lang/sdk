@@ -32,6 +32,53 @@ AstNode _getLinkedNode(Element element) {
   return (element as ElementImpl).linkedNode;
 }
 
+/// Resolver for typed constant top-level variables and fields initializers.
+///
+/// Initializers of untyped variables are resolved during [TopLevelInference].
+class ConstantInitializersResolver {
+  final Linker linker;
+
+  LibraryElement _library;
+  Scope _scope;
+
+  ConstantInitializersResolver(this.linker);
+
+  DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
+
+  void perform() {
+    for (var builder in linker.builders.values) {
+      _library = builder.element;
+      for (var unitContext in builder.context.units) {
+        for (var unitMember in unitContext.unit.declarations) {
+          _scope = builder.libraryScope;
+          if (unitMember is TopLevelVariableDeclaration) {
+            _variableDeclarationList(unitMember.variables);
+          } else if (unitMember is ClassOrMixinDeclaration) {
+            _scope = LinkingNodeContext.get(unitMember).scope;
+            for (var classMember in unitMember.members) {
+              if (classMember is FieldDeclaration) {
+                _variableDeclarationList(classMember.fields);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void _variableDeclarationList(VariableDeclarationList node) {
+    if (node.isConst && node.type != null) {
+      for (var variable in node.variables) {
+        var initializer = variable.initializer;
+        if (initializer != null) {
+          var astResolver = AstResolver(linker, _library, _scope);
+          astResolver.resolve(initializer, doAstRewrite: true);
+        }
+      }
+    }
+  }
+}
+
 class TopLevelInference {
   final Linker linker;
 
@@ -143,6 +190,15 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
 
   _InferenceNode(this._walker, this._library, this._scope, this._node);
 
+  bool get isImplicitlyTypedInstanceField {
+    VariableDeclarationList variables = _node.parent;
+    if (variables.type == null) {
+      var parent = variables.parent;
+      return parent is FieldDeclaration && !parent.isStatic;
+    }
+    return false;
+  }
+
   @override
   List<_InferenceNode> computeDependencies() {
     _node.initializer.accept(LocalElementBuilder(ElementHolder(), null));
@@ -156,10 +212,20 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
       return const <_InferenceNode>[];
     }
 
-    return collector._set
+    var dependencies = collector._set
         .map(_walker.getNode)
         .where((node) => node != null)
         .toList();
+
+    for (var node in dependencies) {
+      if (node.isImplicitlyTypedInstanceField) {
+        LazyAst.setType(_node, DynamicTypeImpl.instance);
+        isEvaluated = true;
+        return const <_InferenceNode>[];
+      }
+    }
+
+    return dependencies;
   }
 
   void evaluate() {
@@ -260,7 +326,6 @@ class _InitializerInference {
   }
 
   void perform() {
-    createNodes();
     _walker.walkNodes();
   }
 
@@ -276,17 +341,15 @@ class _InitializerInference {
     if (element.isSynthetic) return;
 
     VariableDeclaration node = _getLinkedNode(element);
-    if (LazyAst.getType(node) == null || element.isConst) {
-      if (node.initializer != null) {
-        var inferenceNode = _InferenceNode(_walker, _library, _scope, node);
-        _walker._nodes[element] = inferenceNode;
-        (element as PropertyInducingElementImpl).initializer =
-            _FunctionElementForLink_Initializer(inferenceNode);
-      } else {
-        if (LazyAst.getType(node) == null) {
-          LazyAst.setType(node, DynamicTypeImpl.instance);
-        }
-      }
+    if (LazyAst.getType(node) != null) return;
+
+    if (node.initializer != null) {
+      var inferenceNode = _InferenceNode(_walker, _library, _scope, node);
+      _walker._nodes[element] = inferenceNode;
+      (element as PropertyInducingElementImpl).initializer =
+          _FunctionElementForLink_Initializer(inferenceNode);
+    } else {
+      LazyAst.setType(node, DynamicTypeImpl.instance);
     }
   }
 }

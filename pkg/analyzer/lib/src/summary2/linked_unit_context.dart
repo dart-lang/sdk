@@ -711,6 +711,10 @@ class LinkedUnitContext {
   }
 
   bool hasImplicitReturnType(AstNode node) {
+    if (node is FunctionDeclaration) {
+      LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
+      return node.returnType == null;
+    }
     if (node is MethodDeclaration) {
       LazyMethodDeclaration.readReturnTypeNode(_astReader, node);
       return node.returnType == null;

@@ -2280,6 +2280,26 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
         withConstElements: false);
   }
 
+  test_const_classField() async {
+    var library = await checkLibrary(r'''
+class C {
+  static const int f1 = 1;
+  static const int f2 = C.f1, f3 = C.f2;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  static const int f1 = 1;
+  static const int f2 =
+        C/*location: test.dart;C*/.
+        f1/*location: test.dart;C;f1?*/;
+  static const int f3 =
+        C/*location: test.dart;C*/.
+        f2/*location: test.dart;C;f2?*/;
+}
+''');
+  }
+
   test_const_constructor_inferred_args() async {
     var library = await checkLibrary('''
 class C<T> {

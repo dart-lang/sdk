@@ -112,12 +112,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_const_constructor_inferred_args() async {
-    await super.test_const_constructor_inferred_args();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_genericClosure() async {
     // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
     // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.

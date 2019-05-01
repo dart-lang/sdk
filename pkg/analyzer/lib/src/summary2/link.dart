@@ -130,6 +130,7 @@ class Linker {
     _createLoadLibraryFunctions();
     _performTopLevelInference();
     _resolveConstructors();
+    _resolveConstantInitializers();
     _resolveDefaultValues();
     _resolveMetadata();
     _collectMixinSuperInvokedNames();
@@ -249,6 +250,10 @@ class Linker {
 
   void _performTopLevelInference() {
     TopLevelInference(this).infer();
+  }
+
+  void _resolveConstantInitializers() {
+    ConstantInitializersResolver(this).perform();
   }
 
   void _resolveConstructors() {
