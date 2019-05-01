@@ -28,10 +28,15 @@ class DeclarationSplicer {
   }
 
   FunctionBody _body(FunctionBody full) {
+    _buildLocalElements(full);
+    return full;
+  }
+
+  void _buildLocalElements(AstNode node) {
     var holder = ElementHolder();
 
     var elementBuilder = LocalElementBuilder(holder, null);
-    full.accept(elementBuilder);
+    node.accept(elementBuilder);
 
     var element = _walker.element;
     if (element is ExecutableElementImpl) {
@@ -39,8 +44,6 @@ class DeclarationSplicer {
       element.encloseElements(holder.labels);
       element.encloseElements(holder.localVariables);
     }
-
-    return full;
   }
 
   void _classDeclaration(ClassDeclaration full, ClassDeclaration partial) {
@@ -74,14 +77,21 @@ class DeclarationSplicer {
     _match(partial.name, element);
     (partial as ConstructorDeclarationImpl).declaredElement = element;
     _walk(_ElementWalker.forExecutable(element), () {
-      _node(full.parameters, partial.parameters);
-      // TODO(scheglov) Not very nice.
-      if (full.initializers.isNotEmpty && partial.initializers.isEmpty) {
-        partial.initializers.addAll(full.initializers);
-      }
+      _formalParameterList(full.parameters, partial.parameters);
+      _constructorInitializers(full.initializers, partial.initializers);
       partial.body = _body(full.body);
     });
     _metadata(partial.metadata, element);
+  }
+
+  void _constructorInitializers(
+    List<ConstructorInitializer> full,
+    List<ConstructorInitializer> partial,
+  ) {
+    if (full.isNotEmpty && partial.isEmpty) {
+      partial.addAll(full);
+    }
+    partial.forEach(_buildLocalElements);
   }
 
   void _declarations(CompilationUnit full, CompilationUnit partial) {

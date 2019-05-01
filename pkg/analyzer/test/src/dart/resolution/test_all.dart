@@ -9,6 +9,7 @@ import 'class_alias_test.dart' as class_alias;
 import 'class_test.dart' as class_resolution;
 import 'comment_test.dart' as comment;
 import 'constant_test.dart' as constant;
+import 'constructor_test.dart' as constructor;
 import 'definite_assignment_test.dart' as definite_assignment;
 import 'enum_test.dart' as enum_resolution;
 import 'flow_analysis_test.dart' as flow_analysis;
@@ -36,6 +37,7 @@ main() {
     class_resolution.main();
     comment.main();
     constant.main();
+    constructor.main();
     definite_assignment.main();
     enum_resolution.main();
     flow_analysis.main();
