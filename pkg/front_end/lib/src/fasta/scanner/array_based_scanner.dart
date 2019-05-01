@@ -21,7 +21,11 @@ import 'token_constants.dart'
 import 'characters.dart' show $LF, $STX;
 
 import 'abstract_scanner.dart'
-    show AbstractScanner, ScannerConfiguration, closeBraceInfoFor;
+    show
+        AbstractScanner,
+        LanguageVersionChanged,
+        ScannerConfiguration,
+        closeBraceInfoFor;
 
 import '../util/link.dart' show Link;
 
@@ -29,8 +33,9 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;
 
   ArrayBasedScanner(ScannerConfiguration config, bool includeComments,
-      {int numberOfBytesHint})
-      : super(config, includeComments, numberOfBytesHint: numberOfBytesHint);
+      LanguageVersionChanged languageVersionChanged, {int numberOfBytesHint})
+      : super(config, includeComments, languageVersionChanged,
+            numberOfBytesHint: numberOfBytesHint);
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]

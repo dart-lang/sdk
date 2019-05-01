@@ -717,15 +717,26 @@ class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   ScannerResult scanSource(source, {includeComments: true}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
-    return usedForFuzzTesting.scan(encoded, includeComments: includeComments);
+    return usedForFuzzTesting.scan(encoded,
+        includeComments: includeComments,
+        languageVersionChanged: languageVersionChanged);
   }
 }
 
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
+  LanguageVersionToken languageVersion;
+
+  void languageVersionChanged(
+      Scanner scanner, LanguageVersionToken languageVersion) {
+    this.languageVersion = languageVersion;
+  }
+
   ScannerResult scanSource(source, {includeComments: true}) =>
-      scanString(source, includeComments: includeComments);
+      scanString(source,
+          includeComments: includeComments,
+          languageVersionChanged: languageVersionChanged);
 
   @override
   Token scan(String source) {

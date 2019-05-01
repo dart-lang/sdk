@@ -32,6 +32,9 @@ import 'token_constants.dart';
 
 import 'characters.dart';
 
+typedef void LanguageVersionChanged(
+    Scanner scanner, LanguageVersionToken languageVersion);
+
 abstract class AbstractScanner implements Scanner {
   /**
    * A flag indicating whether character sequences `&&=` and `||=`
@@ -42,6 +45,11 @@ abstract class AbstractScanner implements Scanner {
   static const bool LAZY_ASSIGNMENT_ENABLED = false;
 
   final bool includeComments;
+
+  /// Called when the scanner detects a language version comment
+  /// so that the listener can update the scanner configuration
+  /// based upon the specified language version.
+  final LanguageVersionChanged languageVersionChanged;
 
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
@@ -98,15 +106,14 @@ abstract class AbstractScanner implements Scanner {
   final List<int> lineStarts;
 
   AbstractScanner(ScannerConfiguration config, this.includeComments,
+      this.languageVersionChanged,
       {int numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
     this.configuration = config;
   }
 
-  /**
-   * Configure which tokens are produced.
-   */
+  @override
   set configuration(ScannerConfiguration config) {
     if (config != null) {
       _enableNonNullable = config.enableNonNullable;
@@ -320,7 +327,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int bigHeaderSwitch(int next) {
-    if (languageVersion != null || !identical(next, $SLASH)) {
+    if (!identical(next, $SLASH)) {
       return bigSwitch(next);
     }
     beginToken();
@@ -970,7 +977,14 @@ abstract class AbstractScanner implements Scanner {
     }
 
     languageVersion = createLanguageVersionToken(start, major, minor);
-    configuration = ScannerConfiguration.from(languageVersion);
+    if (languageVersionChanged != null) {
+      // TODO(danrubel): make this required and remove the languageVersion field
+      languageVersionChanged(this, languageVersion);
+    } else {
+      // TODO(danrubel): remove this hack and require listener to update
+      // the scanner's configuration.
+      configuration = ScannerConfiguration.classic;
+    }
     if (includeComments) {
       _appendToCommentStream(languageVersion);
     }
@@ -1527,12 +1541,6 @@ class LineStarts extends Object with ListMixin<int> {
 class ScannerConfiguration {
   static const classic = ScannerConfiguration();
   static const nonNullable = ScannerConfiguration(enableNonNullable: true);
-
-  /// Return the scanner configuration for the given language version.
-  static ScannerConfiguration from(LanguageVersionToken languageVersion) {
-    // TODO(danrubel): update this to return config for new releases
-    return classic;
-  }
 
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'

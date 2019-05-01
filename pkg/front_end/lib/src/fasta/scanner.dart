@@ -8,7 +8,8 @@ import 'dart:convert' show unicodeReplacementCharacterRune, utf8;
 
 import '../scanner/token.dart' show Token;
 
-import 'scanner/abstract_scanner.dart' show ScannerConfiguration;
+import 'scanner/abstract_scanner.dart'
+    show LanguageVersionChanged, ScannerConfiguration;
 
 import 'scanner/string_scanner.dart' show StringScanner;
 
@@ -18,7 +19,8 @@ import 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 import 'scanner/recover.dart' show defaultRecoveryStrategy;
 
-export 'scanner/abstract_scanner.dart' show ScannerConfiguration;
+export 'scanner/abstract_scanner.dart'
+    show LanguageVersionChanged, ScannerConfiguration;
 
 export 'scanner/token.dart'
     show
@@ -32,6 +34,8 @@ export 'scanner/token.dart'
 
 export 'scanner/error_token.dart'
     show ErrorToken, buildUnexpectedCharacterToken;
+
+export 'scanner/token.dart' show LanguageVersionToken;
 
 export 'scanner/token_constants.dart' show EOF_TOKEN;
 
@@ -55,6 +59,9 @@ abstract class Scanner {
 
   List<int> get lineStarts;
 
+  /// Configure which tokens are produced.
+  set configuration(ScannerConfiguration config);
+
   Token tokenize();
 }
 
@@ -71,14 +78,17 @@ class ScannerResult {
 /// Scan/tokenize the given UTF8 [bytes].
 /// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scan(List<int> bytes,
-    {bool includeComments: false,
-    ScannerConfiguration configuration,
+    {ScannerConfiguration configuration,
+    bool includeComments: false,
+    LanguageVersionChanged languageVersionChanged,
     Recover recover}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be null.");
   }
   Scanner scanner = new Utf8BytesScanner(bytes,
-      configuration: configuration, includeComments: includeComments);
+      configuration: configuration,
+      includeComments: includeComments,
+      languageVersionChanged: languageVersionChanged);
   return _tokenizeAndRecover(scanner, recover, bytes: bytes);
 }
 
@@ -87,11 +97,14 @@ ScannerResult scan(List<int> bytes,
 ScannerResult scanString(String source,
     {ScannerConfiguration configuration,
     bool includeComments: false,
+    LanguageVersionChanged languageVersionChanged,
     bool scanLazyAssignmentOperators: false,
     Recover recover}) {
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,
-      configuration: configuration, includeComments: includeComments);
+      configuration: configuration,
+      includeComments: includeComments,
+      languageVersionChanged: languageVersionChanged);
   return _tokenizeAndRecover(scanner, recover, source: source);
 }
 

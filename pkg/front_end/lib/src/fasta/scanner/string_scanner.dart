@@ -8,7 +8,8 @@ import '../../scanner/token.dart' show Token, SyntheticStringToken, TokenType;
 
 import '../../scanner/token.dart' as analyzer show StringToken;
 
-import 'abstract_scanner.dart' show ScannerConfiguration;
+import 'abstract_scanner.dart'
+    show LanguageVersionChanged, ScannerConfiguration;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
@@ -29,9 +30,11 @@ class StringScanner extends ArrayBasedScanner {
   int scanOffset = -1;
 
   StringScanner(String string,
-      {ScannerConfiguration configuration, bool includeComments: false})
+      {ScannerConfiguration configuration,
+      bool includeComments: false,
+      LanguageVersionChanged languageVersionChanged})
       : string = ensureZeroTermination(string),
-        super(configuration, includeComments);
+        super(configuration, includeComments, languageVersionChanged);
 
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
