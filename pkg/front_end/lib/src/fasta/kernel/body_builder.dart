@@ -601,7 +601,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       buildDartType(pop()); // Type.
     }
     List<Expression> annotations = pop();
-    if (annotations != null) {
+    // Fields with duplicate names are sorted out in the else branch of the
+    // `declaration.next == null` above.
+    if (annotations != null && fields.isNotEmpty) {
       inferAnnotations(annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
