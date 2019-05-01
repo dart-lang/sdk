@@ -761,7 +761,7 @@ import 'foo.dart';
 // @dart = 2.3
 main() {}
 ''');
-    expect(result.languageVersion, isNull);
+    expect(languageVersion, isNull);
     expectComments(result.tokens, [], -1);
   }
 
@@ -773,8 +773,8 @@ main() {}
 import 'foo.dart';
 main() {}
 ''');
-    expect(result.languageVersion.major, 2);
-    expect(result.languageVersion.minor, 3);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
     expectComments(
         result.tokens,
         [
@@ -790,8 +790,8 @@ main() {}
 // @dart = 2.3
 main() {}
 ''');
-    expect(result.languageVersion.major, 2);
-    expect(result.languageVersion.minor, 3);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
     expectComments(result.tokens, ['// @dart = 2.3'], 0);
   }
 
@@ -800,7 +800,7 @@ main() {}
 // @dart = 2.3 x
 main() {}
 ''');
-    expect(result.languageVersion, isNull);
+    expect(languageVersion, isNull);
     expectComments(result.tokens, ['// @dart = 2.3 x'], -1);
   }
 
@@ -809,8 +809,8 @@ main() {}
 // @dart = 2.3
 main() {}
 ''', includeComments: false);
-    expect(result.languageVersion.major, 2);
-    expect(result.languageVersion.minor, 3);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
     expectComments(result.tokens, [], -1);
   }
 
@@ -820,8 +820,8 @@ main() {}
 import 'foo.dart';
 main() {}
 ''');
-    expect(result.languageVersion.major, 2);
-    expect(result.languageVersion.minor, 3);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
     expectComments(result.tokens, ['// @dart = 2.3'], 0);
   }
 
@@ -832,8 +832,8 @@ main() {}
 import 'foo.dart';
 main() {}
 ''');
-    expect(result.languageVersion.major, 2);
-    expect(result.languageVersion.minor, 3);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
     expectComments(result.tokens.next, ['// @dart = 2.3'], 0);
   }
 
@@ -843,8 +843,8 @@ main() {}
 library foo;
 main() {}
 ''');
-    expect(result.languageVersion.major, 2);
-    expect(result.languageVersion.minor, 3);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
     expectComments(result.tokens, ['// @dart = 2.3'], 0);
   }
 
@@ -854,8 +854,8 @@ main() {}
 library foo;
 main() {}
 ''');
-    expect(result.languageVersion.major, 2);
-    expect(result.languageVersion.minor, 3);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
     expectComments(result.tokens, ['// @dart=2.3'], 0);
   }
 
@@ -865,7 +865,7 @@ main() {}
 library foo;
 main() {}
 ''');
-    expect(result.languageVersion, isNull);
+    expect(languageVersion, isNull);
     expectComments(result.tokens, ['// @dart = 2.'], -1);
   }
 
@@ -875,7 +875,7 @@ main() {}
 library foo;
 main() {}
 ''');
-    expect(result.languageVersion, isNull);
+    expect(languageVersion, isNull);
     expectComments(result.tokens, ['// @dart = blat'], -1);
   }
 
@@ -885,7 +885,7 @@ main() {}
 library foo;
 main() {}
 ''');
-    expect(result.languageVersion, isNull);
+    expect(languageVersion, isNull);
     expectComments(result.tokens, ['// @dart = 2.x'], -1);
   }
 

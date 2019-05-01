@@ -65,9 +65,6 @@ abstract class AbstractScanner implements Scanner {
   /// such as 'required' and 'late'.
   bool _enableNonNullable = false;
 
-  @override
-  LanguageVersionToken languageVersion;
-
   /**
    * The string offset for the next token that will be created.
    *
@@ -976,7 +973,7 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeSingleLineCommentRest(next, start, false);
     }
 
-    languageVersion = createLanguageVersionToken(start, major, minor);
+    var languageVersion = createLanguageVersionToken(start, major, minor);
     if (languageVersionChanged != null) {
       // TODO(danrubel): make this required and remove the languageVersion field
       languageVersionChanged(this, languageVersion);

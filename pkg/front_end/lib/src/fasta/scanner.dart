@@ -13,8 +13,6 @@ import 'scanner/abstract_scanner.dart'
 
 import 'scanner/string_scanner.dart' show StringScanner;
 
-import 'scanner/token.dart' show LanguageVersionToken;
-
 import 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 import 'scanner/recover.dart' show defaultRecoveryStrategy;
@@ -53,10 +51,6 @@ abstract class Scanner {
   /// Returns true if an error occured during [tokenize].
   bool get hasErrors;
 
-  /// The token containing the language version (e.g. `// @dart = 2.1`)
-  /// or `null` if none.
-  LanguageVersionToken get languageVersion;
-
   List<int> get lineStarts;
 
   /// Configure which tokens are produced.
@@ -67,12 +61,10 @@ abstract class Scanner {
 
 class ScannerResult {
   final Token tokens;
-  final LanguageVersionToken languageVersion;
   final List<int> lineStarts;
   final bool hasErrors;
 
-  ScannerResult(
-      this.tokens, this.languageVersion, this.lineStarts, this.hasErrors);
+  ScannerResult(this.tokens, this.lineStarts, this.hasErrors);
 }
 
 /// Scan/tokenize the given UTF8 [bytes].
@@ -116,6 +108,5 @@ ScannerResult _tokenizeAndRecover(Scanner scanner, Recover recover,
     recover ??= defaultRecoveryStrategy;
     tokens = recover(bytes, tokens, scanner.lineStarts);
   }
-  return new ScannerResult(
-      tokens, scanner.languageVersion, scanner.lineStarts, scanner.hasErrors);
+  return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
 }
