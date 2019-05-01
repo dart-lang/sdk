@@ -6022,8 +6022,11 @@ class Source {
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.
   String getTextLine(int line) {
+    if (source == null ||
+        source.isEmpty ||
+        lineStarts == null ||
+        lineStarts.isEmpty) return null;
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
-    if (source == null || source.isEmpty) return null;
 
     cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.
@@ -6047,6 +6050,9 @@ class Source {
 
   /// Translates an offset to line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {
+    if (lineStarts == null || lineStarts.isEmpty) {
+      return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
+    }
     RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {

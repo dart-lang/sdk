@@ -644,7 +644,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // If [library] is null, we have already reported a problem that this
       // part is orphaned.
       List<LocatedMessage> context = <LocatedMessage>[
-        messagePartInPartLibraryContext.withLocation(library.fileUri, 0, 1),
+        messagePartInPartLibraryContext.withLocation(library.fileUri, -1, 1),
       ];
       for (int offset in partOffsets) {
         addProblem(messagePartInPart, offset, noLength, fileUri,
@@ -658,7 +658,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     parts.clear();
     if (exporters.isNotEmpty) {
       List<LocatedMessage> context = <LocatedMessage>[
-        messagePartExportContext.withLocation(fileUri, 0, 1),
+        messagePartExportContext.withLocation(fileUri, -1, 1),
       ];
       for (Export export in exporters) {
         export.exporter.addProblem(
