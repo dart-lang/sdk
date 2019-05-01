@@ -16,7 +16,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
 
@@ -60,22 +59,16 @@ void _assertCode(ParseBase base, String code) {
     lineInfo = parseResult.lineInfo;
     var originalUnit = parseResult.unit;
 
-    TokensResult tokensResult = TokensWriter().writeTokens(
-      originalUnit.beginToken,
-      originalUnit.endToken,
-    );
-    var tokensContext = tokensResult.toContext();
-
     var rootReference = Reference.root();
     var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
 
     var linkingBundleContext = LinkingBundleContext(dynamicRef);
-    var writer = new AstBinaryWriter(linkingBundleContext, tokensContext);
+    var writer = AstBinaryWriter(linkingBundleContext);
     var unitLinkedNode = writer.writeNode(originalUnit);
 
     linkedNodeUnit = LinkedNodeUnitBuilder(
       node: unitLinkedNode,
-      tokens: tokensResult.tokens,
+      tokens: writer.tokensBuilder,
     );
   }
 

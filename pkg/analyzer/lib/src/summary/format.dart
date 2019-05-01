@@ -4845,6 +4845,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  List<LinkedNodeBuilder> get comment_references {
+    assert(kind == idl.LinkedNodeKind.comment);
+    return _variantField_2 ??= <LinkedNodeBuilder>[];
+  }
+
+  @override
   List<LinkedNodeBuilder> get compilationUnit_declarations {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     return _variantField_2 ??= <LinkedNodeBuilder>[];
@@ -4988,6 +4994,11 @@ class LinkedNodeBuilder extends Object
 
   set cascadeExpression_sections(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.cascadeExpression);
+    _variantField_2 = value;
+  }
+
+  set comment_references(List<LinkedNodeBuilder> value) {
+    assert(kind == idl.LinkedNodeKind.comment);
     _variantField_2 = value;
   }
 
@@ -5302,6 +5313,12 @@ class LinkedNodeBuilder extends Object
   @override
   LinkedNodeBuilder get classTypeAlias_typeParameters {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
+    return _variantField_6;
+  }
+
+  @override
+  LinkedNodeBuilder get commentReference_identifier {
+    assert(kind == idl.LinkedNodeKind.commentReference);
     return _variantField_6;
   }
 
@@ -5764,6 +5781,11 @@ class LinkedNodeBuilder extends Object
     _variantField_6 = value;
   }
 
+  set commentReference_identifier(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.commentReference);
+    _variantField_6 = value;
+  }
+
   set compilationUnit_scriptTag(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     _variantField_6 = value;
@@ -6181,6 +6203,12 @@ class LinkedNodeBuilder extends Object
   @override
   int get classTypeAlias_abstractKeyword {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
+    return _variantField_15 ??= 0;
+  }
+
+  @override
+  int get commentReference_newKeyword {
+    assert(kind == idl.LinkedNodeKind.commentReference);
     return _variantField_15 ??= 0;
   }
 
@@ -6737,6 +6765,12 @@ class LinkedNodeBuilder extends Object
 
   set classTypeAlias_abstractKeyword(int value) {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
+    assert(value == null || value >= 0);
+    _variantField_15 = value;
+  }
+
+  set commentReference_newKeyword(int value) {
+    assert(kind == idl.LinkedNodeKind.commentReference);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
@@ -10424,6 +10458,15 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = cascadeExpression_target,
         _variantField_25 = expression_type;
 
+  LinkedNodeBuilder.comment({
+    List<LinkedNodeBuilder> comment_references,
+    List<int> comment_tokens,
+    idl.LinkedNodeCommentType comment_type,
+  })  : _kind = idl.LinkedNodeKind.comment,
+        _variantField_2 = comment_references,
+        _variantField_28 = comment_tokens,
+        _variantField_29 = comment_type;
+
   LinkedNodeBuilder.compilationUnit({
     List<LinkedNodeBuilder> compilationUnit_declarations,
     LinkedNodeBuilder compilationUnit_scriptTag,
@@ -11103,6 +11146,13 @@ class LinkedNodeBuilder extends Object
         _variantField_19 = catchClause_rightParenthesis,
         _variantField_9 = catchClause_stackTraceParameter;
 
+  LinkedNodeBuilder.commentReference({
+    LinkedNodeBuilder commentReference_identifier,
+    int commentReference_newKeyword,
+  })  : _kind = idl.LinkedNodeKind.commentReference,
+        _variantField_6 = commentReference_identifier,
+        _variantField_15 = commentReference_newKeyword;
+
   LinkedNodeBuilder.conditionalExpression({
     LinkedNodeBuilder conditionalExpression_condition,
     int conditionalExpression_colon,
@@ -11699,13 +11749,6 @@ class LinkedNodeBuilder extends Object
         _variantField_15 = thisExpression_thisKeyword,
         _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.comment({
-    List<int> comment_tokens,
-    idl.LinkedNodeCommentType comment_type,
-  })  : _kind = idl.LinkedNodeKind.comment,
-        _variantField_28 = comment_tokens,
-        _variantField_29 = comment_type;
-
   /// Flush [informative] data recursively.
   void flushInformative() {
     _variantField_24?.flushInformative();
@@ -12175,6 +12218,15 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  List<idl.LinkedNode> get comment_references {
+    assert(kind == idl.LinkedNodeKind.comment);
+    _variantField_2 ??=
+        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
+            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    return _variantField_2;
+  }
+
+  @override
   List<idl.LinkedNode> get compilationUnit_declarations {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
     _variantField_2 ??=
@@ -12541,6 +12593,14 @@ class _LinkedNodeImpl extends Object
   @override
   idl.LinkedNode get classTypeAlias_typeParameters {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
+    _variantField_6 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 6, null);
+    return _variantField_6;
+  }
+
+  @override
+  idl.LinkedNode get commentReference_identifier {
+    assert(kind == idl.LinkedNodeKind.commentReference);
     _variantField_6 ??=
         const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 6, null);
     return _variantField_6;
@@ -13185,6 +13245,14 @@ class _LinkedNodeImpl extends Object
   @override
   int get classTypeAlias_abstractKeyword {
     assert(kind == idl.LinkedNodeKind.classTypeAlias);
+    _variantField_15 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+    return _variantField_15;
+  }
+
+  @override
+  int get commentReference_newKeyword {
+    assert(kind == idl.LinkedNodeKind.commentReference);
     _variantField_15 ??=
         const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
     return _variantField_15;
@@ -16158,6 +16226,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
+    if (kind == idl.LinkedNodeKind.comment) {
+      if (comment_references.isNotEmpty)
+        _result["comment_references"] =
+            comment_references.map((_value) => _value.toJson()).toList();
+      if (comment_tokens.isNotEmpty) _result["comment_tokens"] = comment_tokens;
+      if (comment_type != idl.LinkedNodeCommentType.block)
+        _result["comment_type"] = comment_type.toString().split('.')[1];
+    }
     if (kind == idl.LinkedNodeKind.compilationUnit) {
       if (compilationUnit_declarations.isNotEmpty)
         _result["compilationUnit_declarations"] = compilationUnit_declarations
@@ -16945,6 +17021,13 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["catchClause_stackTraceParameter"] =
             catchClause_stackTraceParameter.toJson();
     }
+    if (kind == idl.LinkedNodeKind.commentReference) {
+      if (commentReference_identifier != null)
+        _result["commentReference_identifier"] =
+            commentReference_identifier.toJson();
+      if (commentReference_newKeyword != 0)
+        _result["commentReference_newKeyword"] = commentReference_newKeyword;
+    }
     if (kind == idl.LinkedNodeKind.conditionalExpression) {
       if (conditionalExpression_condition != null)
         _result["conditionalExpression_condition"] =
@@ -17558,11 +17641,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.comment) {
-      if (comment_tokens.isNotEmpty) _result["comment_tokens"] = comment_tokens;
-      if (comment_type != idl.LinkedNodeCommentType.block)
-        _result["comment_type"] = comment_type.toString().split('.')[1];
-    }
     return _result;
   }
 
@@ -17813,6 +17891,15 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "cascadeExpression_sections": cascadeExpression_sections,
         "cascadeExpression_target": cascadeExpression_target,
         "expression_type": expression_type,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.comment) {
+      return {
+        "comment_references": comment_references,
+        "comment_tokens": comment_tokens,
+        "comment_type": comment_type,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -18378,6 +18465,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "catchClause_onKeyword": catchClause_onKeyword,
         "catchClause_rightParenthesis": catchClause_rightParenthesis,
         "catchClause_stackTraceParameter": catchClause_stackTraceParameter,
+        "isSynthetic": isSynthetic,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.commentReference) {
+      return {
+        "commentReference_identifier": commentReference_identifier,
+        "commentReference_newKeyword": commentReference_newKeyword,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -18964,14 +19059,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "thisExpression_thisKeyword": thisExpression_thisKeyword,
         "expression_type": expression_type,
-        "isSynthetic": isSynthetic,
-        "kind": kind,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.comment) {
-      return {
-        "comment_tokens": comment_tokens,
-        "comment_type": comment_type,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };

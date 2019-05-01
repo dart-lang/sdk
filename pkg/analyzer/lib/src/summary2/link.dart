@@ -23,7 +23,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
-import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
@@ -200,19 +199,14 @@ class Linker {
 
       for (var unitContext in builder.context.units) {
         var unit = unitContext.unit;
-        var tokensResult = TokensWriter().writeTokens(
-          unit.beginToken,
-          unit.endToken,
-        );
-        var tokensContext = tokensResult.toContext();
 
-        var writer = new AstBinaryWriter(linkingBundleContext, tokensContext);
+        var writer = AstBinaryWriter(linkingBundleContext);
         var unitLinkedNode = writer.writeNode(unit);
         builder.node.units.add(
           LinkedNodeUnitBuilder(
             isSynthetic: unitContext.isSynthetic,
             uriStr: unitContext.uriStr,
-            tokens: tokensResult.tokens,
+            tokens: writer.tokensBuilder,
             node: unitLinkedNode,
           ),
         );

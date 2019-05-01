@@ -223,6 +223,8 @@ enum LinkedNodeKind : byte {
 
   comment,
 
+  commentReference,
+
   compilationUnit,
 
   conditionalExpression,

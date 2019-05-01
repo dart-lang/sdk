@@ -6,25 +6,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
 import 'package:meta/meta.dart';
-
-/// The result of writing a sequence of tokens.
-class TokensResult {
-  final UnlinkedTokensBuilder tokens;
-  final List<Token> _indexToToken;
-  final Map<Token, int> _tokenToIndex;
-
-  TokensResult(this.tokens, this._indexToToken, this._tokenToIndex);
-
-  TokensContext toContext() {
-    return TokensContext.fromResult(tokens, _indexToToken, _tokenToIndex);
-  }
-}
 
 class TokensWriter {
   final UnlinkedTokensBuilder _tokens = UnlinkedTokensBuilder();
-  final List<Token> _indexToToken = [];
   final Map<Token, int> _tokenToIndex = Map.identity();
 
   TokensWriter() {
@@ -40,8 +25,20 @@ class TokensWriter {
     );
   }
 
+  UnlinkedTokensBuilder get tokensBuilder => _tokens;
+
+  int indexOfToken(Token token) {
+    if (token == null) return 0;
+
+    var index = _tokenToIndex[token];
+    if (index == null) {
+      throw StateError('Unexpected token: $token');
+    }
+    return index;
+  }
+
   /// Write all the tokens from the [first] to the [last] inclusively.
-  TokensResult writeTokens(Token first, Token last) {
+  void writeTokens(Token first, Token last) {
     if (first is CommentToken) {
       first = (first as CommentToken).parent;
     }
@@ -67,8 +64,6 @@ class TokensWriter {
 
       if (token == last) break;
     }
-
-    return TokensResult(_tokens, _indexToToken, _tokenToIndex);
   }
 
   int _addToken(
@@ -91,8 +86,7 @@ class TokensWriter {
     _tokens.precedingComment.add(precedingComment);
     _tokens.type.add(type);
 
-    var index = _indexToToken.length;
-    _indexToToken.add(token);
+    var index = _tokenToIndex.length;
     _tokenToIndex[token] = index;
     return index;
   }

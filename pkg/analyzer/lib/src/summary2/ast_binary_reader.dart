@@ -266,7 +266,7 @@ class AstBinaryReader {
       case LinkedNodeCommentType.documentation:
         return astFactory.documentationComment(
           tokens,
-          // TODO(scheglov) references
+          _readNodeList(data.comment_references),
         );
       case LinkedNodeCommentType.endOfLine:
         return astFactory.endOfLineComment(
@@ -275,6 +275,13 @@ class AstBinaryReader {
       default:
         throw StateError('${data.comment_type}');
     }
+  }
+
+  CommentReference _read_commentReference(LinkedNode data) {
+    return astFactory.commentReference(
+      _getToken(data.commentReference_newKeyword),
+      _readNode(data.commentReference_identifier),
+    );
   }
 
   CompilationUnit _read_compilationUnit(LinkedNode data) {
@@ -1335,6 +1342,8 @@ class AstBinaryReader {
         return _read_classTypeAlias(data);
       case LinkedNodeKind.comment:
         return _read_comment(data);
+      case LinkedNodeKind.commentReference:
+        return _read_commentReference(data);
       case LinkedNodeKind.compilationUnit:
         return _read_compilationUnit(data);
       case LinkedNodeKind.conditionalExpression:

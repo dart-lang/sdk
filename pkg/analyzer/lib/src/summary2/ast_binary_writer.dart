@@ -13,19 +13,21 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
+import 'package:analyzer/src/summary2/tokens_writer.dart';
 
 /// Serializer of fully resolved ASTs into flat buffers.
 class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   final LinkingBundleContext _linkingContext;
-  final TokensContext _tokensContext;
+  final _tokensWriter = TokensWriter();
 
   /// This field is set temporary while visiting [FieldDeclaration] or
   /// [TopLevelVariableDeclaration] to store data shared among all variables
   /// in these declarations.
   LinkedNodeVariablesDeclarationBuilder _variablesDeclaration;
 
-  AstBinaryWriter(this._linkingContext, this._tokensContext);
+  AstBinaryWriter(this._linkingContext);
+
+  UnlinkedTokensBuilder get tokensBuilder => _tokensWriter.tokensBuilder;
 
   @override
   LinkedNodeBuilder visitAdjacentStrings(AdjacentStrings node) {
@@ -232,6 +234,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return LinkedNodeBuilder.comment(
       comment_tokens: _getTokens(node.tokens),
       comment_type: type,
+      comment_references: _writeNodeList(node.references),
+    );
+  }
+
+  @override
+  LinkedNodeBuilder visitCommentReference(CommentReference node) {
+    var identifier = node.identifier;
+    _tokensWriter.writeTokens(
+      node.newKeyword ?? identifier.beginToken,
+      identifier.endToken,
+    );
+
+    return LinkedNodeBuilder.commentReference(
+      commentReference_identifier: identifier.accept(this),
+      commentReference_newKeyword: _getToken(node.newKeyword),
     );
   }
 
@@ -1345,6 +1362,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   LinkedNodeBuilder writeNode(AstNode node) {
+    _tokensWriter.writeTokens(node.beginToken, node.endToken);
     return node.accept(this);
   }
 
@@ -1364,7 +1382,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   int _getToken(Token token) {
-    return _tokensContext.indexOfToken(token);
+    return _tokensWriter.indexOfToken(token);
   }
 
   List<int> _getTokens(List<Token> tokenList) {

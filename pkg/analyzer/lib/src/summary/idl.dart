@@ -1167,11 +1167,20 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   int get combinator_keyword;
 
+  @VariantId(2, variant: LinkedNodeKind.comment)
+  List<LinkedNode> get comment_references;
+
   @VariantId(28, variant: LinkedNodeKind.comment)
   List<int> get comment_tokens;
 
   @VariantId(29, variant: LinkedNodeKind.comment)
   LinkedNodeCommentType get comment_type;
+
+  @VariantId(6, variant: LinkedNodeKind.commentReference)
+  LinkedNode get commentReference_identifier;
+
+  @VariantId(15, variant: LinkedNodeKind.commentReference)
+  int get commentReference_newKeyword;
 
   @VariantId(15, variant: LinkedNodeKind.compilationUnit)
   int get compilationUnit_beginToken;
@@ -2455,6 +2464,7 @@ enum LinkedNodeKind {
   classDeclaration,
   classTypeAlias,
   comment,
+  commentReference,
   compilationUnit,
   conditionalExpression,
   configuration,

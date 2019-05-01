@@ -12,7 +12,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -126,17 +125,11 @@ var a = [1, 2, 3];
     var originalUnit = parseResult.unit;
     var originalCode = originalUnit.toSource();
 
-    var tokensResult = TokensWriter().writeTokens(
-      originalUnit.beginToken,
-      originalUnit.endToken,
-    );
-    var tokensContext = tokensResult.toContext();
-
     var rootReference = Reference.root();
     var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
 
     var linkingBundleContext = LinkingBundleContext(dynamicRef);
-    var writer = new AstBinaryWriter(linkingBundleContext, tokensContext);
+    var writer = AstBinaryWriter(linkingBundleContext);
     var builder = writer.writeNode(originalUnit);
 
     var bundleContext = LinkedBundleContext(
@@ -154,7 +147,7 @@ var a = [1, 2, 3];
       false,
       LinkedNodeUnitBuilder(
         node: builder,
-        tokens: tokensResult.tokens,
+        tokens: writer.tokensBuilder,
       ),
     );
 
