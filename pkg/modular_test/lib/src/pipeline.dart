@@ -25,7 +25,7 @@ class ModularStep {
   /// This can be data produced on a previous stage of the pipeline
   /// or produced by this same step when it was run on a dependency.
   ///
-  /// If this list includes [resultKind], then the modular-step has to be run on
+  /// If this list includes [resultId], then the modular-step has to be run on
   /// dependencies before it is run on a module. Otherwise, it could be run in
   /// parallel.
   final List<DataId> dependencyDataNeeded;
@@ -33,17 +33,17 @@ class ModularStep {
   /// Data that this step needs to read about the module itself.
   ///
   /// This is meant to be data produced in earlier stages of the modular
-  /// pipeline. It is an error to include [resultKind] in this list.
+  /// pipeline. It is an error to include [resultId] in this list.
   final List<DataId> moduleDataNeeded;
 
   /// Data that this step produces.
-  final DataId resultKind;
+  final DataId resultId;
 
   ModularStep(
       {this.needsSources: true,
       this.dependencyDataNeeded: const [],
       this.moduleDataNeeded: const [],
-      this.resultKind});
+      this.resultId});
 }
 
 /// An object to uniquely identify modular data produced by a modular step.
@@ -70,7 +70,7 @@ abstract class Pipeline<S extends ModularStep> {
     // or by the same step on a dependency.
     Map<DataId, S> previousKinds = {};
     for (var step in steps) {
-      var resultKind = step.resultKind;
+      var resultKind = step.resultId;
       if (previousKinds.containsKey(resultKind)) {
         _validationError("Cannot produce the same data on two modular steps."
             " '$resultKind' was previously produced by "
@@ -139,7 +139,7 @@ abstract class Pipeline<S extends ModularStep> {
       }
     }
     await runStep(step, module, visibleData);
-    (computedData[module] ??= {}).add(step.resultKind);
+    (computedData[module] ??= {}).add(step.resultId);
   }
 
   Future<void> runStep(

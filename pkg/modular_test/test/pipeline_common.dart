@@ -30,24 +30,32 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
   /// the pipeline created here.
   FutureOr<Pipeline<S>> createPipeline(Map<Uri, String> sources, List<S> steps);
 
-  /// Create a step that concatenates all contents of the sources in a module.
-  S createConcatStep({bool requestSources: true});
+  /// Create a step that applies [action] on all input files of the module, and
+  /// emits a result with the given [id]
+  S createSourceOnlyStep(
+      {String Function(Map<Uri, String>) action,
+      DataId resultId,
+      bool requestSources: true});
 
-  /// Create a step that consumes the concat step result and converts the
-  /// contents to lower-case.
-  S createLowerCaseStep({bool requestModuleData: true});
+  /// Create a step that applies [action] on the module [inputId] data, and
+  /// emits a result with the given [resultId].
+  S createModuleDataStep(
+      {String Function(String) action,
+      DataId inputId,
+      DataId resultId,
+      bool requestModuleData: true});
 
-  /// Create a step that consumes the concat and lower-case steps and does a
-  /// replace and join operation as expected in the tests below.
+  /// Create a step that applies [action] on the module [inputId] data and the
+  /// the [depId] data of dependencies and finally emits a result with the given
+  /// [resultId].
   ///
-  /// This step consumes it's own data from dependencies.
-  S createReplaceAndJoinStep({bool requestDependenciesData: true});
-
-  /// Create a step that consumes the concat and lower-case steps and does a
-  /// replace and join operation as expected in the tests below.
-  ///
-  /// This step consumes the lower-case step data from dependencies.
-  S createReplaceAndJoinStep2({bool requestDependenciesData: true});
+  /// [depId] may be the same as [resultId] or [inputId].
+  S createLinkStep(
+      {String Function(String, List<String>) action,
+      DataId inputId,
+      DataId depId,
+      DataId resultId,
+      bool requestDependenciesData: true});
 
   /// Return the result data produced by a modular step.
   String getResult(Pipeline<S> pipeline, Module m, DataId dataId);
@@ -75,118 +83,172 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
   var multipleModulesInput = ModularTest([m1, m2], m2);
 
   test('can read source data if requested', () async {
-    var concatStep = testStrategy.createConcatStep();
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(singleModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
         "a1.dart: A1\na2.dart: A2\n");
     await testStrategy.cleanup(pipeline);
   });
 
   test('cannot read source data if not requested', () async {
-    var concatStep = testStrategy.createConcatStep(requestSources: false);
+    var concatStep = testStrategy.createSourceOnlyStep(
+        action: _concat, resultId: _concatId, requestSources: false);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(singleModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
         "a1.dart: null\na2.dart: null\n");
     await testStrategy.cleanup(pipeline);
   });
 
   test('step is applied to all modules', () async {
-    var concatStep = testStrategy.createConcatStep();
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
         "a1.dart: A1\na2.dart: A2\n");
-    expect(testStrategy.getResult(pipeline, m2, concatStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m2, concatStep.resultId),
         "b1.dart: B1\nb2.dart: B2\n");
     await testStrategy.cleanup(pipeline);
   });
 
   test('can read previous step results if requested', () async {
-    var concatStep = testStrategy.createConcatStep();
-    var lowercaseStep = testStrategy.createLowerCaseStep();
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
     var pipeline = await testStrategy
         .createPipeline(sources, <S>[concatStep, lowercaseStep]);
     await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultId),
         "a1.dart: a1\na2.dart: a2\n");
-    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultId),
         "b1.dart: b1\nb2.dart: b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
   test('cannot read previous step results if not requested', () async {
-    var concatStep = testStrategy.createConcatStep();
-    var lowercaseStep =
-        testStrategy.createLowerCaseStep(requestModuleData: false);
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase,
+        inputId: _concatId,
+        resultId: _lowercaseId,
+        requestModuleData: false);
     var pipeline = await testStrategy
         .createPipeline(sources, <S>[concatStep, lowercaseStep]);
     await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultId),
         "data for [module a] was null");
-    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultId),
         "data for [module b] was null");
     await testStrategy.cleanup(pipeline);
   });
 
   test('can read same-step results of dependencies if requested', () async {
-    var concatStep = testStrategy.createConcatStep();
-    var lowercaseStep = testStrategy.createLowerCaseStep();
-    var replaceJoinStep = testStrategy.createReplaceAndJoinStep();
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
+    var replaceJoinStep = testStrategy.createLinkStep(
+        action: _replaceAndJoin,
+        inputId: _lowercaseId,
+        depId: _joinId,
+        resultId: _joinId);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n\nb1 b1\nb2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
   test('cannot read same-step results of dependencies if not requested',
       () async {
-    var concatStep = testStrategy.createConcatStep();
-    var lowercaseStep = testStrategy.createLowerCaseStep();
-    var replaceJoinStep =
-        testStrategy.createReplaceAndJoinStep(requestDependenciesData: false);
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
+    var replaceJoinStep = testStrategy.createLinkStep(
+        action: _replaceAndJoin,
+        inputId: _lowercaseId,
+        depId: _joinId,
+        resultId: _joinId,
+        requestDependenciesData: false);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
         "null\nb1 b1\nb2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
   test('can read prior step results of dependencies if requested', () async {
-    var concatStep = testStrategy.createConcatStep();
-    var lowercaseStep = testStrategy.createLowerCaseStep();
-    var replaceJoinStep = testStrategy.createReplaceAndJoinStep2();
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
+    var replaceJoinStep = testStrategy.createLinkStep(
+        action: _replaceAndJoin,
+        inputId: _lowercaseId,
+        depId: _lowercaseId,
+        resultId: _joinId);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
         "a1.dart: a1\na2.dart: a2\n\nb1 b1\nb2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
   test('cannot read prior step results of dependencies if not requested',
       () async {
-    var concatStep = testStrategy.createConcatStep();
-    var lowercaseStep = testStrategy.createLowerCaseStep();
-    var replaceJoinStep =
-        testStrategy.createReplaceAndJoinStep2(requestDependenciesData: false);
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
+    var replaceJoinStep = testStrategy.createLinkStep(
+        action: _replaceAndJoin,
+        inputId: _lowercaseId,
+        depId: _lowercaseId,
+        resultId: _joinId,
+        requestDependenciesData: false);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultKind),
+    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
         "null\nb1 b1\nb2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
+}
+
+DataId _concatId = const DataId("concat");
+DataId _lowercaseId = const DataId("lowercase");
+DataId _joinId = const DataId("join");
+
+String _concat(Map<Uri, String> sources) {
+  var buffer = new StringBuffer();
+  sources.forEach((uri, contents) {
+    buffer.write("$uri: $contents\n");
+  });
+  return '$buffer';
+}
+
+String _lowercase(String contents) => contents.toLowerCase();
+
+String _replaceAndJoin(String moduleData, List<String> depContents) {
+  var buffer = new StringBuffer();
+  depContents.forEach(buffer.writeln);
+  buffer.write(moduleData.replaceAll(".dart:", ""));
+  return '$buffer';
 }

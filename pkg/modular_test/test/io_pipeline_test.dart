@@ -40,22 +40,28 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
   }
 
   @override
-  IOModularStep createConcatStep({bool requestSources: true}) =>
-      ConcatStep(requestSources);
+  IOModularStep createSourceOnlyStep(
+          {String Function(Map<Uri, String>) action,
+          DataId resultId,
+          bool requestSources: true}) =>
+      SourceOnlyStep(action, resultId, requestSources);
 
   @override
-  IOModularStep createLowerCaseStep({bool requestModuleData: true}) =>
-      LowerCaseStep(requestModuleData);
+  IOModularStep createModuleDataStep(
+          {String Function(String) action,
+          DataId inputId,
+          DataId resultId,
+          bool requestModuleData: true}) =>
+      ModuleDataStep(action, inputId, resultId, requestModuleData);
 
   @override
-  IOModularStep createReplaceAndJoinStep(
-          {bool requestDependenciesData: true}) =>
-      ReplaceAndJoinStep(requestDependenciesData);
-
-  @override
-  IOModularStep createReplaceAndJoinStep2(
-          {bool requestDependenciesData: true}) =>
-      ReplaceAndJoinStep2(requestDependenciesData);
+  IOModularStep createLinkStep(
+          {String Function(String, List<String>) action,
+          DataId inputId,
+          DataId depId,
+          DataId resultId,
+          bool requestDependenciesData: true}) =>
+      LinkStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override
   String getResult(covariant IOPipeline pipeline, Module m, DataId dataId) {
@@ -74,25 +80,76 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
   }
 }
 
-class ConcatStep implements IOModularStep {
+class SourceOnlyStep implements IOModularStep {
+  final String Function(Map<Uri, String>) action;
+  final DataId resultId;
   final bool needsSources;
   List<DataId> get dependencyDataNeeded => const [];
   List<DataId> get moduleDataNeeded => const [];
-  DataId get resultKind => const DataId("concat");
 
-  ConcatStep(this.needsSources);
+  SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
   @override
   Future<void> execute(
       Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    var buffer = new StringBuffer();
+    Map<Uri, String> sources = {};
+
     for (var uri in module.sources) {
       var file = File.fromUri(root.resolveUri(uri));
       String data = await file.exists() ? await file.readAsString() : null;
-      buffer.write("$uri: ${data}\n");
+      sources[uri] = data;
     }
-    await File.fromUri(root.resolveUri(toUri(module, resultKind)))
-        .writeAsString('$buffer');
+    await File.fromUri(root.resolveUri(toUri(module, resultId)))
+        .writeAsString(action(sources));
+  }
+}
+
+class ModuleDataStep implements IOModularStep {
+  final String Function(String) action;
+  bool get needsSources => false;
+  List<DataId> get dependencyDataNeeded => const [];
+  final List<DataId> moduleDataNeeded;
+  final DataId resultId;
+  final DataId inputId;
+
+  ModuleDataStep(this.action, this.inputId, this.resultId, bool requestInput)
+      : moduleDataNeeded = requestInput ? [inputId] : [];
+
+  @override
+  Future<void> execute(
+      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+    var inputData = await _readHelper(module, root, inputId, toUri);
+    var result =
+        inputData == null ? "data for $module was null" : action(inputData);
+    await File.fromUri(root.resolveUri(toUri(module, resultId)))
+        .writeAsString(result);
+  }
+}
+
+class LinkStep implements IOModularStep {
+  bool get needsSources => false;
+  final List<DataId> dependencyDataNeeded;
+  List<DataId> get moduleDataNeeded => [inputId];
+  final String Function(String, List<String>) action;
+  final DataId inputId;
+  final DataId depId;
+  final DataId resultId;
+
+  LinkStep(this.action, this.inputId, this.depId, this.resultId,
+      bool requestDependencies)
+      : dependencyDataNeeded = requestDependencies ? [depId] : [];
+
+  @override
+  Future<void> execute(
+      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+    List<String> depsData = [];
+    for (var dependency in module.dependencies) {
+      var depData = await _readHelper(dependency, root, depId, toUri);
+      depsData.add(depData);
+    }
+    var inputData = await _readHelper(module, root, inputId, toUri);
+    await File.fromUri(root.resolveUri(toUri(module, resultId)))
+        .writeAsString(action(inputData, depsData));
   }
 }
 
@@ -103,78 +160,4 @@ Future<String> _readHelper(Module module, Uri root, DataId dataId,
     return await file.readAsString();
   }
   return null;
-}
-
-class LowerCaseStep implements IOModularStep {
-  bool get needsSources => false;
-  List<DataId> get dependencyDataNeeded => const [];
-  final List<DataId> moduleDataNeeded;
-  DataId get resultKind => const DataId("lowercase");
-
-  LowerCaseStep(bool requestConcat)
-      : moduleDataNeeded = requestConcat ? const [DataId("concat")] : const [];
-
-  @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    var concatData =
-        await _readHelper(module, root, const DataId("concat"), toUri);
-    if (concatData == null) concatData = "data for $module was null";
-    await File.fromUri(root.resolveUri(toUri(module, resultKind)))
-        .writeAsString(concatData.toLowerCase());
-  }
-}
-
-class ReplaceAndJoinStep implements IOModularStep {
-  bool get needsSources => false;
-  final List<DataId> dependencyDataNeeded;
-  List<DataId> get moduleDataNeeded => const [DataId("lowercase")];
-  DataId get resultKind => const DataId("join");
-
-  ReplaceAndJoinStep(bool requestDependencies)
-      : dependencyDataNeeded =
-            requestDependencies ? const [DataId("join")] : [];
-
-  @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    var buffer = new StringBuffer();
-    for (var dependency in module.dependencies) {
-      var depData =
-          await _readHelper(dependency, root, const DataId("join"), toUri);
-      buffer.write("$depData\n");
-    }
-    var moduleData =
-        await _readHelper(module, root, const DataId("lowercase"), toUri);
-    buffer.write(moduleData.replaceAll(".dart:", ""));
-    await File.fromUri(root.resolveUri(toUri(module, resultKind)))
-        .writeAsString('$buffer');
-  }
-}
-
-class ReplaceAndJoinStep2 implements IOModularStep {
-  bool get needsSources => false;
-  final List<DataId> dependencyDataNeeded;
-  List<DataId> get moduleDataNeeded => const [DataId("lowercase")];
-  DataId get resultKind => const DataId("join");
-
-  ReplaceAndJoinStep2(bool requestDependencies)
-      : dependencyDataNeeded =
-            requestDependencies ? const [DataId("lowercase")] : [];
-
-  @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    var buffer = new StringBuffer();
-    for (var dependency in module.dependencies) {
-      var depData =
-          await _readHelper(dependency, root, const DataId("lowercase"), toUri);
-      buffer.write("$depData\n");
-    }
-    var moduleData =
-        await _readHelper(module, root, const DataId("lowercase"), toUri);
-    buffer.write(moduleData.replaceAll(".dart:", ""));
-    await File.fromUri(root.resolveUri(toUri(module, resultKind)))
-        .writeAsString('$buffer');
-  }
 }

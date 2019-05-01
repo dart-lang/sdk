@@ -53,10 +53,10 @@ class IOPipeline extends Pipeline<IOModularStep> {
   @override
   Future<void> runStep(IOModularStep step, Module module,
       Map<Module, Set<DataId>> visibleData) async {
-    var folder = await Directory.systemTemp
-        .createTemp('modular_test_${step.resultKind}-');
-    _tmpFolders[step.resultKind] ??= (await Directory.systemTemp
-            .createTemp('modular_test_${step.resultKind}_res-'))
+    var folder =
+        await Directory.systemTemp.createTemp('modular_test_${step.resultId}-');
+    _tmpFolders[step.resultId] ??= (await Directory.systemTemp
+            .createTemp('modular_test_${step.resultId}_res-'))
         .uri;
     for (var module in visibleData.keys) {
       for (var dataId in visibleData[module]) {
@@ -78,13 +78,13 @@ class IOPipeline extends Pipeline<IOModularStep> {
         (Module m, DataId id) => Uri.parse("${m.name}.${id.name}"));
 
     var outputFile = File.fromUri(
-        folder.uri.resolve("${module.name}.${step.resultKind.name}"));
+        folder.uri.resolve("${module.name}.${step.resultId.name}"));
     if (!await outputFile.exists()) {
       throw StateError(
           "Step '${step.runtimeType}' didn't produce an output file");
     }
-    await outputFile.copy(_tmpFolders[step.resultKind]
-        .resolve("${module.name}.${step.resultKind.name}")
+    await outputFile.copy(_tmpFolders[step.resultId]
+        .resolve("${module.name}.${step.resultId.name}")
         .toFilePath());
     await folder.delete(recursive: true);
   }

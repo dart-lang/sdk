@@ -27,22 +27,28 @@ class MemoryPipelineTestStrategy
   }
 
   @override
-  MemoryModularStep createConcatStep({bool requestSources: true}) =>
-      ConcatStep(requestSources);
+  MemoryModularStep createSourceOnlyStep(
+          {String Function(Map<Uri, String>) action,
+          DataId resultId,
+          bool requestSources: true}) =>
+      SourceOnlyStep(action, resultId, requestSources);
 
   @override
-  MemoryModularStep createLowerCaseStep({bool requestModuleData: true}) =>
-      LowerCaseStep(requestModuleData);
+  MemoryModularStep createModuleDataStep(
+          {String Function(String) action,
+          DataId inputId,
+          DataId resultId,
+          bool requestModuleData: true}) =>
+      ModuleDataStep(action, inputId, resultId, requestModuleData);
 
   @override
-  MemoryModularStep createReplaceAndJoinStep(
-          {bool requestDependenciesData: true}) =>
-      ReplaceAndJoinStep(requestDependenciesData);
-
-  @override
-  MemoryModularStep createReplaceAndJoinStep2(
-          {bool requestDependenciesData: true}) =>
-      ReplaceAndJoinStep2(requestDependenciesData);
+  MemoryModularStep createLinkStep(
+          {String Function(String, List<String>) action,
+          DataId inputId,
+          DataId depId,
+          DataId resultId,
+          bool requestDependenciesData: true}) =>
+      LinkStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override
   String getResult(covariant MemoryPipeline pipeline, Module m, DataId dataId) {
@@ -52,81 +58,63 @@ class MemoryPipelineTestStrategy
   FutureOr<void> cleanup(Pipeline<MemoryModularStep> pipeline) => null;
 }
 
-class ConcatStep implements MemoryModularStep {
+class SourceOnlyStep implements MemoryModularStep {
+  final String Function(Map<Uri, String>) action;
+  final DataId resultId;
   final bool needsSources;
   List<DataId> get dependencyDataNeeded => const [];
   List<DataId> get moduleDataNeeded => const [];
-  DataId get resultKind => const DataId("concat");
 
-  ConcatStep(this.needsSources);
+  SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
   Future<Object> execute(Module module, SourceProvider sourceProvider,
       ModuleDataProvider dataProvider) {
-    var buffer = new StringBuffer();
+    Map<Uri, String> sources = {};
     for (var uri in module.sources) {
-      buffer.write("$uri: ${sourceProvider(module.rootUri.resolveUri(uri))}\n");
+      sources[uri] = sourceProvider(module.rootUri.resolveUri(uri));
     }
-    return Future.value('$buffer');
+    return Future.value(action(sources));
   }
 }
 
-class LowerCaseStep implements MemoryModularStep {
+class ModuleDataStep implements MemoryModularStep {
+  final String Function(String) action;
   bool get needsSources => false;
   List<DataId> get dependencyDataNeeded => const [];
   final List<DataId> moduleDataNeeded;
-  DataId get resultKind => const DataId("lowercase");
+  final DataId resultId;
+  final DataId inputId;
 
-  LowerCaseStep(bool requestConcat)
-      : moduleDataNeeded = requestConcat ? const [DataId("concat")] : const [];
+  ModuleDataStep(this.action, this.inputId, this.resultId, bool requestInput)
+      : moduleDataNeeded = requestInput ? [inputId] : [];
 
   Future<Object> execute(Module module, SourceProvider sourceProvider,
       ModuleDataProvider dataProvider) {
-    var concatData = dataProvider(module, const DataId("concat")) as String;
-    if (concatData == null) return Future.value("data for $module was null");
-    return Future.value(concatData.toLowerCase());
+    var inputData = dataProvider(module, inputId) as String;
+    if (inputData == null) return Future.value("data for $module was null");
+    return Future.value(action(inputData));
   }
 }
 
-class ReplaceAndJoinStep implements MemoryModularStep {
+class LinkStep implements MemoryModularStep {
   bool get needsSources => false;
   final List<DataId> dependencyDataNeeded;
-  List<DataId> get moduleDataNeeded => const [DataId("lowercase")];
-  DataId get resultKind => const DataId("join");
+  List<DataId> get moduleDataNeeded => [inputId];
+  final String Function(String, List<String>) action;
+  final DataId inputId;
+  final DataId depId;
+  final DataId resultId;
 
-  ReplaceAndJoinStep(bool requestDependencies)
-      : dependencyDataNeeded =
-            requestDependencies ? const [DataId("join")] : [];
+  LinkStep(this.action, this.inputId, this.depId, this.resultId,
+      bool requestDependencies)
+      : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
   Future<Object> execute(Module module, SourceProvider sourceProvider,
       ModuleDataProvider dataProvider) {
-    var buffer = new StringBuffer();
-    for (var dependency in module.dependencies) {
-      buffer.write("${dataProvider(dependency, const DataId("join"))}\n");
-    }
-    var moduleData = dataProvider(module, const DataId("lowercase")) as String;
-    buffer.write(moduleData.replaceAll(".dart:", ""));
-    return Future.value('$buffer');
-  }
-}
-
-class ReplaceAndJoinStep2 implements MemoryModularStep {
-  bool get needsSources => false;
-  final List<DataId> dependencyDataNeeded;
-  List<DataId> get moduleDataNeeded => const [DataId("lowercase")];
-  DataId get resultKind => const DataId("join");
-
-  ReplaceAndJoinStep2(bool requestDependencies)
-      : dependencyDataNeeded =
-            requestDependencies ? const [DataId("lowercase")] : [];
-
-  Future<Object> execute(Module module, SourceProvider sourceProvider,
-      ModuleDataProvider dataProvider) {
-    var buffer = new StringBuffer();
-    for (var dependency in module.dependencies) {
-      buffer.write("${dataProvider(dependency, const DataId("lowercase"))}\n");
-    }
-    var moduleData = dataProvider(module, const DataId("lowercase")) as String;
-    buffer.write(moduleData.replaceAll(".dart:", ""));
-    return Future.value('$buffer');
+    List<String> depsData = module.dependencies
+        .map((d) => dataProvider(d, depId) as String)
+        .toList();
+    var inputData = dataProvider(module, inputId) as String;
+    return Future.value(action(inputData, depsData));
   }
 }

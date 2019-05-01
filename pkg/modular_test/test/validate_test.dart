@@ -18,12 +18,12 @@ main() {
     var id3 = DataId("data_c");
     validateSteps([
       ModularStep(
-          needsSources: true, dependencyDataNeeded: [id1], resultKind: id1),
-      ModularStep(moduleDataNeeded: [id1], resultKind: id2),
+          needsSources: true, dependencyDataNeeded: [id1], resultId: id1),
+      ModularStep(moduleDataNeeded: [id1], resultId: id2),
       ModularStep(
           moduleDataNeeded: [id2],
           dependencyDataNeeded: [id1, id3],
-          resultKind: id3),
+          resultId: id3),
     ]);
   });
 
@@ -31,7 +31,7 @@ main() {
     var id1 = DataId("data_a");
     expect(
         () => validateSteps([
-              ModularStep(moduleDataNeeded: [id1], resultKind: id1),
+              ModularStep(moduleDataNeeded: [id1], resultId: id1),
             ]),
         throwsA(TypeMatcher<InvalidPipelineError>()));
   });
@@ -40,15 +40,14 @@ main() {
     var id1 = DataId("data_a");
     var id2 = DataId("data_b");
     validateSteps([
-      ModularStep(
-          resultKind: id1), // id1 must be produced before it is consumed.
-      ModularStep(dependencyDataNeeded: [id1], resultKind: id2),
+      ModularStep(resultId: id1), // id1 must be produced before it is consumed.
+      ModularStep(dependencyDataNeeded: [id1], resultId: id2),
     ]);
 
     expect(
         () => validateSteps([
-              ModularStep(dependencyDataNeeded: [id1], resultKind: id2),
-              ModularStep(resultKind: id1),
+              ModularStep(dependencyDataNeeded: [id1], resultId: id2),
+              ModularStep(resultId: id1),
             ]),
         throwsA(TypeMatcher<InvalidPipelineError>()));
   });
@@ -57,8 +56,8 @@ main() {
     var id1 = DataId("data_a");
     expect(
         () => validateSteps([
-              ModularStep(resultKind: id1),
-              ModularStep(resultKind: id1),
+              ModularStep(resultId: id1),
+              ModularStep(resultId: id1),
             ]),
         throwsA(TypeMatcher<InvalidPipelineError>()));
   });

@@ -57,6 +57,6 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
     }
     Object result = await step.execute(module, (Uri uri) => inputSources[uri],
         (Module m, DataId id) => inputData[m][id]);
-    (_results[module] ??= {})[step.resultKind] = result;
+    (_results[module] ??= {})[step.resultId] = result;
   }
 }
