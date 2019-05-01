@@ -4262,7 +4262,7 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherOrImplicitAccessorTargets()
   const intptr_t len = targets_.length();
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    target ^= targets_.TargetAt(i)->target->raw();
+    target = targets_.TargetAt(i)->target->raw();
     if (!target.IsDispatcherOrImplicitAccessor()) {
       return false;
     }

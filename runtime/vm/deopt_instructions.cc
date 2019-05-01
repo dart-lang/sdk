@@ -919,7 +919,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
-  *code ^= function.unoptimized_code();
+  *code = function.unoptimized_code();
   ASSERT(!code->IsNull());
   uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),
                                     RawPcDescriptors::kDeopt);

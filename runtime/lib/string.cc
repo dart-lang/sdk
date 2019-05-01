@@ -37,10 +37,10 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 0, 3) {
   intptr_t length;
   if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& growableArray = GrowableObjectArray::Cast(list);
-    a ^= growableArray.data();
+    a = growableArray.data();
     length = growableArray.Length();
   } else if (list.IsArray()) {
-    a ^= Array::Cast(list).raw();
+    a = Array::Cast(list).raw();
     length = a.Length();
   } else {
     Exceptions::ThrowArgumentError(list);
@@ -188,9 +188,9 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 0, 4) {
   const intptr_t base_length = base.Length();
   String& result = String::Handle(zone);
   if (is_onebyte) {
-    result ^= OneByteString::New(length, Heap::kNew);
+    result = OneByteString::New(length, Heap::kNew);
   } else {
-    result ^= TwoByteString::New(length, Heap::kNew);
+    result = TwoByteString::New(length, Heap::kNew);
   }
   Instance& object = Instance::Handle(zone);
   intptr_t write_index = 0;

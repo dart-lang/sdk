@@ -4922,7 +4922,7 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
 
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
-    closure_function_ ^= function.raw();
+    closure_function_ = function.raw();
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }

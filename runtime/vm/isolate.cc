@@ -2463,7 +2463,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
       GrowableObjectArray::Handle(pending_service_extension_calls());
   bool schedule_drain = false;
   if (calls.IsNull()) {
-    calls ^= GrowableObjectArray::New();
+    calls = GrowableObjectArray::New();
     ASSERT(!calls.IsNull());
     set_pending_service_extension_calls(calls);
     schedule_drain = true;
@@ -2510,7 +2510,7 @@ void Isolate::RegisterServiceExtensionHandler(const String& name,
   GrowableObjectArray& handlers =
       GrowableObjectArray::Handle(registered_service_extension_handlers());
   if (handlers.IsNull()) {
-    handlers ^= GrowableObjectArray::New(Heap::kOld);
+    handlers = GrowableObjectArray::New(Heap::kOld);
     set_registered_service_extension_handlers(handlers);
   }
 #if defined(DEBUG)
@@ -2966,8 +2966,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
   library_url_ = NewConstChar(lib_url.ToCString());
 
   String& func_name = String::Handle();
-  func_name ^= func.name();
-  func_name ^= String::ScrubName(func_name);
+  func_name = func.name();
+  func_name = String::ScrubName(func_name);
   function_name_ = NewConstChar(func_name.ToCString());
   if (!cls.IsTopLevel()) {
     const String& class_name = String::Handle(cls.Name());

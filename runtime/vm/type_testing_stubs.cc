@@ -814,7 +814,7 @@ void TypeUsageInfo::UpdateAssertAssignableTypes(
           // We only add instantiated types to the set (and dynamic/Object were
           // already handled above).
           if (!(*ta)->IsNull()) {
-            type ^= (*ta)->TypeAt(i);
+            type = (*ta)->TypeAt(i);
             if (type.IsInstantiated()) {
               UseTypeInAssertAssignable(type);
             }

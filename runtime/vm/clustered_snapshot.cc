@@ -601,7 +601,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       Code& code = Code::Handle(zone);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        code ^= func.CurrentCode();
+        code = func.CurrentCode();
         if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);  // Set entrypoint.
           func.SetWasCompiled(true);

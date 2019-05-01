@@ -192,7 +192,7 @@ static void PrintTargetsHelper(BufferFormatter* f,
     const CidRange& range = targets[i];
     const auto target_info = targets.TargetAt(i);
     const intptr_t count = target_info->count;
-    target ^= target_info->target->raw();
+    target = target_info->target->raw();
     if (i > 0) {
       f->Print(" | ");
     }

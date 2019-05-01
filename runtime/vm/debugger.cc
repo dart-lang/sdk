@@ -633,7 +633,7 @@ void ActivationFrame::GetVarDescriptors() {
       if (!error.IsNull()) {
         Exceptions::PropagateError(error);
       }
-      unoptimized_code ^= function().unoptimized_code();
+      unoptimized_code = function().unoptimized_code();
     }
     ASSERT(!unoptimized_code.IsNull());
     var_descriptors_ = unoptimized_code.GetLocalVarDescriptors();
@@ -960,9 +960,9 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         ASSERT(function().name() == Symbols::Call().raw());
         ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
-        ctx_ ^= Closure::Cast(obj).context();
+        ctx_ = Closure::Cast(obj).context();
       } else if (obj.IsContext()) {
-        ctx_ ^= Context::Cast(obj).raw();
+        ctx_ = Context::Cast(obj).raw();
       } else {
         ASSERT(obj.IsNull());
       }
@@ -2062,7 +2062,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           function = it.function();
 
           if (skip_sync_async_frames_count > 0) {
-            function_name ^= function.QualifiedScrubbedName();
+            function_name = function.QualifiedScrubbedName();
             if (CheckAndSkipAsync(skip_sync_async_frames_count,
                                   function_name)) {
               skip_sync_async_frames_count--;
@@ -2117,7 +2117,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         function = code.function();
 
         if (skip_sync_async_frames_count > 0) {
-          function_name ^= function.QualifiedScrubbedName();
+          function_name = function.QualifiedScrubbedName();
           if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
             skip_sync_async_frames_count--;
           } else {

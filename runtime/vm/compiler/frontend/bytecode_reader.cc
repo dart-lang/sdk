@@ -442,7 +442,7 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
 
   // Finalize function type.
   type = func.SignatureType();
-  type ^= ClassFinalizer::FinalizeType(*(active_class_->klass), type);
+  type = ClassFinalizer::FinalizeType(*(active_class_->klass), type);
   return Type::Cast(type).raw();
 }
 
@@ -1433,7 +1433,7 @@ RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments(
   // finalize the argument types.
   // (This can for example make the [type_arguments] vector larger)
   type = Type::New(instantiator, type_arguments, TokenPosition::kNoSource);
-  type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
+  type = ClassFinalizer::FinalizeType(*active_class_->klass, type);
   return type.arguments();
 }
 

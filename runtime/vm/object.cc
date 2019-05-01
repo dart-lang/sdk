@@ -1507,8 +1507,8 @@ RawError* Object::Init(Isolate* isolate,
     // declared number of type parameters is still 0. It will become 1 after
     // patching. The array type allocated below represents the raw type _List
     // and not _List<E> as we could expect. Use with caution.
-    type ^= Type::New(Class::Handle(zone, cls.raw()),
-                      TypeArguments::Handle(zone), TokenPosition::kNoSource);
+    type = Type::New(Class::Handle(zone, cls.raw()),
+                     TypeArguments::Handle(zone), TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     object_store->set_array_type(type);
@@ -2582,13 +2582,13 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
   Function& function = thread->FunctionHandle();
-  funcs ^= functions();
+  funcs = functions();
   ASSERT(!funcs.IsNull());
   Function& implicit_closure = Function::Handle(thread->zone());
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
-    implicit_closure ^= function.implicit_closure_function();
+    implicit_closure = function.implicit_closure_function();
     if (implicit_closure.IsNull()) {
       // Skip non-implicit closure functions.
       continue;
@@ -2611,7 +2611,7 @@ intptr_t Class::FindInvocationDispatcherFunctionIndex(
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
   Object& object = thread->ObjectHandle();
-  funcs ^= invocation_dispatcher_cache();
+  funcs = invocation_dispatcher_cache();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
@@ -2634,7 +2634,7 @@ RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Array& dispatcher_cache = thread->ArrayHandle();
   Object& object = thread->ObjectHandle();
-  dispatcher_cache ^= invocation_dispatcher_cache();
+  dispatcher_cache = invocation_dispatcher_cache();
   object = dispatcher_cache.At(idx);
   if (!object.IsFunction()) {
     return Function::null();
@@ -2810,7 +2810,7 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   TypeParameter& type_param = thread->TypeParameterHandle();
   String& type_param_name = thread->StringHandle();
 
-  type_params ^= type_parameters();
+  type_params = type_parameters();
   if (!type_params.IsNull()) {
     const intptr_t num_type_params = type_params.Length();
     for (intptr_t i = 0; i < num_type_params; i++) {
@@ -2888,7 +2888,7 @@ void Class::AddInvocationDispatcher(const String& target_name,
         cache.Length() == 0
             ? static_cast<intptr_t>(Class::kInvocationDispatcherEntrySize)
             : cache.Length() * 2;
-    cache ^= Array::Grow(cache, new_len);
+    cache = Array::Grow(cache, new_len);
     set_invocation_dispatcher_cache(cache);
   }
   auto entry = dispatchers[i];
@@ -3041,7 +3041,7 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   const Class& owner = Class::Handle(closure_function.Owner());
   Function& result = Function::Handle(owner.LookupDynamicFunction(getter_name));
   if (result.IsNull()) {
-    result ^= CreateMethodExtractor(getter_name);
+    result = CreateMethodExtractor(getter_name);
   }
   ASSERT(result.kind() == RawFunction::kMethodExtractor);
   return result.raw();
@@ -3479,7 +3479,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
                                InvocationMirror::kStatic,
                                InvocationMirror::kSetter);
     }
-    parameter_type ^= setter.ParameterTypeAt(0);
+    parameter_type = setter.ParameterTypeAt(0);
     if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
         !value.IsInstanceOf(parameter_type, Object::null_type_arguments(),
                             Object::null_type_arguments())) {
@@ -3502,7 +3502,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
                              InvocationMirror::kSetter);
   }
 
-  parameter_type ^= field.type();
+  parameter_type = field.type();
   if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
       !value.IsInstanceOf(parameter_type, Object::null_type_arguments(),
                           Object::null_type_arguments())) {
@@ -4556,7 +4556,7 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
-  funcs ^= functions();
+  funcs = functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
@@ -4588,7 +4588,7 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
     String& function_name = thread->StringHandle();
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
-      function_name ^= function.name();
+      function_name = function.name();
       if (function_name.Equals(name)) {
         return CheckFunctionType(function, kind);
       }
@@ -4608,14 +4608,14 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
-  funcs ^= functions();
+  funcs = functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
   String& function_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
-    function_name ^= function.name();
+    function_name = function.name();
     if (String::EqualsIgnoringPrivateKey(function_name, name)) {
       return CheckFunctionType(function, kind);
     }
@@ -4643,13 +4643,13 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
-  funcs ^= functions();
+  funcs = functions();
   intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
   String& function_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
-    function_name ^= function.name();
+    function_name = function.name();
     if (MatchesAccessorName(function_name, prefix, prefix_length, name)) {
       return function.raw();
     }
@@ -4680,7 +4680,7 @@ RawField* Class::LookupField(const String& name, MemberKind kind) const {
   REUSABLE_FIELD_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
   Array& flds = thread->ArrayHandle();
-  flds ^= fields();
+  flds = fields();
   ASSERT(!flds.IsNull());
   intptr_t len = flds.Length();
   Field& field = thread->FieldHandle();
@@ -4702,7 +4702,7 @@ RawField* Class::LookupField(const String& name, MemberKind kind) const {
     String& field_name = thread->StringHandle();
     for (intptr_t i = 0; i < len; i++) {
       field ^= flds.At(i);
-      field_name ^= field.name();
+      field_name = field.name();
       if (name.Equals(field_name)) {
         if (kind == kInstance) {
           return field.is_static() ? Field::null() : field.raw();
@@ -4728,14 +4728,14 @@ RawField* Class::LookupFieldAllowPrivate(const String& name,
   REUSABLE_FIELD_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
   Array& flds = thread->ArrayHandle();
-  flds ^= fields();
+  flds = fields();
   ASSERT(!flds.IsNull());
   intptr_t len = flds.Length();
   Field& field = thread->FieldHandle();
   String& field_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
-    field_name ^= field.name();
+    field_name = field.name();
     if (field.is_static() && instance_only) {
       // If we only care about instance fields, skip statics.
       continue;
@@ -5573,7 +5573,7 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
       if (this->IsNew()) {
         result ^= Object::Clone(*this, Heap::kOld);
       } else {
-        result ^= this->raw();
+        result = this->raw();
       }
       ASSERT(result.IsOld());
       result.SetCanonical();  // Mark object as being canonical.
@@ -6449,7 +6449,7 @@ intptr_t Function::NumParentTypeParameters() const {
   while (!parent.IsNull()) {
     num_parent_type_params += parent.NumTypeParameters(thread);
     if (parent.IsImplicitClosureFunction()) break;
-    parent ^= parent.parent_function();
+    parent = parent.parent_function();
   }
   return num_parent_type_params;
 }
@@ -6462,7 +6462,7 @@ void Function::PrintSignatureTypes() const {
     THR_Print("%s%s\n",
               sig_fun.IsImplicitClosureFunction() ? "implicit closure: " : "",
               sig_type.ToCString());
-    sig_fun ^= sig_fun.parent_function();
+    sig_fun = sig_fun.parent_function();
   }
 }
 
@@ -6480,9 +6480,9 @@ RawTypeParameter* Function::LookupTypeParameter(
   String& type_param_name = thread->StringHandle();
   Function& function = thread->FunctionHandle();
 
-  function ^= this->raw();
+  function = this->raw();
   while (!function.IsNull()) {
-    type_params ^= function.type_parameters();
+    type_params = function.type_parameters();
     if (!type_params.IsNull()) {
       const intptr_t num_type_params = type_params.Length();
       for (intptr_t i = 0; i < num_type_params; i++) {
@@ -6498,7 +6498,7 @@ RawTypeParameter* Function::LookupTypeParameter(
       // function with identical type parameters.
       break;
     }
-    function ^= function.parent_function();
+    function = function.parent_function();
     if (function_level != NULL) {
       (*function_level)--;
     }
@@ -6756,7 +6756,7 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
   for (intptr_t i = 0; i < num_named_arguments; i++) {
-    argument_name ^= args_desc.NameAt(i);
+    argument_name = args_desc.NameAt(i);
     ASSERT(argument_name.IsSymbol());
     bool found = false;
     const intptr_t num_positional_args = num_arguments - num_named_arguments;
@@ -6795,9 +6795,9 @@ RawObject* Function::DoArgumentTypesMatch(
   Function& instantiated_func = Function::Handle(zone, raw());
 
   if (!HasInstantiatedSignature()) {
-    instantiated_func ^= InstantiateSignatureFrom(instantiator_type_args,
-                                                  Object::null_type_arguments(),
-                                                  kAllFree, Heap::kOld);
+    instantiated_func = InstantiateSignatureFrom(instantiator_type_args,
+                                                 Object::null_type_arguments(),
+                                                 kAllFree, Heap::kOld);
   }
   AbstractType& argument_type = AbstractType::Handle(zone);
   AbstractType& parameter_type = AbstractType::Handle(zone);
@@ -6807,8 +6807,8 @@ RawObject* Function::DoArgumentTypesMatch(
   for (intptr_t i = args_desc.FirstArgIndex(); i < args_desc.PositionalCount();
        ++i) {
     argument ^= args.At(i);
-    argument_type ^= argument.GetType(Heap::kOld);
-    parameter_type ^= instantiated_func.ParameterTypeAt(i);
+    argument_type = argument.GetType(Heap::kOld);
+    parameter_type = instantiated_func.ParameterTypeAt(i);
 
     // If the argument type is dynamic or the parameter is null, move on.
     if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
@@ -6833,7 +6833,7 @@ RawObject* Function::DoArgumentTypesMatch(
 
   // Check types of named arguments against expected parameter type.
   for (intptr_t i = 0; i < num_named_arguments; i++) {
-    argument_name ^= args_desc.NameAt(i);
+    argument_name = args_desc.NameAt(i);
     ASSERT(argument_name.IsSymbol());
     bool found = false;
     const intptr_t num_positional_args = num_arguments - num_named_arguments;
@@ -6847,8 +6847,8 @@ RawObject* Function::DoArgumentTypesMatch(
       if (argument_name.Equals(parameter_name)) {
         found = true;
         argument ^= args.At(args_desc.PositionAt(i));
-        argument_type ^= argument.GetType(Heap::kOld);
-        parameter_type ^= instantiated_func.ParameterTypeAt(j);
+        argument_type = argument.GetType(Heap::kOld);
+        parameter_type = instantiated_func.ParameterTypeAt(j);
 
         // If the argument type is dynamic or the parameter is null, move on.
         if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
@@ -7022,7 +7022,7 @@ RawFunction* Function::InstantiateSignatureFrom(
           param_name = type_param.name();
           const bool is_generic_covariant = type_param.IsGenericCovariantImpl();
           ASSERT(type_param.IsFinalized());
-          type_param ^=
+          type_param =
               TypeParameter::New(cls, sig, type_param.index(), param_name, type,
                                  is_generic_covariant, type_param.token_pos());
           type_param.SetIsFinalized();
@@ -10397,7 +10397,7 @@ RawObject* Library::LookupEntry(const String& name, intptr_t* index) const {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
   Array& dict = thread->ArrayHandle();
-  dict ^= dictionary();
+  dict = dictionary();
   intptr_t dict_size = dict.Length() - 1;
   *index = name.Hash() % dict_size;
   Object& entry = thread->ObjectHandle();
@@ -10491,7 +10491,7 @@ RawArray* Library::LoadedScripts() const {
       AddScriptIfUnique(scripts, owner_script);
     }
 
-    cls ^= toplevel_class();
+    cls = toplevel_class();
     if (!cls.IsNull()) {
       owner_script = cls.script();
       AddScriptIfUnique(scripts, owner_script);
@@ -10658,7 +10658,7 @@ RawObject* Library::LookupImportedObject(const String& name) const {
   String& found_obj_name = String::Handle();
   ASSERT(!ShouldBePrivate(name));
   for (intptr_t i = 0; i < num_imports(); i++) {
-    import ^= ImportAt(i);
+    import = ImportAt(i);
     obj = import.Lookup(name);
     if (!obj.IsNull()) {
       import_lib = import.library();
@@ -11103,7 +11103,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
     if (check_is_entrypoint) {
       CHECK_ERROR(field.VerifyEntryPoint(EntryPointPragma::kSetterOnly));
     }
-    setter_type ^= field.type();
+    setter_type = field.type();
     if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
         !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
                             Object::null_type_arguments())) {
@@ -11143,7 +11143,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
         InvocationMirror::kTopLevel, InvocationMirror::kSetter);
   }
 
-  setter_type ^= setter.ParameterTypeAt(0);
+  setter_type = setter.ParameterTypeAt(0);
   if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
       !value.IsInstanceOf(setter_type, Object::null_type_arguments(),
                           Object::null_type_arguments())) {
@@ -11992,12 +11992,12 @@ RawObject* Namespace::Lookup(const String& name,
   if (!Field::IsGetterName(name) && !Field::IsSetterName(name) &&
       (obj.IsNull() || obj.IsLibraryPrefix())) {
     String& accessor_name = String::Handle(zone);
-    accessor_name ^= Field::LookupGetterSymbol(name);
+    accessor_name = Field::LookupGetterSymbol(name);
     if (!accessor_name.IsNull()) {
       obj = lib.LookupEntry(accessor_name, &ignore);
     }
     if (obj.IsNull()) {
-      accessor_name ^= Field::LookupSetterSymbol(name);
+      accessor_name = Field::LookupSetterSymbol(name);
       if (!accessor_name.IsNull()) {
         obj = lib.LookupEntry(accessor_name, &ignore);
       }
@@ -12128,7 +12128,7 @@ RawLibrary* KernelProgramInfo::LookupLibrary(Thread* thread,
   {
     Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
-    data ^= libraries_cache();
+    data = libraries_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
     result ^= table.GetOrNull(name_index);
@@ -12151,7 +12151,7 @@ RawLibrary* KernelProgramInfo::InsertLibrary(Thread* thread,
   {
     Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->kernel_data_lib_cache_mutex());
-    data ^= libraries_cache();
+    data = libraries_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
     result ^= table.InsertOrGetValue(name_index, lib);
@@ -12177,7 +12177,7 @@ RawClass* KernelProgramInfo::LookupClass(Thread* thread,
   {
     Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
-    data ^= classes_cache();
+    data = classes_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
     result ^= table.GetOrNull(name_index);
@@ -12200,7 +12200,7 @@ RawClass* KernelProgramInfo::InsertClass(Thread* thread,
   {
     Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->kernel_data_class_cache_mutex());
-    data ^= classes_cache();
+    data = classes_cache();
     ASSERT(!data.IsNull());
     IntHashMap table(&key, &value, &data);
     result ^= table.InsertOrGetValue(name_index, klass);
@@ -14868,7 +14868,7 @@ RawCode* Code::FindCode(uword pc, int64_t timestamp) {
     // Found code in isolate.
     return code.raw();
   }
-  code ^= Code::LookupCodeInVmIsolate(pc);
+  code = Code::LookupCodeInVmIsolate(pc);
   if (!code.IsNull() && (code.compile_timestamp() == timestamp) &&
       (code.PayloadStart() == pc)) {
     // Found code in VM isolate.
@@ -15660,12 +15660,12 @@ void SubtypeTestCache::GetCheck(
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
   *instance_class_id_or_function = entry.Get<kInstanceClassIdOrFunction>();
-  *instance_type_arguments ^= entry.Get<kInstanceTypeArguments>();
-  *instantiator_type_arguments ^= entry.Get<kInstantiatorTypeArguments>();
-  *function_type_arguments ^= entry.Get<kFunctionTypeArguments>();
-  *instance_parent_function_type_arguments ^=
+  *instance_type_arguments = entry.Get<kInstanceTypeArguments>();
+  *instantiator_type_arguments = entry.Get<kInstantiatorTypeArguments>();
+  *function_type_arguments = entry.Get<kFunctionTypeArguments>();
+  *instance_parent_function_type_arguments =
       entry.Get<kInstanceParentFunctionTypeArguments>();
-  *instance_delayed_type_arguments ^=
+  *instance_delayed_type_arguments =
       entry.Get<kInstanceDelayedFunctionTypeArguments>();
   *test_result ^= entry.Get<kTestResult>();
 }
@@ -15969,7 +15969,7 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   Class& klass = Class::Handle(zone, clazz());
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
-    type_args ^= GetTypeArguments();
+    type_args = GetTypeArguments();
   }
 
   const String& internal_getter_name =
@@ -16027,7 +16027,7 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
   const Class& klass = Class::Handle(zone, clazz());
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
-    type_args ^= GetTypeArguments();
+    type_args = GetTypeArguments();
   }
 
   const String& internal_setter_name =
@@ -16083,7 +16083,7 @@ RawObject* Instance::Invoke(const String& function_name,
 
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
-    type_args ^= GetTypeArguments();
+    type_args = GetTypeArguments();
   }
 
   if (function.IsNull()) {
@@ -16284,7 +16284,7 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
   const Class& cls = Class::Handle(zone, this->clazz());
   {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    result ^= cls.LookupCanonicalInstance(zone, *this);
+    result = cls.LookupCanonicalInstance(zone, *this);
     if (!result.IsNull()) {
       return result.raw();
     }
@@ -16293,7 +16293,7 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
       // Create a canonical object in old space.
       result ^= Object::Clone(*this, Heap::kOld);
     } else {
-      result ^= this->raw();
+      result = this->raw();
     }
     ASSERT(result.IsOld());
     result.SetCanonical();
@@ -17293,8 +17293,8 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
   // yet, so do not call DeclarationType().
   Type& type = Type::Handle(type_class.declaration_type());
   if (type.IsNull()) {
-    type ^= Type::New(Class::Handle(type_class.raw()),
-                      Object::null_type_arguments(), TokenPosition::kNoSource);
+    type = Type::New(Class::Handle(type_class.raw()),
+                     Object::null_type_arguments(), TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     type_class.set_declaration_type(type);
@@ -17654,7 +17654,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
           if (this->IsNew()) {
             type ^= Object::Clone(*this, Heap::kOld);
           } else {
-            type ^= this->raw();
+            type = this->raw();
           }
           ASSERT(type.IsOld());
           type.ComputeHash();
@@ -17729,7 +17729,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
       if (this->IsNew()) {
         type ^= Object::Clone(*this, Heap::kOld);
       } else {
-        type ^= this->raw();
+        type = this->raw();
       }
       ASSERT(type.IsOld());
       type.SetCanonical();  // Mark object as being canonical.
@@ -18674,7 +18674,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
   Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
   Mint& canonical_value = Mint::Handle(zone);
-  canonical_value ^= cls.LookupCanonicalMint(zone, value);
+  canonical_value = cls.LookupCanonicalMint(zone, value);
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
@@ -18682,7 +18682,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      canonical_value ^= cls.LookupCanonicalMint(zone, value);
+      canonical_value = cls.LookupCanonicalMint(zone, value);
       if (!canonical_value.IsNull()) {
         return canonical_value.raw();
       }
@@ -18807,7 +18807,7 @@ RawDouble* Double::NewCanonical(double value) {
   // list of canonicalized constants.
   Double& canonical_value = Double::Handle(zone);
 
-  canonical_value ^= cls.LookupCanonicalDouble(zone, value);
+  canonical_value = cls.LookupCanonicalDouble(zone, value);
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
@@ -18815,7 +18815,7 @@ RawDouble* Double::NewCanonical(double value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      canonical_value ^= cls.LookupCanonicalDouble(zone, value);
+      canonical_value = cls.LookupCanonicalDouble(zone, value);
       if (!canonical_value.IsNull()) {
         return canonical_value.raw();
       }
@@ -21178,7 +21178,7 @@ RawPointer* Pointer::New(const AbstractType& type_arg,
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
-  type_args ^= type_args.Canonicalize();
+  type_args = type_args.Canonicalize();
 
   const Class& cls = Class::Handle(Isolate::Current()->class_table()->At(cid));
   cls.EnsureIsFinalized(Thread::Current());
@@ -21224,9 +21224,9 @@ bool Pointer::IsPointer(const Instance& obj) {
       Isolate::Current()->object_store()->ffi_pointer_class());
   AbstractType& pointer_type =
       AbstractType::Handle(pointer_class.DeclarationType());
-  pointer_type ^= pointer_type.InstantiateFrom(Object::null_type_arguments(),
-                                               Object::null_type_arguments(),
-                                               kNoneFree, NULL, Heap::kNew);
+  pointer_type = pointer_type.InstantiateFrom(Object::null_type_arguments(),
+                                              Object::null_type_arguments(),
+                                              kNoneFree, NULL, Heap::kNew);
   AbstractType& type = AbstractType::Handle(obj.GetType(Heap::kNew));
   return type.IsSubtypeOf(pointer_type, Heap::kNew);
 }
@@ -21624,7 +21624,7 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
       }
     }
     // Follow the link.
-    stack_trace ^= stack_trace.async_link();
+    stack_trace = stack_trace.async_link();
   } while (!stack_trace.IsNull());
 
   return buffer.buffer();
@@ -21694,7 +21694,7 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
       }
     }
     // Follow the link.
-    stack_trace ^= stack_trace.async_link();
+    stack_trace = stack_trace.async_link();
   } while (!stack_trace.IsNull());
 
   return buffer.buffer();
@@ -21953,7 +21953,7 @@ RawUserTag* UserTag::FindTagInIsolate(Thread* thread, const String& label) {
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     other ^= tag_table.At(i);
     ASSERT(!other.IsNull());
-    tag_label ^= other.label();
+    tag_label = other.label();
     ASSERT(!tag_label.IsNull());
     if (tag_label.Equals(label)) {
       return other.raw();

@@ -1995,7 +1995,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
                                  cls, name, args_desc, allow_add));
   if (target_function.IsNull()) return false;
-  *fn_return ^= target_function.raw();
+  *fn_return = target_function.raw();
   return true;
 }
 

@@ -2387,7 +2387,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
     return Api::NewError(
         "function_name must be the name of a regular function.");
   }
-  func ^= func.ImplicitClosureFunction();
+  func = func.ImplicitClosureFunction();
   if (func.IsNull()) {
     return Dart_Null();
   }
@@ -3707,10 +3707,10 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(Z, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
-    val ^= view_obj.length();
+    val = view_obj.length();
     length = val.Value();
     size_in_bytes = length * TypedDataView::ElementSizeInBytes(class_id);
-    val ^= view_obj.offset_in_bytes();
+    val = view_obj.offset_in_bytes();
     intptr_t offset_in_bytes = val.Value();
     const auto& obj = Instance::Handle(view_obj.typed_data());
     T->IncrementNoSafepointScopeDepth();
@@ -5160,7 +5160,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
           number_of_type_arguments, array.Length());
     }
     // Set up the type arguments array.
-    type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
+    type_args_obj = TypeArguments::New(num_expected_type_arguments);
     AbstractType& type_arg = AbstractType::Handle();
     for (intptr_t i = 0; i < number_of_type_arguments; i++) {
       type_arg ^= array.At(i);
@@ -6143,7 +6143,7 @@ static void DropRegExpMatchCode(Zone* zone) {
   ASSERT(!func.IsNull());
   Code& code = Code::Handle(zone);
   if (func.HasCode()) {
-    code ^= func.CurrentCode();
+    code = func.CurrentCode();
     ASSERT(!code.IsNull());
     code.DisableDartCode();
   }
@@ -6151,10 +6151,10 @@ static void DropRegExpMatchCode(Zone* zone) {
   func.ClearICDataArray();
   ASSERT(!func.HasCode());
 
-  func ^= reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
+  func = reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
   ASSERT(!func.IsNull());
   if (func.HasCode()) {
-    code ^= func.CurrentCode();
+    code = func.CurrentCode();
     ASSERT(!code.IsNull());
     code.DisableDartCode();
   }

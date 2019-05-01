@@ -1412,7 +1412,7 @@ static bool GetScripts(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < num_libs; i++) {
       lib ^= libs.At(i);
       ASSERT(!lib.IsNull());
-      scripts ^= lib.LoadedScripts();
+      scripts = lib.LoadedScripts();
       for (intptr_t j = 0; j < scripts.Length(); j++) {
         script ^= scripts.At(j);
         ASSERT(!script.IsNull());
@@ -1671,7 +1671,7 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
-    private_key ^= lib.private_key();
+    private_key = lib.private_key();
     if (private_key.Equals(id)) {
       lib_found = true;
       break;
@@ -1707,7 +1707,7 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
     for (i = 0; i < loaded_scripts.Length(); i++) {
       script ^= loaded_scripts.At(i);
       ASSERT(!script.IsNull());
-      script_url ^= script.url();
+      script_url = script.url();
       if (script_url.Equals(requested_url) &&
           (timestamp == script.load_timestamp())) {
         return script.raw();
@@ -1747,7 +1747,7 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
       return Object::sentinel().raw();
     }
     Function& func = Function::Handle(zone);
-    func ^= isolate->ClosureFunctionFromIndex(id);
+    func = isolate->ClosureFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
     }
@@ -1797,7 +1797,7 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
       return Object::sentinel().raw();
     }
     Function& func = Function::Handle(zone);
-    func ^= cls.ImplicitClosureFunctionFromIndex(id);
+    func = cls.ImplicitClosureFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
     }
@@ -1813,7 +1813,7 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
       return Object::sentinel().raw();
     }
     Function& func = Function::Handle(zone);
-    func ^= cls.InvocationDispatcherFunctionFromIndex(id);
+    func = cls.InvocationDispatcherFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
     }
@@ -2084,7 +2084,7 @@ static bool PrintInboundReferences(Thread* thread,
             slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
       } else if (source.IsInstance()) {
-        source_class ^= source.clazz();
+        source_class = source.clazz();
         parent_field_map = source_class.OffsetToFieldMap();
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < parent_field_map.Length()) {
@@ -2195,7 +2195,7 @@ static bool PrintRetainingPath(Thread* thread,
           }
         }
       } else if (element.IsInstance()) {
-        element_class ^= element.clazz();
+        element_class = element.clazz();
         element_field_map = element_class.OffsetToFieldMap();
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < element_field_map.Length()) {
@@ -2639,14 +2639,14 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     if (frame->function().is_static()) {
       const Class& cls = Class::Handle(zone, frame->function().Owner());
       if (!cls.IsTopLevel()) {
-        klass_name ^= cls.UserVisibleName();
+        klass_name = cls.UserVisibleName();
       }
-      library_uri ^= Library::Handle(zone, cls.library()).url();
+      library_uri = Library::Handle(zone, cls.library()).url();
       isStatic = !cls.IsTopLevel();
     } else {
       const Class& method_cls = Class::Handle(zone, frame->function().origin());
-      library_uri ^= Library::Handle(zone, method_cls.library()).url();
-      klass_name ^= method_cls.UserVisibleName();
+      library_uri = Library::Handle(zone, method_cls.library()).url();
+      klass_name = method_cls.UserVisibleName();
     }
   } else {
     // building scope in the context of a given object
@@ -2666,7 +2666,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     }
     if (obj.IsLibrary()) {
       const Library& lib = Library::Cast(obj);
-      library_uri ^= lib.url();
+      library_uri = lib.url();
     } else if (obj.IsClass() || ((obj.IsInstance() || obj.IsNull()) &&
                                  !ContainsNonInstance(obj))) {
       Class& cls = Class::Handle(zone);
@@ -2675,7 +2675,7 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       } else {
         Instance& instance = Instance::Handle(zone);
         instance ^= obj.raw();
-        cls ^= instance.clazz();
+        cls = instance.clazz();
       }
       if (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid) {
         js->PrintError(
@@ -2685,9 +2685,9 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       }
 
       if (!cls.IsTopLevel()) {
-        klass_name ^= cls.UserVisibleName();
+        klass_name = cls.UserVisibleName();
       }
-      library_uri ^= Library::Handle(zone, cls.library()).url();
+      library_uri = Library::Handle(zone, cls.library()).url();
     } else {
       js->PrintError(kInvalidParams,
                      "%s: invalid 'targetId' parameter: "
@@ -2741,7 +2741,7 @@ static bool ParseCSVList(const char* csv_list,
       c++;
     }
     if (c > value) {
-      s ^= String::New(zone->MakeCopyOfStringN(value, c - value));
+      s = String::New(zone->MakeCopyOfStringN(value, c - value));
       values.Add(s);
     }
     switch (*c) {

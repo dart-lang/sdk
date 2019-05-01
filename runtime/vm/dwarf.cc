@@ -511,7 +511,7 @@ void Dwarf::WriteLines() {
   String& uri = String::Handle(zone_);
   for (intptr_t i = 0; i < scripts_.length(); i++) {
     const Script& script = *(scripts_[i]);
-    uri ^= script.url();
+    uri = script.url();
     Print(".string \"%s\"\n", uri.ToCString());
     uleb128(0);  // Include directory index.
     uleb128(0);  // File modification time.

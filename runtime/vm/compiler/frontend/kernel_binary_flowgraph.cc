@@ -1986,7 +1986,7 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
   // List of named.
   list_length = ReadListLength();  // read list length.
   if (argument_names != NULL && list_length > 0) {
-    *argument_names ^= Array::New(list_length, Heap::kOld);
+    *argument_names = Array::New(list_length, Heap::kOld);
   }
   for (intptr_t i = 0; i < list_length; ++i) {
     String& name =
@@ -2916,7 +2916,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
     SkipListOfExpressions();
     intptr_t named_list_length = ReadListLength();
-    argument_names ^= Array::New(named_list_length, H.allocation_space());
+    argument_names = Array::New(named_list_length, H.allocation_space());
     for (intptr_t i = 0; i < named_list_length; i++) {
       const String& arg_name = H.DartSymbolObfuscate(ReadStringReference());
       argument_names.SetAt(i, arg_name);

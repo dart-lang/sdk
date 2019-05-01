@@ -495,7 +495,7 @@ void Precompiler::CollectCallbackFields() {
         cids.Clear();
         if (CHA::ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {
-            subcls ^= I->class_table()->At(cids[j]);
+            subcls = I->class_table()->At(cids[j]);
             if (subcls.is_allocated()) {
               // Add dispatcher to cls.
               dispatcher = subcls.GetInvocationDispatcher(
@@ -1947,7 +1947,7 @@ void Precompiler::BindStaticCalls() {
             // stub.
             auto& fun = Function::Cast(target_);
             ASSERT(fun.HasCode());
-            target_code_ ^= fun.CurrentCode();
+            target_code_ = fun.CurrentCode();
             uword pc = pc_offset + code_.PayloadStart();
             CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
           }

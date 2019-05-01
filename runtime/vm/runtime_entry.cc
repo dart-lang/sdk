@@ -1717,7 +1717,7 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     String& field_name =
         String::Handle(zone, Field::NameFromGetter(target_name));
     while (!cls.IsNull()) {
-      function ^= cls.LookupDynamicFunction(field_name);
+      function = cls.LookupDynamicFunction(field_name);
       if (!function.IsNull()) {
         CLOSURIZE(function);
         return;
@@ -1745,12 +1745,12 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
         String::Handle(zone, Field::GetterName(target_name));
     ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
-      function ^= cls.LookupDynamicFunction(target_name);
+      function = cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
         ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
-      function ^= cls.LookupDynamicFunction(getter_name);
+      function = cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         const Array& getter_arguments = Array::Handle(Array::New(1));
         getter_arguments.SetAt(0, receiver);

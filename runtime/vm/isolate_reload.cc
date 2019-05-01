@@ -172,7 +172,7 @@ void InstanceMorpher::RunNewFieldInitializers() const {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
     if (field->kernel_offset() > 0) {
-      eval_func ^= kernel::CreateFieldInitializerFunction(thread, zone, *field);
+      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
     } else {
       UNREACHABLE();
     }
@@ -1090,7 +1090,7 @@ void IsolateReloadContext::FindModifiedSources(
     scripts = lib.LoadedScripts();
     for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
       script ^= scripts.At(script_idx);
-      uri ^= script.url();
+      uri = script.url();
       if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {
         // We've already accounted for this script in a prior library.
         continue;
@@ -1200,7 +1200,7 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload,
   if (root_lib_modified) {
     // The root library was either moved or replaced. Mark it as modified to
     // force a reload of the potential root library replacement.
-    lib ^= object_store()->root_library();
+    lib = object_store()->root_library();
     modified_libs->Add(lib.index());
   }
 
@@ -1958,7 +1958,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     const KernelProgramInfo& info = *kernel_infos[i];
     // Clear the libraries cache.
     {
-      data ^= info.libraries_cache();
+      data = info.libraries_cache();
       ASSERT(!data.IsNull());
       IntHashMap table(&key, &value, &data);
       table.Clear();
@@ -1966,7 +1966,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     }
     // Clear the classes cache.
     {
-      data ^= info.classes_cache();
+      data = info.classes_cache();
       ASSERT(!data.IsNull());
       IntHashMap table(&key, &value, &data);
       table.Clear();
@@ -2118,7 +2118,7 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNullBaseMoved(
     if (!old_url.StartsWith(old_url_prefix)) {
       continue;
     }
-    old_suffix ^= String::SubString(old_url, old_prefix_length);
+    old_suffix = String::SubString(old_url, old_prefix_length);
     if (old_suffix.IsNull()) {
       continue;
     }
@@ -2139,7 +2139,7 @@ void IsolateReloadContext::BuildLibraryMapping() {
   Library& old = Library::Handle();
   for (intptr_t i = num_saved_libs_; i < libs.Length(); i++) {
     replacement_or_new = Library::RawCast(libs.At(i));
-    old ^= OldLibraryOrNull(replacement_or_new);
+    old = OldLibraryOrNull(replacement_or_new);
     if (old.IsNull()) {
       if (FLAG_identity_reload) {
         TIR_Print("Could not find original library for %s\n",

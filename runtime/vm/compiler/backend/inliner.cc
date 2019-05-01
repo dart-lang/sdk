@@ -415,11 +415,11 @@ class CallSites : public ValueObject {
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
-          target ^= instance_call->targets().FirstTarget().raw();
+          target = instance_call->targets().FirstTarget().raw();
           call = instance_call;
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
-          target ^= static_call->function().raw();
+          target = static_call->function().raw();
           call = static_call;
         } else if (current->IsClosureCall()) {
           // TODO(srdjan): Add data for closure calls.
@@ -1499,12 +1499,12 @@ class CallSiteInliner : public ValueObject {
           call->Receiver()->definition()->OriginalDefinition();
       if (AllocateObjectInstr* alloc = receiver->AsAllocateObject()) {
         if (!alloc->closure_function().IsNull()) {
-          target ^= alloc->closure_function().raw();
+          target = alloc->closure_function().raw();
           ASSERT(alloc->cls().IsClosureClass());
         }
       } else if (ConstantInstr* constant = receiver->AsConstant()) {
         if (constant->value().IsClosure()) {
-          target ^= Closure::Cast(constant->value()).function();
+          target = Closure::Cast(constant->value()).function();
         }
       }
 

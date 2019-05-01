@@ -273,7 +273,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Class& cls = Class::Handle(Owner());
   if (!cls.IsNull()) {
     Error& err = Error::Handle();
-    err ^= cls.EnsureIsFinalized(Thread::Current());
+    err = cls.EnsureIsFinalized(Thread::Current());
     ASSERT(err.IsNull());
   } else {
     ASSERT(IsSignatureFunction());
@@ -394,7 +394,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   } else {
     ClassTable* table = Isolate::Current()->class_table();
     ASSERT(table->IsValidIndex(guarded_cid()));
-    cls ^= table->At(guarded_cid());
+    cls = table->At(guarded_cid());
     jsobj.AddProperty("_guardClass", cls);
   }
   if (guarded_list_length() == kUnknownFixedLength) {
@@ -785,7 +785,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
     intptr_t count = GetCountAt(i);
     if (!is_static_call()) {
       intptr_t cid = GetReceiverClassIdAt(i);
-      cls ^= isolate->class_table()->At(cid);
+      cls = isolate->class_table()->At(cid);
       cache_entry.AddProperty("receiver", cls);
     }
     cache_entry.AddProperty("target", func);

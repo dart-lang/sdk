@@ -236,7 +236,7 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
     const String& getter_name = Symbols::GetCall();
     Class& cls = Class::Handle(zone, instance.clazz());
     while (!cls.IsNull()) {
-      function ^= cls.LookupDynamicFunction(getter_name);
+      function = cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         Isolate* isolate = thread->isolate();
         if (!OSThread::Current()->HasStackHeadroom()) {
@@ -312,7 +312,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
     Thread* thread = Thread::Current();
-    function ^= Resolver::ResolveDynamicForReceiverClass(
+    function = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(thread->zone(),
                       thread->isolate()->object_store()->object_class()),
         Symbols::NoSuchMethod(), nsm_args_desc);

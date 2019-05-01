@@ -579,7 +579,7 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
     result_ ^= result.raw();
   } else {
     ASSERT(!receiver->IsNull());
-    result_ ^= (*receiver).raw();
+    result_ = (*receiver).raw();
   }
   if (I->obfuscate() &&
       (result_.clazz() == I->object_store()->symbol_class())) {
@@ -589,7 +589,7 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
 }
 
 void ConstantEvaluator::EvaluateNot() {
-  result_ ^= Bool::Get(!EvaluateBooleanExpressionHere()).raw();
+  result_ = Bool::Get(!EvaluateBooleanExpressionHere()).raw();
 }
 
 void ConstantEvaluator::EvaluateLogicalExpression() {
