@@ -35,7 +35,7 @@ class DeclarationSplicer {
   void _buildLocalElements(AstNode node) {
     var holder = ElementHolder();
 
-    var elementBuilder = LocalElementBuilder(holder, null);
+    var elementBuilder = LocalElementBuilder(holder, _unitElement);
     node.accept(elementBuilder);
 
     var element = _walker.element;
