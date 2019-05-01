@@ -2030,7 +2030,7 @@ VM_UNIT_TEST_CASE(PostCObject) {
   Dart_ExitScope();
 }
 
-TEST_CASE(OmittedObjectEncodingLength) {
+ISOLATE_UNIT_TEST_CASE(OmittedObjectEncodingLength) {
   StackZone zone(Thread::Current());
   MessageWriter writer(true);
   writer.WriteInlinedObjectHeader(kOmittedObjectId);

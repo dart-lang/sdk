@@ -18,6 +18,7 @@ VM_UNIT_TEST_CASE(AllocateZone) {
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
+    TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
     EXPECT(thread->zone() != NULL);
     Zone* zone = stack_zone.GetZone();
@@ -78,6 +79,7 @@ VM_UNIT_TEST_CASE(AllocGeneric_Success) {
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     EXPECT(thread->zone() != NULL);
     uintptr_t allocated_size = 0;
@@ -131,6 +133,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
 
   // Create a few zone allocated objects.
   {
+    TransitionNativeToVM transition(thread);
     StackZone zone(thread);
     EXPECT_EQ(0UL, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
@@ -156,6 +159,7 @@ VM_UNIT_TEST_CASE(ZoneAllocated) {
 }
 
 TEST_CASE(PrintToString) {
+  TransitionNativeToVM transition(Thread::Current());
   StackZone zone(Thread::Current());
   const char* result = zone.GetZone()->PrintToString("Hello %s!", "World");
   EXPECT_STREQ("Hello World!", result);
@@ -219,7 +223,7 @@ TEST_CASE(StressMallocDirectly) {
 #endif  // !defined(PRODUCT)
 }
 
-TEST_CASE(StressMallocThroughZones) {
+ISOLATE_UNIT_TEST_CASE(StressMallocThroughZones) {
 #if !defined(PRODUCT)
   int64_t start_rss = Service::CurrentRSS();
 #endif  // !defined(PRODUCT)

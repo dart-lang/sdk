@@ -337,11 +337,20 @@ StackZone::StackZone(ThreadState* thread) : StackResource(thread), zone_() {
                  reinterpret_cast<intptr_t>(this),
                  reinterpret_cast<intptr_t>(&zone_));
   }
+
+  // This thread must be preventing safepoints or the GC could be visiting the
+  // chain of handle blocks we're about the mutate.
+  ASSERT(Thread::Current()->MayAllocateHandles());
+
   zone_.Link(thread->zone());
   thread->set_zone(&zone_);
 }
 
 StackZone::~StackZone() {
+  // This thread must be preventing safepoints or the GC could be visiting the
+  // chain of handle blocks we're about the mutate.
+  ASSERT(Thread::Current()->MayAllocateHandles());
+
   ASSERT(thread()->zone() == &zone_);
   thread()->set_zone(zone_.previous_);
   if (FLAG_trace_zones) {

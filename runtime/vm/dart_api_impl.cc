@@ -1093,8 +1093,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     }
     return reinterpret_cast<Dart_Isolate>(NULL);
   }
+
+  Thread* T = Thread::Current();
+  bool success = false;
   {
-    Thread* T = Thread::Current();
     StackZone zone(T);
     HANDLESCOPE(T);
     // We enter an API scope here as InitializeIsolate could compile some
@@ -1112,25 +1114,27 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
-      // We exit the API scope entered above.
-      T->ExitApiScope();
-      // A Thread structure has been associated to the thread, we do the
-      // safepoint transition explicitly here instead of using the
-      // TransitionXXX scope objects as the reverse transition happens
-      // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
-      T->set_execution_state(Thread::kThreadInNative);
-      T->EnterSafepoint();
-      if (error != NULL) {
-        *error = NULL;
-      }
-      return Api::CastIsolate(I);
-    }
-    if (error != NULL) {
+      success = true;
+    } else if (error != NULL) {
       *error = strdup(error_obj.ToErrorCString());
     }
     // We exit the API scope entered above.
     T->ExitApiScope();
   }
+
+  if (success) {
+    // A Thread structure has been associated to the thread, we do the
+    // safepoint transition explicitly here instead of using the
+    // TransitionXXX scope objects as the reverse transition happens
+    // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
+    T->set_execution_state(Thread::kThreadInNative);
+    T->EnterSafepoint();
+    if (error != NULL) {
+      *error = NULL;
+    }
+    return Api::CastIsolate(I);
+  }
+
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
