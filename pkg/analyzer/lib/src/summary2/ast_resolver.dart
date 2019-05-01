@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -40,7 +41,11 @@ class AstResolver {
       node.accept(astRewriteVisitor);
     }
 
-//    expression.accept(_variableResolverVisitor);
+    var variableResolverVisitor = new VariableResolverVisitor(
+        _library, source, _linker.typeProvider, errorListener,
+        nameScope: _nameScope, localVariableInfo: LocalVariableInfo());
+    node.accept(variableResolverVisitor);
+
 //    if (_linker.getAst != null) {
 //      expression.accept(_partialResolverVisitor);
 //    }
