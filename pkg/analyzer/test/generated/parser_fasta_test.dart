@@ -19,11 +19,13 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:front_end/src/fasta/parser/async_modifier.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
-    show ScannerConfiguration, ScannerResult, scanString;
+    show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
+import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1640,17 +1642,22 @@ class FastaParserTestCase
           .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
     }
 
+    // Adjust the feature set based on language version comment.
+    void languageVersionChanged(
+        fasta.Scanner scanner, LanguageVersionToken languageVersion) {
+      // TODO(danrubel): Move this to a central location
+      // and base this on the feature set being downgraded.
+
+      featureSet = featureSet.restrictToVersion(
+          Version(languageVersion.major, languageVersion.minor, 0));
+      scanner.configuration = Scanner.buildConfig(featureSet);
+    }
+
     // Scan tokens
-    bool enableTripleShift =
-        featureSet != null && featureSet.isEnabled(Feature.triple_shift);
-    bool enableNonNullable =
-        featureSet != null && featureSet.isEnabled(Feature.non_nullable);
     ScannerResult result = scanString(content,
         includeComments: true,
-        configuration: ScannerConfiguration(
-            enableGtGtGt: enableTripleShift,
-            enableGtGtGtEq: enableTripleShift,
-            enableNonNullable: enableNonNullable));
+        configuration: Scanner.buildConfig(featureSet),
+        languageVersionChanged: languageVersionChanged);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -2151,24 +2158,19 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
  */
 @reflectiveTest
 class NNBDParserTest_Fasta extends FastaParserTestCase {
-  CompilationUnit parseNNBDCompilationUnit(String code,
-      {List<ExpectedError> errors}) {
-    createParser(code, featureSet: nonNullable);
-    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
-    assertErrors(errors: errors);
-    return unit;
-  }
-
   void test_assignment_complex() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
+    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }',
+        featureSet: nonNullable);
   }
 
   void test_assignment_simple() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
+    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }',
+        featureSet: nonNullable);
   }
 
   void test_binary_expression_statement() {
-    final unit = parseNNBDCompilationUnit('D? foo(X? x) { X ?? x2; }');
+    final unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }',
+        featureSet: nonNullable);
     FunctionDeclaration funct = unit.declarations[0];
     BlockFunctionBody body = funct.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -2181,24 +2183,28 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_conditional() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
+    parseCompilationUnit('D? foo(X? x) { X ? 7 : y; }',
+        featureSet: nonNullable);
   }
 
   void test_conditional_complex() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
+    parseCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }',
+        featureSet: nonNullable);
   }
 
   void test_conditional_error() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
+    parseCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
         errors: [
           expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
           expectedError(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
-        ]);
+        ],
+        featureSet: nonNullable);
   }
 
   void test_conditional_simple() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
+    parseCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }',
+        featureSet: nonNullable);
   }
 
   void test_enableNonNullable_false() {
@@ -2207,49 +2213,59 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_for() {
-    parseNNBDCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
+    parseCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }',
+        featureSet: nonNullable);
   }
 
   void test_for_conditional() {
-    parseNNBDCompilationUnit(
-        'main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }');
+    parseCompilationUnit('main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }',
+        featureSet: nonNullable);
   }
 
   void test_for_nullable() {
-    parseNNBDCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }');
+    parseCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }',
+        featureSet: nonNullable);
   }
 
   void test_foreach() {
-    parseNNBDCompilationUnit('main() { for(int x in [7]) { } }');
+    parseCompilationUnit('main() { for(int x in [7]) { } }',
+        featureSet: nonNullable);
   }
 
   void test_foreach_nullable() {
-    parseNNBDCompilationUnit('main() { for(int? x in [7, null]) { } }');
+    parseCompilationUnit('main() { for(int? x in [7, null]) { } }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable() {
-    parseNNBDCompilationUnit('main() { C? Function() x = 7; }');
+    parseCompilationUnit('main() { C? Function() x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_1() {
-    parseNNBDCompilationUnit('main() { C Function()? x = 7; }');
+    parseCompilationUnit('main() { C Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_2() {
-    parseNNBDCompilationUnit('main() { C? Function()? x = 7; }');
+    parseCompilationUnit('main() { C? Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_3() {
-    parseNNBDCompilationUnit('main() { C? Function()? Function()? x = 7; }');
+    parseCompilationUnit('main() { C? Function()? Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_prefixed() {
-    parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
+    parseCompilationUnit('main() { C.a? Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_is_nullable() {
-    CompilationUnit unit =
-        parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
+    CompilationUnit unit = parseCompilationUnit(
+        'main() { x is String? ? (x + y) : z; }',
+        featureSet: nonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -2264,8 +2280,9 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_is_nullable_parenthesis() {
-    CompilationUnit unit =
-        parseNNBDCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
+    CompilationUnit unit = parseCompilationUnit(
+        'main() { (x is String?) ? (x + y) : z; }',
+        featureSet: nonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -2278,6 +2295,15 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
     expect(elseExpression, isSimpleIdentifier);
+  }
+
+  void test_is_nullable_parenthesis_optOut() {
+    parseCompilationUnit('''
+// @dart = 2.2
+main() { (x is String?) ? (x + y) : z; }
+''',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 36, 1)],
+        featureSet: nonNullable);
   }
 
   void test_late_as_identifier() {
@@ -2296,7 +2322,7 @@ main() {
 ''', featureSet: preNonNullable);
   }
 
-  void test_late_as_identifier_opt_out() {
+  void test_late_as_identifier_optOut() {
     parseCompilationUnit('''
 // @dart = 2.2
 class C {
@@ -2314,7 +2340,8 @@ main() {
   }
 
   void test_nullCheck() {
-    var unit = parseNNBDCompilationUnit('f(int? y) { var x = y!; }');
+    var unit = parseCompilationUnit('f(int? y) { var x = y!; }',
+        featureSet: nonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     VariableDeclarationStatement statement = body.block.statements[0];
@@ -2339,19 +2366,22 @@ main() {
   }
 
   void test_nullCheckFunctionResult() {
-    parseNNBDCompilationUnit('f() { var x = g()! + 7; }');
+    parseCompilationUnit('f() { var x = g()! + 7; }', featureSet: nonNullable);
   }
 
   void test_nullCheckIndexedValue() {
-    parseNNBDCompilationUnit('f(int? y) { var x = y[0]! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = y[0]! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckIndexedValue2() {
-    parseNNBDCompilationUnit('f(int? y) { var x = super.y[0]! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = super.y[0]! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckInExpression() {
-    parseNNBDCompilationUnit('f(int? y) { var x = y! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = y! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckInExpression_disabled() {
@@ -2364,23 +2394,28 @@ main() {
   }
 
   void test_nullCheckMethodResult() {
-    parseNNBDCompilationUnit('f() { var x = g.m()! + 7; }');
+    parseCompilationUnit('f() { var x = g.m()! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckMethodResult2() {
-    parseNNBDCompilationUnit('f() { var x = g?.m()! + 7; }');
+    parseCompilationUnit('f() { var x = g?.m()! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckMethodResult3() {
-    parseNNBDCompilationUnit('f() { var x = super.m()! + 7; }');
+    parseCompilationUnit('f() { var x = super.m()! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnConstConstructor() {
-    parseNNBDCompilationUnit('f() { var x = const Foo()!; }');
+    parseCompilationUnit('f() { var x = const Foo()!; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnConstructor() {
-    parseNNBDCompilationUnit('f() { var x = new Foo()!; }');
+    parseCompilationUnit('f() { var x = new Foo()!; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteral_disabled() {
@@ -2391,46 +2426,47 @@ main() {
 
   void test_nullCheckOnLiteralDouble() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = 1.2!; }');
+    parseCompilationUnit('f() { var x = 1.2!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralInt() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = 0!; }');
+    parseCompilationUnit('f() { var x = 0!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralList() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = [1,2]!; }');
+    parseCompilationUnit('f() { var x = [1,2]!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralMap() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = {1:2}!; }');
+    parseCompilationUnit('f() { var x = {1:2}!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralSet() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = {1,2}!; }');
+    parseCompilationUnit('f() { var x = {1,2}!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralString() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = "seven"!; }');
+    parseCompilationUnit('f() { var x = "seven"!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnNull() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = null!; }');
+    parseCompilationUnit('f() { var x = null!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnSymbol() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = #seven!; }');
+    parseCompilationUnit('f() { var x = #seven!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnValue() {
-    parseNNBDCompilationUnit('f(Point p) { var x = p.y! + 7; }');
+    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnValue_disabled() {
@@ -2440,24 +2476,27 @@ main() {
   }
 
   void test_nullCheckParenthesizedExpression() {
-    parseNNBDCompilationUnit('f(int? y) { var x = (y)! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = (y)! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckPropertyAccess() {
-    parseNNBDCompilationUnit('f() { var x = g.p! + 7; }');
+    parseCompilationUnit('f() { var x = g.p! + 7; }', featureSet: nonNullable);
   }
 
   void test_nullCheckPropertyAccess2() {
-    parseNNBDCompilationUnit('f() { var x = g?.p! + 7; }');
+    parseCompilationUnit('f() { var x = g?.p! + 7; }', featureSet: nonNullable);
   }
 
   void test_nullCheckPropertyAccess3() {
-    parseNNBDCompilationUnit('f() { var x = super.p! + 7; }');
+    parseCompilationUnit('f() { var x = super.p! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_postfix_null_assertion_and_unary_prefix_operator_precedence() {
     // -x! is parsed as -(x!).
-    var unit = parseNNBDCompilationUnit('void main() { -x!; }');
+    var unit =
+        parseCompilationUnit('void main() { -x!; }', featureSet: nonNullable);
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -2469,7 +2508,8 @@ main() {
 
   void test_postfix_null_assertion_of_postfix_expression() {
     // x++! is parsed as (x++)!.
-    var unit = parseNNBDCompilationUnit('void main() { x++!; }');
+    var unit =
+        parseCompilationUnit('void main() { x++!; }', featureSet: nonNullable);
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -3238,101 +3278,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
-  void test_languageVersion_afterImport() {
-    var unit = parseCompilationUnit('''
-import 'foo.dart';
-// @dart = 2.3
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_beforeComment() {
-    var unit = parseCompilationUnit('''
-// some other comment
-// @dart = 2.3
-// yet another comment
-import 'foo.dart';
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeFunction() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.3
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeImport() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.3
-import 'foo.dart';
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeImport_afterScript() {
-    var unit = parseCompilationUnit('''
-#!/bin/dart
-// @dart = 2.3
-import 'foo.dart';
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeLibrary() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.3
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_incomplete_version() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_invalid_identifier() {
-    var unit = parseCompilationUnit('''
-// @dart = blat
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_invalid_version() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.x
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_unspecified() {
-    var unit = parseCompilationUnit('''
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
   void test_parseClassDeclaration_native_allowed() {
     allowNativeClause = true;
     test_parseClassDeclaration_native();

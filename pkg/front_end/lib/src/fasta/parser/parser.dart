@@ -10,14 +10,11 @@ import '../fasta_codes.dart' as fasta;
 
 import '../scanner.dart' show ErrorToken, Token;
 
-import '../scanner/characters.dart' show $0, $9, $SPACE;
-
 import '../../scanner/token.dart'
     show
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
-        CommentToken,
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
@@ -341,7 +338,6 @@ class Parser {
       directiveState?.checkScriptTag(this, token.next);
       token = parseScript(token);
     }
-    parseLanguageVersionOpt(token);
     while (!token.next.isEof) {
       final Token start = token.next;
       token = parseTopLevelDeclarationImpl(token, directiveState);
@@ -366,74 +362,6 @@ class Parser {
     // Clear fields that could lead to memory leak.
     cachedRewriter = null;
     return token;
-  }
-
-  /// Parse the optional language version comment as specified in
-  /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md#individual-library-language-version-override
-  void parseLanguageVersionOpt(Token token) {
-    // TODO(danrubel): Handle @dart version multi-line comments and dartdoc
-    // or update the spec to exclude them.
-    token = token.next.precedingComments;
-    while (token is CommentToken) {
-      if (parseLanguageVersionText(token)) {
-        break;
-      }
-      token = token.next;
-    }
-  }
-
-  bool parseLanguageVersionText(CommentToken token) {
-    String text = token.lexeme;
-    if (text == null || !text.startsWith('//')) {
-      return false;
-    }
-    int index = _skipSpaces(text, 2);
-    if (!text.startsWith('@dart', index)) {
-      return false;
-    }
-    index = _skipSpaces(text, index + 5);
-    if (!text.startsWith('=', index)) {
-      return false;
-    }
-    int start = index = _skipSpaces(text, index + 1);
-    index = _skipDigits(text, start);
-    if (start == index) {
-      return false;
-    }
-    int major = int.parse(text.substring(start, index));
-    if (!text.startsWith('.', index)) {
-      return false;
-    }
-    start = index + 1;
-    index = _skipDigits(text, start);
-    if (start == index) {
-      return false;
-    }
-    int minor = int.parse(text.substring(start, index));
-    index = _skipSpaces(text, index);
-    if (index != text.length) {
-      return false;
-    }
-    listener.handleLanguageVersion(token, major, minor);
-    return true;
-  }
-
-  int _skipSpaces(String text, int index) {
-    while (index < text.length && text.codeUnitAt(index) == $SPACE) {
-      ++index;
-    }
-    return index;
-  }
-
-  int _skipDigits(String text, int index) {
-    while (index < text.length) {
-      int code = text.codeUnitAt(index);
-      if (code < $0 || code > $9) {
-        break;
-      }
-      ++index;
-    }
-    return index;
   }
 
   /// This method exists for analyzer compatibility only

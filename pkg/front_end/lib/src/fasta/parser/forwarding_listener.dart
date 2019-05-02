@@ -1149,11 +1149,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleLanguageVersion(Token commentToken, int major, int minor) {
-    listener?.handleLanguageVersion(commentToken, major, minor);
-  }
-
-  @override
   void handleLiteralBool(Token token) {
     listener?.handleLiteralBool(token);
   }

@@ -151,4 +151,13 @@ class Scanner {
     }
     return firstToken;
   }
+
+  /// Return a ScannerConfiguration based upon the specified feature set.
+  static fasta.ScannerConfiguration buildConfig(FeatureSet featureSet) =>
+      featureSet == null
+          ? fasta.ScannerConfiguration()
+          : fasta.ScannerConfiguration(
+              enableGtGtGt: featureSet.isEnabled(Feature.triple_shift),
+              enableGtGtGtEq: featureSet.isEnabled(Feature.triple_shift),
+              enableNonNullable: featureSet.isEnabled(Feature.non_nullable));
 }

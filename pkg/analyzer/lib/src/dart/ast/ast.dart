@@ -28,7 +28,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:pub_semver/src/version.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -2045,8 +2044,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   CompilationUnitElement declaredElement;
 
-  Version languageVersion;
-
   /// The line information for this compilation unit.
   @override
   LineInfo lineInfo;
@@ -2061,7 +2058,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   LocalVariableInfo localVariableInfo = new LocalVariableInfo();
 
   /// Is `true` if this unit has been parsed as non-nullable.
-  bool isNonNullable = false;
+  final bool isNonNullable;
 
   @override
   final FeatureSet featureSet;
@@ -2077,7 +2074,9 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
       this.endToken,
-      this.featureSet) {
+      this.featureSet)
+      : this.isNonNullable =
+            featureSet?.isEnabled(Feature.non_nullable) ?? false {
     _scriptTag = _becomeParentOf(scriptTag);
     _directives = new NodeListImpl<Directive>(this, directives);
     _declarations = new NodeListImpl<CompilationUnitMember>(this, declarations);
