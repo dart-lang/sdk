@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -1753,7 +1752,7 @@ var v = (() {
   }
 
   test_constExpr_binary_bitShiftRightLogical() {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2',
         additionalFeatures: [
           Feature.constant_update_2018,
@@ -2836,8 +2835,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_if() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = [if (true) 1];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[if (true) 1]',
@@ -2854,8 +2851,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_if_else() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = [if (true) 1 else 2];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[if (true) 1 else 2]',
@@ -2874,8 +2869,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_spread() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText('const v = [...[]];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[...[]]', operators: [
       UnlinkedExprOperation.makeUntypedList,
@@ -2888,8 +2881,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_spread_null_aware() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText('const v = [...?[]];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[...?[]]', operators: [
       UnlinkedExprOperation.makeUntypedList,
@@ -3094,7 +3085,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = const <int>{11, 22, 33};');
     assertUnlinkedConst(
@@ -3115,7 +3105,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet_dynamic() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = const <dynamic>{11, 22, 33};');
     assertUnlinkedConst(
@@ -3133,7 +3122,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet_functionType() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('final v = <void Function(int)>{};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<void Function(int)>{}',
@@ -3162,7 +3150,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet_functionType_withTypeParameters() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable = serializeVariableText(
         'final v = <void Function<T>(Function<Q>(T, Q))>{};');
     assertUnlinkedConst(variable.initializer.bodyExpr,
@@ -3254,7 +3241,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeUntypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = const {11, 22, 33};');
     assertUnlinkedConst(
@@ -3271,8 +3257,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_if() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int, int>{if (true) 1 : 2};');
     assertUnlinkedConst(
@@ -3299,8 +3283,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_if_else() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'const v = <int, int>{if (true) 1 : 2 else 3 : 4};');
     assertUnlinkedConst(
@@ -3332,8 +3314,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_spread() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int, String>{...<int, String>{}};');
     assertUnlinkedConst(
@@ -3360,8 +3340,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_spread_null_aware() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int, String>{...?<int, String>{}};');
     assertUnlinkedConst(
@@ -4106,8 +4084,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_if() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{if (true) 1};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{if (true) 1}',
@@ -4128,8 +4104,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_if_else() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{if (true) 1 else 2};');
     assertUnlinkedConst(
@@ -4153,8 +4127,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_spread() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{...<int>{}};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{...<int>{}}',
@@ -4176,8 +4148,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_spread_null_aware() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{...?<int>{}};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{...?<int>{}}',
@@ -7855,8 +7825,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i = 0; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -7897,8 +7865,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_declaration_typed() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (int i in []) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (int i in []) i]',
@@ -7924,8 +7890,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_declaration_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (var i in []) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (var i in []) i]',
@@ -7948,8 +7912,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_identifier() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i in []) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (i in []) i]',
@@ -7975,8 +7937,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_identifier_await() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [await for (i in []) i];');
     assertUnlinkedConst(
@@ -8003,8 +7963,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_empty_condition() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i = 0;; i++) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (i = 0;; i++) i]',
@@ -8039,8 +7997,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_empty_initializer() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -8076,8 +8032,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_two_updaters() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'int i; int j; var v = [for (i = 0; i < 10; i++, j++) i];');
     assertUnlinkedConst(
@@ -8122,8 +8076,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_one_declaration_typed() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (int i = 0; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -8166,8 +8118,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_one_declaration_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (var i = 0; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -8207,8 +8157,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_two_declarations_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'var v = [for (var i = 0, j = 0; i < 10; i++) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr,
@@ -8254,8 +8202,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_uninitialized_declaration_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (var i; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -8294,8 +8240,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_zero_updaters() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i = 0; i < 10;) i];');
     assertUnlinkedConst(
@@ -8361,7 +8305,6 @@ final v = f<int, String>();
   }
 
   test_expr_makeTypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = <int>{11, 22, 33};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{11, 22, 33}',
@@ -8410,7 +8353,6 @@ final v = f<int, String>();
   }
 
   test_expr_makeUntypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable = serializeVariableText('var v = {11, 22, 33};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '{11, 22, 33}',
         operators: [
@@ -8424,8 +8366,6 @@ final v = f<int, String>();
   }
 
   test_expr_map_for() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'int i; var v = {1: 2, for (i = 0; i < 10; i++) i: i};');
     assertUnlinkedConst(
@@ -8475,8 +8415,6 @@ final v = f<int, String>();
   }
 
   test_expr_set_for() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'int i; var v = {1, for (i = 0; i < 10; i++) i};');
     assertUnlinkedConst(
@@ -8868,7 +8806,7 @@ class C {
   }
 
   test_field_late() {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     UnlinkedClass cls = serializeClassText('class C { late int i; }');
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);
@@ -8917,7 +8855,7 @@ class C {
   }
 
   test_field_static_final_late() {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     UnlinkedVariable variable =
         serializeClassText('class C { static late final int i = 0; }')
@@ -8941,7 +8879,7 @@ class C {
   }
 
   test_field_static_late() {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     UnlinkedVariable variable =
         serializeClassText('class C { static late int i; }').fields[0];
@@ -11786,7 +11724,7 @@ var v;''';
   }
 
   test_variable_late() {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     UnlinkedVariable variable =
         serializeVariableText('late int i;', variableName: 'i');
@@ -11946,10 +11884,10 @@ final v = $expr;
     var reader = new CharSequenceReader(sourceText);
     var stringSource = new StringSource(sourceText, null);
     var scanner = new Scanner(stringSource, reader, errorListener)
-      ..configureFeatures(experimentStatus);
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
     var parser =
-        new Parser(stringSource, errorListener, featureSet: experimentStatus);
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var compilationUnit = parser.parseCompilationUnit(startToken);
     var f = compilationUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;

@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -1002,7 +1001,7 @@ class C {
   }
 
   test_class_field_const_late() async {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library =
         await checkLibrary('class C { static late const int i = 0; }');
@@ -1023,7 +1022,7 @@ class C {
   }
 
   test_class_field_implicit_type_late() async {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library = await checkLibrary('class C { late var x; }');
     checkElementText(library, r'''
@@ -1043,7 +1042,7 @@ class C {
   }
 
   test_class_field_static_late() async {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''
@@ -1064,7 +1063,7 @@ class C {
   }
 
   test_class_fields_late() async {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library = await checkLibrary('class C { int i; late int j; }');
     checkElementText(library, r'''
@@ -2984,7 +2983,6 @@ const () → int v =
   }
 
   test_const_list_if() async {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>[if (true) 1];
 ''');
@@ -2998,7 +2996,6 @@ const Object x = const <
   }
 
   test_const_list_if_else() async {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>[if (true) 1 else 2];
 ''');
@@ -3034,7 +3031,6 @@ const Object x = const <
   }
 
   test_const_list_spread() async {
-    experimentStatus = ExperimentStatus(spread_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>[...<int>[1]];
 ''');
@@ -3057,7 +3053,6 @@ const Object x = const <
   }
 
   test_const_list_spread_null_aware() async {
-    experimentStatus = ExperimentStatus(spread_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>[...?<int>[1]];
 ''');
@@ -3080,7 +3075,6 @@ const Object x = const <
   }
 
   test_const_map_if() async {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int, int>{if (true) 1: 2};
 ''');
@@ -3095,7 +3089,6 @@ const Object x = const <
   }
 
   test_const_map_if_else() async {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int, int>{if (true) 1: 2 else 3: 4];
 ''');
@@ -3133,7 +3126,6 @@ const Object x = const <
   }
 
   test_const_map_spread() async {
-    experimentStatus = ExperimentStatus(spread_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int, int>{...<int, int>{1: 2}};
 ''');
@@ -3160,7 +3152,6 @@ const Object x = const <
   }
 
   test_const_map_spread_null_aware() async {
-    experimentStatus = ExperimentStatus(spread_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int, int>{...?<int, int>{1: 2}};
 ''');
@@ -3627,7 +3618,6 @@ const dynamic V =
   }
 
   test_const_set_if() async {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>{if (true) 1};
 ''');
@@ -3641,7 +3631,6 @@ const Object x = const <
   }
 
   test_const_set_if_else() async {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>{if (true) 1 else 2];
 ''');
@@ -3677,7 +3666,6 @@ const Object x = const <
   }
 
   test_const_set_spread() async {
-    experimentStatus = ExperimentStatus(spread_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>{...<int>{1}};
 ''');
@@ -3700,7 +3688,6 @@ const Object x = const <
   }
 
   test_const_set_spread_null_aware() async {
-    experimentStatus = ExperimentStatus(spread_collections: true);
     var library = await checkLibrary('''
 const Object x = const <int>{...?<int>{1}};
 ''');
@@ -9936,7 +9923,7 @@ const int i = 0;
   }
 
   test_variable_const_late() async {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library = await checkLibrary('late const int i = 0;');
     checkElementText(library, r'''
@@ -9967,7 +9954,7 @@ final int x;
   }
 
   test_variable_final_late() async {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library = await checkLibrary('late final int x = 0;');
     checkElementText(library, r'''
@@ -10079,7 +10066,7 @@ int v;
   }
 
   test_variable_late() async {
-    experimentStatus = FeatureSet.forTesting(
+    featureSet = FeatureSet.forTesting(
         sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
     var library = await checkLibrary('late int x = 0;');
     checkElementText(library, r'''
