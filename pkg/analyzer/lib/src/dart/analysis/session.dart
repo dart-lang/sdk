@@ -17,38 +17,24 @@ import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A concrete implementation of an analysis session.
- */
+/// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
-  /**
-   * The analysis driver performing analysis for this session.
-   */
+  /// The analysis driver performing analysis for this session.
   final driver.AnalysisDriver _driver;
 
-  /**
-   * The type provider being used by the analysis driver.
-   */
+  /// The type provider being used by the analysis driver.
   TypeProvider _typeProvider;
 
-  /**
-   * The type system being used by the analysis driver.
-   */
+  /// The type system being used by the analysis driver.
   TypeSystem _typeSystem;
 
-  /**
-   * The URI converter used to convert between URI's and file paths.
-   */
+  /// The URI converter used to convert between URI's and file paths.
   UriConverter _uriConverter;
 
-  /**
-   * The cache of libraries for URIs.
-   */
+  /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
 
-  /**
-   * Initialize a newly created analysis session.
-   */
+  /// Initialize a newly created analysis session.
   AnalysisSessionImpl(this._driver);
 
   @override
@@ -190,10 +176,8 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getUnitElementSignature(path);
   }
 
-  /**
-   * Check to see that results from this session will be consistent, and throw
-   * an [InconsistentAnalysisException] if they might not be.
-   */
+  /// Check to see that results from this session will be consistent, and throw
+  /// an [InconsistentAnalysisException] if they might not be.
   void _checkConsistency() {
     if (_driver.currentSession != this) {
       throw new InconsistentAnalysisException();
