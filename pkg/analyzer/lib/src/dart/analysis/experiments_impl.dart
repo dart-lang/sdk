@@ -46,6 +46,17 @@ List<bool> enableFlagsForTesting(
   return flags;
 }
 
+/// Pretty-prints the given set of enable flags as a set of feature names.
+String experimentStatusToString(List<bool> enableFlags) {
+  var featuresInSet = <String>[];
+  for (var feature in _knownFeatures.values) {
+    if (enableFlags[feature.index]) {
+      featuresInSet.add(feature.enableString);
+    }
+  }
+  return 'FeatureSet{${featuresInSet.join(', ')}}';
+}
+
 /// Converts the flags in [status] to a list of strings suitable for
 /// passing to [_decodeFlags].
 List<String> experimentStatusToStringList(ExperimentStatus status) {
@@ -264,7 +275,8 @@ class ExperimentalFeature implements Feature {
         assert(index != null),
         assert(isEnabledByDefault
             ? firstSupportedVersion != null
-            : firstSupportedVersion == null);
+            : firstSupportedVersion == null),
+        assert(enableString != null);
 
   /// The string to disable the feature.
   String get disableString => 'no-$enableString';

@@ -231,6 +231,9 @@ class ExperimentStatus implements FeatureSet {
   FeatureSet restrictToVersion(Version version) =>
       ExperimentStatus._(restrictEnableFlagsToVersion(_enableFlags, version));
 
+  @override
+  String toString() => experimentStatusToString(_enableFlags);
+
   /// Returns a list of strings suitable for passing to
   /// [ExperimentStatus.fromStrings].
   List<String> toStringList() => experimentStatusToStringList(this);
