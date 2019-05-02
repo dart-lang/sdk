@@ -14,13 +14,14 @@ Build the dart_libfuzzer binary as follows (first either export
 DART_USE_ASAN=1 or run ./tools/gn.py --mode=debug --asan):
 
     ./tools/build.py \
-    -m [all|debug|release|product]
-    -a [x64|arm64|simarm64] \
-    dart_libfuzzer
+      -m [all|debug|release|product] \
+      -a [x64|arm64|simarm64] \
+      dart_libfuzzer
 
-Then, to start a blank fuzzing session, run:
+Then, to start a blank fuzzing session on a particular target
+function (as defined in dart_libfuzzer.cc), run:
 
-    dart_libfuzzer
+    dart_libfuzzer [--t=<target-function>]
 
 To start a fuzzing session with an initial corpus inside
 the directory CORPUS, run:

@@ -177,12 +177,17 @@ intptr_t Utf8::ReportInvalidByte(const uint8_t* utf8_array,
       j = j + 1;
     }
   }
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+  // Remain silent while libFuzzer is active, since
+  // the output only slows down the in-process fuzzing.
+#else
   Syslog::PrintErr("Invalid UTF8 sequence encountered, ");
   for (intptr_t idx = 0; idx < 10 && (i + idx) < array_len; idx++) {
     Syslog::PrintErr("(Error Code: %X + idx: %" Pd " )", utf8_array[idx + i],
                      (idx + i));
   }
   Syslog::PrintErr("\n");
+#endif
   return i;
 }
 
