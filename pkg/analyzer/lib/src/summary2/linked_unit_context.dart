@@ -80,6 +80,9 @@ class LinkedUnitContext {
     return false;
   }
 
+  /// Return `true` if this unit is a part of a bundle that is being linked.
+  bool get isLinking => bundleContext.isLinking;
+
   CompilationUnit get unit => _unit;
 
   CompilationUnit get unit_withDeclarations {

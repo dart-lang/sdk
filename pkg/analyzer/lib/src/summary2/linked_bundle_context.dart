@@ -53,6 +53,9 @@ class LinkedBundleContext {
   LinkedBundleContext.forAst(this.elementFactory, this._references)
       : _bundle = null;
 
+  /// Return `true` if this bundle is being linked.
+  bool get isLinking => _bundle == null;
+
   LinkedLibraryContext addLinkingLibrary(
     String uriStr,
     LinkedNodeLibraryBuilder data,

@@ -72,27 +72,9 @@ class NamedTypeBuilder extends TypeBuilder {
       // Break a possible recursion.
       _type = _dynamicType;
 
+      var rawType = _getRawFunctionType(element);
+
       var parameters = element.typeParameters;
-
-      FunctionType rawType;
-      var typedefNode = (element as ElementImpl).linkedNode;
-      if (typedefNode is FunctionTypeAlias) {
-        rawType = _buildFunctionType(
-          null,
-          typedefNode.returnType,
-          typedefNode.parameters,
-        );
-      } else if (typedefNode is GenericTypeAlias) {
-        var functionNode = typedefNode.functionType;
-        rawType = _buildFunctionType(
-          functionNode.typeParameters,
-          functionNode.returnType,
-          functionNode.parameters,
-        );
-      } else {
-        throw StateError('(${element.runtimeType}) $element');
-      }
-
       if (parameters.isEmpty) {
         _type = rawType;
       } else {
@@ -209,6 +191,33 @@ class NamedTypeBuilder extends TypeBuilder {
       return type.build();
     } else {
       return type;
+    }
+  }
+
+  FunctionType _getRawFunctionType(GenericTypeAliasElementImpl element) {
+    // If the element is not being linked, there is no reason (or a way,
+    // because the linked node might be read only partially) to go through
+    // its node - all its types have already been built.
+    if (!element.linkedContext.isLinking) {
+      return element.function.type;
+    }
+
+    var typedefNode = element.linkedNode;
+    if (typedefNode is FunctionTypeAlias) {
+      return _buildFunctionType(
+        null,
+        typedefNode.returnType,
+        typedefNode.parameters,
+      );
+    } else if (typedefNode is GenericTypeAlias) {
+      var functionNode = typedefNode.functionType;
+      return _buildFunctionType(
+        functionNode.typeParameters,
+        functionNode.returnType,
+        functionNode.parameters,
+      );
+    } else {
+      throw StateError('(${element.runtimeType}) $element');
     }
   }
 
