@@ -56,7 +56,7 @@ part '${toUriStr('/absolute/uri.dart')}';
 ''');
   }
 
-  test_file_imported_with_package_uri() async {
+  test_file_imported_with_package_uri_down() async {
     var file = newFile('/home/test/lib/old_name.dart', content: '');
     addTestSource(r'''
 import 'package:test/old_name.dart';
@@ -75,7 +75,45 @@ import 'package:test/222/new_name.dart';
 ''');
   }
 
-  test_file_importedLibrary_down() async {
+  test_file_imported_with_package_uri_up() async {
+    var file = newFile('/home/test/lib/222/old_name.dart', content: '');
+    addTestSource(r'''
+import 'package:test/222/old_name.dart';
+''');
+
+    // Since the file being refactored isn't the test source, we set the
+    // testAnalysisResult manually here, the path is referenced through the
+    // referenced File object to run on Windows:
+    testAnalysisResult = await session.getResolvedUnit(file.path);
+
+    _createRefactoring('/home/test/lib/new_name.dart', oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile, '''
+import 'package:test/new_name.dart';
+''');
+  }
+
+  test_file_imported_with_package_uri_sideways() async {
+    var file = newFile('/home/test/lib/111/old_name.dart', content: '');
+    addTestSource(r'''
+import 'package:test/111/old_name.dart';
+''');
+
+    // Since the file being refactored isn't the test source, we set the
+    // testAnalysisResult manually here, the path is referenced through the
+    // referenced File object to run on Windows:
+    testAnalysisResult = await session.getResolvedUnit(file.path);
+
+    _createRefactoring('/home/test/lib/222/new_name.dart', oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile, '''
+import 'package:test/222/new_name.dart';
+''');
+  }
+
+  test_file_relative_imported_down() async {
     String pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/test.dart');
     addSource(pathA, '''
@@ -93,7 +131,7 @@ import '22/new_name.dart';
     assertNoFileChange(testFile);
   }
 
-  test_file_importedLibrary_sideways() async {
+  test_file_relative_imported_sideways() async {
     String pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/sub/folder/test.dart');
     addSource(pathA, '''
@@ -109,7 +147,7 @@ import '../new/folder/name/new_name.dart';
     assertNoFileChange(testFile);
   }
 
-  test_file_importedLibrary_up() async {
+  test_file_relative_imported_up() async {
     String pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/22/test.dart');
     addSource(pathA, '''
