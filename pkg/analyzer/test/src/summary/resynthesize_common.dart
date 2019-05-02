@@ -204,6 +204,9 @@ mixin GetElementTestCases implements ResynthesizeTestHelpers {
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ResynthesizeTestHelpers].
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
+  FeatureSet get enableNnbd =>
+      FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+
   test_class_abstract() async {
     var library = await checkLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -1001,8 +1004,7 @@ class C {
   }
 
   test_class_field_const_late() async {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     var library =
         await checkLibrary('class C { static late const int i = 0; }');
     checkElementText(library, r'''
@@ -1022,8 +1024,7 @@ class C {
   }
 
   test_class_field_implicit_type_late() async {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     var library = await checkLibrary('class C { late var x; }');
     checkElementText(library, r'''
 class C {
@@ -1042,8 +1043,7 @@ class C {
   }
 
   test_class_field_static_late() async {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''
 class C {
@@ -1063,8 +1063,7 @@ class C {
   }
 
   test_class_fields_late() async {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     var library = await checkLibrary('class C { int i; late int j; }');
     checkElementText(library, r'''
 class C {
@@ -9934,8 +9933,7 @@ const int i = 0;
   }
 
   test_variable_const_late() async {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     var library = await checkLibrary('late const int i = 0;');
     checkElementText(library, r'''
 late const int i = 0;
@@ -9965,8 +9963,7 @@ final int x;
   }
 
   test_variable_final_late() async {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     var library = await checkLibrary('late final int x = 0;');
     checkElementText(library, r'''
 late final int x;
@@ -10077,8 +10074,7 @@ int v;
   }
 
   test_variable_late() async {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     var library = await checkLibrary('late int x = 0;');
     checkElementText(library, r'''
 late int x;
