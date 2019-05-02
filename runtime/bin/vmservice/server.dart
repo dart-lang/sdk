@@ -359,7 +359,8 @@ class Server {
     }
     // HTTP based service request.
     final client = new HttpRequestClient(request, _service);
-    final message = new Message.fromUri(client, Uri.parse(path));
+    final message = new Message.fromUri(
+        client, Uri(path: path, queryParameters: request.uri.queryParameters));
     client.onRequest(message); // exception free, no need to try catch
   }
 
