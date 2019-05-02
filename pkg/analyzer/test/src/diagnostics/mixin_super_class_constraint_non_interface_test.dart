@@ -11,16 +11,17 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(ImplementsNonClassTest);
-    defineReflectiveTests(ImplementsNonClassWithNnbdTest);
+    defineReflectiveTests(MixinSuperClassConstraintNonInterfaceTest);
+    defineReflectiveTests(MixinSuperClassConstraintNonInterfaceWithNnbdTest);
   });
 }
 
 @reflectiveTest
-class ImplementsNonClassTest extends DriverResolutionTest {}
+class MixinSuperClassConstraintNonInterfaceTest extends DriverResolutionTest {}
 
 @reflectiveTest
-class ImplementsNonClassWithNnbdTest extends ImplementsNonClassTest {
+class MixinSuperClassConstraintNonInterfaceWithNnbdTest
+    extends MixinSuperClassConstraintNonInterfaceTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
@@ -28,9 +29,10 @@ class ImplementsNonClassWithNnbdTest extends ImplementsNonClassTest {
 
   test_Never() async {
     await assertErrorsInCode('''
-class A implements Never {}
+mixin M on Never {}
 ''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5),
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 11,
+          5),
     ]);
   }
 }

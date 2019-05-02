@@ -26,7 +26,7 @@ class ExtendsNonClassWithNnbdTest extends ExtendsNonClassTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_class_Never() async {
+  test_Never() async {
     await assertErrorsInCode('''
 class A extends Never {}
 ''', [

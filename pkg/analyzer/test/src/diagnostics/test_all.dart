@@ -71,6 +71,8 @@ import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
+import 'mixin_super_class_constraint_non_interface_test.dart'
+    as mixin_super_class_constraint_non_interface;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'non_bool_condition_test.dart' as non_bool_condition;
@@ -211,6 +213,7 @@ main() {
     missing_return.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
+    mixin_super_class_constraint_non_interface.main();
     must_be_immutable.main();
     must_call_super.main();
     non_bool_condition.main();
