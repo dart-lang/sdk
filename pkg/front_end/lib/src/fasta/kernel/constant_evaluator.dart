@@ -2092,7 +2092,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (shouldBeUnevaluated) {
-      return unevaluated(node, new AsExpression(extract(constant), node.type));
+      return unevaluated(node,
+          new AsExpression(extract(constant), env.subsituteType(node.type)));
     }
     return ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
   }
@@ -2135,7 +2136,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final Constant constant = _evaluateSubexpression(node.expression);
     if (shouldBeUnevaluated) {
       return unevaluated(
-          node, new Instantiation(extract(constant), node.typeArguments));
+          node,
+          new Instantiation(extract(constant),
+              node.typeArguments.map((t) => env.subsituteType(t)).toList()));
     }
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==
