@@ -963,7 +963,7 @@ class AstBinaryReader {
   PartOfDirective _read_partOfDirective(LinkedNode data) {
     var node = astFactory.partOfDirective(
       _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
+      _readNodeListLazy(data.annotatedNode_metadata),
       _getToken(data.directive_keyword),
       _getToken(data.partOfDirective_ofKeyword),
       _readNode(data.partOfDirective_uri),
