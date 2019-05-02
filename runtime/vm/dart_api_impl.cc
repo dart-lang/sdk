@@ -1305,12 +1305,18 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
 
   const intptr_t kBufferLength = 512;
   char method[kBufferLength];
+
+  // clang-format off
   intptr_t method_length = snprintf(method, kBufferLength, "{"
       "\"jsonrpc\": \"2.0\","
       "\"method\": \"_writeCpuProfileTimeline\","
       "\"id\": \"\","
-      "\"params\": {\"isolateId\": \"isolates/%" Pd64 "\"}"
-    "}", main_port);
+      "\"params\": {"
+      "  \"isolateId\": \"isolates/%" Pd64 "\","
+      "  \"tags\": \"None\""
+      "}"
+  "}", main_port);
+  // clang-format on
   ASSERT(method_length <= kBufferLength);
 
   char* response = NULL;

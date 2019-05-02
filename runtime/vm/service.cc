@@ -263,6 +263,14 @@ static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
   return false;
 }
 
+static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
+  if (Profiler::sample_buffer() == NULL) {
+    js->PrintError(kFeatureDisabled, "Profiler is disabled.");
+    return true;
+  }
+  return false;
+}
+
 static bool GetIntegerId(const char* s, intptr_t* id, int base = 10) {
   if ((s == NULL) || (*s == '\0')) {
     // Empty string.
@@ -3815,13 +3823,12 @@ static const MethodParameter* get_cpu_profile_params[] = {
     NULL,
 };
 
-static const MethodParameter* write_cpu_profile_timeline_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER,
-    NULL,
-};
-
 // TODO(johnmccutchan): Rename this to GetCpuSamples.
 static bool GetCpuProfile(Thread* thread, JSONStream* js) {
+  if (CheckProfilerDisabled(thread, js)) {
+    return true;
+  }
+
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   intptr_t extra_tags = 0;
@@ -3846,6 +3853,10 @@ static const MethodParameter* get_cpu_profile_timeline_params[] = {
 };
 
 static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
+  if (CheckProfilerDisabled(thread, js)) {
+    return true;
+  }
+
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   int64_t time_origin_micros =
@@ -3858,7 +3869,19 @@ static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* write_cpu_profile_timeline_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new EnumParameter("tags", true, tags_enum_names),
+    new Int64Parameter("timeOriginMicros", false),
+    new Int64Parameter("timeExtentMicros", false),
+    NULL,
+};
+
 static bool WriteCpuProfileTimeline(Thread* thread, JSONStream* js) {
+  if (CheckProfilerDisabled(thread, js)) {
+    return true;
+  }
+
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   int64_t time_origin_micros =
@@ -3868,6 +3891,7 @@ static bool WriteCpuProfileTimeline(Thread* thread, JSONStream* js) {
   bool code_trie = BoolParameter::Parse(js->LookupParam("code"), true);
   ProfilerService::AddToTimeline(tag_order, time_origin_micros,
                                  time_extent_micros, code_trie);
+  PrintSuccess(js);  // The "result" is a side-effect in the timeline.
   return true;
 }
 
