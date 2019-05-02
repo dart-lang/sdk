@@ -19,9 +19,9 @@ const String breakpointFile =
 List<String> stops = [];
 
 List<String> expected = [
-  "$shortFile:${LINE + 0}:29", // on 'i == 0'
-  "$shortFile:${LINE + 0}:29", // iterate twice
-  "$shortFile:${LINE + 1}:11" //on 'b.length'
+  "$shortFile:${LINE + 0}:23", // on 'i == 0'
+  "$shortFile:${LINE + 0}:23", // iterate twice
+  "$shortFile:${LINE + 1}:3" //on 'b.length'
 ];
 
 var tests = <IsolateTest>[

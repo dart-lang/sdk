@@ -637,7 +637,7 @@ class Debugger {
                                      TokenPosition requested_token_pos,
                                      TokenPosition last_token_pos,
                                      intptr_t requested_column,
-                                     intptr_t exact_token_pos);
+                                     TokenPosition exact_token_pos);
   void DeoptimizeWorld();
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     TokenPosition token_pos,
