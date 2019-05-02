@@ -26,7 +26,67 @@ class FinalNotInitializedWithNnbdTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_localVariable_withoutInitializer() {
+  test_field_noConstructor_initializer() {
+    assertNoErrorsInCode('''
+class C {
+  late final f = 1;
+}
+''');
+  }
+
+  test_field_noConstructor_noInitializer() {
+    assertNoErrorsInCode('''
+class C {
+  late final f;
+}
+''');
+  }
+
+  test_field_unnamedConstructor_constructorInitializer() {
+    assertNoErrorsInCode('''
+class C {
+  late final f;
+  C() : f = 2;
+}
+''');
+  }
+
+  test_field_unnamedConstructor_fieldFormalParameter() {
+    assertNoErrorsInCode('''
+class C {
+  late final f;
+  C(this.f);
+}
+''');
+  }
+
+  test_field_unnamedConstructor_initializer() {
+    assertNoErrorsInCode('''
+class C {
+  late final f = 1;
+  C();
+}
+''');
+  }
+
+  test_field_unnamedConstructor_noInitializer() {
+    assertNoErrorsInCode('''
+class C {
+  late final f;
+  C();
+}
+''');
+  }
+
+  test_localVariable_initializer() {
+    assertNoErrorsInCode('''
+f() {
+  late final x = 1;
+}
+''');
+  }
+
+  test_localVariable_noInitializer() {
     assertNoErrorsInCode('''
 f() {
   late final x;

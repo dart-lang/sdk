@@ -1951,7 +1951,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     List<FieldElement> notInitFinalFields = <FieldElement>[];
     fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
       if (state == INIT_STATE.NOT_INIT) {
-        if (fieldElement.isFinal) {
+        if (fieldElement.isFinal && !fieldElement.isLate) {
           notInitFinalFields.add(fieldElement);
         }
       }
