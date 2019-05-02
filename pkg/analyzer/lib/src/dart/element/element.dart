@@ -454,6 +454,9 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// methods might be different.
   int version = 0;
 
+  /// This callback is set during mixins inference to handle reentrant calls.
+  List<InterfaceType> Function(ClassElementImpl) linkedMixinInferenceCallback;
+
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(String name, int offset)
@@ -950,6 +953,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get mixins {
+    if (linkedMixinInferenceCallback != null) {
+      _mixins = linkedMixinInferenceCallback(this);
+    }
+
     if (_mixins != null) {
       return _mixins;
     }

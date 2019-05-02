@@ -42,6 +42,8 @@ class TypesBuilder {
       builder.build();
     }
 
+    _MixinsInference(typeSystem).perform(nodes.declarations);
+
     for (var declaration in nodes.declarations) {
       _declaration(declaration);
     }
@@ -79,9 +81,7 @@ class TypesBuilder {
     );
   }
 
-  void _classDeclaration(ClassDeclaration node) {
-    _MixinInference(this).perform(node);
-  }
+  void _classDeclaration(ClassDeclaration node) {}
 
   void _declaration(AstNode node) {
     if (node is ClassDeclaration) {
@@ -172,19 +172,16 @@ class TypesBuilder {
 
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
-  final TypesBuilder builder;
+  final Dart2TypeSystem typeSystem;
 
   InterfaceType classType;
   List<InterfaceType> mixinTypes = [];
   List<InterfaceType> supertypesForMixinInference;
 
-  _MixinInference(this.builder);
+  _MixinInference(this.typeSystem, this.classType);
 
-  void perform(ClassDeclaration node) {
-    var withClause = node.withClause;
+  void perform(WithClause withClause) {
     if (withClause == null) return;
-
-    classType = node.declaredElement.type;
 
     for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode);
@@ -247,8 +244,8 @@ class _MixinInference {
       return mixinType;
     }
 
-    var mixinSupertypeConstraints = builder.typeSystem
-        .gatherMixinSupertypeConstraintsForInference(mixinElement);
+    var mixinSupertypeConstraints =
+        typeSystem.gatherMixinSupertypeConstraintsForInference(mixinElement);
     if (mixinSupertypeConstraints.isEmpty) {
       return mixinType;
     }
@@ -279,7 +276,7 @@ class _MixinInference {
     // Try to pattern match matchingInterfaceTypes against
     // mixinSupertypeConstraints to find the correct set of type
     // parameters to apply to the mixin.
-    var inferredMixin = builder.typeSystem.matchSupertypeConstraints(
+    var inferredMixin = typeSystem.matchSupertypeConstraints(
       mixinElement,
       mixinSupertypeConstraints,
       matchingInterfaceTypes,
@@ -296,6 +293,60 @@ class _MixinInference {
     if (type is InterfaceType && !type.element.isEnum) {
       return type;
     }
-    return builder.typeSystem.typeProvider.objectType;
+    return typeSystem.typeProvider.objectType;
+  }
+}
+
+/// Performs mixin inference for all declarations.
+class _MixinsInference {
+  final Dart2TypeSystem typeSystem;
+
+  _MixinsInference(this.typeSystem);
+
+  void perform(List<AstNode> declarations) {
+    for (var node in declarations) {
+      if (node is ClassDeclaration || node is ClassTypeAlias) {
+        ClassElementImpl element = (node as Declaration).declaredElement;
+        element.linkedMixinInferenceCallback = _callbackWhenRecursion;
+      }
+    }
+
+    for (var declaration in declarations) {
+      _inferDeclaration(declaration);
+    }
+  }
+
+  /// This method is invoked when mixins are asked from the [element], and
+  /// we are inferring the [element] now, i.e. there is a loop.
+  ///
+  /// This is an error. So, we return the empty list, and break the loop.
+  List<InterfaceType> _callbackWhenLoop(ClassElementImpl element) {
+    element.linkedMixinInferenceCallback = null;
+    return <InterfaceType>[];
+  }
+
+  /// This method is invoked when mixins are asked from the [element], and
+  /// we are not inferring the [element] now, i.e. there is no loop.
+  List<InterfaceType> _callbackWhenRecursion(ClassElementImpl element) {
+    _inferDeclaration(element.linkedNode);
+    // The inference was successful, let the element return actual mixins.
+    return null;
+  }
+
+  void _infer(ClassElementImpl element, WithClause withClause) {
+    element.linkedMixinInferenceCallback = _callbackWhenLoop;
+    try {
+      _MixinInference(typeSystem, element.type).perform(withClause);
+    } finally {
+      element.linkedMixinInferenceCallback = null;
+    }
+  }
+
+  void _inferDeclaration(AstNode node) {
+    if (node is ClassDeclaration) {
+      _infer(node.declaredElement, node.withClause);
+    } else if (node is ClassTypeAlias) {
+      _infer(node.declaredElement, node.withClause);
+    }
   }
 }
