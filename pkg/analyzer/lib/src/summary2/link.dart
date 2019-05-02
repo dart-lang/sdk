@@ -108,12 +108,6 @@ class Linker {
     _createLinkingBundle();
   }
 
-  void _addExporters() {
-    for (var library in builders.values) {
-      library.addExporters();
-    }
-  }
-
   void _addSyntheticConstructors() {
     for (var library in builders.values) {
       library.addSyntheticConstructors();
@@ -122,7 +116,6 @@ class Linker {
 
   void _buildOutlines() {
     _resolveUriDirectives();
-    _addExporters();
     _computeLibraryScopes();
     _addSyntheticConstructors();
     _createTypeSystem();
@@ -144,21 +137,28 @@ class Linker {
   }
 
   void _computeLibraryScopes() {
+    for (var library in builders.values) {
+      library.addLocalDeclarations();
+    }
+
+    for (var library in builders.values) {
+      library.buildInitialExportScope();
+    }
+
     var exporters = new Set<SourceLibraryBuilder>();
     var exportees = new Set<SourceLibraryBuilder>();
 
     for (var library in builders.values) {
-      library.addLocalDeclarations();
+      library.addExporters();
+    }
+
+    for (var library in builders.values) {
       if (library.exporters.isNotEmpty) {
         exportees.add(library);
         for (var exporter in library.exporters) {
           exporters.add(exporter.exporter);
         }
       }
-    }
-
-    for (var library in builders.values) {
-      library.buildInitialExportScope();
     }
 
     var both = new Set<SourceLibraryBuilder>();
