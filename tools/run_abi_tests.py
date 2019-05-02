@@ -53,7 +53,6 @@ def buildTest(version):
       '--write-logs',
       '--output_directory=%s' % logDir,
       '--vm-options=%s' % ' '.join(vm_options),
-      'language_2',
       'lib_2',
   ]
 
@@ -75,9 +74,11 @@ def buildAllTests():
 # Run all tests, one by one, and wait for them all to complete.
 def runAllTests(tests):
   for test in tests:
-    proc = subprocess.Popen(test.cmd,
-                            stdout = subprocess.PIPE,
-                            stderr = subprocess.PIPE)
+    print('\n\n\n=== Running tests %s ===' % (
+        ('for ABI version %d' % test.version) if test.version is not None else
+        ('without an ABI version')))
+    print(subprocess.list2cmdline(test.cmd) + '\n\n')
+    proc = subprocess.Popen(test.cmd)
     while proc.returncode is None:
       time.sleep(1)
       proc.communicate()

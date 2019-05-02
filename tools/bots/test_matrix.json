@@ -1918,6 +1918,38 @@
           "fileset": "fuzzer"
         }
       ]
+    },
+    {
+      "builders": [
+        "vm-dartkb-linux-release-x64-abi"
+      ],
+      "meta": {
+        "description": "This configuration runs tests for each supported ABI version."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "--bytecode"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "run tests",
+          "script": "tools/run_abi_tests.py"
+        }
+      ]
     }
   ]
 }
