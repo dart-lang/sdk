@@ -1155,6 +1155,8 @@ enum UnlinkedTokenType : byte {
 
   BANG_EQ,
 
+  BANG_EQ_EQ,
+
   BAR,
 
   BAR_BAR,
@@ -1208,6 +1210,8 @@ enum UnlinkedTokenType : byte {
   EQ,
 
   EQ_EQ,
+
+  EQ_EQ_EQ,
 
   EXPORT,
 

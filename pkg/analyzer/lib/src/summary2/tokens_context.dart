@@ -131,6 +131,8 @@ class TokensContext {
         return TokenType.BANG;
       case UnlinkedTokenType.BANG_EQ:
         return TokenType.BANG_EQ;
+      case UnlinkedTokenType.BANG_EQ_EQ:
+        return TokenType.BANG_EQ_EQ;
       case UnlinkedTokenType.BAR:
         return TokenType.BAR;
       case UnlinkedTokenType.BAR_BAR:
@@ -185,6 +187,8 @@ class TokensContext {
         return TokenType.EQ;
       case UnlinkedTokenType.EQ_EQ:
         return TokenType.EQ_EQ;
+      case UnlinkedTokenType.EQ_EQ_EQ:
+        return TokenType.EQ_EQ_EQ;
       case UnlinkedTokenType.EXPORT:
         return Keyword.EXPORT;
       case UnlinkedTokenType.EXTENDS:

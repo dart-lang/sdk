@@ -190,6 +190,8 @@ class TokensWriter {
       return UnlinkedTokenType.BANG;
     } else if (type == TokenType.BANG_EQ) {
       return UnlinkedTokenType.BANG_EQ;
+    } else if (type == TokenType.BANG_EQ_EQ) {
+      return UnlinkedTokenType.BANG_EQ_EQ;
     } else if (type == TokenType.BAR) {
       return UnlinkedTokenType.BAR;
     } else if (type == TokenType.BAR_BAR) {
@@ -244,6 +246,8 @@ class TokensWriter {
       return UnlinkedTokenType.EQ;
     } else if (type == TokenType.EQ_EQ) {
       return UnlinkedTokenType.EQ_EQ;
+    } else if (type == TokenType.EQ_EQ_EQ) {
+      return UnlinkedTokenType.EQ_EQ_EQ;
     } else if (type == Keyword.EXPORT) {
       return UnlinkedTokenType.EXPORT;
     } else if (type == Keyword.EXTENDS) {
