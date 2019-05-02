@@ -52,6 +52,19 @@ var b = a.g();
     expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
   }
 
+  test_field_imported() async {
+    newFile('/test/lib/a.dart', content: '''
+class A {
+  int f;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+var b = new A().f;
+''');
+    assertElementTypeString(findElement.topVar('b').type, 'int');
+  }
+
   test_field_prefixedIdentifier() async {
     await assertNoErrorsInCode('''
 class A {

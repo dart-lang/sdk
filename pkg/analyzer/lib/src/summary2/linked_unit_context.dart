@@ -743,6 +743,7 @@ class LinkedUnitContext {
       return node.type == null;
     } else if (node is VariableDeclaration) {
       VariableDeclarationList parent = node.parent;
+      LazyVariableDeclarationList.readTypeNode(_astReader, parent);
       return parent.type == null;
     }
     return false;
