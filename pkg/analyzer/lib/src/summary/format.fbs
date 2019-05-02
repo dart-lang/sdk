@@ -2032,6 +2032,9 @@ table LinkedNodeTypeTypeParameter {
 table LinkedNodeUnit {
   isSynthetic:bool (id: 3);
 
+  /// Offsets of the first character of each line in the source code.
+  lineStarts:[uint] (id: 4);
+
   node:LinkedNode (id: 2);
 
   tokens:UnlinkedTokens (id: 1);
@@ -3086,6 +3089,9 @@ table UnlinkedUnit2 {
 
   /// Is `true` if the unit contains a `part of` directive.
   isPartOf:bool (id: 3);
+
+  /// Offsets of the first character of each line in the source code.
+  lineStarts:[uint] (id: 5);
 
   /// URIs of `part` directives.
   parts:[string] (id: 4);

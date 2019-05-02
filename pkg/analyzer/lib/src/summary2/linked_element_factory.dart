@@ -280,9 +280,10 @@ class _ElementRequest {
       var unitElement = CompilationUnitElementImpl.forLinkedNode(
         libraryElement,
         unitContext,
-        unitContainerRef.getChild(unitContext.uriStr),
+        unitContext.reference,
         unitNode,
       );
+      unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = unitSource;
       unitElement.librarySource = librarySource;
       units.add(unitElement);

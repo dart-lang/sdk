@@ -777,9 +777,7 @@ class FileState {
     // Read the unlinked bundle.
     _driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
     _unlinked2 = _driverUnlinkedUnit.unit2;
-    // TODO(scheglov) implement
-    _lineInfo = new LineInfo([0]);
-//    _lineInfo = new LineInfo(_unlinked.lineStarts);
+    _lineInfo = new LineInfo(_unlinked2.lineStarts);
 
     // Prepare API signature.
     var newApiSignature = new Uint8List.fromList(_unlinked2.apiSignature);
@@ -886,6 +884,7 @@ class FileState {
       imports: imports,
       parts: parts,
       isPartOf: isPartOf,
+      lineStarts: unit.lineInfo.lineStarts,
     );
   }
 

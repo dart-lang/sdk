@@ -208,6 +208,7 @@ class Linker {
           LinkedNodeUnitBuilder(
             isSynthetic: unitContext.isSynthetic,
             uriStr: unitContext.uriStr,
+            lineStarts: unit.lineInfo.lineStarts,
             tokens: writer.tokensBuilder,
             node: unitLinkedNode,
           ),

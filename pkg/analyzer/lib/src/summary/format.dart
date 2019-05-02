@@ -20224,6 +20224,7 @@ class LinkedNodeUnitBuilder extends Object
     with _LinkedNodeUnitMixin
     implements idl.LinkedNodeUnit {
   bool _isSynthetic;
+  List<int> _lineStarts;
   LinkedNodeBuilder _node;
   UnlinkedTokensBuilder _tokens;
   String _uriStr;
@@ -20233,6 +20234,15 @@ class LinkedNodeUnitBuilder extends Object
 
   set isSynthetic(bool value) {
     this._isSynthetic = value;
+  }
+
+  @override
+  List<int> get lineStarts => _lineStarts ??= <int>[];
+
+  /// Offsets of the first character of each line in the source code.
+  set lineStarts(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._lineStarts = value;
   }
 
   @override
@@ -20258,16 +20268,19 @@ class LinkedNodeUnitBuilder extends Object
 
   LinkedNodeUnitBuilder(
       {bool isSynthetic,
+      List<int> lineStarts,
       LinkedNodeBuilder node,
       UnlinkedTokensBuilder tokens,
       String uriStr})
       : _isSynthetic = isSynthetic,
+        _lineStarts = lineStarts,
         _node = node,
         _tokens = tokens,
         _uriStr = uriStr;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
+    _lineStarts = null;
     _node?.flushInformative();
     _tokens?.flushInformative();
   }
@@ -20283,9 +20296,13 @@ class LinkedNodeUnitBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_lineStarts;
     fb.Offset offset_node;
     fb.Offset offset_tokens;
     fb.Offset offset_uriStr;
+    if (!(_lineStarts == null || _lineStarts.isEmpty)) {
+      offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
+    }
     if (_node != null) {
       offset_node = _node.finish(fbBuilder);
     }
@@ -20298,6 +20315,9 @@ class LinkedNodeUnitBuilder extends Object
     fbBuilder.startTable();
     if (_isSynthetic == true) {
       fbBuilder.addBool(3, true);
+    }
+    if (offset_lineStarts != null) {
+      fbBuilder.addOffset(4, offset_lineStarts);
     }
     if (offset_node != null) {
       fbBuilder.addOffset(2, offset_node);
@@ -20329,6 +20349,7 @@ class _LinkedNodeUnitImpl extends Object
   _LinkedNodeUnitImpl(this._bc, this._bcOffset);
 
   bool _isSynthetic;
+  List<int> _lineStarts;
   idl.LinkedNode _node;
   idl.UnlinkedTokens _tokens;
   String _uriStr;
@@ -20337,6 +20358,13 @@ class _LinkedNodeUnitImpl extends Object
   bool get isSynthetic {
     _isSynthetic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _isSynthetic;
+  }
+
+  @override
+  List<int> get lineStarts {
+    _lineStarts ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 4, const <int>[]);
+    return _lineStarts;
   }
 
   @override
@@ -20364,6 +20392,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
+    if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
     if (node != null) _result["node"] = node.toJson();
     if (tokens != null) _result["tokens"] = tokens.toJson();
     if (uriStr != '') _result["uriStr"] = uriStr;
@@ -20373,6 +20402,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
   @override
   Map<String, Object> toMap() => {
         "isSynthetic": isSynthetic,
+        "lineStarts": lineStarts,
         "node": node,
         "tokens": tokens,
         "uriStr": uriStr,
@@ -29246,6 +29276,7 @@ class UnlinkedUnit2Builder extends Object
   List<String> _exports;
   List<String> _imports;
   bool _isPartOf;
+  List<int> _lineStarts;
   List<String> _parts;
 
   @override
@@ -29283,6 +29314,15 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
+  List<int> get lineStarts => _lineStarts ??= <int>[];
+
+  /// Offsets of the first character of each line in the source code.
+  set lineStarts(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._lineStarts = value;
+  }
+
+  @override
   List<String> get parts => _parts ??= <String>[];
 
   /// URIs of `part` directives.
@@ -29295,15 +29335,19 @@ class UnlinkedUnit2Builder extends Object
       List<String> exports,
       List<String> imports,
       bool isPartOf,
+      List<int> lineStarts,
       List<String> parts})
       : _apiSignature = apiSignature,
         _exports = exports,
         _imports = imports,
         _isPartOf = isPartOf,
+        _lineStarts = lineStarts,
         _parts = parts;
 
   /// Flush [informative] data recursively.
-  void flushInformative() {}
+  void flushInformative() {
+    _lineStarts = null;
+  }
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
@@ -29351,6 +29395,7 @@ class UnlinkedUnit2Builder extends Object
     fb.Offset offset_apiSignature;
     fb.Offset offset_exports;
     fb.Offset offset_imports;
+    fb.Offset offset_lineStarts;
     fb.Offset offset_parts;
     if (!(_apiSignature == null || _apiSignature.isEmpty)) {
       offset_apiSignature = fbBuilder.writeListUint32(_apiSignature);
@@ -29362,6 +29407,9 @@ class UnlinkedUnit2Builder extends Object
     if (!(_imports == null || _imports.isEmpty)) {
       offset_imports = fbBuilder
           .writeList(_imports.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_lineStarts == null || _lineStarts.isEmpty)) {
+      offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
     }
     if (!(_parts == null || _parts.isEmpty)) {
       offset_parts = fbBuilder
@@ -29379,6 +29427,9 @@ class UnlinkedUnit2Builder extends Object
     }
     if (_isPartOf == true) {
       fbBuilder.addBool(3, true);
+    }
+    if (offset_lineStarts != null) {
+      fbBuilder.addOffset(5, offset_lineStarts);
     }
     if (offset_parts != null) {
       fbBuilder.addOffset(4, offset_parts);
@@ -29412,6 +29463,7 @@ class _UnlinkedUnit2Impl extends Object
   List<String> _exports;
   List<String> _imports;
   bool _isPartOf;
+  List<int> _lineStarts;
   List<String> _parts;
 
   @override
@@ -29442,6 +29494,13 @@ class _UnlinkedUnit2Impl extends Object
   }
 
   @override
+  List<int> get lineStarts {
+    _lineStarts ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+    return _lineStarts;
+  }
+
+  @override
   List<String> get parts {
     _parts ??= const fb.ListReader<String>(const fb.StringReader())
         .vTableGet(_bc, _bcOffset, 4, const <String>[]);
@@ -29457,6 +29516,7 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
     if (exports.isNotEmpty) _result["exports"] = exports;
     if (imports.isNotEmpty) _result["imports"] = imports;
     if (isPartOf != false) _result["isPartOf"] = isPartOf;
+    if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
     if (parts.isNotEmpty) _result["parts"] = parts;
     return _result;
   }
@@ -29467,6 +29527,7 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
         "exports": exports,
         "imports": imports,
         "isPartOf": isPartOf,
+        "lineStarts": lineStarts,
         "parts": parts,
       };
 

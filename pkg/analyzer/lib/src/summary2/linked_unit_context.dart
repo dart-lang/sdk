@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -88,6 +89,7 @@ class LinkedUnitContext {
   CompilationUnit get unit_withDeclarations {
     if (_unit == null) {
       _unit = _astReader.readNode(data.node);
+      _unit.lineInfo = LineInfo(data.lineStarts);
     }
     return _unit;
   }

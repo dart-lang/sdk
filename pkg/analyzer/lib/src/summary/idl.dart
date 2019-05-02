@@ -2670,6 +2670,11 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
   @Id(3)
   bool get isSynthetic;
 
+  /// Offsets of the first character of each line in the source code.
+  @informative
+  @Id(4)
+  List<int> get lineStarts;
+
   @Id(2)
   LinkedNode get node;
 
@@ -4849,6 +4854,11 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   /// Is `true` if the unit contains a `part of` directive.
   @Id(3)
   bool get isPartOf;
+
+  /// Offsets of the first character of each line in the source code.
+  @informative
+  @Id(5)
+  List<int> get lineStarts;
 
   /// URIs of `part` directives.
   @Id(4)
