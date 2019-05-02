@@ -33,17 +33,16 @@ class DeclarationSplicer {
   }
 
   void _buildLocalElements(AstNode node) {
-    var holder = ElementHolder();
+    if (node == null) return;
 
+    var holder = ElementHolder();
     var elementBuilder = LocalElementBuilder(holder, _unitElement);
     node.accept(elementBuilder);
 
-    var element = _walker.element;
-    if (element is ExecutableElementImpl) {
-      element.encloseElements(holder.functions);
-      element.encloseElements(holder.labels);
-      element.encloseElements(holder.localVariables);
-    }
+    ElementImpl element = _walker.element;
+    element.encloseElements(holder.functions);
+    element.encloseElements(holder.labels);
+    element.encloseElements(holder.localVariables);
   }
 
   void _classDeclaration(ClassDeclaration full, ClassDeclaration partial) {
@@ -434,11 +433,9 @@ class DeclarationSplicer {
   ) {
     var element = _walker.getVariable();
     _match(partial.name, element);
+
     partial.initializer = full.initializer;
-    {
-      var elementBuilder = LocalElementBuilder(ElementHolder(), null);
-      partial.initializer?.accept(elementBuilder);
-    }
+    _buildLocalElements(partial.initializer);
   }
 
   void _variableDeclarationList(

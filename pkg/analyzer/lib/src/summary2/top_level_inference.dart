@@ -183,12 +183,19 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
   final _InferenceWalker _walker;
   final LibraryElement _library;
   final Scope _scope;
+  final PropertyInducingElementImpl _element;
   final VariableDeclaration _node;
 
   @override
   bool isEvaluated = false;
 
-  _InferenceNode(this._walker, this._library, this._scope, this._node);
+  _InferenceNode(
+    this._walker,
+    this._library,
+    this._scope,
+    this._element,
+    this._node,
+  );
 
   bool get isImplicitlyTypedInstanceField {
     VariableDeclarationList variables = _node.parent;
@@ -201,8 +208,7 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    _node.initializer.accept(LocalElementBuilder(ElementHolder(), null));
-
+    _buildLocalElements();
     _resolveInitializer();
 
     var collector = _InferenceDependenciesCollector();
@@ -262,6 +268,12 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
     );
 
     isEvaluated = true;
+  }
+
+  void _buildLocalElements() {
+    var holder = ElementHolder();
+    _node.initializer.accept(LocalElementBuilder(holder, null));
+    _element.encloseElements(holder.functions);
   }
 
   void _resolveInitializer() {
@@ -344,7 +356,8 @@ class _InitializerInference {
     if (LazyAst.getType(node) != null) return;
 
     if (node.initializer != null) {
-      var inferenceNode = _InferenceNode(_walker, _library, _scope, node);
+      var inferenceNode =
+          _InferenceNode(_walker, _library, _scope, element, node);
       _walker._nodes[element] = inferenceNode;
       (element as PropertyInducingElementImpl).initializer =
           _FunctionElementForLink_Initializer(inferenceNode);
