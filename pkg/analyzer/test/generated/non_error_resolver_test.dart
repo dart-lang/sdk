@@ -4358,6 +4358,16 @@ F<String> f2;
 ''');
   }
 
+  test_typedef_not_function() async {
+    newFile('/test/lib/a.dart', content: '''
+typedef F = int;
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+F f;
+''');
+  }
+
   test_typePromotion_booleanAnd_useInRight() async {
     await assertNoErrorsInCode(r'''
 main(Object p) {

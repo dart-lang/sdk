@@ -358,10 +358,15 @@ class _ElementWriter {
 
       buffer.write(' = ');
 
-      writeType(e.function.returnType);
-      buffer.write(' Function');
-      writeTypeParameterElements(e.function.typeParameters);
-      writeParameterElements(e.function.parameters);
+      var function = e.function;
+      if (function != null) {
+        writeType(function.returnType);
+        buffer.write(' Function');
+        writeTypeParameterElements(function.typeParameters);
+        writeParameterElements(function.parameters);
+      } else {
+        buffer.write('<null>');
+      }
     } else {
       buffer.write('typedef ');
       writeType2(e.returnType);

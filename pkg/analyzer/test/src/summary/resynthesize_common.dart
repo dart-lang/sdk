@@ -9466,6 +9466,17 @@ class A {
 ''');
   }
 
+  test_typedef_generic_invalid() async {
+    var library = await checkLibrary('''
+typedef F = int;
+F f;
+''');
+    checkElementText(library, r'''
+typedef F = <null>;
+dynamic f;
+''');
+  }
+
   test_typedef_notSimplyBounded_dependency_via_param_type_new_style_name_included() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.

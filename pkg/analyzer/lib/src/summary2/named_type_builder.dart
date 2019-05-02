@@ -194,12 +194,17 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  FunctionType _getRawFunctionType(GenericTypeAliasElementImpl element) {
+  DartType _getRawFunctionType(GenericTypeAliasElementImpl element) {
     // If the element is not being linked, there is no reason (or a way,
     // because the linked node might be read only partially) to go through
     // its node - all its types have already been built.
     if (!element.linkedContext.isLinking) {
-      return element.function.type;
+      var function = element.function;
+      if (function != null) {
+        return function.type;
+      } else {
+        return _dynamicType;
+      }
     }
 
     var typedefNode = element.linkedNode;
@@ -211,11 +216,15 @@ class NamedTypeBuilder extends TypeBuilder {
       );
     } else if (typedefNode is GenericTypeAlias) {
       var functionNode = typedefNode.functionType;
-      return _buildFunctionType(
-        functionNode.typeParameters,
-        functionNode.returnType,
-        functionNode.parameters,
-      );
+      if (functionNode != null) {
+        return _buildFunctionType(
+          functionNode.typeParameters,
+          functionNode.returnType,
+          functionNode.parameters,
+        );
+      } else {
+        return _dynamicType;
+      }
     } else {
       throw StateError('(${element.runtimeType}) $element');
     }
