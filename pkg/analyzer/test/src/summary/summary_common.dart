@@ -20,11 +20,9 @@ import 'package:test/test.dart';
 
 import 'test_strategies.dart';
 
-/**
- * Convert a summary object (or a portion of one) into a canonical form that
- * can be easily compared using [expect].  If [orderByName] is true, and the
- * object is a [List], it is sorted by the `name` field of its elements.
- */
+/// Convert a summary object (or a portion of one) into a canonical form that
+/// can be easily compared using [expect].  If [orderByName] is true, and the
+/// object is a [List], it is sorted by the `name` field of its elements.
 Object canonicalize(Object obj, {bool orderByName: false}) {
   if (obj is SummaryClass) {
     Map<String, Object> result = <String, Object>{};
@@ -73,9 +71,7 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
   return namespace;
 }
 
-/**
- * Type of a function that validates an [EntityRef].
- */
+/// Type of a function that validates an [EntityRef].
 typedef void _EntityRefValidator(EntityRef entityRef);
 
 /// Test cases that exercise summary generation in a black-box fashion.
@@ -84,14 +80,10 @@ typedef void _EntityRefValidator(EntityRef entityRef);
 /// [SummaryBlackBoxTestStrategy], allowing summary generation to be unit-tested
 /// in a variety of ways.
 mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
-  /**
-   * Get access to the linked defining compilation unit.
-   */
+  /// Get access to the linked defining compilation unit.
   LinkedUnit get definingUnit => linked.units[0];
 
-  /**
-   * TODO(scheglov) rename "Const" to "Expr" everywhere
-   */
+  /// TODO(scheglov) rename "Const" to "Expr" everywhere
   void assertUnlinkedConst(UnlinkedExpr constExpr, String sourceRepresentation,
       {bool isValidConst: true,
       List<UnlinkedExprOperation> operators: const <UnlinkedExprOperation>[],
@@ -122,10 +114,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Check that [annotations] contains a single entry which is a reference to
-   * a top level variable called `a` in the current library.
-   */
+  /// Check that [annotations] contains a single entry which is a reference to
+  /// a top level variable called `a` in the current library.
   void checkAnnotationA(List<UnlinkedExpr> annotations) {
     expect(annotations, hasLength(1));
     assertUnlinkedConst(annotations[0], 'a', operators: [
@@ -151,32 +141,26 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Verify that the [dependency]th element of the dependency table represents
-   * a file reachable via the given [absoluteUri].
-   */
+  /// Verify that the [dependency]th element of the dependency table represents
+  /// a file reachable via the given [absoluteUri].
   void checkDependency(int dependency, String absoluteUri) {
     expect(dependency, new TypeMatcher<int>());
     expect(linked.dependencies[dependency].uri, absoluteUri);
   }
 
-  /**
-   * Verify that the given [dependency] lists the given
-   * [relativeUris] as its parts.
-   */
+  /// Verify that the given [dependency] lists the given
+  /// [relativeUris] as its parts.
   void checkDependencyParts(
       LinkedDependency dependency, List<String> relativeUris) {
     expect(dependency.parts, relativeUris);
   }
 
-  /**
-   * Check that the given [documentationComment] matches the first
-   * Javadoc-style comment found in [text].
-   *
-   * Note that the algorithm for finding the Javadoc-style comment in [text] is
-   * a simple-minded text search; it is easily confused by corner cases such as
-   * strings containing comments, nested comments, etc.
-   */
+  /// Check that the given [documentationComment] matches the first
+  /// Javadoc-style comment found in [text].
+  ///
+  /// Note that the algorithm for finding the Javadoc-style comment in [text] is
+  /// a simple-minded text search; it is easily confused by corner cases such as
+  /// strings containing comments, nested comments, etc.
   void checkDocumentationComment(
       UnlinkedDocumentationComment documentationComment, String text) {
     expect(documentationComment, isNotNull);
@@ -190,21 +174,17 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(documentationComment.text, expectedCommentText);
   }
 
-  /**
-   * Verify that the given [typeRef] represents the type `dynamic`.
-   */
+  /// Verify that the given [typeRef] represents the type `dynamic`.
   void checkDynamicTypeRef(EntityRef typeRef) {
     checkTypeRef(typeRef, null, 'dynamic');
   }
 
-  /**
-   * Verify that the given [exportName] represents a reference to an entity
-   * declared in a file reachable via [absoluteUri], having name [expectedName].
-   * [expectedKind] is the kind of object referenced. [expectedTargetUnit] is
-   * the index of the compilation unit in which the target of the [exportName]
-   * is expected to appear; if not specified it is assumed to be the defining
-   * compilation unit.
-   */
+  /// Verify that the given [exportName] represents a reference to an entity
+  /// declared in a file reachable via [absoluteUri], having name [expectedName].
+  /// [expectedKind] is the kind of object referenced. [expectedTargetUnit] is
+  /// the index of the compilation unit in which the target of the [exportName]
+  /// is expected to appear; if not specified it is assumed to be the defining
+  /// compilation unit.
   void checkExportName(LinkedExportName exportName, String absoluteUri,
       String expectedName, ReferenceKind expectedKind,
       {int expectedTargetUnit: 0}) {
@@ -217,14 +197,12 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(exportName.unit, expectedTargetUnit);
   }
 
-  /**
-   * Verify that the dependency table contains an entry for a file reachable
-   * via the given [relativeUri].  If [fullyLinked] is
-   * `true`, then the dependency should be a fully-linked dependency; otherwise
-   * it should be a prelinked dependency.
-   *
-   * The index of the [LinkedDependency] is returned.
-   */
+  /// Verify that the dependency table contains an entry for a file reachable
+  /// via the given [relativeUri].  If [fullyLinked] is
+  /// `true`, then the dependency should be a fully-linked dependency; otherwise
+  /// it should be a prelinked dependency.
+  ///
+  /// The index of the [LinkedDependency] is returned.
   int checkHasDependency(String relativeUri, {bool fullyLinked: false}) {
     List<String> found = <String>[];
     for (int i = 0; i < linked.dependencies.length; i++) {
@@ -242,11 +220,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     fail('Did not find dependency $relativeUri.  Found: $found');
   }
 
-  /**
-   * Test an inferred type.  If [onlyInStrongMode] is `true` (the default) and
-   * strong mode is disabled, verify that the given [slotId] exists and has no
-   * associated type.  Otherwise, behave as in [checkLinkedTypeSlot].
-   */
+  /// Test an inferred type.  If [onlyInStrongMode] is `true` (the default) and
+  /// strong mode is disabled, verify that the given [slotId] exists and has no
+  /// associated type.  Otherwise, behave as in [checkLinkedTypeSlot].
   void checkInferredTypeSlot(
       int slotId, String absoluteUri, String expectedName,
       {int numTypeArguments: 0,
@@ -265,10 +241,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         numTypeParameters: numTypeParameters);
   }
 
-  /**
-   * Verify that the dependency table *does not* contain any entries for a file
-   * reachable via the given [relativeUri].
-   */
+  /// Verify that the dependency table *does not* contain any entries for a file
+  /// reachable via the given [relativeUri].
   void checkLacksDependency(String relativeUri) {
     for (LinkedDependency dep in linked.dependencies) {
       if (dep.uri == relativeUri) {
@@ -277,26 +251,22 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Verify that the given [typeRef] represents the type `dynamic`.
-   */
+  /// Verify that the given [typeRef] represents the type `dynamic`.
   void checkLinkedDynamicTypeRef(EntityRef typeRef) {
     checkLinkedTypeRef(typeRef, null, 'dynamic');
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to a type declared
-   * in a file reachable via [absoluteUri], having name [expectedName].  Verify
-   * that the number of type arguments is equal to [numTypeArguments].
-   * [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
-   * [unlinkedSourceUnit] refer to the compilation unit within which the
-   * [typeRef] appears; if not specified they are assumed to refer to the
-   * defining compilation unit. [expectedTargetUnit] is the index of the
-   * compilation unit in which the target of the [typeRef] is expected to
-   * appear; if not specified it is assumed to be the defining compilation unit.
-   * [numTypeParameters] is the number of type parameters of the thing being
-   * referred to.
-   */
+  /// Verify that the given [typeRef] represents a reference to a type declared
+  /// in a file reachable via [absoluteUri], having name [expectedName].  Verify
+  /// that the number of type arguments is equal to [numTypeArguments].
+  /// [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
+  /// [unlinkedSourceUnit] refer to the compilation unit within which the
+  /// [typeRef] appears; if not specified they are assumed to refer to the
+  /// defining compilation unit. [expectedTargetUnit] is the index of the
+  /// compilation unit in which the target of the [typeRef] is expected to
+  /// appear; if not specified it is assumed to be the defining compilation unit.
+  /// [numTypeParameters] is the number of type parameters of the thing being
+  /// referred to.
   void checkLinkedTypeRef(
       EntityRef typeRef, String absoluteUri, String expectedName,
       {int numTypeArguments: 0,
@@ -319,19 +289,17 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         numTypeParameters: numTypeParameters);
   }
 
-  /**
-   * Verify that the given [slotId] represents a reference to a type declared
-   * in a file reachable via [absoluteUri], having name [expectedName].  Verify
-   * that the number of type arguments is equal to [numTypeArguments].
-   * [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
-   * [unlinkedSourceUnit] refer to the compilation unit within which the
-   * [typeRef] appears; if not specified they are assumed to refer to the
-   * defining compilation unit. [expectedTargetUnit] is the index of the
-   * compilation unit in which the target of the [typeRef] is expected to
-   * appear; if not specified it is assumed to be the defining compilation unit.
-   * [numTypeParameters] is the number of type parameters of the thing being
-   * referred to.
-   */
+  /// Verify that the given [slotId] represents a reference to a type declared
+  /// in a file reachable via [absoluteUri], having name [expectedName].  Verify
+  /// that the number of type arguments is equal to [numTypeArguments].
+  /// [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
+  /// [unlinkedSourceUnit] refer to the compilation unit within which the
+  /// [typeRef] appears; if not specified they are assumed to refer to the
+  /// defining compilation unit. [expectedTargetUnit] is the index of the
+  /// compilation unit in which the target of the [typeRef] is expected to
+  /// appear; if not specified it is assumed to be the defining compilation unit.
+  /// [numTypeParameters] is the number of type parameters of the thing being
+  /// referred to.
   void checkLinkedTypeSlot(int slotId, String absoluteUri, String expectedName,
       {int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
@@ -357,10 +325,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         numTypeParameters: numTypeParameters);
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to a type parameter
-   * having the given [deBruijnIndex].
-   */
+  /// Verify that the given [typeRef] represents a reference to a type parameter
+  /// having the given [deBruijnIndex].
   void checkParamTypeRef(EntityRef typeRef, int deBruijnIndex) {
     expect(typeRef, new TypeMatcher<EntityRef>());
     expect(typeRef.reference, 0);
@@ -368,10 +334,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(typeRef.paramReference, deBruijnIndex);
   }
 
-  /**
-   * Verify that [prefixReference] is a valid reference to a prefix having the
-   * given [name].
-   */
+  /// Verify that [prefixReference] is a valid reference to a prefix having the
+  /// given [name].
   void checkPrefix(int prefixReference, String name) {
     expect(prefixReference, isNot(0));
     expect(unlinkedUnits[0].references[prefixReference].prefixReference, 0);
@@ -381,13 +345,11 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(definingUnit.references[prefixReference].unit, 0);
   }
 
-  /**
-   * Check the data structures that are reachable from an index in the
-   * references table.  If the reference in question is an explicit
-   * reference, return the [UnlinkedReference] that is used to make the
-   * explicit reference.  If the type reference in question is an implicit
-   * reference, return `null`.
-   */
+  /// Check the data structures that are reachable from an index in the
+  /// references table.  If the reference in question is an explicit
+  /// reference, return the [UnlinkedReference] that is used to make the
+  /// explicit reference.  If the type reference in question is an implicit
+  /// reference, return `null`.
   UnlinkedReference checkReferenceIndex(
       int referenceIndex, String absoluteUri, String expectedName,
       {ReferenceKind expectedKind: ReferenceKind.classOrEnum,
@@ -436,20 +398,18 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return reference;
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to a type declared
-   * in a file reachable via [absoluteUri], having name [expectedName].
-   * If [expectedPrefix] is supplied, verify that the type is reached via the
-   * given prefix.  Verify that the number of type arguments is equal to
-   * [numTypeArguments].  [expectedKind] is the kind of object referenced.
-   * [linkedSourceUnit] and [unlinkedSourceUnit] refer to the compilation unit
-   * within which the [typeRef] appears; if not specified they are assumed to
-   * refer to the defining compilation unit. [expectedTargetUnit] is the index
-   * of the compilation unit in which the target of the [typeRef] is expected
-   * to appear; if not specified it is assumed to be the defining compilation
-   * unit.  [numTypeParameters] is the number of type parameters of the thing
-   * being referred to.
-   */
+  /// Verify that the given [typeRef] represents a reference to a type declared
+  /// in a file reachable via [absoluteUri], having name [expectedName].
+  /// If [expectedPrefix] is supplied, verify that the type is reached via the
+  /// given prefix.  Verify that the number of type arguments is equal to
+  /// [numTypeArguments].  [expectedKind] is the kind of object referenced.
+  /// [linkedSourceUnit] and [unlinkedSourceUnit] refer to the compilation unit
+  /// within which the [typeRef] appears; if not specified they are assumed to
+  /// refer to the defining compilation unit. [expectedTargetUnit] is the index
+  /// of the compilation unit in which the target of the [typeRef] is expected
+  /// to appear; if not specified it is assumed to be the defining compilation
+  /// unit.  [numTypeParameters] is the number of type parameters of the thing
+  /// being referred to.
   void checkTypeRef(EntityRef typeRef, String absoluteUri, String expectedName,
       {String expectedPrefix,
       List<_PrefixExpectation> prefixExpectations,
@@ -504,10 +464,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to an unresolved
-   * type.
-   */
+  /// Verify that the given [typeRef] represents a reference to an unresolved
+  /// type.
   void checkUnresolvedTypeRef(
       EntityRef typeRef, String expectedPrefix, String expectedName,
       {LinkedUnit linkedSourceUnit, UnlinkedUnit unlinkedSourceUnit}) {
@@ -520,9 +478,7 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         unlinkedSourceUnit: unlinkedSourceUnit);
   }
 
-  /**
-   * Verify that the given [typeRef] represents the type `void`.
-   */
+  /// Verify that the given [typeRef] represents the type `void`.
   void checkVoidTypeRef(EntityRef typeRef) {
     checkTypeRef(typeRef, null, 'void');
   }
@@ -558,11 +514,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         serializeTypeText('void.T', allowErrors: true), 'void', 'T');
   }
 
-  /**
-   * Find the class with the given [className] in the summary, and return its
-   * [UnlinkedClass] data structure.  If [unit] is not given, the class is
-   * looked for in the defining compilation unit.
-   */
+  /// Find the class with the given [className] in the summary, and return its
+  /// [UnlinkedClass] data structure.  If [unit] is not given, the class is
+  /// looked for in the defining compilation unit.
   UnlinkedClass findClass(String className,
       {bool failIfAbsent: false, UnlinkedUnit unit}) {
     unit ??= unlinkedUnits[0];
@@ -581,11 +535,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the enum with the given [enumName] in the summary, and return its
-   * [UnlinkedEnum] data structure.  If [unit] is not given, the enum is looked
-   * for in the defining compilation unit.
-   */
+  /// Find the enum with the given [enumName] in the summary, and return its
+  /// [UnlinkedEnum] data structure.  If [unit] is not given, the enum is looked
+  /// for in the defining compilation unit.
   UnlinkedEnum findEnum(String enumName,
       {bool failIfAbsent: false, UnlinkedUnit unit}) {
     unit ??= unlinkedUnits[0];
@@ -604,12 +556,10 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the executable with the given [executableName] in the summary, and
-   * return its [UnlinkedExecutable] data structure.  If [executables] is not
-   * given, then the executable is searched for in the defining compilation
-   * unit.
-   */
+  /// Find the executable with the given [executableName] in the summary, and
+  /// return its [UnlinkedExecutable] data structure.  If [executables] is not
+  /// given, then the executable is searched for in the defining compilation
+  /// unit.
   UnlinkedExecutable findExecutable(String executableName,
       {List<UnlinkedExecutable> executables, bool failIfAbsent: false}) {
     executables ??= unlinkedUnits[0].executables;
@@ -628,10 +578,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the mixin with the given [name] in the summary, and return its
-   * [UnlinkedClass] data structure.
-   */
+  /// Find the mixin with the given [name] in the summary, and return its
+  /// [UnlinkedClass] data structure.
   UnlinkedClass findMixin(String name) {
     UnlinkedClass result;
     for (UnlinkedClass mixin in unlinkedUnits[0].mixins) {
@@ -648,9 +596,7 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the parameter with the given [name] in [parameters].
-   */
+  /// Find the parameter with the given [name] in [parameters].
   UnlinkedParam findParameter(List<UnlinkedParam> parameters, String name) {
     UnlinkedParam result;
     for (UnlinkedParam parameter in parameters) {
@@ -667,11 +613,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the typedef with the given [typedefName] in the summary, and return
-   * its [UnlinkedTypedef] data structure.  If [unit] is not given, the typedef
-   * is looked for in the defining compilation unit.
-   */
+  /// Find the typedef with the given [typedefName] in the summary, and return
+  /// its [UnlinkedTypedef] data structure.  If [unit] is not given, the typedef
+  /// is looked for in the defining compilation unit.
   UnlinkedTypedef findTypedef(String typedefName,
       {bool failIfAbsent: false, UnlinkedUnit unit}) {
     unit ??= unlinkedUnits[0];
@@ -690,11 +634,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the top level variable with the given [variableName] in the summary,
-   * and return its [UnlinkedVariable] data structure.  If [variables] is not
-   * specified, the variable is looked for in the defining compilation unit.
-   */
+  /// Find the top level variable with the given [variableName] in the summary,
+  /// and return its [UnlinkedVariable] data structure.  If [variables] is not
+  /// specified, the variable is looked for in the defining compilation unit.
   UnlinkedVariable findVariable(String variableName,
       {List<UnlinkedVariable> variables, bool failIfAbsent: false}) {
     variables ??= unlinkedUnits[0].variables;
@@ -713,9 +655,7 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the entry in [linkedSourceUnit.types] matching [slotId].
-   */
+  /// Find the entry in [linkedSourceUnit.types] matching [slotId].
   EntityRef getTypeRefForSlot(int slotId, {LinkedUnit linkedSourceUnit}) {
     linkedSourceUnit ??= definingUnit;
     for (EntityRef typeRef in linkedSourceUnit.types) {
@@ -726,39 +666,31 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return null;
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the class
-   * with the given [className].
-   */
+  /// Serialize the given library [text] and return the summary of the class
+  /// with the given [className].
   UnlinkedClass serializeClassText(String text,
       {String className: 'C', bool allowErrors: false}) {
     serializeLibraryText(text, allowErrors: allowErrors);
     return findClass(className, failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the enum with
-   * the given [enumName].
-   */
+  /// Serialize the given library [text] and return the summary of the enum with
+  /// the given [enumName].
   UnlinkedEnum serializeEnumText(String text, [String enumName = 'E']) {
     serializeLibraryText(text);
     return findEnum(enumName, failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the
-   * executable with the given [executableName].
-   */
+  /// Serialize the given library [text] and return the summary of the
+  /// executable with the given [executableName].
   UnlinkedExecutable serializeExecutableText(String text,
       {String executableName: 'f', bool allowErrors: false}) {
     serializeLibraryText(text, allowErrors: allowErrors);
     return findExecutable(executableName, failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given method [text] and return the summary of the executable
-   * with the given [executableName].
-   */
+  /// Serialize the given method [text] and return the summary of the executable
+  /// with the given [executableName].
   UnlinkedExecutable serializeMethodText(String text,
       [String executableName = 'f']) {
     serializeLibraryText('class C { $text }');
@@ -767,32 +699,26 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the mixin
-   * with the given [name].
-   */
+  /// Serialize the given library [text] and return the summary of the mixin
+  /// with the given [name].
   UnlinkedClass serializeMixinText(String text,
       {String name: 'M', bool allowErrors: false}) {
     serializeLibraryText(text, allowErrors: allowErrors);
     return findMixin(name);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the typedef
-   * with the given [typedefName].
-   */
+  /// Serialize the given library [text] and return the summary of the typedef
+  /// with the given [typedefName].
   UnlinkedTypedef serializeTypedefText(String text,
       [String typedefName = 'F']) {
     serializeLibraryText(text);
     return findTypedef(typedefName, failIfAbsent: true);
   }
 
-  /**
-   * Serialize a type declaration using the given [text] as a type name, and
-   * return a summary of the corresponding [EntityRef].  If the type
-   * declaration needs to refer to types that are not available in core, those
-   * types may be declared in [otherDeclarations].
-   */
+  /// Serialize a type declaration using the given [text] as a type name, and
+  /// return a summary of the corresponding [EntityRef].  If the type
+  /// declaration needs to refer to types that are not available in core, those
+  /// types may be declared in [otherDeclarations].
   EntityRef serializeTypeText(String text,
       {String otherDeclarations: '',
       bool allowErrors: false,
@@ -802,10 +728,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         .type;
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the variable
-   * with the given [variableName].
-   */
+  /// Serialize the given library [text] and return the summary of the variable
+  /// with the given [variableName].
   UnlinkedVariable serializeVariableText(String text,
       {String variableName: 'v',
       bool allowErrors: false,
@@ -11794,10 +11718,8 @@ var v;''';
     checkTypeRef(variable.type, 'dart:core', 'int');
   }
 
-  /**
-   * Assert that serializing the given [expr] of form `(a op= 1 + 2) + 3`
-   * uses the given [expectedAssignOperator].
-   */
+  /// Assert that serializing the given [expr] of form `(a op= 1 + 2) + 3`
+  /// uses the given [expectedAssignOperator].
   void _assertAssignmentOperator(
       String expr, UnlinkedExprAssignOperator expectedAssignOperator) {
     UnlinkedVariable variable = serializeVariableText('''
@@ -11844,10 +11766,8 @@ final v = $expr;
     expect(p.visibleLength, isZero);
   }
 
-  /**
-   * Assert that the [expr] of the form `++a + 2` is serialized with the
-   * [expectedAssignmentOperator].
-   */
+  /// Assert that the [expr] of the form `++a + 2` is serialized with the
+  /// [expectedAssignmentOperator].
   void _assertRefPrefixPostfixIncrementDecrement(
       String expr, UnlinkedExprAssignOperator expectedAssignmentOperator) {
     UnlinkedVariable variable = serializeVariableText('''
@@ -11896,9 +11816,7 @@ final v = $expr;
   }
 }
 
-/**
- * Description of expectations for a prelinked prefix reference.
- */
+/// Description of expectations for a prelinked prefix reference.
 class _PrefixExpectation {
   final ReferenceKind kind;
   final String name;
