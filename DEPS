@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "a0a24a4bd5e4d913264fccfd600139af5b20c8e9",
+  "co19_2_rev": "7bd9873fceb872aeb8c6ee69f14de7f7e7605e4e",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
