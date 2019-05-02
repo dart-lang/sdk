@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/pending_error.dart';
@@ -4994,10 +4995,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _hiddenElements != null &&
         _hiddenElements.contains(node.staticElement) &&
         node.parent is! CommentReference) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-          node,
-          [node.name]);
+      _errorReporter.reportError(new DiagnosticFactory()
+          .referencedBeforeDeclaration(_errorReporter.source, node));
     }
   }
 

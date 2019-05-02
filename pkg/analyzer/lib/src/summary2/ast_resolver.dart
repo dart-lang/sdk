@@ -66,5 +66,9 @@ class AstResolver {
 }
 
 class _FakeSource implements Source {
+  @override
+  String get fullName => '/package/lib/test.dart';
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

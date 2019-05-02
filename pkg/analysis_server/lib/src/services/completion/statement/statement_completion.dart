@@ -324,12 +324,6 @@ class StatementCompletionProcessor {
           }
           _removeError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
           _removeError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
-          var ms =
-              _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
-          if (ms != null) {
-            // Ensure the semicolon gets inserted in the correct location.
-            ms.offset = loc - 1;
-          }
         }
       }
     }
