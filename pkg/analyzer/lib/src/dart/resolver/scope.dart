@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -725,6 +726,7 @@ class NamespaceBuilder {
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
       definedNames['dynamic'] = DynamicElementImpl.instance;
+      definedNames['Never'] = BottomTypeImpl.instance.element;
     }
 
     return new Namespace(definedNames);

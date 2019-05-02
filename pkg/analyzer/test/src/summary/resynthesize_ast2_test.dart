@@ -83,6 +83,8 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var rootReference = Reference.root();
     rootReference.getChild('dart:core').getChild('dynamic').element =
         DynamicElementImpl.instance;
+    rootReference.getChild('dart:core').getChild('Never').element =
+        NeverElementImpl.instance;
 
     var elementFactory = LinkedElementFactory(
       analysisContext,

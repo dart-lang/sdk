@@ -8881,7 +8881,7 @@ final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final (<bottom>) → int v;
+final (Never) → int v;
 bool f() {}
 ''');
   }
