@@ -1501,7 +1501,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int offset = candidate.fileOffset;
       Message contextMessage;
       int length = noLength;
-      if (offset == -1 && candidate is Constructor) {
+      if (candidate is Constructor && candidate.isSynthetic) {
         offset = candidate.enclosingClass.fileOffset;
         contextMessage = fasta.templateCandidateFoundIsDefaultConstructor
             .withArguments(candidate.enclosingClass.name);

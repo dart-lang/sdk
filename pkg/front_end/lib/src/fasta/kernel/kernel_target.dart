@@ -651,10 +651,14 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
+            int offset = constructor.fileOffset;
+            if (offset == -1 && constructor.isSynthetic) {
+              offset = cls.fileOffset;
+            }
             builder.addProblem(
                 templateSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass.name),
-                constructor.fileOffset,
+                offset,
                 noLength);
             initializer = new InvalidInitializer();
           } else {

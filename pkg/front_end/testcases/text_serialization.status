@@ -752,7 +752,7 @@ qualified_part: TextSerializationFailure # Was: Pass
 rasta/abstract_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_constructor_redirection: TextSerializationFailure # Was: RuntimeError
 rasta/bad_continue: TextSerializationFailure # Was: RuntimeError
-rasta/bad_default_constructor: VerificationError
+rasta/bad_default_constructor: TextSerializationFailure
 rasta/bad_explicit_super_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_implicit_super_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_interpolation: TextSerializationFailure # Was: RuntimeError
@@ -792,7 +792,7 @@ rasta/issue_000034: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000035: TextSerializationFailure # Was: Pass
 rasta/issue_000035a: TextSerializationFailure # Was: Pass
 rasta/issue_000036: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000039: VerificationError
+rasta/issue_000039: TextSerializationFailure
 rasta/issue_000041: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000042: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000043: TextSerializationFailure # Was: RuntimeError
@@ -923,6 +923,7 @@ regress/issue_36400: TextSerializationFailure
 regress/issue_36647: TextSerializationFailure
 regress/issue_36647_2: TextSerializationFailure
 regress/issue_36793: TextSerializationFailure
+regress/issue_36669: TextSerializationFailure
 reject_generic_function_types_in_bounds: TextSerializationFailure # Was: RuntimeError # Expected
 return_with_unknown_type_in_context: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
