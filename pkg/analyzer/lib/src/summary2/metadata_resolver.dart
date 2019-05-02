@@ -125,7 +125,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
-    node.functionType.accept(this);
+    node.functionType?.accept(this);
   }
 
   @override

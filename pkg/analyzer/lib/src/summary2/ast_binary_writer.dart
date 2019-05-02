@@ -667,7 +667,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitGenericTypeAlias(GenericTypeAlias node) {
     var builder = LinkedNodeBuilder.genericTypeAlias(
       genericTypeAlias_equals: _getToken(node.equals),
-      genericTypeAlias_functionType: node.functionType.accept(this),
+      genericTypeAlias_functionType: node.functionType?.accept(this),
       genericTypeAlias_typeParameters: node.typeParameters?.accept(this),
       typeAlias_hasSelfReference:
           LazyGenericTypeAlias.getHasSelfReference(node),

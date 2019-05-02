@@ -5574,12 +5574,16 @@ class GenericTypeAliasElementImpl extends ElementImpl
       if (linkedNode is GenericTypeAlias) {
         var context = enclosingUnit.linkedContext;
         var function = context.getGeneticTypeAliasFunction(linkedNode);
-        var reference = context.getGenericFunctionTypeReference(function);
-        return _function = GenericFunctionTypeElementImpl.forLinkedNode(
-          this,
-          reference,
-          function,
-        );
+        if (function != null) {
+          var reference = context.getGenericFunctionTypeReference(function);
+          return _function = GenericFunctionTypeElementImpl.forLinkedNode(
+            this,
+            reference,
+            function,
+          );
+        } else {
+          return null;
+        }
       } else {
         return _function = GenericFunctionTypeElementImpl.forLinkedNode(
           this,
