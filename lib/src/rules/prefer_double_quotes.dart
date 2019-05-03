@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,46 +7,46 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc =
-    r"Prefer single quotes where they won't require escape sequences.";
+    r"Prefer double quotes where they won't require escape sequences.";
 
 const _details = '''
 
-**DO** use single quotes where they wouldn't require additional escapes.
+**DO** use double quotes where they wouldn't require additional escapes.
 
-That means strings with an apostrophe may use double quotes so that the
-apostrophe isn't escaped (note: we don't lint the other way around, ie, a single
-quoted string with an escaped apostrophe is not flagged).
+That means strings with a double quote may use apostrophes so that the double
+quote isn't escaped (note: we don't lint the other way around, ie, a double
+quoted string with an escaped double quote is not flagged).
 
 It's also rare, but possible, to have strings within string interpolations.  In
-this case, its much more readable to use a double quote somewhere.  So double
+this case, its much more readable to use a single quote somewhere.  So single
 quotes are allowed either within, or containing, an interpolated string literal.
 Arguably strings within string interpolations should be its own type of lint.
 
 **BAD:**
 ```
 useStrings(
-    "should be single quote",
-    r"should be single quote",
-    r"""should be single quotes""")
+    'should be double quote',
+    r'should be double quote',
+    r\'''should be double quotes\''')
 ```
 
 **GOOD:**
 ```
 useStrings(
-    'should be single quote',
-    r'should be single quote',
-    r\'''should be single quotes\''',
-    "here's ok",
-    "nested \${a ? 'strings' : 'can'} be wrapped by a double quote",
-    'and nested \${a ? "strings" : "can be double quoted themselves"}');
+    "should be double quote",
+    r"should be double quote",
+    r"""should be double quotes""",
+    'ok with " inside',
+    'nested \${a ? "strings" : "can"} be wrapped by a double quote',
+    "and nested \${a ? 'strings' : 'can be double quoted themselves'}");
 ```
 
 ''';
 
-class PreferSingleQuotes extends LintRule implements NodeLintRule {
-  PreferSingleQuotes()
+class PreferDoubleQuotes extends LintRule implements NodeLintRule {
+  PreferDoubleQuotes()
       : super(
-            name: 'prefer_single_quotes',
+            name: 'prefer_double_quotes',
             description: _desc,
             details: _details,
             group: Group.style);
@@ -117,7 +117,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral string) {
-    if (string.isSingleQuoted || string.value.contains("'")) {
+    if (!string.isSingleQuoted || string.value.contains('"')) {
       return;
     }
 
@@ -129,13 +129,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    if (node.isSingleQuoted) {
+    if (!node.isSingleQuoted) {
       return;
     }
 
     // slightly more complicated check there are no single quotes
     if (node.elements
-        .any((e) => e is InterpolationString && e.value.contains("'"))) {
+        .any((e) => e is InterpolationString && e.value.contains('"'))) {
       return;
     }
 
