@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:meta/meta.dart';
 
 const _desc =
     r"Prefer single quotes where they won't require escape sequences.";
@@ -34,11 +35,11 @@ useStrings(
 ```
 useStrings(
     'should be single quote',
-    r'should be single quote",
+    r'should be single quote',
     r\'''should be single quotes\''',
     "here's ok",
     "nested \${a ? 'strings' : 'can'} be wrapped by a double quote",
-    'and nested \${a ? "strings" : "can be double quoted themselves"});
+    'and nested \${a ? "strings" : "can be double quoted themselves"}');
 ```
 
 ''';
@@ -54,7 +55,7 @@ class PreferSingleQuotes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = new QuoteVisitor(this, useSingle: true);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
   }
@@ -99,10 +100,14 @@ class _IsOrContainsStringVisitor extends UnifyingAstVisitor<bool> {
   bool visitStringInterpolation(StringInterpolation string) => true;
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class QuoteVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final bool useSingle;
 
-  _Visitor(this.rule);
+  QuoteVisitor(
+    this.rule, {
+    @required this.useSingle,
+  }) : assert(useSingle != null);
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
@@ -117,7 +122,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral string) {
-    if (string.isSingleQuoted || string.value.contains("'")) {
+    if (useSingle && (string.isSingleQuoted || string.value.contains("'")) ||
+        !useSingle && (!string.isSingleQuoted || string.value.contains('"'))) {
       return;
     }
 
@@ -129,13 +135,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    if (node.isSingleQuoted) {
+    if (useSingle && node.isSingleQuoted ||
+        !useSingle && !node.isSingleQuoted) {
       return;
     }
 
     // slightly more complicated check there are no single quotes
-    if (node.elements
-        .any((e) => e is InterpolationString && e.value.contains("'"))) {
+    if (node.elements.any((e) =>
+        e is InterpolationString &&
+        (useSingle && e.value.contains("'") ||
+            !useSingle && e.value.contains('"')))) {
       return;
     }
 
