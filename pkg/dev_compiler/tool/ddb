@@ -12,7 +12,6 @@
 // Saves the output in the same directory as the sources for convenient
 // inspection, modification or rerunning the code.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser;
@@ -67,17 +66,27 @@ void main(List<String> args) {
   ProcessResult runDdc(String command, List<String> args) {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
-      args.insertAll(0, [
-        '--preview-dart-2',
-        '--enable-asserts',
-        path.join(ddcPath, 'bin', '${command}.dart')
-      ]);
+      args.insertAll(0,
+          ['--enable-asserts', path.join(ddcPath, 'bin', '${command}.dart')]);
       command = dartBinary;
     } else {
       // Use built snapshot.
       command = path.join(dartPath, command);
     }
     return Process.runSync(command, args);
+  }
+
+  /// Writes stdout and stderr from [result] to this process.
+  ///
+  /// Will exit with the exit code from [result] when it's not zero.
+  void echoResult(ProcessResult result) {
+    stdout
+      ..write(result.stdout)
+      ..flush();
+    stderr
+      ..write(result.stderr)
+      ..flush();
+    if (result.exitCode != 0) exit(result.exitCode);
   }
 
   String mod;
@@ -105,7 +114,6 @@ void main(List<String> args) {
   if (debug) {
     var sdkRoot = path.dirname(path.dirname(ddcPath));
     var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
     sdkJsPath = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc',
         kernel ? 'kernel' : 'js', mod);
     requirePath = path.join(sdkRoot, 'third_party', 'requirejs');
@@ -140,12 +148,7 @@ void main(List<String> args) {
       entry
     ]);
   }
-
-  print(result.stdout);
-  if (result.exitCode != 0) {
-    print(result.stderr);
-    exit(result.exitCode);
-  }
+  echoResult(result);
 
   if (chrome) {
     String chromeBinary;
@@ -220,9 +223,6 @@ void main(List<String> args) {
     result = Process.runSync(
         nodeBinary, ['--inspect=localhost:$port', nodeFile],
         environment: {'NODE_PATH': nodePath});
-    stdout
-      ..write(result.stdout)
-      ..flush();
   } else if (d8) {
     var runjs = '''
     import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
@@ -239,13 +239,7 @@ void main(List<String> args) {
     var d8File = '$libRoot/$basename.d8.js';
     new File(d8File).writeAsStringSync(runjs);
     var d8Binary = binary ?? 'd8';
-    result = Process.runSync(binary, ['--module', d8File]);
-    stdout
-      ..write(result.stdout)
-      ..flush();
+    result = Process.runSync(d8Binary, ['--module', d8File]);
   }
-  if (result.exitCode != 0) {
-    print(result.stderr);
-    exit(result.exitCode);
-  }
+  echoResult(result);
 }
