@@ -4,6 +4,8 @@
 
 #include "vm/regexp.h"
 
+#include <memory>
+
 #include "platform/splay-tree-inl.h"
 #include "platform/unicode.h"
 
@@ -2713,29 +2715,31 @@ struct AlternativeGeneration {
 // size then it is on the stack, otherwise the excess is on the heap.
 class AlternativeGenerationList {
  public:
-  explicit AlternativeGenerationList(intptr_t count) : alt_gens_(count) {
-    for (intptr_t i = 0; i < count && i < kAFew; i++) {
-      alt_gens_.Add(a_few_alt_gens_ + i);
-    }
-    for (intptr_t i = kAFew; i < count; i++) {
-      alt_gens_.Add(new AlternativeGeneration());
-    }
-  }
-  ~AlternativeGenerationList() {
-    for (intptr_t i = kAFew; i < alt_gens_.length(); i++) {
-      delete alt_gens_[i];
-      alt_gens_[i] = NULL;
+  explicit AlternativeGenerationList(intptr_t count) : count_(count) {
+    ASSERT(count >= 0);
+    if (count > kAFew) {
+      excess_alt_gens_.reset(new AlternativeGeneration[count - kAFew]);
     }
   }
 
-  AlternativeGeneration* at(intptr_t i) { return alt_gens_[i]; }
+  AlternativeGeneration* at(intptr_t i) {
+    ASSERT(0 <= i);
+    ASSERT(i < count_);
+    if (i < kAFew) {
+      return &a_few_alt_gens_[i];
+    }
+    return &excess_alt_gens_[i - kAFew];
+  }
 
  private:
   static const intptr_t kAFew = 10;
-  GrowableArray<AlternativeGeneration*> alt_gens_;
+
+  intptr_t count_;
   AlternativeGeneration a_few_alt_gens_[kAFew];
+  std::unique_ptr<AlternativeGeneration[]> excess_alt_gens_;
 
   DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(AlternativeGenerationList);
 };
 
 static const int32_t kRangeEndMarker = Utf::kMaxCodePoint + 1;
