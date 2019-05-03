@@ -1,4 +1,4 @@
-## (not yet released)
+## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this
   method will be changed so that all its parameters are named parameters.
   Clients wishing to prepare for this should switch to using
@@ -7,6 +7,10 @@
   `enableSpreadCollections`, and `enableTripleShift`, as well as the
   recently-introduced method `configureFeatures`.  Parsers should now be
   configured by passing a FeatureSet object to the Parser constructor.
+* Deprecated `AnalysisError.isStaticOnly`.
+* Deprecated `AnalysisError.offset` setter.
+* Added method `LinterContext.canBeConstConstructor`.
+* Bug fixes: #36732, #36775.
 
 ## 0.36.2
 * Bug fixes: #36724.
