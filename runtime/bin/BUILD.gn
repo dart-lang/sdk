@@ -1090,7 +1090,7 @@ shared_library("sample_extension") {
 }
 
 # DartLibFuzzer only "exists" for restricted configurations.
-if (defined(is_asan) && is_asan &&
+if (defined(is_linux) && is_linux && defined(is_asan) && is_asan &&
     (dart_target_arch == "x64" || dart_target_arch == "arm64")) {
   dart_executable("dart_libfuzzer") {
     extra_ldflags = [ "-fsanitize=address,fuzzer" ]
