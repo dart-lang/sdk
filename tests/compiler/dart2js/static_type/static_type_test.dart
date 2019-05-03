@@ -25,7 +25,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, new StaticTypeDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+        args: args, testOmit: false);
   });
 }
 
@@ -61,6 +61,9 @@ class StaticTypeDataComputer extends DataComputer<String> {
                 new ThisInterfaceType.from(node.enclosingClass?.thisType)))
         .run(node);
   }
+
+  @override
+  bool get testFrontend => true;
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();

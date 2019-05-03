@@ -563,7 +563,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     Selector selector = node.selector;
-    AbstractValue mask = node.mask;
+    AbstractValue mask = node.receiverType;
     HInstruction input = node.inputs[1];
 
     bool applies(MemberEntity element) {
@@ -616,7 +616,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // optimization.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
             node.selector,
-            node.mask,
+            node.receiverType,
             node.inputs.sublist(1), // Drop interceptor.
             node.instructionType,
             node.typeArguments,
@@ -653,7 +653,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     HInvokeDynamicMethod splitInstruction = new HInvokeDynamicMethod(
         node.selector,
-        node.mask,
+        node.receiverType,
         node.inputs.sublist(1), // Drop interceptor.
         resultMask,
         const <DartType>[],
@@ -780,8 +780,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
         Selector callSelector = new Selector.callClosureFrom(node.selector);
         List<HInstruction> inputs = <HInstruction>[load]
           ..addAll(node.inputs.skip(node.isInterceptedCall ? 2 : 1));
+        DartType fieldType =
+            _closedWorld.elementEnvironment.getFieldType(field);
         HInstruction closureCall = new HInvokeClosure(
-            callSelector, inputs, node.instructionType, node.typeArguments)
+            callSelector,
+            _abstractValueDomain.createFromStaticType(fieldType),
+            inputs,
+            node.instructionType,
+            node.typeArguments)
           ..sourceInformation = node.sourceInformation;
         node.block.addAfter(insertionPoint, closureCall);
         return closureCall;
@@ -849,7 +855,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
         node.selector,
-        node.mask,
+        node.receiverType,
         inputs.sublist(1), // Drop interceptor.
         returnType,
         node.typeArguments,
@@ -1601,8 +1607,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return null;
       }
       Selector selector = Selectors.toString_;
-      AbstractValue toStringType = AbstractValueFactory.inferredTypeForSelector(
-          selector, input.instructionType, _globalInferenceResults);
+      AbstractValue toStringType =
+          AbstractValueFactory.inferredResultTypeForSelector(
+              selector, input.instructionType, _globalInferenceResults);
       if (_abstractValueDomain
           .containsOnlyType(
               toStringType, _closedWorld.commonElements.jsStringClass)
@@ -1617,7 +1624,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         var inputs = <HInstruction>[input, input]; // [interceptor, receiver].
         HInstruction result = new HInvokeDynamicMethod(
             selector,
-            input.instructionType, // receiver mask.
+            input.instructionType, // receiver type.
             inputs,
             toStringType,
             const <DartType>[],

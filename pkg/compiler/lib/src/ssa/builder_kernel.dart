@@ -25,6 +25,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
+import '../ir/static_type.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
@@ -176,11 +177,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
   SourceInformationBuilder get _sourceInformationBuilder =>
       _currentFrame.sourceInformationBuilder;
 
-  DartType _getStaticType(ir.Expression node) {
+  StaticType getStaticType(ir.Expression node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
-    return _elementMap
-        .getDartType(_currentFrame.staticTypeProvider.getStaticType(node));
+    ir.DartType type = _currentFrame.staticTypeProvider.getStaticType(node);
+    return new StaticType(
+        _elementMap.getDartType(type), computeClassRelationFromType(type));
+  }
+
+  StaticType getStaticForInIteratorType(ir.ForInStatement node) {
+    // TODO(johnniwinther): Substitute the type by the this type and type
+    // arguments of the current frame.
+    ir.DartType type =
+        _currentFrame.staticTypeProvider.getForInIteratorType(node);
+    return new StaticType(
+        _elementMap.getDartType(type), computeClassRelationFromType(type));
   }
 
   static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
@@ -1807,14 +1818,16 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // The iterator is shared between initializer, condition and body.
     HInstruction iterator;
+    StaticType iteratorType = getStaticForInIteratorType(node);
 
     void buildInitializer() {
-      AbstractValue mask = _typeInferenceMap.typeOfIterator(node);
+      AbstractValue receiverType = _typeInferenceMap.typeOfIterator(node);
       node.iterable.accept(this);
       HInstruction receiver = pop();
       _pushDynamicInvocation(
           node,
-          mask,
+          getStaticType(node.iterable),
+          receiverType,
           Selectors.iterator,
           <HInstruction>[receiver],
           const <DartType>[],
@@ -1823,10 +1836,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     HInstruction buildCondition() {
-      AbstractValue mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
+      AbstractValue receiverType =
+          _typeInferenceMap.typeOfIteratorMoveNext(node);
       _pushDynamicInvocation(
           node,
-          mask,
+          iteratorType,
+          receiverType,
           Selectors.moveNext,
           <HInstruction>[iterator],
           const <DartType>[],
@@ -1837,9 +1852,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildBody() {
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInCurrent(node);
-      AbstractValue mask = _typeInferenceMap.typeOfIteratorCurrent(node);
-      _pushDynamicInvocation(node, mask, Selectors.current, [iterator],
-          const <DartType>[], sourceInformation);
+      AbstractValue receiverType =
+          _typeInferenceMap.typeOfIteratorCurrent(node);
+      _pushDynamicInvocation(node, iteratorType, receiverType,
+          Selectors.current, [iterator], const <DartType>[], sourceInformation);
 
       Local loopVariableLocal = localsMap.getLocalVariable(node.variable);
       HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
@@ -1875,6 +1891,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     DartType typeArg = _elementMap.getDartType(node.variable.type);
     InterfaceType instanceType =
         localsHandler.substInContext(new InterfaceType(cls, [typeArg]));
+    // TODO(johnniwinther): This should be the exact type.
+    StaticType staticInstanceType =
+        new StaticType(instanceType, ClassRelation.subtype);
     addImplicitInstantiation(instanceType);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildForInIterator(node);
@@ -1893,10 +1912,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildInitializer() {}
 
     HInstruction buildCondition() {
-      AbstractValue mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
+      AbstractValue receiverType =
+          _typeInferenceMap.typeOfIteratorMoveNext(node);
       _pushDynamicInvocation(
           node,
-          mask,
+          staticInstanceType,
+          receiverType,
           Selectors.moveNext,
           [streamIterator],
           const <DartType>[],
@@ -1907,10 +1928,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     void buildBody() {
-      AbstractValue mask = _typeInferenceMap.typeOfIteratorCurrent(node);
+      AbstractValue receiverType =
+          _typeInferenceMap.typeOfIteratorCurrent(node);
       _pushDynamicInvocation(
           node,
-          mask,
+          staticInstanceType,
+          receiverType,
           Selectors.current,
           [streamIterator],
           const <DartType>[],
@@ -1939,6 +1962,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void finalizerFunction() {
       _pushDynamicInvocation(
           node,
+          staticInstanceType,
           null,
           Selectors.cancel,
           [streamIterator],
@@ -2166,9 +2190,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ir.Expression operand = node.operand;
     operand.accept(this);
 
-    DartType operandType = _getStaticType(operand);
+    StaticType operandType = getStaticType(operand);
     DartType type = _elementMap.getDartType(node.type);
-    if (_elementMap.types.isSubtype(operandType, type)) {
+    if (_elementMap.types.isSubtype(operandType.type, type)) {
       // Skip unneeded casts.
       if (operand is! ir.PropertyGet) {
         // TODO(johnniwinther): Support property get. Currently CFE inserts
@@ -3156,6 +3180,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     _pushDynamicInvocation(
         node,
+        getStaticType(node.receiver),
         _typeInferenceMap.receiverTypeOfGet(node),
         new Selector.getter(_elementMap.getName(node.name)),
         <HInstruction>[receiver],
@@ -3186,6 +3211,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     _pushDynamicInvocation(
         node,
+        getStaticType(node.receiver),
         _typeInferenceMap.receiverTypeOfSet(node, abstractValueDomain),
         new Selector.setter(_elementMap.getName(node.name)),
         <HInstruction>[receiver, value],
@@ -3205,6 +3231,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(sra): Implement direct invocations properly.
     _pushDynamicInvocation(
         node,
+        getStaticType(node.receiver),
         _typeInferenceMap.receiverTypeOfDirectGet(node),
         new Selector.getter(_elementMap.getMember(node.target).memberName),
         <HInstruction>[receiver],
@@ -3770,8 +3797,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     Selector selector =
         new Selector.callClosure(0, const <String>[], typeArguments.length);
-    push(new HInvokeClosure(
-        selector, inputs, abstractValueDomain.dynamicType, typeArguments));
+    StaticType receiverStaticType =
+        getStaticType(invocation.arguments.positional[1]);
+    AbstractValue receiverType = abstractValueDomain.createFromStaticType(
+        receiverStaticType.type, receiverStaticType.relation);
+    push(new HInvokeClosure(selector, receiverType, inputs,
+        abstractValueDomain.dynamicType, typeArguments));
 
     return true;
   }
@@ -4398,11 +4429,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _pushDynamicInvocation(
       ir.Node node,
-      AbstractValue mask,
+      StaticType staticReceiverType,
+      AbstractValue receiverType,
       Selector selector,
       List<HInstruction> arguments,
       List<DartType> typeArguments,
       SourceInformation sourceInformation) {
+    AbstractValue typeBound = abstractValueDomain.createFromStaticType(
+        staticReceiverType.type, staticReceiverType.relation);
+    receiverType = receiverType == null
+        ? typeBound
+        : abstractValueDomain.intersection(receiverType, typeBound);
+
     // We prefer to not inline certain operations on indexables,
     // because the constant folder will handle them better and turn
     // them into simpler instructions that allow further
@@ -4437,14 +4475,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return false;
     }
 
-    MemberEntity element = closedWorld.locateSingleMember(selector, mask);
+    MemberEntity element =
+        closedWorld.locateSingleMember(selector, receiverType);
     if (element != null &&
         !element.isField &&
         !(element.isGetter && selector.isCall) &&
         !(element.isFunction && selector.isGetter) &&
         !isOptimizableOperation(selector, element)) {
-      if (_tryInlineMethod(element, selector, mask, arguments, typeArguments,
-          node, sourceInformation)) {
+      if (_tryInlineMethod(element, selector, receiverType, arguments,
+          typeArguments, node, sourceInformation)) {
         return;
       }
     }
@@ -4463,20 +4502,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
     inputs.addAll(arguments);
 
-    AbstractValue type = _typeInferenceMap.selectorTypeOf(selector, mask);
+    AbstractValue resultType =
+        _typeInferenceMap.resultTypeOfSelector(selector, receiverType);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(selector, mask, element, inputs,
-          isIntercepted, type, sourceInformation));
+      push(new HInvokeDynamicGetter(selector, receiverType, element, inputs,
+          isIntercepted, resultType, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(selector, mask, element, inputs,
-          isIntercepted, type, sourceInformation));
+      push(new HInvokeDynamicSetter(selector, receiverType, element, inputs,
+          isIntercepted, resultType, sourceInformation));
     } else if (selector.isClosureCall) {
       assert(!isIntercepted);
-      push(new HInvokeClosure(selector, inputs, type, typeArguments)
+      push(new HInvokeClosure(
+          selector, receiverType, inputs, resultType, typeArguments)
         ..sourceInformation = sourceInformation);
     } else {
-      push(new HInvokeDynamicMethod(
-          selector, mask, inputs, type, typeArguments, sourceInformation,
+      push(new HInvokeDynamicMethod(selector, receiverType, inputs, resultType,
+          typeArguments, sourceInformation,
           isIntercepted: isIntercepted));
     }
   }
@@ -4681,6 +4722,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
     _pushDynamicInvocation(
         node,
+        getStaticType(node.receiver),
         _typeInferenceMap.receiverTypeOfInvocation(node, abstractValueDomain),
         selector,
         <HInstruction>[receiver]..addAll(_visitArgumentsForDynamicTarget(
@@ -6707,4 +6749,25 @@ class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
       switchIndex++;
     }
   }
+}
+
+class StaticType {
+  final DartType type;
+  final ClassRelation relation;
+
+  StaticType(this.type, this.relation);
+
+  @override
+  int get hashCode => type.hashCode * 13 + relation.hashCode * 19;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    return other is StaticType &&
+        type == other.type &&
+        relation == other.relation;
+  }
+
+  @override
+  String toString() => 'StaticType($type,$relation)';
 }

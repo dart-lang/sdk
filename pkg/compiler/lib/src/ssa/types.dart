@@ -29,9 +29,9 @@ class AbstractValueFactory {
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 
-  static AbstractValue inferredTypeForSelector(Selector selector,
+  static AbstractValue inferredResultTypeForSelector(Selector selector,
       AbstractValue receiver, GlobalTypeInferenceResults results) {
-    return results.typeOfSelector(selector, receiver) ??
+    return results.resultTypeOfSelector(selector, receiver) ??
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 

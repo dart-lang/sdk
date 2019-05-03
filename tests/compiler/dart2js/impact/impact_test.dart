@@ -26,10 +26,7 @@ main(List<String> args) {
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        libDirectory: libDirectory,
-        args: args,
-        testOmit: false,
-        testFrontend: true);
+        libDirectory: libDirectory, args: args, testOmit: false);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
@@ -38,7 +35,6 @@ main(List<String> args) {
         libDirectory: libDirectory,
         args: args,
         testOmit: false,
-        testFrontend: true,
         testCFEConstants: true);
   });
 }
@@ -93,6 +89,9 @@ class ImpactDataComputer extends DataComputer<Features> {
     actualMap[id] = new ActualData<Features>(
         id, features, computeSourceSpanFromTreeNode(node), member);
   }
+
+  @override
+  bool get testFrontend => true;
 
   @override
   DataInterpreter<Features> get dataValidator =>

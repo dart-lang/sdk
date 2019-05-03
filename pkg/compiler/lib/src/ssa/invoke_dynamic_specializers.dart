@@ -29,8 +29,8 @@ class InvokeDynamicSpecializer {
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       JClosedWorld closedWorld) {
-    return AbstractValueFactory.inferredTypeForSelector(
-        instruction.selector, instruction.mask, results);
+    return AbstractValueFactory.inferredResultTypeForSelector(
+        instruction.selector, instruction.receiverType, results);
   }
 
   HInstruction tryConvertToBuiltin(
@@ -212,8 +212,9 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     }
     AbstractValue receiverType =
         instruction.getDartReceiver(closedWorld).instructionType;
-    AbstractValue elementType = AbstractValueFactory.inferredTypeForSelector(
-        instruction.selector, receiverType, results);
+    AbstractValue elementType =
+        AbstractValueFactory.inferredResultTypeForSelector(
+            instruction.selector, receiverType, results);
     if (abstractValueDomain.isTypedArray(receiverType).isDefinitelyTrue) {
       elementType = abstractValueDomain.excludeNull(elementType);
     }

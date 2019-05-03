@@ -23,8 +23,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('type_promotion_data'));
-    await checkTests(dataDir, new TypePromotionDataComputer(),
-        args: args, testFrontend: true);
+    await checkTests(dataDir, new TypePromotionDataComputer(), args: args);
   });
 }
 
@@ -55,6 +54,9 @@ class TypePromotionDataComputer extends DataComputer<String> {
     new TypePromotionIrComputer(compiler.reporter, actualMap, typeMaps)
         .run(node);
   }
+
+  @override
+  bool get testFrontend => true;
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();

@@ -11,6 +11,9 @@ var field1b;
 /*element: field1c:init,read,write*/
 var field1c;
 
+// Invocations of static/top level fields are converted into 'field1d.call(...)`
+// so we don't have an invocation of the field but instead an additional dynamic
+// call to 'call'.
 /*element: field1d:init,read*/
 var field1d;
 
@@ -30,6 +33,9 @@ get field2c => 42;
 /*element: field2c=:write*/
 set field2c(_) {}
 
+// Invocations of static/top level getters are converted into
+// 'field2d.call(...)` so we don't have an invocation of the field but instead
+// an additional dynamic call to 'call'.
 /*element: field2d:read*/
 get field2d => 42;
 

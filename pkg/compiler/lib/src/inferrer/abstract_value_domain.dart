@@ -8,6 +8,7 @@ import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
+import '../ir/static_type.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -160,6 +161,11 @@ abstract class AbstractValueDomain {
   /// The [AbstractValue] that represents a non-null instance at runtime of the
   /// `Stream` class used for the `async*` implementation.
   AbstractValue get asyncStarStreamType;
+
+  /// Creates an [AbstractValue] corresponding to an expression of the given
+  /// static [type] and [classRelation].
+  AbstractValue createFromStaticType(DartType type,
+      [ClassRelation classRelation = ClassRelation.subtype]);
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);

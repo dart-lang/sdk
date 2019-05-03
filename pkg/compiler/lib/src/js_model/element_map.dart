@@ -209,9 +209,9 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred type of the [parameter].
   AbstractValue getInferredTypeOfParameter(Local parameter);
 
-  /// Returns the inferred type of a dynamic [selector] access on the
+  /// Returns the inferred result type of a dynamic [selector] access on the
   /// [receiver].
-  AbstractValue selectorTypeOf(Selector selector, AbstractValue receiver);
+  AbstractValue resultTypeOfSelector(Selector selector, AbstractValue receiver);
 
   /// Returns the returned type annotation in the [nativeBehavior].
   AbstractValue typeFromNativeBehavior(

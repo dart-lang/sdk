@@ -24,18 +24,12 @@ main(List<String> args) {
     print(' Test with enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(false),
-        args: args,
-        testOmit: false,
-        testFrontend: true,
-        testCFEConstants: true);
+        args: args, testOmit: false, testCFEConstants: true);
     print('------------------------------------------------------------------');
     print(' Test without enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(true),
-        args: args,
-        testOmit: false,
-        testFrontend: true,
-        testCFEConstants: true);
+        args: args, testOmit: false, testCFEConstants: true);
   });
 }
 
@@ -117,6 +111,9 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
     actualMap[id] = new ActualData<Features>(
         id, features, computeSourceSpanFromTreeNode(node), member);
   }
+
+  @override
+  bool get testFrontend => true;
 
   @override
   DataInterpreter<Features> get dataValidator =>

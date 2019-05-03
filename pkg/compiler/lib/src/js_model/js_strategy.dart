@@ -267,7 +267,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue inferredIndexType(ir.ForInStatement node) {
-    return AbstractValueFactory.inferredTypeForSelector(
+    return AbstractValueFactory.inferredResultTypeForSelector(
         new Selector.index(), typeOfIterator(node), _globalInferenceResults);
   }
 
@@ -284,8 +284,8 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
-  AbstractValue selectorTypeOf(Selector selector, AbstractValue mask) {
-    return AbstractValueFactory.inferredTypeForSelector(
+  AbstractValue resultTypeOfSelector(Selector selector, AbstractValue mask) {
+    return AbstractValueFactory.inferredResultTypeForSelector(
         selector, mask, _globalInferenceResults);
   }
 

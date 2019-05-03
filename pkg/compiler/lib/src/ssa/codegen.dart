@@ -1984,7 +1984,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(new StaticUse.directInvoke(
           target, selector.callStructure, node.typeArguments));
     } else {
-      AbstractValue mask = getOptimizedSelectorFor(node, selector, node.mask);
+      AbstractValue mask =
+          getOptimizedSelectorFor(node, selector, node.receiverType);
       _registry.registerDynamicUse(
           new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
@@ -1999,7 +2000,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(new StaticUse.directSet(node.element));
     } else {
       Selector selector = node.selector;
-      AbstractValue mask = getOptimizedSelectorFor(node, selector, node.mask);
+      AbstractValue mask =
+          getOptimizedSelectorFor(node, selector, node.receiverType);
       _registry.registerDynamicUse(
           new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
@@ -2016,7 +2018,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(new StaticUse.directGet(node.element));
     } else {
       Selector selector = node.selector;
-      AbstractValue mask = getOptimizedSelectorFor(node, selector, node.mask);
+      AbstractValue mask =
+          getOptimizedSelectorFor(node, selector, node.receiverType);
       _registry.registerDynamicUse(
           new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }

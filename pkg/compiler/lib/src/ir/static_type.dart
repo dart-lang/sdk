@@ -1092,6 +1092,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitFunctionExpression(ir.FunctionExpression node) {
+    TypeMap beforeClosure =
+        typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
+    typeMap = typeMap.remove(variableScopeModel.assignedVariables);
     ir.DartType returnType = super.visitFunctionExpression(node);
     Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
     _currentVariables = new Set<ir.VariableDeclaration>();
@@ -1100,6 +1103,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     handleFunctionExpression(node);
     _invalidatedVariables.removeAll(_currentVariables);
     _currentVariables = _oldVariables;
+    typeMap = beforeClosure;
     return returnType;
   }
 
@@ -1335,7 +1339,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitFunctionDeclaration(ir.FunctionDeclaration node) {
     TypeMap beforeClosure =
-        typeMap = typeMap.remove(variableScopeModel.assignedVariables);
+        typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
+    typeMap = typeMap.remove(variableScopeModel.assignedVariables);
     Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
     _currentVariables = new Set<ir.VariableDeclaration>();
     visitSignature(node.function);
