@@ -7,9 +7,9 @@
 import "package:expect/expect.dart";
 
 // Default values are not allowed on typedefs.
-typedef int F1({x = 3, y}); //# 01: compile-time error
+typedef F1({x = 3, y}); //# 01: compile-time error
 
-typedef int functype({x, y, z});
+typedef functype({x, y, z});
 
 int topF({x = 3, y: 5, z}) => x * y * (z ?? 2);
 
@@ -35,7 +35,7 @@ class A {
 
 main() {
   // Reference the type, or dart2js won't see that the declaration is invalid
-  F1 _ = null; // //# 01: continued
+  F1 _ = null; //# 01: continued
 
   var a = new A();
 

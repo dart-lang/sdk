@@ -161,35 +161,35 @@ class LocalFunctionTest {
   }
 
   static testExceptions() {
-    var f = (int n) => n + 1;
+    dynamic f = (int n) => n + 1;
     Expect.equals(2, f(1));
     Expect.equals(true, f is Function);
     Expect.equals(true, f is Object);
     Expect.equals(true, f.toString().startsWith("Closure"));
     bool exception_caught = false;
     try {
-      f(1, 2); //# 01: compile-time error
+      f(1, 2);
     } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
-      f(); //# 02: compile-time error
+      f();
     } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
     exception_caught = false;
     try {
-      f.xyz(0); //# 03: compile-time error
+      f.xyz(0);
     } on NoSuchMethodError catch (e) {
       exception_caught = true;
     }
     Expect.equals(true, exception_caught);
 
     // Overwrite closure value.
-    f = 3; //# 04: compile-time error
+    f = 3;
     exception_caught = false;
     try {
       f(1);
