@@ -28,6 +28,7 @@ RawLibrary* LoadTestScript(const char* script,
   {
     TransitionVMToNative transition(Thread::Current());
     api_lib = TestCase::LoadTestScript(script, resolver, lib_uri);
+    EXPECT_VALID(api_lib);
   }
   auto& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
