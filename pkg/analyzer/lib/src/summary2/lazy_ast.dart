@@ -1108,6 +1108,16 @@ class LazyMethodDeclaration {
     return LazyAst.getReturnType(node);
   }
 
+  static bool isAbstract(MethodDeclaration node) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return lazy.data.methodDeclaration_body.kind ==
+          LinkedNodeKind.emptyFunctionBody;
+    } else {
+      return node.isAbstract;
+    }
+  }
+
   static void readBody(
     AstBinaryReader reader,
     MethodDeclaration node,

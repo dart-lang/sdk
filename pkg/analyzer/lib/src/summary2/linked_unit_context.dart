@@ -772,7 +772,7 @@ class LinkedUnitContext {
     } else if (node is FunctionDeclaration) {
       return false;
     } else if (node is MethodDeclaration) {
-      return node.isAbstract;
+      return LazyMethodDeclaration.isAbstract(node);
     }
     throw UnimplementedError('${node.runtimeType}');
   }
