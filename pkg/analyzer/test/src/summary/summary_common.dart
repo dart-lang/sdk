@@ -83,6 +83,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
   /// Get access to the linked defining compilation unit.
   LinkedUnit get definingUnit => linked.units[0];
 
+  FeatureSet get enableNnbd =>
+      FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+
   /// TODO(scheglov) rename "Const" to "Expr" everywhere
   void assertUnlinkedConst(UnlinkedExpr constExpr, String sourceRepresentation,
       {bool isValidConst: true,
@@ -8730,8 +8733,7 @@ class C {
   }
 
   test_field_late() {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     UnlinkedClass cls = serializeClassText('class C { late int i; }');
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);
     expect(variable, isNotNull);
@@ -8779,8 +8781,7 @@ class C {
   }
 
   test_field_static_final_late() {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     UnlinkedVariable variable =
         serializeClassText('class C { static late final int i = 0; }')
             .fields[0];
@@ -8803,8 +8804,7 @@ class C {
   }
 
   test_field_static_late() {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     UnlinkedVariable variable =
         serializeClassText('class C { static late int i; }').fields[0];
     expect(variable.isLate, isTrue);
@@ -11648,8 +11648,7 @@ var v;''';
   }
 
   test_variable_late() {
-    featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+    featureSet = enableNnbd;
     UnlinkedVariable variable =
         serializeVariableText('late int i;', variableName: 'i');
     expect(variable.isLate, isTrue);
