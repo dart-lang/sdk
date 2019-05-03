@@ -1148,13 +1148,11 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
-      // TODO(jwren) Comment in this functionality after it is working end to
-      //  end for IJ or VS Code
-//      var resolvedUnit = await server.getResolvedUnit(file);
-//      if (resolvedUnit != null) {
-//        refactoring = new MoveFileRefactoring(
-//            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
-//      }
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = new MoveFileRefactoring(
+            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
+      }
     }
     if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
