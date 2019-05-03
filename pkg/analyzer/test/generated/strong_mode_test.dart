@@ -2698,8 +2698,12 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', '((T) → T, (T, T) → int, (T) → T) → void');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -2725,8 +2729,12 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', '(List<T>, (T, T) → int, List<T>) → void');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -2752,8 +2760,12 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', '(T, (T, T) → int, T) → void');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 

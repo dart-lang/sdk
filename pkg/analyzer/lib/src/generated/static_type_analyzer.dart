@@ -10,10 +10,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -1528,8 +1530,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _inferGenericInvocationExpression(InvocationExpression node) {
     ArgumentList arguments = node.argumentList;
     var type = node.function.staticType;
-    var freshType =
-        type is FunctionType ? new FunctionTypeImpl.fresh(type) : type;
+    var freshType = _getFreshType(type);
 
     FunctionType inferred = _inferGenericInvoke(
         node, freshType, node.typeArguments, arguments, node.function);
@@ -1961,6 +1962,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     function.shareParameters(type.parameters);
     function.type = new FunctionTypeImpl(function);
     return new FunctionTypeImpl.fresh(function.type);
+  }
+
+  static DartType _getFreshType(DartType type) {
+    if (type is FunctionType) {
+      if (AnalysisDriver.useSummary2) {
+        var parameters = getFreshTypeParameters(type.typeFormals);
+        return parameters.applyToFunctionType(type);
+      } else {
+        return new FunctionTypeImpl.fresh(type);
+      }
+    } else {
+      return type;
+    }
   }
 }
 
