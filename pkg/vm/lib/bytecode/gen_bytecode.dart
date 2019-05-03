@@ -57,10 +57,11 @@ void generateBytecode(
   Map<String, String> environmentDefines: const <String, String>{},
   ErrorReporter errorReporter,
   List<Library> libraries,
+  ClassHierarchy hierarchy,
 }) {
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(component,
+  hierarchy ??= new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   final constantsBackend = new VmConstantsBackend(coreTypes);
