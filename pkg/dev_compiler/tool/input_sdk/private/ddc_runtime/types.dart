@@ -201,7 +201,9 @@ class BottomType extends DartType {
   toString() => 'bottom';
 }
 
-final bottom = BottomType();
+// TODO(vsm): We reify bottom as Null.  We will revisit this with
+// non-nullable types.
+final bottom = unwrapType(Null);
 
 class JSObjectType extends DartType {
   toString() => 'NativeJavaScriptObject';
