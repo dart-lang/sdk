@@ -8173,6 +8173,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   String get defaultValueCode {
+    if (linkedNode != null) {
+      return linkedContext.getDefaultValueCode(linkedNode);
+    }
+
     if (unlinkedParam != null) {
       if (unlinkedParam.initializer?.bodyExpr == null) {
         return null;

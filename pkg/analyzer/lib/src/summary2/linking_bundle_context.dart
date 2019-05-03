@@ -130,7 +130,7 @@ class LinkingBundleContext {
     } else if (p.isOptionalPositional) {
       return LinkedNodeFormalParameterKind.optionalPositional;
     } else if (p.isOptionalNamed) {
-      return LinkedNodeFormalParameterKind.requiredNamed;
+      return LinkedNodeFormalParameterKind.optionalNamed;
     } else {
       throw StateError('Unexpected parameter kind: $p');
     }
