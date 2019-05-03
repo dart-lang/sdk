@@ -656,7 +656,8 @@ class Debugger {
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   BreakpointLocation* GetBreakpointLocation(const Script& script,
                                             TokenPosition token_pos,
-                                            intptr_t requested_column);
+                                            intptr_t requested_column,
+                                            bool is_resolved = false);
   void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
